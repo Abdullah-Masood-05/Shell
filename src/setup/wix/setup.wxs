@@ -75,7 +75,21 @@
 						<File Id='terminal.nss' Source='$(var.bin)\imports\terminal.nss' />
 					</Component>
 				<Directory Id='LANG' Name='lang'>
-					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}' NeverOverwrite='yes'>
+					<!--
+						The original seven translations keep their component, GUID and file
+						list unchanged, so a major upgrade keeps resolving them to the same
+						component. Every other imports\lang\*.nss is harvested by the Files
+						element in the APPLICATION feature below, one generated component
+						per file, so a new translation ships without editing this file.
+
+						NeverOverwrite is not set, for the same reason as on CONFIG: it
+						resolved LANG to "install nothing" during costing, and the removal
+						of the old product then deleted every language file. Without it,
+						translations are refreshed on upgrade unless the user edited them
+						(Windows Installer keeps an unversioned file whose Modified date is
+						later than its Create date).
+					-->
+					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}'>
 						<File Id='en.nss' Source='$(var.bin)\imports\lang\en.nss' />
 						<File Id='ar.nss' Source='$(var.bin)\imports\lang\ar.nss' />
 						<File Id='de_DE.nss' Source='$(var.bin)\imports\lang\de-DE.nss' />
@@ -135,6 +149,16 @@
 			<ComponentRef Id='CONFIG' />
 			<ComponentRef Id='IMPORTS' />
 			<ComponentRef Id='LANG' />
+			<!-- All other translations; the ones already in LANG are excluded. -->
+			<Files Directory='LANG' Include='$(var.bin)\imports\lang\*.nss'>
+				<Exclude Files='$(var.bin)\imports\lang\en.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ar.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\de-DE.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ko.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\no.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\pt-BR.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\zh-CN.nss' />
+			</Files>
 			<ComponentRef Id='CLEANUP' />
 			<ComponentRef Id='StartMenuShortcut' />
 			<ComponentRef Id='DisplayIcon' />
