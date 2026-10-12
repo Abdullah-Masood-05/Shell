@@ -22,7 +22,7 @@ namespace Nilesoft
 	*/
 	struct ConfigLocation
 	{
-		enum class Source { registry, user, install, none };
+		enum class Source { registry, appdata, install, none };
 
 		static constexpr auto FileName = L"shell.nss";
 		static constexpr auto ImportsName = L"imports";
@@ -39,7 +39,7 @@ namespace Nilesoft
 			switch(source)
 			{
 				case Source::registry: return L"registry";
-				case Source::user: return L"user";
+				case Source::appdata: return L"appdata";
 				case Source::install: return L"install";
 				default: return L"none";
 			}
@@ -122,7 +122,7 @@ namespace Nilesoft
 			if(auto user = UserConfig().move(); IsFile(user))
 			{
 				location.path = user.move();
-				location.source = Source::user;
+				location.source = Source::appdata;
 				return location;
 			}
 

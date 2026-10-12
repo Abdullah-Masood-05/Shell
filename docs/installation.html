@@ -227,8 +227,16 @@
 			<td>Print the full path of the configuration file in use.</td>
 		</tr>
 		<tr>
+			<td class="syntax-keyword">-status</td>
+			<td>Print a JSON object describing the installation: version, registration mode
+				(<code>none</code>, <code>user</code>, <code>machine</code> or <code>both</code>) and the DLL each
+				registration points at, the Windows 11 menu redirect state, the configuration file in use and where
+				it was found (<code>registry</code>, <code>appdata</code> or <code>install</code>), and the per-user
+				configuration folder. Only reads; needs no administrator rights. Exit code 0 (1 if the output could not be written).</td>
+		</tr>
+		<tr>
 			<td class="syntax-keyword">-out:&lt;file&gt;</td>
-			<td>Write the output of the <code>-config:*</code> commands to a file (UTF-8) instead of
+			<td>Write the output of the <code>-config:*</code> and <code>-status</code> commands to a file (UTF-8) instead of
 				standard output. Without it, output goes to standard output when that is a pipe or a file,
 				otherwise to the console the command was started from.</td>
 		</tr>

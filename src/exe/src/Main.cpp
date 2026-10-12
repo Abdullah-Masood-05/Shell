@@ -1176,6 +1176,201 @@ namespace ConfigCommand
 }
 
 /*
+	-status: one JSON object describing the installation, for the settings GUI.
+	Only reads (registry, file system); needs no elevation.
+
+	{
+	  "version": "1.9.19",
+	  "elevated": false,
+	  "installDir": "C:\\Program Files\\Nilesoft Shell",
+	  "dll": { "path": "...\\shell.dll", "exists": true },
+	  "registration": {
+	    "mode": "none" | "user" | "machine" | "both",
+	    "machine": { "registered": bool, "dll": "<InprocServer32>" | null },
+	    "user":    { "registered": bool, "dll": "<InprocServer32>" | null }
+	  },
+	  "win11": {
+	    "applicable": bool,            // Windows 11 or later
+	    "classicMenu": bool,           // the modern menu is redirected for this user
+	    "machineTreatAs": state,       // HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-...}\TreatAs
+	    "userTreatAs": state,          // the same under HKCU\Software\Classes
+	    "userInprocServer32": bool,    // HKCU ...\{86ca1aa0-...}\InprocServer32 present
+	    "userInprocServer32Ours": bool // ... and written by -register -user -treat
+	  },                               // state: "absent" | "ours" | "foreign" | "inaccessible"
+	  "config": {
+	    "path": "...\\shell.nss",
+	    "source": "registry" | "appdata" | "install" | "none",
+	    "exists": bool,
+	    "registryValue": "<HKCU config value, rooted>" | null
+	  },
+	  "userConfigDir": "%APPDATA%\\Nilesoft\\Shell" (expanded) | null
+	}
+*/
+namespace StatusCommand
+{
+	// Appends `text` as a JSON string literal, quotes included. Output is
+	// UTF-16 here and converted to UTF-8 on write, so only what JSON requires
+	// is escaped: '"', '\', control characters, and unpaired surrogates
+	// (which have no UTF-8 form, so they are kept as \u escapes).
+	static void quote(string &json, const wchar_t *text)
+	{
+		json += L'"';
+		for(auto ch = text ? text : L""; *ch; ch++)
+		{
+			auto c = *ch;
+			switch(c)
+			{
+				case L'"': json += L"\\\""; continue;
+				case L'\\': json += L"\\\\"; continue;
+				case L'\b': json += L"\\b"; continue;
+				case L'\f': json += L"\\f"; continue;
+				case L'\n': json += L"\\n"; continue;
+				case L'\r': json += L"\\r"; continue;
+				case L'\t': json += L"\\t"; continue;
+			}
+
+			bool lone = false;
+			if(IS_HIGH_SURROGATE(c))
+				lone = !IS_LOW_SURROGATE(ch[1]);
+			else if(IS_LOW_SURROGATE(c))
+				lone = true; // a valid low surrogate is consumed with its high one below
+
+			if(c < 0x20 || lone)
+			{
+				wchar_t escaped[8]{};
+				::swprintf_s(escaped, L"\\u%04x", static_cast<unsigned>(c));
+				json += escaped;
+			}
+			else if(IS_HIGH_SURROGATE(c))
+			{
+				json += c;
+				json += *++ch;
+			}
+			else
+			{
+				json += c;
+			}
+		}
+		json += L'"';
+	}
+
+	static void quote_or_null(string &json, const string &text)
+	{
+		if(text.empty())
+			json += L"null";
+		else
+			quote(json, text);
+	}
+
+	static const wchar_t *boolean(bool value)
+	{
+		return value ? L"true" : L"false";
+	}
+
+	static const wchar_t *state_name(TreatAsState state)
+	{
+		switch(state)
+		{
+			case TreatAsState::absent: return L"absent";
+			case TreatAsState::ours: return L"ours";
+			case TreatAsState::foreign: return L"foreign";
+			default: return L"inaccessible";
+		}
+	}
+
+	static string build()
+	{
+		auto install_dir = InstallDirectory().move();
+		auto dll_path = IO::Path::Combine(install_dir, dll_name).move();
+		auto machine = RegistryConfig::IsRegistered(RegScope::Machine);
+		auto user = RegistryConfig::IsRegistered(RegScope::User);
+		auto location = ConfigLocation::Resolve(install_dir);
+		auto user_dir = ConfigLocation::UserDirectory().move();
+
+		auto win11 = Windows::Version::Instance().IsWindows11OrGreater();
+		auto machine_treat = QueryTreatAs();
+		auto user_treat_state = QueryUserTreatAs();
+		auto user_inproc = RegistryConfig::KeyExists(HKEY_CURRENT_USER, UserTreatAsInproc);
+		string value;
+		auto user_inproc_ours = user_inproc &&
+			RegistryConfig::GetString(HKEY_CURRENT_USER, UserTreatAsParent, UserTreatAsMarker, value);
+		// The classic-menu tweak: a server key with no (or an empty) path.
+		auto user_inproc_blank = user_inproc &&
+			(!RegistryConfig::GetString(HKEY_CURRENT_USER, UserTreatAsInproc, nullptr, value) || value.empty());
+
+		// Whether Explorer shows this user the classic menu (which Shell takes
+		// over) instead of the Windows 11 one. COM resolves the CLSID through
+		// the merged view, where the HKCU key shadows HKLM's: a per-user TreatAs
+		// or empty InprocServer32 decides it, else the machine TreatAs does.
+		auto classic = win11 &&
+			(user_treat_state == TreatAsState::ours || user_inproc_blank ||
+			 (user_treat_state == TreatAsState::absent && machine_treat == TreatAsState::ours));
+
+		string json;
+		json += L"{\r\n  \"version\": ";
+		quote(json, APP_VERSION);
+		json += L",\r\n  \"elevated\": ";
+		json += boolean(is_elevated);
+		json += L",\r\n  \"installDir\": ";
+		quote(json, install_dir);
+
+		json += L",\r\n  \"dll\": { \"path\": ";
+		quote(json, dll_path);
+		json += L", \"exists\": ";
+		json += boolean(ConfigLocation::IsFile(dll_path));
+		json += L" }";
+
+		json += L",\r\n  \"registration\": {\r\n    \"mode\": ";
+		quote(json, RegistryConfig::RegistrationMode());
+		json += L",\r\n    \"machine\": { \"registered\": ";
+		json += boolean(machine);
+		json += L", \"dll\": ";
+		quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::Machine));
+		json += L" },\r\n    \"user\": { \"registered\": ";
+		json += boolean(user);
+		json += L", \"dll\": ";
+		quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::User));
+		json += L" }\r\n  }";
+
+		json += L",\r\n  \"win11\": {\r\n    \"applicable\": ";
+		json += boolean(win11);
+		json += L",\r\n    \"classicMenu\": ";
+		json += boolean(classic);
+		json += L",\r\n    \"machineTreatAs\": ";
+		quote(json, state_name(machine_treat));
+		json += L",\r\n    \"userTreatAs\": ";
+		quote(json, state_name(user_treat_state));
+		json += L",\r\n    \"userInprocServer32\": ";
+		json += boolean(user_inproc);
+		json += L",\r\n    \"userInprocServer32Ours\": ";
+		json += boolean(user_inproc_ours);
+		json += L"\r\n  }";
+
+		json += L",\r\n  \"config\": {\r\n    \"path\": ";
+		quote(json, location.path);
+		json += L",\r\n    \"source\": ";
+		quote(json, ConfigLocation::SourceName(location.source));
+		json += L",\r\n    \"exists\": ";
+		json += boolean(location.source != ConfigLocation::Source::none);
+		json += L",\r\n    \"registryValue\": ";
+		quote_or_null(json, location.configured);
+		json += L"\r\n  }";
+
+		json += L",\r\n  \"userConfigDir\": ";
+		quote_or_null(json, user_dir);
+		json += L"\r\n}";
+		return json.move();
+	}
+
+	static int run(const wchar_t *out_path)
+	{
+		CliOutput out(out_path);
+		out.line(build());
+		return out.ok() ? cli_ok : cli_failed;
+	}
+}
+
+/*
 class Console
 {
 	FILE *_handle = nullptr;
@@ -1506,6 +1701,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// -config:<init|reset|path>, -force, -out:<file>
 		bool config = false, force = false;
 		string config_command, out_path;
+		// -status [-out:<file>]
+		bool status = false;
         for(auto op : cmdline)
         {
             if(op->Kind == '-' || op->Kind == '/')
@@ -1542,6 +1739,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					out_path = op->Value;
 				}
+				else if(op->has_name(L"status"))
+				{
+					status = true;
+				}
                 else if(op->has_name(L"user"))
                 {
 					// Per-user (HKCU) register/unregister; no elevation.
@@ -1570,6 +1771,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		{
 			//check();
 			return 0;
+		}
+
+		// Read-only, never elevated, never interactive; handled on its own.
+		if(status)
+		{
+			int ret = cli_usage;
+			if(config)
+			{
+				CliOutput out(out_path.empty() ? nullptr : out_path.c_str());
+				out.line(L"usage: -status and -config:* cannot be combined.");
+			}
+			else
+				ret = StatusCommand::run(out_path.empty() ? nullptr : out_path.c_str());
+			_log->close();
+			return ret;
 		}
 
 		// Never elevated, never interactive; handled on its own.
@@ -1943,6 +2159,8 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"-config:reset\tBack the per-user folder up to\r\n"
                 L"\t\tbackup-<timestamp>, then copy the defaults again.\r\n"
                 L"-config:path\tPrint the config file in use.\r\n"
+                L"-status\t\tPrint registration, Windows 11 menu and\r\n"
+                L"\t\tconfig state as JSON (read-only).\r\n"
                 L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"
                 L"\t\tinstead of stdout / the console.\r\n\r\n"
                 //L"-runas:N\t\tLaunch with elevated privileges.\r\n"
