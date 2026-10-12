@@ -176,9 +176,6 @@
     <ClInclude Include="src\Include\Tip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Include\RegistryConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(SolutionDir)shared\Resource\Shell.rc">
