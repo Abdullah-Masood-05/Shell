@@ -151,6 +151,7 @@ export component Segmented inherits Rectangle {
 // A link-styled text button.
 export component Link inherits Rectangle {
     in property <string> text;
+    in property <length> font-size: Tokens.body;
     callback activated;
     width: label.preferred-width;
     height: label.preferred-height;
@@ -160,7 +161,7 @@ export component Link inherits Rectangle {
     label := Text {
         text: root.text;
         color: ta.has-hover ? Tokens.accent.mix(Tokens.text, 0.75) : Tokens.accent;
-        font-size: Tokens.body;
+        font-size: root.font-size;
     }
     ta := TouchArea {
         mouse-cursor: pointer;

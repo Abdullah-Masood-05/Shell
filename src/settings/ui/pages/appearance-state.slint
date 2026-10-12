@@ -1,0 +1,92 @@
+// The Appearance page's bridge to C++ (src/AppearanceController.cpp).
+
+import { PreviewTheme, PreviewMenu } from "../preview/preview-types.slint";
+
+// One theme key as the page shows it. C++ fills every field; `number`,
+// `number2` and `color` hold the effective value (the built-in default when
+// nothing sets the key), `text` the literal as written ("" when unset).
+export struct ThemeField {
+    key: string,
+    text: string,
+    display: string,    // what a text box shows: the hex colour, the font name
+    number: float,
+    number2: float,
+    color: color,
+    color2: color,      // the second colour of a pair (tip text)
+    display2: string,
+    index: int,
+    overridden: bool,   // this app's value is in effect (saved or pending)
+    pending: bool,      // changed since the last save
+    locked: bool,       // an expression sets it: read-only here
+    origin: string,     // "Set in theme.nss, line 7" / "Built-in default"
+    file-value: string, // what applies without this app's value
+    source-file: string,// the file and line of the user's own assignment ("" when none)
+    source-line: int,
+    error: string,
+}
+
+// Indexes into AppearanceState.fields (the order of kFields in AppearanceController.cpp).
+export global K {
+    out property <int> name: 0;
+    out property <int> dark: 1;
+    out property <int> view: 2;
+    out property <int> bg-color: 3;
+    out property <int> bg-opacity: 4;
+    out property <int> effect: 5;
+    out property <int> tint: 6;
+    out property <int> font-name: 7;
+    out property <int> font-size: 8;
+    out property <int> font-weight: 9;
+    out property <int> menu-radius: 10;
+    out property <int> item-radius: 11;
+    out property <int> border-size: 12;
+    out property <int> border-color: 13;
+    out property <int> shadow: 14;
+    out property <int> shadow-size: 15;
+    out property <int> shadow-offset: 16;
+    out property <int> shadow-opacity: 17;
+    out property <int> item-padding: 18;
+    out property <int> item-margin: 19;
+    out property <int> sep-size: 20;
+    out property <int> sep-color: 21;
+    out property <int> sep-margin: 22;
+    out property <int> text-normal: 23;
+    out property <int> text-select: 24;
+    out property <int> text-disabled: 25;
+    out property <int> back-select: 26;
+    out property <int> back-disabled: 27;
+    out property <int> image-size: 28;
+    out property <int> image-gap: 29;
+}
+
+export global AppearanceState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <[ThemeField]> fields;
+
+    // Preview
+    in property <PreviewTheme> preview;
+    in property <[PreviewTheme]> card-themes;   // auto, modern, classic, white, black
+    in property <PreviewMenu> menu-desktop;
+    in property <[PreviewMenu]> subs-desktop;
+    in property <PreviewMenu> menu-explorer;
+    in property <[PreviewMenu]> subs-explorer;
+    in property <image> wallpaper;
+    in property <image> wallpaper-blurred;
+    in property <string> icon-font: "Segoe Fluent Icons";
+    in-out property <bool> preview-dark: true;  // the simulated Windows app mode
+    in-out property <int> preview-context;      // 0 desktop, 1 File Explorer
+
+    // Fonts (filtered by filter-fonts)
+    in property <[string]> fonts;
+
+    callback set-text(index: int, literal: string);
+    callback set-number(index: int, value: float);
+    callback set-box(index: int, horizontal: float, vertical: float);
+    callback set-color(index: int, value: color);
+    callback set-index(index: int, choice: int);
+    callback reset(index: int);
+    callback set-preview-dark(dark: bool);
+    callback filter-fonts(text: string);
+    callback reload();
+}

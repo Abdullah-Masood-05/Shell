@@ -1,0 +1,646 @@
+// Controls for editing theme keys: a labelled row with the override dot and a
+// reset link, chips, a radius picker, sliders, a colour field with an HSV
+// picker, a font picker and a padding/margin pair.
+//
+// Controls take their value through an `in` property and report edits through
+// a callback; C++ validates and sends the new value back. Widgets that keep
+// their own copy (Slider, SpinBox, LineEdit) are re-synced with `changed`.
+
+import { Slider, LineEdit, SpinBox, ListView, Switch } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { ThemeField } from "../pages/appearance-state.slint";
+import { AppState, Pages } from "../types.slint";
+import { EditorState } from "../editor-types.slint";
+import { Link } from "controls.slint";
+
+// Opens a file at a line in the Config Editor page.
+export global EditorLink {
+    public function open(file: string, line: int) {
+        EditorState.open-at(file, line);
+        AppState.page = Pages.editor;
+    }
+}
+
+// The label column: name, override dot, where the value comes from, reset.
+export component FieldLabel inherits VerticalLayout {
+    in property <string> label;
+    in property <ThemeField> field;
+    in property <string> hint;
+    in property <bool> strong;  // a card title
+    callback reset();
+
+    spacing: 2px;
+    alignment: center;
+
+    HorizontalLayout {
+        spacing: 6px;
+        alignment: start;
+        Text {
+            text: root.label;
+            font-size: Tokens.body;
+            font-weight: root.strong ? 600 : 400;
+            color: root.field.locked ? Tokens.text-3 : Tokens.text;
+            vertical-alignment: center;
+        }
+        if root.field.overridden || root.field.pending: VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 7px;
+                height: 7px;
+                border-radius: 3.5px;
+                background: root.field.overridden ? Tokens.accent : transparent;
+                border-width: root.field.overridden ? 0px : 1.5px;
+                border-color: Tokens.accent;
+                accessible-role: text;
+                accessible-label: root.field.overridden ? "Set by this app" : "Reset pending";
+            }
+        }
+        if (root.field.overridden || root.field.pending) && !root.field.locked: Rectangle {
+            width: reset-row.preferred-width + 8px;
+            border-radius: Tokens.radius-control;
+            background: reset-ta.has-hover ? Tokens.hover : transparent;
+            accessible-role: button;
+            accessible-label: "Reset " + root.label + " to the file's value";
+            accessible-action-default => { root.reset(); }
+            reset-row := HorizontalLayout {
+                x: 4px;
+                spacing: 3px;
+                alignment: center;
+                Image {
+                    source: Icons.restart;
+                    width: 12px;
+                    height: 12px;
+                    y: (parent.height - self.height) / 2;
+                    colorize: Tokens.accent;
+                }
+                Text {
+                    text: "Reset";
+                    font-size: Tokens.caption;
+                    color: Tokens.accent;
+                    vertical-alignment: center;
+                }
+            }
+            reset-ta := TouchArea {
+                mouse-cursor: pointer;
+                clicked => { root.reset(); }
+            }
+        }
+    }
+    Text {
+        text: root.field.locked ? "Set by an expression · " + root.field.origin : root.hint != "" ? root.hint : root.field.origin;
+        font-size: Tokens.caption;
+        color: Tokens.text-3;
+        wrap: word-wrap;
+    }
+    if root.field.locked && root.field.source-file != "": HorizontalLayout {
+        alignment: start;
+        Link {
+            text: "Edit in Config Editor";
+            font-size: Tokens.caption;
+            activated => { EditorLink.open(root.field.source-file, root.field.source-line); }
+        }
+    }
+    if root.field.error != "": Text {
+        text: root.field.error;
+        font-size: Tokens.caption;
+        color: Tokens.danger;
+        wrap: word-wrap;
+    }
+}
+
+// Label on the left, control on the right.
+export component SettingRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <ThemeField> field;
+    in property <string> hint;
+    in property <length> control-width: 220px;
+    callback reset();
+
+    spacing: Tokens.s4;
+    padding-top: Tokens.s1;
+    padding-bottom: Tokens.s1;
+
+    FieldLabel {
+        horizontal-stretch: 1;
+        label: root.label;
+        field: root.field;
+        hint: root.hint;
+        reset => { root.reset(); }
+    }
+    HorizontalLayout {
+        width: root.control-width;
+        alignment: end;
+        VerticalLayout {
+            alignment: center;
+            @children
+        }
+    }
+}
+
+// Label above, control below at full width.
+export component SettingBlock inherits VerticalLayout {
+    in property <string> label;
+    in property <ThemeField> field;
+    in property <string> hint;
+    callback reset();
+
+    spacing: Tokens.s2;
+    padding-top: Tokens.s1;
+    padding-bottom: Tokens.s1;
+
+    FieldLabel {
+        label: root.label;
+        field: root.field;
+        hint: root.hint;
+        reset => { root.reset(); }
+    }
+    @children
+}
+
+// A thin divider between rows of a card.
+export component RowDivider inherits Rectangle {
+    height: 1px;
+    background: Tokens.stroke;
+}
+
+// A row of small toggle chips (one selected).
+export component ChipGroup inherits HorizontalLayout {
+    in property <[string]> options;
+    in property <int> selected;
+    in property <bool> enabled: true;
+    callback changed(index: int);
+
+    spacing: Tokens.s1;
+    accessible-role: tab-list;
+
+    for option[i] in root.options: Rectangle {
+        height: 30px;
+        min-width: label.preferred-width + 12px;
+        horizontal-stretch: 1;
+        border-radius: Tokens.radius-control;
+        border-width: 1px;
+        border-color: i == root.selected ? Tokens.accent : Tokens.stroke;
+        background: i == root.selected ? Tokens.accent : ta.has-hover && root.enabled ? Tokens.hover : Tokens.layer-2;
+        opacity: root.enabled ? 1 : 0.5;
+        animate background { duration: Tokens.fast; }
+        accessible-role: tab;
+        accessible-label: option;
+        accessible-item-selected: i == root.selected;
+        accessible-action-default => { if (root.enabled) { root.changed(i); } }
+        label := Text {
+            text: option;
+            font-size: 13px;
+            color: i == root.selected ? Tokens.on-accent : Tokens.text;
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: root.enabled ? pointer : default;
+            clicked => { root.changed(i); }
+        }
+    }
+}
+
+// The 0..4 radius step as five tiles showing 0/4/8/12/16 px corners.
+export component RadiusSteps inherits HorizontalLayout {
+    in property <int> selected;
+    in property <bool> enabled: true;
+    callback changed(step: int);
+
+    property <[int]> px: [0, 4, 8, 12, 16];
+    spacing: Tokens.s2;
+    alignment: start;
+    accessible-role: tab-list;
+
+    for r[i] in root.px: Rectangle {
+        width: 50px;
+        height: 50px;
+        border-radius: 6px;
+        border-width: i == root.selected ? 2px : 1px;
+        border-color: i == root.selected ? Tokens.accent : ta.has-hover ? Tokens.stroke-strong : Tokens.stroke;
+        background: i == root.selected ? Tokens.accent-soft : Tokens.layer-2;
+        opacity: root.enabled ? 1 : 0.5;
+        accessible-role: tab;
+        accessible-label: r + " pixels";
+        accessible-item-selected: i == root.selected;
+        accessible-action-default => { if (root.enabled) { root.changed(i); } }
+
+        // A corner drawn at the real radius.
+        Rectangle {
+            x: 12px;
+            y: 10px;
+            width: 30px;
+            height: 22px;
+            clip: true;
+            Rectangle {
+                width: 44px;
+                height: 36px;
+                border-top-left-radius: r * 1px;
+                border-width: 2px;
+                border-color: i == root.selected ? Tokens.accent : Tokens.text-2;
+            }
+        }
+        Text {
+            y: parent.height - 15px;
+            text: r + " px";
+            font-size: 10px;
+            color: i == root.selected ? Tokens.text : Tokens.text-2;
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: root.enabled ? pointer : default;
+            clicked => { root.changed(i); }
+        }
+    }
+}
+
+// A slider with its value on the right. Reports whole steps.
+export component ValueSlider inherits HorizontalLayout {
+    in property <float> value;
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in property <float> step: 1;
+    in property <string> unit;
+    in property <bool> enabled: true;
+    callback changed(value: float);
+
+    spacing: Tokens.s3;
+    changed value => { slider.value = root.value; }
+
+    slider := Slider {
+        horizontal-stretch: 1;
+        minimum: root.minimum;
+        maximum: root.maximum;
+        value: root.value;
+        step: root.step;
+        enabled: root.enabled;
+        changed(v) => { root.changed(Math.round(v / root.step) * root.step); }
+    }
+    Text {
+        width: 52px;
+        text: (Math.round(slider.value / root.step) * root.step) + root.unit;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        color: Tokens.text-2;
+        font-size: Tokens.body;
+    }
+}
+
+// Two whole numbers: horizontal and vertical (padding, margin).
+export component BoxField inherits HorizontalLayout {
+    in property <float> horizontal;
+    in property <float> vertical;
+    in property <int> maximum: 40;
+    in property <bool> enabled: true;
+    callback changed(horizontal: float, vertical: float);
+
+    spacing: Tokens.s2;
+    changed horizontal => { h.value = root.horizontal; }
+    changed vertical => { v.value = root.vertical; }
+
+    Text {
+        text: "↔";
+        color: Tokens.text-2;
+        vertical-alignment: center;
+    }
+    h := SpinBox {
+        width: 96px;
+        minimum: 0;
+        maximum: root.maximum;
+        value: root.horizontal;
+        enabled: root.enabled;
+        edited(x) => { root.changed(x, v.value); }
+    }
+    Text {
+        text: "↕";
+        color: Tokens.text-2;
+        vertical-alignment: center;
+    }
+    v := SpinBox {
+        width: 96px;
+        minimum: 0;
+        maximum: root.maximum;
+        value: root.vertical;
+        enabled: root.enabled;
+        edited(x) => { root.changed(h.value, x); }
+    }
+}
+
+// A Switch that follows its `on` value (Switch's own `checked` stops following a
+// binding once clicked).
+export component ToggleSwitch inherits HorizontalLayout {
+    in property <bool> on;
+    in property <bool> enabled: true;
+    callback toggled(on: bool);
+
+    alignment: end;
+    changed on => { sw.checked = root.on; }
+    sw := Switch {
+        checked: root.on;
+        enabled: root.enabled;
+        toggled => { root.toggled(self.checked); }
+    }
+}
+
+// A checkerboard behind translucent swatches.
+component Checker inherits Rectangle {
+    clip: true;
+    background: #FFFFFF;
+    for i in 240: Rectangle {
+        x: mod(i, 40) * 6px;
+        y: floor(i / 40) * 6px;
+        width: 6px;
+        height: 6px;
+        background: mod(i + floor(i / 40), 2) == 0 ? #CCCCCC : #FFFFFF;
+    }
+}
+
+// Saturation/value square, hue strip and (optionally) alpha strip.
+export component ColorPicker inherits VerticalLayout {
+    in-out property <float> hue;
+    in-out property <float> sat;
+    in-out property <float> val;
+    in-out property <float> alpha: 1;
+    in property <bool> show-alpha;
+    in property <color> initial;  // read once: the popup's content is created on show()
+    callback changed(value: color);
+
+    init => {
+        root.hue = root.initial.to-hsv().hue;
+        root.sat = root.initial.to-hsv().saturation;
+        root.val = root.initial.to-hsv().value;
+        root.alpha = root.show-alpha ? root.initial.to-hsv().alpha : 1;
+    }
+    padding: Tokens.s3;
+    spacing: Tokens.s3;
+
+    function emit() { root.changed(hsv(root.hue, root.sat, root.val, root.alpha)); }
+
+    sv := Rectangle {
+        height: 150px;
+        border-radius: Tokens.radius-control;
+        background: hsv(root.hue, 1, 1);
+        Rectangle {
+            border-radius: Tokens.radius-control;
+            background: @linear-gradient(90deg, #FFFFFF 0%, #FFFFFF00 100%);
+        }
+        Rectangle {
+            border-radius: Tokens.radius-control;
+            background: @linear-gradient(0deg, #000000 0%, #00000000 100%);
+        }
+        Rectangle {
+            x: root.sat * parent.width - 8px;
+            y: (1 - root.val) * parent.height - 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: #FFFFFF;
+            background: hsv(root.hue, root.sat, root.val);
+            drop-shadow-blur: 3px;
+            drop-shadow-color: #00000080;
+        }
+        sv-ta := TouchArea {
+            mouse-cursor: crosshair;
+            function pick() {
+                root.sat = clamp(self.mouse-x / self.width, 0, 1);
+                root.val = 1 - clamp(self.mouse-y / self.height, 0, 1);
+                root.emit();
+            }
+            pointer-event(e) => {
+                if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                    self.pick();
+                }
+            }
+            moved => { self.pick(); }
+        }
+    }
+    Rectangle {
+        height: 14px;
+        border-radius: 7px;
+        background: @linear-gradient(90deg, #FF0000 0%, #FFFF00 16.67%, #00FF00 33.33%, #00FFFF 50%, #0000FF 66.67%, #FF00FF 83.33%, #FF0000 100%);
+        Rectangle {
+            x: root.hue / 360 * (parent.width - 14px);
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            border-width: 2px;
+            border-color: #FFFFFF;
+            background: hsv(root.hue, 1, 1);
+            drop-shadow-blur: 3px;
+            drop-shadow-color: #00000080;
+        }
+        TouchArea {
+            mouse-cursor: pointer;
+            function pick() {
+                root.hue = clamp(self.mouse-x / self.width, 0, 1) * 359.9;
+                root.emit();
+            }
+            pointer-event(e) => {
+                if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                    self.pick();
+                }
+            }
+            moved => { self.pick(); }
+        }
+    }
+    if root.show-alpha: Rectangle {
+        height: 14px;
+        border-radius: 7px;
+        clip: true;
+        Checker {
+            width: 100%;
+            height: 100%;
+        }
+        Rectangle {
+            background: @linear-gradient(90deg, hsv(root.hue, root.sat, root.val, 0) 0%, hsv(root.hue, root.sat, root.val, 1) 100%);
+        }
+        Rectangle {
+            x: root.alpha * (parent.width - 14px);
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            border-width: 2px;
+            border-color: #FFFFFF;
+            drop-shadow-blur: 3px;
+            drop-shadow-color: #00000080;
+        }
+        TouchArea {
+            mouse-cursor: pointer;
+            function pick() {
+                root.alpha = clamp(self.mouse-x / self.width, 0, 1);
+                root.emit();
+            }
+            pointer-event(e) => {
+                if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                    self.pick();
+                }
+            }
+            moved => { self.pick(); }
+        }
+    }
+}
+
+// Swatch (opens the picker) and a hex box.
+export component ColorField inherits HorizontalLayout {
+    in property <color> value;
+    in property <string> hex;           // the value as #RRGGBB[AA]
+    in property <bool> show-alpha;
+    in property <bool> enabled: true;
+    callback changed(value: color);
+    callback hex-entered(text: string);
+
+    spacing: Tokens.s2;
+    alignment: end;
+    changed hex => { hex-edit.text = root.hex; }
+
+    swatch := Rectangle {
+        width: 32px;
+        height: 32px;
+        border-radius: Tokens.radius-control;
+        border-width: 1px;
+        border-color: swatch-ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+        clip: true;
+        opacity: root.enabled ? 1 : 0.5;
+        accessible-role: button;
+        accessible-label: "Pick a colour";
+        accessible-action-default => { if (root.enabled) { popup.show(); } }
+        Checker {
+            width: 100%;
+            height: 100%;
+        }
+        Rectangle {
+            background: root.value;
+        }
+        swatch-ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => { popup.show(); }
+        }
+    }
+    hex-edit := LineEdit {
+        width: 116px;
+        text: root.hex;
+        enabled: root.enabled;
+        placeholder-text: "#RRGGBB";
+        font-size: Tokens.body;
+        accepted(t) => { root.hex-entered(t); }
+    }
+
+    popup := PopupWindow {
+        x: swatch.x + swatch.width - 252px;
+        y: swatch.y + swatch.height + 6px;
+        width: 252px;
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Tokens.layer;
+            border-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke-strong;
+            drop-shadow-blur: 16px;
+            drop-shadow-offset-y: 4px;
+            drop-shadow-color: #00000050;
+            ColorPicker {
+                initial: root.value;
+                show-alpha: root.show-alpha;
+                changed(c) => { root.changed(c); }
+            }
+        }
+    }
+}
+
+// The font family: a button in the font itself, opening a searchable list.
+export component FontPicker inherits Rectangle {
+    in property <string> value;
+    in property <string> placeholder: "Segoe UI (menu default)";
+    in property <[string]> fonts;
+    in property <bool> enabled: true;
+    callback filter(text: string);
+    callback picked(name: string);
+
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    border-width: 1px;
+    border-color: ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+    background: Tokens.layer-2;
+    opacity: root.enabled ? 1 : 0.5;
+    accessible-role: combobox;
+    accessible-label: "Font family";
+    accessible-value: root.value;
+
+    Text {
+        x: 10px;
+        width: parent.width - 36px;
+        text: root.value != "" ? root.value : root.placeholder;
+        font-family: root.value;
+        font-size: Tokens.body;
+        color: root.value != "" ? Tokens.text : Tokens.text-2;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+    Text {
+        x: parent.width - 24px;
+        text: "\u{E70D}";
+        font-family: "Segoe Fluent Icons";
+        font-size: 10px;
+        color: Tokens.text-2;
+        vertical-alignment: center;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            root.filter("");
+            popup.show();
+        }
+    }
+
+    popup := PopupWindow {
+        y: root.height + 4px;
+        width: root.width;
+        height: 320px;
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Tokens.layer;
+            border-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke-strong;
+            drop-shadow-blur: 16px;
+            drop-shadow-offset-y: 4px;
+            drop-shadow-color: #00000050;
+            VerticalLayout {
+                padding: Tokens.s2;
+                spacing: Tokens.s2;
+                search := LineEdit {
+                    placeholder-text: "Search installed fonts";
+                    edited(t) => { root.filter(t); }
+                    init => { self.focus(); }
+                }
+                ListView {
+                    for name in root.fonts: Rectangle {
+                        height: 30px;
+                        border-radius: Tokens.radius-control;
+                        background: name == root.value ? Tokens.selected : row-ta.has-hover ? Tokens.hover : transparent;
+                        Text {
+                            x: 8px;
+                            width: parent.width - 16px;
+                            text: name;
+                            font-family: name;
+                            font-size: Tokens.body;
+                            color: Tokens.text;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                        row-ta := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => {
+                                root.picked(name);
+                                popup.close();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
