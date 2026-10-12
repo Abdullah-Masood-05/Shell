@@ -229,6 +229,10 @@ namespace Nilesoft
 
 			static bool EndsWithSlash(const std::wstring_view &path)
 			{
+				// back() on an empty view is undefined, and an empty path does not
+				// end with a slash.
+				if(path.empty())
+					return false;
 				return path.back() == Path::Separator || path.back() == '/';
 			}
 
@@ -239,11 +243,17 @@ namespace Nilesoft
 				return path;
 			}
 
+			// "C:\" and nothing else. Indexing [1] and [2] without knowing there
+			// are three characters reads past the end for "", "C" and "C:" - all of
+			// which reach here, since Initializer passes whatever the module path
+			// turned out to be.
 			static std::wstring_view GetRoot(const std::wstring_view &path)
 			{
-				if(path[1] == ':' && path[2] == '\\')
+				if(path.length() < 3)
+					return {};
+				if(path[1] == ':' && (path[2] == Path::Separator || path[2] == '/'))
 					return path.substr(0, 3);
-				return std::move(std::wstring_view());
+				return {};
 			}
 
 			static bool GetLinkInfo(const std::wstring_view &linkFile, string *path, string *workingDirectory, string *iconLocation = nullptr, int *piicon = nullptr)
@@ -727,16 +737,53 @@ namespace Nilesoft
 				return result;
 			}
 
+			// The shell namespace token "::" followed by a braced GUID.
+			//
+			// This used to read: reject anything 40 characters or longer, then look
+			// at the first three characters. The canonical form
+			// ::{00000000-0000-0000-0000-000000000000} is exactly 40 characters, so
+			// the one input this is meant to recognise was the one input it
+			// rejected, while "::{" on its own - or any shorter rubbish starting
+			// that way - was accepted. It also indexed [0], [1] and [2] before
+			// establishing there were three characters to index.
+			//
+			// The GUID is parsed rather than eyeballed, so a malformed one is not a
+			// CLSID no matter how well-shaped its punctuation.
+			static constexpr size_t ClsidLength = 40;   // "::" + "{" + 36 + "}"
+
 			static bool IsCLSID(const std::wstring_view &path)
 			{
-				if(path.length() >= 40 /*&& path.Length() == 40*/) //40
+				if(path.length() != ClsidLength)
 					return false;
-				return ((path[0] == L':' && path[1] == L':' && path[2] == L'{'));
+				if(path[0] != L':' || path[1] != L':' || path[2] != L'{' || path[39] != L'}')
+					return false;
+
+				// CLSIDFromString wants a null-terminated braced GUID and the view
+				// may be a slice of something larger.
+				wchar_t guid[39]{};                       // "{" + 36 + "}" + NUL
+				::wmemcpy(guid, path.data() + 2, 38);
+
+				CLSID parsed{};
+				return SUCCEEDED(::CLSIDFromString(guid, &parsed));
 			}
 
+			// A CLSID on its own, or one with a child path under it -
+			// "::{GUID}\Subfolder". Deliberately a different question from
+			// IsCLSID: PathType and the path.namespace script function want to know
+			// "does this live in the shell namespace", not "is this exactly a
+			// CLSID".
 			static bool IsNameSpace(const std::wstring_view &path)
 			{
-				return IsCLSID(path);
+				if(path.length() < ClsidLength)
+					return false;
+				if(path.length() == ClsidLength)
+					return IsCLSID(path);
+
+				// Anything longer has to continue with a separator, so that
+				// "::{GUID}garbage" is not mistaken for a namespace path.
+				if(path[ClsidLength] != Path::Separator && path[ClsidLength] != L'/')
+					return false;
+				return IsCLSID(path.substr(0, ClsidLength));
 			}
 
 			static bool IsRoot(const std::wstring_view &path)
@@ -749,6 +796,13 @@ namespace Nilesoft
 			static bool IsDrive(const std::wstring_view &path)
 			{
 				return IsRoot(path);
+			}
+
+			// Length-checked front end for the pointer version below, whose
+			// precondition - at least two characters - the callers cannot see.
+			static bool IsDrivePrefix(const std::wstring_view &path)
+			{
+				return path.length() >= 2 && IsDrivePrefix(path.data());
 			}
 
 			static bool IsDrivePrefix(const wchar_t *const path)

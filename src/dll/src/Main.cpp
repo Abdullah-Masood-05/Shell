@@ -1,5 +1,6 @@
 ﻿#include <pch.h>
 #include "Include/ContextMenu.h"
+#include "Include/TaskbarOrigin.h"
 #include "Library/detours.h"
 #include "RegistryConfig.h"
 #include <UIAutomation.h>
@@ -513,7 +514,7 @@ STDAPI WINAPI DllGetClassObjectHook(REFCLSID rclsid, _In_ REFIID riid, LPVOID *p
 }
 
 #define TPM_SYSMENU	0x0200L
-bool is_in_taskbar;
+// Whether a popup came from the taskbar is per thread now; see TaskbarOrigin.h.
 
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
 BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
@@ -553,7 +554,7 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 			}
 
 			//cs.lock();
-			auto has_inited = 0; Initializer::OnState(is_in_taskbar);
+			auto has_inited = 0; Initializer::OnState(Nilesoft::Shell::in_taskbar());
 
 			if(!_initializer.Status.Disabled)
 			{
@@ -661,7 +662,9 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 	{
 		invoke(hMenu, uFlags, { x, y });
 		_loader.contextmenuhandler = false;
-		is_in_taskbar = false;
+		// The taskbar flag used to be cleared here, which was the only place it
+		// was cleared and not a place every taskbar menu passes through.
+		// ScopedTaskbarOrigin in ShowTaskbarContextMenu owns it now.
 		return result;
 	}
 }
@@ -692,7 +695,11 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 
 		if(_menu.handle)
 		{
-			is_in_taskbar = true;
+			// Restored on the way out of this block, so the branch below that
+			// invokes the saved native target directly - and therefore never
+			// reaches the hook's __finally - cannot leave it set.
+			Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
+
 			//::SetForegroundWindow(hTaskbar);
 			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
 			if(uMsg == WM_CONTEXTMENU)

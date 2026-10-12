@@ -3457,7 +3457,11 @@ namespace Nilesoft
 						string wsl = L"/mnt/";
 						string path = Path::FixSeparator(arg0, L"/").move();
 						
-						if(path[1] == L':')
+						// A one-character argument reaches here too - "C", or a bare
+						// separator - and reading [1] to decide is one past the end of
+						// it. Prove the drive-letter shape before consuming it.
+						if(path.length() >= 2 && path[1] == L':' &&
+						   Char::IsLetter(path[0]))
 						{
 							wsl += Char::ToLower(path[0]);
 							path = path.substr(2).move();
