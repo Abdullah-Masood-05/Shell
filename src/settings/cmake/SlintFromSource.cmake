@@ -54,3 +54,9 @@ target_link_libraries(Slint INTERFACE imm32 uxtheme shlwapi opengl32 dwmapi)
 # The Slint headers always declare their C API __declspec(dllimport); with the static
 # library that is resolved locally and only produces LNK4217 noise.
 target_link_options(Slint INTERFACE /IGNORE:4217)
+
+# Slint's generated headers use nameless unions (C4201) and forward-declare HWND__ /
+# HINSTANCE__ as classes (C4099 against the Windows SDK). Treat them as external headers
+# so the app's own /W4 build stays clean.
+set_target_properties(Slint PROPERTIES SYSTEM TRUE)
+target_compile_options(Slint INTERFACE /wd4099)
