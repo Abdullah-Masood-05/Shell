@@ -30,6 +30,16 @@
 	<li><strong>Quick actions:</strong> register or unregister for the current user, restart Explorer, open the
 		configuration folder, and run first-time setup again.</li>
 </ul>
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-dark.png" width="1120" height="760"
+		alt="The Home page in the dark theme">
+	<figcaption>Home: Shell registered for all users, with the classic Windows 11 menu, reading a personal <code>shell.nss</code>.</figcaption>
+</figure>
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-light.png" width="1120" height="760"
+		alt="The Home page in the light theme">
+	<figcaption>The same page in the light theme. The app follows the Windows app mode unless you pick a theme in Preferences.</figcaption>
+</figure>
 <p>The app reads all of this through <a href="/docs/command-line#status"><code>shell -status</code></a>, so it shows the
 	same state the command line reports.</p>
 
@@ -54,6 +64,12 @@
 	<li>The shared configuration in the program folder is read-only here; the editor offers to create a per-user copy.</li>
 </ul>
 
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/editor-dark.png" width="1120" height="760"
+		alt="The Config Editor showing shell.nss in the read view">
+	<figcaption>Config Editor: the import tree on the left (the warning marks an import whose path is an expression), the read view, and the result of the last check.</figcaption>
+</figure>
+
 <h5 id="backups">Backups</h5>
 <p>Every save first takes a snapshot of the configuration in <code>%APPDATA%\Nilesoft\Shell\backups</code>. The Backups page
 	lists them with the time, the reason and the files changed. You can:</p>
@@ -64,8 +80,20 @@
 	<li>create a snapshot by hand, delete one, or open the folder.</li>
 </ul>
 
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/backups-dark.png" width="1120" height="760"
+		alt="The Backups page comparing a snapshot with the current files">
+	<figcaption>Backups: two snapshots, one pinned. The selected one is compared with the current files; restoring it would undo the green line.</figcaption>
+</figure>
+
 <h5 id="preferences">Preferences</h5>
 <p>The app's own theme, registration for all users (needs administrator rights), and version and licence information.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
+		alt="The Preferences page">
+	<figcaption>Preferences: app theme, registration for all users (the UAC shield marks the one action that needs administrator rights), and About.</figcaption>
+</figure>
 
 <h5 id="reload">Applying changes</h5>
 <p>There is no restart step for configuration changes: Shell reloads the configuration when a file it loaded changes.
