@@ -224,7 +224,6 @@ static std::wstring JoinPath(const std::wstring &path1, const std::wstring &path
 static bool InstallFolder(MSIHANDLE hInstall, std::wstring& install_folder, bool find_by_reg)
 {
 	MSI msi(hInstall);
-	DWORD length = MAX_PATH;
 	install_folder = msi.InstallFolder();
 
 	// A deferred custom action runs in the installer's own elevated process and
@@ -233,22 +232,36 @@ static bool InstallFolder(MSIHANDLE hInstall, std::wstring& install_folder, bool
 	if(install_folder.size() == 0)
 		msi.get(L"CustomActionData", install_folder);
 
-	if(install_folder.size() == 0)
+	if(install_folder.size() == 0 && find_by_reg)
 	{
-		if(find_by_reg)
+		/*
+			Last resort: the folder of the registered shell.dll.
+
+			Read from HKLM explicitly. HKCR is a merged view that includes
+			HKCU\Software\Classes, so any user could otherwise point this
+			elevated action at a folder of their choosing. The registration is
+			made by the 64-bit shell.exe, so the 64-bit view is opened with
+			KEY_WOW64_64KEY in samDesired (this DLL may be 32-bit); it used to
+			be OR'ed into RegGetValue's dwFlags, where it is not a valid flag.
+			On failure install_folder stays empty, rather than MAX_PATH NULs
+			that the size() check below took for a path.
+		*/
+		HKEY key = nullptr;
+		if(ERROR_SUCCESS == ::RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+											L"SOFTWARE\\Classes\\CLSID\\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF1}\\InprocServer32",
+											0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, &key))
 		{
-			install_folder.resize(MAX_PATH);
-			auto rc = ::RegGetValueW(HKEY_CLASSES_ROOT,
-									 L"CLSID\\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF1}\\InprocServer32",
-									 nullptr, RRF_RT_REG_SZ | KEY_WOW64_64KEY, nullptr, static_cast<void *>(install_folder.data()), &length);
+			wchar_t module[MAX_PATH]{};
+			DWORD bytes = sizeof(module);	// RegGetValue takes a size in bytes
+			auto rc = ::RegGetValueW(key, nullptr, nullptr, RRF_RT_REG_SZ, nullptr, module, &bytes);
+			::RegCloseKey(key);
+
 			if(rc == ERROR_SUCCESS)
 			{
-				install_folder.resize(length / sizeof(wchar_t));
-				auto p = install_folder.find_last_of(L"\\");
-				if(p != install_folder.npos)
-				{
-					install_folder = std::move(install_folder.substr(0, p + 1));
-				}
+				std::wstring path = module;
+				auto p = path.find_last_of(L'\\');
+				if(p != path.npos)
+					install_folder = path.substr(0, p + 1);
 			}
 		}
 	}
