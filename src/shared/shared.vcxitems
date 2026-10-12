@@ -63,6 +63,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Windows\Registry.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Windows\Window.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Windows\Windows.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConfigLocation.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RegistryConfig.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)targetver.h" />
   </ItemGroup>

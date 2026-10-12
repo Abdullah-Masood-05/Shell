@@ -56,6 +56,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Drawing\WICImagingFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Library\plutosvg.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Library\plutovg.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConfigLocation.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RegistryConfig.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)targetver.h" />
   </ItemGroup>

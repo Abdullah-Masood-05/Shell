@@ -3,7 +3,7 @@
 #include <tuple>
 #include "Expression\Variable.h"
 #include "Include\Theme.h"
-#include "RegistryConfig.h"
+#include "ConfigLocation.h"
 
 // Windows State (Hidden | Normal | Minimized | Maximized)
 namespace Nilesoft
@@ -21,44 +21,26 @@ namespace Nilesoft
 			context.variables.runtime = &context.Cache->variables.runtime;
 			context.Selections = nullptr;
 
-			string cfg;
-			if(RegistryConfig::get(nullptr, L"config", cfg) && !cfg.empty())
+			// HKCU "config" value, then %APPDATA%\Nilesoft\Shell\shell.nss, then
+			// the install folder's shell.nss; see ConfigLocation. Shared with
+			// shell.exe so -status/-config:path report this same file. The DLL
+			// only ever reads it.
+			auto location = ConfigLocation::Resolve(context.Application->Dirctory);
+			if(location.source == ConfigLocation::Source::none)
 			{
-				//if(Path::IsFileExists(cfg))
-				m_path = cfg.move();
-
-				// A relative path used to resolve against the install folder
-				// because the working directory was switched there for the parse.
-				// That no longer happens, so root it explicitly.
-				if(!Path::IsAbsolute(m_path))
-					m_path = Path::Combine(context.Application->Dirctory, m_path).move();
-			}
-
-			if(m_path.empty() || !Path::IsFileExists(m_path))
-			{
-				if(Path::IsFileExists(context.Application->ConfigPortable))
-					m_path = context.Application->ConfigPortable;
-				else
+				string ss = L"config file ";
+				if(!location.configured.empty())
 				{
-					/*string ss = L"config file ";
-					if(!m_path.empty())
-						ss.append_format(L"'%s' ", m_path.c_str());
-					ss.append(L"not found.");
-					_log.warning(ss);
-					.*/
-					string ss = L"config file ";
-					if(!m_path.empty())
-					{
-						ss += L"'";
-						ss += m_path;
-						ss += L"' ";
-					}
-					ss += L"not found.";
-					_log.warning(ss);
-					return;
+					ss += L"'";
+					ss += location.configured;
+					ss += L"' ";
 				}
+				ss += L"not found.";
+				_log.warning(ss);
+				return;
 			}
 
+			m_path = location.path.move();
 			context.Application->Config = m_path;
 
 			_imports.emplace_back(new Lexer);
