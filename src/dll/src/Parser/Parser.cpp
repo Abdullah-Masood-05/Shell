@@ -1141,6 +1141,16 @@ namespace Nilesoft
 
 			path = Path::FixSeparator(path).move();
 
+			// Legacy alias: the Ukrainian translation used to ship as "ua.nss"
+			// (country code); it is now "uk.nss" (ISO 639-1 language code).
+			// Keep existing configs that still import "ua.nss" working.
+			if(path.ends_with(L"\\ua.nss") && !Path::IsFileExists(path))
+			{
+				auto alias = (path.substr(0, path.length() - 6) + L"uk.nss").move();
+				if(Path::IsFileExists(alias))
+					path = alias.move();
+			}
+
 			auto hash = path.hash();
 			
 			if(hash)

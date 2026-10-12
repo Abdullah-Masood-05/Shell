@@ -398,9 +398,12 @@ namespace Nilesoft
 					string params, cmd = sys_path;
 					cmd +=  L"\\cmd.exe";
 					params.format(L"/c taskkill /f /im explorer.exe && start %s\\explorer", win_path);
-					::ShellExecuteW(nullptr, nullptr, cmd, params, nullptr, SW_HIDE);
+					// ShellExecute reports success with a value greater than 32.
+					// This only tells whether cmd.exe was launched; the restart
+					// itself happens asynchronously in that process.
+					auto hinst = ::ShellExecuteW(nullptr, nullptr, cmd, params, nullptr, SW_HIDE);
 					//WinExec("taskkill /f /im explorer.exe && start explorer.exe", SW_HIDE);
-					return res > 0;
+					return reinterpret_cast<INT_PTR>(hinst) > 32;
 				}
 
 				for(auto &process : Nilesoft::Diagnostics::Process::EnumInfo())

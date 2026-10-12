@@ -807,7 +807,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 
 		if(reg.REGISTER || reg.UNREGISTER || reg.RESTART || reg.FOLDEREXTENSIONS)
 		{
-			return Register(reg);
+			// Process exit code: 0 on success, 1 on failure. Returning the bool
+			// directly made success exit with 1.
+			return Register(reg) ? 0 : 1;
 		}
         else
         {
@@ -825,18 +827,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
                 if(run > 1)
                     verb = L"runas";
 
-                ::ShellExecuteW(nullptr,
+                auto hinst = ::ShellExecuteW(nullptr,
                                 verb,
                                 cmd,
                                 cmdline[L"args"],
                                 cmdline[L"wd"],
 								sw);
+
+				// ShellExecute reports success with a value greater than 32.
+				if(reinterpret_cast<INT_PTR>(hinst) <= 32)
+				{
+					_log->close();
+					return 1;
+				}
             }
         }
     }
 
 	_log->close();
-    return 1;
+    return 0;
 }
 
 HFONT FontSize(HFONT hFont, int size, int weight = 0, byte quality= ANTIALIASED_QUALITY)

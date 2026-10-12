@@ -15,11 +15,19 @@
 }
 
 // localization
-$loc_path='imports\lang\'
+// English is always loaded first so untranslated keys fall back to it, then
+// the best match for sys.lang (e.g. "de-DE") is loaded on top of it:
+//   exact locale (de-DE.nss) -> base language (de.nss) -> en.nss
+// path.exists() resolves relative paths against the host process's current
+// directory (not this file), so the path must be absolute: use app.dir.
+$loc_path=app.dir + '\imports\lang\'
+$loc_base=if(str.contains(sys.lang, '-'), str.left(sys.lang, str.find(sys.lang, '-')), sys.lang)
 import lang loc_path + "en.nss"
 import lang if(path.exists(loc_path + sys.lang + ".nss"),
                loc_path + sys.lang + ".nss",
-               loc_path + "en.nss")
+               if(path.exists(loc_path + loc_base + ".nss"),
+                  loc_path + loc_base + ".nss",
+                  loc_path + "en.nss"))
 
 // or import lang 'imports/lang/en.nss'
 

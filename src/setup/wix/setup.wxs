@@ -75,7 +75,21 @@
 						<File Id='terminal.nss' Source='$(var.bin)\imports\terminal.nss' />
 					</Component>
 				<Directory Id='LANG' Name='lang'>
-					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}' NeverOverwrite='yes'>
+					<!--
+						The original seven translations keep their component, GUID and file
+						list unchanged, so a major upgrade keeps resolving them to the same
+						component. Every other imports\lang\*.nss is harvested by the Files
+						element in the APPLICATION feature below, one generated component
+						per file, so a new translation ships without editing this file.
+
+						NeverOverwrite is not set, for the same reason as on CONFIG: it
+						resolved LANG to "install nothing" during costing, and the removal
+						of the old product then deleted every language file. Without it,
+						translations are refreshed on upgrade unless the user edited them
+						(Windows Installer keeps an unversioned file whose Modified date is
+						later than its Create date).
+					-->
+					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}'>
 						<File Id='en.nss' Source='$(var.bin)\imports\lang\en.nss' />
 						<File Id='ar.nss' Source='$(var.bin)\imports\lang\ar.nss' />
 						<File Id='de_DE.nss' Source='$(var.bin)\imports\lang\de-DE.nss' />
@@ -93,7 +107,19 @@
 					<File Id='readme.txt' Name='readme.txt' Source='$(var.bin)\readme.txt' />
 					<File Id='license.txt' Name='LICENSE' Source='$(var.bin)\license.txt' />
 				</Component>
-				<Component Id='CONFIG' Guid='{BEC55C6A-30C7-4E1F-B64D-8636AB379E31}' NeverOverwrite='yes'>
+				<!--
+					NeverOverwrite is deliberately *not* set on CONFIG. It resolves the
+					component to "install nothing" during costing, while the old
+					product's shell.nss is still on disk, so the removal of the old
+					product (RemoveExistingProducts) then deleted the user's config.
+					Without it the new product owns the component and the removal
+					leaves the file alone; the custom actions OnUpdate (backup) and
+					OnRestoreConfig (restore) put back a customised config that the
+					stock one would otherwise replace.
+
+					  https://learn.microsoft.com/en-us/windows/win32/msi/component-table
+				-->
+				<Component Id='CONFIG' Guid='{BEC55C6A-30C7-4E1F-B64D-8636AB379E31}'>
 					<File Id='shell.nss' Name='shell.nss' KeyPath='yes' Source='$(var.bin)\shell.nss' />
 				</Component>
 				<Component Id='CLEANUP' Guid='{838501CD-485B-4587-9195-6CFB416202B9}' KeyPath='yes'>
@@ -123,6 +149,16 @@
 			<ComponentRef Id='CONFIG' />
 			<ComponentRef Id='IMPORTS' />
 			<ComponentRef Id='LANG' />
+			<!-- All other translations; the ones already in LANG are excluded. -->
+			<Files Directory='LANG' Include='$(var.bin)\imports\lang\*.nss'>
+				<Exclude Files='$(var.bin)\imports\lang\en.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ar.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\de-DE.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ko.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\no.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\pt-BR.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\zh-CN.nss' />
+			</Files>
 			<ComponentRef Id='CLEANUP' />
 			<ComponentRef Id='StartMenuShortcut' />
 			<ComponentRef Id='DisplayIcon' />
@@ -145,14 +181,48 @@
 		</InstallUISequence>
 		<!-- End Upgrade -->
 		
+		<!--
+			shell.dll is mapped into every process that has raised a shell context
+			menu and cannot be overwritten, so it is renamed aside before the new
+			one is written. This runs twice on purpose: the immediate OnUpdate runs
+			as the invoking user (not elevated when the package was started that
+			way) and also backs up shell.nss; the deferred OnUpdateElevated runs in
+			the installer's elevated process before InstallFiles and catches a
+			rename the first one could not do. Rotation is a no-op when the path is
+			already free, so running both is harmless.
+		-->
 		<CustomAction Id='OnUpdate' Return='ignore' BinaryRef='CA' DllEntry='Update' />
+		<CustomAction Id='OnUpdateElevatedData' Property='OnUpdateElevated' Value='[INSTALLFOLDER]' />
+		<CustomAction Id='OnUpdateElevated' Execute='deferred' Impersonate='no' Return='ignore'
+					  BinaryRef='CA' DllEntry='Update' />
+		<!--
+			The other half of the config rescue: OnUpdate saved shell.nss and set
+			SHELLCONFIGSAVED; this puts it back once the package's own files are on
+			disk. Deferred and non-impersonating, because writing into Program Files
+			needs the installer's elevated context; a deferred action can read only
+			CustomActionData, hence the type 51 action that hands it the path.
+		-->
+		<CustomAction Id='OnRestoreConfigData' Property='OnRestoreConfig' Value='[INSTALLFOLDER]' />
+		<CustomAction Id='OnRestoreConfig' Execute='deferred' Impersonate='no' Return='ignore'
+					  BinaryRef='CA' DllEntry='RestoreConfig' />
 		<CustomAction Id='OnInstall' Return='ignore' BinaryRef='CA' DllEntry='Install' />
 		<CustomAction Id='OnUninstall' Execute='firstSequence' Return='asyncWait' BinaryRef='CA' DllEntry='Uninstall' />
 		
 		<InstallExecuteSequence>
 			<Custom Action='OnDowngrading' After='FindRelatedProducts' Condition='NEWPRODUCTFOUND' />
 			<Custom Action='OnUninstall' After='FindRelatedProducts' Condition='(REMOVE ="ALL") AND (NOT UPGRADINGPRODUCTCODE)' />
-			<Custom Action='OnUpdate' After='FindRelatedProducts' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<!--
+				After CostFinalize, not after FindRelatedProducts: directory properties
+				are not resolved until CostFinalize, so an earlier action reads
+				INSTALLFOLDER as empty whenever no UI sequence set it (a silent
+				install), and the custom action then falls back to locating Shell by
+				its registered CLSID - possibly a different installation.
+			-->
+			<Custom Action='OnUpdate' After='CostFinalize' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevatedData' Before='OnUpdateElevated' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevated' Before='InstallFiles' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<Custom Action='OnRestoreConfigData' Before='OnRestoreConfig' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
+			<Custom Action='OnRestoreConfig' After='InstallFiles' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
 			<Custom Action='OnInstall' After='InstallFinalize' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
 			<RemoveExistingProducts After='InstallFinalize' />
 		</InstallExecuteSequence>
