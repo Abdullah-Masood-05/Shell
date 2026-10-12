@@ -1,57 +1,196 @@
 name: Build
 
+# Builds the core (shell.dll, shell.exe, ca.dll) for x64, x86 and ARM64, the Settings app
+# (settings.exe, x64 only), the MSIs and the x64 portable zip. release.yml calls this
+# workflow for tagged releases.
+
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main, dev ]
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build (default the ref that triggered the run)
+        type: string
+        default: ''
+      version:
+        description: Version for the portable zip's file name (default from src/shared/Resource.h)
+        type: string
+        default: ''
 
 permissions:
   contents: read
 
+concurrency:
+  group: build-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# windows-2022, not windows-latest: windows-latest is now the Visual Studio 2026 image,
+# while the projects use the v143 toolset (all three architectures) and the CMake preset
+# uses the "Visual Studio 17 2022" generator. windows-2022 has VS 2022 with v143 for
+# x86, x64 and ARM64, CMake and rustup.
+
 jobs:
-  build:
+  settings:
+    name: Settings app (x64)
+    runs-on: windows-2022
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
 
+      # Slint 1.18.1 needs Rust 1.92 or later.
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Compute the Slint build cache key
+        id: cachekey
+        run: |
+          $cmake = 'src/settings/cmake/SlintFromSource.cmake'
+          $slint = (Select-String -Path $cmake -Pattern 'set\(SETTINGS_SLINT_VERSION "([^"]+)"\)').Matches[0].Groups[1].Value
+          if (-not $slint) { throw "SETTINGS_SLINT_VERSION not found in $cmake" }
+          $rustc = ((rustc --version) -replace '[^A-Za-z0-9.]+', '_').Trim('_')
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $msvc = (Get-Content "$vs\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" -TotalCount 1).Trim()
+          $hash = '${{ hashFiles('src/settings/cmake/SlintFromSource.cmake') }}'.Substring(0, 16)
+          $key = "settings-slint$slint-$rustc-msvc$msvc-$hash"
+          Write-Host "cache key: $key"
+          "key=$key" >> $env:GITHUB_OUTPUT
+
+      # The CMake build tree holds Corrosion's cargo target dir (out/x64-release/cargo/build),
+      # which is nearly all of the cold build time; see src/settings/README.md.
+      - name: Cache the Slint build
+        uses: actions/cache@v6
+        with:
+          path: |
+            src/settings/out/x64-release
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ steps.cachekey.outputs.key }}
+
+      - name: Configure
+        working-directory: src/settings
+        run: cmake --preset x64-release
+
+      - name: Build settings.exe and settings_tests
+        working-directory: src/settings
+        run: cmake --build --preset x64-release
+
+      - name: Run settings_tests
+        run: |
+          & src/settings/out/x64-release/tests/Release/settings_tests.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Build and run the nsscore tests
+        run: |
+          cmake -S src/settings/nss -B src/settings/out/nss -A x64 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build src/settings/out/nss --config Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & src/settings/out/nss/Release/nsscore_tests.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Check that settings.exe has no runtime DLLs
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $msvc = (Get-Content "$vs\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" -TotalCount 1).Trim()
+          $dumpbin = "$vs\VC\Tools\MSVC\$msvc\bin\Hostx64\x64\dumpbin.exe"
+          $deps = & $dumpbin /nologo /dependents src/bin/settings.exe | Where-Object { $_ -match '^\s+\S+\.dll\s*$' } | ForEach-Object { $_.Trim() }
+          $deps
+          $bad = $deps | Where-Object { $_ -match '^(slint|vcruntime|msvcp|ucrtbase)' }
+          if ($bad) { throw "settings.exe depends on: $($bad -join ', ')" }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: settings-exe
+          path: src/bin/settings.exe
+          if-no-files-found: error
+
+  core:
+    name: Core and MSI (${{ matrix.platform }})
+    needs: settings
+    runs-on: windows-2022
+    timeout-minutes: 45
     strategy:
-      matrix:
-        # configuration: [debug, release]
-        configuration: [release]
-        platform: [x64, x86, arm64]
       fail-fast: false
-
+      matrix:
+        platform: [ x64, x86, ARM64 ]
     env:
       SOLUTION_FILE_PATH: src/Shell.sln
-      BUILD_CONFIGURATION: ${{matrix.configuration}}
-      BUILD_PLATFORM: ${{matrix.platform}}
-      BIN_PATH: D:\a\Shell\Shell\src\bin
-    runs-on: windows-latest
-
+      BUILD_CONFIGURATION: release
+      BUILD_PLATFORM: ${{ matrix.platform }}
+      BIN_PATH: ${{ github.workspace }}\src\bin
+      # The x64 and ARM64 MSIs must contain settings.exe (ARM64 ships the x64 exe).
+      REQUIRE_SETTINGS: ${{ matrix.platform != 'x86' }}
+    defaults:
+      run:
+        shell: pwsh
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v3
 
-    - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+      - name: Get settings.exe
+        if: matrix.platform != 'x86'
+        uses: actions/download-artifact@v8
+        with:
+          name: settings-exe
+          path: src/bin
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+      - name: Restore NuGet packages
+        run: msbuild $env:SOLUTION_FILE_PATH -t:restore -p:RestorePackagesConfig=true -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: shell-${{matrix.platform}}
-        path: |
-          ${{env.BIN_PATH}}\*
-          !${{env.BIN_PATH}}\*.lib
-          !${{env.BIN_PATH}}\*.exp
-          !${{env.BIN_PATH}}\*.wixpdb
-          !${{env.BIN_PATH}}\ca.dll
-        if-no-files-found: warn
-        retention-days: 0
-        compression-level: 6
-        overwrite: false
-        include-hidden-files: false
+      - name: Build the core and the MSI
+        run: msbuild $env:SOLUTION_FILE_PATH -m -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:RequireSettingsExe=$env:REQUIRE_SETTINGS
+
+      - name: Make the portable zip
+        if: matrix.platform == 'x64'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          $params = @{ OutDir = 'dist' }
+          if ($env:VERSION) { $params.Version = $env:VERSION }
+          ./scripts/make-portable.ps1 @params
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          Get-ChildItem dist/*.zip | ForEach-Object {
+            Write-Host "== $($_.Name)"
+            [IO.Compression.ZipFile]::OpenRead($_.FullName).Entries | ForEach-Object { '{0,10}  {1}' -f $_.Length, $_.FullName }
+          }
+
+      - name: Upload the MSI
+        uses: actions/upload-artifact@v7
+        with:
+          name: msi-${{ matrix.platform }}
+          path: ${{ env.BIN_PATH }}\setup-*.msi
+          if-no-files-found: error
+
+      - name: Upload the portable zip
+        if: matrix.platform == 'x64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: portable-x64
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: shell-${{ matrix.platform }}
+          path: |
+            ${{ env.BIN_PATH }}\*
+            !${{ env.BIN_PATH }}\*.lib
+            !${{ env.BIN_PATH }}\*.exp
+            !${{ env.BIN_PATH }}\*.wixpdb
+            !${{ env.BIN_PATH }}\*.msi
+            !${{ env.BIN_PATH }}\ca.dll
+          if-no-files-found: error
