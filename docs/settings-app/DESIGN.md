@@ -62,7 +62,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
   - **Light:** #F3F3F3 / #FFF / #F9F9F9, text #1A1A1A / #5D5D5D, accent #005FB8.
   - Spacing on a 4 px grid; radius 4 for controls, 8 for cards.
 - **Type:** Segoe UI Variable (14 body, 20 subtitle, 28 page title, 12 caption). Cascadia Mono in the editor.
-- **Icons:** Fluent UI System Icons SVGs (MIT) for the app chrome. Segoe Fluent Icons as a system font for the preview only, since it can't be redistributed. Draw a new logo.
+- **Icons:** Fluent UI System Icons SVGs (MIT) for the app chrome. Segoe Fluent Icons as a system font for the preview only, since it can't be redistributed. Use the original Nilesoft Shell logo (`src/shared/Resource/main.ico`, `packages/assets/logo-*.png`).
 - **Window:** keep the native title bar. Mica plus the immersive dark title bar through DWM. Whether Mica can show through a transparent Slint window is uncertain and needs a spike in M1; the fallback is a solid background.
 
 ## Build and deploy
