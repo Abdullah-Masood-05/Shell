@@ -235,6 +235,23 @@ namespace Nilesoft
 
 		void Initializer::load_mui()
 		{
+			// Every module named below is a Windows binary, read for its localised
+			// strings/menus. Never resolve them through the search path: mapped as
+			// data no code would run, but the menu titles would be a planted
+			// file's. Bare names go to System32 first, then the Windows directory
+			// (regedit.exe and explorer.exe live there, not in System32); names
+			// with a directory are relative to the Windows directory. Either way
+			// LoadLibraryEx only ever sees System32 or a fully qualified path.
+			auto load_resource_module = [](const wchar_t *dll) -> HMODULE
+			{
+				constexpr DWORD flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+				if(::wcspbrk(dll, L"\\/"))
+					return DLL::LoadSafeWindows(dll, flags);
+				if(auto hModule = DLL::LoadSafe(dll, flags))
+					return hModule;
+				return DLL::LoadSafeWindows(dll, flags);
+			};
+
 			auto ldstr = [&, this](const wchar_t *dll,
 								std::initializer_list<MUID> list)
 			{
@@ -242,7 +259,7 @@ namespace Nilesoft
 				bool load_as_dynamic = false;
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					hModule = load_resource_module(dll);
 					load_as_dynamic = true;
 				}
 
@@ -336,7 +353,7 @@ namespace Nilesoft
 				HMODULE lib{}, hModule = ::GetModuleHandleW(dll);
 				if(!hModule)
 				{
-					lib = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					lib = load_resource_module(dll);
 					hModule = lib;
 				}
 
@@ -355,7 +372,7 @@ namespace Nilesoft
 				HMODULE lib{}, hModule = ::GetModuleHandleW(dll);
 				if(!hModule)
 				{
-					lib = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					lib = load_resource_module(dll);
 					hModule = lib;
 				}
 
@@ -711,7 +728,9 @@ namespace Nilesoft
 			ldstr(L"display.dll", { {IDENT_ID_DISPLAY_SETTINGS, 4} });
 			ldstr(L"themecpl.dll", { {IDENT_ID_PERSONALIZE, 10} });
 			ldstr(L"regedit.exe", { {IDENT_ID_MERGE, 310, {L'\uE142'} } });
-			ldstr(L"powershell.exe", { {IDENT_ID_RUN_WITH_POWERSHELL, 108} });
+			// Not in System32 itself; named relative to the Windows directory.
+			ldstr(L"System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+				  { {IDENT_ID_RUN_WITH_POWERSHELL, 108} });
 
 			ldstr(L"stobject.dll", {
 				{IDENT_ID_SET_AS_DESKTOP_BACKGROUND, 417},

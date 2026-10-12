@@ -27,6 +27,91 @@ namespace Nilesoft
 
 		explicit operator bool() const { return m_handle != nullptr; }
 
+		/*
+			Loads a module without giving the search path (and in particular the
+			current directory) a chance to supply it.
+
+			Every bare name this codebase loads is a Windows module: kernel32,
+			user32, ntdll, shell32, shlwapi, uxtheme, OleAut32, Shcore, Comdlg32,
+			winbrand, ... A plain LoadLibrary of a bare name uses the standard
+			search order, which is what a DLL preloading attack needs - and this
+			code runs inside explorer.exe and every process that shows a shell
+			menu or file dialog.
+
+			Microsoft's mitigations are to use the LOAD_LIBRARY_SEARCH flags with
+			LoadLibraryEx, or to specify a fully qualified path. This does the
+			first and falls back to the second (not to an unqualified load):
+			LOAD_LIBRARY_SEARCH_SYSTEM32 needs KB2533623 on Windows 7 and fails
+			there with ERROR_INVALID_PARAMETER.
+
+			  https://learn.microsoft.com/windows/win32/dlls/dynamic-link-library-security
+
+			A name that contains a path is a file the caller chose (e.g. an icon
+			source) and is loaded exactly as given.
+		*/
+		static HMODULE LoadSafe(const wchar_t *name, DWORD flags = 0)
+		{
+			if(!name || !*name)
+				return nullptr;
+
+			if(::wcspbrk(name, L"\\/:"))
+				return ::LoadLibraryExW(name, nullptr, flags);
+
+			if(auto module = ::LoadLibraryExW(name, nullptr, flags | LOAD_LIBRARY_SEARCH_SYSTEM32))
+				return module;
+
+			if(::GetLastError() != ERROR_INVALID_PARAMETER)
+				return nullptr;
+
+			wchar_t path[MAX_PATH]{};
+			auto length = ::GetSystemDirectoryW(path, ARRAYSIZE(path));
+			return QualifiedLoad(path, length, name, flags);
+		}
+
+		/*
+			The same guarantee for Windows binaries that are not in System32,
+			e.g. regedit.exe and explorer.exe (Windows directory) or
+			System32\WindowsPowerShell\v1.0\powershell.exe. `relative` is resolved
+			against the Windows directory, so LoadLibraryEx still receives a fully
+			qualified path that was never searched for.
+		*/
+		static HMODULE LoadSafeWindows(const wchar_t *relative, DWORD flags = 0)
+		{
+			if(!relative || !*relative)
+				return nullptr;
+
+			wchar_t path[MAX_PATH]{};
+			auto length = ::GetWindowsDirectoryW(path, ARRAYSIZE(path));
+			return QualifiedLoad(path, length, relative, flags);
+		}
+
+	private:
+		// `dir` holds `length` characters from GetSystemDirectory/GetWindowsDirectory.
+		static HMODULE QualifiedLoad(wchar_t (&dir)[MAX_PATH], UINT length, const wchar_t *name, DWORD flags)
+		{
+			if(length == 0 || length >= MAX_PATH)
+				return nullptr;
+
+			// Documented to omit the trailing separator except at a drive root.
+			if(dir[length - 1] != L'\\')
+			{
+				if(length + 1 >= MAX_PATH)
+					return nullptr;
+				dir[length++] = L'\\';
+			}
+
+			for(auto p = name; *p; ++p)
+			{
+				if(length + 1 >= MAX_PATH)
+					return nullptr;
+				dir[length++] = *p;
+			}
+			dir[length] = 0;
+
+			return ::LoadLibraryExW(dir, nullptr, flags);
+		}
+
+	public:
 		bool load(bool load_as_data = false)
 		{
 			if(m_handle)
@@ -37,10 +122,7 @@ namespace Nilesoft
 				m_handle = ::GetModuleHandleW(m_dllPath);
 				if(!m_handle)
 				{
-					if(load_as_data)
-						m_handle = ::LoadLibraryExW(m_dllPath, nullptr, LOAD_LIBRARY_AS_DATAFILE);
-					else
-						m_handle = ::LoadLibraryW(m_dllPath);
+					m_handle = LoadSafe(m_dllPath, load_as_data ? LOAD_LIBRARY_AS_DATAFILE : 0);
 
 					loadLibrary = true;
 				}
@@ -83,7 +165,7 @@ namespace Nilesoft
 
 		static bool Load(const wchar_t* dllPath, HMODULE &hModule)
 		{
-			hModule = ::LoadLibraryW(dllPath);
+			hModule = LoadSafe(dllPath);
 			return (hModule != nullptr);
 		}
 
@@ -132,7 +214,7 @@ namespace Nilesoft
 					lpFunc = (T)::GetProcAddress(hModule, lpProcName);
 				else
 				{
-					hModule = ::LoadLibraryW(dllPath);
+					hModule = LoadSafe(dllPath);
 					if(hModule)
 					{
 						lpFunc = (T)::GetProcAddress(hModule, lpProcName);
@@ -236,7 +318,7 @@ namespace Nilesoft
 				auto hModule = ::GetModuleHandleW(name);
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryW(name);
+					hModule = LoadSafe(name);
 					freeLibrary = true;
 				}
 
@@ -263,7 +345,7 @@ namespace Nilesoft
 				auto hModule = ::GetModuleHandleW(name);
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryW(name);
+					hModule = LoadSafe(name);
 					freeLibrary = true;
 				}
 
@@ -295,7 +377,7 @@ namespace Nilesoft
 				auto hModule = ::GetModuleHandleW(kernel32);
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryW(kernel32);
+					hModule = LoadSafe(kernel32);
 					freeLibrary = true;
 				}
 
@@ -324,7 +406,7 @@ namespace Nilesoft
 				auto hModule = ::GetModuleHandleW(user32);
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryW(user32);
+					hModule = LoadSafe(user32);
 					freeLibrary = true;
 				}
 
