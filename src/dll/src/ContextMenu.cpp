@@ -2822,9 +2822,6 @@ namespace Nilesoft
 						{
 							Color nor, sel, dis, dis_sel;
 
-							// Special handling for Windows 11 Canary and Dev builds
-							bool isCanaryOrDev = ver->IsWindows11CanaryOrDev();
-
 							auto get_bk_clr = [&](Color &clr, int iPartId, int iStateId, int x = -1, int y = -1, int size = 9)->bool
 							{
 								DC dc = hwnd.owner;
@@ -2851,86 +2848,47 @@ namespace Nilesoft
 								return false;
 							};
 
-							// Use more reliable theme color detection for Canary builds
-							if (isCanaryOrDev)
+							// The theme API can fail here on stable Windows 11 builds too
+							// (26200/26300 and later), not only on Canary/Dev, leaving the
+							// text colours unset. Fall back to the system colours; those have
+							// no dark variant, so in dark mode keep the Dark() preset already
+							// in _theme instead.
+							auto fallback = [&](Color &clr, Color const &preset, int index)
 							{
-								// Get text colors with fallbacks to system colors
-								if (!get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR))
-								{
-									nor.from(::GetSysColor(COLOR_MENUTEXT), 100);
-								}
-								
-								if (!get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR))
-								{
-									sel.from(::GetSysColor(COLOR_HIGHLIGHTTEXT), 100);
-								}
-								
-								if (!get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR))
-								{
-									dis.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
-								
-								if (!get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR))
-								{
-									dis_sel.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
-							}
-							else
-							{
-								// Standard theme color detection for non-Canary builds
-								get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR);
-								get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR);
-								get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR);
-								get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR);
-							}
+								if(is_dark)
+									clr = preset;
+								else
+									clr.from(::GetSysColor(index), 100);
+							};
+
+							if(!get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR))
+								fallback(nor, _theme.text.color.nor, COLOR_MENUTEXT);
+							if(!get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR))
+								fallback(sel, _theme.text.color.sel, COLOR_HIGHLIGHTTEXT);
+							if(!get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR))
+								fallback(dis, _theme.text.color.nor_dis, COLOR_GRAYTEXT);
+							if(!get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR))
+								fallback(dis_sel, _theme.text.color.sel_dis, COLOR_GRAYTEXT);
 
 							_theme.text.color = { nor, sel, dis, dis_sel };
 							_theme.symbols.checked = { nor, sel, dis, dis_sel };
 							_theme.symbols.bullet = { nor, sel, dis, dis_sel };
 							_theme.symbols.chevron = { nor, sel, dis, dis_sel };
 
-							// More reliable background color detection for Canary builds
-							if (isCanaryOrDev)
+							if(!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
 							{
-								if (!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
-								{
-									if (!get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL))
-									{
-										_theme.background.color.from(::GetSysColor(COLOR_MENU), 100);
-									}
-								}
-								
-								if (!get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT))
-								{
-									_theme.back.color.sel.from(::GetSysColor(COLOR_HIGHLIGHT), 100);
-								}
-								
-								if (!get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED))
-								{
-									_theme.back.color.nor_dis.from(::GetSysColor(COLOR_MENU), 100);
-								}
-								
-								if (!get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT))
-								{
-									_theme.back.color.sel_dis.from(::GetSysColor(COLOR_BTNFACE), 100);
-								}
-								
-								if (!get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3))
-								{
-									_theme.separator.color.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
+								if(!get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL))
+									fallback(_theme.background.color, _theme.background.color, COLOR_MENU);
 							}
-							else
-							{
-								// Standard background color detection for non-Canary builds
-								if(!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
-									get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL);
 
-								get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT);
-								get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED);
-								get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT);
-								get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3);
-							}
+							if(!get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT))
+								fallback(_theme.back.color.sel, _theme.back.color.sel, COLOR_HIGHLIGHT);
+							if(!get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED))
+								fallback(_theme.back.color.nor_dis, _theme.back.color.nor_dis, COLOR_MENU);
+							if(!get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT))
+								fallback(_theme.back.color.sel_dis, _theme.back.color.sel_dis, COLOR_BTNFACE);
+							if(!get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3))
+								fallback(_theme.separator.color, _theme.separator.color, COLOR_GRAYTEXT);
 
 							_theme.border.color = _theme.separator.color;// getbkclr(MENU_POPUPBORDERS, 0, 0, 4, 9);
 							if(enableTransparency)
