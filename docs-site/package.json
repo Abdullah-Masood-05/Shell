@@ -1,0 +1,14 @@
+{
+  "name": "nilesoft-shell-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run build.ts",
+    "dev": "bun run build.ts && bun run serve.ts --watch",
+    "serve": "bun run serve.ts",
+    "check": "bun run build.ts && bun run check.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.3"
+  }
+}

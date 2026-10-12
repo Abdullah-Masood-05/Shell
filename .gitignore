@@ -50,3 +50,7 @@ src/packages/
 
 # CMake build trees
 build/
+
+# Docs site (bun)
+docs-site/dist/
+docs-site/node_modules/
