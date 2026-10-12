@@ -190,6 +190,14 @@
 			<td>Unregistering.</td>
 		</tr>
 		<tr>
+			<td class="syntax-keyword">-user</td>
+			<td>With <code>-register</code> or <code>-unregister</code>: register for the current user only
+				(<code>HKCU\Software\Classes</code>). Needs no administrator rights. The icon overlay is
+				machine-wide only and is skipped. With <code>-treat</code> on Windows 11 the redirect is written
+				under <code>HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}</code>.
+				If Shell is also registered for all users, the per-user registration takes precedence for that user.</td>
+		</tr>
+		<tr>
 			<td class="syntax-keyword">-restart (-re)</td>
 			<td>Restart Windows Explorer.</td>
 		</tr>

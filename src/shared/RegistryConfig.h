@@ -51,6 +51,7 @@ namespace Nilesoft
 		// Reads that decide whether Explorer will find us (IsRegistered(), used
 		// by the DLL) still go through HKCR, because that is the view Explorer
 		// itself resolves CLSIDs and handlers through.
+	public:
 		static constexpr REGSAM view = KEY_WOW64_64KEY;
 
 		static HKEY Root(RegScope scope)

@@ -308,10 +308,11 @@ static constexpr wchar_t TreatAsKey[] = L"SOFTWARE\\Classes\\CLSID\\" CLS_FileEx
 
 enum class TreatAsState { absent, ours, foreign, inaccessible };
 
-static TreatAsState QueryTreatAs()
+// Defaults to the machine redirect; the per-user one is the same key under HKCU.
+static TreatAsState QueryTreatAs(HKEY root = HKEY_LOCAL_MACHINE, const wchar_t *treat_as_key = TreatAsKey)
 {
 	auto_regkey key {};
-	auto rc = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, TreatAsKey, 0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, key);
+	auto rc = ::RegOpenKeyExW(root, treat_as_key, 0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, key);
 	if(rc == ERROR_FILE_NOT_FOUND || rc == ERROR_PATH_NOT_FOUND)
 		return TreatAsState::absent;
 	if(rc != ERROR_SUCCESS)
@@ -434,6 +435,145 @@ static bool disable_modern(bool _register)
 	return false;
 }
 
+/*
+	Per-user Windows 11 redirect, written under HKCU only (no elevation).
+
+	Explorer builds the Windows 11 menu with CoCreateInstance({86ca1aa0-...}).
+	For a medium-integrity caller such as Explorer, COM resolves a CLSID through
+	the merged HKEY_CLASSES_ROOT view, where a subkey of
+	HKCU\Software\Classes\CLSID\{x} shadows the same subkey under HKLM. The
+	widely used "classic context menu" tweak depends on exactly that: an empty
+	HKCU\...\{86ca1aa0-...}\InprocServer32 hides the system server, activation
+	fails and Explorer falls back to the classic menu. That HKCU key belongs to
+	the user, so unlike the HKLM one (owned by TrustedInstaller, see
+	BorrowedKeyAccess) there is no ACL to work around.
+
+	Two things are written there:
+	  TreatAs = {BAE3934B-...F1}
+	      The redirect machine mode writes under HKLM, resolved per user. COM
+	      looks TreatAs up before the server, so activation goes to our CLSID
+	      (registered in HKCU by -register -user), which loads shell.dll; its
+	      DllGetClassObject declines the request and Explorer shows the classic
+	      menu, which Shell takes over.
+	  InprocServer32 = ""   (only if the user has no such key already)
+	      The classic-menu tweak itself, as a fallback in case a COM build
+	      ignored a per-user TreatAs: activation then simply fails, Explorer
+	      falls back to the classic menu and loads shell.dll through its
+	      ContextMenuHandlers entry.
+	Either way the result is the classic menu with shell.dll loaded. The marker
+	value records that the empty InprocServer32 is ours, so unregistering
+	removes exactly what was added and leaves a user's own tweak alone.
+*/
+static constexpr wchar_t UserTreatAsParent[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu;
+static constexpr wchar_t UserTreatAsKey[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu L"\\TreatAs";
+static constexpr wchar_t UserTreatAsInproc[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu L"\\InprocServer32";
+static constexpr wchar_t UserTreatAsMarker[] = L"NilesoftShell.InprocServer32";
+
+static TreatAsState QueryUserTreatAs()
+{
+	return QueryTreatAs(HKEY_CURRENT_USER, UserTreatAsKey);
+}
+
+static bool user_treat(bool _register)
+{
+	const HKEY hkcu = HKEY_CURRENT_USER;
+	auto state = QueryUserTreatAs();
+
+	if(_register)
+	{
+		if(state == TreatAsState::foreign || state == TreatAsState::inaccessible)
+		{
+			_log->warning(L"Per-user TreatAs redirect exists but is not ours (or is unreadable); left unchanged.");
+			return false;
+		}
+
+		if(state == TreatAsState::absent && !RegistryConfig::SetString(hkcu, UserTreatAsKey, nullptr, CLS_ContextMenu))
+			return false;
+
+		if(!RegistryConfig::KeyExists(hkcu, UserTreatAsInproc) &&
+		   RegistryConfig::SetString(hkcu, UserTreatAsInproc, nullptr, L""))
+		{
+			RegistryConfig::SetString(hkcu, UserTreatAsParent, UserTreatAsMarker, L"1");
+		}
+		return true;
+	}
+
+	bool ok = true;
+	if(state == TreatAsState::ours)
+		ok = RegistryConfig::DeleteTree(hkcu, UserTreatAsKey);
+	else if(state == TreatAsState::inaccessible)
+		ok = false;
+
+	string marker;
+	if(RegistryConfig::GetString(hkcu, UserTreatAsParent, UserTreatAsMarker, marker))
+	{
+		// Ours, and still exactly as written: one empty default value.
+		string server;
+		if(RegistryConfig::GetString(hkcu, UserTreatAsInproc, nullptr, server) && server.empty())
+		{
+			RegistryConfig::DeleteValue(hkcu, UserTreatAsInproc, nullptr);
+			RegistryConfig::DeleteKeyIfEmpty(hkcu, UserTreatAsInproc);
+		}
+		RegistryConfig::DeleteValue(hkcu, UserTreatAsParent, UserTreatAsMarker);
+	}
+
+	// Only if nothing else (e.g. a user's own tweak) is left in it.
+	RegistryConfig::DeleteKeyIfEmpty(hkcu, UserTreatAsParent);
+	return ok;
+}
+
+// -register -user / -unregister -user. Writes below HKEY_CURRENT_USER only, so
+// it works without elevation and never asks for it. On failure `msg` holds
+// the text to show, or is empty when there was nothing to unregister.
+static bool RegistrationUser(const REGOP &reg, const string &dll_path, string &msg)
+{
+	auto ver = &Windows::Version::Instance();
+
+	if(reg.REGISTER)
+	{
+		if(!RegistryConfig::RegisterUser(dll_path))
+		{
+			msg = string::Extract(IDS_REGISTER_NOT_SUCCESS).move();
+			return false;
+		}
+
+		_log->info(L"Registered for the current user (HKCU\\Software\\Classes). "
+				   L"The icon overlay and folder extensions can only be registered "
+				   L"machine-wide (HKLM) and were skipped.");
+
+		if(RegistryConfig::IsRegistered(RegScope::Machine))
+		{
+			_log->warning(L"Shell is also registered for all users. For this user the HKCU "
+						  L"registration ('%s') shadows the machine one ('%s').",
+						  dll_path.c_str(), RegistryConfig::InprocServerPath(RegScope::Machine).c_str());
+		}
+
+		if(ver->IsWindows11OrGreater() && reg.TREAT && !user_treat(true))
+			_log->warning(L"Could not set the per-user Windows 11 TreatAs redirect.");
+
+		msg = string::Extract(IDS_REGISTER_SUCCESS).move();
+		return true;
+	}
+
+	// Always remove our per-user redirect, with or without -treat, as machine
+	// mode does: one left behind would point the Windows 11 menu at a CLSID
+	// this user no longer has. Only what user_treat(true) wrote is removed.
+	if(!user_treat(false))
+		_log->warning(L"Could not remove the per-user Windows 11 TreatAs redirect.");
+
+	if(!RegistryConfig::IsRegistered(RegScope::User))
+		return false;
+
+	if(!RegistryConfig::UnregisterUser())
+	{
+		msg = string::Extract(IDS_UNREGISTER_NOT_SUCCESS).move();
+		return false;
+	}
+
+	msg = string::Extract(IDS_UNREGISTER_SUCCESS).move();
+	return true;
+}
+
 //printf("Please wait shell we'll process your command \n");
 // r		register
 // u		unregister
@@ -478,7 +618,21 @@ bool Registration(REGOP reg)
 
 		if(reg.REGISTER || reg.UNREGISTER)
 		{
-			if(!is_elevated)
+			if(reg.USER)
+			{
+				// Per-user: HKCU only, no elevation needed or requested.
+				if(!RegistrationUser(reg, dll_path, msg))
+				{
+					if(!msg.empty())
+					{
+						_log->error(msg);
+						if(!reg.SILENT)
+							MessageBox::Show(msg, APP_FULLNAME, MessageBoxIcon::Error, MessageBoxButtons::OK);
+					}
+					return false;
+				}
+			}
+			else if(!is_elevated)
 			{
 				// Missing administrative privileges!
 				msg = string::Extract(IDS_ADMIN_PRIVILEGES).move();
@@ -490,8 +644,7 @@ bool Registration(REGOP reg)
 				}
 				return false;
 			}
-
-			if(reg.REGISTER)
+			else if(reg.REGISTER)
 			{
 				//logger->create();
 
@@ -518,6 +671,13 @@ bool Registration(REGOP reg)
 					//SOFTWARE\\Classes\\CLSID"
 					if(!disable_modern(true))
 						_log->warning(L"Could not set the Windows 11 TreatAs redirect.");
+				}
+
+				if(RegistryConfig::IsRegistered(RegScope::User))
+				{
+					_log->warning(L"This user also has a per-user (HKCU) registration ('%s'); "
+								  L"for this user it shadows the machine one.",
+								  RegistryConfig::InprocServerPath(RegScope::User).c_str());
 				}
 
 				msg = string::Extract(IDS_REGISTER_SUCCESS).move();
@@ -613,7 +773,8 @@ bool Register(REGOP reg, HWND hwnd = nullptr)
 	string path = IO::Path::Combine(IO::Path::Parent(IO::Path::Module(nullptr)), dll_name).move();
 	DLL dll(path, true);
 
-	if(reg.REGISTER || reg.UNREGISTER)
+	// Per-user registration (-user) needs no elevation.
+	if((reg.REGISTER || reg.UNREGISTER) && !reg.USER)
 	{
 		if(!is_elevated)
 		{
@@ -997,6 +1158,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					reg.FOLDEREXTENSIONS=true;
 				}
+                else if(op->has_name(L"user"))
+                {
+					// Per-user (HKCU) register/unregister; no elevation.
+					reg.USER = true;
+                }
                 else if(op->has_name({ L"s", L"silent" }))
                 {
 					reg.SILENT=true;
@@ -1372,6 +1538,8 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 //L"shell.exe [-[r][u]] [-i] [-s] [-re]\n\n"
                 L"-register\t\tRegistering.\r\n"
                 L"-unregister\tUnregistering.\r\n"
+                L"-user\t\tWith -register/-unregister: current user\r\n"
+                L"\t\tonly (HKCU), no administrator rights needed.\r\n"
                 L"-treat\t\tDisable Windows 11 context menu.\r\n"
                 L"-silent\t\tPrevents displaying messages.\r\n"
                 L"-restart\t\tRestart Windows Explorer.\r\n\r\n"
@@ -1379,6 +1547,7 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 //L"\t\tN=[admin | system | trustedinsaller]\r\n\r\n"
                 L"-?\t\tDispay this help message.\r\n\r\n"
                 L"Examples:\r\nshell.exe -register -treat\r\n"
+                L"shell.exe -register -user -treat -restart\r\n"
               //  L"shell.exe -runas:admin -cmd:'cmd.exe' -args:\"/K echo Hello world!\"\r\n"
                 ;
             ::SetDlgItemTextW(hwnd, IDC_CMDLINE_TEXT, usage);
