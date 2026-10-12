@@ -2,7 +2,13 @@
 {
 	priority=1
 	exclude.where = !process.is_explorer
-	showdelay = 200
+
+	// showdelay sets SPI_SETMENUSHOWDELAY (the delay before a submenu opens on
+	// hover), a per-user system setting, for as long as a menu is open. It
+	// overrides whatever the user chose, so it is left unset by default.
+	// Uncomment to override:
+	// showdelay = 200
+
 	// Options to allow modification of system items
 	modify.remove.duplicate=1
 	tip.enabled=true
