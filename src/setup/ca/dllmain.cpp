@@ -209,7 +209,8 @@ static std::wstring JoinPath(const std::wstring &path1, const std::wstring &path
 		if(path2.size() > 0 && path2.front() != L'\\')
 			path += L'\\';
 	}
-	return std::move(path1 + path2);
+	// path, not path1: the separator is appended to the local copy.
+	return path + path2;
 }
 
 static bool InstallFolder(MSIHANDLE hInstall, std::wstring& install_folder, bool find_by_reg)
