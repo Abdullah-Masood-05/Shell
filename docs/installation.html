@@ -227,6 +227,15 @@
 			<td>Print the full path of the configuration file in use.</td>
 		</tr>
 		<tr>
+			<td class="syntax-keyword">-config:check &lt;file&gt;</td>
+			<td>Parse <code>&lt;file&gt;</code> and its imports (resolved relative to the importing file) with the
+				same parser Explorer uses, without affecting the running menu, and print
+				<code>{"ok":bool,"root":"...","errors":[...],"warnings":[...]}</code>, each entry
+				<code>{"file","line","column","message"}</code>. Errors stop the configuration from loading; warnings
+				(such as a missing import) do not. Exit code 0 if it loads, 1 if not, 2 if no file is given.
+				Needs no administrator rights.</td>
+		</tr>
+		<tr>
 			<td class="syntax-keyword">-status</td>
 			<td>Print a JSON object describing the installation: version, registration mode
 				(<code>none</code>, <code>user</code>, <code>machine</code> or <code>both</code>) and the DLL each

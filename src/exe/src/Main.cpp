@@ -12,6 +12,7 @@
 #include <Library/PlutoVGWrap.h>
 #include <RegistryConfig.h>
 #include <ConfigLocation.h>
+#include <ConfigCheck.h>
 
 //#pragma comment(lib, "mincore.lib")
 #pragma comment(lib, "UxTheme.lib")
@@ -925,6 +926,65 @@ public:
 	}
 };
 
+// Appends `text` as a JSON string literal, quotes included. Output is
+// UTF-16 here and converted to UTF-8 on write, so only what JSON requires
+// is escaped: '"', '\', control characters, and unpaired surrogates
+// (which have no UTF-8 form, so they are kept as \u escapes).
+static void json_quote(string &json, const wchar_t *text)
+{
+	json += L'"';
+	for(auto ch = text ? text : L""; *ch; ch++)
+	{
+		auto c = *ch;
+		switch(c)
+		{
+			case L'"': json += L"\\\""; continue;
+			case L'\\': json += L"\\\\"; continue;
+			case L'\b': json += L"\\b"; continue;
+			case L'\f': json += L"\\f"; continue;
+			case L'\n': json += L"\\n"; continue;
+			case L'\r': json += L"\\r"; continue;
+			case L'\t': json += L"\\t"; continue;
+		}
+
+		bool lone = false;
+		if(IS_HIGH_SURROGATE(c))
+			lone = !IS_LOW_SURROGATE(ch[1]);
+		else if(IS_LOW_SURROGATE(c))
+			lone = true; // a valid low surrogate is consumed with its high one below
+
+		if(c < 0x20 || lone)
+		{
+			wchar_t escaped[8]{};
+			::swprintf_s(escaped, L"\\u%04x", static_cast<unsigned>(c));
+			json += escaped;
+		}
+		else if(IS_HIGH_SURROGATE(c))
+		{
+			json += c;
+			json += *++ch;
+		}
+		else
+		{
+			json += c;
+		}
+	}
+	json += L'"';
+}
+
+static void json_quote_or_null(string &json, const string &text)
+{
+	if(text.empty())
+		json += L"null";
+	else
+		json_quote(json, text);
+}
+
+static const wchar_t *json_bool(bool value)
+{
+	return value ? L"true" : L"false";
+}
+
 static string InstallDirectory()
 {
 	return IO::Path::Parent(IO::Path::Module(nullptr)).move();
@@ -1151,12 +1211,103 @@ namespace ConfigCommand
 		return cli_ok;
 	}
 
-	static int run(const string &command, bool force, const wchar_t *out_path)
+	/*
+		-config:check <root.nss>
+
+		Parses <root.nss> and its imports with the real parser, which lives in
+		shell.dll: the DLL next to this exe is loaded and its ConfigCheck
+		export called (see ConfigCheck.h). It parses into a private cache, so
+		no Explorer state is involved, and writes nothing to the registry.
+		Prints {"ok":bool,"root":"...","errors":[...],"warnings":[...]},
+		each entry {"file","line","column","message"}. Exit code 0 if ok,
+		1 if there are errors (or the check could not run).
+	*/
+	struct CheckResult
+	{
+		string errors, warnings;
+	};
+
+	static void CALLBACK check_sink(void *context, BOOL is_error, const wchar_t *file,
+									UINT line, UINT column, const wchar_t *message)
+	{
+		auto result = static_cast<CheckResult *>(context);
+		auto &list = is_error ? result->errors : result->warnings;
+		list += list.empty() ? L"\r\n    " : L",\r\n    ";
+		list += L"{ \"file\": ";
+		json_quote(list, file);
+		string numbers;
+		numbers.format(L", \"line\": %u, \"column\": %u, \"message\": ", line, column);
+		list += numbers;
+		json_quote(list, message);
+		list += L" }";
+	}
+
+	static int check(CliOutput &out, const string &root_arg)
+	{
+		CheckResult result;
+		HRESULT hr = E_FAIL;
+
+		string root = root_arg;
+		if(wchar_t full[MAX_PATH * 4]{}; ::GetFullPathNameW(root_arg, ARRAYSIZE(full), full, nullptr))
+		{
+			root = full;
+			// Expand 8.3 names, so reported paths match what the caller uses.
+			if(wchar_t long_path[MAX_PATH * 4]{}; ::GetLongPathNameW(full, long_path, ARRAYSIZE(long_path)))
+				root = long_path;
+		}
+
+		auto dll_path = IO::Path::Combine(InstallDirectory(), dll_name).move();
+		// Kept loaded until the process exits, which is right after this.
+		auto module = ::LoadLibraryExW(dll_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+		auto proc = module ? reinterpret_cast<ConfigCheckProc>(::GetProcAddress(module, CONFIG_CHECK_EXPORT)) : nullptr;
+		if(!proc)
+		{
+			string msg;
+			msg.format(L"cannot load the parser from '%s' (error %lu)", dll_path.c_str(), ::GetLastError());
+			check_sink(&result, TRUE, dll_path, 0, 0, msg);
+		}
+		else
+		{
+			hr = proc(root, check_sink, &result);
+			if(FAILED(hr))
+			{
+				string msg;
+				msg.format(L"the check could not be run (0x%08lx)", static_cast<unsigned long>(hr));
+				check_sink(&result, TRUE, root, 0, 0, msg);
+			}
+		}
+
+		auto ok = hr == S_OK;
+		string json = L"{\r\n  \"ok\": ";
+		json += json_bool(ok);
+		json += L",\r\n  \"root\": ";
+		json_quote(json, root);
+		json += L",\r\n  \"errors\": [";
+		json += result.errors;
+		json += result.errors.empty() ? L"]" : L"\r\n  ]";
+		json += L",\r\n  \"warnings\": [";
+		json += result.warnings;
+		json += result.warnings.empty() ? L"]" : L"\r\n  ]";
+		json += L"\r\n}";
+		out.line(json);
+		return ok ? cli_ok : cli_failed;
+	}
+
+	static int run(const string &command, const string &root, bool force, const wchar_t *out_path)
 	{
 		CliOutput out(out_path);
 
 		int ret;
-		if(command.equals(L"init"))
+		if(command.equals(L"check"))
+		{
+			if(root.empty())
+			{
+				out.line(L"usage: shell -config:check <root.nss> [-out:<file>]");
+				return cli_usage;
+			}
+			ret = check(out, root);
+		}
+		else if(command.equals(L"init"))
 			ret = init(out, force);
 		else if(command.equals(L"reset"))
 			ret = reset(out);
@@ -1164,7 +1315,7 @@ namespace ConfigCommand
 			ret = path(out);
 		else
 		{
-			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path [-out:<file>]");
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:check <root.nss> [-out:<file>]");
 			return cli_usage;
 		}
 
@@ -1208,65 +1359,6 @@ namespace ConfigCommand
 */
 namespace StatusCommand
 {
-	// Appends `text` as a JSON string literal, quotes included. Output is
-	// UTF-16 here and converted to UTF-8 on write, so only what JSON requires
-	// is escaped: '"', '\', control characters, and unpaired surrogates
-	// (which have no UTF-8 form, so they are kept as \u escapes).
-	static void quote(string &json, const wchar_t *text)
-	{
-		json += L'"';
-		for(auto ch = text ? text : L""; *ch; ch++)
-		{
-			auto c = *ch;
-			switch(c)
-			{
-				case L'"': json += L"\\\""; continue;
-				case L'\\': json += L"\\\\"; continue;
-				case L'\b': json += L"\\b"; continue;
-				case L'\f': json += L"\\f"; continue;
-				case L'\n': json += L"\\n"; continue;
-				case L'\r': json += L"\\r"; continue;
-				case L'\t': json += L"\\t"; continue;
-			}
-
-			bool lone = false;
-			if(IS_HIGH_SURROGATE(c))
-				lone = !IS_LOW_SURROGATE(ch[1]);
-			else if(IS_LOW_SURROGATE(c))
-				lone = true; // a valid low surrogate is consumed with its high one below
-
-			if(c < 0x20 || lone)
-			{
-				wchar_t escaped[8]{};
-				::swprintf_s(escaped, L"\\u%04x", static_cast<unsigned>(c));
-				json += escaped;
-			}
-			else if(IS_HIGH_SURROGATE(c))
-			{
-				json += c;
-				json += *++ch;
-			}
-			else
-			{
-				json += c;
-			}
-		}
-		json += L'"';
-	}
-
-	static void quote_or_null(string &json, const string &text)
-	{
-		if(text.empty())
-			json += L"null";
-		else
-			quote(json, text);
-	}
-
-	static const wchar_t *boolean(bool value)
-	{
-		return value ? L"true" : L"false";
-	}
-
 	static const wchar_t *state_name(TreatAsState state)
 	{
 		switch(state)
@@ -1308,56 +1400,56 @@ namespace StatusCommand
 
 		string json;
 		json += L"{\r\n  \"version\": ";
-		quote(json, APP_VERSION);
+		json_quote(json, APP_VERSION);
 		json += L",\r\n  \"elevated\": ";
-		json += boolean(is_elevated);
+		json += json_bool(is_elevated);
 		json += L",\r\n  \"installDir\": ";
-		quote(json, install_dir);
+		json_quote(json, install_dir);
 
 		json += L",\r\n  \"dll\": { \"path\": ";
-		quote(json, dll_path);
+		json_quote(json, dll_path);
 		json += L", \"exists\": ";
-		json += boolean(ConfigLocation::IsFile(dll_path));
+		json += json_bool(ConfigLocation::IsFile(dll_path));
 		json += L" }";
 
 		json += L",\r\n  \"registration\": {\r\n    \"mode\": ";
-		quote(json, RegistryConfig::RegistrationMode());
+		json_quote(json, RegistryConfig::RegistrationMode());
 		json += L",\r\n    \"machine\": { \"registered\": ";
-		json += boolean(machine);
+		json += json_bool(machine);
 		json += L", \"dll\": ";
-		quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::Machine));
+		json_quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::Machine));
 		json += L" },\r\n    \"user\": { \"registered\": ";
-		json += boolean(user);
+		json += json_bool(user);
 		json += L", \"dll\": ";
-		quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::User));
+		json_quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::User));
 		json += L" }\r\n  }";
 
 		json += L",\r\n  \"win11\": {\r\n    \"applicable\": ";
-		json += boolean(win11);
+		json += json_bool(win11);
 		json += L",\r\n    \"classicMenu\": ";
-		json += boolean(classic);
+		json += json_bool(classic);
 		json += L",\r\n    \"machineTreatAs\": ";
-		quote(json, state_name(machine_treat));
+		json_quote(json, state_name(machine_treat));
 		json += L",\r\n    \"userTreatAs\": ";
-		quote(json, state_name(user_treat_state));
+		json_quote(json, state_name(user_treat_state));
 		json += L",\r\n    \"userInprocServer32\": ";
-		json += boolean(user_inproc);
+		json += json_bool(user_inproc);
 		json += L",\r\n    \"userInprocServer32Ours\": ";
-		json += boolean(user_inproc_ours);
+		json += json_bool(user_inproc_ours);
 		json += L"\r\n  }";
 
 		json += L",\r\n  \"config\": {\r\n    \"path\": ";
-		quote(json, location.path);
+		json_quote(json, location.path);
 		json += L",\r\n    \"source\": ";
-		quote(json, ConfigLocation::SourceName(location.source));
+		json_quote(json, ConfigLocation::SourceName(location.source));
 		json += L",\r\n    \"exists\": ";
-		json += boolean(location.source != ConfigLocation::Source::none);
+		json += json_bool(location.source != ConfigLocation::Source::none);
 		json += L",\r\n    \"registryValue\": ";
-		quote_or_null(json, location.configured);
+		json_quote_or_null(json, location.configured);
 		json += L"\r\n  }";
 
 		json += L",\r\n  \"userConfigDir\": ";
-		quote_or_null(json, user_dir);
+		json_quote_or_null(json, user_dir);
 		json += L"\r\n}";
 		return json.move();
 	}
@@ -1701,6 +1793,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// -config:<init|reset|path>, -force, -out:<file>
 		bool config = false, force = false;
 		string config_command, out_path;
+		// -config:check <root.nss>: the first plain argument after it.
+		string config_root;
+		bool want_root = false;
 		// -status [-out:<file>]
 		bool status = false;
         for(auto op : cmdline)
@@ -1734,6 +1829,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					config = true;
 					config_command = op->Value;
+					want_root = config_command.equals(L"check");
 				}
 				else if(op->has_name(L"out"))
 				{
@@ -1761,6 +1857,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
                     cmd = op->Value;
                 }
             }
+			else if(want_root && config_root.empty())
+			{
+				// A plain argument. The option parser splits it at the first ':',
+				// which every drive-letter path has, so take it unsplit.
+				config_root = op->Argument;
+			}
 			else if(op->has_name(L"check"))
 			{
 				_check = true;
@@ -1791,7 +1893,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// Never elevated, never interactive; handled on its own.
 		if(config)
 		{
-			auto ret = ConfigCommand::run(config_command, force, out_path.empty() ? nullptr : out_path.c_str());
+			auto ret = ConfigCommand::run(config_command, config_root, force, out_path.empty() ? nullptr : out_path.c_str());
 			_log->close();
 			return ret;
 		}
@@ -2159,6 +2261,9 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"-config:reset\tBack the per-user folder up to\r\n"
                 L"\t\tbackup-<timestamp>, then copy the defaults again.\r\n"
                 L"-config:path\tPrint the config file in use.\r\n"
+                L"-config:check <file>\r\n"
+                L"\t\tParse <file> and its imports; print the\r\n"
+                L"\t\terrors and warnings as JSON (exit 1 on error).\r\n"
                 L"-status\t\tPrint registration, Windows 11 menu and\r\n"
                 L"\t\tconfig state as JSON (read-only).\r\n"
                 L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"

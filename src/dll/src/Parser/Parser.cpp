@@ -12,7 +12,7 @@ namespace Nilesoft
 	{
 		extern Logger &_log = Logger::Instance();
 
-		Parser::Parser()
+		Parser::Parser(const wchar_t *root)
 		{
 			context.Application = &Initializer::instance->application;
 
@@ -20,6 +20,36 @@ namespace Nilesoft
 			context.variables.global = &context.Cache->variables.global;
 			context.variables.runtime = &context.Cache->variables.runtime;
 			context.Selections = nullptr;
+
+			if(root && *root)
+			{
+				m_path = root;
+				add_source(m_path);
+				if(!ConfigLocation::IsFile(m_path))
+				{
+					error_code = TokenError::CannotFoundConfigFile;
+					m_error = true;
+					diagnose(true, m_path, 0, 0, L"config file not found");
+					return;
+				}
+
+				_imports.emplace_back(new Lexer);
+				l = _imports.front().get();
+				if(!l->load_File(m_path.c_str()) || l->length < 5)
+				{
+					if(l->error != TokenError::None)
+					{
+						error_code = l->error;
+						m_error = true;
+						diagnose(true, m_path, 0, 0, ParserException::errortostr(l->error));
+					}
+					else
+					{
+						diagnose(false, m_path, 0, 0, L"config file is empty");
+					}
+				}
+				return;
+			}
 
 			// HKCU "config" value, then %APPDATA%\Nilesoft\Shell\shell.nss, then
 			// the install folder's shell.nss; see ConfigLocation. Shared with
@@ -68,6 +98,12 @@ namespace Nilesoft
 
 		Parser::~Parser() { }
 
+		void Parser::diagnose(bool is_error, const wchar_t *file, size_t line, size_t column, const string &message)
+		{
+			if(auto list = Diagnostics)
+				list->push_back({ is_error, file ? file : L"", line, column, message });
+		}
+
 		void Parser::add_source(const wchar_t *path)
 		{
 			if(!path || !*path)
@@ -101,6 +137,9 @@ namespace Nilesoft
 				m_error = true;
 			}
 
+			// Every call aborts the parse (it throws), so it is reported each time.
+			diagnose(true, l->path, l->line, l->column, ParserException::errortostr(tokenError));
+
 			bool log = true;
 			auto le = &Initializer::LastError;
 			if(le->code != TokenError::None)
@@ -115,6 +154,14 @@ namespace Nilesoft
 			{
 				error_code = tokenError;
 				m_error = true;
+
+				string text = ParserException::errortostr(tokenError);
+				if(message)
+				{
+					text += L", ";
+					text += message;
+				}
+				diagnose(true, l ? l->path.c_str() : m_path.c_str(), l ? l->line : 0, l ? l->column : 0, text);
 
 				auto le = &Initializer::LastError;
 				if(le->code != TokenError::None && (le->code == error_code && le->line == l->line && le->col == l->column))
@@ -1180,6 +1227,9 @@ namespace Nilesoft
 			{
 				Logger::Error(L"line[%d] column[%d] import nesting deeper than %d, refusing '%s'",
 							  line, col, static_cast<int>(MaxImportDepth), path.c_str());
+				string text;
+				text.format(L"import nesting deeper than %d, refusing '%s'", static_cast<int>(MaxImportDepth), path.c_str());
+				diagnose(false, l->path, line, col, text);
 				return 0;
 			}
 
@@ -1197,16 +1247,21 @@ namespace Nilesoft
 				return 1;
 			}
 
+			// Not fatal: the import is skipped and the parse goes on.
+			string text;
 			if(lex->error != TokenError::None)
 			{
 				Logger::Error(L"line[%d] column[%d], %s '%s'",
 							  line, col, ParserException::errortostr(lex->error), l->path.c_str());
+				text.format(L"import '%s': %s", path.c_str(), ParserException::errortostr(lex->error));
 			}
 			else
 			{
 				Logger::Warning(L"line[%d] column[%d] invalid import file, '%s'",
 								line, col, path.c_str());
+				text.format(L"invalid import file '%s'", path.c_str());
 			}
+			diagnose(false, l->path, line, col, text);
 
 			pop_import();
 

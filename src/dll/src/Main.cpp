@@ -3,6 +3,7 @@
 #include "Include/TaskbarOrigin.h"
 #include "Library/detours.h"
 #include "RegistryConfig.h"
+#include "ConfigCheck.h"
 #include <UIAutomation.h>
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
@@ -1230,6 +1231,77 @@ STDAPI DllCanUnloadNow(void)
 	return ContextMenu::Processes.size() == 0 ? S_OK : S_FALSE;
 	//return S_OK;
 	*/
+}
+
+// shell -config:check <root.nss>: see ConfigCheck.h.
+//
+// Runs the real parser on `root` with a private CACHE. The parser reaches the
+// cache through Initializer::instance->cache, so that pointer is set for the
+// duration; which is why this refuses to run inside Explorer or once a live
+// configuration exists (it would be swapped out under a menu). In shell.exe,
+// its only caller, there is never one.
+STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+{
+	if(!root || !*root || !sink)
+		return E_INVALIDARG;
+
+	if(_loader.explorer || _initializer.cache || _initializer.Status.Loaded)
+		return E_ACCESSDENIED;
+
+	std::vector<ParseDiagnostic> diagnostics;
+	bool ok = false;
+
+	// Restores the global state whichever way the parse ends.
+	struct scope_t
+	{
+		std::unique_ptr<CACHE> cache = std::make_unique<CACHE>();
+		scope_t(std::vector<ParseDiagnostic> *list)
+		{
+			_initializer.cache = cache.get();
+			Parser::Diagnostics = list;
+			// Reported through the sink instead; the user's shell.log is not
+			// the place for diagnostics about a scratch copy.
+			Logger::Muted = true;
+		}
+		~scope_t()
+		{
+			Logger::Muted = false;
+			Parser::Diagnostics = nullptr;
+			_initializer.cache = nullptr;
+			Initializer::MAP_MUID.clear();
+		}
+	};
+
+	try
+	{
+		Initializer::ensure_com();
+
+		scope_t scope(&diagnostics);
+		scope.cache->glyph.name = FontCache::Default;
+		// As init() does: the parser verifies names such as title.copy
+		// against these, and expressions may query installed packages.
+		_initializer.load_mui();
+		scope.cache->Packages.load();
+
+		Parser parser(root);
+		ok = parser.Load() && !parser.HasError();
+	}
+	catch(...)
+	{
+		return E_FAIL;
+	}
+
+	bool reported_error = false;
+	for(auto &d : diagnostics)
+	{
+		reported_error |= d.error;
+		sink(context, d.error, d.file.c_str(), static_cast<UINT>(d.line), static_cast<UINT>(d.column), d.message.c_str());
+	}
+
+	if(!ok && !reported_error)
+		sink(context, TRUE, root, 0, 0, L"the configuration could not be loaded");
+
+	return ok ? S_OK : S_FALSE;
 }
 
 // Register the COM server and the context menu handler.
