@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Nilesoft Shell Settings logo: a context menu with a highlighted row and a spark.
+       src/settings/tools/make_icon.py draws the same shapes for app.ico; keep them in sync. -->
+  <defs>
+    <linearGradient id="tile" x1="16" y1="16" x2="240" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="row" x1="48" y1="0" x2="148" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#tile)"/>
+  <rect x="42" y="84" width="120" height="128" rx="18" fill="#0B1020" fill-opacity="0.22"/>
+  <rect x="38" y="76" width="120" height="128" rx="18" fill="#FFFFFF"/>
+  <rect x="56" y="98" width="64" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="48" y="122" width="100" height="32" rx="10" fill="url(#row)"/>
+  <rect x="60" y="131" width="56" height="14" rx="7" fill="#FFFFFF"/>
+  <rect x="56" y="168" width="80" height="14" rx="7" fill="#CBD5E1"/>
+  <path d="M186 30 Q190 64 224 68 Q190 72 186 106 Q182 72 148 68 Q182 64 186 30 Z" fill="#FDE68A"/>
+</svg>
