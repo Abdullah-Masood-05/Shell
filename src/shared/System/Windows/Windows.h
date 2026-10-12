@@ -263,7 +263,11 @@ namespace Nilesoft
 		{
 			DWORD len = MAX_PATH;
 			string temp(MAX_PATH);
-			::GetUserNameW(temp.buffer(), &len);
+			// lpnSize is only meaningful once the call has succeeded, and the
+			// count it reports includes the terminating null.
+			// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamew
+			if(!::GetUserNameW(temp.buffer(), &len) || len == 0)
+				return nullptr;
 			return temp.release(len - 1).move();
 		}
 

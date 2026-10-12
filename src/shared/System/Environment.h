@@ -59,9 +59,15 @@ namespace Nilesoft
 						return expands.release().move();
 				}
 
+				// The return counts the terminating null, and is 0 on failure -
+				// so `size - 1` has to be guarded or it underflows and string::
+				// terminate clamps the length to the capacity instead.
+				// https://learn.microsoft.com/en-us/windows/win32/api/processenv/nf-processenv-expandenvironmentstringsw
 				auto size = ::ExpandEnvironmentStringsW(value, expands.buffer(MAX_PATH), MAX_PATH);
-				if(size >= MAX_PATH)
+				if(size > MAX_PATH)
 					size = ::ExpandEnvironmentStringsW(value, expands.buffer(size), size);
+				if(size == 0)
+					return value;
 				return expands.release(size - 1).move();
 			}
 			return nullptr;

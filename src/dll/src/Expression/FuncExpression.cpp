@@ -5231,12 +5231,23 @@ namespace Nilesoft
 						if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
 						{
 							string value;
+							// Size from the byte count the second read reports, and
+							// only drop a terminator that is actually there -
+							// RegQueryValueEx does not promise one, and an empty
+							// value used to underflow into a run of NULs.
+							// https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryvalueexw
 							uint32_t len = (cbdata / sizeof(wchar_t));
-							if(key.get_value(name, &dwtype, &cbdata, value.buffer(len)))
+							auto data = value.buffer(len + 1);
+							if(data && key.get_value(name, &dwtype, &cbdata, data))
 							{
-								value.release(len - 1);
+								len = (cbdata / sizeof(wchar_t));
+								if(len > 0 && data[len - 1] == L'\0')
+									len--;
+								value.release(len);
+								// Expand returns the expansion; it does not modify
+								// its argument, so the result has to be taken.
 								if(dwtype == REG_EXPAND_SZ)
-									Environment::Expand(value).move();
+									value = Environment::Expand(value).move();
 								_result = value.move();
 							}
 						}
