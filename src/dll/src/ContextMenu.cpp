@@ -995,6 +995,7 @@ namespace Nilesoft
 					
 					m_sub->owner = mii;
 					m_sub->std_items = &item->items;
+					m_sub->std_owner = item;
 
 					string path;
 					if(!mii->path.empty())
@@ -1096,12 +1097,17 @@ namespace Nilesoft
 			MenuItemInfo *owner = nullptr;
 			if(menu->is_main)
 			{
+				// Re-read any system submenu shell32 has populated since Initialize(),
+				// before the empty-cascade cleanup below can drop it.
+				refresh_system_submenus(__system_menu_tree);
 				menu->dynamics = _cache->dynamic.items;
 				menu->std_items = &__system_menu_tree->items;
 			}
 			else
 			{
 				owner = menu->owner;
+				if(menu->std_owner && !refresh_system_submenu_item(menu->std_owner))
+					refresh_system_submenus(menu->std_owner);
 			}
 			
 			prepare_system_items(_system_items, menu);
@@ -4173,16 +4179,43 @@ namespace Nilesoft
 								if(!moveto.equals(item->path))
 								{
 									item->path = moveto.move();
+
+									// When a re-read submenu is processed again, the item
+									// this one replaces was already moved on the first pass.
+									auto already_moved = [&](std::vector<menuitem_t *> const &list)
+									{
+										if(!__refreshing_system_items)
+											return false;
+										for(auto x : list)
+										{
+											if(x != item && x->hash == item->hash && x->type == item->type &&
+											   x->wid == item->wid && x->path.equals(item->path))
+												return true;
+										}
+										return false;
+									};
+
+									bool duplicate = false;
 									if(auto submenu = __map_system_menu[item->path.hash()]; submenu)
 									{
-										item->parent = submenu;
-										submenu->items.push_back(item);
+										if(duplicate = already_moved(submenu->items); !duplicate)
+										{
+											item->parent = submenu;
+											item->moved_in = true;
+											submenu->items.push_back(item);
+										}
 									}
-									else
+									else if(duplicate = already_moved(__movable_system_items); !duplicate)
 									{
 										__movable_system_items.push_back(item);
 									}
 									items->erase(items->begin() + i--);
+
+									if(duplicate)
+									{
+										delete item;
+										continue;
+									}
 								}
 							}
 						}
@@ -4217,6 +4250,8 @@ namespace Nilesoft
 
 			auto itmes_count = ::GetMenuItemCount(hMenu);
 
+			menu->source_handle = hMenu;
+			menu->source_count = itmes_count;
 			menu->items.reserve(itmes_count);
 
 			for(int i = 0; i < itmes_count; i++)
@@ -4333,6 +4368,109 @@ namespace Nilesoft
 						menu->items.push_back(item.release());
 					}
 				}
+			}
+		}
+
+		/*
+			shell32 fills some submenus ("Send to", "New", ...) lazily, after
+			QueryContextMenu, so the snapshot taken in Initialize() can be missing
+			items. When the native popup now holds more items than it did when it
+			was read, read it again and re-apply the modify rules to the new copy.
+			The items cannot be copied out of the native HMENU directly: they are
+			owner-drawn and their dwItemData belongs to explorer.
+		*/
+		bool ContextMenu::refresh_system_submenu_item(menuitem_t *item)
+		{
+			if(!item || !item->is_menu())
+				return false;
+
+			if(!item->source_handle || !::IsMenu(item->source_handle))
+				return false;
+
+			if(::GetMenuItemCount(item->source_handle) <= item->source_count)
+				return false;
+
+			// Items a modify rule moved into this subtree from elsewhere are not part
+			// of the native snapshot; detach them so they survive the rebuild.
+			std::vector<menuitem_t *> moved_in;
+			// Nodes about to be deleted, so the path map can forget them.
+			std::vector<menuitem_t *> stale;
+
+			std::function<void(menuitem_t *)> detach = [&](menuitem_t *node)
+			{
+				auto &list = node->items;
+				for(auto it = list.begin(); it != list.end();)
+				{
+					auto child = *it;
+					if(child->moved_in)
+					{
+						moved_in.push_back(child);
+						it = list.erase(it);
+						continue;
+					}
+					stale.push_back(child);
+					detach(child);
+					++it;
+				}
+			};
+			detach(item);
+
+			for(auto it = __map_system_menu.begin(); it != __map_system_menu.end();)
+			{
+				if(std::find(stale.begin(), stale.end(), it->second) != stale.end())
+					it = __map_system_menu.erase(it);
+				else
+					++it;
+			}
+
+			for(auto child : item->items)
+				delete child;
+			item->items.clear();
+
+			build_system_menuitems(item->source_handle, item, false);
+
+			if(_settings.modify_items.enabled)
+			{
+				__refreshing_system_items = true;
+				build_main_system_menuitems(item, false);
+				__refreshing_system_items = false;
+				_context._this = nullptr;
+			}
+
+			// Back to wherever their rule put them, now that the path map points
+			// at the rebuilt nodes.
+			for(auto x : moved_in)
+			{
+				if(auto submenu = __map_system_menu[x->path.hash()]; submenu)
+				{
+					x->parent = submenu;
+					submenu->items.push_back(x);
+				}
+				else
+				{
+					x->moved_in = false;
+					__movable_system_items.push_back(x);
+				}
+			}
+
+			return true;
+		}
+
+		void ContextMenu::refresh_system_submenus(menuitem_t *menu)
+		{
+			if(!menu)
+				return;
+
+			// By index: re-applied modify rules may move items into this list.
+			for(size_t i = 0; i < menu->items.size(); i++)
+			{
+				auto item = menu->items[i];
+				if(!item || !item->is_menu())
+					continue;
+
+				// A rebuilt node's children are already current.
+				if(!refresh_system_submenu_item(item))
+					refresh_system_submenus(item);
 			}
 		}
 

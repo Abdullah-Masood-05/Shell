@@ -99,6 +99,14 @@ namespace Nilesoft
 			std::vector<NativeMenu*> native_items;
 			std::vector<menuitem_t *> items;
 			bool is_toplevel = false;
+			// Native popup this node was read from (borrowed, never destroyed here)
+			// and its item count at that time. shell32 fills some submenus
+			// ("Send to", "New") lazily, so the count can grow after the snapshot.
+			HMENU source_handle = nullptr;
+			int source_count = 0;
+			// Moved into this node's parent by a modify(menu=...) rule rather than
+			// read from the parent's native popup.
+			bool moved_in = false;
 			~menuitem_t()
 			{
 				for(auto item : items)
@@ -359,6 +367,8 @@ plutovg_move_to(pluto, start.x, start.y);
 				std::vector<NativeMenu *> dynamics;
 
 				std::vector<menuitem_t *> *std_items = nullptr;
+				// The system menu node std_items belongs to.
+				menuitem_t *std_owner = nullptr;
 
 				NativeMenu *parent{};
 				//bool dynamic{};
@@ -702,6 +712,9 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			std::vector<menuitem_t *> __movable_system_items;
 
+			// True while modify rules are re-applied to a re-read system submenu.
+			bool __refreshing_system_items = false;
+
 		public:// functions
 
 			bool set_prop(auto hWnd) { return Prop::Set(hWnd, this); }
@@ -735,6 +748,8 @@ plutovg_move_to(pluto, start.x, start.y);
 			int InvokeCommand(int id);	
 			void build_system_menuitems(HMENU hMenu, menuitem_t *menu, bool is_root = false);
 			void build_main_system_menuitems(menuitem_t *menu, bool is_root = false);
+			bool refresh_system_submenu_item(menuitem_t *item);
+			void refresh_system_submenus(menuitem_t *menu);
 
 
 			void backup_native_items(HMENU hMenu, uint32_t id, bool check = false);
