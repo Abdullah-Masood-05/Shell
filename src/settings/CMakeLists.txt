@@ -59,6 +59,8 @@ add_executable(settings WIN32
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
+    src/ConfigRules.cpp
+    src/ContextMenusController.cpp
     src/Diff.cpp
     src/Dwm.cpp
     src/EditorController.cpp
@@ -69,6 +71,9 @@ add_executable(settings WIN32
     src/Highlight.cpp
     src/LogReader.cpp
     src/PendingChanges.cpp
+    src/MenuBuilderController.cpp
+    src/MenuModel.cpp
+    src/MenuWriter.cpp
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
@@ -115,7 +120,9 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_pending.cpp
         tests/test_rules.cpp
         tests/test_save_roundtrip.cpp
+        tests/test_menus.cpp
         src/BackupsModel.cpp
+        src/ConfigRules.cpp
         src/Diff.cpp
         src/EditorSession.cpp
         src/ExcludeRules.cpp
@@ -123,6 +130,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/Highlight.cpp
         src/PendingChanges.cpp
         src/ThemeModel.cpp
+        src/MenuModel.cpp
+        src/MenuWriter.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest")
     target_compile_definitions(settings_tests PRIVATE

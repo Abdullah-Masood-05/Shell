@@ -19,7 +19,9 @@
 #include "AppearanceController.h"
 #include "BackupsController.h"
 #include "BehaviorController.h"
+#include "ContextMenusController.h"
 #include "EditorController.h"
+#include "MenuBuilderController.h"
 #include "Registry.h"
 #include "SaveService.h"
 
@@ -137,6 +139,8 @@ int main()
     auto saveService = std::make_unique<SaveService>(ui, ShellCli::locate());
     auto appearance = std::make_unique<AppearanceController>(ui, *saveService);
     auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
+    auto contextMenus = std::make_unique<ContextMenusController>(ui);
+    auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
 
     // Restore the last size and position (physical pixels) before the first frame.
     auto placement = registry::app::loadPlacement();
@@ -201,6 +205,8 @@ int main()
     behavior.reset();
     appearance.reset();
     saveService.reset();
+    menuBuilder.reset();
+    contextMenus.reset();
     backups.reset();
     editor.reset();
     controller.reset();

@@ -1,0 +1,888 @@
+import { Button, CheckBox, ComboBox, LineEdit, ListView, ScrollView } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { AppState } from "../types.slint";
+import { EditorState } from "../editor-types.slint";
+import { BuilderState, BuilderRow, BuilderNode, PreviewRow } from "../menus-types.slint";
+import { Banner, CloseGlyph } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Segmented } from "../components/controls.slint";
+import { CodeColors, CodeRow } from "../components/code.slint";
+
+// The glyph font the core draws `image=\uXXXX` with (src/shared/Resource/Shell.ttf).
+import "../../res/nilesoft-shell.ttf";
+
+global Glyphs {
+    out property <string> family: "Nilesoft.Shell";
+    // Toolbar symbols from Segoe MDL2 Assets (on every Windows 10/11).
+    out property <string> ui-family: "Segoe MDL2 Assets";
+}
+
+// A square toolbar button drawn with a Segoe MDL2 Assets symbol. Its name
+// shows in the toolbar caption while hovered.
+component ToolButton inherits Rectangle {
+    in property <string> symbol;
+    in property <string> label;
+    in property <bool> enabled: true;
+    out property <bool> hovered: ta.has-hover;
+    callback clicked;
+
+    width: 32px;
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: !root.enabled ? transparent : ta.pressed ? Tokens.pressed : ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+    Text {
+        text: root.symbol;
+        font-family: Glyphs.ui-family;
+        font-size: 14px;
+        color: root.enabled ? Tokens.text : Tokens.text-3;
+        opacity: root.enabled ? 1 : 0.6;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => { root.clicked(); }
+    }
+}
+
+component TreeRow inherits Rectangle {
+    in property <BuilderRow> entry;
+    in property <bool> selected;
+    callback clicked;
+
+    height: root.entry.kind == "separator" ? 24px : root.entry.summary != "" ? 40px : 32px;
+    border-radius: Tokens.radius-control;
+    background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: list-item;
+    accessible-label: root.entry.kind + ": " + root.entry.title;
+    accessible-item-selected: root.selected;
+
+    if root.selected: Rectangle {
+        x: 0;
+        width: 3px;
+        height: 16px;
+        border-radius: 1.5px;
+        background: Tokens.accent;
+    }
+
+    // Indent guides
+    for d in root.entry.depth: Rectangle {
+        x: 19px + d * 18px;
+        width: 1px;
+        height: root.height;
+        background: Tokens.stroke-strong;
+    }
+
+    if root.entry.kind == "separator": Rectangle {
+        x: 12px + root.entry.depth * 18px;
+        width: root.width - self.x - 12px;
+        height: 1px;
+        background: Tokens.text-3;
+        opacity: 0.6;
+    }
+
+    if root.entry.kind != "separator": HorizontalLayout {
+        padding-left: 12px + root.entry.depth * 18px;
+        padding-right: Tokens.s2;
+        spacing: Tokens.s2;
+        Text {
+            width: 16px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: root.entry.glyph;
+            font-family: Glyphs.family;
+            font-size: 15px;
+            color: root.selected ? Tokens.accent : Tokens.text-2;
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            Text {
+                text: root.entry.title;
+                overflow: elide;
+                font-weight: root.entry.kind == "menu" ? 600 : 400;
+                color: Tokens.text;
+            }
+            if root.entry.summary != "": Text {
+                text: root.entry.summary;
+                overflow: elide;
+                font-size: Tokens.caption - 1px;
+                color: Tokens.text-3;
+            }
+        }
+        if root.entry.kind == "menu": Text {
+            vertical-alignment: center;
+            text: "menu";
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Label on the left, control on the right.
+component FormRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> hint;
+    spacing: Tokens.s3;
+    VerticalLayout {
+        width: 120px;
+        alignment: start;
+        padding-top: 7px;
+        Text {
+            text: root.label;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+        }
+    }
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: 3px;
+        @children
+        if root.hint != "": Text {
+            text: root.hint;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+            wrap: word-wrap;
+        }
+    }
+}
+
+// Text fields and choices reload from the model only when `serial` changes
+// (a new selection), so typing is never fought by the round trip to C++.
+component TextField inherits LineEdit {
+    in property <string> value;
+    in property <int> serial;
+    in property <string> field;
+    changed serial => { self.text = root.value; }
+    init => { self.text = root.value; }
+    edited(t) => { BuilderState.set-text(root.field, t); }
+}
+
+component ChoiceField inherits ComboBox {
+    in property <int> value;
+    in property <int> serial;
+    in property <string> field;
+    changed serial => { self.current-index = root.value; }
+    init => { self.current-index = root.value; }
+    selected => { BuilderState.set-choice(root.field, self.current-index); }
+}
+
+component FlagField inherits CheckBox {
+    in property <bool> value;
+    in property <int> serial;
+    in property <string> field;
+    changed serial => { self.checked = root.value; }
+    init => { self.checked = root.value; }
+    toggled => { BuilderState.set-flag(root.field, self.checked); }
+}
+
+component FormSection inherits Text {
+    font-size: Tokens.caption;
+    font-weight: 600;
+    color: Tokens.text-3;
+}
+
+// One row of the preview menu, sized like Shell's default (modern) theme.
+component PreviewItem inherits Rectangle {
+    in property <PreviewRow> entry;
+    height: root.entry.kind == "separator" ? 9px : 32px;
+    if root.entry.kind == "separator": Rectangle {
+        x: 12px;
+        width: root.width - 24px;
+        height: 1px;
+        background: Tokens.stroke-strong;
+    }
+    if root.entry.kind != "separator": Rectangle {
+        x: 4px;
+        width: root.width - 8px;
+        height: root.height - 2px;
+        border-radius: Tokens.radius-control;
+        background: root.entry.open || root.entry.selected ? Tokens.hover.with-alpha(Tokens.dark ? 0.12 : 0.07) : transparent;
+        border-width: root.entry.selected ? 1px : 0;
+        border-color: Tokens.accent;
+        HorizontalLayout {
+            padding-left: 10px;
+            padding-right: 10px;
+            spacing: 10px;
+            Text {
+                width: 16px;
+                vertical-alignment: center;
+                horizontal-alignment: center;
+                text: root.entry.glyph;
+                font-family: Glyphs.family;
+                font-size: 15px;
+                color: Tokens.text;
+            }
+            Text {
+                horizontal-stretch: 1;
+                vertical-alignment: center;
+                text: root.entry.title;
+                overflow: elide;
+                color: Tokens.text;
+            }
+            if root.entry.keys != "": Text {
+                vertical-alignment: center;
+                text: root.entry.keys;
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+            }
+            if root.entry.kind == "menu": Text {
+                vertical-alignment: center;
+                text: "\u{E76C}";
+                font-family: Glyphs.ui-family;
+                font-size: 10px;
+                color: Tokens.text-2;
+            }
+        }
+    }
+}
+
+component PreviewMenu inherits Rectangle {
+    in property <[PreviewRow]> rows;
+    width: 212px;
+    height: list.preferred-height;
+    background: Tokens.dark ? #2C2C2C : #F9F9F9;
+    border-radius: Tokens.radius-card;
+    border-width: 1px;
+    border-color: Tokens.stroke-strong;
+    drop-shadow-blur: 16px;
+    drop-shadow-color: #00000040;
+    drop-shadow-offset-y: 4px;
+    list := VerticalLayout {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        for r in root.rows: PreviewItem {
+            entry: r;
+        }
+    }
+}
+
+// All 667 glyphs of the Nilesoft.Shell font, plus "No icon".
+component GlyphPicker inherits Rectangle {
+    in property <string> current;
+    callback closed();
+    property <int> hovered: -1;
+    property <int> columns: Math.max(1, Math.floor((card.width - 2 * Tokens.s4 - 12px) / 40px));
+
+    background: Tokens.scrim;
+    TouchArea {
+        clicked => { root.closed(); }
+    }
+    FocusScope {
+        init => { self.focus(); }
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                root.closed();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    card := Rectangle {
+        width: min(600px, root.width - 64px);
+        height: min(520px, root.height - 64px);
+        background: Tokens.layer;
+        border-radius: Tokens.radius-card;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000060;
+        drop-shadow-offset-y: 8px;
+        TouchArea { }  // keep clicks inside the card
+
+        VerticalLayout {
+            padding: Tokens.s4;
+            spacing: Tokens.s3;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                Text {
+                    horizontal-stretch: 1;
+                    vertical-alignment: center;
+                    text: "Choose an icon";
+                    font-size: Tokens.subtitle;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                Button {
+                    text: "No icon";
+                    clicked => {
+                        BuilderState.pick-glyph(-1);
+                        root.closed();
+                    }
+                }
+                CloseGlyph {
+                    clicked => { root.closed(); }
+                }
+            }
+            Text {
+                text: "Glyphs from Shell's own icon font, written as image=\\uXXXX. For icon.* names, colors or files, type the value in the Icon box instead.";
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+            Flickable {
+                vertical-stretch: 1;
+                content-height: Math.ceil(BuilderState.glyphs.length / root.columns) * 40px;
+                for g[i] in BuilderState.glyphs: Rectangle {
+                    x: Math.mod(i, root.columns) * 40px;
+                    y: Math.floor(i / root.columns) * 40px;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: Tokens.radius-control;
+                    background: g == root.current ? Tokens.accent-soft : cell.has-hover ? Tokens.hover : transparent;
+                    border-width: g == root.current ? 1px : 0;
+                    border-color: Tokens.accent;
+                    Text {
+                        text: g;
+                        font-family: Glyphs.family;
+                        font-size: 18px;
+                        color: Tokens.text;
+                    }
+                    cell := TouchArea {
+                        mouse-cursor: pointer;
+                        changed has-hover => {
+                            if (self.has-hover) {
+                                root.hovered = i;
+                            }
+                        }
+                        clicked => {
+                            BuilderState.pick-glyph(i);
+                            root.closed();
+                        }
+                    }
+                }
+            }
+            Text {
+                text: root.hovered >= 0 ? "image=" + BuilderState.glyph-code(root.hovered) : BuilderState.glyphs.length + " glyphs";
+                font-family: EditorState.mono-font;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+            }
+        }
+    }
+}
+
+export component MenuBuilderPage inherits Rectangle {
+    property <float> appear: 0;
+    property <bool> picker-open;
+    property <int> bottom-tab: 0;
+    property <string> tool-hint;
+    property <bool> locked: BuilderState.shared-config || !BuilderState.loaded;
+    init => {
+        root.appear = 1;
+        BuilderState.activated();
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        padding-bottom: Tokens.s6;
+        spacing: Tokens.s4;
+
+        PageHeader {
+            title: "Menu Builder";
+            description: "Your own menus and items, kept in their own file. Shell checks them before every save.";
+            busy: BuilderState.saving;
+            busy-label: "Checking and saving…";
+            Button {
+                text: "Discard";
+                enabled: BuilderState.dirty && !BuilderState.saving;
+                clicked => { BuilderState.discard(); }
+            }
+            Button {
+                text: "Save";
+                primary: true;
+                enabled: BuilderState.dirty && !BuilderState.saving && !root.locked;
+                clicked => { BuilderState.save(); }
+            }
+        }
+
+        if BuilderState.shared-config: Banner {
+            kind: "info";
+            title: "This is the shared config in the install folder";
+            text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to build menus.";
+            action-label: "Create personal config";
+            action-enabled: !AppState.busy && AppState.cli-available;
+            action => { BuilderState.create-user-config(); }
+        }
+        if BuilderState.import-off: Banner {
+            kind: "warning";
+            title: "Your menus are turned off";
+            text: "shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them.";
+            action-label: "Open Context Menus";
+            action => { BuilderState.open-context-menus(); }
+        }
+        if BuilderState.notice != "": Banner {
+            kind: "warning";
+            title: "Part of the file can't be shown here";
+            text: BuilderState.notice;
+        }
+        if BuilderState.load-error != "": Banner {
+            kind: "error";
+            title: "Couldn't read your menus";
+            text: BuilderState.load-error;
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            // Tree
+            Rectangle {
+                width: 300px;
+                background: Tokens.layer;
+                border-radius: Tokens.radius-card;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+                VerticalLayout {
+                    padding: Tokens.s2;
+                    spacing: Tokens.s1;
+                    HorizontalLayout {
+                        spacing: Tokens.s1;
+                        Button {
+                            text: "Item";
+                            enabled: !root.locked;
+                            horizontal-stretch: 1;
+                            clicked => { BuilderState.add("item"); }
+                        }
+                        Button {
+                            text: "Menu";
+                            enabled: !root.locked;
+                            horizontal-stretch: 1;
+                            clicked => { BuilderState.add("menu"); }
+                        }
+                        Button {
+                            text: "Separator";
+                            enabled: !root.locked;
+                            horizontal-stretch: 1;
+                            clicked => { BuilderState.add("separator"); }
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: 0;
+                        up := ToolButton {
+                            symbol: "\u{E74A}";
+                            label: "Move up";
+                            enabled: BuilderState.can-up;
+                            clicked => { BuilderState.move-up(); }
+                        }
+                        down := ToolButton {
+                            symbol: "\u{E74B}";
+                            label: "Move down";
+                            enabled: BuilderState.can-down;
+                            clicked => { BuilderState.move-down(); }
+                        }
+                        outd := ToolButton {
+                            symbol: "\u{E72B}";
+                            label: "Outdent: move out of its menu";
+                            enabled: BuilderState.can-outdent;
+                            clicked => { BuilderState.outdent(); }
+                        }
+                        ind := ToolButton {
+                            symbol: "\u{E72A}";
+                            label: "Indent: move into the menu above";
+                            enabled: BuilderState.can-indent;
+                            clicked => { BuilderState.indent(); }
+                        }
+                        dup := ToolButton {
+                            symbol: "\u{E8C8}";
+                            label: "Duplicate";
+                            enabled: BuilderState.selected >= 0 && !root.locked;
+                            clicked => { BuilderState.duplicate(); }
+                        }
+                        del := ToolButton {
+                            symbol: "\u{E74D}";
+                            label: "Delete";
+                            enabled: BuilderState.selected >= 0 && !root.locked;
+                            clicked => { BuilderState.remove(); }
+                        }
+                        Text {
+                            horizontal-stretch: 1;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            text: up.hovered ? up.label : down.hovered ? down.label : outd.hovered ? "Outdent" : ind.hovered ? "Indent" : dup.hovered ? dup.label : del.hovered ? del.label : "";
+                            font-size: Tokens.caption;
+                            color: Tokens.text-2;
+                        }
+                    }
+                    Rectangle {
+                        height: 1px;
+                        background: Tokens.stroke;
+                    }
+                    if BuilderState.rows.length == 0: VerticalLayout {
+                        vertical-stretch: 1;
+                        alignment: center;
+                        padding: Tokens.s4;
+                        Text {
+                            text: "No menus yet";
+                            font-weight: 600;
+                            color: Tokens.text;
+                            horizontal-alignment: center;
+                        }
+                        Text {
+                            text: "Add an item or a menu. It's saved to its own file, so the rest of your config is never touched.";
+                            color: Tokens.text-2;
+                            font-size: Tokens.caption + 1px;
+                            wrap: word-wrap;
+                            horizontal-alignment: center;
+                        }
+                    }
+                    if BuilderState.rows.length > 0: ListView {
+                        vertical-stretch: 1;
+                        for r[i] in BuilderState.rows: TreeRow {
+                            entry: r;
+                            selected: i == BuilderState.selected;
+                            clicked => { BuilderState.select(i); }
+                        }
+                    }
+                }
+            }
+
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: Tokens.s4;
+
+                // Properties
+                Rectangle {
+                    vertical-stretch: 1;
+                    min-height: 180px;
+                    background: Tokens.layer;
+                    border-radius: Tokens.radius-card;
+                    border-width: 1px;
+                    border-color: Tokens.stroke;
+                    clip: true;
+
+                    if BuilderState.node.kind == "": Text {
+                        text: BuilderState.rows.length == 0 ? "Entries you add show their properties here." : "Select an entry to edit it.";
+                        color: Tokens.text-3;
+                    }
+                    if BuilderState.node.kind == "separator": VerticalLayout {
+                        padding: Tokens.s5;
+                        spacing: Tokens.s1;
+                        alignment: start;
+                        Text {
+                            text: "Separator";
+                            font-size: Tokens.body-large;
+                            font-weight: 600;
+                            color: Tokens.text;
+                        }
+                        Text {
+                            text: "A line between the entries above and below it. It has no properties.";
+                            color: Tokens.text-2;
+                            wrap: word-wrap;
+                        }
+                    }
+                    if BuilderState.node.kind == "item" || BuilderState.node.kind == "menu": ScrollView {
+                        width: 100%;
+                        height: 100%;
+                        VerticalLayout {
+                            padding: Tokens.s5;
+                            padding-right: Tokens.s6;
+                            spacing: Tokens.s3;
+                            alignment: start;
+
+                            Text {
+                                text: BuilderState.node.kind == "menu" ? "Menu" : "Item";
+                                font-size: Tokens.body-large;
+                                font-weight: 600;
+                                color: Tokens.text;
+                            }
+                            FormRow {
+                                label: "Title";
+                                hint: "& before a letter makes it the access key.";
+                                TextField {
+                                    field: "title";
+                                    value: BuilderState.node.title;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    placeholder-text: "Shown in the menu";
+                                }
+                            }
+                            FormRow {
+                                label: "Icon";
+                                HorizontalLayout {
+                                    spacing: Tokens.s2;
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 32px;
+                                        border-radius: Tokens.radius-control;
+                                        background: Tokens.layer-2;
+                                        border-width: 1px;
+                                        border-color: Tokens.stroke-strong;
+                                        Text {
+                                            text: BuilderState.node.glyph;
+                                            font-family: Glyphs.family;
+                                            font-size: 18px;
+                                            color: Tokens.text;
+                                        }
+                                        if BuilderState.node.glyph == "": Text {
+                                            text: BuilderState.node.image == "" ? "none" : "…";
+                                            font-size: Tokens.caption - 1px;
+                                            color: Tokens.text-3;
+                                        }
+                                    }
+                                    TextField {
+                                        horizontal-stretch: 1;
+                                        field: "image";
+                                        value: BuilderState.node.image;
+                                        serial: BuilderState.node-serial;
+                                        enabled: !root.locked;
+                                        placeholder-text: "None";
+                                    }
+                                    Button {
+                                        text: "Choose…";
+                                        enabled: !root.locked;
+                                        clicked => { root.picker-open = true; }
+                                    }
+                                }
+                            }
+
+                            Rectangle { height: Tokens.s1; }
+                            FormSection { text: "WHERE IT SHOWS"; }
+                            FormRow {
+                                label: "Shows on";
+                                ChoiceField {
+                                    field: "location";
+                                    value: BuilderState.node.location;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    model: ["Everywhere", "Files", "Folders", "Folder background", "Desktop", "Drives", "Files with extensions", "Custom"];
+                                }
+                            }
+                            if BuilderState.node.location == 6: FormRow {
+                                label: "Extensions";
+                                hint: "Separated by spaces, like .txt .md .log";
+                                TextField {
+                                    field: "extensions";
+                                    value: BuilderState.node.extensions;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    placeholder-text: ".txt .md";
+                                }
+                            }
+                            if BuilderState.node.location == 7: FormRow {
+                                label: "Type";
+                                hint: "file, dir, drive, back, desktop, taskbar…, joined with |";
+                                TextField {
+                                    field: "type";
+                                    value: BuilderState.node.type;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    placeholder-text: "Any type except the taskbar";
+                                }
+                            }
+                            if BuilderState.node.location == 7: FormRow {
+                                label: "Find";
+                                hint: "Name or extension patterns, like .exe|.dll or *setup*";
+                                TextField {
+                                    field: "find";
+                                    value: BuilderState.node.find;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            if BuilderState.node.location == 7: FormRow {
+                                label: "Where";
+                                hint: "An expression, written as is. Example: sel.count > 1";
+                                TextField {
+                                    field: "where";
+                                    value: BuilderState.node.where;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            FormRow {
+                                label: "Selection";
+                                ChoiceField {
+                                    field: "mode";
+                                    value: BuilderState.node.mode;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    model: ["One item (default)", "One item", "Any selection", "Several of one type", "Several with one extension", "Nothing selected"];
+                                }
+                            }
+
+                            if BuilderState.node.kind == "item": Rectangle { height: Tokens.s1; }
+                            if BuilderState.node.kind == "item": FormSection { text: "WHAT IT RUNS"; }
+                            if BuilderState.node.kind == "item": FormRow {
+                                label: "Command";
+                                hint: "A program or file, like notepad.exe or code";
+                                TextField {
+                                    field: "cmd";
+                                    value: BuilderState.node.cmd;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            if BuilderState.node.kind == "item": FormRow {
+                                label: "Arguments";
+                                hint: "@sel.path is the selected path; quote it: \"@sel.path\"";
+                                TextField {
+                                    field: "args";
+                                    value: BuilderState.node.args;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            if BuilderState.node.kind == "item": FormRow {
+                                label: "Window";
+                                HorizontalLayout {
+                                    spacing: Tokens.s4;
+                                    ChoiceField {
+                                        width: 160px;
+                                        field: "window";
+                                        value: BuilderState.node.window;
+                                        serial: BuilderState.node-serial;
+                                        enabled: !root.locked;
+                                        model: ["Normal", "Hidden", "Minimized", "Maximized"];
+                                    }
+                                    FlagField {
+                                        text: "Run as administrator";
+                                        field: "admin";
+                                        value: BuilderState.node.admin;
+                                        serial: BuilderState.node-serial;
+                                        enabled: !root.locked;
+                                    }
+                                }
+                            }
+
+                            Rectangle { height: Tokens.s1; }
+                            FormSection { text: "LOOK"; }
+                            FormRow {
+                                label: "Separator";
+                                ChoiceField {
+                                    field: "sep";
+                                    value: BuilderState.node.sep;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    model: ["None", "Before", "After", "Before and after"];
+                                }
+                            }
+                            if BuilderState.node.kind == "item": FormRow {
+                                label: "Shortcut text";
+                                hint: "Shown on the right, like Ctrl+E. It doesn't bind the keys.";
+                                TextField {
+                                    field: "keys";
+                                    value: BuilderState.node.keys;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            FormRow {
+                                label: "Tooltip";
+                                TextField {
+                                    field: "tip";
+                                    value: BuilderState.node.tip;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                            if BuilderState.node.extra != "": FormRow {
+                                label: "Kept as written";
+                                hint: "Properties this page doesn't edit. They're saved unchanged.";
+                                Text {
+                                    text: BuilderState.node.extra;
+                                    font-family: EditorState.mono-font;
+                                    font-size: Tokens.caption + 1px;
+                                    color: Tokens.text-2;
+                                    wrap: word-wrap;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Preview and generated text
+                Rectangle {
+                    height: 236px;
+                    background: Tokens.layer;
+                    border-radius: Tokens.radius-card;
+                    border-width: 1px;
+                    border-color: Tokens.stroke;
+                    clip: true;
+                    VerticalLayout {
+                        padding: Tokens.s2;
+                        spacing: Tokens.s2;
+                        HorizontalLayout {
+                            padding-left: Tokens.s2;
+                            spacing: Tokens.s3;
+                            Segmented {
+                                width: 240px;
+                                options: ["Preview", "Generated .nss"];
+                                selected: root.bottom-tab;
+                                changed(i) => { root.bottom-tab = i; }
+                            }
+                            Text {
+                                horizontal-stretch: 1;
+                                vertical-alignment: center;
+                                text: root.bottom-tab == 0 ? "Approximate; right-click to see the real menu." : "Read-only. Save writes this to " + (BuilderState.file-label != "" ? BuilderState.file-label : "imports/settings-app-menus.nss") + ".";
+                                font-size: Tokens.caption;
+                                color: Tokens.text-3;
+                                overflow: elide;
+                            }
+                        }
+                        if root.bottom-tab == 0: Rectangle {
+                            vertical-stretch: 1;
+                            border-radius: Tokens.radius-control;
+                            background: Tokens.dark ? #1C1C1C : #E9E9E9;
+                            clip: true;
+                            if BuilderState.preview.length == 0: Text {
+                                text: "Nothing to preview yet.";
+                                color: Tokens.text-3;
+                            }
+                            main := PreviewMenu {
+                                x: Tokens.s4;
+                                y: Tokens.s3;
+                                visible: BuilderState.preview.length > 0;
+                                rows: BuilderState.preview;
+                            }
+                            if BuilderState.flyout-at >= 0 && BuilderState.flyout.length > 0: PreviewMenu {
+                                x: main.x + main.width - 2px;
+                                y: main.y + BuilderState.flyout-offset * 1px;
+                                rows: BuilderState.flyout;
+                            }
+                        }
+                        if root.bottom-tab == 1: Rectangle {
+                            vertical-stretch: 1;
+                            border-radius: Tokens.radius-control;
+                            background: Tokens.layer-2;
+                            code := ListView {
+                                width: 100%;
+                                height: 100%;
+                                content-width: max(self.visible-width, 56px + BuilderState.code-columns * CodeColors.column-width + Tokens.s6);
+                                for line in BuilderState.code: CodeRow {
+                                    width: code.content-width;
+                                    line: line;
+                                    font: EditorState.mono-font;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.picker-open: GlyphPicker {
+        width: 100%;
+        height: 100%;
+        current: BuilderState.node.glyph;
+        closed => { root.picker-open = false; }
+    }
+}
