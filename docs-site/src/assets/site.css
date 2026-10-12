@@ -266,6 +266,8 @@ td.syntax-keyword, td.kw { white-space: nowrap; }
 .preview { border-radius: 8px; }
 img.is-256 { width: 256px; margin: 0 8px 8px 0; vertical-align: top; }
 .content figure { margin-left: 0; margin-right: 0; }
+.content figure.screenshot img { display: block; border: 1px solid var(--border); }
+.content figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); }
 
 /* Bulma helpers used by the fragments. */
 .has-text-centered { text-align: center; }
