@@ -155,11 +155,15 @@ namespace Nilesoft
 				return OpenFileDialog(&ofn).move();
 			}
 
+			// SearchPathW: a length on success, a required capacity when the
+			// buffer was too small. See Contracts::fill_then_resize.
 			static string Search(const string &path)
 			{
-				string fullPath(MAX_PATH);
-				auto l = ::SearchPathW(nullptr, path, nullptr, MAX_PATH, fullPath.data(), nullptr);
-				return fullPath.release(l).move();
+				return Contracts::fill_then_resize(
+					[&](wchar_t *buffer, DWORD capacity)
+					{
+						return ::SearchPathW(nullptr, path, nullptr, capacity, buffer, nullptr);
+					});
 			}
 
 			static string GetKnownFolder(const KNOWNFOLDERID &rfid)
@@ -182,10 +186,15 @@ namespace Nilesoft
 				return res.move();
 			}
 
+			// GetCurrentDirectoryW shares SearchPathW's contract: a length
+			// that fits, or the capacity needed including the terminator.
 			static string CurrentDirectory()
 			{
-				string temp(MAX_PATH);
-				return temp.release(::GetCurrentDirectoryW(MAX_PATH, temp.buffer())).move();
+				return Contracts::fill_then_resize(
+					[](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetCurrentDirectoryW(capacity, buffer);
+					});
 			}
 
 			static bool CurrentDirectory(const wchar_t *path)
@@ -193,10 +202,16 @@ namespace Nilesoft
 				return ::SetCurrentDirectoryW(path) != 0;
 			}
 
+			// GetTempPathW, likewise. Its documented maximum is MAX_PATH+1,
+			// so the first buffer is normally the only one - but the contract
+			// is still the contract.
 			static string TempDirectory()
 			{
-				string temp(MAX_PATH);
-				return temp.release(::GetTempPathW(MAX_PATH, temp.buffer())).move();
+				return Contracts::fill_then_resize(
+					[](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetTempPathW(capacity, buffer);
+					});
 			}
 
 			static bool IsDesktop(const string &path)
@@ -917,44 +932,48 @@ namespace Nilesoft
 
 			static string Short(const std::wstring_view &path)
 			{
-				string buf(MAX_PATH);
-				auto len =::GetShortPathNameW(path.data(), buf.buffer(), MAX_PATH);
-				return buf.release(len).move();
+				return Contracts::preflight_then_fill(
+					[&](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetShortPathNameW(path.data(), buffer, capacity);
+					});
 			}
 
+			// Was released at the preflight size, which counts the
+			// terminator, so every long path came back one character too
+			// long with a NUL as its last character, and length() disagreed
+			// with wcslen() for the rest of that value's life.
 			static string Long(const std::wstring_view &path)
 			{
-				string r = path;
-				auto length = ::GetLongPathNameW(path.data(), nullptr, 0);
-				if(length == 0 || length == path.length())
-					return path;
+				auto result = Contracts::preflight_then_fill(
+					[&](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetLongPathNameW(path.data(), buffer, capacity);
+					});
 
-				::GetLongPathNameW(path.data(), r.buffer(length), length);
-				return r.release(length).move();
+				// GetLongPathName fails outright for a path that does not
+				// exist, which is no reason to lose the caller's string.
+				return result.empty() ? string(path) : result.move();
 			}
 
+			// The same defect as Long, plus one more: the second
+			// GetFullPathNameW call returns the only number here that is a
+			// length, and it was discarded in favour of the preflight
+			// capacity.
 			static string Full(const std::wstring_view &path)
 			{
 				if(path.empty())
 					return nullptr;
 
-				string long_path = path;
+				string long_path = Path::Long(path);
 
-				auto ccLong = ::GetLongPathNameW(path.data(), nullptr, 0);
-				if(ccLong > (path.length() + 1))
-				{
-					long_path.resize(ccLong);
-					ccLong = ::GetLongPathNameW(path.data(), long_path.data(), ccLong);
-				}
+				auto full_path = Contracts::preflight_then_fill(
+					[&](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetFullPathNameW(long_path, capacity, buffer, nullptr);
+					});
 
-				auto ccFull = ::GetFullPathNameW(long_path, 0, nullptr, nullptr);
-			//	if(ccFull == ccLong)
-			//		return long_path.move();
-
-				string full_path(ccFull + 1);
-				if(0 == ::GetFullPathNameW(long_path, ccFull, full_path.data(), nullptr))
-					return long_path.move();
-				return full_path.release(ccFull).move();
+				return full_path.empty() ? long_path.move() : full_path.move();
 			}
 
 			static string RemoveExtension(const std::wstring_view &path)
@@ -1060,16 +1079,19 @@ namespace Nilesoft
 				return result;
 			}
 
+			// The retry here could never run. GetModuleFileNameW returns
+			// nSize on truncation and never more, so `len > MAX_PATH` is
+			// false for every input in existence and a truncated path was
+			// returned as though it were whole. The retry was wrong anyway:
+			// it asked for len characters after allocating len + 1, so it
+			// would have truncated again in the same place.
 			static string Module(HMODULE handle)
 			{
-				string path(MAX_PATH);
-				auto len = ::GetModuleFileNameW(handle, path.data(), MAX_PATH);
-				if(len > MAX_PATH)
-				{
-					path.capacity(len + 1);
-					len = ::GetModuleFileNameW(handle, path.data(), len);
-				}
-				return path.release(len).move();
+				return Contracts::grow_on_exact_fill(
+					[&](wchar_t *buffer, DWORD capacity)
+					{
+						return ::GetModuleFileNameW(handle, buffer, capacity);
+					});
 			}
 
 			static HMODULE GetCurrentModule()

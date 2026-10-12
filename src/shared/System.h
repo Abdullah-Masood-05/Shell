@@ -1504,13 +1504,28 @@ namespace Nilesoft
 
 		HMODULE get() const { return _handle; }
 
+		// GetModuleFileNameW truncates to nSize and returns nSize; it never
+		// returns more, and there is no sizing query. So a result that
+		// exactly fills the buffer has to be retried at a larger size, and a
+		// fixed 260 characters silently lost everything past a module path
+		// that long - which is the ordinary case under a deep profile or a
+		// long-path-enabled volume.
+		//
+		//   https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew
 		std::wstring path() const
 		{
-			std::wstring p(260, L'\0');
-			if(auto z = ::GetModuleFileNameW(_handle, &p[0], 260); z > 0)
+			for(DWORD capacity = MAX_PATH; capacity <= 32768; capacity *= 2)
 			{
-				p.resize(z);
-				return std::move(p);
+				std::wstring p(capacity, L'\0');
+				DWORD written = ::GetModuleFileNameW(_handle, &p[0], capacity);
+				if(written == 0)
+					return {};
+
+				if(written < capacity)
+				{
+					p.resize(written);
+					return p;
+				}
 			}
 			return {};
 		}
@@ -2280,6 +2295,10 @@ inline static auto PostMSG(HWND hWnd, uint32_t msg, auto wparam, auto lparam)
 #include "System\Text\string.h"
 #include "System\Text\TString.h"
 #include "System\Text\Text.h"
+
+// Win32 buffer-sizing contracts; needs Text::string, used by Path.h and
+// Diagnostics\Shell.h alike.
+#include "System\IO\PathContracts.h"
 
 //static const auto typeid_string = typeid(Nilesoft::Text::string).hash_code();
 //static const auto typeid_const_string = typeid(const Nilesoft::Text::string).hash_code();
