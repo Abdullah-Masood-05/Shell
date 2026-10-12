@@ -387,9 +387,20 @@ namespace Nilesoft
 				//DLL::Invoke(SHELL32, SHCHANGENOTIFY, SHCNE_ASSOCCHANGED, SHCNF_FLUSH, nullptr, nullptr);
 			}
 
+			// Restarts the Explorer of the current session. Needs no elevation:
+			// explorer.exe runs as the interactive user at medium integrity, so a
+			// non-elevated process of that same user may open it with
+			// PROCESS_TERMINATE, and Winlogon (AutoRestartShell) starts the shell
+			// again. Other sessions' (other users') Explorers are left alone, also
+			// when elevated: without the session filter an elevated caller
+			// restarted every signed-in user's shell.
 			static bool Restart()
 			{
 				uint32_t res = 0;
+				DWORD session = 0;
+				if(!::ProcessIdToSessionId(::GetCurrentProcessId(), &session))
+					return false;
+
 				auto v = &Version::Instance();
 				if (!v->Is64BitProcess() && v->Is64Bit())
 				{
@@ -401,7 +412,8 @@ namespace Nilesoft
 
 					string params, cmd = sys_path;
 					cmd +=  L"\\cmd.exe";
-					params.format(L"/c taskkill /f /im explorer.exe && start %s\\explorer", win_path);
+					params.format(L"/c taskkill /f /im explorer.exe /fi \"SESSION eq %lu\" && start %s\\explorer",
+								  session, win_path);
 					// ShellExecute reports success with a value greater than 32.
 					// This only tells whether cmd.exe was launched; the restart
 					// itself happens asynchronously in that process.
@@ -412,7 +424,10 @@ namespace Nilesoft
 
 				for(auto &process : Nilesoft::Diagnostics::Process::EnumInfo())
 				{
-					if(process.th32ProcessID)
+					DWORD process_session = 0;
+					if(process.th32ProcessID &&
+					   ::ProcessIdToSessionId(process.th32ProcessID, &process_session) &&
+					   process_session == session)
 					{
 						if(string::Equals(process.szExeFile, L"explorer.exe"))
 						{
