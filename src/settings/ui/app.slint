@@ -11,10 +11,13 @@ import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
 import { EditorPage } from "pages/editor.slint";
 import { BackupsPage } from "pages/backups.slint";
+import { ContextMenusPage } from "pages/context-menus.slint";
+import { MenuBuilderPage } from "pages/menu-builder.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
 export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
+export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Settings";
@@ -91,29 +94,13 @@ export component AppWindow inherits Window {
                     "A raw expression box for anything the builder can't express",
                 ];
             }
-            if AppState.page == Pages.menus: PlaceholderPage {
+            if AppState.page == Pages.menus: ContextMenusPage {
                 width: 100%;
                 height: 100%;
-                title: "Context Menus";
-                description: "Turn built-in menus on or off and tidy up Windows' own items.";
-                icon: Icons.menus;
-                milestone: "M5";
-                planned: [
-                    "Toggles for the imported modules (terminal, file manage, develop, ...)",
-                    "Rules to hide, move or rename existing items",
-                ];
             }
-            if AppState.page == Pages.builder: PlaceholderPage {
+            if AppState.page == Pages.builder: MenuBuilderPage {
                 width: 100%;
                 height: 100%;
-                title: "Menu Builder";
-                description: "Build your own menus and items without writing NSS.";
-                icon: Icons.builder;
-                milestone: "M5";
-                planned: [
-                    "A tree of menus, items and separators with drag to reorder",
-                    "Saved to an app-owned file imported by shell.nss",
-                ];
             }
             if AppState.page == Pages.editor: EditorPage {
                 width: 100%;

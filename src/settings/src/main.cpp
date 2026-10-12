@@ -13,7 +13,9 @@
 
 #include "AppController.h"
 #include "BackupsController.h"
+#include "ContextMenusController.h"
 #include "EditorController.h"
+#include "MenuBuilderController.h"
 #include "Registry.h"
 
 #include <windows.h>
@@ -109,6 +111,8 @@ int main()
     auto controller = std::make_unique<AppController>(ui, options);
     auto editor = std::make_unique<EditorController>(ui);
     auto backups = std::make_unique<BackupsController>(ui);
+    auto contextMenus = std::make_unique<ContextMenusController>(ui);
+    auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
 
     // Restore the last size and position (physical pixels) before the first frame.
     auto placement = registry::app::loadPlacement();
@@ -158,6 +162,8 @@ int main()
 
     slint::run_event_loop();
 
+    menuBuilder.reset();
+    contextMenus.reset();
     backups.reset();
     editor.reset();
     controller.reset();

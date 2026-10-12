@@ -1,0 +1,138 @@
+// Context Menus and Menu Builder data shared with C++
+// (src/ContextMenusController.cpp, src/MenuBuilderController.cpp).
+
+import { CodeLine } from "editor-types.slint";
+
+// One `import` line of the root shell.nss.
+export struct ModuleRow {
+    title: string,
+    file: string,              // the import path as written ("imports/goto.nss")
+    description: string,
+    enabled: bool,
+    changed: bool,             // differs from the file on disk
+    locked: bool,
+    lock-reason: string,
+    path: string,              // absolute path of the root (for "open")
+    line: int,
+}
+
+// One modify(...)/remove(...) rule. `group` starts a new file section.
+export struct RuleRow {
+    group: string,             // the file label on the first rule of a file, else ""
+    action: string,
+    target: string,
+    scope: string,
+    where: string,
+    enabled: bool,
+    changed: bool,
+    toggleable: bool,
+    complex: bool,
+    note: string,
+    path: string,
+    line: int,
+}
+
+export global MenusState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <bool> shared-config;
+    in property <[ModuleRow]> modules;
+    in property <[RuleRow]> rules;
+    in property <string> rules-caption;
+    in property <int> dirty-count;
+    in property <bool> saving;
+
+    callback activated();
+    callback toggle-module(index: int, on: bool);
+    callback toggle-rule(index: int, on: bool);
+    callback open-in-editor(path: string, line: int);
+    callback save();
+    callback discard();
+    callback create-user-config();
+}
+
+// One row of the builder tree.
+export struct BuilderRow {
+    depth: int,
+    kind: string,              // menu | item | separator
+    title: string,
+    glyph: string,             // a Nilesoft.Shell glyph, or ""
+    summary: string,
+}
+
+// The selected entry, for the properties panel.
+export struct BuilderNode {
+    kind: string,              // menu | item | separator | "" (nothing selected)
+    title: string,
+    image: string,             // raw .nss
+    glyph: string,
+    location: int,             // menus::Location
+    extensions: string,
+    type: string,
+    find: string,
+    where: string,
+    mode: int,                 // 0 default, 1 single, 2 multiple, 3 multi_unique, 4 multi_single, 5 none
+    cmd: string,
+    args: string,
+    admin: bool,
+    window: int,               // 0 normal, 1 hidden, 2 minimized, 3 maximized
+    keys: string,
+    tip: string,
+    sep: int,                  // 0 none, 1 before, 2 after, 3 both
+    extra: string,             // other properties, verbatim
+}
+
+// One row of the preview menu.
+export struct PreviewRow {
+    kind: string,              // menu | item | separator
+    title: string,
+    glyph: string,
+    keys: string,
+    selected: bool,
+    open: bool,                // the menu whose flyout is shown
+}
+
+export global BuilderState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <bool> shared-config;
+    in property <string> notice;           // warnings from reading the file
+    in property <bool> import-off;         // the file is imported but turned off
+    in property <[BuilderRow]> rows;
+    in property <int> selected: -1;
+    in property <BuilderNode> node;
+    in property <int> node-serial;         // bumped when the form must reload its fields
+    in property <bool> can-up;
+    in property <bool> can-down;
+    in property <bool> can-indent;
+    in property <bool> can-outdent;
+    in property <[PreviewRow]> preview;
+    in property <[PreviewRow]> flyout;
+    in property <int> flyout-at: -1;       // index in `preview` of the open menu
+    in property <int> flyout-offset;       // px from the top of the menu to that row
+    in property <[CodeLine]> code;
+    in property <int> code-columns: 60;
+    in property <string> file-label;
+    in property <[string]> glyphs;         // U+E000.. in the Nilesoft.Shell font
+    in property <bool> dirty;
+    in property <bool> saving;
+
+    callback activated();
+    callback select(index: int);
+    callback add(kind: string);
+    callback remove();
+    callback duplicate();
+    callback move-up();
+    callback move-down();
+    callback indent();
+    callback outdent();
+    callback set-text(field: string, value: string);
+    callback set-flag(field: string, value: bool);
+    callback set-choice(field: string, value: int);
+    callback pick-glyph(index: int);       // -1: no icon
+    pure callback glyph-code(index: int) -> string;  // "\uE0F3"
+    callback save();
+    callback discard();
+    callback create-user-config();
+    callback open-context-menus();
+}

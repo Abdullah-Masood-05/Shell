@@ -1,0 +1,67 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A WinUI-style toggle switch whose state always comes from `on` (the model):
+// clicking only asks for the change, so a refused change never shows as made.
+export component Toggle inherits Rectangle {
+    in property <bool> on;
+    in property <bool> enabled: true;
+    in property <string> label;
+    callback toggled(on: bool);
+
+    width: 40px;
+    height: 20px;
+    border-radius: 10px;
+    background: root.on ? (root.enabled ? Tokens.accent : Tokens.text-3) : transparent;
+    border-width: root.on ? 0 : 1px;
+    border-color: root.enabled ? Tokens.text-2 : Tokens.text-3;
+    opacity: root.enabled ? 1 : 0.55;
+    animate background { duration: Tokens.fast; }
+
+    accessible-role: switch;
+    accessible-label: root.label;
+    accessible-checked: root.on;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.toggled(!root.on);
+        }
+    }
+
+    Rectangle {
+        width: ta.has-hover && root.enabled ? 14px : 12px;
+        height: self.width;
+        border-radius: self.width / 2;
+        x: root.on ? root.width - self.width - 4px : 4px;
+        y: (root.height - self.height) / 2;
+        background: root.on ? Tokens.on-accent : Tokens.text-2;
+        animate x, width { duration: Tokens.fast; easing: ease-out; }
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.toggled(!root.on);
+                return accept;
+            }
+            return reject;
+        }
+    }
+    if fs.has-focus: Rectangle {
+        x: -3px;
+        y: -3px;
+        width: root.width + 6px;
+        height: root.height + 6px;
+        border-radius: root.border-radius + 3px;
+        border-width: 1px;
+        border-color: Tokens.focus-ring;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => {
+            fs.focus();
+            root.toggled(!root.on);
+        }
+    }
+}
