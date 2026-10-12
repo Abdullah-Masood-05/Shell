@@ -455,11 +455,13 @@ bool Registration(REGOP reg)
 
 		if(reg.REGISTER)
 		{
-			if(!dir.empty())
-			{
-				Security::Permission::SetFile(dir.c_str());
-			}
-
+			// Registration used to call Permission::SetFile(dir) here, i.e. try to
+			// grant BUILTIN\Users GENERIC_ALL (inheritable) on the install folder.
+			// That folder holds shell.dll, which Explorer loads into every
+			// session, so a writable folder is a privilege escalation. It only
+			// ever failed because SetFile opens without
+			// FILE_FLAG_BACKUP_SEMANTICS and cannot open a directory. Removed,
+			// not repaired.
 			_log->close();
 			//logger->reset();
 			//IO::Path::Delete(logger->path());

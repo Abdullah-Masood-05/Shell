@@ -7,81 +7,14 @@ namespace Nilesoft
 		class Permission
 		{
 		public:
-			static bool SetRegistry(HKEY hkey)
-			{
-				if(hkey == nullptr) return false;
+			// SetRegistry(HKEY) and SetRegistry(HKEY, subkey) used to live here.
+			// They granted BUILTIN\Users KEY_ALL_ACCESS, container+object inherit,
+			// on any key they were given, and nothing called them; removed rather
+			// than left for the next caller who needs a write to succeed.
 
-				struct dest
-				{
-					PSID sid = nullptr;
-					PACL dacl = nullptr;
-					PSECURITY_DESCRIPTOR sd = nullptr;
-
-					~dest()
-					{
-						if(sid) ::FreeSid(sid);
-						if(dacl) ::LocalFree(dacl);
-						if(sd) ::LocalFree(sd);
-					}
-				}d;
-
-				DWORD dwRes;
-				PACL pOldDACL = nullptr;
-				EXPLICIT_ACCESSW ea = { 0 };
-				SID_IDENTIFIER_AUTHORITY SIDAuthNT = SECURITY_NT_AUTHORITY;
-
-				dwRes = ::GetSecurityInfo(hkey, SE_REGISTRY_KEY,
-										  DACL_SECURITY_INFORMATION, nullptr, nullptr, &pOldDACL, nullptr, &d.sd);
-				if(dwRes != ERROR_SUCCESS)
-					return false;
-
-				// Create a well-known SID for the Everyone group.
-				if(!::AllocateAndInitializeSid(&SIDAuthNT, 2,
-											   SECURITY_BUILTIN_DOMAIN_RID,
-											   DOMAIN_ALIAS_RID_USERS, 0, 0, 0, 0, 0, 0, &d.sid))
-				{
-					return false;
-				}
-
-				// Initialize an EXPLICIT_ACCESS structure for an ACE.
-				// The ACE will allow Users all access to the key.
-				ea.grfAccessPermissions = KEY_ALL_ACCESS;
-				ea.grfAccessMode = SET_ACCESS;
-				ea.grfInheritance = CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE;;
-				ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-				ea.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-				ea.Trustee.ptstrName = (wchar_t*)d.sid;
-
-				// Create a new ACL that contains the new ACEs.
-				if(ERROR_SUCCESS != ::SetEntriesInAclW(1, &ea, pOldDACL, &d.dacl))
-					return false;
-
-				if(d.dacl)
-				{
-					return ERROR_SUCCESS == ::SetSecurityInfo(
-						hkey, SE_REGISTRY_KEY, DACL_SECURITY_INFORMATION, nullptr, nullptr, d.dacl, nullptr);
-				}
-				return false;
-			}
-
-			static bool SetRegistry(HKEY hkeyRoot, const wchar_t* subkey)
-			{
-				bool fSuccess = false;
-				HKEY hkey = nullptr;
-
-				LONG lRes = ::RegOpenKeyExW(hkeyRoot, subkey, REG_OPTION_NON_VOLATILE, KEY_READ, &hkey);
-
-				if(lRes != ERROR_SUCCESS)
-					return fSuccess;
-
-				fSuccess = SetRegistry(hkey);
-
-				if(hkey)
-					::RegCloseKey(hkey);
-
-				return fSuccess;
-			}
-
+			// Grants BUILTIN\Users read/write (no WRITE_DAC, WRITE_OWNER or
+			// DELETE, no inheritance) on one existing file. Must never be used on
+			// a directory or on anything Explorer loads code from.
 			static bool SetFile(const wchar_t* path)
 			{
 				auto_handle hFile = ::CreateFileW(path, READ_CONTROL | WRITE_DAC,
@@ -124,7 +57,7 @@ namespace Nilesoft
 				if(dwRes != ERROR_SUCCESS)
 					return false;
 
-				// Create a well-known SID for the Everyone group.
+				// BUILTIN\Users.
 				if(!::AllocateAndInitializeSid(&SIDAuthNT, 2,
 											   SECURITY_BUILTIN_DOMAIN_RID,
 											   DOMAIN_ALIAS_RID_USERS, 0, 0, 0, 0, 0, 0, &d.sid))
@@ -132,11 +65,14 @@ namespace Nilesoft
 					return false;
 				}
 
-				// Initialize an EXPLICIT_ACCESS structure for an ACE.
-				// The ACE will allow Users all access to the key.
-				ea.grfAccessPermissions = GENERIC_ALL;
-				ea.grfAccessMode = SET_ACCESS;
-				ea.grfInheritance = CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE;
+				// Only what a non-elevated Explorer needs to append to the log
+				// file this is called on (Log.cpp, right after creating it). This
+				// used to be GENERIC_ALL - which includes WRITE_DAC, WRITE_OWNER and
+				// DELETE - with container+object inheritance, so on a directory it
+				// would hand every user control of everything created inside it.
+				ea.grfAccessPermissions = FILE_GENERIC_READ | FILE_GENERIC_WRITE;
+				ea.grfAccessMode = GRANT_ACCESS;
+				ea.grfInheritance = NO_INHERITANCE;
 				ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 				ea.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 				ea.Trustee.ptstrName = (wchar_t*)d.sid;
