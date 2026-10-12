@@ -11,6 +11,7 @@
 #include <shlobj.h>
 #include <Library/PlutoVGWrap.h>
 #include <RegistryConfig.h>
+#include <ConfigLocation.h>
 
 //#pragma comment(lib, "mincore.lib")
 #pragma comment(lib, "UxTheme.lib")
@@ -805,6 +806,375 @@ bool Register(REGOP reg, HWND hwnd = nullptr)
 	return ret;
 }
 
+// Process exit codes of the non-interactive commands (-config:*, -status).
+enum CliExit : int { cli_ok = 0, cli_failed = 1, cli_usage = 2 };
+
+/*
+	Text output for the non-interactive commands.
+
+	shell.exe is a GUI-subsystem program and has no console of its own, so:
+	  - with -out:<path>, the text is written to that file (UTF-8, replaced);
+	  - else, if stdout is a pipe or a file, it is written there directly as
+	    UTF-8. That is the case for a parent that redirected the child's
+	    stdout (a settings app reading it through a pipe) and for
+	    `shell -status > status.json` in cmd;
+	  - else it attaches to the parent's console, if any, and writes UTF-16
+	    with WriteConsoleW. cmd.exe does not wait for GUI programs, so this
+	    text can land after the next prompt; use a pipe, a redirection or
+	    `start /wait` when that matters.
+*/
+class CliOutput
+{
+	HANDLE _handle = INVALID_HANDLE_VALUE;
+	bool _owned = false;
+	bool _console = false;
+	bool _failed = false;
+
+public:
+	explicit CliOutput(const wchar_t *path)
+	{
+		if(path && *path)
+		{
+			_handle = ::CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+									CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			_owned = true;
+			return;
+		}
+
+		auto out = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		if(out && out != INVALID_HANDLE_VALUE)
+		{
+			auto type = ::GetFileType(out);
+			if(type == FILE_TYPE_PIPE || type == FILE_TYPE_DISK)
+			{
+				_handle = out;
+				return;
+			}
+		}
+
+		if(::AttachConsole(ATTACH_PARENT_PROCESS))
+		{
+			_handle = ::CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE,
+									FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+			_owned = true;
+			_console = true;
+		}
+	}
+
+	CliOutput(const CliOutput &) = delete;
+	CliOutput &operator=(const CliOutput &) = delete;
+
+	~CliOutput()
+	{
+		if(_owned && valid())
+			::CloseHandle(_handle);
+		if(_console)
+			::FreeConsole();
+	}
+
+	bool valid() const { return _handle && _handle != INVALID_HANDLE_VALUE; }
+
+	// False if there was nowhere to write or a write failed.
+	bool ok() const { return valid() && !_failed; }
+
+	void write(const wchar_t *text)
+	{
+		if(!text || !*text)
+			return;
+		if(!valid())
+		{
+			_failed = true;
+			return;
+		}
+
+		auto length = static_cast<int>(::wcslen(text));
+		if(_console)
+		{
+			DWORD written = 0;
+			if(!::WriteConsoleW(_handle, text, static_cast<DWORD>(length), &written, nullptr))
+				_failed = true;
+			return;
+		}
+
+		auto bytes = ::WideCharToMultiByte(CP_UTF8, 0, text, length, nullptr, 0, nullptr, nullptr);
+		if(bytes <= 0)
+		{
+			_failed = true;
+			return;
+		}
+
+		std::string utf8(static_cast<size_t>(bytes), '\0');
+		::WideCharToMultiByte(CP_UTF8, 0, text, length, utf8.data(), bytes, nullptr, nullptr);
+
+		for(size_t offset = 0; offset < utf8.size();)
+		{
+			DWORD written = 0;
+			if(!::WriteFile(_handle, utf8.data() + offset, static_cast<DWORD>(utf8.size() - offset), &written, nullptr) || !written)
+			{
+				_failed = true;
+				return;
+			}
+			offset += written;
+		}
+	}
+
+	void line(const wchar_t *text = nullptr)
+	{
+		write(text);
+		write(L"\r\n");
+	}
+};
+
+static string InstallDirectory()
+{
+	return IO::Path::Parent(IO::Path::Module(nullptr)).move();
+}
+
+/*
+	-config:init, -config:reset, -config:path.
+
+	None of them needs elevation: they only read the install folder and only
+	write below %APPDATA%\Nilesoft\Shell (see ConfigLocation). shell.dll never
+	writes there itself; it only picks the per-user shell.nss up once it
+	exists, and reloads on its own when it changes.
+*/
+namespace ConfigCommand
+{
+	struct CopyStats
+	{
+		uint32_t copied{}, skipped{}, failed{};
+	};
+
+	static bool is_directory(const wchar_t *path)
+	{
+		auto attr = ::GetFileAttributesW(path);
+		return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
+	}
+
+	static bool exists(const wchar_t *path)
+	{
+		return ::GetFileAttributesW(path) != INVALID_FILE_ATTRIBUTES;
+	}
+
+	// Copies one file. An existing target is kept unless `overwrite`. The copy
+	// is left writable: these are files the user is meant to edit.
+	static void copy_file(const string &src, const string &dst, bool overwrite, CopyStats &stats)
+	{
+		auto attr = ::GetFileAttributesW(dst);
+		if(attr != INVALID_FILE_ATTRIBUTES)
+		{
+			if(!overwrite || (attr & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				stats.skipped++;
+				return;
+			}
+			if(attr & FILE_ATTRIBUTE_READONLY)
+				::SetFileAttributesW(dst, attr & ~FILE_ATTRIBUTE_READONLY);
+		}
+
+		if(!::CopyFileW(src, dst, FALSE))
+		{
+			_log->error(L"config: cannot copy '%s' to '%s' (error %lu)", src.c_str(), dst.c_str(), ::GetLastError());
+			stats.failed++;
+			return;
+		}
+
+		attr = ::GetFileAttributesW(dst);
+		if(attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+			::SetFileAttributesW(dst, attr & ~FILE_ATTRIBUTE_READONLY);
+		stats.copied++;
+	}
+
+	// Copies a folder tree. Reparse points (junctions, symbolic links) are
+	// skipped rather than followed. With `skip_backups`, top-level and nested
+	// folders named backup-* are left out, so a backup never contains the
+	// earlier ones (or itself).
+	static void copy_tree(const string &src, const string &dst, bool overwrite, CopyStats &stats, bool skip_backups = false)
+	{
+		if(!::CreateDirectoryW(dst, nullptr) && ::GetLastError() != ERROR_ALREADY_EXISTS)
+		{
+			_log->error(L"config: cannot create '%s' (error %lu)", dst.c_str(), ::GetLastError());
+			stats.failed++;
+			return;
+		}
+
+		WIN32_FIND_DATAW fd{};
+		auto find = ::FindFirstFileExW(ConfigLocation::Join(src, L"*"), FindExInfoBasic, &fd,
+									   FindExSearchNameMatch, nullptr, 0);
+		if(find == INVALID_HANDLE_VALUE)
+			return;
+
+		do
+		{
+			string name = fd.cFileName;
+			if(name.equals(L".") || name.equals(L".."))
+				continue;
+			if(fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+				continue;
+
+			auto from = ConfigLocation::Join(src, name).move();
+			auto to = ConfigLocation::Join(dst, name).move();
+
+			if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				if(skip_backups && name.starts_with(L"backup-"))
+					continue;
+				copy_tree(from, to, overwrite, stats, skip_backups);
+			}
+			else
+			{
+				copy_file(from, to, overwrite, stats);
+			}
+		} while(::FindNextFileW(find, &fd));
+
+		::FindClose(find);
+	}
+
+	// <user dir>\backup-YYYYMMDD-HHMMSS, made unique if needed.
+	static string backup_path(const string &user_dir)
+	{
+		SYSTEMTIME st{};
+		::GetLocalTime(&st);
+		string name;
+		name.format(L"backup-%04u%02u%02u-%02u%02u%02u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+		auto path = ConfigLocation::Join(user_dir, name).move();
+		for(int i = 2; exists(path) && i < 100; i++)
+		{
+			string unique;
+			unique.format(L"%s-%d", name.c_str(), i);
+			path = ConfigLocation::Join(user_dir, unique).move();
+		}
+		return path.move();
+	}
+
+	// Copies <install>\shell.nss and <install>\imports\ into the per-user folder.
+	static int seed(CliOutput &out, const string &user_dir, bool overwrite)
+	{
+		auto install_dir = InstallDirectory().move();
+		auto src_config = ConfigLocation::Join(install_dir, ConfigLocation::FileName).move();
+		if(!ConfigLocation::IsFile(src_config))
+		{
+			string msg;
+			msg.format(L"error: '%s' not found.", src_config.c_str());
+			out.line(msg);
+			return cli_failed;
+		}
+
+		auto rc = ::SHCreateDirectoryExW(nullptr, user_dir, nullptr);
+		if(rc != ERROR_SUCCESS && rc != ERROR_ALREADY_EXISTS && rc != ERROR_FILE_EXISTS)
+		{
+			string msg;
+			msg.format(L"error: cannot create '%s' (error %d).", user_dir.c_str(), rc);
+			out.line(msg);
+			return cli_failed;
+		}
+
+		CopyStats stats;
+		copy_file(src_config, ConfigLocation::Join(user_dir, ConfigLocation::FileName), overwrite, stats);
+
+		auto src_imports = ConfigLocation::Join(install_dir, ConfigLocation::ImportsName).move();
+		if(is_directory(src_imports))
+			copy_tree(src_imports, ConfigLocation::Join(user_dir, ConfigLocation::ImportsName), overwrite, stats);
+
+		string msg;
+		msg.format(L"%s: %u copied, %u kept (already present), %u failed.",
+				   user_dir.c_str(), stats.copied, stats.skipped, stats.failed);
+		out.line(msg);
+		if(stats.skipped && !overwrite)
+			out.line(L"Existing files were kept; use -force to overwrite them.");
+		return stats.failed ? cli_failed : cli_ok;
+	}
+
+	static int init(CliOutput &out, bool force)
+	{
+		auto user_dir = ConfigLocation::UserDirectory().move();
+		if(user_dir.empty())
+		{
+			out.line(L"error: the per-user folder (%APPDATA%) cannot be determined.");
+			return cli_failed;
+		}
+		return seed(out, user_dir, force);
+	}
+
+	static int reset(CliOutput &out)
+	{
+		auto user_dir = ConfigLocation::UserDirectory().move();
+		if(user_dir.empty())
+		{
+			out.line(L"error: the per-user folder (%APPDATA%) cannot be determined.");
+			return cli_failed;
+		}
+
+		if(is_directory(user_dir))
+		{
+			// Everything currently in the folder (earlier backups excepted) is
+			// copied aside first; nothing is overwritten unless that worked.
+			auto backup = backup_path(user_dir).move();
+			CopyStats stats;
+			copy_tree(user_dir, backup, false, stats, true);
+			if(stats.failed)
+			{
+				string msg;
+				msg.format(L"error: backup to '%s' failed (%u files); nothing was reset.", backup.c_str(), stats.failed);
+				out.line(msg);
+				return cli_failed;
+			}
+
+			if(stats.copied)
+			{
+				string msg;
+				msg.format(L"Backed up %u files to '%s'.", stats.copied, backup.c_str());
+				out.line(msg);
+			}
+			else
+			{
+				// Nothing to keep; do not leave an empty backup folder behind.
+				::RemoveDirectoryW(backup);
+			}
+		}
+
+		return seed(out, user_dir, true);
+	}
+
+	static int path(CliOutput &out)
+	{
+		auto location = ConfigLocation::Resolve(InstallDirectory());
+		if(location.source == ConfigLocation::Source::none)
+		{
+			string msg;
+			msg.format(L"error: no config file found ('%s' does not exist).", location.path.c_str());
+			out.line(msg);
+			return cli_failed;
+		}
+		out.line(location.path);
+		return cli_ok;
+	}
+
+	static int run(const string &command, bool force, const wchar_t *out_path)
+	{
+		CliOutput out(out_path);
+
+		int ret;
+		if(command.equals(L"init"))
+			ret = init(out, force);
+		else if(command.equals(L"reset"))
+			ret = reset(out);
+		else if(command.equals(L"path"))
+			ret = path(out);
+		else
+		{
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path [-out:<file>]");
+			return cli_usage;
+		}
+
+		// The result could not be reported: say so through the exit code.
+		if(ret == cli_ok && !out.ok())
+			ret = cli_failed;
+		return ret;
+	}
+}
+
 /*
 class Console
 {
@@ -1133,6 +1503,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		bool _check = false;
 		//bool runglyphs = false;
         string cmd;
+		// -config:<init|reset|path>, -force, -out:<file>
+		bool config = false, force = false;
+		string config_command, out_path;
         for(auto op : cmdline)
         {
             if(op->Kind == '-' || op->Kind == '/')
@@ -1157,6 +1530,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				else if(op->has_name({ L"f", L"force" }))
 				{
 					reg.FOLDEREXTENSIONS=true;
+					// Also: let -config:init overwrite existing files.
+					force = true;
+				}
+				else if(op->has_name(L"config"))
+				{
+					config = true;
+					config_command = op->Value;
+				}
+				else if(op->has_name(L"out"))
+				{
+					out_path = op->Value;
 				}
                 else if(op->has_name(L"user"))
                 {
@@ -1186,6 +1570,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		{
 			//check();
 			return 0;
+		}
+
+		// Never elevated, never interactive; handled on its own.
+		if(config)
+		{
+			auto ret = ConfigCommand::run(config_command, force, out_path.empty() ? nullptr : out_path.c_str());
+			_log->close();
+			return ret;
 		}
 
 		if(reg.REGISTER || reg.UNREGISTER || reg.RESTART || reg.FOLDEREXTENSIONS)
@@ -1544,6 +1936,15 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"-silent\t\tPrevents displaying messages.\r\n"
                 L"-restart\t\tRestart Windows Explorer (this session;\r\n"
                 L"\t\tno administrator rights needed).\r\n\r\n"
+                L"Per-user configuration (no administrator rights):\r\n"
+                L"-config:init\tCopy shell.nss and imports\\ to\r\n"
+                L"\t\t%APPDATA%\\Nilesoft\\Shell. Existing files are\r\n"
+                L"\t\tkept unless -force is given.\r\n"
+                L"-config:reset\tBack the per-user folder up to\r\n"
+                L"\t\tbackup-<timestamp>, then copy the defaults again.\r\n"
+                L"-config:path\tPrint the config file in use.\r\n"
+                L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"
+                L"\t\tinstead of stdout / the console.\r\n\r\n"
                 //L"-runas:N\t\tLaunch with elevated privileges.\r\n"
                 //L"\t\tN=[admin | system | trustedinsaller]\r\n\r\n"
                 L"-?\t\tDispay this help message.\r\n\r\n"

@@ -211,6 +211,28 @@
 			<td>Prevents displaying messages.</td>
 		</tr>
 		<tr>
+			<td class="syntax-keyword">-config:init [-force]</td>
+			<td>Copy <code>shell.nss</code> and the <code>imports</code> folder from the install folder to
+				<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> is given.
+				Needs no administrator rights.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:reset</td>
+			<td>Copy everything in <code>%APPDATA%\Nilesoft\Shell</code> to a <code>backup-&lt;timestamp&gt;</code>
+				folder inside it, then copy the default <code>shell.nss</code> and <code>imports</code> again,
+				overwriting. Other files are left in place. Nothing is overwritten if the backup fails.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:path</td>
+			<td>Print the full path of the configuration file in use.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-out:&lt;file&gt;</td>
+			<td>Write the output of the <code>-config:*</code> commands to a file (UTF-8) instead of
+				standard output. Without it, output goes to standard output when that is a pipe or a file,
+				otherwise to the console the command was started from.</td>
+		</tr>
+		<tr>
 			<td class="syntax-keyword">-?</td>
 			<td>Display this help message.</td>
 		</tr>
