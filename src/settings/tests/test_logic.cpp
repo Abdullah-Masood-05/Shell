@@ -3,7 +3,6 @@
 // real shell.exe from src/bin against a per-user config seeded with
 // `shell.exe -silent -config:init` under a temporary %APPDATA%.
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
 #include "BackupsModel.h"

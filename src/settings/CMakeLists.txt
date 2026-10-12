@@ -55,18 +55,26 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
+    src/AppearanceController.cpp
     src/BackupsController.cpp
     src/BackupsModel.cpp
+    src/BehaviorController.cpp
     src/Diff.cpp
     src/Dwm.cpp
     src/EditorController.cpp
     src/EditorSession.cpp
+    src/ExcludeRules.cpp
     src/FileWatcher.cpp
+    src/FontEnum.cpp
     src/Highlight.cpp
     src/LogReader.cpp
+    src/PendingChanges.cpp
     src/Registry.cpp
+    src/SaveService.cpp
     src/ShellCli.cpp
     src/Status.cpp
+    src/ThemeModel.cpp
+    src/Wallpaper.cpp
     src/Worker.cpp
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
 )
@@ -80,7 +88,7 @@ target_compile_options(settings PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHs
 # /W4 for our own sources only; the Slint-generated code is noisy at that level.
 file(GLOB SETTINGS_OWN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 set_source_files_properties(${SETTINGS_OWN_SOURCES} PROPERTIES COMPILE_OPTIONS "/W4")
-target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32)
+target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs)
 # A WIN32 executable that keeps the standard main().
 target_link_options(settings PRIVATE /ENTRY:mainCRTStartup /MANIFEST:NO)
 
@@ -91,18 +99,30 @@ endif()
 if(TARGET nsscore)
     target_link_libraries(settings PRIVATE nsscore)
     target_compile_definitions(settings PRIVATE SETTINGS_HAVE_NSSCORE=1)
+else()
+    message(FATAL_ERROR "nsscore (src/settings/nss) is required")
 endif()
 
-# Tests for the UI-free logic of the Config Editor and Backups pages.
+# Tests for the UI-free logic: Config Editor and Backups (Diff, Highlight, FileWatcher,
+# EditorSession, BackupsModel) and the save path (ThemeModel, PendingChanges, SaveService core).
 option(SETTINGS_BUILD_TESTS "Build settings_tests" ON)
 if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
+    enable_testing()
     add_executable(settings_tests
+        tests/main.cpp
         tests/test_logic.cpp
+        tests/test_theme_model.cpp
+        tests/test_pending.cpp
+        tests/test_rules.cpp
+        tests/test_save_roundtrip.cpp
         src/BackupsModel.cpp
         src/Diff.cpp
         src/EditorSession.cpp
+        src/ExcludeRules.cpp
         src/FileWatcher.cpp
         src/Highlight.cpp
+        src/PendingChanges.cpp
+        src/ThemeModel.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest")
     target_compile_definitions(settings_tests PRIVATE
@@ -111,6 +131,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
     target_link_libraries(settings_tests PRIVATE nsscore shell32 ole32)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
+    add_test(NAME settings_tests COMMAND settings_tests)
 endif()
 
 set_target_properties(settings PROPERTIES
