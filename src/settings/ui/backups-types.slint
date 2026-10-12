@@ -1,0 +1,58 @@
+// Backups data shared with C++ (src/BackupsController.cpp).
+
+export struct SnapshotRow {
+    id: string,
+    time: string,              // "Oct 12, 2026, 20:31:07"
+    relative: string,          // "5 minutes ago"
+    reason: string,
+    files: int,
+    pinned: bool,
+    current: bool,             // identical to the files on disk now
+}
+
+export struct DiffFileRow {
+    path: string,
+    status: string,            // modified | added | removed | same
+    added: int,
+    removed: int,
+}
+
+export struct DiffLineRow {
+    kind: int,                 // 0 context, 1 added, 2 removed, 3 hunk header
+    old-line: int,
+    new-line: int,
+    text: string,
+}
+
+export global BackupsState {
+    in property <bool> loaded;
+    in property <bool> available: true;    // false: shared config, nothing to back up
+    in property <string> unavailable-text;
+    in property <string> folder;
+    in property <[SnapshotRow]> snapshots;
+    in property <int> selected: -1;
+    in property <string> retention-text;
+
+    in property <bool> diff-loading;
+    in property <string> diff-summary;
+    in property <[DiffFileRow]> diff-files;
+    in property <int> diff-file: -1;
+    in property <[DiffLineRow]> diff-lines;
+    in property <int> diff-max-columns: 80;
+
+    in property <bool> working;
+    in property <string> confirm-kind;     // "" | restore | delete
+    in property <string> confirm-text;
+    in property <string> mono-font: "Cascadia Mono";
+
+    callback activated();
+    callback select(index: int);
+    callback select-file(index: int);
+    callback create();
+    callback toggle-pin(index: int);
+    callback ask-restore(index: int);
+    callback ask-delete(index: int);
+    callback confirm();
+    callback cancel();
+    callback open-folder();
+}

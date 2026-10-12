@@ -1,0 +1,423 @@
+import { Button, ListView, TextEdit } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { EditorState, EditorFile, EditorProblem } from "../editor-types.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Segmented } from "../components/controls.slint";
+import { CodeColors, CodeRow } from "../components/code.slint";
+import { ConfirmDialog } from "../components/dialog.slint";
+
+// A small rounded label ("Unsaved", "Read-only", "App-managed").
+component Badge inherits Rectangle {
+    in property <string> text;
+    in property <color> tint: Tokens.text-2;
+    height: 20px;
+    width: label.preferred-width + 12px;
+    border-radius: 10px;
+    background: root.tint.with-alpha(0.14);
+    label := Text {
+        text: root.text;
+        font-size: Tokens.caption;
+        color: root.tint;
+    }
+}
+
+component FileRow inherits Rectangle {
+    in property <EditorFile> file;
+    in property <bool> selected;
+    callback clicked;
+
+    height: 30px;
+    border-radius: Tokens.radius-control;
+    background: root.selected ? Tokens.selected : ta.has-hover && !root.file.unresolved ? Tokens.hover : transparent;
+    accessible-role: list-item;
+    accessible-label: root.file.label;
+    accessible-item-selected: root.selected;
+
+    if root.selected: Rectangle {
+        x: 0;
+        width: 3px;
+        height: 16px;
+        border-radius: 1.5px;
+        background: Tokens.accent;
+    }
+
+    HorizontalLayout {
+        padding-left: 10px + root.file.depth * 14px;
+        padding-right: Tokens.s2;
+        spacing: 6px;
+        Image {
+            y: (parent.height - self.height) / 2;
+            width: 14px;
+            height: 14px;
+            source: root.file.unresolved || root.file.missing ? Icons.warning : Icons.editor;
+            colorize: root.file.unresolved || root.file.missing ? Tokens.warning : root.selected ? Tokens.accent : Tokens.text-3;
+        }
+        Text {
+            horizontal-stretch: 1;
+            vertical-alignment: center;
+            text: root.file.name;
+            overflow: elide;
+            font-size: Tokens.body - 1px;
+            font-italic: root.file.unresolved;
+            font-family: root.file.unresolved ? EditorState.mono-font : "";
+            color: root.file.unresolved || root.file.missing ? Tokens.text-3 : Tokens.text;
+        }
+        if root.file.managed: Text {
+            vertical-alignment: center;
+            text: "app";
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+        }
+        if root.file.errors > 0: VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: Tokens.danger;
+            }
+        }
+        if root.file.dirty: VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: Tokens.accent;
+            }
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: root.file.unresolved ? default : pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+component ProblemRow inherits Rectangle {
+    in property <EditorProblem> problem;
+    callback clicked;
+
+    height: 28px;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: button;
+    accessible-label: root.problem.message;
+
+    HorizontalLayout {
+        padding-left: Tokens.s2;
+        padding-right: Tokens.s2;
+        spacing: Tokens.s2;
+        Image {
+            y: (parent.height - self.height) / 2;
+            width: 14px;
+            height: 14px;
+            source: root.problem.error ? Icons.error : Icons.warning;
+            colorize: root.problem.error ? Tokens.danger : Tokens.warning;
+        }
+        Text {
+            horizontal-stretch: 1;
+            vertical-alignment: center;
+            text: root.problem.message;
+            overflow: elide;
+            color: Tokens.text;
+        }
+        Text {
+            vertical-alignment: center;
+            text: root.problem.file-label + (root.problem.line > 0 ? ":" + root.problem.line : "");
+            font-family: EditorState.mono-font;
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+        }
+        Text {
+            width: 64px;
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            text: root.problem.source == "log" ? "shell.log" : "check";
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+export component EditorPage inherits Rectangle {
+    property <float> appear: 0;
+    init => {
+        root.appear = 1;
+        EditorState.activated();
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    // C++ bumps jump-serial to move to a line: select it in the edit view, or
+    // scroll to it in the read view.
+    property <int> jump-serial: EditorState.jump-serial;
+    changed jump-serial => {
+        if (EditorState.editing) {
+            te.set-selection-offsets(EditorState.jump-start, EditorState.jump-end);
+            te.focus();
+        } else {
+            code.content-y = -min(max(0px, (EditorState.jump-line - 6) * CodeColors.row-height),
+                max(0px, code.content-height - code.visible-height));
+        }
+    }
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        padding-bottom: Tokens.s6;
+        spacing: Tokens.s4;
+
+        PageHeader {
+            title: "Config Editor";
+            description: "Edit shell.nss and its imports. Every save is checked and snapshotted first.";
+            busy: EditorState.saving;
+            busy-label: "Saving…";
+            Button {
+                text: "Open in external editor";
+                icon: Icons.folder;
+                icon-size: 16px;
+                enabled: EditorState.current-path != "";
+                clicked => { EditorState.open-external(); }
+            }
+        }
+
+        if EditorState.shared-config: Banner {
+            kind: "info";
+            title: "This is the shared config in the install folder";
+            text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to edit it.";
+            action-label: "Create personal config";
+            action-enabled: !AppState.busy && AppState.cli-available;
+            action => { EditorState.create-user-config(); }
+        }
+        if EditorState.external-change: Banner {
+            kind: "warning";
+            title: "Changed outside the app";
+            text: EditorState.external-text;
+            action-label: "Reload from disk";
+            closable: true;
+            action => { EditorState.reload-external(); }
+            close => { EditorState.keep-mine(); }
+        }
+        if EditorState.load-error != "": Banner {
+            kind: "error";
+            title: "Couldn't open the config";
+            text: EditorState.load-error;
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            // Import tree
+            Rectangle {
+                width: 236px;
+                background: Tokens.layer;
+                border-radius: Tokens.radius-card;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+                VerticalLayout {
+                    padding: Tokens.s2;
+                    spacing: Tokens.s1;
+                    HorizontalLayout {
+                        padding-left: Tokens.s2;
+                        padding-top: Tokens.s1;
+                        padding-bottom: Tokens.s1;
+                        Text {
+                            text: "Files";
+                            font-weight: 600;
+                            color: Tokens.text;
+                        }
+                    }
+                    ListView {
+                        for f[i] in EditorState.files: FileRow {
+                            file: f;
+                            selected: i == EditorState.current;
+                            clicked => {
+                                if (!f.unresolved) {
+                                    EditorState.select-file(i);
+                                }
+                            }
+                        }
+                    }
+                    Text {
+                        text: EditorState.root-label;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        overflow: elide;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: Tokens.s3;
+
+                // Toolbar
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    Text {
+                        vertical-alignment: center;
+                        text: EditorState.current-label;
+                        font-family: EditorState.mono-font;
+                        font-size: Tokens.body;
+                        font-weight: 600;
+                        color: Tokens.text;
+                        overflow: elide;
+                        min-width: 60px;
+                        horizontal-stretch: 1;
+                    }
+                    if EditorState.dirty: VerticalLayout {
+                        alignment: center;
+                        Badge {
+                            text: "Unsaved";
+                            tint: Tokens.accent;
+                        }
+                    }
+                    if EditorState.read-only: VerticalLayout {
+                        alignment: center;
+                        Badge {
+                            text: EditorState.read-only-reason;
+                            tint: Tokens.text-2;
+                        }
+                    }
+                    Segmented {
+                        width: 176px;
+                        options: ["Read", "Edit"];
+                        selected: EditorState.editing ? 1 : 0;
+                        changed(i) => { EditorState.set-editing(i == 1); }
+                    }
+                    Button {
+                        text: "Discard";
+                        enabled: EditorState.dirty-count > 0 && !EditorState.saving;
+                        clicked => { EditorState.discard(); }
+                    }
+                    Button {
+                        text: EditorState.dirty-count > 1 ? "Save " + EditorState.dirty-count + " files" : "Save";
+                        primary: true;
+                        enabled: EditorState.dirty-count > 0 && !EditorState.saving;
+                        clicked => { EditorState.save(); }
+                    }
+                }
+
+                // Code
+                Rectangle {
+                    vertical-stretch: 1;
+                    min-height: 160px;
+                    background: Tokens.layer;
+                    border-radius: Tokens.radius-card;
+                    border-width: 1px;
+                    border-color: Tokens.stroke;
+                    clip: true;
+
+                    code := ListView {
+                        x: 1px;
+                        y: 1px;
+                        width: parent.width - 2px;
+                        height: parent.height - 2px;
+                        visible: !EditorState.editing;
+                        content-width: max(self.visible-width, 56px + EditorState.max-columns * CodeColors.column-width + Tokens.s6);
+                        for line in EditorState.lines: CodeRow {
+                            width: code.content-width;
+                            line: line;
+                            highlighted: line.number == EditorState.highlight-line;
+                            font: EditorState.mono-font;
+                        }
+                    }
+                    te := TextEdit {
+                        width: 100%;
+                        height: 100%;
+                        visible: EditorState.editing;
+                        text <=> EditorState.text;
+                        font-family: EditorState.mono-font;
+                        font-size: CodeColors.font-size;
+                        wrap: no-wrap;
+                        read-only: EditorState.read-only;
+                        edited(t) => { EditorState.edited(t); }
+                        key-pressed(event) => {
+                            if (event.modifiers.control && (event.text == "s" || event.text == "S")) {
+                                EditorState.save();
+                                return accept;
+                            }
+                            return reject;
+                        }
+                    }
+                }
+
+                // Problems
+                Rectangle {
+                    height: 164px;
+                    background: Tokens.layer;
+                    border-radius: Tokens.radius-card;
+                    border-width: 1px;
+                    border-color: Tokens.stroke;
+                    VerticalLayout {
+                        padding: Tokens.s2;
+                        spacing: Tokens.s1;
+                        HorizontalLayout {
+                            padding-left: Tokens.s2;
+                            padding-right: Tokens.s2;
+                            padding-top: Tokens.s1;
+                            spacing: Tokens.s2;
+                            Text {
+                                text: "Problems";
+                                font-weight: 600;
+                                color: Tokens.text;
+                            }
+                            if EditorState.problems.length > 0: Text {
+                                text: EditorState.problems.length;
+                                color: Tokens.text-3;
+                            }
+                            Rectangle { horizontal-stretch: 1; }
+                            Image {
+                                y: (parent.height - self.height) / 2;
+                                width: 14px;
+                                height: 14px;
+                                visible: EditorState.check-state == "ok" || EditorState.check-state == "errors" || EditorState.check-state == "failed";
+                                source: EditorState.check-state == "ok" ? Icons.ok : EditorState.check-state == "errors" ? Icons.error : Icons.warning;
+                                colorize: EditorState.check-state == "ok" ? Tokens.success : EditorState.check-state == "errors" ? Tokens.danger : Tokens.warning;
+                            }
+                            Text {
+                                text: EditorState.check-text;
+                                font-size: Tokens.caption;
+                                color: Tokens.text-2;
+                                vertical-alignment: center;
+                            }
+                        }
+                        if EditorState.problems.length == 0: Text {
+                            vertical-stretch: 1;
+                            text: EditorState.check-state == "checking" ? "Checking…" : "No problems found.";
+                            color: Tokens.text-3;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        if EditorState.problems.length > 0: ListView {
+                            for p[i] in EditorState.problems: ProblemRow {
+                                problem: p;
+                                clicked => { EditorState.jump(i); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if EditorState.confirm-force: ConfirmDialog {
+        width: 100%;
+        height: 100%;
+        kind: "error";
+        title: "Save with errors?";
+        text: EditorState.confirm-text;
+        confirm-label: "Save anyway";
+        confirmed => { EditorState.save-anyway(); }
+        cancelled => { EditorState.cancel-force(); }
+    }
+}

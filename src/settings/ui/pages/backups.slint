@@ -1,0 +1,434 @@
+import { Button, ListView } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "../backups-types.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { CodeColors } from "../components/code.slint";
+import { ConfirmDialog } from "../components/dialog.slint";
+
+component Tag inherits Rectangle {
+    in property <string> text;
+    in property <color> tint: Tokens.text-2;
+    height: 18px;
+    width: label.preferred-width + 10px;
+    border-radius: 9px;
+    background: root.tint.with-alpha(0.15);
+    label := Text {
+        text: root.text;
+        font-size: Tokens.caption - 1px;
+        color: root.tint;
+    }
+}
+
+// One snapshot on the timeline: a dot on a vertical line, then the details.
+component SnapshotItem inherits Rectangle {
+    in property <SnapshotRow> snap;
+    in property <bool> selected;
+    in property <bool> first;
+    in property <bool> last;
+    callback clicked;
+
+    height: 66px;
+    border-radius: Tokens.radius-control;
+    background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: list-item;
+    accessible-label: root.snap.time + ", " + root.snap.reason;
+    accessible-item-selected: root.selected;
+
+    // Timeline rail
+    Rectangle {
+        x: 19px;
+        y: root.first ? root.height / 2 : 0;
+        width: 2px;
+        height: root.first && root.last ? 0 : root.first || root.last ? root.height / 2 : root.height;
+        background: Tokens.stroke-strong;
+    }
+    Rectangle {
+        x: 14px;
+        y: (root.height - self.height) / 2;
+        width: 12px;
+        height: 12px;
+        border-radius: 6px;
+        background: root.snap.pinned ? Tokens.accent : Tokens.layer;
+        border-width: 2px;
+        border-color: root.selected || root.snap.pinned ? Tokens.accent : Tokens.text-3;
+    }
+
+    VerticalLayout {
+        x: 40px;
+        width: root.width - 48px;
+        alignment: center;
+        spacing: 2px;
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            Text {
+                text: root.snap.time;
+                font-weight: 600;
+                color: Tokens.text;
+                overflow: elide;
+                horizontal-stretch: 1;
+            }
+            if root.snap.current: VerticalLayout {
+                alignment: center;
+                Tag {
+                    text: "Current";
+                    tint: Tokens.success;
+                }
+            }
+            if root.snap.pinned: VerticalLayout {
+                alignment: center;
+                Tag {
+                    text: "Pinned";
+                    tint: Tokens.accent;
+                }
+            }
+        }
+        Text {
+            text: root.snap.reason;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            overflow: elide;
+        }
+        Text {
+            text: root.snap.files + (root.snap.files == 1 ? " file" : " files") + "  ·  " + root.snap.relative;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// One changed file: path, what happened, and the line counts.
+component DiffFileItem inherits Rectangle {
+    in property <DiffFileRow> file;
+    in property <bool> selected;
+    callback clicked;
+
+    height: 30px;
+    border-radius: Tokens.radius-control;
+    background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: list-item;
+    accessible-label: root.file.path + ", " + root.file.status;
+    accessible-item-selected: root.selected;
+
+    if root.selected: Rectangle {
+        x: 0;
+        width: 3px;
+        height: 14px;
+        border-radius: 1.5px;
+        background: Tokens.accent;
+    }
+    HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s3;
+        spacing: Tokens.s3;
+        Text {
+            horizontal-stretch: 1;
+            vertical-alignment: center;
+            text: root.file.path;
+            font-family: BackupsState.mono-font;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text;
+            overflow: elide;
+        }
+        Text {
+            vertical-alignment: center;
+            text: root.file.status;
+            font-size: Tokens.caption;
+            color: root.file.status == "removed" ? Tokens.danger : root.file.status == "added" ? Tokens.success : Tokens.text-2;
+        }
+        Text {
+            width: 40px;
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            text: root.file.added > 0 ? "+" + root.file.added : "";
+            font-size: Tokens.caption;
+            color: Tokens.success;
+        }
+        Text {
+            width: 40px;
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            text: root.file.removed > 0 ? "−" + root.file.removed : "";
+            font-size: Tokens.caption;
+            color: Tokens.danger;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+component DiffLine inherits Rectangle {
+    in property <DiffLineRow> entry;
+    height: CodeColors.row-height;
+    background: root.entry.kind == 1 ? Tokens.success.with-alpha(0.16) : root.entry.kind == 2 ? Tokens.danger.with-alpha(0.16) : root.entry.kind == 3 ? Tokens.layer-2 : transparent;
+
+    if root.entry.kind != 3: Text {
+        x: 0;
+        width: 36px;
+        height: parent.height;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        text: root.entry.old-line > 0 ? root.entry.old-line : "";
+        font-family: BackupsState.mono-font;
+        font-size: Tokens.caption;
+        color: Tokens.text-3;
+    }
+    if root.entry.kind != 3: Text {
+        x: 40px;
+        width: 36px;
+        height: parent.height;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        text: root.entry.new-line > 0 ? root.entry.new-line : "";
+        font-family: BackupsState.mono-font;
+        font-size: Tokens.caption;
+        color: Tokens.text-3;
+    }
+    Text {
+        x: root.entry.kind == 3 ? 8px : 86px;
+        height: parent.height;
+        vertical-alignment: center;
+        text: (root.entry.kind == 1 ? "+ " : root.entry.kind == 2 ? "− " : root.entry.kind == 3 ? "" : "  ") + root.entry.text;
+        font-family: BackupsState.mono-font;
+        font-size: CodeColors.font-size;
+        color: root.entry.kind == 3 ? Tokens.text-3 : root.entry.kind == 1 ? (Tokens.dark ? #B5E6A8 : #116329) : root.entry.kind == 2 ? (Tokens.dark ? #FFB3B8 : #82071E) : Tokens.text-2;
+    }
+}
+
+export component BackupsPage inherits Rectangle {
+    property <float> appear: 0;
+    init => {
+        root.appear = 1;
+        BackupsState.activated();
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    property <bool> has-selection: BackupsState.selected >= 0 && BackupsState.selected < BackupsState.snapshots.length;
+    property <SnapshotRow> sel: BackupsState.snapshots[BackupsState.selected];
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        padding-bottom: Tokens.s6;
+        spacing: Tokens.s4;
+
+        PageHeader {
+            title: "Backups";
+            description: "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it.";
+            busy: BackupsState.working;
+            busy-label: "Working…";
+            Button {
+                text: "Open folder";
+                icon: Icons.folder;
+                icon-size: 16px;
+                enabled: BackupsState.available;
+                clicked => { BackupsState.open-folder(); }
+            }
+            Button {
+                text: "Create snapshot now";
+                primary: true;
+                enabled: BackupsState.available && !BackupsState.working;
+                clicked => { BackupsState.create(); }
+            }
+        }
+
+        if !BackupsState.available: Banner {
+            kind: "info";
+            title: "No personal config to back up";
+            text: BackupsState.unavailable-text;
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            // Timeline
+            Rectangle {
+                width: 300px;
+                background: Tokens.layer;
+                border-radius: Tokens.radius-card;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+                VerticalLayout {
+                    padding: Tokens.s2;
+                    spacing: Tokens.s1;
+                    HorizontalLayout {
+                        padding-left: Tokens.s2;
+                        padding-top: Tokens.s1;
+                        spacing: Tokens.s2;
+                        Text {
+                            text: "Timeline";
+                            font-weight: 600;
+                            color: Tokens.text;
+                        }
+                        Text {
+                            text: BackupsState.snapshots.length;
+                            color: Tokens.text-3;
+                        }
+                        Rectangle { horizontal-stretch: 1; }
+                    }
+                    if BackupsState.loaded && BackupsState.snapshots.length == 0: Text {
+                        vertical-stretch: 1;
+                        text: "No snapshots yet.\nOne is taken before every save.";
+                        color: Tokens.text-3;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    if BackupsState.snapshots.length > 0: ListView {
+                        for s[i] in BackupsState.snapshots: SnapshotItem {
+                            snap: s;
+                            selected: i == BackupsState.selected;
+                            first: i == 0;
+                            last: i == BackupsState.snapshots.length - 1;
+                            clicked => { BackupsState.select(i); }
+                        }
+                    }
+                    Rectangle {
+                        height: 1px;
+                        background: Tokens.stroke;
+                    }
+                    Text {
+                        text: BackupsState.retention-text;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+
+            // Details and diff
+            Rectangle {
+                horizontal-stretch: 1;
+                background: Tokens.layer;
+                border-radius: Tokens.radius-card;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+
+                if !root.has-selection: Text {
+                    text: "Select a snapshot to see what changed since.";
+                    color: Tokens.text-3;
+                }
+
+                if root.has-selection: VerticalLayout {
+                    padding: Tokens.s4;
+                    spacing: Tokens.s3;
+
+                    HorizontalLayout {
+                        spacing: Tokens.s2;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 2px;
+                            Text {
+                                text: root.sel.time;
+                                font-size: Tokens.body-large;
+                                font-weight: 600;
+                                color: Tokens.text;
+                                overflow: elide;
+                            }
+                            Text {
+                                text: root.sel.reason;
+                                color: Tokens.text-2;
+                                overflow: elide;
+                            }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            Button {
+                                text: root.sel.pinned ? "Unpin" : "Pin";
+                                enabled: !BackupsState.working;
+                                clicked => { BackupsState.toggle-pin(BackupsState.selected); }
+                            }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            Button {
+                                text: "Delete…";
+                                enabled: !root.sel.pinned && !BackupsState.working;
+                                clicked => { BackupsState.ask-delete(BackupsState.selected); }
+                            }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            Button {
+                                text: "Restore…";
+                                primary: true;
+                                enabled: !root.sel.current && !BackupsState.working && BackupsState.available;
+                                clicked => { BackupsState.ask-restore(BackupsState.selected); }
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: BackupsState.diff-summary;
+                        font-size: Tokens.caption + 1px;
+                        color: Tokens.text-2;
+                        wrap: word-wrap;
+                    }
+
+                    // Changed files (at most four rows tall), then the diff of the selected one.
+                    if BackupsState.diff-files.length > 0: Rectangle {
+                        height: min(BackupsState.diff-files.length, 4) * 30px + 2 * Tokens.s1 + 2px;
+                        border-radius: Tokens.radius-control;
+                        background: Tokens.layer-2;
+                        border-width: 1px;
+                        border-color: Tokens.stroke;
+                        ListView {
+                            x: Tokens.s1;
+                            y: Tokens.s1;
+                            width: parent.width - 2 * Tokens.s1;
+                            height: parent.height - 2 * Tokens.s1;
+                            for f[i] in BackupsState.diff-files: DiffFileItem {
+                                file: f;
+                                selected: i == BackupsState.diff-file;
+                                clicked => { BackupsState.select-file(i); }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        vertical-stretch: 1;
+                        border-radius: Tokens.radius-control;
+                        border-width: 1px;
+                        border-color: Tokens.stroke;
+                        clip: true;
+                        if BackupsState.diff-lines.length == 0: Text {
+                            text: BackupsState.diff-loading ? "Comparing…" : BackupsState.diff-files.length == 0 ? "No differences." : "No line changes in this file.";
+                            color: Tokens.text-3;
+                        }
+                        diff := ListView {
+                            x: 1px;
+                            y: 1px;
+                            width: parent.width - 2px;
+                            height: parent.height - 2px;
+                            content-width: max(self.visible-width, 96px + BackupsState.diff-max-columns * CodeColors.column-width);
+                            for r in BackupsState.diff-lines: DiffLine {
+                                width: diff.content-width;
+                                entry: r;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if BackupsState.confirm-kind != "": ConfirmDialog {
+        width: 100%;
+        height: 100%;
+        kind: BackupsState.confirm-kind == "delete" ? "error" : "warning";
+        title: BackupsState.confirm-kind == "delete" ? "Delete this snapshot?" : "Restore this snapshot?";
+        text: BackupsState.confirm-text;
+        confirm-label: BackupsState.confirm-kind == "delete" ? "Delete" : "Restore";
+        confirmed => { BackupsState.confirm(); }
+        cancelled => { BackupsState.cancel(); }
+    }
+}
