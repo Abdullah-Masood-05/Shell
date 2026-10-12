@@ -1,0 +1,53 @@
+// The Behavior and Rules & Filters pages' bridge to C++ (src/BehaviorController.cpp).
+// Both edit settings{} keys through SaveService, like Appearance edits theme{}.
+
+import { ThemeField } from "appearance-state.slint";
+
+export { ThemeField }
+
+// Indexes into SettingsState.fields (the order of fieldDefs() in BehaviorController.cpp).
+export global SK {
+    out property <int> priority: 0;
+    out property <int> showdelay: 1;
+    out property <int> tip: 2;
+    out property <int> tip-time: 3;
+    out property <int> tip-width: 4;
+    out property <int> tip-colors: 5;
+    out property <int> screenshot: 6;
+    out property <int> screenshot-dir: 7;
+    out property <int> remove-duplicate: 8;
+    out property <int> remove-disabled: 9;
+    out property <int> remove-separator: 10;
+    out property <int> modify-image: 11;
+    out property <int> new-image: 12;
+    out property <int> where: 13;
+    out property <int> process: 14;
+    out property <int> window: 15;
+}
+
+export global SettingsState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <[ThemeField]> fields;
+
+    in property <int> windows-showdelay: 400;   // SPI_GETMENUSHOWDELAY
+    in property <string> default-screenshot-dir; // the Screenshots known folder
+
+    // Rules & Filters
+    in property <int> where-kind;          // 0 off, 1 only in File Explorer, 2 a custom condition
+    in property <[string]> processes;      // exclude.process when it is a plain list
+    in property <[string]> windows;        // exclude.window when it is a plain list
+
+    callback set-bool(index: int, on: bool);
+    callback set-number(index: int, value: float);
+    callback set-text(index: int, text: string);        // raw literal or expression
+    callback set-string(index: int, text: string);      // quoted for the file
+    callback set-pair(index: int, first: color, second: color);
+    callback set-index(index: int, choice: int);
+    callback reset(index: int);
+    callback pick-folder(index: int);
+    callback add-name(index: int, text: string) -> bool; // false: nothing added
+    callback remove-name(index: int, position: int);
+    callback set-explorer-only(on: bool);
+    callback reload();
+}
