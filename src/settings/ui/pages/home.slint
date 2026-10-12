@@ -1,7 +1,8 @@
 import { Button } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
-import { AppState } from "../types.slint";
+import { AppState, Pages } from "../types.slint";
+import { EditorState } from "../editor-types.slint";
 import { Card, KeyValue, SectionTitle } from "../components/card.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
@@ -309,7 +310,11 @@ export component HomePage inherits PageFrame {
             file: d.file;
             line: d.line;
             column: d.column;
-            open => { AppState.open-path(d.file); }
+            // Show the line in the Config Editor.
+            open => {
+                EditorState.open-at(d.file, d.line);
+                AppState.page = Pages.editor;
+            }
         }
     }
 

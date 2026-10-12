@@ -9,8 +9,12 @@ import { HomePage } from "pages/home.slint";
 import { PlaceholderPage } from "pages/placeholder.slint";
 import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
+import { EditorPage } from "pages/editor.slint";
+import { BackupsPage } from "pages/backups.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
+export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
+export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Settings";
@@ -111,31 +115,13 @@ export component AppWindow inherits Window {
                     "Saved to an app-owned file imported by shell.nss",
                 ];
             }
-            if AppState.page == Pages.editor: PlaceholderPage {
+            if AppState.page == Pages.editor: EditorPage {
                 width: 100%;
                 height: 100%;
-                title: "Config Editor";
-                description: "Edit shell.nss and its imports directly.";
-                icon: Icons.editor;
-                milestone: "M4";
-                planned: [
-                    "A file tree that follows imports",
-                    "Syntax highlighting and inline diagnostics from shell.log",
-                    "Validation before every save",
-                ];
             }
-            if AppState.page == Pages.backups: PlaceholderPage {
+            if AppState.page == Pages.backups: BackupsPage {
                 width: 100%;
                 height: 100%;
-                title: "Backups";
-                description: "Every save is a snapshot you can go back to.";
-                icon: Icons.backups;
-                milestone: "M6";
-                planned: [
-                    "A timeline of snapshots with diffs",
-                    "One-click restore and pinned snapshots",
-                    "Keeps 50 snapshots or 60 days; pinned ones are never deleted",
-                ];
             }
             if AppState.page == Pages.preferences: PreferencesPage {
                 width: 100%;

@@ -47,7 +47,14 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
+    src/BackupsController.cpp
+    src/BackupsModel.cpp
+    src/Diff.cpp
     src/Dwm.cpp
+    src/EditorController.cpp
+    src/EditorSession.cpp
+    src/FileWatcher.cpp
+    src/Highlight.cpp
     src/LogReader.cpp
     src/Registry.cpp
     src/ShellCli.cpp
@@ -76,6 +83,26 @@ endif()
 if(TARGET nsscore)
     target_link_libraries(settings PRIVATE nsscore)
     target_compile_definitions(settings PRIVATE SETTINGS_HAVE_NSSCORE=1)
+endif()
+
+# Tests for the UI-free logic of the Config Editor and Backups pages.
+option(SETTINGS_BUILD_TESTS "Build settings_tests" ON)
+if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
+    add_executable(settings_tests
+        tests/test_logic.cpp
+        src/BackupsModel.cpp
+        src/Diff.cpp
+        src/EditorSession.cpp
+        src/FileWatcher.cpp
+        src/Highlight.cpp
+    )
+    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest")
+    target_compile_definitions(settings_tests PRIVATE
+        UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
+        SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}")
+    target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 ole32)
+    set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
 endif()
 
 set_target_properties(settings PROPERTIES

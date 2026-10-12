@@ -3,6 +3,8 @@
 // Development switches:
 //   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences>
 //   --no-onboarding    don't show the first-run dialog this time
+//   --editor-edit      open the Config Editor in its edit view
+//   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, a placeholder,
 //                          Home in light)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture
@@ -10,6 +12,8 @@
 #include "app.h"
 
 #include "AppController.h"
+#include "BackupsController.h"
+#include "EditorController.h"
 #include "Registry.h"
 
 #include <windows.h>
@@ -103,6 +107,8 @@ int main()
     auto options = parseArgs();
     auto ui = AppWindow::create();
     auto controller = std::make_unique<AppController>(ui, options);
+    auto editor = std::make_unique<EditorController>(ui);
+    auto backups = std::make_unique<BackupsController>(ui);
 
     // Restore the last size and position (physical pixels) before the first frame.
     auto placement = registry::app::loadPlacement();
@@ -152,6 +158,8 @@ int main()
 
     slint::run_event_loop();
 
+    backups.reset();
+    editor.reset();
     controller.reset();
     if (mutex)
         CloseHandle(mutex);
