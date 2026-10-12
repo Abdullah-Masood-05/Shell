@@ -46,3 +46,4 @@ src/bin/*.lib
 src/bin/*.msi
 src/bin/*.wixpdb
 src/packages/
+.claude/worktrees/
