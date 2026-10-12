@@ -11,10 +11,17 @@ import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
 import { EditorPage } from "pages/editor.slint";
 import { BackupsPage } from "pages/backups.slint";
+import { SaveState } from "save-state.slint";
+import { SaveFooter, UserConfigPrompt } from "components/save-footer.slint";
+import { AppearancePage, AppearanceState } from "pages/appearance.slint";
+import { BehaviorPage } from "pages/behavior.slint";
+import { RulesPage } from "pages/rules.slint";
+import { SettingsState, SK } from "pages/settings-state.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
 export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
+export { SaveState, AppearanceState, Pages, SettingsState, SK }
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Settings";
@@ -38,9 +45,12 @@ export component AppWindow inherits Window {
             width: 264px;
         }
 
-        // Content layer with a rounded top-left corner, like WinUI's NavigationView.
+        // Content layer with a rounded top-left corner, like WinUI's NavigationView,
+        // and the unsaved-changes footer under it.
+        VerticalLayout {
+        horizontal-stretch: 1;
         Rectangle {
-            horizontal-stretch: 1;
+            vertical-stretch: 1;
             background: Tokens.content;
             border-top-left-radius: Tokens.radius-card;
             border-width: 1px;
@@ -51,45 +61,17 @@ export component AppWindow inherits Window {
                 width: 100%;
                 height: 100%;
             }
-            if AppState.page == Pages.appearance: PlaceholderPage {
+            if AppState.page == Pages.appearance: AppearancePage {
                 width: 100%;
                 height: 100%;
-                title: "Appearance";
-                description: "Fine-tune the look and feel of your context menus.";
-                icon: Icons.appearance;
-                milestone: "M2";
-                planned: [
-                    "Theme cards, dark mode, density and corner radius",
-                    "Background colour, opacity and effects (blur, acrylic) with tint",
-                    "Font, size and weight; borders and shadows",
-                    "A live preview on your wallpaper, in light and dark",
-                    "Every save checked with shell.exe -config:check, with automatic rollback",
-                ];
             }
-            if AppState.page == Pages.behavior: PlaceholderPage {
+            if AppState.page == Pages.behavior: BehaviorPage {
                 width: 100%;
                 height: 100%;
-                title: "Behavior";
-                description: "How and when the menu shows, and what it adds.";
-                icon: Icons.behavior;
-                milestone: "M3";
-                planned: [
-                    "Priority, show delay and tooltips",
-                    "Screenshot, modify and new-item settings",
-                    "A command palette (Ctrl+K) for every setting",
-                ];
             }
-            if AppState.page == Pages.rules: PlaceholderPage {
+            if AppState.page == Pages.rules: RulesPage {
                 width: 100%;
                 height: 100%;
-                title: "Rules & Filters";
-                description: "Where the menu appears and where it stays out of the way.";
-                icon: Icons.rules;
-                milestone: "M3";
-                planned: [
-                    "An exclude builder for processes, windows and paths",
-                    "A raw expression box for anything the builder can't express",
-                ];
             }
             if AppState.page == Pages.menus: PlaceholderPage {
                 width: 100%;
@@ -128,18 +110,25 @@ export component AppWindow inherits Window {
                 height: 100%;
             }
         }
+        SaveFooter { }
+        }
     }
 
     Toast {
         max-available: root.width - 264px - 48px;
         x: 264px + (root.width - 264px - self.width) / 2;
-        y: root.height - self.height - Tokens.s6 + (AppState.toast-shown ? 0px : 12px);
+        y: root.height - SaveState.footer-height - self.height - Tokens.s6 + (AppState.toast-shown ? 0px : 12px);
         animate y { duration: Tokens.normal; easing: ease-out; }
         shown: AppState.toast-shown;
         kind: AppState.toast-kind;
         title: AppState.toast-title;
         text: AppState.toast-text;
         close => { AppState.dismiss-toast(); }
+    }
+
+    if SaveState.user-config-prompt: UserConfigPrompt {
+        width: 100%;
+        height: 100%;
     }
 
     if AppState.onboarding-shown: Onboarding {

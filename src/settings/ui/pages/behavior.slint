@@ -1,0 +1,215 @@
+// Behavior: the settings{} keys that decide how the menu opens and what it adds
+// or removes. Values go to SaveService as pending changes; the footer saves.
+
+import { Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { AppState } from "../types.slint";
+import { Card } from "../components/card.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { SettingRow, SettingBlock, RowDivider, ChipGroup, ValueSlider, ColorField, ToggleSwitch } from "../components/theme-controls.slint";
+import { PageFrame } from "page-frame.slint";
+import { SettingsState, SK, ThemeField } from "settings-state.slint";
+
+// A labelled on/off row.
+component SwitchRow inherits SettingRow {
+    in property <int> index;
+    in property <bool> ready;
+    field: SettingsState.fields[root.index];
+    control-width: 80px;
+    reset => { SettingsState.reset(root.index); }
+    ToggleSwitch {
+        on: SettingsState.fields[root.index].number > 0.5;
+        enabled: root.ready && !SettingsState.fields[root.index].locked;
+        toggled(on) => { SettingsState.set-bool(root.index, on); }
+    }
+}
+
+export component BehaviorPage inherits PageFrame {
+    property <[ThemeField]> f: SettingsState.fields;
+    property <bool> ready: SettingsState.loaded && f.length > SK.window;
+    // Read the files again: the Config Editor may have changed them.
+    init => { SettingsState.reload(); }
+
+    PageHeader {
+        title: "Behavior";
+        description: "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items.";
+        busy: AppState.busy;
+        busy-label: AppState.busy-label;
+    }
+
+    if SettingsState.load-error != "": Banner {
+        kind: "error";
+        title: "Couldn't read your config";
+        text: SettingsState.load-error;
+        action-label: "Try again";
+        action => { SettingsState.reload(); }
+    }
+
+    Card {
+        heading: "Opening the menu";
+        SwitchRow {
+            label: "Open Shell's menu instead of the Windows 11 menu";
+            hint: root.f[SK.priority].number > 0.5
+                ? "File Explorer's compact menu is skipped · " + root.f[SK.priority].origin
+                : "Windows 11 shows its compact menu first · " + root.f[SK.priority].origin;
+            index: SK.priority;
+            ready: root.ready;
+        }
+        RowDivider { }
+        SettingRow {
+            label: "Custom submenu delay";
+            field: root.f[SK.showdelay];
+            hint: root.f[SK.showdelay].index == 0
+                ? "Off: your Windows setting applies (" + SettingsState.windows-showdelay + " ms)."
+                : "Replaces your Windows setting (" + SettingsState.windows-showdelay + " ms) while a Shell menu is open · " + root.f[SK.showdelay].origin;
+            control-width: 80px;
+            reset => { SettingsState.reset(SK.showdelay); }
+            ToggleSwitch {
+                on: root.f[SK.showdelay].index == 1;
+                // Turning it off only drops this app's value; a value in your files stays.
+                enabled: root.ready && !root.f[SK.showdelay].locked && (root.f[SK.showdelay].index == 0 || root.f[SK.showdelay].source-file == "" || root.f[SK.showdelay].overridden);
+                toggled(on) => {
+                    if (on) {
+                        SettingsState.set-number(SK.showdelay, root.f[SK.showdelay].number);
+                    } else {
+                        SettingsState.reset(SK.showdelay);
+                    }
+                }
+            }
+        }
+        if root.f[SK.showdelay].index == 1: ValueSlider {
+            value: root.f[SK.showdelay].number;
+            maximum: 4000;
+            step: 50;
+            unit: " ms";
+            enabled: root.ready && !root.f[SK.showdelay].locked;
+            changed(v) => { SettingsState.set-number(SK.showdelay, v); }
+        }
+    }
+
+    Card {
+        heading: "Tooltips";
+        SwitchRow {
+            label: "Show tooltips";
+            index: SK.tip;
+            ready: root.ready;
+        }
+        if root.f[SK.tip].number > 0.5: RowDivider { }
+        if root.f[SK.tip].number > 0.5: SettingBlock {
+            label: "Delay";
+            field: root.f[SK.tip-time];
+            reset => { SettingsState.reset(SK.tip-time); }
+            ValueSlider {
+                value: root.f[SK.tip-time].number;
+                maximum: 10;
+                step: 0.1;
+                unit: " s";
+                enabled: root.ready && !root.f[SK.tip-time].locked;
+                changed(v) => { SettingsState.set-number(SK.tip-time, v); }
+            }
+        }
+        if root.f[SK.tip].number > 0.5: SettingBlock {
+            label: "Maximum width";
+            field: root.f[SK.tip-width];
+            reset => { SettingsState.reset(SK.tip-width); }
+            ValueSlider {
+                value: root.f[SK.tip-width].number;
+                minimum: 200;
+                maximum: 2000;
+                step: 10;
+                unit: " px";
+                enabled: root.ready && !root.f[SK.tip-width].locked;
+                changed(v) => { SettingsState.set-number(SK.tip-width, v); }
+            }
+        }
+        if root.f[SK.tip].number > 0.5: SettingRow {
+            label: "Background";
+            field: root.f[SK.tip-colors];
+            hint: root.f[SK.tip-colors].overridden || root.f[SK.tip-colors].source-file != "" ? root.f[SK.tip-colors].origin : "The menu's background · " + root.f[SK.tip-colors].origin;
+            reset => { SettingsState.reset(SK.tip-colors); }
+            ColorField {
+                value: root.f[SK.tip-colors].color;
+                hex: root.f[SK.tip-colors].display;
+                enabled: root.ready && !root.f[SK.tip-colors].locked;
+                changed(c) => { SettingsState.set-pair(SK.tip-colors, c, root.f[SK.tip-colors].color2); }
+                hex-entered(t) => { SettingsState.set-text(SK.tip-colors, "[" + t + ", " + root.f[SK.tip-colors].display2 + "]"); }
+            }
+        }
+        if root.f[SK.tip].number > 0.5: SettingRow {
+            label: "Text";
+            field: { origin: "The colour of the tooltip text", locked: root.f[SK.tip-colors].locked };
+            ColorField {
+                value: root.f[SK.tip-colors].color2;
+                hex: root.f[SK.tip-colors].display2;
+                enabled: root.ready && !root.f[SK.tip-colors].locked;
+                changed(c) => { SettingsState.set-pair(SK.tip-colors, root.f[SK.tip-colors].color, c); }
+                hex-entered(t) => { SettingsState.set-text(SK.tip-colors, "[" + root.f[SK.tip-colors].display + ", " + t + "]"); }
+            }
+        }
+    }
+
+    Card {
+        heading: "Screenshots";
+        SwitchRow {
+            label: "Print Screen saves the open menu";
+            index: SK.screenshot;
+            ready: root.ready;
+        }
+        if root.f[SK.screenshot].number > 0.5: RowDivider { }
+        if root.f[SK.screenshot].number > 0.5: SettingRow {
+            label: "Folder";
+            field: root.f[SK.screenshot-dir];
+            hint: (root.f[SK.screenshot-dir].display != "" ? root.f[SK.screenshot-dir].display : "Screenshots folder · " + SettingsState.default-screenshot-dir) + " · " + root.f[SK.screenshot-dir].origin;
+            control-width: 110px;
+            reset => { SettingsState.reset(SK.screenshot-dir); }
+            Button {
+                text: "Choose…";
+                enabled: root.ready && !root.f[SK.screenshot-dir].locked;
+                clicked => { SettingsState.pick-folder(SK.screenshot-dir); }
+            }
+        }
+    }
+
+    Card {
+        heading: "Windows' own items";
+        description: "What Shell does to the items Windows and other apps put in the menu.";
+        SwitchRow {
+            label: "Remove duplicate items";
+            index: SK.remove-duplicate;
+            ready: root.ready;
+        }
+        RowDivider { }
+        SwitchRow {
+            label: "Remove disabled items";
+            index: SK.remove-disabled;
+            ready: root.ready;
+        }
+        RowDivider { }
+        SwitchRow {
+            label: "Remove their separators";
+            index: SK.remove-separator;
+            ready: root.ready;
+        }
+        RowDivider { }
+        SettingRow {
+            label: "Icons on Windows' items";
+            field: root.f[SK.modify-image];
+            hint: root.f[SK.modify-image].index == 2 ? "Auto adds icons to known items that have none · " + root.f[SK.modify-image].origin : root.f[SK.modify-image].origin;
+            control-width: 220px;
+            reset => { SettingsState.reset(SK.modify-image); }
+            ChipGroup {
+                options: ["Off", "On", "Auto"];
+                selected: root.f[SK.modify-image].index;
+                enabled: root.ready && !root.f[SK.modify-image].locked;
+                changed(i) => { SettingsState.set-index(SK.modify-image, i); }
+            }
+        }
+        RowDivider { }
+        SwitchRow {
+            label: "Icons on Shell's own items";
+            index: SK.new-image;
+            ready: root.ready;
+        }
+    }
+}

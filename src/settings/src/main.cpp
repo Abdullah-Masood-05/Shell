@@ -5,16 +5,23 @@
 //   --no-onboarding    don't show the first-run dialog this time
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
-//   --snapshot <prefix>    render a short tour (as started, Home, Preferences, a placeholder,
-//                          Home in light)
+//   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
+//                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture
+//   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
+//                          still the start page, the last the start page in light)
+//   --snapshot-dark        start the tour in the dark theme whatever Windows uses
+//   --set <key>=<literal>, --save    see AppearanceController.h
 
 #include "app.h"
 
 #include "AppController.h"
+#include "AppearanceController.h"
 #include "BackupsController.h"
+#include "BehaviorController.h"
 #include "EditorController.h"
 #include "Registry.h"
+#include "SaveService.h"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -24,10 +31,13 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
 
 std::wstring g_snapshotPath;
+std::vector<int> g_snapshotPages;
+bool g_snapshotDark = false;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -76,6 +86,21 @@ AppOptions parseArgs()
                     o.startPage = p;
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
+            g_snapshotDark = true;
+        } else if (_wcsicmp(argv[i], L"--snapshot-pages") == 0 && i + 1 < argc) {
+            std::wstring list = argv[++i];
+            size_t start = 0;
+            while (start <= list.size()) {
+                size_t comma = list.find(L',', start);
+                auto name = list.substr(start, comma == std::wstring::npos ? std::wstring::npos : comma - start);
+                for (int p = 0; p < int(std::size(pages)); ++p)
+                    if (_wcsicmp(name.c_str(), pages[p]) == 0)
+                        g_snapshotPages.push_back(p);
+                if (comma == std::wstring::npos)
+                    break;
+                start = comma + 1;
+            }
         }
     }
     LocalFree(argv);
@@ -109,6 +134,9 @@ int main()
     auto controller = std::make_unique<AppController>(ui, options);
     auto editor = std::make_unique<EditorController>(ui);
     auto backups = std::make_unique<BackupsController>(ui);
+    auto saveService = std::make_unique<SaveService>(ui, ShellCli::locate());
+    auto appearance = std::make_unique<AppearanceController>(ui, *saveService);
+    auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
 
     // Restore the last size and position (physical pixels) before the first frame.
     auto placement = registry::app::loadPlacement();
@@ -130,34 +158,49 @@ int main()
         if (HWND hwnd = ui->window().win32_hwnd()) {
             hwndPoll.stop();
             controller->attachWindow(hwnd);
+            saveService->attachWindow(hwnd);
             if (placement && placement->maximized)
                 ui->window().set_maximized(true);
             controller->start();
+            appearance->start();
             if (!g_snapshotPath.empty())
                 snapshotTour.start(slint::TimerMode::Repeated, std::chrono::milliseconds(1200), [&] {
                     static int step = 0;
-                    if (++step < 3)
+                    if (++step < 3) {
+                        if (g_snapshotDark && step == 1) {
+                            ui->invoke_apply_theme(true);
+                            ui->global<AppearanceState>().invoke_set_preview_dark(true);
+                        }
                         return; // let the first status load land
+                    }
                     int shot = step - 2;
                     if (auto px = ui->window().take_snapshot())
                         writeBmp(g_snapshotPath + L"-" + std::to_wstring(shot) + L".bmp", *px);
                     const auto &state = ui->global<AppState>();
                     state.set_onboarding_shown(false);
-                    static constexpr int tour[] = { 0, 8, 1, 0 };
-                    if (shot > int(std::size(tour))) {
+                    static const std::vector<int> tour =
+                        g_snapshotPages.empty() ? std::vector<int>{ 0, 8, 1 } : g_snapshotPages;
+                    if (shot > int(tour.size()) + 1) {
                         snapshotTour.stop();
                         slint::quit_event_loop();
                         return;
                     }
-                    state.set_page(tour[shot - 1]);
-                    if (shot == int(std::size(tour)))
-                        ui->invoke_apply_theme(false); // last shot: light theme (not saved)
+                    if (shot == int(tour.size()) + 1) {
+                        // Last shot, in light (not saved): Home, or the start page for --snapshot-pages.
+                        state.set_page(g_snapshotPages.empty() ? 0 : options.startPage);
+                        ui->invoke_apply_theme(false);
+                        ui->global<AppearanceState>().invoke_set_preview_dark(false);
+                    } else
+                        state.set_page(tour[size_t(shot - 1)]);
                 });
         }
     });
 
     slint::run_event_loop();
 
+    behavior.reset();
+    appearance.reset();
+    saveService.reset();
     backups.reset();
     editor.reset();
     controller.reset();

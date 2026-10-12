@@ -1,0 +1,67 @@
+// Data for the Appearance preview, resolved in C++ (src/ThemeModel.cpp,
+// src/AppearanceController.cpp). Lengths are already scaled for the font size.
+
+export struct PreviewTheme {
+    dark: bool,
+    effect: int,              // 0 none, 1 transparent, 2 blur, 3 acrylic
+    background: color,        // with its opacity
+    tint: color,              // blur/acrylic tint
+    border-size: length,
+    border-color: color,
+    radius: length,           // menu corners
+    pad-top: length,          // theme.border.padding
+    pad-bottom: length,
+    pad-left: length,
+    pad-right: length,
+    shadow: bool,
+    shadow-size: length,
+    shadow-offset: length,
+    shadow-color: color,
+    text: color,
+    text-sel: color,
+    text-dis: color,
+    back-sel: color,
+    back-dis-sel: color,
+    item-radius: length,
+    item-pad-left: length,
+    item-pad-right: length,
+    item-mar-left: length,
+    item-mar-right: length,
+    item-mar-top: length,
+    item-mar-bottom: length,
+    sep-size: length,
+    sep-color: color,
+    sep-mar-left: length,
+    sep-mar-right: length,
+    sep-mar-top: length,
+    font-family: string,
+    font-size: length,
+    font-weight: int,
+    italic: bool,
+    show-images: bool,
+    image-size: length,
+    image-gap: length,
+    icon: color,
+    icon-sel: color,
+    chevron: color,
+    chevron-sel: color,
+    min-width: length,
+}
+
+// One row of a preview menu. `y` and `h` come from C++ so a submenu can open
+// next to its item.
+export struct PreviewItem {
+    label: string,
+    glyph: string,            // Segoe Fluent Icons code point
+    separator: bool,
+    disabled: bool,
+    sub: int,                 // index into the context's submenus, or -1
+    y: length,
+    h: length,
+}
+
+export struct PreviewMenu {
+    items: [PreviewItem],
+    height: length,
+    open: int,                // the item shown hovered (with its submenu) at first
+}

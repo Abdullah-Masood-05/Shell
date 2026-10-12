@@ -1,0 +1,643 @@
+// Appearance: theme, background, typography and shape of the menus, with a
+// live preview. Values go to SaveService as pending changes; the footer saves.
+
+import { ScrollView } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { Card } from "../components/card.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { FieldLabel, SettingRow, SettingBlock, RowDivider, ChipGroup, RadiusSteps, ValueSlider, BoxField, ColorField, FontPicker, ToggleSwitch } from "../components/theme-controls.slint";
+import { PreviewTheme } from "../preview/preview-types.slint";
+import { PreviewPane, MiniMenu } from "../preview/menu-preview.slint";
+import { AppearanceState, ThemeField, K } from "appearance-state.slint";
+
+export { AppearanceState, K }
+
+component ThemeCard inherits Rectangle {
+    in property <string> label;
+    in property <PreviewTheme> t;
+    in property <bool> selected;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    height: 112px;
+    border-radius: Tokens.radius-card;
+    border-width: root.selected ? 2px : 1px;
+    border-color: root.selected ? Tokens.accent : ta.has-hover ? Tokens.stroke-strong : Tokens.stroke;
+    background: Tokens.layer-2;
+    opacity: root.enabled ? 1 : 0.6;
+    accessible-role: radio-button;
+    accessible-label: root.label;
+    accessible-checked: root.selected;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+
+    VerticalLayout {
+        padding: 5px;
+        spacing: 5px;
+        Rectangle {
+            height: 78px;
+            border-radius: 5px;
+            clip: true;
+            Image {
+                width: 100%;
+                height: 100%;
+                source: AppearanceState.wallpaper;
+                image-fit: cover;
+            }
+            MiniMenu {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                t: root.t;
+                icon-font: AppearanceState.icon-font;
+                blurred: AppearanceState.wallpaper-blurred;
+            }
+        }
+        HorizontalLayout {
+            padding-left: 4px;
+            padding-right: 2px;
+            Text {
+                horizontal-stretch: 1;
+                text: root.label;
+                font-size: 13px;
+                font-weight: root.selected ? 600 : 400;
+                color: Tokens.text;
+                vertical-alignment: center;
+            }
+            if root.selected: Image {
+                source: Icons.ok;
+                width: 14px;
+                height: 14px;
+                y: (parent.height - self.height) / 2;
+                colorize: Tokens.accent;
+            }
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => { root.clicked(); }
+    }
+}
+
+// The "Advanced" header: a full-width toggle.
+component Expander inherits Rectangle {
+    in property <string> title;
+    in property <string> caption;
+    in-out property <bool> open;
+
+    height: 52px;
+    border-radius: Tokens.radius-card;
+    background: ta.has-hover ? Tokens.hover : transparent;
+    accessible-role: button;
+    accessible-label: root.title;
+    accessible-expanded: root.open;
+    accessible-expandable: true;
+    accessible-action-default => { root.open = !root.open; }
+
+    HorizontalLayout {
+        padding-left: Tokens.s5;
+        padding-right: Tokens.s4;
+        spacing: Tokens.s3;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: root.title;
+                font-weight: 600;
+                color: Tokens.text;
+            }
+            Text {
+                text: root.caption;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+            }
+        }
+        Text {
+            text: root.open ? "\u{E70E}" : "\u{E70D}";
+            font-family: "Segoe Fluent Icons";
+            font-size: 12px;
+            color: Tokens.text-2;
+            vertical-alignment: center;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.open = !root.open; }
+    }
+}
+
+export component AppearancePage inherits Rectangle {
+    property <[ThemeField]> f: AppearanceState.fields;
+    property <bool> ready: AppearanceState.loaded && f.length > K.image-gap;
+    property <length> preview-width: clamp((root.width - 72px) * 0.45, 320px, 540px);
+    property <bool> advanced;
+    property <[string]> theme-names: ["Auto", "Modern", "Classic", "White", "Black"];
+
+    property <float> appear: 0;
+    init => {
+        root.appear = 1;
+        AppearanceState.reload(); // the Config Editor may have changed the files
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        spacing: Tokens.s4;
+
+        PageHeader {
+            title: "Appearance";
+            description: "The theme, colours, font and shape of Shell's menus. The preview updates as you change them.";
+            busy: AppState.busy;
+            busy-label: AppState.busy-label;
+        }
+
+        if AppearanceState.load-error != "": Banner {
+            kind: "error";
+            title: "Couldn't read your config";
+            text: AppearanceState.load-error;
+            action-label: "Try again";
+            action => { AppearanceState.reload(); }
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            ScrollView {
+                horizontal-stretch: 1;
+                VerticalLayout {
+                    padding-right: Tokens.s3;
+                    padding-bottom: Tokens.s6;
+                    spacing: Tokens.s4;
+                    alignment: start;
+
+                    // Theme
+                    Card {
+                        VerticalLayout {
+                            spacing: Tokens.s3;
+                            FieldLabel {
+                                label: "Theme";
+                                strong: true;
+                                field: root.f[K.name];
+                                hint: root.f[K.name].index == 0 ? "Auto follows the Windows menu style · " + root.f[K.name].origin : root.f[K.name].origin;
+                                reset => { AppearanceState.reset(K.name); }
+                            }
+                            HorizontalLayout {
+                                spacing: Tokens.s2;
+                                for i in 3: ThemeCard {
+                                    horizontal-stretch: 1;
+                                    label: root.theme-names[i];
+                                    t: AppearanceState.card-themes[i];
+                                    selected: root.f[K.name].index == i;
+                                    enabled: root.ready && !root.f[K.name].locked;
+                                    clicked => { AppearanceState.set-index(K.name, i); }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: Tokens.s2;
+                                for i in 2: ThemeCard {
+                                    horizontal-stretch: 1;
+                                    label: root.theme-names[i + 3];
+                                    t: AppearanceState.card-themes[i + 3];
+                                    selected: root.f[K.name].index == i + 3;
+                                    enabled: root.ready && !root.f[K.name].locked;
+                                    clicked => { AppearanceState.set-index(K.name, i + 3); }
+                                }
+                                // Keeps the second row's cards the size of the first row's.
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                }
+                            }
+                        }
+                        RowDivider { }
+                        SettingRow {
+                            label: "Dark mode";
+                            field: root.f[K.dark];
+                            hint: root.f[K.dark].index == 0 ? "Auto follows the Windows app mode · " + root.f[K.dark].origin : root.f[K.dark].origin;
+                            control-width: 150px;
+                            reset => { AppearanceState.reset(K.dark); }
+                            ChipGroup {
+                                options: ["Auto", "On", "Off"];
+                                selected: root.f[K.dark].index;
+                                enabled: root.ready && !root.f[K.dark].locked;
+                                changed(i) => { AppearanceState.set-index(K.dark, i); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Density";
+                            field: root.f[K.view];
+                            reset => { AppearanceState.reset(K.view); }
+                            ChipGroup {
+                                options: ["Auto", "Compact", "Small", "Medium", "Large", "Wide"];
+                                selected: root.f[K.view].index;
+                                enabled: root.ready && !root.f[K.view].locked;
+                                changed(i) => { AppearanceState.set-index(K.view, i); }
+                            }
+                        }
+                    }
+
+                    // Background
+                    Card {
+                        heading: "Background";
+                        description: "Colour, opacity and the effect behind the menu.";
+                        SettingRow {
+                            label: "Colour";
+                            field: root.f[K.bg-color];
+                            reset => { AppearanceState.reset(K.bg-color); }
+                            ColorField {
+                                value: root.f[K.bg-color].color;
+                                hex: root.f[K.bg-color].display;
+                                enabled: root.ready && !root.f[K.bg-color].locked;
+                                changed(c) => { AppearanceState.set-color(K.bg-color, c); }
+                                hex-entered(t) => { AppearanceState.set-text(K.bg-color, t); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Opacity";
+                            field: root.f[K.bg-opacity];
+                            reset => { AppearanceState.reset(K.bg-opacity); }
+                            ValueSlider {
+                                value: root.f[K.bg-opacity].number;
+                                maximum: 100;
+                                unit: " %";
+                                enabled: root.ready && !root.f[K.bg-opacity].locked;
+                                changed(v) => { AppearanceState.set-number(K.bg-opacity, v); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Effect";
+                            field: root.f[K.effect];
+                            reset => { AppearanceState.reset(K.effect); }
+                            ChipGroup {
+                                options: ["Auto", "None", "Transparent", "Blur", "Acrylic"];
+                                selected: root.f[K.effect].index;
+                                enabled: root.ready && !root.f[K.effect].locked;
+                                changed(i) => { AppearanceState.set-index(K.effect, i); }
+                            }
+                        }
+                        if root.f[K.effect].index == 0 || root.f[K.effect].index >= 3: RowDivider { }
+                        if root.f[K.effect].index == 0 || root.f[K.effect].index >= 3: SettingRow {
+                            label: "Tint";
+                            field: root.f[K.tint];
+                            reset => { AppearanceState.reset(K.tint); }
+                            ColorField {
+                                value: root.f[K.tint].color;
+                                hex: root.f[K.tint].display;
+                                show-alpha: true;
+                                enabled: root.ready && !root.f[K.tint].locked;
+                                changed(c) => { AppearanceState.set-color(K.tint, c); }
+                                hex-entered(t) => { AppearanceState.set-text(K.tint, t); }
+                            }
+                        }
+                    }
+
+                    // Typography
+                    Card {
+                        heading: "Typography";
+                        description: "A size other than the default scales the whole menu, like the core does.";
+                        SettingBlock {
+                            label: "Font";
+                            field: root.f[K.font-name];
+                            reset => { AppearanceState.reset(K.font-name); }
+                            FontPicker {
+                                value: root.f[K.font-name].display;
+                                fonts: AppearanceState.fonts;
+                                enabled: root.ready && !root.f[K.font-name].locked;
+                                filter(t) => { AppearanceState.filter-fonts(t); }
+                                picked(name) => { AppearanceState.set-text(K.font-name, name); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Size";
+                            field: root.f[K.font-size];
+                            reset => { AppearanceState.reset(K.font-size); }
+                            ValueSlider {
+                                value: root.f[K.font-size].number;
+                                minimum: 6;
+                                maximum: 32;
+                                unit: " px";
+                                enabled: root.ready && !root.f[K.font-size].locked;
+                                changed(v) => { AppearanceState.set-number(K.font-size, v); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Weight";
+                            field: root.f[K.font-weight];
+                            reset => { AppearanceState.reset(K.font-weight); }
+                            ValueSlider {
+                                value: root.f[K.font-weight].number;
+                                minimum: 1;
+                                maximum: 9;
+                                unit: "00";
+                                enabled: root.ready && !root.f[K.font-weight].locked;
+                                changed(v) => { AppearanceState.set-number(K.font-weight, v); }
+                            }
+                        }
+                    }
+
+                    // Shape
+                    Card {
+                        heading: "Shape";
+                        description: "Corners, border and shadow.";
+                        SettingBlock {
+                            label: "Menu corners";
+                            field: root.f[K.menu-radius];
+                            reset => { AppearanceState.reset(K.menu-radius); }
+                            RadiusSteps {
+                                selected: root.f[K.menu-radius].number;
+                                enabled: root.ready && !root.f[K.menu-radius].locked;
+                                changed(i) => { AppearanceState.set-number(K.menu-radius, i); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Item corners";
+                            field: root.f[K.item-radius];
+                            reset => { AppearanceState.reset(K.item-radius); }
+                            RadiusSteps {
+                                selected: root.f[K.item-radius].number;
+                                enabled: root.ready && !root.f[K.item-radius].locked;
+                                changed(i) => { AppearanceState.set-number(K.item-radius, i); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingBlock {
+                            label: "Border";
+                            field: root.f[K.border-size];
+                            reset => { AppearanceState.reset(K.border-size); }
+                            ValueSlider {
+                                value: root.f[K.border-size].number;
+                                maximum: 10;
+                                unit: " px";
+                                enabled: root.ready && !root.f[K.border-size].locked;
+                                changed(v) => { AppearanceState.set-number(K.border-size, v); }
+                            }
+                        }
+                        SettingRow {
+                            label: "Border colour";
+                            field: root.f[K.border-color];
+                            reset => { AppearanceState.reset(K.border-color); }
+                            ColorField {
+                                value: root.f[K.border-color].color;
+                                hex: root.f[K.border-color].display;
+                                show-alpha: true;
+                                enabled: root.ready && !root.f[K.border-color].locked;
+                                changed(c) => { AppearanceState.set-color(K.border-color, c); }
+                                hex-entered(t) => { AppearanceState.set-text(K.border-color, t); }
+                            }
+                        }
+                        RowDivider { }
+                        SettingRow {
+                            label: "Shadow";
+                            field: root.f[K.shadow];
+                            reset => { AppearanceState.reset(K.shadow); }
+                            control-width: 80px;
+                            ToggleSwitch {
+                                on: root.f[K.shadow].number > 0.5;
+                                enabled: root.ready && !root.f[K.shadow].locked;
+                                toggled(on) => { AppearanceState.set-number(K.shadow, on ? 1 : 0); }
+                            }
+                        }
+                        if root.f[K.shadow].number > 0.5: SettingBlock {
+                            label: "Shadow size";
+                            field: root.f[K.shadow-size];
+                            reset => { AppearanceState.reset(K.shadow-size); }
+                            ValueSlider {
+                                value: root.f[K.shadow-size].number;
+                                maximum: 30;
+                                unit: " px";
+                                enabled: root.ready && !root.f[K.shadow-size].locked;
+                                changed(v) => { AppearanceState.set-number(K.shadow-size, v); }
+                            }
+                        }
+                        if root.f[K.shadow].number > 0.5: SettingBlock {
+                            label: "Shadow offset";
+                            field: root.f[K.shadow-offset];
+                            reset => { AppearanceState.reset(K.shadow-offset); }
+                            ValueSlider {
+                                value: root.f[K.shadow-offset].number;
+                                maximum: 30;
+                                unit: " px";
+                                enabled: root.ready && !root.f[K.shadow-offset].locked;
+                                changed(v) => { AppearanceState.set-number(K.shadow-offset, v); }
+                            }
+                        }
+                        if root.f[K.shadow].number > 0.5: SettingBlock {
+                            label: "Shadow opacity";
+                            field: root.f[K.shadow-opacity];
+                            reset => { AppearanceState.reset(K.shadow-opacity); }
+                            ValueSlider {
+                                value: root.f[K.shadow-opacity].number;
+                                maximum: 100;
+                                unit: " %";
+                                enabled: root.ready && !root.f[K.shadow-opacity].locked;
+                                changed(v) => { AppearanceState.set-number(K.shadow-opacity, v); }
+                            }
+                        }
+                    }
+
+                    // Advanced
+                    Rectangle {
+                        background: Tokens.layer;
+                        border-radius: Tokens.radius-card;
+                        border-width: 1px;
+                        border-color: Tokens.stroke;
+                        VerticalLayout {
+                            Expander {
+                                title: "Advanced";
+                                caption: "Item spacing, separators, colours per state, images.";
+                                open <=> root.advanced;
+                            }
+                            if root.advanced: VerticalLayout {
+                                padding-left: Tokens.s5;
+                                padding-right: Tokens.s5;
+                                padding-bottom: Tokens.s5;
+                                spacing: Tokens.s3;
+                                RowDivider { }
+                                SettingRow {
+                                    label: "Item padding";
+                                    field: root.f[K.item-padding];
+                                    reset => { AppearanceState.reset(K.item-padding); }
+                                    control-width: 250px;
+                                    BoxField {
+                                        horizontal: root.f[K.item-padding].number;
+                                        vertical: root.f[K.item-padding].number2;
+                                        enabled: root.ready && !root.f[K.item-padding].locked;
+                                        changed(h, v) => { AppearanceState.set-box(K.item-padding, h, v); }
+                                    }
+                                }
+                                SettingRow {
+                                    label: "Item margin";
+                                    field: root.f[K.item-margin];
+                                    reset => { AppearanceState.reset(K.item-margin); }
+                                    control-width: 250px;
+                                    BoxField {
+                                        horizontal: root.f[K.item-margin].number;
+                                        vertical: root.f[K.item-margin].number2;
+                                        enabled: root.ready && !root.f[K.item-margin].locked;
+                                        changed(h, v) => { AppearanceState.set-box(K.item-margin, h, v); }
+                                    }
+                                }
+                                RowDivider { }
+                                SettingBlock {
+                                    label: "Separator size";
+                                    field: root.f[K.sep-size];
+                                    reset => { AppearanceState.reset(K.sep-size); }
+                                    ValueSlider {
+                                        value: root.f[K.sep-size].number;
+                                        maximum: 40;
+                                        unit: " px";
+                                        enabled: root.ready && !root.f[K.sep-size].locked;
+                                        changed(v) => { AppearanceState.set-number(K.sep-size, v); }
+                                    }
+                                }
+                                SettingRow {
+                                    label: "Separator colour";
+                                    field: root.f[K.sep-color];
+                                    reset => { AppearanceState.reset(K.sep-color); }
+                                    ColorField {
+                                        value: root.f[K.sep-color].color;
+                                        hex: root.f[K.sep-color].display;
+                                        show-alpha: true;
+                                        enabled: root.ready && !root.f[K.sep-color].locked;
+                                        changed(c) => { AppearanceState.set-color(K.sep-color, c); }
+                                        hex-entered(t) => { AppearanceState.set-text(K.sep-color, t); }
+                                    }
+                                }
+                                SettingRow {
+                                    label: "Separator margin";
+                                    field: root.f[K.sep-margin];
+                                    reset => { AppearanceState.reset(K.sep-margin); }
+                                    control-width: 250px;
+                                    BoxField {
+                                        horizontal: root.f[K.sep-margin].number;
+                                        vertical: root.f[K.sep-margin].number2;
+                                        enabled: root.ready && !root.f[K.sep-margin].locked;
+                                        changed(h, v) => { AppearanceState.set-box(K.sep-margin, h, v); }
+                                    }
+                                }
+                                RowDivider { }
+                                for entry in [
+                                    { label: "Text", index: K.text-normal },
+                                    { label: "Text, highlighted", index: K.text-select },
+                                    { label: "Text, disabled", index: K.text-disabled },
+                                    { label: "Highlight", index: K.back-select },
+                                    { label: "Highlight, disabled item", index: K.back-disabled },
+                                ]: SettingRow {
+                                    label: entry.label;
+                                    field: root.f[entry.index];
+                                    reset => { AppearanceState.reset(entry.index); }
+                                    ColorField {
+                                        value: root.f[entry.index].color;
+                                        hex: root.f[entry.index].display;
+                                        show-alpha: true;
+                                        enabled: root.ready && !root.f[entry.index].locked;
+                                        changed(c) => { AppearanceState.set-color(entry.index, c); }
+                                        hex-entered(t) => { AppearanceState.set-text(entry.index, t); }
+                                    }
+                                }
+                                RowDivider { }
+                                SettingBlock {
+                                    label: "Image size";
+                                    field: root.f[K.image-size];
+                                    reset => { AppearanceState.reset(K.image-size); }
+                                    ValueSlider {
+                                        value: root.f[K.image-size].number;
+                                        minimum: 8;
+                                        maximum: 48;
+                                        unit: " px";
+                                        enabled: root.ready && !root.f[K.image-size].locked;
+                                        changed(v) => { AppearanceState.set-number(K.image-size, v); }
+                                    }
+                                }
+                                SettingBlock {
+                                    label: "Image gap";
+                                    field: root.f[K.image-gap];
+                                    reset => { AppearanceState.reset(K.image-gap); }
+                                    ValueSlider {
+                                        value: root.f[K.image-gap].number;
+                                        maximum: 40;
+                                        unit: " px";
+                                        enabled: root.ready && !root.f[K.image-gap].locked;
+                                        changed(v) => { AppearanceState.set-number(K.image-gap, v); }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Live preview
+            VerticalLayout {
+                width: root.preview-width;
+                padding-bottom: Tokens.s6;
+                Rectangle {
+                    background: Tokens.layer;
+                    border-radius: Tokens.radius-card;
+                    border-width: 1px;
+                    border-color: Tokens.stroke;
+                    VerticalLayout {
+                        padding: Tokens.s4;
+                        spacing: Tokens.s3;
+                        HorizontalLayout {
+                            spacing: Tokens.s2;
+                            Text {
+                                horizontal-stretch: 1;
+                                text: "Live preview";
+                                font-size: Tokens.body-large;
+                                font-weight: 600;
+                                color: Tokens.text;
+                                vertical-alignment: center;
+                            }
+                        }
+                        HorizontalLayout {
+                            spacing: Tokens.s3;
+                            ChipGroup {
+                                horizontal-stretch: 3;
+                                options: ["Desktop", "File Explorer"];
+                                selected: AppearanceState.preview-context;
+                                changed(i) => { AppearanceState.preview-context = i; }
+                            }
+                            ChipGroup {
+                                horizontal-stretch: 2;
+                                options: ["Light", "Dark"];
+                                selected: AppearanceState.preview-dark ? 1 : 0;
+                                changed(i) => { AppearanceState.set-preview-dark(i == 1); }
+                            }
+                        }
+                        PreviewPane {
+                            vertical-stretch: 1;
+                            min-height: 300px;
+                            t: AppearanceState.preview;
+                            context: AppearanceState.preview-context;
+                            menu: AppearanceState.preview-context == 0 ? AppearanceState.menu-desktop : AppearanceState.menu-explorer;
+                            subs: AppearanceState.preview-context == 0 ? AppearanceState.subs-desktop : AppearanceState.subs-explorer;
+                            wallpaper: AppearanceState.wallpaper;
+                            blurred: AppearanceState.wallpaper-blurred;
+                            icon-font: AppearanceState.icon-font;
+                            dark: AppearanceState.preview-dark;
+                        }
+                        Text {
+                            text: "Approximate; right-click the desktop to see the real menu.";
+                            font-size: Tokens.caption;
+                            color: Tokens.text-2;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
