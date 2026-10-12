@@ -545,11 +545,15 @@ Note that:
 				int length = 0;
 				if(wstr)
 				{
-					length = (size_t)::WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, (int)wstr_length, nullptr, 0, nullptr, nullptr);
+					// dwFlags must be 0 here. MB_ERR_INVALID_CHARS belongs to
+					// MultiByteToWideChar; WideCharToMultiByte rejects it for
+					// CP_UTF8 with ERROR_INVALID_FLAGS and returns 0 every time.
+					// https://learn.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte
+					length = ::WideCharToMultiByte(CP_UTF8, 0, wstr, (int)wstr_length, nullptr, 0, nullptr, nullptr);
 					if(length > 0 && utf8)
 					{
 						*utf8 = new char[static_cast<unsigned __int64>(length) + 1] { };
-						::WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, (int)wstr_length, *utf8, length, nullptr, nullptr);
+						::WideCharToMultiByte(CP_UTF8, 0, wstr, (int)wstr_length, *utf8, length, nullptr, nullptr);
 					}
 				}
 				return static_cast<size_t>(length);
@@ -672,12 +676,16 @@ Note that:
 				int length = 0;
 				if(wstr)
 				{
-					length = ::WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, wlength, nullptr, 0, nullptr, nullptr);
+					// dwFlags must be 0 here - see Unicode::ToUTF8 above. Passing
+					// MB_ERR_INVALID_CHARS made this return 0 for every input,
+					// which is what left sel.tofile() writing an empty file.
+					// https://learn.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte
+					length = ::WideCharToMultiByte(CP_UTF8, 0, wstr, wlength, nullptr, 0, nullptr, nullptr);
 
 					if(length > 0 && utf8)
 					{
 						*utf8 = new char[static_cast<size_t>(length) + 1]{ };
-						::WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, wlength, *utf8, length, nullptr, nullptr);
+						::WideCharToMultiByte(CP_UTF8, 0, wstr, wlength, *utf8, length, nullptr, nullptr);
 					}
 				}
 				return static_cast<size_t>(length);
