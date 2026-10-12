@@ -1,0 +1,78 @@
+import { Spinner } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+
+// Breadcrumb ("Settings / Home"), page title, description, and actions on the right
+// (the children). Shows a spinner while an action is running.
+export component PageHeader inherits HorizontalLayout {
+    in property <string> section: "Settings";
+    in property <string> title;
+    in property <string> description;
+    in property <bool> busy;
+    in property <string> busy-label;
+
+    spacing: Tokens.s4;
+
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: Tokens.s1;
+
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            alignment: start;
+            Text {
+                text: root.section;
+                font-size: Tokens.body;
+                color: Tokens.text-3;
+            }
+            Text {
+                text: "/";
+                font-size: Tokens.body;
+                color: Tokens.text-3;
+            }
+            Text {
+                text: root.title;
+                font-size: Tokens.body;
+                color: Tokens.accent;
+            }
+        }
+        Text {
+            text: root.title;
+            font-size: Tokens.title;
+            font-weight: 600;
+            color: Tokens.text;
+            accessible-role: text;
+        }
+        if root.description != "": Text {
+            text: root.description;
+            font-size: Tokens.body;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+        }
+    }
+
+    if root.busy: VerticalLayout {
+        alignment: center;
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            Spinner {
+                width: 20px;
+                height: 20px;
+                indeterminate: true;
+            }
+            Text {
+                text: root.busy-label;
+                vertical-alignment: center;
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
+            }
+        }
+    }
+
+    VerticalLayout {
+        alignment: center;
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            @children
+        }
+    }
+}

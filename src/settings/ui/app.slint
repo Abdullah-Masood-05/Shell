@@ -1,0 +1,163 @@
+// Nilesoft Shell Settings: main window.
+import { Palette } from "std-widgets.slint";
+import { Tokens } from "theme/tokens.slint";
+import { Icons } from "theme/icons.slint";
+import { AppState, Pages, StatusInfo, Diagnostic, Issue, NavEntry } from "types.slint";
+import { Sidebar } from "components/sidebar.slint";
+import { Toast } from "components/toast.slint";
+import { HomePage } from "pages/home.slint";
+import { PlaceholderPage } from "pages/placeholder.slint";
+import { PreferencesPage } from "pages/preferences.slint";
+import { Onboarding } from "pages/onboarding.slint";
+
+export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
+
+export component AppWindow inherits Window {
+    title: "Nilesoft Shell Settings";
+    preferred-width: 1120px;
+    preferred-height: 760px;
+    min-width: 880px;
+    min-height: 600px;
+    background: Tokens.bg;
+    default-font-family: "Segoe UI Variable Text";
+    default-font-size: 14px;
+    animate background { duration: Tokens.normal; }
+
+    // Called from C++ with the effective theme (preference + Windows app mode).
+    public function apply-theme(dark: bool) {
+        Tokens.dark = dark;
+        Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
+    }
+
+    HorizontalLayout {
+        Sidebar {
+            width: 264px;
+        }
+
+        // Content layer with a rounded top-left corner, like WinUI's NavigationView.
+        Rectangle {
+            horizontal-stretch: 1;
+            background: Tokens.content;
+            border-top-left-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke;
+            animate background { duration: Tokens.normal; }
+
+            if AppState.page == Pages.home: HomePage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.appearance: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Appearance";
+                description: "Fine-tune the look and feel of your context menus.";
+                icon: Icons.appearance;
+                milestone: "M2";
+                planned: [
+                    "Theme cards, dark mode, density and corner radius",
+                    "Background colour, opacity and effects (blur, acrylic) with tint",
+                    "Font, size and weight; borders and shadows",
+                    "A live preview on your wallpaper, in light and dark",
+                    "Every save checked with shell.exe -config:check, with automatic rollback",
+                ];
+            }
+            if AppState.page == Pages.behavior: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Behavior";
+                description: "How and when the menu shows, and what it adds.";
+                icon: Icons.behavior;
+                milestone: "M3";
+                planned: [
+                    "Priority, show delay and tooltips",
+                    "Screenshot, modify and new-item settings",
+                    "A command palette (Ctrl+K) for every setting",
+                ];
+            }
+            if AppState.page == Pages.rules: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Rules & Filters";
+                description: "Where the menu appears and where it stays out of the way.";
+                icon: Icons.rules;
+                milestone: "M3";
+                planned: [
+                    "An exclude builder for processes, windows and paths",
+                    "A raw expression box for anything the builder can't express",
+                ];
+            }
+            if AppState.page == Pages.menus: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Context Menus";
+                description: "Turn built-in menus on or off and tidy up Windows' own items.";
+                icon: Icons.menus;
+                milestone: "M5";
+                planned: [
+                    "Toggles for the imported modules (terminal, file manage, develop, ...)",
+                    "Rules to hide, move or rename existing items",
+                ];
+            }
+            if AppState.page == Pages.builder: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Menu Builder";
+                description: "Build your own menus and items without writing NSS.";
+                icon: Icons.builder;
+                milestone: "M5";
+                planned: [
+                    "A tree of menus, items and separators with drag to reorder",
+                    "Saved to an app-owned file imported by shell.nss",
+                ];
+            }
+            if AppState.page == Pages.editor: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Config Editor";
+                description: "Edit shell.nss and its imports directly.";
+                icon: Icons.editor;
+                milestone: "M4";
+                planned: [
+                    "A file tree that follows imports",
+                    "Syntax highlighting and inline diagnostics from shell.log",
+                    "Validation before every save",
+                ];
+            }
+            if AppState.page == Pages.backups: PlaceholderPage {
+                width: 100%;
+                height: 100%;
+                title: "Backups";
+                description: "Every save is a snapshot you can go back to.";
+                icon: Icons.backups;
+                milestone: "M6";
+                planned: [
+                    "A timeline of snapshots with diffs",
+                    "One-click restore and pinned snapshots",
+                    "Keeps 50 snapshots or 60 days; pinned ones are never deleted",
+                ];
+            }
+            if AppState.page == Pages.preferences: PreferencesPage {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+
+    Toast {
+        max-available: root.width - 264px - 48px;
+        x: 264px + (root.width - 264px - self.width) / 2;
+        y: root.height - self.height - Tokens.s6 + (AppState.toast-shown ? 0px : 12px);
+        animate y { duration: Tokens.normal; easing: ease-out; }
+        shown: AppState.toast-shown;
+        kind: AppState.toast-kind;
+        title: AppState.toast-title;
+        text: AppState.toast-text;
+        close => { AppState.dismiss-toast(); }
+    }
+
+    if AppState.onboarding-shown: Onboarding {
+        width: 100%;
+        height: 100%;
+    }
+}

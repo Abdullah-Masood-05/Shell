@@ -1,0 +1,81 @@
+// Design tokens (docs/settings-app/DESIGN.md, "Look"). `dark` and the two accents are set
+// from C++ (app theme preference, AppsUseLightTheme, the Windows accent palette).
+
+export global Tokens {
+    in-out property <bool> dark: true;
+    in-out property <color> accent-on-dark: #60CDFF;
+    in-out property <color> accent-on-light: #005FB8;
+
+    // Surfaces
+    out property <color> bg: dark ? #202020 : #F3F3F3;
+    out property <color> content: dark ? #272727 : #F9F9F9;
+    out property <color> layer: dark ? #2B2B2B : #FFFFFF;
+    out property <color> layer-2: dark ? #323232 : #F9F9F9;
+    out property <color> stroke: dark ? #FFFFFF14 : #0000000F;
+    out property <color> stroke-strong: dark ? #FFFFFF24 : #00000024;
+    out property <color> scrim: dark ? #0000009A : #0000004D;
+
+    // Text
+    out property <color> text: dark ? #FFFFFF : #1A1A1A;
+    out property <color> text-2: dark ? #FFFFFFC8 : #5D5D5D;
+    out property <color> text-3: dark ? #FFFFFF8B : #8A8A8A;
+
+    // Accent
+    out property <color> accent: dark ? accent-on-dark : accent-on-light;
+    out property <color> on-accent: dark ? #000000 : #FFFFFF;
+    out property <color> accent-soft: accent.with-alpha(dark ? 0.16 : 0.12);
+
+    // Interaction overlays
+    out property <color> hover: dark ? #FFFFFF0F : #00000009;
+    out property <color> pressed: dark ? #FFFFFF0A : #00000006;
+    out property <color> selected: dark ? #FFFFFF14 : #0000000F;
+    out property <color> focus-ring: dark ? #FFFFFF : #000000E4;
+
+    // Status
+    out property <color> success: dark ? #6CCB5F : #0F7B0F;
+    out property <color> warning: dark ? #FCE100 : #9D5D00;
+    out property <color> danger: dark ? #FF99A4 : #C42B1C;
+    out property <color> success-bg: dark ? #393D1B : #DFF6DD;
+    out property <color> warning-bg: dark ? #433519 : #FFF4CE;
+    out property <color> danger-bg: dark ? #442726 : #FDE7E9;
+    out property <color> info-bg: dark ? #2C3A44 : #E5F1FB;
+
+    // 4 px grid
+    out property <length> s1: 4px;
+    out property <length> s2: 8px;
+    out property <length> s3: 12px;
+    out property <length> s4: 16px;
+    out property <length> s5: 20px;
+    out property <length> s6: 24px;
+    out property <length> s8: 32px;
+    out property <length> s10: 40px;
+
+    out property <length> radius-control: 4px;
+    out property <length> radius-card: 8px;
+
+    // Type ramp (Segoe UI Variable)
+    out property <length> caption: 12px;
+    out property <length> body: 14px;
+    out property <length> body-large: 18px;
+    out property <length> subtitle: 20px;
+    out property <length> title: 28px;
+    out property <string> mono: "Cascadia Mono";
+
+    out property <duration> fast: 120ms;
+    out property <duration> normal: 200ms;
+
+    public pure function status-color(kind: string) -> color {
+        if (kind == "ok") { return success; }
+        if (kind == "warning") { return warning; }
+        if (kind == "error") { return danger; }
+        if (kind == "info") { return accent; }
+        return text-3;
+    }
+    public pure function status-bg(kind: string) -> color {
+        if (kind == "ok") { return success-bg; }
+        if (kind == "warning") { return warning-bg; }
+        if (kind == "error") { return danger-bg; }
+        if (kind == "info") { return info-bg; }
+        return layer-2;
+    }
+}

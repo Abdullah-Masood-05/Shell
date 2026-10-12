@@ -1,0 +1,326 @@
+import { Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { Card, KeyValue, SectionTitle } from "../components/card.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { StatusPill } from "../components/status-pill.slint";
+import { ActionTile, Link } from "../components/controls.slint";
+import { PageFrame } from "page-frame.slint";
+
+component DiagnosticRow inherits Rectangle {
+    in property <string> level;
+    in property <string> time;
+    in property <string> message;
+    in property <string> file;
+    in property <int> line;
+    in property <int> column;
+    callback open();
+
+    property <string> kind: root.level == "error" ? "error" : root.level == "warning" ? "warning" : "info";
+    height: row.preferred-height;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover && root.file != "" ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; }
+
+    ta := TouchArea {
+        mouse-cursor: root.file != "" ? pointer : default;
+        clicked => {
+            if (root.file != "") {
+                root.open();
+            }
+        }
+    }
+
+    row := HorizontalLayout {
+        padding: Tokens.s2;
+        spacing: Tokens.s3;
+        VerticalLayout {
+            alignment: start;
+            padding-top: 1px;
+            Image {
+                source: Icons.status(root.kind);
+                width: 16px;
+                height: 16px;
+                colorize: Tokens.status-color(root.kind);
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 2px;
+            Text {
+                text: root.message;
+                color: Tokens.text;
+                font-size: Tokens.body;
+                wrap: word-wrap;
+            }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                alignment: start;
+                Text {
+                    text: root.time;
+                    color: Tokens.text-3;
+                    font-size: Tokens.caption;
+                }
+                if root.line > 0: Rectangle {
+                    height: 16px;
+                    width: pos.preferred-width + 10px;
+                    border-radius: 8px;
+                    background: Tokens.selected;
+                    pos := Text {
+                        text: "line " + root.line + ", column " + root.column;
+                        font-size: 11px;
+                        color: Tokens.text-2;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component HomePage inherits PageFrame {
+    PageHeader {
+        title: "Home";
+        description: "Nilesoft Shell at a glance: registration, the active config and recent diagnostics.";
+        busy: AppState.busy;
+        busy-label: AppState.busy-label;
+        Button {
+            text: "Refresh";
+            icon: Icons.refresh;
+            colorize-icon: true;
+            enabled: !AppState.busy;
+            clicked => { AppState.refresh(); }
+        }
+    }
+
+    for issue in AppState.issues: Banner {
+        kind: issue.kind;
+        title: issue.title;
+        text: issue.message;
+        action-label: issue.action-label;
+        action-enabled: !AppState.busy;
+        action => { AppState.action(issue.action); }
+    }
+
+    HorizontalLayout {
+        spacing: Tokens.s4;
+
+        // Health. Both cards get the same preferred width so they split the row evenly.
+        Card {
+            horizontal-stretch: 1;
+            min-width: 280px;
+            preferred-width: 320px;
+            HorizontalLayout {
+                spacing: Tokens.s3;
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 20px;
+                    background: Tokens.status-bg(AppState.status.health-kind);
+                    animate background { duration: Tokens.normal; }
+                    Image {
+                        source: Icons.status(AppState.status.health-kind);
+                        width: 22px;
+                        height: 22px;
+                        colorize: Tokens.status-color(AppState.status.health-kind);
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    Text {
+                        text: AppState.status.loaded ? AppState.status.health-title : "Checking status…";
+                        font-size: Tokens.body-large;
+                        font-weight: 600;
+                        color: Tokens.text;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: AppState.status.health-detail;
+                        font-size: Tokens.body;
+                        color: Tokens.text-2;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+            Rectangle {
+                height: 1px;
+                background: Tokens.stroke;
+            }
+            KeyValue {
+                key: "Registration";
+                value: AppState.status.reg-text;
+            }
+            KeyValue {
+                key: "Windows 11 menu";
+                value: AppState.status.win11-text;
+            }
+            KeyValue {
+                key: "Shell DLL";
+                value: AppState.status.active-dll;
+                mono: true;
+                value-color: AppState.status.active-dll-exists ? Tokens.text : Tokens.danger;
+            }
+            KeyValue {
+                key: "Version";
+                value: AppState.status.version == "" ? "—" : AppState.status.version + (AppState.status.elevated ? "  (running as administrator)" : "");
+            }
+            Rectangle { vertical-stretch: 1; }
+        }
+
+        // Active config
+        Card {
+            horizontal-stretch: 1;
+            min-width: 280px;
+            preferred-width: 320px;
+            heading: "Active config";
+            description: "The root file Explorer loads. Later milestones edit it from this app.";
+            HorizontalLayout {
+                alignment: start;
+                StatusPill {
+                    kind: AppState.status.config-source == "appdata" ? "ok" : AppState.status.config-source == "" ? "neutral" : "info";
+                    text: AppState.status.source-text;
+                }
+            }
+            Rectangle {
+                height: path-text.preferred-height + Tokens.s3 * 2;
+                border-radius: Tokens.radius-control;
+                background: Tokens.layer-2;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+                path-text := Text {
+                    x: Tokens.s3;
+                    width: parent.width - Tokens.s3 * 2;
+                    text: AppState.status.config-path == "" ? "—" : AppState.status.config-path;
+                    font-family: Tokens.mono;
+                    font-size: Tokens.caption + 1px;
+                    color: AppState.status.config-exists ? Tokens.text : Tokens.danger;
+                    wrap: char-wrap;
+                }
+            }
+            if AppState.status.loaded && AppState.status.config-source != "appdata": Text {
+                text: "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates.";
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+            Rectangle { vertical-stretch: 1; }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                alignment: start;
+                if AppState.status.loaded && AppState.status.config-source != "appdata": Button {
+                    text: "Use per-user config";
+                    primary: true;
+                    enabled: !AppState.busy;
+                    clicked => { AppState.action("config-init"); }
+                }
+                Button {
+                    text: "Open folder";
+                    icon: Icons.folder;
+                    colorize-icon: true;
+                    enabled: !AppState.busy && AppState.status.config-path != "";
+                    clicked => { AppState.action("open-config-folder"); }
+                }
+            }
+        }
+    }
+
+    SectionTitle {
+        text: "Quick actions";
+    }
+    HorizontalLayout {
+        spacing: Tokens.s3;
+        ActionTile {
+            horizontal-stretch: 1;
+            icon: Icons.restart;
+            title: "Restart Explorer";
+            caption: "Reload the shell and the menu";
+            enabled: !AppState.busy && AppState.cli-available;
+            clicked => { AppState.action("restart"); }
+        }
+        ActionTile {
+            horizontal-stretch: 1;
+            icon: AppState.status.user-registered ? Icons.person-remove : Icons.person-add;
+            title: AppState.status.user-registered ? "Unregister for me" : "Register for me";
+            caption: AppState.status.user-registered ? "Remove it from your account" : "No administrator rights needed";
+            enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
+            clicked => { AppState.action(AppState.status.user-registered ? "unregister-user" : "register-user"); }
+        }
+        ActionTile {
+            horizontal-stretch: 1;
+            icon: Icons.folder;
+            title: "Open config folder";
+            caption: "Show shell.nss in Explorer";
+            enabled: !AppState.busy && AppState.status.config-path != "";
+            clicked => { AppState.action("open-config-folder"); }
+        }
+        ActionTile {
+            horizontal-stretch: 1;
+            icon: Icons.refresh;
+            title: "Refresh";
+            caption: "Check the status again";
+            enabled: !AppState.busy;
+            clicked => { AppState.refresh(); }
+        }
+    }
+
+    HorizontalLayout {
+        spacing: Tokens.s2;
+        SectionTitle {
+            text: "Diagnostics";
+            vertical-alignment: center;
+        }
+        Text {
+            text: "· newest first, from shell.log";
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-3;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+        if AppState.log-path != "": Link {
+            text: "Open shell.log";
+            activated => { AppState.open-path(AppState.log-path); }
+        }
+    }
+    Card {
+        inner-padding: Tokens.s2;
+        inner-spacing: 0px;
+        if AppState.diagnostics.length == 0: HorizontalLayout {
+            padding: Tokens.s3;
+            spacing: Tokens.s3;
+            Image {
+                source: Icons.ok;
+                width: 16px;
+                height: 16px;
+                colorize: Tokens.success;
+            }
+            Text {
+                text: AppState.log-path == "" ? "No shell.log found next to the active shell.dll." : "No errors or warnings in shell.log.";
+                color: Tokens.text-2;
+                vertical-alignment: center;
+            }
+        }
+        for d in AppState.diagnostics: DiagnosticRow {
+            level: d.level;
+            time: d.time;
+            message: d.message;
+            file: d.file;
+            line: d.line;
+            column: d.column;
+            open => { AppState.open-path(d.file); }
+        }
+    }
+
+    HorizontalLayout {
+        alignment: start;
+        Link {
+            text: "Run first-time setup again";
+            activated => {
+                AppState.onboarding-step = 0;
+                AppState.onboarding-shown = true;
+            }
+        }
+    }
+}

@@ -1,0 +1,70 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A layer-1 surface with an optional heading. Children are stacked vertically.
+export component Card inherits Rectangle {
+    in property <string> heading;
+    in property <string> description;
+    in property <length> inner-padding: Tokens.s5;
+    in property <length> inner-spacing: Tokens.s3;
+
+    background: Tokens.layer;
+    border-radius: Tokens.radius-card;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    animate background { duration: Tokens.normal; }
+
+    VerticalLayout {
+        padding: root.inner-padding;
+        spacing: root.inner-spacing;
+
+        if root.heading != "": VerticalLayout {
+            spacing: 2px;
+            Text {
+                text: root.heading;
+                font-size: Tokens.body;
+                font-weight: 600;
+                color: Tokens.text;
+            }
+            if root.description != "": Text {
+                text: root.description;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+        }
+        @children
+    }
+}
+
+// A label/value row used inside cards.
+export component KeyValue inherits HorizontalLayout {
+    in property <string> key;
+    in property <string> value;
+    in property <bool> mono;
+    in property <color> value-color: Tokens.text;
+    spacing: Tokens.s3;
+
+    Text {
+        text: root.key;
+        width: 132px;
+        font-size: Tokens.body;
+        color: Tokens.text-2;
+        vertical-alignment: top;
+    }
+    Text {
+        text: root.value;
+        horizontal-stretch: 1;
+        font-size: root.mono ? Tokens.caption + 1px : Tokens.body;
+        font-family: root.mono ? Tokens.mono : "";
+        color: root.value-color;
+        overflow: elide;
+        vertical-alignment: center;
+    }
+}
+
+// Section title between cards.
+export component SectionTitle inherits Text {
+    font-size: Tokens.body;
+    font-weight: 600;
+    color: Tokens.text;
+}
