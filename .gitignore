@@ -40,3 +40,9 @@ src/setup/ca/obj/
 src/setup/wix/obj/
 src/packages/
 #src/bin/*.exe
+# Build outputs
+src/bin/*.exp
+src/bin/*.lib
+src/bin/*.msi
+src/bin/*.wixpdb
+src/packages/
