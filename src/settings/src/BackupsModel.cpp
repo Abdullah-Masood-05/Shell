@@ -17,7 +17,7 @@ bool parseCreated(const std::string &s, std::tm &tm)
 {
     tm = {};
     int y, mo, d, h, mi, se;
-    if (std::sscanf(s.c_str(), "%4d-%2d-%2dT%2d:%2d:%2d", &y, &mo, &d, &h, &mi, &se) != 6)
+    if (sscanf_s(s.c_str(), "%4d-%2d-%2dT%2d:%2d:%2d", &y, &mo, &d, &h, &mi, &se) != 6)
         return false;
     tm.tm_year = y - 1900;
     tm.tm_mon = mo - 1;
