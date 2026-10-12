@@ -4529,8 +4529,6 @@ namespace Nilesoft
 				//if(is_excluded())
 				//	return false;
 
-				auto sets = &_cache->settings;
-				
 				/*if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
 					_result = Window::class_name(h);
 				*/
@@ -4545,6 +4543,10 @@ namespace Nilesoft
 					}
 				}
 
+				// query() may reload the config (a requested reload, or an edit to
+				// the config or an import), deleting the cache the constructor took.
+				// Nothing derived from that cache may be kept across this call.
+				auto previous_cache = _cache;
 				if(!initializer->query())
 				{
 					__trace(L"initializer query");
@@ -4556,6 +4558,13 @@ namespace Nilesoft
 				_context.variables.global = &_cache->variables.global;
 				_context.variables.runtime = &_cache->variables.runtime;
 				_context.variables.local = nullptr;
+
+				// A new cache: size its fonts for this menu, as the constructor
+				// did for the old one.
+				if(_cache != previous_cache)
+					_cache->reload(dpi.val);
+
+				auto sets = &_cache->settings;
 
 				switch(Selected.Window.id)
 				{
