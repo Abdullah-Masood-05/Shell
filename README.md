@@ -17,7 +17,9 @@ and adds security and stability fixes, a per-user mode that needs no administrat
 - Releases: https://github.com/Abdullah-Masood-05/Shell/releases
 - Issues: https://github.com/Abdullah-Masood-05/Shell/issues
 
-Pro builds are not published yet; there are no releases. To try it, [build it from source](#build-from-source).
+Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
+or x86, or a portable zip that installs per user without administrator rights. Releases are marked as pre-releases
+until the per-user mode has been tested on more machines.
 
 ## What's different in Pro
 
@@ -69,14 +71,18 @@ The screenshots of the Settings app are made by
 
 ## Install
 
-There is no published Pro build yet. After [building](#build-from-source), `src\bin` holds `shell.dll`, `shell.exe`,
-`shell.nss`, the `imports` folder and `setup-x64.msi`.
+Each [release](https://github.com/Abdullah-Masood-05/Shell/releases) has `setup-x64.msi`, `setup-arm64.msi`,
+`setup-x86.msi`, `NilesoftShellPro-<version>-x64-portable.zip` and `SHA256SUMS.txt`. The files are not code-signed, so
+Windows SmartScreen may warn before running them.
 
-**For all users (needs administrator rights).** Run `src\bin\setup-x64.msi`. It installs to
-`C:\Program Files\Nilesoft Shell`, registers Shell with the Windows 11 classic menu and restarts Explorer.
+**For all users (needs administrator rights once).** Run the MSI for your platform. It installs to
+`C:\Program Files\Nilesoft Shell`, registers Shell with the Windows 11 classic menu, restarts Explorer and adds
+*Nilesoft Shell Settings* to the Start menu. It upgrades an existing Nilesoft Shell installation and keeps your
+`shell.nss`.
 
-**For the current user only (no administrator rights).** Copy `shell.dll`, `shell.exe`, `shell.nss` and the `imports`
-folder to a folder you own, then run from that folder:
+**For the current user only (no administrator rights).** Extract the portable zip to a folder you own, for example
+`%LOCALAPPDATA%\Programs\NilesoftShellPro`, and run `settings.exe`: its first-run setup does the steps below. Or run
+them yourself from that folder:
 
 ```bat
 shell -config:init
@@ -87,9 +93,8 @@ shell -register -user -treat -restart
 the classic context menu on Windows 11; leave it out on Windows 10. To remove it again:
 `shell -unregister -user -restart`.
 
-**Settings app.** Put `settings.exe`, with the files its build places next to it, next to `shell.exe`. The installer
-does not include it yet. On first start it offers the same steps as above: create the personal configuration, register
-for the current user, restart Explorer.
+**Settings app.** `settings.exe` is a single file with no other dependencies (no VC++ runtime) and sits next to
+`shell.exe`. Both the MSI and the portable zip include it (x64; ARM64 runs it under emulation; not included for x86).
 
 Upstream Nilesoft Shell supports Windows 7 to 11. The Settings app has only been run on Windows 11 so far.
 
@@ -102,11 +107,18 @@ Upstream Nilesoft Shell supports Windows 7 to 11. The Settings app has only been
 |---|---|
 | Home | Registration (none, user, machine or both), the Windows 11 menu state, the DLL and version in use, which `shell.nss` is loaded, recent errors from `shell.log`, and quick actions: register for me, restart Explorer, open the config folder. |
 | Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
+| Appearance | Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live preview of the menu on your wallpaper. Each value shows which file sets it. |
+| Behavior | Whether Shell's menu replaces the Windows 11 menu, the submenu delay, tooltips, screenshots, and what happens to Windows' own items (duplicates, disabled items, separators, icons). |
+| Rules & Filters | Where the menu is shown: only in File Explorer and on the desktop, excluded programs and window classes, or a raw condition. |
+| Context Menus | Turn the bundled menu modules (terminal, file manage, develop, go to, taskbar, my tools) on or off, and the rules that hide, move or rename Windows' own items. |
+| Menu Builder | Add your own menus, items and separators with a title, icon, command and where they appear; saved to `imports/settings-app-menus.nss`. |
+| Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
 | Backups | Snapshots of the configuration, compared line by line with your files. Restore, pin, delete or create one by hand. |
 | Preferences | The app's theme, registration for all users (the one action that asks for administrator rights), and version and licence information. |
 
-Appearance, Behavior, Rules & Filters, Context Menus and Menu Builder are in the sidebar but not built yet.
-Details: [Settings app](https://abdullah-masood-05.github.io/Shell/settings-app.html).
+Changes made on Appearance, Behavior and Rules & Filters are written to `imports/settings-app.nss`, imported last, so
+your own files stay as you wrote them. Every save is checked with `shell -config:check` first, and a configuration that
+Shell would reject is not written. Details: [Settings app](https://abdullah-masood-05.github.io/Shell/settings-app.html).
 
 The app is built with [Slint](https://slint.dev) 1.18 (C++), used under the Slint Royalty-free License 2.0. It also
 uses [JSON for Modern C++](https://github.com/nlohmann/json) and
@@ -146,18 +158,20 @@ $msbuild = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSB
 With the full Visual Studio instead of Build Tools, change `BuildTools` in the path to `Community`, `Professional` or
 `Enterprise`. Output goes to `src\bin`.
 
-**Settings app.** Needs CMake 3.25 or later and the Slint C++ SDK 1.18 for Windows (MSVC), for example
-`Slint-cpp-1.18.1-win64-MSVC-AMD64.exe` from the [Slint releases](https://github.com/slint-ui/slint/releases). Point
-`SLINT_DIR` at the folder it was installed to:
+**Settings app.** Needs CMake 3.25 or later, git and Rust stable for `x86_64-pc-windows-msvc` (via
+[rustup](https://rustup.rs)). The release preset builds Slint 1.18.1 from source as a static library, so the first
+build takes a few minutes; later builds take seconds. Set `SLINT_SOURCE_DIR` to a local Slint checkout to avoid
+cloning it at configure time.
 
 ```powershell
-$env:SLINT_DIR = "C:\path\to\slint-cpp-1.18.1"
 cd src\settings
 cmake --preset x64-release
 cmake --build --preset x64-release
 ```
 
-This writes `settings.exe` and `slint_cpp.dll` to `src\bin`. To refresh the screenshots afterwards, run
+This writes a self-contained `settings.exe` to `src\bin`. Build the core first (for `shell.exe`); then rebuild the MSI
+with `-t:setup:Rebuild` to include `settings.exe`. More, including a quicker dev build with the prebuilt Slint SDK:
+[src/settings/README.md](src/settings/README.md). To refresh the screenshots, run
 `pwsh -File src\settings\tools\screenshots.ps1`.
 
 **Docs site.** Needs [bun](https://bun.sh) 1.4 or later. The pages are the HTML fragments in `docs`; see

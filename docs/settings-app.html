@@ -2,8 +2,7 @@
 <br>
 <p><b>Nilesoft Shell Settings</b> (<code>settings.exe</code>, next to <code>shell.exe</code> in the program folder) is a
 	desktop app for checking an installation and editing the configuration without opening
-	<code>shell.nss</code> by hand. It is part of this fork and is still being built; the pages below are marked
-	where they are not finished yet.</p>
+	<code>shell.nss</code> by hand. It is part of this fork and is included in the MSI and the portable zip.</p>
 <div class="notification is-info mt-5">
 	<i>Info:</i> The app runs as the current user and needs no administrator rights. It works on the per-user
 	configuration in <code>%APPDATA%\Nilesoft\Shell</code> and the per-user registration under
@@ -16,7 +15,7 @@
 <ol>
 	<li>create the per-user configuration (<a href="/docs/command-line#config"><code>shell -config:init</code></a>);</li>
 	<li>register Shell for the current user (<a href="/docs/command-line#register"><code>shell -register -user</code></a>);</li>
-	<li>restart Explorer. Choosing a look here arrives with the Appearance page.</li>
+	<li>restart Explorer.</li>
 </ol>
 
 <h5 id="home">Home</h5>
@@ -44,13 +43,43 @@
 	same state the command line reports.</p>
 
 <h5 id="appearance">Appearance</h5>
-<div class="notification is-warning mt-5">
-	<i>Note:</i> This page is in development.
-</div>
 <p>Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live
-	preview of the menu on your wallpaper in light and dark. Only the keys you change are written, to an app-owned
-	<code>imports\settings-app.nss</code> imported last by <code>shell.nss</code>, so your own
-	<a href="/docs/configuration/themes">theme</a> settings stay as you wrote them.</p>
+	preview of the menu on your wallpaper in light and dark, for the desktop or File Explorer. Each value shows which file
+	and line set it; values written as expressions are shown read-only with a link to the Config Editor.</p>
+
+<h5 id="behavior">Behavior</h5>
+<ul>
+	<li>Whether Shell's menu replaces the Windows 11 menu, and the submenu delay. The delay replaces your Windows setting while a Shell menu is open, so it is off unless you turn it on.</li>
+	<li>Tooltips: on or off, delay, width and colours.</li>
+	<li>Screenshots: on or off and the folder they are saved to.</li>
+	<li>Windows' own items: remove duplicates, disabled items and extra separators; show icons on them.</li>
+</ul>
+
+<h5 id="rules">Rules &amp; Filters</h5>
+<p>Where the menu is shown: only in File Explorer and on the desktop, programs and window classes to leave alone, or a
+	raw <a href="/docs/configuration/settings">exclude</a> condition, which is checked when you save.</p>
+
+<h5 id="saving">How changes are saved</h5>
+<p>Appearance, Behavior and Rules &amp; Filters collect your changes until you press <kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>).
+	Only the keys you change are written, to an app-owned <code>imports\settings-app.nss</code> imported last by
+	<code>shell.nss</code>, so your own <a href="/docs/configuration/themes">theme</a> and settings stay as you wrote them.
+	Before writing, the new configuration is checked with
+	<a href="/docs/command-line#config"><code>shell -config:check</code></a>; a configuration Shell would reject is not
+	written. Each save takes a snapshot first (see <a href="#backups">Backups</a>).</p>
+
+<h5 id="context-menus">Context Menus</h5>
+<ul>
+	<li><strong>Modules:</strong> turn the bundled menus imported by <code>shell.nss</code> (terminal, file manage, develop,
+		go to, taskbar, my tools) on or off. The line is commented out, not deleted.</li>
+	<li><strong>System items:</strong> the <a href="/docs/configuration/modify-items">modify and remove</a> rules that hide,
+		move or rename Windows' own items, in plain words, each with an on/off switch.</li>
+</ul>
+
+<h5 id="menu-builder">Menu Builder</h5>
+<p>Build your own menus, items and separators without writing NSS: title, icon (from Shell's icon font), command and
+	arguments, where the item appears, and options such as running as administrator. The result is written to
+	<code>imports\settings-app-menus.nss</code>, shown as code next to the tree, and read back when you open the page
+	again.</p>
 
 <h5 id="config-editor">Config Editor</h5>
 <ul>
