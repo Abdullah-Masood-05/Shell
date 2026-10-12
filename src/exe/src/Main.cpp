@@ -11,6 +11,8 @@
 #include <shlobj.h>
 #include <Library/PlutoVGWrap.h>
 #include <RegistryConfig.h>
+#include <ConfigLocation.h>
+#include <ConfigCheck.h>
 
 //#pragma comment(lib, "mincore.lib")
 #pragma comment(lib, "UxTheme.lib")
@@ -308,10 +310,11 @@ static constexpr wchar_t TreatAsKey[] = L"SOFTWARE\\Classes\\CLSID\\" CLS_FileEx
 
 enum class TreatAsState { absent, ours, foreign, inaccessible };
 
-static TreatAsState QueryTreatAs()
+// Defaults to the machine redirect; the per-user one is the same key under HKCU.
+static TreatAsState QueryTreatAs(HKEY root = HKEY_LOCAL_MACHINE, const wchar_t *treat_as_key = TreatAsKey)
 {
 	auto_regkey key {};
-	auto rc = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, TreatAsKey, 0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, key);
+	auto rc = ::RegOpenKeyExW(root, treat_as_key, 0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, key);
 	if(rc == ERROR_FILE_NOT_FOUND || rc == ERROR_PATH_NOT_FOUND)
 		return TreatAsState::absent;
 	if(rc != ERROR_SUCCESS)
@@ -434,6 +437,145 @@ static bool disable_modern(bool _register)
 	return false;
 }
 
+/*
+	Per-user Windows 11 redirect, written under HKCU only (no elevation).
+
+	Explorer builds the Windows 11 menu with CoCreateInstance({86ca1aa0-...}).
+	For a medium-integrity caller such as Explorer, COM resolves a CLSID through
+	the merged HKEY_CLASSES_ROOT view, where a subkey of
+	HKCU\Software\Classes\CLSID\{x} shadows the same subkey under HKLM. The
+	widely used "classic context menu" tweak depends on exactly that: an empty
+	HKCU\...\{86ca1aa0-...}\InprocServer32 hides the system server, activation
+	fails and Explorer falls back to the classic menu. That HKCU key belongs to
+	the user, so unlike the HKLM one (owned by TrustedInstaller, see
+	BorrowedKeyAccess) there is no ACL to work around.
+
+	Two things are written there:
+	  TreatAs = {BAE3934B-...F1}
+	      The redirect machine mode writes under HKLM, resolved per user. COM
+	      looks TreatAs up before the server, so activation goes to our CLSID
+	      (registered in HKCU by -register -user), which loads shell.dll; its
+	      DllGetClassObject declines the request and Explorer shows the classic
+	      menu, which Shell takes over.
+	  InprocServer32 = ""   (only if the user has no such key already)
+	      The classic-menu tweak itself, as a fallback in case a COM build
+	      ignored a per-user TreatAs: activation then simply fails, Explorer
+	      falls back to the classic menu and loads shell.dll through its
+	      ContextMenuHandlers entry.
+	Either way the result is the classic menu with shell.dll loaded. The marker
+	value records that the empty InprocServer32 is ours, so unregistering
+	removes exactly what was added and leaves a user's own tweak alone.
+*/
+static constexpr wchar_t UserTreatAsParent[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu;
+static constexpr wchar_t UserTreatAsKey[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu L"\\TreatAs";
+static constexpr wchar_t UserTreatAsInproc[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu L"\\InprocServer32";
+static constexpr wchar_t UserTreatAsMarker[] = L"NilesoftShell.InprocServer32";
+
+static TreatAsState QueryUserTreatAs()
+{
+	return QueryTreatAs(HKEY_CURRENT_USER, UserTreatAsKey);
+}
+
+static bool user_treat(bool _register)
+{
+	const HKEY hkcu = HKEY_CURRENT_USER;
+	auto state = QueryUserTreatAs();
+
+	if(_register)
+	{
+		if(state == TreatAsState::foreign || state == TreatAsState::inaccessible)
+		{
+			_log->warning(L"Per-user TreatAs redirect exists but is not ours (or is unreadable); left unchanged.");
+			return false;
+		}
+
+		if(state == TreatAsState::absent && !RegistryConfig::SetString(hkcu, UserTreatAsKey, nullptr, CLS_ContextMenu))
+			return false;
+
+		if(!RegistryConfig::KeyExists(hkcu, UserTreatAsInproc) &&
+		   RegistryConfig::SetString(hkcu, UserTreatAsInproc, nullptr, L""))
+		{
+			RegistryConfig::SetString(hkcu, UserTreatAsParent, UserTreatAsMarker, L"1");
+		}
+		return true;
+	}
+
+	bool ok = true;
+	if(state == TreatAsState::ours)
+		ok = RegistryConfig::DeleteTree(hkcu, UserTreatAsKey);
+	else if(state == TreatAsState::inaccessible)
+		ok = false;
+
+	string marker;
+	if(RegistryConfig::GetString(hkcu, UserTreatAsParent, UserTreatAsMarker, marker))
+	{
+		// Ours, and still exactly as written: one empty default value.
+		string server;
+		if(RegistryConfig::GetString(hkcu, UserTreatAsInproc, nullptr, server) && server.empty())
+		{
+			RegistryConfig::DeleteValue(hkcu, UserTreatAsInproc, nullptr);
+			RegistryConfig::DeleteKeyIfEmpty(hkcu, UserTreatAsInproc);
+		}
+		RegistryConfig::DeleteValue(hkcu, UserTreatAsParent, UserTreatAsMarker);
+	}
+
+	// Only if nothing else (e.g. a user's own tweak) is left in it.
+	RegistryConfig::DeleteKeyIfEmpty(hkcu, UserTreatAsParent);
+	return ok;
+}
+
+// -register -user / -unregister -user. Writes below HKEY_CURRENT_USER only, so
+// it works without elevation and never asks for it. On failure `msg` holds
+// the text to show, or is empty when there was nothing to unregister.
+static bool RegistrationUser(const REGOP &reg, const string &dll_path, string &msg)
+{
+	auto ver = &Windows::Version::Instance();
+
+	if(reg.REGISTER)
+	{
+		if(!RegistryConfig::RegisterUser(dll_path))
+		{
+			msg = string::Extract(IDS_REGISTER_NOT_SUCCESS).move();
+			return false;
+		}
+
+		_log->info(L"Registered for the current user (HKCU\\Software\\Classes). "
+				   L"The icon overlay and folder extensions can only be registered "
+				   L"machine-wide (HKLM) and were skipped.");
+
+		if(RegistryConfig::IsRegistered(RegScope::Machine))
+		{
+			_log->warning(L"Shell is also registered for all users. For this user the HKCU "
+						  L"registration ('%s') shadows the machine one ('%s').",
+						  dll_path.c_str(), RegistryConfig::InprocServerPath(RegScope::Machine).c_str());
+		}
+
+		if(ver->IsWindows11OrGreater() && reg.TREAT && !user_treat(true))
+			_log->warning(L"Could not set the per-user Windows 11 TreatAs redirect.");
+
+		msg = string::Extract(IDS_REGISTER_SUCCESS).move();
+		return true;
+	}
+
+	// Always remove our per-user redirect, with or without -treat, as machine
+	// mode does: one left behind would point the Windows 11 menu at a CLSID
+	// this user no longer has. Only what user_treat(true) wrote is removed.
+	if(!user_treat(false))
+		_log->warning(L"Could not remove the per-user Windows 11 TreatAs redirect.");
+
+	if(!RegistryConfig::IsRegistered(RegScope::User))
+		return false;
+
+	if(!RegistryConfig::UnregisterUser())
+	{
+		msg = string::Extract(IDS_UNREGISTER_NOT_SUCCESS).move();
+		return false;
+	}
+
+	msg = string::Extract(IDS_UNREGISTER_SUCCESS).move();
+	return true;
+}
+
 //printf("Please wait shell we'll process your command \n");
 // r		register
 // u		unregister
@@ -478,7 +620,21 @@ bool Registration(REGOP reg)
 
 		if(reg.REGISTER || reg.UNREGISTER)
 		{
-			if(!is_elevated)
+			if(reg.USER)
+			{
+				// Per-user: HKCU only, no elevation needed or requested.
+				if(!RegistrationUser(reg, dll_path, msg))
+				{
+					if(!msg.empty())
+					{
+						_log->error(msg);
+						if(!reg.SILENT)
+							MessageBox::Show(msg, APP_FULLNAME, MessageBoxIcon::Error, MessageBoxButtons::OK);
+					}
+					return false;
+				}
+			}
+			else if(!is_elevated)
 			{
 				// Missing administrative privileges!
 				msg = string::Extract(IDS_ADMIN_PRIVILEGES).move();
@@ -490,8 +646,7 @@ bool Registration(REGOP reg)
 				}
 				return false;
 			}
-
-			if(reg.REGISTER)
+			else if(reg.REGISTER)
 			{
 				//logger->create();
 
@@ -520,6 +675,13 @@ bool Registration(REGOP reg)
 						_log->warning(L"Could not set the Windows 11 TreatAs redirect.");
 				}
 
+				if(RegistryConfig::IsRegistered(RegScope::User))
+				{
+					_log->warning(L"This user also has a per-user (HKCU) registration ('%s'); "
+								  L"for this user it shadows the machine one.",
+								  RegistryConfig::InprocServerPath(RegScope::User).c_str());
+				}
+
 				msg = string::Extract(IDS_REGISTER_SUCCESS).move();
 			}
 			else
@@ -535,7 +697,7 @@ bool Registration(REGOP reg)
 						_log->warning(L"Could not remove the Windows 11 TreatAs redirect.");
 				};
 
-				if(!RegistryConfig::IsRegistered())
+				if(!RegistryConfig::IsRegistered(RegScope::Machine))
 				{
 					// Clean up a stale redirect left behind by an earlier
 					// uninstall, but still report "not registered".
@@ -613,7 +775,8 @@ bool Register(REGOP reg, HWND hwnd = nullptr)
 	string path = IO::Path::Combine(IO::Path::Parent(IO::Path::Module(nullptr)), dll_name).move();
 	DLL dll(path, true);
 
-	if(reg.REGISTER || reg.UNREGISTER)
+	// Per-user registration (-user) needs no elevation.
+	if((reg.REGISTER || reg.UNREGISTER) && !reg.USER)
 	{
 		if(!is_elevated)
 		{
@@ -642,6 +805,661 @@ bool Register(REGOP reg, HWND hwnd = nullptr)
 	_log->close();
 
 	return ret;
+}
+
+// Process exit codes of the non-interactive commands (-config:*, -status).
+enum CliExit : int { cli_ok = 0, cli_failed = 1, cli_usage = 2 };
+
+/*
+	Text output for the non-interactive commands.
+
+	shell.exe is a GUI-subsystem program and has no console of its own, so:
+	  - with -out:<path>, the text is written to that file (UTF-8, replaced);
+	  - else, if stdout is a pipe or a file, it is written there directly as
+	    UTF-8. That is the case for a parent that redirected the child's
+	    stdout (a settings app reading it through a pipe) and for
+	    `shell -status > status.json` in cmd;
+	  - else it attaches to the parent's console, if any, and writes UTF-16
+	    with WriteConsoleW. cmd.exe does not wait for GUI programs, so this
+	    text can land after the next prompt; use a pipe, a redirection or
+	    `start /wait` when that matters.
+*/
+class CliOutput
+{
+	HANDLE _handle = INVALID_HANDLE_VALUE;
+	bool _owned = false;
+	bool _console = false;
+	bool _failed = false;
+
+public:
+	explicit CliOutput(const wchar_t *path)
+	{
+		if(path && *path)
+		{
+			_handle = ::CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+									CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			_owned = true;
+			return;
+		}
+
+		auto out = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		if(out && out != INVALID_HANDLE_VALUE)
+		{
+			auto type = ::GetFileType(out);
+			if(type == FILE_TYPE_PIPE || type == FILE_TYPE_DISK)
+			{
+				_handle = out;
+				return;
+			}
+		}
+
+		if(::AttachConsole(ATTACH_PARENT_PROCESS))
+		{
+			_handle = ::CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE,
+									FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+			_owned = true;
+			_console = true;
+		}
+	}
+
+	CliOutput(const CliOutput &) = delete;
+	CliOutput &operator=(const CliOutput &) = delete;
+
+	~CliOutput()
+	{
+		if(_owned && valid())
+			::CloseHandle(_handle);
+		if(_console)
+			::FreeConsole();
+	}
+
+	bool valid() const { return _handle && _handle != INVALID_HANDLE_VALUE; }
+
+	// False if there was nowhere to write or a write failed.
+	bool ok() const { return valid() && !_failed; }
+
+	void write(const wchar_t *text)
+	{
+		if(!text || !*text)
+			return;
+		if(!valid())
+		{
+			_failed = true;
+			return;
+		}
+
+		auto length = static_cast<int>(::wcslen(text));
+		if(_console)
+		{
+			DWORD written = 0;
+			if(!::WriteConsoleW(_handle, text, static_cast<DWORD>(length), &written, nullptr))
+				_failed = true;
+			return;
+		}
+
+		auto bytes = ::WideCharToMultiByte(CP_UTF8, 0, text, length, nullptr, 0, nullptr, nullptr);
+		if(bytes <= 0)
+		{
+			_failed = true;
+			return;
+		}
+
+		std::string utf8(static_cast<size_t>(bytes), '\0');
+		::WideCharToMultiByte(CP_UTF8, 0, text, length, utf8.data(), bytes, nullptr, nullptr);
+
+		for(size_t offset = 0; offset < utf8.size();)
+		{
+			DWORD written = 0;
+			if(!::WriteFile(_handle, utf8.data() + offset, static_cast<DWORD>(utf8.size() - offset), &written, nullptr) || !written)
+			{
+				_failed = true;
+				return;
+			}
+			offset += written;
+		}
+	}
+
+	void line(const wchar_t *text = nullptr)
+	{
+		write(text);
+		write(L"\r\n");
+	}
+};
+
+// Appends `text` as a JSON string literal, quotes included. Output is
+// UTF-16 here and converted to UTF-8 on write, so only what JSON requires
+// is escaped: '"', '\', control characters, and unpaired surrogates
+// (which have no UTF-8 form, so they are kept as \u escapes).
+static void json_quote(string &json, const wchar_t *text)
+{
+	json += L'"';
+	for(auto ch = text ? text : L""; *ch; ch++)
+	{
+		auto c = *ch;
+		switch(c)
+		{
+			case L'"': json += L"\\\""; continue;
+			case L'\\': json += L"\\\\"; continue;
+			case L'\b': json += L"\\b"; continue;
+			case L'\f': json += L"\\f"; continue;
+			case L'\n': json += L"\\n"; continue;
+			case L'\r': json += L"\\r"; continue;
+			case L'\t': json += L"\\t"; continue;
+		}
+
+		bool lone = false;
+		if(IS_HIGH_SURROGATE(c))
+			lone = !IS_LOW_SURROGATE(ch[1]);
+		else if(IS_LOW_SURROGATE(c))
+			lone = true; // a valid low surrogate is consumed with its high one below
+
+		if(c < 0x20 || lone)
+		{
+			wchar_t escaped[8]{};
+			::swprintf_s(escaped, L"\\u%04x", static_cast<unsigned>(c));
+			json += escaped;
+		}
+		else if(IS_HIGH_SURROGATE(c))
+		{
+			json += c;
+			json += *++ch;
+		}
+		else
+		{
+			json += c;
+		}
+	}
+	json += L'"';
+}
+
+static void json_quote_or_null(string &json, const string &text)
+{
+	if(text.empty())
+		json += L"null";
+	else
+		json_quote(json, text);
+}
+
+static const wchar_t *json_bool(bool value)
+{
+	return value ? L"true" : L"false";
+}
+
+static string InstallDirectory()
+{
+	return IO::Path::Parent(IO::Path::Module(nullptr)).move();
+}
+
+/*
+	-config:init, -config:reset, -config:path.
+
+	None of them needs elevation: they only read the install folder and only
+	write below %APPDATA%\Nilesoft\Shell (see ConfigLocation). shell.dll never
+	writes there itself; it only picks the per-user shell.nss up once it
+	exists, and reloads on its own when it changes.
+*/
+namespace ConfigCommand
+{
+	struct CopyStats
+	{
+		uint32_t copied{}, skipped{}, failed{};
+	};
+
+	static bool is_directory(const wchar_t *path)
+	{
+		auto attr = ::GetFileAttributesW(path);
+		return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
+	}
+
+	static bool exists(const wchar_t *path)
+	{
+		return ::GetFileAttributesW(path) != INVALID_FILE_ATTRIBUTES;
+	}
+
+	// Copies one file. An existing target is kept unless `overwrite`. The copy
+	// is left writable: these are files the user is meant to edit.
+	static void copy_file(const string &src, const string &dst, bool overwrite, CopyStats &stats)
+	{
+		auto attr = ::GetFileAttributesW(dst);
+		if(attr != INVALID_FILE_ATTRIBUTES)
+		{
+			if(!overwrite || (attr & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				stats.skipped++;
+				return;
+			}
+			if(attr & FILE_ATTRIBUTE_READONLY)
+				::SetFileAttributesW(dst, attr & ~FILE_ATTRIBUTE_READONLY);
+		}
+
+		if(!::CopyFileW(src, dst, FALSE))
+		{
+			_log->error(L"config: cannot copy '%s' to '%s' (error %lu)", src.c_str(), dst.c_str(), ::GetLastError());
+			stats.failed++;
+			return;
+		}
+
+		attr = ::GetFileAttributesW(dst);
+		if(attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+			::SetFileAttributesW(dst, attr & ~FILE_ATTRIBUTE_READONLY);
+		stats.copied++;
+	}
+
+	// Copies a folder tree. Reparse points (junctions, symbolic links) are
+	// skipped rather than followed. With `skip_backups`, top-level and nested
+	// folders named backup-* are left out, so a backup never contains the
+	// earlier ones (or itself).
+	static void copy_tree(const string &src, const string &dst, bool overwrite, CopyStats &stats, bool skip_backups = false)
+	{
+		if(!::CreateDirectoryW(dst, nullptr) && ::GetLastError() != ERROR_ALREADY_EXISTS)
+		{
+			_log->error(L"config: cannot create '%s' (error %lu)", dst.c_str(), ::GetLastError());
+			stats.failed++;
+			return;
+		}
+
+		WIN32_FIND_DATAW fd{};
+		auto find = ::FindFirstFileExW(ConfigLocation::Join(src, L"*"), FindExInfoBasic, &fd,
+									   FindExSearchNameMatch, nullptr, 0);
+		if(find == INVALID_HANDLE_VALUE)
+			return;
+
+		do
+		{
+			string name = fd.cFileName;
+			if(name.equals(L".") || name.equals(L".."))
+				continue;
+			if(fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+				continue;
+
+			auto from = ConfigLocation::Join(src, name).move();
+			auto to = ConfigLocation::Join(dst, name).move();
+
+			if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				if(skip_backups && name.starts_with(L"backup-"))
+					continue;
+				copy_tree(from, to, overwrite, stats, skip_backups);
+			}
+			else
+			{
+				copy_file(from, to, overwrite, stats);
+			}
+		} while(::FindNextFileW(find, &fd));
+
+		::FindClose(find);
+	}
+
+	// <user dir>\backup-YYYYMMDD-HHMMSS, made unique if needed.
+	static string backup_path(const string &user_dir)
+	{
+		SYSTEMTIME st{};
+		::GetLocalTime(&st);
+		string name;
+		name.format(L"backup-%04u%02u%02u-%02u%02u%02u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+		auto path = ConfigLocation::Join(user_dir, name).move();
+		for(int i = 2; exists(path) && i < 100; i++)
+		{
+			string unique;
+			unique.format(L"%s-%d", name.c_str(), i);
+			path = ConfigLocation::Join(user_dir, unique).move();
+		}
+		return path.move();
+	}
+
+	// Copies <install>\shell.nss and <install>\imports\ into the per-user folder.
+	static int seed(CliOutput &out, const string &user_dir, bool overwrite)
+	{
+		auto install_dir = InstallDirectory().move();
+		auto src_config = ConfigLocation::Join(install_dir, ConfigLocation::FileName).move();
+		if(!ConfigLocation::IsFile(src_config))
+		{
+			string msg;
+			msg.format(L"error: '%s' not found.", src_config.c_str());
+			out.line(msg);
+			return cli_failed;
+		}
+
+		auto rc = ::SHCreateDirectoryExW(nullptr, user_dir, nullptr);
+		if(rc != ERROR_SUCCESS && rc != ERROR_ALREADY_EXISTS && rc != ERROR_FILE_EXISTS)
+		{
+			string msg;
+			msg.format(L"error: cannot create '%s' (error %d).", user_dir.c_str(), rc);
+			out.line(msg);
+			return cli_failed;
+		}
+
+		CopyStats stats;
+		copy_file(src_config, ConfigLocation::Join(user_dir, ConfigLocation::FileName), overwrite, stats);
+
+		auto src_imports = ConfigLocation::Join(install_dir, ConfigLocation::ImportsName).move();
+		if(is_directory(src_imports))
+			copy_tree(src_imports, ConfigLocation::Join(user_dir, ConfigLocation::ImportsName), overwrite, stats);
+
+		string msg;
+		msg.format(L"%s: %u copied, %u kept (already present), %u failed.",
+				   user_dir.c_str(), stats.copied, stats.skipped, stats.failed);
+		out.line(msg);
+		if(stats.skipped && !overwrite)
+			out.line(L"Existing files were kept; use -force to overwrite them.");
+		return stats.failed ? cli_failed : cli_ok;
+	}
+
+	static int init(CliOutput &out, bool force)
+	{
+		auto user_dir = ConfigLocation::UserDirectory().move();
+		if(user_dir.empty())
+		{
+			out.line(L"error: the per-user folder (%APPDATA%) cannot be determined.");
+			return cli_failed;
+		}
+		return seed(out, user_dir, force);
+	}
+
+	static int reset(CliOutput &out)
+	{
+		auto user_dir = ConfigLocation::UserDirectory().move();
+		if(user_dir.empty())
+		{
+			out.line(L"error: the per-user folder (%APPDATA%) cannot be determined.");
+			return cli_failed;
+		}
+
+		if(is_directory(user_dir))
+		{
+			// Everything currently in the folder (earlier backups excepted) is
+			// copied aside first; nothing is overwritten unless that worked.
+			auto backup = backup_path(user_dir).move();
+			CopyStats stats;
+			copy_tree(user_dir, backup, false, stats, true);
+			if(stats.failed)
+			{
+				string msg;
+				msg.format(L"error: backup to '%s' failed (%u files); nothing was reset.", backup.c_str(), stats.failed);
+				out.line(msg);
+				return cli_failed;
+			}
+
+			if(stats.copied)
+			{
+				string msg;
+				msg.format(L"Backed up %u files to '%s'.", stats.copied, backup.c_str());
+				out.line(msg);
+			}
+			else
+			{
+				// Nothing to keep; do not leave an empty backup folder behind.
+				::RemoveDirectoryW(backup);
+			}
+		}
+
+		return seed(out, user_dir, true);
+	}
+
+	static int path(CliOutput &out)
+	{
+		auto location = ConfigLocation::Resolve(InstallDirectory());
+		if(location.source == ConfigLocation::Source::none)
+		{
+			string msg;
+			msg.format(L"error: no config file found ('%s' does not exist).", location.path.c_str());
+			out.line(msg);
+			return cli_failed;
+		}
+		out.line(location.path);
+		return cli_ok;
+	}
+
+	/*
+		-config:check <root.nss>
+
+		Parses <root.nss> and its imports with the real parser, which lives in
+		shell.dll: the DLL next to this exe is loaded and its ConfigCheck
+		export called (see ConfigCheck.h). It parses into a private cache, so
+		no Explorer state is involved, and writes nothing to the registry.
+		Prints {"ok":bool,"root":"...","errors":[...],"warnings":[...]},
+		each entry {"file","line","column","message"}. Exit code 0 if ok,
+		1 if there are errors (or the check could not run).
+	*/
+	struct CheckResult
+	{
+		string errors, warnings;
+	};
+
+	static void CALLBACK check_sink(void *context, BOOL is_error, const wchar_t *file,
+									UINT line, UINT column, const wchar_t *message)
+	{
+		auto result = static_cast<CheckResult *>(context);
+		auto &list = is_error ? result->errors : result->warnings;
+		list += list.empty() ? L"\r\n    " : L",\r\n    ";
+		list += L"{ \"file\": ";
+		json_quote(list, file);
+		string numbers;
+		numbers.format(L", \"line\": %u, \"column\": %u, \"message\": ", line, column);
+		list += numbers;
+		json_quote(list, message);
+		list += L" }";
+	}
+
+	static int check(CliOutput &out, const string &root_arg)
+	{
+		CheckResult result;
+		HRESULT hr = E_FAIL;
+
+		string root = root_arg;
+		if(wchar_t full[MAX_PATH * 4]{}; ::GetFullPathNameW(root_arg, ARRAYSIZE(full), full, nullptr))
+		{
+			root = full;
+			// Expand 8.3 names, so reported paths match what the caller uses.
+			if(wchar_t long_path[MAX_PATH * 4]{}; ::GetLongPathNameW(full, long_path, ARRAYSIZE(long_path)))
+				root = long_path;
+		}
+
+		auto dll_path = IO::Path::Combine(InstallDirectory(), dll_name).move();
+		// Kept loaded until the process exits, which is right after this.
+		auto module = ::LoadLibraryExW(dll_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+		auto proc = module ? reinterpret_cast<ConfigCheckProc>(::GetProcAddress(module, CONFIG_CHECK_EXPORT)) : nullptr;
+		if(!proc)
+		{
+			string msg;
+			msg.format(L"cannot load the parser from '%s' (error %lu)", dll_path.c_str(), ::GetLastError());
+			check_sink(&result, TRUE, dll_path, 0, 0, msg);
+		}
+		else
+		{
+			hr = proc(root, check_sink, &result);
+			if(FAILED(hr))
+			{
+				string msg;
+				msg.format(L"the check could not be run (0x%08lx)", static_cast<unsigned long>(hr));
+				check_sink(&result, TRUE, root, 0, 0, msg);
+			}
+		}
+
+		auto ok = hr == S_OK;
+		string json = L"{\r\n  \"ok\": ";
+		json += json_bool(ok);
+		json += L",\r\n  \"root\": ";
+		json_quote(json, root);
+		json += L",\r\n  \"errors\": [";
+		json += result.errors;
+		json += result.errors.empty() ? L"]" : L"\r\n  ]";
+		json += L",\r\n  \"warnings\": [";
+		json += result.warnings;
+		json += result.warnings.empty() ? L"]" : L"\r\n  ]";
+		json += L"\r\n}";
+		out.line(json);
+		return ok ? cli_ok : cli_failed;
+	}
+
+	static int run(const string &command, const string &root, bool force, const wchar_t *out_path)
+	{
+		CliOutput out(out_path);
+
+		int ret;
+		if(command.equals(L"check"))
+		{
+			if(root.empty())
+			{
+				out.line(L"usage: shell -config:check <root.nss> [-out:<file>]");
+				return cli_usage;
+			}
+			ret = check(out, root);
+		}
+		else if(command.equals(L"init"))
+			ret = init(out, force);
+		else if(command.equals(L"reset"))
+			ret = reset(out);
+		else if(command.equals(L"path"))
+			ret = path(out);
+		else
+		{
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:check <root.nss> [-out:<file>]");
+			return cli_usage;
+		}
+
+		// The result could not be reported: say so through the exit code.
+		if(ret == cli_ok && !out.ok())
+			ret = cli_failed;
+		return ret;
+	}
+}
+
+/*
+	-status: one JSON object describing the installation, for the settings GUI.
+	Only reads (registry, file system); needs no elevation.
+
+	{
+	  "version": "1.9.19",
+	  "elevated": false,
+	  "installDir": "C:\\Program Files\\Nilesoft Shell",
+	  "dll": { "path": "...\\shell.dll", "exists": true },
+	  "registration": {
+	    "mode": "none" | "user" | "machine" | "both",
+	    "machine": { "registered": bool, "dll": "<InprocServer32>" | null },
+	    "user":    { "registered": bool, "dll": "<InprocServer32>" | null }
+	  },
+	  "win11": {
+	    "applicable": bool,            // Windows 11 or later
+	    "classicMenu": bool,           // the modern menu is redirected for this user
+	    "machineTreatAs": state,       // HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-...}\TreatAs
+	    "userTreatAs": state,          // the same under HKCU\Software\Classes
+	    "userInprocServer32": bool,    // HKCU ...\{86ca1aa0-...}\InprocServer32 present
+	    "userInprocServer32Ours": bool // ... and written by -register -user -treat
+	  },                               // state: "absent" | "ours" | "foreign" | "inaccessible"
+	  "config": {
+	    "path": "...\\shell.nss",
+	    "source": "registry" | "appdata" | "install" | "none",
+	    "exists": bool,
+	    "registryValue": "<HKCU config value, rooted>" | null
+	  },
+	  "userConfigDir": "%APPDATA%\\Nilesoft\\Shell" (expanded) | null
+	}
+*/
+namespace StatusCommand
+{
+	static const wchar_t *state_name(TreatAsState state)
+	{
+		switch(state)
+		{
+			case TreatAsState::absent: return L"absent";
+			case TreatAsState::ours: return L"ours";
+			case TreatAsState::foreign: return L"foreign";
+			default: return L"inaccessible";
+		}
+	}
+
+	static string build()
+	{
+		auto install_dir = InstallDirectory().move();
+		auto dll_path = IO::Path::Combine(install_dir, dll_name).move();
+		auto machine = RegistryConfig::IsRegistered(RegScope::Machine);
+		auto user = RegistryConfig::IsRegistered(RegScope::User);
+		auto location = ConfigLocation::Resolve(install_dir);
+		auto user_dir = ConfigLocation::UserDirectory().move();
+
+		auto win11 = Windows::Version::Instance().IsWindows11OrGreater();
+		auto machine_treat = QueryTreatAs();
+		auto user_treat_state = QueryUserTreatAs();
+		auto user_inproc = RegistryConfig::KeyExists(HKEY_CURRENT_USER, UserTreatAsInproc);
+		string value;
+		auto user_inproc_ours = user_inproc &&
+			RegistryConfig::GetString(HKEY_CURRENT_USER, UserTreatAsParent, UserTreatAsMarker, value);
+		// The classic-menu tweak: a server key with no (or an empty) path.
+		auto user_inproc_blank = user_inproc &&
+			(!RegistryConfig::GetString(HKEY_CURRENT_USER, UserTreatAsInproc, nullptr, value) || value.empty());
+
+		// Whether Explorer shows this user the classic menu (which Shell takes
+		// over) instead of the Windows 11 one. COM resolves the CLSID through
+		// the merged view, where the HKCU key shadows HKLM's: a per-user TreatAs
+		// or empty InprocServer32 decides it, else the machine TreatAs does.
+		auto classic = win11 &&
+			(user_treat_state == TreatAsState::ours || user_inproc_blank ||
+			 (user_treat_state == TreatAsState::absent && machine_treat == TreatAsState::ours));
+
+		string json;
+		json += L"{\r\n  \"version\": ";
+		json_quote(json, APP_VERSION);
+		json += L",\r\n  \"elevated\": ";
+		json += json_bool(is_elevated);
+		json += L",\r\n  \"installDir\": ";
+		json_quote(json, install_dir);
+
+		json += L",\r\n  \"dll\": { \"path\": ";
+		json_quote(json, dll_path);
+		json += L", \"exists\": ";
+		json += json_bool(ConfigLocation::IsFile(dll_path));
+		json += L" }";
+
+		json += L",\r\n  \"registration\": {\r\n    \"mode\": ";
+		json_quote(json, RegistryConfig::RegistrationMode());
+		json += L",\r\n    \"machine\": { \"registered\": ";
+		json += json_bool(machine);
+		json += L", \"dll\": ";
+		json_quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::Machine));
+		json += L" },\r\n    \"user\": { \"registered\": ";
+		json += json_bool(user);
+		json += L", \"dll\": ";
+		json_quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::User));
+		json += L" }\r\n  }";
+
+		json += L",\r\n  \"win11\": {\r\n    \"applicable\": ";
+		json += json_bool(win11);
+		json += L",\r\n    \"classicMenu\": ";
+		json += json_bool(classic);
+		json += L",\r\n    \"machineTreatAs\": ";
+		json_quote(json, state_name(machine_treat));
+		json += L",\r\n    \"userTreatAs\": ";
+		json_quote(json, state_name(user_treat_state));
+		json += L",\r\n    \"userInprocServer32\": ";
+		json += json_bool(user_inproc);
+		json += L",\r\n    \"userInprocServer32Ours\": ";
+		json += json_bool(user_inproc_ours);
+		json += L"\r\n  }";
+
+		json += L",\r\n  \"config\": {\r\n    \"path\": ";
+		json_quote(json, location.path);
+		json += L",\r\n    \"source\": ";
+		json_quote(json, ConfigLocation::SourceName(location.source));
+		json += L",\r\n    \"exists\": ";
+		json += json_bool(location.source != ConfigLocation::Source::none);
+		json += L",\r\n    \"registryValue\": ";
+		json_quote_or_null(json, location.configured);
+		json += L"\r\n  }";
+
+		json += L",\r\n  \"userConfigDir\": ";
+		json_quote_or_null(json, user_dir);
+		json += L"\r\n}";
+		return json.move();
+	}
+
+	static int run(const wchar_t *out_path)
+	{
+		CliOutput out(out_path);
+		out.line(build());
+		return out.ok() ? cli_ok : cli_failed;
+	}
 }
 
 /*
@@ -972,6 +1790,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		bool _check = false;
 		//bool runglyphs = false;
         string cmd;
+		// -config:<init|reset|path>, -force, -out:<file>
+		bool config = false, force = false;
+		string config_command, out_path;
+		// -config:check <root.nss>: the first plain argument after it.
+		string config_root;
+		bool want_root = false;
+		// -status [-out:<file>]
+		bool status = false;
         for(auto op : cmdline)
         {
             if(op->Kind == '-' || op->Kind == '/')
@@ -996,7 +1822,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				else if(op->has_name({ L"f", L"force" }))
 				{
 					reg.FOLDEREXTENSIONS=true;
+					// Also: let -config:init overwrite existing files.
+					force = true;
 				}
+				else if(op->has_name(L"config"))
+				{
+					config = true;
+					config_command = op->Value;
+					want_root = config_command.equals(L"check");
+				}
+				else if(op->has_name(L"out"))
+				{
+					out_path = op->Value;
+				}
+				else if(op->has_name(L"status"))
+				{
+					status = true;
+				}
+                else if(op->has_name(L"user"))
+                {
+					// Per-user (HKCU) register/unregister; no elevation.
+					reg.USER = true;
+                }
                 else if(op->has_name({ L"s", L"silent" }))
                 {
 					reg.SILENT=true;
@@ -1010,6 +1857,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
                     cmd = op->Value;
                 }
             }
+			else if(want_root && config_root.empty())
+			{
+				// A plain argument. The option parser splits it at the first ':',
+				// which every drive-letter path has, so take it unsplit.
+				config_root = op->Argument;
+			}
 			else if(op->has_name(L"check"))
 			{
 				_check = true;
@@ -1020,6 +1873,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		{
 			//check();
 			return 0;
+		}
+
+		// Read-only, never elevated, never interactive; handled on its own.
+		if(status)
+		{
+			int ret = cli_usage;
+			if(config)
+			{
+				CliOutput out(out_path.empty() ? nullptr : out_path.c_str());
+				out.line(L"usage: -status and -config:* cannot be combined.");
+			}
+			else
+				ret = StatusCommand::run(out_path.empty() ? nullptr : out_path.c_str());
+			_log->close();
+			return ret;
+		}
+
+		// Never elevated, never interactive; handled on its own.
+		if(config)
+		{
+			auto ret = ConfigCommand::run(config_command, config_root, force, out_path.empty() ? nullptr : out_path.c_str());
+			_log->close();
+			return ret;
 		}
 
 		if(reg.REGISTER || reg.UNREGISTER || reg.RESTART || reg.FOLDEREXTENSIONS)
@@ -1372,13 +2248,31 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 //L"shell.exe [-[r][u]] [-i] [-s] [-re]\n\n"
                 L"-register\t\tRegistering.\r\n"
                 L"-unregister\tUnregistering.\r\n"
+                L"-user\t\tWith -register/-unregister: current user\r\n"
+                L"\t\tonly (HKCU), no administrator rights needed.\r\n"
                 L"-treat\t\tDisable Windows 11 context menu.\r\n"
                 L"-silent\t\tPrevents displaying messages.\r\n"
-                L"-restart\t\tRestart Windows Explorer.\r\n\r\n"
+                L"-restart\t\tRestart Windows Explorer (this session;\r\n"
+                L"\t\tno administrator rights needed).\r\n\r\n"
+                L"Per-user configuration (no administrator rights):\r\n"
+                L"-config:init\tCopy shell.nss and imports\\ to\r\n"
+                L"\t\t%APPDATA%\\Nilesoft\\Shell. Existing files are\r\n"
+                L"\t\tkept unless -force is given.\r\n"
+                L"-config:reset\tBack the per-user folder up to\r\n"
+                L"\t\tbackup-<timestamp>, then copy the defaults again.\r\n"
+                L"-config:path\tPrint the config file in use.\r\n"
+                L"-config:check <file>\r\n"
+                L"\t\tParse <file> and its imports; print the\r\n"
+                L"\t\terrors and warnings as JSON (exit 1 on error).\r\n"
+                L"-status\t\tPrint registration, Windows 11 menu and\r\n"
+                L"\t\tconfig state as JSON (read-only).\r\n"
+                L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"
+                L"\t\tinstead of stdout / the console.\r\n\r\n"
                 //L"-runas:N\t\tLaunch with elevated privileges.\r\n"
                 //L"\t\tN=[admin | system | trustedinsaller]\r\n\r\n"
                 L"-?\t\tDispay this help message.\r\n\r\n"
                 L"Examples:\r\nshell.exe -register -treat\r\n"
+                L"shell.exe -register -user -treat -restart\r\n"
               //  L"shell.exe -runas:admin -cmd:'cmd.exe' -args:\"/K echo Hello world!\"\r\n"
                 ;
             ::SetDlgItemTextW(hwnd, IDC_CMDLINE_TEXT, usage);

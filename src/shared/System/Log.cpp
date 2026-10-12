@@ -109,7 +109,7 @@ namespace Nilesoft
 	bool Logger::_write(LogLevel logLevel, const wchar_t *message, ...)
 	{
 		auto result = false;
-		if(!message || !open()) return result;
+		if(Muted || !message || !open()) return result;
 
 		// Waiting for output access.
 		std::lock_guard<std::mutex> lock(mutex);

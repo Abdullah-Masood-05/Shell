@@ -190,8 +190,17 @@
 			<td>Unregistering.</td>
 		</tr>
 		<tr>
+			<td class="syntax-keyword">-user</td>
+			<td>With <code>-register</code> or <code>-unregister</code>: register for the current user only
+				(<code>HKCU\Software\Classes</code>). Needs no administrator rights. The icon overlay is
+				machine-wide only and is skipped. With <code>-treat</code> on Windows 11 the redirect is written
+				under <code>HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}</code>.
+				If Shell is also registered for all users, the per-user registration takes precedence for that user.</td>
+		</tr>
+		<tr>
 			<td class="syntax-keyword">-restart (-re)</td>
-			<td>Restart Windows Explorer.</td>
+			<td>Restart Windows Explorer for the current session. Needs no administrator rights;
+				other users' Explorer processes are not touched.</td>
 		</tr>
 		<tr>
 			<td class="syntax-keyword">-treat</td>
@@ -200,6 +209,45 @@
 		<tr>
 			<td class="syntax-keyword">-silent (-s)</td>
 			<td>Prevents displaying messages.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:init [-force]</td>
+			<td>Copy <code>shell.nss</code> and the <code>imports</code> folder from the install folder to
+				<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> is given.
+				Needs no administrator rights.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:reset</td>
+			<td>Copy everything in <code>%APPDATA%\Nilesoft\Shell</code> to a <code>backup-&lt;timestamp&gt;</code>
+				folder inside it, then copy the default <code>shell.nss</code> and <code>imports</code> again,
+				overwriting. Other files are left in place. Nothing is overwritten if the backup fails.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:path</td>
+			<td>Print the full path of the configuration file in use.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:check &lt;file&gt;</td>
+			<td>Parse <code>&lt;file&gt;</code> and its imports (resolved relative to the importing file) with the
+				same parser Explorer uses, without affecting the running menu, and print
+				<code>{"ok":bool,"root":"...","errors":[...],"warnings":[...]}</code>, each entry
+				<code>{"file","line","column","message"}</code>. Errors stop the configuration from loading; warnings
+				(such as a missing import) do not. Exit code 0 if it loads, 1 if not, 2 if no file is given.
+				Needs no administrator rights.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-status</td>
+			<td>Print a JSON object describing the installation: version, registration mode
+				(<code>none</code>, <code>user</code>, <code>machine</code> or <code>both</code>) and the DLL each
+				registration points at, the Windows 11 menu redirect state, the configuration file in use and where
+				it was found (<code>registry</code>, <code>appdata</code> or <code>install</code>), and the per-user
+				configuration folder. Only reads; needs no administrator rights. Exit code 0 (1 if the output could not be written).</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-out:&lt;file&gt;</td>
+			<td>Write the output of the <code>-config:*</code> and <code>-status</code> commands to a file (UTF-8) instead of
+				standard output. Without it, output goes to standard output when that is a pipe or a file,
+				otherwise to the console the command was started from.</td>
 		</tr>
 		<tr>
 			<td class="syntax-keyword">-?</td>
