@@ -136,12 +136,25 @@ namespace Nilesoft
 					// importing file's own directory.
 					Parser parser;
 
+					// Taken right after the Parser has read the root config (and
+					// settled which file that is), so a save made after this point
+					// is seen as a change and triggers a retry.
+					auto config_time = last_write_time(application.Config);
+
 					load_mui();
 
 					cache->Packages.load();
 
 					if(!parser.Load())
 					{
+						// Remember what the failed load depended on: the root config
+						// and the file the error was in (which may be an import).
+						// has_error(true) retries once either has been written.
+						_failed_load.config_time = config_time;
+						auto error_file = parser.Path();
+						_failed_load.error_file = error_file ? error_file : L"";
+						_failed_load.error_file_time = last_write_time(_failed_load.error_file);
+
 						Status.Error = true;
 						uninit();
 						// Release ownership of the critical section.
@@ -236,25 +249,39 @@ namespace Nilesoft
 			return false;
 		}
 
-		//determine config file changed
+		// Last-write time of a file, or 0 if it cannot be read. Uses the
+		// attributes rather than opening the file, so it never holds a handle
+		// that could get in the way of an editor saving it.
+		uint64_t Initializer::last_write_time(const wchar_t *path)
+		{
+			WIN32_FILE_ATTRIBUTE_DATA data{};
+			if(!path || !*path || !::GetFileAttributesExW(path, GetFileExInfoStandard, &data))
+				return 0;
+			return (static_cast<uint64_t>(data.ftLastWriteTime.dwHighDateTime) << 32)
+				| data.ftLastWriteTime.dwLowDateTime;
+		}
+
+		// Determine whether the config changed since the last failed load. Both
+		// stamps are updated, so each change is reported once.
 		bool Initializer::config_has_changed()
 		{
-			bool res = false;
+			bool changed = false;
 			try
 			{
-				auto_handle hConfig = ::CreateFileW(application.Config, GENERIC_READ, FILE_SHARE_READ,
-													nullptr, OPEN_EXISTING, 0, nullptr);
-				if(hConfig)
+				auto config_time = last_write_time(application.Config);
+				if(config_time != _failed_load.config_time)
 				{
-					FILETIME ft_lastWriteTime{};
-					auto last_write_time = reinterpret_cast<uintptr_t *>(&ft_lastWriteTime);
-					if(::GetFileTime(hConfig, nullptr, nullptr, &ft_lastWriteTime) && *last_write_time != 0)
+					_failed_load.config_time = config_time;
+					changed = true;
+				}
+
+				if(!_failed_load.error_file.empty())
+				{
+					auto error_file_time = last_write_time(_failed_load.error_file);
+					if(error_file_time != _failed_load.error_file_time)
 					{
-						if(*last_write_time != _last_write_time)
-						{
-							res = _last_write_time > 0;
-							_last_write_time = *last_write_time;
-						}
+						_failed_load.error_file_time = error_file_time;
+						changed = true;
 					}
 				}
 			}
@@ -264,16 +291,32 @@ namespace Nilesoft
 				Logger::Exception(__func__);
 #endif
 			}
-			return res;
+			return changed;
 		}
 
 		bool Initializer::has_error(bool detect_changes)
 		{
-			if(Status.Error)
+			if(!Status.Error)
+				return false;
+
+			if(!detect_changes)
+				return true;
+
+			// A retry is already pending: let the caller go on to init(), which
+			// either loads the config (clearing Error) or fails and clears
+			// Refresh via uninit(), so this cannot repeat without a new change.
+			if(Status.Refresh)
+				return false;
+
+			// Only checked while the config is broken; a valid config is never
+			// polled here, so this is not a reload-on-change for working configs.
+			if(config_has_changed())
 			{
-				return detect_changes ? !config_has_changed() : true;
+				Status.Refresh = true;
+				return false;
 			}
-			return false;
+
+			return true;
 		}
 
 		void Initializer::load_mui()
