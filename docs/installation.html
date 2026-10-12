@@ -3,6 +3,12 @@
 <div class="notification is-warning mt-5" role="alert">
 	<i>Info:</i> Administrative permissions are required for installation.
 </div>
+<div class="notification is-info mt-5">
+	<i>Tip:</i> To use Shell for your account only, without administrator rights, register an extracted
+	(portable) copy with <code>shell -register -user -restart</code> and create your own configuration in
+	<code>%APPDATA%\Nilesoft\Shell</code> with <code>shell -config:init</code>.
+	See <a href="/docs/command-line">Command line</a>.
+</div>
 <br>
 <p>Shell can be installed in the following ways:</p>
 <ul>
@@ -198,7 +204,7 @@
 				If Shell is also registered for all users, the per-user registration takes precedence for that user.</td>
 		</tr>
 		<tr>
-			<td class="syntax-keyword">-restart (-re)</td>
+			<td class="syntax-keyword">-restart</td>
 			<td>Restart Windows Explorer for the current session. Needs no administrator rights;
 				other users' Explorer processes are not touched.</td>
 		</tr>

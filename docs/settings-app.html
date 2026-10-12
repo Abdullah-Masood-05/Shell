@@ -1,0 +1,72 @@
+<h4>Settings app</h4>
+<br>
+<p><b>Nilesoft Shell Settings</b> (<code>settings.exe</code>, next to <code>shell.exe</code> in the program folder) is a
+	desktop app for checking an installation and editing the configuration without opening
+	<code>shell.nss</code> by hand. It is part of this fork and is still being built; the pages below are marked
+	where they are not finished yet.</p>
+<div class="notification is-info mt-5">
+	<i>Info:</i> The app runs as the current user and needs no administrator rights. It works on the per-user
+	configuration in <code>%APPDATA%\Nilesoft\Shell</code> and the per-user registration under
+	<code>HKEY_CURRENT_USER</code>. The only action that asks for administrator rights is machine-wide registration in
+	Preferences, which is marked with the UAC shield.
+</div>
+
+<h5 id="first-run">First run</h5>
+<p>On first start the app offers three steps:</p>
+<ol>
+	<li>create the per-user configuration (<a href="/docs/command-line#config"><code>shell -config:init</code></a>);</li>
+	<li>register Shell for the current user (<a href="/docs/command-line#register"><code>shell -register -user</code></a>);</li>
+	<li>restart Explorer. Choosing a look here arrives with the Appearance page.</li>
+</ol>
+
+<h5 id="home">Home</h5>
+<ul>
+	<li><strong>Health:</strong> whether Shell is registered (none, user, machine or both), the state of the Windows 11
+		classic-menu redirect, the DLL in use and the version.</li>
+	<li><strong>Active configuration:</strong> which <code>shell.nss</code> Explorer loads and where it was found, with an
+		action to switch to a per-user copy.</li>
+	<li><strong>Diagnostics:</strong> recent errors from <code>shell.log</code>. Each one opens the file at that line in the
+		Config Editor.</li>
+	<li><strong>Quick actions:</strong> register or unregister for the current user, restart Explorer, open the
+		configuration folder, and run first-time setup again.</li>
+</ul>
+<p>The app reads all of this through <a href="/docs/command-line#status"><code>shell -status</code></a>, so it shows the
+	same state the command line reports.</p>
+
+<h5 id="appearance">Appearance</h5>
+<div class="notification is-warning mt-5">
+	<i>Note:</i> This page is in development.
+</div>
+<p>Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live
+	preview of the menu on your wallpaper in light and dark. Only the keys you change are written, to an app-owned
+	<code>imports\settings-app.nss</code> imported last by <code>shell.nss</code>, so your own
+	<a href="/docs/configuration/themes">theme</a> settings stay as you wrote them.</p>
+
+<h5 id="config-editor">Config Editor</h5>
+<ul>
+	<li>A tree of <code>shell.nss</code> and every file it imports. Imports that cannot be found are marked.</li>
+	<li>A highlighted read view with line numbers and problem markers, and an edit view.</li>
+	<li>While you type, the edit is checked with <a href="/docs/command-line#config"><code>shell -config:check</code></a> on a
+		temporary copy, so the menu you are using is not affected. Problems link to their line.</li>
+	<li>Saving keeps the file's encoding, byte order mark and line endings. A file with errors is not saved unless you
+		confirm, because one parse error turns the whole Shell menu off.</li>
+	<li>Files changed on disk by another editor are reloaded, or flagged if you have unsaved edits.</li>
+	<li>The shared configuration in the program folder is read-only here; the editor offers to create a per-user copy.</li>
+</ul>
+
+<h5 id="backups">Backups</h5>
+<p>Every save first takes a snapshot of the configuration in <code>%APPDATA%\Nilesoft\Shell\backups</code>. The Backups page
+	lists them with the time, the reason and the files changed. You can:</p>
+<ul>
+	<li>compare a snapshot with the current files, line by line;</li>
+	<li>restore a snapshot;</li>
+	<li>pin a snapshot so it is never removed when old snapshots are cleaned up;</li>
+	<li>create a snapshot by hand, delete one, or open the folder.</li>
+</ul>
+
+<h5 id="preferences">Preferences</h5>
+<p>The app's own theme, registration for all users (needs administrator rights), and version and licence information.</p>
+
+<h5 id="reload">Applying changes</h5>
+<p>There is no restart step for configuration changes: Shell reloads the configuration when a file it loaded changes.
+	Registration changes still need Explorer to restart, which the app does for the current session only.</p>

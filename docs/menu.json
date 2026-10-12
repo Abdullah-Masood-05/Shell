@@ -1,7 +1,9 @@
 [
 	{"title":"Introduction", "link":"/docs"},
 	{"title":"Installation", "link":"/docs/installation"},
+	{"title":"Command line", "link":"/docs/command-line"},
 	{"title":"Get Started", "link":"/docs/get-started"},
+	{"title":"Settings app", "link":"/docs/settings-app"},
 	{
 		"title":"Configuration", "link":"/docs/configuration",
 		"items": [
@@ -55,5 +57,6 @@
 			{"title":"Favorites", "link":"/docs/examples/favorites"},
 			{"title":"Go to", "link":"/docs/examples/goto"}
 		]
-	}
+	},
+	{"title":"About this fork", "link":"/docs/fork"}
 ]

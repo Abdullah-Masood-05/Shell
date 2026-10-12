@@ -1,0 +1,134 @@
+<h4>Command line</h4>
+<br>
+<p><code>shell.exe</code> registers Shell with Windows File Explorer, restarts Explorer, prepares the per-user
+	configuration and reports the state of an installation. Run it from the Shell program folder
+	(<code>C:\Program Files\Nilesoft Shell\</code> by default, or the folder you extracted the portable version to).</p>
+<pre><code>shell -[options]</code></pre>
+<p>Options start with <code>-</code> or <code>/</code> and are not case-sensitive. Run <code>shell -?</code>
+	(or <code>-help</code>, <code>-h</code>) to show a short summary in a window.</p>
+
+<h5 id="register">Registering</h5>
+<table class="table">
+	<tr>
+		<td class="syntax-keyword w-25">-register (-r)</td>
+		<td>Register Shell so Explorer loads it. Without <code>-user</code> this writes to
+			<code>HKEY_LOCAL_MACHINE</code> for all users and needs an <strong>elevated command prompt</strong>.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-unregister (-u)</td>
+		<td>Remove the registration. Without <code>-user</code> this needs an elevated command prompt.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-user</td>
+		<td>With <code>-register</code> or <code>-unregister</code>: register for the current user only, under
+			<code>HKCU\Software\Classes</code>. No administrator rights are needed. The icon overlay is
+			machine-wide only and is skipped. If Shell is also registered for all users, the per-user registration
+			takes precedence for that user.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-treat (-t)</td>
+		<td>With <code>-register</code> on Windows 11: show the classic context menu, with Shell, instead of the
+			modern one. With <code>-user</code> the redirect is written under
+			<code>HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}</code>.
+			<code>-unregister</code> always removes the redirect it added.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-restart</td>
+		<td>Restart Windows Explorer for the current session so the change takes effect. Needs no administrator
+			rights; other users' Explorer processes are not touched.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-silent (-s)</td>
+		<td>Do not show message boxes. Use it from scripts.</td>
+	</tr>
+</table>
+<p><code>-register</code>, <code>-unregister</code> and <code>-restart</code> exit with code 0 on success and 1 on failure.</p>
+<div class="console">
+	<div class="console-title">COMMAND PROMPT</div>
+	<div class="console-body">shell -register -user -treat -restart</div>
+</div>
+<div class="console">
+	<div class="console-title">Administrator: Command Prompt</div>
+	<div class="console-body">shell -register -treat -restart</div>
+</div>
+
+<h5 id="config">Per-user configuration</h5>
+<p>Shell reads its configuration from the first of these that exists:</p>
+<ol>
+	<li>the file named by the <code>config</code> value under <code>HKCU\Software\Nilesoft\Shell</code>
+		(a relative path is taken from the program folder);</li>
+	<li><code>%APPDATA%\Nilesoft\Shell\shell.nss</code>;</li>
+	<li><code>shell.nss</code> in the program folder.</li>
+</ol>
+<p>Imports are resolved relative to the importing file, so a per-user <code>shell.nss</code> uses the
+	<code>imports</code> folder next to it. None of the <code>-config</code> commands need administrator rights.</p>
+<table class="table">
+	<tr>
+		<td class="syntax-keyword w-25">-config:init [-force]</td>
+		<td>Copy <code>shell.nss</code> and the <code>imports</code> folder from the program folder to
+			<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> (<code>-f</code>) is given.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-config:reset</td>
+		<td>Copy everything in <code>%APPDATA%\Nilesoft\Shell</code> to a <code>backup-&lt;timestamp&gt;</code>
+			folder inside it, then copy the default <code>shell.nss</code> and <code>imports</code> again, overwriting.
+			Other files are left in place. Nothing is overwritten if the backup fails.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-config:path</td>
+		<td>Print the full path of the configuration file in use.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-config:check &lt;file&gt;</td>
+		<td>Parse <code>&lt;file&gt;</code> and its imports with the same parser Explorer uses, without affecting the
+			running menu, and print the result as JSON. Exit code 0 if the configuration loads, 1 if it does not,
+			2 if no file is given.</td>
+	</tr>
+</table>
+<p>The output of <code>-config:check</code> looks like this. Errors stop the configuration from loading; warnings
+	(such as a missing import) do not.</p>
+<pre><code>{"ok":false,"root":"C:\\Users\\me\\AppData\\Roaming\\Nilesoft\\Shell\\shell.nss",
+ "errors":[{"file":"...\\imports\\theme.nss","line":12,"column":9,"message":"..."}],
+ "warnings":[]}</code></pre>
+
+<h5 id="status">Status</h5>
+<table class="table">
+	<tr>
+		<td class="syntax-keyword w-25">-status</td>
+		<td>Print one JSON object describing the installation. It only reads the registry and the file system and needs
+			no administrator rights. Exit code 0, or 1 if the output could not be written. It cannot be combined with
+			<code>-config:*</code>.</td>
+	</tr>
+</table>
+<p>The object contains:</p>
+<ul>
+	<li><code>version</code>, <code>elevated</code>, <code>installDir</code> and <code>dll</code> (path, and whether it exists);</li>
+	<li><code>registration.mode</code>: <code>none</code>, <code>user</code>, <code>machine</code> or <code>both</code>,
+		plus the DLL each registration points at;</li>
+	<li><code>win11</code>: whether Windows 11 applies, whether the classic menu is active for this user, and the state of the
+		machine and user redirects (<code>absent</code>, <code>ours</code>, <code>foreign</code> or <code>inaccessible</code>);</li>
+	<li><code>config</code>: the configuration file in use and where it was found
+		(<code>registry</code>, <code>appdata</code>, <code>install</code> or <code>none</code>);</li>
+	<li><code>userConfigDir</code>: the per-user configuration folder.</li>
+</ul>
+
+<h5 id="output">Output</h5>
+<table class="table">
+	<tr>
+		<td class="syntax-keyword w-25">-out:&lt;file&gt;</td>
+		<td>Write the output of <code>-config:*</code> and <code>-status</code> to <code>&lt;file&gt;</code> (UTF-8, replaced)
+			instead of standard output.</td>
+	</tr>
+</table>
+<p><code>shell.exe</code> is a Windows program without a console of its own. Without <code>-out</code>, the output goes to
+	standard output when that is a pipe or a file, otherwise to the console the command was started from. Because
+	<code>cmd.exe</code> does not wait for Windows programs, that text can appear after the next prompt. Redirect it, use
+	<code>-out</code>, or start it with <code>start /wait</code> when the order matters.</p>
+<div class="console">
+	<div class="console-title">COMMAND PROMPT</div>
+	<div class="console-body">shell -status -out:status.json
+shell -config:check "%APPDATA%\Nilesoft\Shell\shell.nss" &gt; check.json</div>
+</div>
+<div class="notification is-info mt-5">
+	<i>Tip:</i> For installation steps with each package manager, see <a href="/docs/installation">Installation</a>.
+</div>
