@@ -1,0 +1,308 @@
+import { Button, Switch } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+
+component StepDot inherits HorizontalLayout {
+    in property <int> index;
+    in property <string> label;
+    in property <int> current;
+    in property <bool> done;
+    spacing: Tokens.s2;
+
+    VerticalLayout {
+        alignment: center;
+        Rectangle {
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            background: root.index <= root.current || root.done ? Tokens.accent : transparent;
+            border-width: root.index <= root.current || root.done ? 0px : 1px;
+            border-color: Tokens.stroke-strong;
+            animate background { duration: Tokens.normal; }
+            if root.done && root.index != root.current: Image {
+                source: Icons.check;
+                width: 14px;
+                height: 14px;
+                colorize: Tokens.on-accent;
+            }
+            if !(root.done && root.index != root.current): Text {
+                text: root.index + 1;
+                font-size: Tokens.caption;
+                font-weight: 600;
+                color: root.index <= root.current ? Tokens.on-accent : Tokens.text-2;
+            }
+        }
+    }
+    Text {
+        text: root.label;
+        vertical-alignment: center;
+        font-size: Tokens.caption + 1px;
+        font-weight: root.index == root.current ? 600 : 400;
+        color: root.index == root.current ? Tokens.text : Tokens.text-2;
+    }
+}
+
+component DoneRow inherits Rectangle {
+    in property <string> text;
+    height: row.preferred-height;
+    border-radius: Tokens.radius-control;
+    background: Tokens.success-bg;
+    row := HorizontalLayout {
+        padding: Tokens.s3;
+        spacing: Tokens.s2;
+        Image {
+            source: Icons.ok;
+            width: 16px;
+            height: 16px;
+            colorize: Tokens.success;
+        }
+        Text {
+            text: root.text;
+            horizontal-stretch: 1;
+            color: Tokens.text;
+            wrap: word-wrap;
+            vertical-alignment: center;
+        }
+    }
+}
+
+component LookCard inherits Rectangle {
+    in property <string> name;
+    in property <bool> chosen;
+    in property <bool> compact;
+    in property <length> radius: 6px;
+    height: 132px;
+    border-radius: Tokens.radius-card;
+    border-width: root.chosen ? 2px : 1px;
+    border-color: root.chosen ? Tokens.accent : Tokens.stroke;
+    background: Tokens.layer-2;
+
+    VerticalLayout {
+        padding: Tokens.s3;
+        spacing: Tokens.s2;
+        Rectangle {
+            vertical-stretch: 1;
+            border-radius: root.radius;
+            background: Tokens.dark ? #1F1F1F : #FFFFFF;
+            border-width: 1px;
+            border-color: Tokens.stroke;
+            VerticalLayout {
+                padding: root.compact ? 4px : 6px;
+                spacing: root.compact ? 2px : 4px;
+                for w[i] in [0.7, 0.5, 0.6]: Rectangle {
+                    height: root.compact ? 12px : 14px;
+                    border-radius: root.radius / 2;
+                    background: i == 1 ? Tokens.accent-soft : transparent;
+                    Rectangle {
+                        x: 6px;
+                        width: (parent.width - 12px) * w;
+                        height: 4px;
+                        border-radius: 2px;
+                        background: Tokens.text-3;
+                    }
+                }
+            }
+        }
+        Text {
+            text: root.name;
+            font-size: Tokens.caption + 1px;
+            font-weight: root.chosen ? 600 : 400;
+            color: Tokens.text;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+// First-run setup: personal config, enable for this user, pick a look.
+export component Onboarding inherits Rectangle {
+    property <int> step: AppState.onboarding-step;
+    property <bool> config-done: AppState.status.config-source == "appdata";
+    property <bool> enabled-done: AppState.status.user-registered || AppState.status.machine-registered;
+
+    background: Tokens.scrim;
+    TouchArea { } // modal: nothing behind it is clickable
+
+    fs := FocusScope {
+        init => { self.focus(); }
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                AppState.dismiss-onboarding();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    card := Rectangle {
+        width: min(600px, root.width - 48px);
+        height: body.preferred-height;
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        border-radius: Tokens.radius-card + 4px;
+        background: Tokens.layer;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 48px;
+        drop-shadow-offset-y: 16px;
+        drop-shadow-color: #00000060;
+
+        body := VerticalLayout {
+            padding: Tokens.s8;
+            spacing: Tokens.s5;
+
+            HorizontalLayout {
+                spacing: Tokens.s3;
+                Image {
+                    source: Icons.logo;
+                    width: 40px;
+                    height: 40px;
+                }
+                VerticalLayout {
+                    alignment: center;
+                    Text {
+                        text: "Welcome to Nilesoft Shell";
+                        font-size: Tokens.subtitle;
+                        font-weight: 600;
+                        color: Tokens.text;
+                    }
+                    Text {
+                        text: "Three quick steps to set up your context menu.";
+                        color: Tokens.text-2;
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                spacing: Tokens.s5;
+                alignment: start;
+                StepDot { index: 0; label: "Personal config"; current: root.step; done: root.config-done; }
+                StepDot { index: 1; label: "Enable"; current: root.step; done: root.enabled-done; }
+                StepDot { index: 2; label: "Look"; current: root.step; done: false; }
+            }
+
+            Rectangle {
+                height: 1px;
+                background: Tokens.stroke;
+            }
+
+            // Step 1
+            if root.step == 0: VerticalLayout {
+                spacing: Tokens.s3;
+                Text {
+                    text: "Create your personal config";
+                    font-size: Tokens.body-large;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                Text {
+                    text: "Shell reads shell.nss. A personal copy in %APPDATA%\\Nilesoft\\Shell is yours to change, needs no administrator rights, and is kept when Shell is updated.";
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                }
+                if root.config-done: DoneRow {
+                    text: "Using your personal config: " + AppState.status.config-path;
+                }
+                if !root.config-done: HorizontalLayout {
+                    alignment: start;
+                    Button {
+                        text: "Create personal config";
+                        primary: true;
+                        enabled: !AppState.busy && AppState.cli-available;
+                        clicked => { AppState.action("config-init"); }
+                    }
+                }
+            }
+
+            // Step 2
+            if root.step == 1: VerticalLayout {
+                spacing: Tokens.s3;
+                Text {
+                    text: "Enable Shell for you";
+                    font-size: Tokens.body-large;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                Text {
+                    text: "Registers the menu for your account only (HKEY_CURRENT_USER). No administrator rights are needed; all-users registration lives in Preferences.";
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                }
+                if AppState.status.win11-applicable: Switch {
+                    text: "Use the classic context menu on Windows 11";
+                    checked <=> AppState.classic-menu-option;
+                }
+                if root.enabled-done: DoneRow {
+                    text: AppState.status.reg-text;
+                }
+                if !AppState.status.user-registered: HorizontalLayout {
+                    alignment: start;
+                    Button {
+                        text: "Enable for me";
+                        primary: true;
+                        icon: Icons.person-add;
+                        colorize-icon: true;
+                        enabled: !AppState.busy && AppState.cli-available;
+                        clicked => { AppState.action("register-user"); }
+                    }
+                }
+            }
+
+            // Step 3
+            if root.step == 2: VerticalLayout {
+                spacing: Tokens.s3;
+                Text {
+                    text: "Pick a look";
+                    font-size: Tokens.body-large;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                Text {
+                    text: "Theme presets arrive with the Appearance page. For now Shell follows Windows, and you can restart Explorer to load your changes.";
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    spacing: Tokens.s3;
+                    LookCard { name: "Modern"; chosen: true; radius: 8px; horizontal-stretch: 1; }
+                    LookCard { name: "Classic"; radius: 2px; horizontal-stretch: 1; opacity: 0.6; }
+                    LookCard { name: "Compact"; compact: true; radius: 4px; horizontal-stretch: 1; opacity: 0.6; }
+                }
+                HorizontalLayout {
+                    alignment: start;
+                    Button {
+                        text: "Restart Explorer";
+                        icon: Icons.restart;
+                        colorize-icon: true;
+                        enabled: !AppState.busy && AppState.cli-available;
+                        clicked => { AppState.action("restart"); }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                padding-top: Tokens.s2;
+                Button {
+                    text: "Skip setup";
+                    clicked => { AppState.dismiss-onboarding(); }
+                }
+                Rectangle { horizontal-stretch: 1; }
+                if root.step > 0: Button {
+                    text: "Back";
+                    clicked => { AppState.onboarding-step -= 1; }
+                }
+                if root.step < 2: Button {
+                    text: "Next";
+                    primary: true;
+                    clicked => { AppState.onboarding-step += 1; }
+                }
+                if root.step == 2: Button {
+                    text: "Finish";
+                    primary: true;
+                    clicked => { AppState.dismiss-onboarding(); }
+                }
+            }
+        }
+    }
+}

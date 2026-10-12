@@ -1,0 +1,36 @@
+// App chrome icons: Fluent UI System Icons, 20 px regular (MIT, see ../icons/LICENSE).
+// They are monochrome; set `colorize` on the Image.
+
+export global Icons {
+    out property <image> logo: @image-url("../../res/logo.svg");
+
+    out property <image> home: @image-url("../icons/home.svg");
+    out property <image> appearance: @image-url("../icons/paint_brush.svg");
+    out property <image> behavior: @image-url("../icons/options.svg");
+    out property <image> rules: @image-url("../icons/filter.svg");
+    out property <image> menus: @image-url("../icons/apps_list.svg");
+    out property <image> builder: @image-url("../icons/text_bullet_list_tree.svg");
+    out property <image> editor: @image-url("../icons/code.svg");
+    out property <image> backups: @image-url("../icons/history.svg");
+    out property <image> preferences: @image-url("../icons/settings.svg");
+
+    out property <image> refresh: @image-url("../icons/arrow_sync.svg");
+    out property <image> restart: @image-url("../icons/arrow_clockwise.svg");
+    out property <image> folder: @image-url("../icons/folder_open.svg");
+    out property <image> person: @image-url("../icons/person.svg");
+    out property <image> person-add: @image-url("../icons/person_add.svg");
+    out property <image> person-remove: @image-url("../icons/person_delete.svg");
+    out property <image> info: @image-url("../icons/info.svg");
+    out property <image> ok: @image-url("../icons/checkmark_circle.svg");
+    out property <image> check: @image-url("../icons/checkmark.svg");
+    out property <image> warning: @image-url("../icons/warning.svg");
+    out property <image> error: @image-url("../icons/error_circle.svg");
+    out property <image> close: @image-url("../icons/dismiss.svg");
+
+    public pure function status(kind: string) -> image {
+        if (kind == "ok") { return ok; }
+        if (kind == "warning") { return warning; }
+        if (kind == "error") { return error; }
+        return info;
+    }
+}

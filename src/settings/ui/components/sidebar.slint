@@ -1,0 +1,148 @@
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState, NavEntry, Pages } from "../types.slint";
+import { NavItem } from "nav-item.slint";
+import { StatusPill } from "status-pill.slint";
+
+// Grouped navigation: logo and version on top, the pages in the middle, the status
+// pill and Preferences at the bottom. Up/Down/Home/End move between pages when the
+// sidebar has keyboard focus (Tab into it).
+export component Sidebar inherits Rectangle {
+    in property <[NavEntry]> entries: [
+        { page: Pages.home, label: "Home", icon: Icons.home, header: "" },
+        { page: Pages.appearance, label: "Appearance", icon: Icons.appearance, header: "Customize" },
+        { page: Pages.behavior, label: "Behavior", icon: Icons.behavior, header: "" },
+        { page: Pages.rules, label: "Rules & Filters", icon: Icons.rules, header: "" },
+        { page: Pages.menus, label: "Context Menus", icon: Icons.menus, header: "Menus" },
+        { page: Pages.builder, label: "Menu Builder", icon: Icons.builder, header: "" },
+        { page: Pages.editor, label: "Config Editor", icon: Icons.editor, header: "Advanced" },
+        { page: Pages.backups, label: "Backups", icon: Icons.backups, header: "" },
+    ];
+    // Pages are numbered in sidebar order; the arrow keys walk 0..last (Preferences).
+    property <int> last-page: Pages.preferences;
+
+    background: Tokens.bg;
+    animate background { duration: Tokens.normal; }
+
+    function go(page: int) {
+        AppState.page = page;
+    }
+
+    fs := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.UpArrow) {
+                root.go(max(0, AppState.page - 1));
+                return accept;
+            }
+            if (event.text == Key.DownArrow) {
+                root.go(min(root.last-page, AppState.page + 1));
+                return accept;
+            }
+            if (event.text == Key.Home) {
+                root.go(0);
+                return accept;
+            }
+            if (event.text == Key.End) {
+                root.go(root.last-page);
+                return accept;
+            }
+            return reject;
+        }
+
+        VerticalLayout {
+            padding-left: Tokens.s2;
+            padding-right: Tokens.s2;
+            padding-top: Tokens.s4;
+            padding-bottom: Tokens.s3;
+            spacing: Tokens.s1;
+
+            // Header: logo, name, version badge.
+            HorizontalLayout {
+                padding-left: Tokens.s2;
+                padding-bottom: Tokens.s4;
+                spacing: Tokens.s3;
+                Image {
+                    source: Icons.logo;
+                    width: 40px;
+                    height: 40px;
+                }
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: "Nilesoft Shell";
+                        font-size: 15px;
+                        font-weight: 600;
+                        color: Tokens.text;
+                    }
+                    HorizontalLayout {
+                        alignment: start;
+                        Rectangle {
+                            height: 18px;
+                            width: ver.preferred-width + 12px;
+                            border-radius: 9px;
+                            background: Tokens.selected;
+                            ver := Text {
+                                text: "v" + AppState.app-version;
+                                font-size: 11px;
+                                color: Tokens.text-2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for entry in root.entries: VerticalLayout {
+                spacing: Tokens.s1;
+                if entry.header != "": HorizontalLayout {
+                    padding-left: Tokens.s3;
+                    Text {
+                        text: entry.header;
+                        height: 28px;
+                        vertical-alignment: bottom;
+                        font-size: Tokens.caption;
+                        font-weight: 600;
+                        color: Tokens.text-3;
+                    }
+                }
+                NavItem {
+                    icon: entry.icon;
+                    label: entry.label;
+                    selected: AppState.page == entry.page;
+                    show-focus: fs.has-focus && AppState.page == entry.page;
+                    clicked => {
+                        fs.focus();
+                        root.go(entry.page);
+                    }
+                }
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            HorizontalLayout {
+                padding-left: Tokens.s2;
+                padding-bottom: Tokens.s2;
+                alignment: start;
+                StatusPill {
+                    kind: AppState.status.loaded ? AppState.status.health-kind : "neutral";
+                    text: AppState.busy ? AppState.busy-label : AppState.status.loaded ? AppState.status.pill-text : "Checking status…";
+                    busy: AppState.busy;
+                }
+            }
+            Rectangle {
+                height: 1px;
+                background: Tokens.stroke;
+            }
+            NavItem {
+                icon: Icons.preferences;
+                label: "Preferences";
+                selected: AppState.page == Pages.preferences;
+                show-focus: fs.has-focus && AppState.page == Pages.preferences;
+                clicked => {
+                    fs.focus();
+                    root.go(Pages.preferences);
+                }
+            }
+        }
+    }
+}

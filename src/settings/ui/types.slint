@@ -1,0 +1,107 @@
+// Data shared between C++ and the UI. AppState is the bridge: C++ fills the `in`
+// properties and implements the callbacks (src/AppController.cpp).
+
+// `shell.exe -status`, plus display strings computed in C++.
+export struct StatusInfo {
+    loaded: bool,
+    version: string,
+    elevated: bool,
+    install-dir: string,
+    active-dll: string,
+    active-dll-exists: bool,
+    reg-mode: string,          // none | user | machine | both
+    machine-registered: bool,
+    user-registered: bool,
+    win11-applicable: bool,
+    classic-menu: bool,
+    config-path: string,
+    config-source: string,     // registry | appdata | install
+    config-exists: bool,
+    user-config-dir: string,
+
+    health-kind: string,       // ok | warning | error | neutral
+    health-title: string,
+    health-detail: string,
+    pill-text: string,
+    reg-text: string,
+    win11-text: string,
+    source-text: string,
+}
+
+// One shell.log entry.
+export struct Diagnostic {
+    level: string,             // error | warning | info
+    time: string,
+    message: string,
+    file: string,
+    line: int,
+    column: int,
+}
+
+// A problem found in the status, shown as a banner on Home.
+export struct Issue {
+    kind: string,              // error | warning | info
+    title: string,
+    message: string,
+    action: string,            // AppState.action() id, or ""
+    action-label: string,
+}
+
+// Sidebar entry. `header` starts a new group.
+export struct NavEntry {
+    page: int,
+    label: string,
+    icon: image,
+    header: string,
+}
+
+// Page ids.
+export global Pages {
+    out property <int> home: 0;
+    out property <int> appearance: 1;
+    out property <int> behavior: 2;
+    out property <int> rules: 3;
+    out property <int> menus: 4;
+    out property <int> builder: 5;
+    out property <int> editor: 6;
+    out property <int> backups: 7;
+    out property <int> preferences: 8;
+}
+
+export global AppState {
+    in-out property <int> page: 0;
+    in property <string> app-version;
+
+    in property <StatusInfo> status;
+    in property <[Issue]> issues;
+    in property <[Diagnostic]> diagnostics;
+    in property <string> log-path;
+    in property <bool> cli-available: true;
+
+    // Busy: one action at a time; every action button is disabled meanwhile.
+    in property <bool> busy;
+    in property <string> busy-label;
+
+    // Toast
+    in property <bool> toast-shown;
+    in property <string> toast-kind;   // ok | error | info | warning
+    in property <string> toast-title;
+    in property <string> toast-text;
+
+    // Preferences
+    in-out property <int> theme-mode;  // 0 system, 1 light, 2 dark
+    in property <image> shield-icon;   // the Windows UAC shield (stock icon)
+
+    // Onboarding
+    in-out property <bool> onboarding-shown;
+    in-out property <int> onboarding-step;
+    in-out property <bool> classic-menu-option: true;
+
+    callback refresh();
+    callback action(id: string);       // see AppController::runAction
+    callback set-theme(mode: int);
+    callback open-url(url: string);
+    callback open-path(path: string);
+    callback dismiss-onboarding();
+    callback dismiss-toast();
+}

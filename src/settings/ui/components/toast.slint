@@ -1,0 +1,80 @@
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { CloseGlyph } from "banner.slint";
+
+// Transient message at the bottom of the window. Shown/hidden by AppState.toast-shown;
+// C++ hides it after a few seconds.
+export component Toast inherits Rectangle {
+    in property <bool> shown;
+    in property <string> kind: "info";
+    in property <string> title;
+    in property <string> text;
+    callback close();
+
+    width: min(520px, self.max-available);
+    in property <length> max-available: 520px;
+    height: row.preferred-height;
+    opacity: root.shown ? 1 : 0;
+    visible: self.opacity > 0.01;
+    animate opacity { duration: Tokens.normal; easing: ease-out; }
+
+    border-radius: Tokens.radius-card;
+    background: Tokens.layer-2;
+    border-width: 1px;
+    border-color: Tokens.stroke-strong;
+    drop-shadow-blur: 24px;
+    drop-shadow-offset-y: 8px;
+    drop-shadow-color: #00000040;
+
+    TouchArea { } // swallow clicks under the toast
+
+    Rectangle {
+        x: 0;
+        width: 4px;
+        height: parent.height;
+        border-top-left-radius: Tokens.radius-card;
+        border-bottom-left-radius: Tokens.radius-card;
+        background: Tokens.status-color(root.kind);
+    }
+
+    row := HorizontalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s2;
+        padding-top: Tokens.s3;
+        padding-bottom: Tokens.s3;
+        spacing: Tokens.s3;
+
+        VerticalLayout {
+            alignment: start;
+            padding-top: 1px;
+            Image {
+                source: Icons.status(root.kind);
+                width: 18px;
+                height: 18px;
+                colorize: Tokens.status-color(root.kind);
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 2px;
+            Text {
+                text: root.title;
+                font-weight: 600;
+                color: Tokens.text;
+                wrap: word-wrap;
+            }
+            if root.text != "": Text {
+                text: root.text;
+                color: Tokens.text-2;
+                font-size: Tokens.caption + 1px;
+                wrap: word-wrap;
+            }
+        }
+        VerticalLayout {
+            alignment: start;
+            CloseGlyph {
+                clicked => { root.close(); }
+            }
+        }
+    }
+}

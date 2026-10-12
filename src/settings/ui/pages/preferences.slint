@@ -1,0 +1,127 @@
+import { AboutSlint, Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { Card, KeyValue } from "../components/card.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Link, Segmented } from "../components/controls.slint";
+import { PageFrame } from "page-frame.slint";
+
+export component PreferencesPage inherits PageFrame {
+    PageHeader {
+        title: "Preferences";
+        description: "How this app looks, machine-wide registration, and about.";
+        busy: AppState.busy;
+        busy-label: AppState.busy-label;
+    }
+
+    Card {
+        heading: "App theme";
+        description: "System follows the Windows app mode and changes with it.";
+        HorizontalLayout {
+            alignment: start;
+            Segmented {
+                width: 300px;
+                options: ["System", "Light", "Dark"];
+                selected: AppState.theme-mode;
+                changed(i) => { AppState.set-theme(i); }
+            }
+        }
+    }
+
+    Card {
+        heading: "All users on this PC";
+        description: "Registering for everyone writes to HKEY_LOCAL_MACHINE and needs administrator rights. Everything else in this app works without them.";
+        KeyValue {
+            key: "All users";
+            value: !AppState.status.loaded ? "—" : AppState.status.machine-registered ? "Registered" : "Not registered";
+        }
+        KeyValue {
+            key: "Just you";
+            value: !AppState.status.loaded ? "—" : AppState.status.user-registered ? "Registered" : "Not registered";
+        }
+        HorizontalLayout {
+            alignment: start;
+            spacing: Tokens.s2;
+            Button {
+                text: AppState.status.machine-registered ? "Unregister for all users" : "Register for all users";
+                icon: AppState.shield-icon;
+                icon-size: 16px;
+                enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
+                clicked => { AppState.action(AppState.status.machine-registered ? "unregister-machine" : "register-machine"); }
+            }
+        }
+    }
+
+    Card {
+        heading: "About";
+        HorizontalLayout {
+            spacing: Tokens.s4;
+            Image {
+                source: Icons.logo;
+                width: 64px;
+                height: 64px;
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+                Text {
+                    text: "Nilesoft Shell Settings";
+                    font-size: Tokens.body-large;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                Text {
+                    text: "Version " + AppState.app-version + (AppState.status.version != "" && AppState.status.version != AppState.app-version ? "  ·  shell.exe " + AppState.status.version : "");
+                    color: Tokens.text-2;
+                }
+                Text {
+                    text: "© Nilesoft Ltd. and contributors. MIT License.";
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                }
+            }
+        }
+        HorizontalLayout {
+            spacing: Tokens.s5;
+            alignment: start;
+            Link {
+                text: "nilesoft.org";
+                activated => { AppState.open-url("https://nilesoft.org"); }
+            }
+            Link {
+                text: "Documentation";
+                activated => { AppState.open-url("https://nilesoft.org/docs"); }
+            }
+            Link {
+                text: "Source code";
+                activated => { AppState.open-url("https://github.com/moudey/Shell"); }
+            }
+            Link {
+                text: "Report an issue";
+                activated => { AppState.open-url("https://github.com/moudey/Shell/issues"); }
+            }
+        }
+        Rectangle {
+            height: 1px;
+            background: Tokens.stroke;
+        }
+        Text {
+            text: "Third-party software";
+            font-weight: 600;
+            color: Tokens.text;
+        }
+        Text {
+            text: "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT).";
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+        }
+        HorizontalLayout {
+            alignment: start;
+            AboutSlint {
+                width: 280px;
+            }
+        }
+    }
+}

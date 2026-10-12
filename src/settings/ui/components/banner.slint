@@ -1,0 +1,97 @@
+import { Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+
+// A small square "x" button.
+export component CloseGlyph inherits Rectangle {
+    callback clicked;
+    width: 32px;
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; }
+    accessible-role: button;
+    accessible-label: "Close";
+    accessible-action-default => { root.clicked(); }
+
+    Image {
+        source: Icons.close;
+        width: 14px;
+        height: 14px;
+        colorize: Tokens.text-2;
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// InfoBar-style message: icon, title, text, an optional action and close button.
+export component Banner inherits Rectangle {
+    in property <string> kind: "info"; // info | ok | warning | error
+    in property <string> title;
+    in property <string> text;
+    in property <string> action-label;
+    in property <bool> action-enabled: true;
+    in property <bool> closable;
+    callback action();
+    callback close();
+
+    min-height: 48px;
+    border-radius: Tokens.radius-card;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    background: Tokens.status-bg(root.kind);
+    animate background { duration: Tokens.normal; }
+
+    HorizontalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s2;
+        padding-top: Tokens.s3;
+        padding-bottom: Tokens.s3;
+        spacing: Tokens.s3;
+
+        VerticalLayout {
+            alignment: start;
+            padding-top: 1px;
+            Image {
+                source: Icons.status(root.kind);
+                width: 18px;
+                height: 18px;
+                colorize: Tokens.status-color(root.kind);
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: root.title;
+                font-weight: 600;
+                font-size: Tokens.body;
+                color: Tokens.text;
+                wrap: word-wrap;
+            }
+            if root.text != "": Text {
+                text: root.text;
+                font-size: Tokens.body;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+        }
+        if root.action-label != "": VerticalLayout {
+            alignment: center;
+            Button {
+                text: root.action-label;
+                enabled: root.action-enabled;
+                clicked => { root.action(); }
+            }
+        }
+        if root.closable: VerticalLayout {
+            alignment: center;
+            CloseGlyph {
+                clicked => { root.close(); }
+            }
+        }
+    }
+}

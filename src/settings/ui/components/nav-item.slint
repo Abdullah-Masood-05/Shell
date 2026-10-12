@@ -1,0 +1,66 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// Sidebar entry: hover/selection fills animate, the accent pill grows on selection.
+export component NavItem inherits Rectangle {
+    in property <image> icon;
+    in property <string> label;
+    in property <bool> selected;
+    in property <bool> show-focus; // keyboard focus is on this entry
+    callback clicked;
+
+    height: 36px;
+    border-radius: Tokens.radius-control;
+    background: ta.pressed ? Tokens.pressed : root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; easing: ease-out; }
+
+    accessible-role: tab;
+    accessible-label: root.label;
+    accessible-item-selected: root.selected;
+    accessible-action-default => { root.clicked(); }
+
+    Rectangle {
+        x: 0;
+        width: 3px;
+        height: root.selected ? 16px : 0px;
+        y: (root.height - self.height) / 2;
+        border-radius: 1.5px;
+        background: Tokens.accent;
+        animate height { duration: Tokens.normal; easing: ease-out; }
+    }
+
+    HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s3;
+        spacing: Tokens.s3;
+
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                width: 20px;
+                height: 20px;
+                colorize: root.selected ? Tokens.accent : Tokens.text;
+                animate colorize { duration: Tokens.fast; }
+            }
+        }
+        Text {
+            text: root.label;
+            vertical-alignment: center;
+            font-size: Tokens.body;
+            font-weight: root.selected ? 600 : 400;
+            color: Tokens.text;
+            overflow: elide;
+        }
+    }
+
+    if root.show-focus: Rectangle {
+        border-radius: Tokens.radius-control;
+        border-width: 2px;
+        border-color: Tokens.focus-ring;
+    }
+
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
