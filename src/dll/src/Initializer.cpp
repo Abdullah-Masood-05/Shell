@@ -136,25 +136,20 @@ namespace Nilesoft
 					// importing file's own directory.
 					Parser parser;
 
-					// Taken right after the Parser has read the root config (and
-					// settled which file that is), so a save made after this point
-					// is seen as a change and triggers a retry.
-					auto config_time = last_write_time(application.Config);
-
 					load_mui();
 
 					cache->Packages.load();
 
-					if(!parser.Load())
-					{
-						// Remember what the failed load depended on: the root config
-						// and the file the error was in (which may be an import).
-						// has_error(true) retries once either has been written.
-						_failed_load.config_time = config_time;
-						auto error_file = parser.Path();
-						_failed_load.error_file = error_file ? error_file : L"";
-						_failed_load.error_file_time = last_write_time(_failed_load.error_file);
+					auto loaded = parser.Load();
 
+					// Remember every file this load depended on, stamped as each
+					// was read, so an edit to any of them (or the file the error
+					// was in, for a failed load) is seen by config_has_changed().
+					watch(std::move(parser.Sources));
+
+					if(!loaded)
+					{
+						// has_error(true) retries once one of them has been written.
 						Status.Error = true;
 						uninit();
 						// Release ownership of the critical section.
@@ -235,6 +230,13 @@ namespace Nilesoft
 				if(Status.Error && ch < 2)
 					return false;
 
+				// Reload a working config when the root or any import has been
+				// edited since it was loaded. query() runs as a menu is being
+				// built, the same place the Ctrl / right+left-click reload acts,
+				// so this adds no new point at which the cache is replaced.
+				if(Status.Loaded && !Status.Refresh && config_has_changed())
+					Status.Refresh = true;
+
 				if(Status.Refresh)
 					uninit();
 				
@@ -261,26 +263,33 @@ namespace Nilesoft
 				| data.ftLastWriteTime.dwLowDateTime;
 		}
 
-		// Determine whether the config changed since the last failed load. Both
-		// stamps are updated, so each change is reported once.
+		void Initializer::watch(std::vector<SourceFile> &&files)
+		{
+			std::lock_guard lock(_watched_lock);
+			_watched = std::move(files);
+		}
+
+		// Determine whether any file the last load depended on changed since.
+		// The stamps are updated, so each change is reported once.
 		bool Initializer::config_has_changed()
 		{
 			bool changed = false;
 			try
 			{
-				auto config_time = last_write_time(application.Config);
-				if(config_time != _failed_load.config_time)
-				{
-					_failed_load.config_time = config_time;
-					changed = true;
-				}
+				// Throttle: at most one poll per CheckInterval, and only by the
+				// thread that wins the exchange.
+				auto now = ::GetTickCount64();
+				auto next = _next_check.load();
+				if(now < next || !_next_check.compare_exchange_strong(next, now + CheckInterval))
+					return false;
 
-				if(!_failed_load.error_file.empty())
+				std::lock_guard lock(_watched_lock);
+				for(auto &file : _watched)
 				{
-					auto error_file_time = last_write_time(_failed_load.error_file);
-					if(error_file_time != _failed_load.error_file_time)
+					auto time = last_write_time(file.path);
+					if(time != file.time)
 					{
-						_failed_load.error_file_time = error_file_time;
+						file.time = time;
 						changed = true;
 					}
 				}
@@ -308,8 +317,7 @@ namespace Nilesoft
 			if(Status.Refresh)
 				return false;
 
-			// Only checked while the config is broken; a valid config is never
-			// polled here, so this is not a reload-on-change for working configs.
+			// A working config is checked in query() instead, when a menu is built.
 			if(config_has_changed())
 			{
 				Status.Refresh = true;

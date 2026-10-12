@@ -26,8 +26,18 @@ namespace Nilesoft
 			// shell.exe so -status/-config:path report this same file. The DLL
 			// only ever reads it.
 			auto location = ConfigLocation::Resolve(context.Application->Dirctory);
+
+			// Watch the locations that would take precedence over the one in
+			// use (they do not exist now), so creating one, e.g. with
+			// shell -config:init, is picked up like an edit.
+			if(location.source != ConfigLocation::Source::registry && !location.configured.empty())
+				add_source(location.configured);
+			if(location.source == ConfigLocation::Source::install || location.source == ConfigLocation::Source::none)
+				add_source(ConfigLocation::UserConfig());
+
 			if(location.source == ConfigLocation::Source::none)
 			{
+				add_source(location.path);
 				string ss = L"config file ";
 				if(!location.configured.empty())
 				{
@@ -45,7 +55,8 @@ namespace Nilesoft
 
 			_imports.emplace_back(new Lexer);
 			l = _imports.front().get();
-			
+
+			add_source(m_path);
 			if(!l->load_File(m_path.c_str()) || l->length < 5)
 			{
 				if(HasError())
@@ -56,6 +67,18 @@ namespace Nilesoft
 		}
 
 		Parser::~Parser() { }
+
+		void Parser::add_source(const wchar_t *path)
+		{
+			if(!path || !*path)
+				return;
+			for(auto &source : Sources)
+			{
+				if(source.path.equals(path, true))
+					return;
+			}
+			Sources.push_back({ path, Initializer::last_write_time(path) });
+		}
 		size_t Parser::Line() const { return l ? l->line : 0; };
 		size_t Parser::Column() const { return l ? l->column : 0; };
 		const wchar_t *Parser::Path() const { return l ? l->path.c_str() : nullptr; };
@@ -1162,6 +1185,8 @@ namespace Nilesoft
 
 			auto lex = import_push();
 
+			if(hash)
+				add_source(path);
 			if(hash && lex->load_File(path, ignore_failed))
 			{
 				__trace(L"import '%s'", path.c_str());
