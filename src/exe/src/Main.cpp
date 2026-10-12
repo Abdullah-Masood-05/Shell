@@ -535,7 +535,7 @@ bool Registration(REGOP reg)
 						_log->warning(L"Could not remove the Windows 11 TreatAs redirect.");
 				};
 
-				if(!RegistryConfig::IsRegistered())
+				if(!RegistryConfig::IsRegistered(RegScope::Machine))
 				{
 					// Clean up a stale redirect left behind by an earlier
 					// uninstall, but still report "not registered".

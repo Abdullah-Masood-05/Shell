@@ -1285,7 +1285,8 @@ HRESULT Register(bool reg)
 		}
 		else
 		{
-			if(!RegistryConfig::IsRegistered())
+			// Machine registration only: a per-user one is not ours to remove here.
+			if(!RegistryConfig::IsRegistered(RegScope::Machine))
 				return S_OK;
 
 			if(!RegistryConfig::Unregister())
