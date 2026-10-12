@@ -524,8 +524,24 @@ bool Registration(REGOP reg)
 			}
 			else
 			{
+				// Always remove our TreatAs redirect on unregister, with or without
+				// -treat: a redirect left pointing at a CLSID that is no longer
+				// registered breaks the Windows 11 context menu. disable_modern
+				// only deletes it when it points at our CLSID, and a missing key
+				// is a no-op.
+				auto remove_treatas = [&]()
+				{
+					if(ver->IsWindows11OrGreater() && !disable_modern(false))
+						_log->warning(L"Could not remove the Windows 11 TreatAs redirect.");
+				};
+
 				if(!RegistryConfig::IsRegistered())
+				{
+					// Clean up a stale redirect left behind by an earlier
+					// uninstall, but still report "not registered".
+					remove_treatas();
 					return false;
+				}
 
 				if(!RegistryConfig::Unregister())
 				{
@@ -539,12 +555,7 @@ bool Registration(REGOP reg)
 					return false;
 				}
 
-				// is windows 11 or later
-				if(ver->IsWindows11OrGreater() && reg.TREAT)
-				{
-					if(!disable_modern(false))
-						_log->warning(L"Could not remove the Windows 11 TreatAs redirect.");
-				}
+				remove_treatas();
 
 				msg = string::Extract(IDS_UNREGISTER_SUCCESS).move();
 			}
