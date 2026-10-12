@@ -3700,9 +3700,16 @@ namespace Nilesoft
 
 			if(ver->IsWindows11OrGreater()) 
 			{
-				DWORD dwTextScaleFactor = 100, cbData;
-				::RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility", 
-							   L"TextScaleFactor", RRF_RT_DWORD, nullptr, &dwTextScaleFactor, &cbData);
+				// TextScaleFactor is the accessibility text size in percent and is
+				// absent unless the user changed it. cbData is in/out: it used to be
+				// left uninitialised, so a garbage stack value decided whether the
+				// read happened at all, and the result was never checked.
+				DWORD dwTextScaleFactor = 100, cbData = sizeof(dwTextScaleFactor);
+				if(ERROR_SUCCESS != ::RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility",
+												   L"TextScaleFactor", RRF_RT_DWORD, nullptr,
+												   &dwTextScaleFactor, &cbData)
+				   || dwTextScaleFactor == 0)
+					dwTextScaleFactor = 100;
 				long scale = ((dpi.val + 24) * dwTextScaleFactor) / 100;
 				_theme.font.lfHeight = 12 * scale / 100;
 			}
