@@ -4196,6 +4196,11 @@ namespace Nilesoft
 
 									if(duplicate)
 									{
+										// A re-read popup was registered in the path map
+										// when it was built; forget it (and its children)
+										// before freeing it, or later lookups by that path
+										// would push items into freed memory.
+										unmap_system_subtree(item);
 										delete item;
 										continue;
 									}
@@ -4353,7 +4358,14 @@ namespace Nilesoft
 						string sub_path = itemPtr->name;
 						if(!itemPtr->path.empty())
 							sub_path = itemPtr->path + L'/' + sub_path;
-						__map_system_menu[sub_path.hash()] = itemPtr;
+						// While a submenu is being re-read, a path that is already
+						// mapped belongs to the live node a modify rule moved out of
+						// it earlier; the re-read copy of that node is discarded as a
+						// duplicate, so it must not take the entry over.
+						if(__refreshing_system_items)
+							__map_system_menu.try_emplace(sub_path.hash(), itemPtr);
+						else
+							__map_system_menu[sub_path.hash()] = itemPtr;
 					}
 
 					if(found_duplicate != 2)
@@ -4435,14 +4447,23 @@ namespace Nilesoft
 			}
 			item->items.clear();
 
-			build_system_menuitems(item->source_handle, item, false);
-
-			if(_settings.modify_items.enabled)
 			{
-				__refreshing_system_items = true;
-				build_main_system_menuitems(item, false);
-				__refreshing_system_items = false;
-				_context._this = nullptr;
+				// Covers the re-read as well as the re-applied rules: the path map
+				// registration in build_system_menuitems depends on it too.
+				struct refreshing_scope
+				{
+					bool &flag;
+					explicit refreshing_scope(bool &f) : flag(f) { flag = true; }
+					~refreshing_scope() { flag = false; }
+				} refreshing(__refreshing_system_items);
+
+				build_system_menuitems(item->source_handle, item, false);
+
+				if(_settings.modify_items.enabled)
+				{
+					build_main_system_menuitems(item, false);
+					_context._this = nullptr;
+				}
 			}
 
 			// Back to wherever their rule put them, now that the path map points
