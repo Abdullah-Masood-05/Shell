@@ -158,6 +158,22 @@
 			<ComponentRef Id='CONFIG' />
 			<ComponentRef Id='IMPORTS' />
 			<ComponentRef Id='LANG' />
+			<!--
+				Every other imports\*.nss (e.g. my-tools.nss), one generated component
+				per file, same as the translations below. The files already in the
+				IMPORTS component are excluded so their component stays unchanged.
+				The pattern is not recursive, so imports\lang is not picked up here.
+			-->
+			<Files Directory='IMPORTS' Include='$(var.bin)\imports\*.nss'>
+				<Exclude Files='$(var.bin)\imports\theme.nss' />
+				<Exclude Files='$(var.bin)\imports\goto.nss' />
+				<Exclude Files='$(var.bin)\imports\modify.nss' />
+				<Exclude Files='$(var.bin)\imports\images.nss' />
+				<Exclude Files='$(var.bin)\imports\taskbar.nss' />
+				<Exclude Files='$(var.bin)\imports\develop.nss' />
+				<Exclude Files='$(var.bin)\imports\file-manage.nss' />
+				<Exclude Files='$(var.bin)\imports\terminal.nss' />
+			</Files>
 			<!-- All other translations; the ones already in LANG are excluded. -->
 			<Files Directory='LANG' Include='$(var.bin)\imports\lang\*.nss'>
 				<Exclude Files='$(var.bin)\imports\lang\en.nss' />
