@@ -529,16 +529,21 @@ namespace Nilesoft
 					{
 						if(context->Runtime)
 						{
+							// Passed explicitly so the launched process still starts in
+							// the selected folder. This used to be inherited from the
+							// process working directory, which Selections changed on
+							// every menu.
+							auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
 							Object arg0 = eval_arg(0).move();
 							if(argc > 1)
 							{
 								Diagnostics::ShellExec::Run(arg0, eval_arg(1),
-															nullptr, L"runas", eval_arg(2, SW_NORMAL));
+															cwd, L"runas", eval_arg(2, SW_NORMAL));
 							}
 							else
 							{
 								Diagnostics::ShellExec::Run(arg0, nullptr,
-															nullptr, L"open", SW_NORMAL);
+															cwd, L"open", SW_NORMAL);
 							}
 						}
 						//else if(Id[0] == IDENT_CMD && argc == 0)
@@ -550,7 +555,8 @@ namespace Nilesoft
 				{
 					if(context->Runtime && argc > 0)
 					{
-						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), nullptr,
+						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
+						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
 															  eval_arg(2), eval_arg(3, SW_NORMAL));
 					}
 					break;

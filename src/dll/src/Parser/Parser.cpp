@@ -26,6 +26,12 @@ namespace Nilesoft
 			{
 				//if(Path::IsFileExists(cfg))
 				m_path = cfg.move();
+
+				// A relative path used to resolve against the install folder
+				// because the working directory was switched there for the parse.
+				// That no longer happens, so root it explicitly.
+				if(!Path::IsAbsolute(m_path))
+					m_path = Path::Combine(context.Application->Dirctory, m_path).move();
 			}
 
 			if(m_path.empty() || !Path::IsFileExists(m_path))
@@ -1126,11 +1132,12 @@ namespace Nilesoft
 			if(path.empty())
 				return 0;
 			
-			if(path.length() > 2)
-			{
-				if(!((path[1] == L':' && path[2] == L'\\') || (path[0] == L'\\' && path[1] == L'\\')))
-					path = Path::Combine(l->location, path).move();
-			}
+			// Root every relative import against the importing file's own
+			// directory. The old length > 2 guard let short names such as "a"
+			// through unrooted, to be resolved against the process working
+			// directory, which is not ours to rely on.
+			if(!Path::IsAbsolute(path))
+				path = Path::Combine(l->location, path).move();
 
 			path = Path::FixSeparator(path).move();
 
