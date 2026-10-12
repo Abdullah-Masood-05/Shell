@@ -1363,6 +1363,20 @@ namespace Nilesoft
 				}
 			}
 
+			// remove leading separators, e.g. left behind when modify rules move or
+			// hide the items they used to group
+			{
+				size_t leading = 0;
+				while(leading < items.size() && items[leading]->is_separator())
+					leading++;
+
+				if(leading > 0)
+					items.erase(items.begin(), items.begin() + leading);
+
+				if(!items.empty() && items.front()->is_sep_before())
+					items.front()->separator &= ~(int)Separator::Top;
+			}
+
 			_items.reserve(items.size());
 			_items_command.reserve(items.size());
 			_items_popup.reserve(items.size());
