@@ -11,7 +11,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
   - `effect`: 0 none, 1 transparent, 2 blur, 3 acrylic, or `[3, tint, opacity]`.
 - **Config order:** HKCU `config` value, then `%APPDATA%\Nilesoft\Shell\shell.nss`, then the install folder.
 - **shell.exe quirks:** it is a GUI-subsystem exe, so always pass `-silent`. The log is `shell.log` next to shell.dll.
-- **Runtime libraries:** the core uses the static CRT (`/MT`). slint_cpp.dll needs the dynamic CRT, so ship the VC++ runtime DLLs next to the app.
+- **Runtime libraries:** the core uses the static CRT (`/MT`). settings.exe does too: Slint is built from source as a static library (with `+crt-static`) and linked in, so the app is one exe with no slint_cpp.dll and no VC++ runtime. See `src/settings/README.md`.
 
 ## Pages
 - **Home:** health card (registration none/user/machine/both, TreatAs state ours/foreign/absent, DLL path, versions). Active config card (path and where it comes from, "use per-user config"). Diagnostics from the end of `shell.log`, linked to the editor. Quick actions.
@@ -69,8 +69,8 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 - **CMake:** `src/settings/CMakeLists.txt` plus `CMakePresets.json` (`SLINT_DIR` defaults to `D:\Projects\_deps\slint-cpp-1.18.1`). Use `/ENTRY:mainCRTStartup`, `/MD`, and link dwmapi. Output goes to `src/bin/settings.exe`.
 - **Version:** read from `src/shared/Resource.h` by regex, never by including it.
 - **Manifest:** asInvoker, PerMonitorV2, Common Controls v6, UTF-8 code page.
-- **CI:** add a CMake step to the x64 job, with the Slint SDK cached. arm64 runs the x64 app under emulation.
-- **WiX:** a `SettingsApp` component group (settings.exe, slint_cpp.dll, app-local VC++ runtime DLLs) and a Start menu shortcut.
+- **CI:** add a CMake step to the x64 job, with the Slint source build cached. arm64 runs the x64 app under emulation.
+- **WiX:** a `SettingsApp` component group (settings.exe only) and a Start menu shortcut.
 
 ## Milestones
 - **M1:** skeleton, sidebar, Home/status, onboarding, preferences, and the Mica/transparency spike.

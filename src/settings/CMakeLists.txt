@@ -23,22 +23,30 @@ project(NilesoftShellSettings VERSION ${SHELL_VERSION}.${SHELL_VERSION_REV} LANG
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# slint_cpp.dll needs the dynamic CRT (the core itself uses /MT).
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
-if(NOT SLINT_DIR)
-    if(DEFINED ENV{SLINT_DIR})
-        set(SLINT_DIR "$ENV{SLINT_DIR}")
-    else()
-        set(SLINT_DIR "D:/Projects/_deps/slint-cpp-1.18.1")
-    endif()
-endif()
-list(PREPEND CMAKE_PREFIX_PATH "${SLINT_DIR}")
+# Slint either comes from source as a static library (default; settings.exe then needs no
+# DLLs beyond Windows itself, no VC++ Redistributable) or from the prebuilt SDK
+# (slint_cpp.dll + dynamic CRT; quicker for dev builds). See README.md.
+option(SETTINGS_SLINT_FROM_SOURCE "Build Slint from source as a static library and link the static CRT" ON)
 
 # Fluent widgets; Palette.color-scheme switches light/dark at runtime.
 set(SLINT_STYLE "fluent" CACHE STRING "Slint widget style" FORCE)
 set(DEFAULT_SLINT_EMBED_RESOURCES "embed-files" CACHE STRING "" FORCE)
-find_package(Slint 1.18 REQUIRED)
+
+if(SETTINGS_SLINT_FROM_SOURCE)
+    include(cmake/SlintFromSource.cmake)
+else()
+    # slint_cpp.dll needs the dynamic CRT (the core itself uses /MT).
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    if(NOT SLINT_DIR)
+        if(DEFINED ENV{SLINT_DIR})
+            set(SLINT_DIR "$ENV{SLINT_DIR}")
+        else()
+            set(SLINT_DIR "D:/Projects/_deps/slint-cpp-1.18.1")
+        endif()
+    endif()
+    list(PREPEND CMAKE_PREFIX_PATH "${SLINT_DIR}")
+    find_package(Slint 1.18 REQUIRED)
+endif()
 
 set(SETTINGS_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../bin")
 
@@ -113,8 +121,10 @@ set_target_properties(settings PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${SETTINGS_BIN_DIR}/debug"
     VS_DEBUGGER_WORKING_DIRECTORY "${SETTINGS_BIN_DIR}")
 
-# slint_cpp.dll goes next to settings.exe.
-add_custom_command(TARGET settings POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_RUNTIME_DLLS:settings> $<TARGET_FILE_DIR:settings>
-    COMMAND_EXPAND_LISTS)
+if(NOT SETTINGS_SLINT_FROM_SOURCE)
+    # Prebuilt SDK only: slint_cpp.dll goes next to settings.exe.
+    add_custom_command(TARGET settings POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_RUNTIME_DLLS:settings> $<TARGET_FILE_DIR:settings>
+        COMMAND_EXPAND_LISTS)
+endif()
