@@ -47,3 +47,6 @@ src/bin/*.msi
 src/bin/*.wixpdb
 src/packages/
 .claude/worktrees/
+
+# CMake build trees
+build/
