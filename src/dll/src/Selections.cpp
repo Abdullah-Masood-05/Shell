@@ -582,7 +582,12 @@ namespace Nilesoft
 				else
 					Directory = Parent;
 
-				::SetCurrentDirectoryW(Directory);
+				// Deliberately not ::SetCurrentDirectoryW(Directory). The working
+				// directory is per-process, and this runs on the thread building
+				// the menu inside a host we do not own, so every other thread in
+				// Explorer saw it change on each right-click. Consumers receive
+				// Directory explicitly instead (ContextMenu passes it to
+				// ShellExec::Run, and so do the run()/shell() functions).
 			}
 
 			Types[FSO_BACK] = this->Background;

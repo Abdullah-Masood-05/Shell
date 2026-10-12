@@ -3,7 +3,10 @@
 <p>Settings are containers for storing default values.</p>
 <pre><code class="lang-shell">settings
 {
-	// show menu delay value from 0 to 4000
+	// Delay before a submenu opens on hover, 0 to 4000 ms.
+	// This writes the Windows per-user setting SPI_SETMENUSHOWDELAY while a
+	// menu is open, so it overrides whatever the user chose system-wide.
+	// Leave it unset (the default) to respect their setting.
 	showdelay = 200
 
 	// Prevent interaction with these windows or processes

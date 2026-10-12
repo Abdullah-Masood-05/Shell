@@ -6089,23 +6089,13 @@ namespace Nilesoft
 						}
 					}
 
-					int pvParam{};
-					::SystemParametersInfoW(SPI_GETSELECTIONFADE, 0, &pvParam, 0);
-					if(!pvParam)
-					{
-						// Fade out animation is disabled system-wide
-						break;
-					}
-					// We need to prevent the system default menu fade out animation
-					// and begin a re-implemented one
-					// 
-					// Windows does not show animation if the selection was done
-					// with keyboard (i.e. Enter)
-
-					::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, FALSE, 0);
-					lret = defSubclassProc();
-					::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, (PVOID)TRUE, 0);
-					return lret;
+					// This used to turn SPI_SETSELECTIONFADE off around
+					// defSubclassProc and back on afterwards, to suppress the system
+					// fade-out "and begin a re-implemented one". That replacement was
+					// never written, so all it did was override the user's setting
+					// session-wide on every click, and anything that stopped the
+					// thread between the two calls left fade disabled. Users whose
+					// fade was already off took the early break, now the only path.
 				}
 				break;
 				case MN_DBLCLK:

@@ -593,7 +593,17 @@ namespace Nilesoft
 		class Initializer
 		{
 		private:
-			uintptr_t _last_write_time{};
+			// Last-write times of the files a failed load depended on, taken when
+			// that load was attempted. Compared by config_has_changed() so a broken
+			// config is retried once the user saves a fix. Unused while the
+			// config is valid.
+			struct {
+				uint64_t	config_time{};
+				string		error_file;
+				uint64_t	error_file_time{};
+			} _failed_load;
+
+			static uint64_t last_write_time(const wchar_t *path);
 
 		public:
 			struct {
@@ -605,8 +615,10 @@ namespace Nilesoft
 			} process;
 
 			Application		application;
-			HRESULT			com_init = E_UNEXPECTED;
-			COM_INITIALIZER com_initializer;
+			// No COM_INITIALIZER member. As a member of a global it initialised
+			// COM from DllMain (under the loader lock) on whichever thread loaded
+			// the DLL, and at teardown called CoUninitialize from whichever thread
+			// destroys globals. COM is now brought up per thread in ensure_com().
 			bool			is_elevated{};
 			CACHE *cache{};
 			//Hooker			user32_TrackPopupMenu;
@@ -620,12 +632,16 @@ namespace Nilesoft
 			bool query(int ch = 0);
 			bool init(HINSTANCE hInstance);
 			bool init();
+			static void ensure_com();
 			// Clean up resources allocated during initialization.
 			bool uninit();
 
-			//reloadOnChange
-			//determine
+			// True if the config, or the file the last parse error was in, has
+			// been written since the failed load. Only meaningful after a failure.
 			bool config_has_changed();
+			// detect_changes: if the config failed to load but has changed since,
+			// request a retry (Status.Refresh) and report no error, so the caller
+			// goes on to init() instead of falling back to the stock menu.
 			bool has_error(bool detect_changes = false);
 			void load_mui();
 

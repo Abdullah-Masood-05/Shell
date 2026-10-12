@@ -16,7 +16,11 @@ namespace Nilesoft
 
 			try
 			{
-				com_initializer.initialize();
+				// COM is deliberately not touched here. This runs from DllMain
+				// under the loader lock, where CoInitializeEx is documented as
+				// unsupported, and it would initialise whichever thread happened
+				// to load the DLL rather than the one that builds menus. It is
+				// done on the menu thread by ensure_com(), called from init().
 
 				application.Name = APP_NAME;
 				application.FileName = APP_FILENAME_TITLE;
@@ -76,10 +80,46 @@ namespace Nilesoft
 			}
 		}
 
+		// Makes sure the calling thread has a COM apartment, and applies the
+		// process-wide COM option that used to be set from DllMain.
+		//
+		// If the host already initialised COM on this thread (the normal case in
+		// Explorer) nothing is done, so no reference count is taken. Otherwise an
+		// STA is created and deliberately never paired with CoUninitialize: the
+		// thread belongs to the host, and tearing the apartment down at some
+		// arbitrary later point would be worse than leaving it in place.
+		void Initializer::ensure_com()
+		{
+			static thread_local bool done = false;
+			if(done)
+				return;
+			done = true;
+
+			APTTYPE apt_type{};
+			APTTYPEQUALIFIER apt_qualifier{};
+			if(::CoGetApartmentType(&apt_type, &apt_qualifier) == CO_E_NOTINITIALIZED)
+				::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+			// DisableComExceptionHandling. Process-global, so applied once. It used
+			// to be a COM activation under the loader lock; kept, off the loader
+			// lock, rather than silently dropped.
+			static std::atomic_flag global_options_set = ATOMIC_FLAG_INIT;
+			if(!global_options_set.test_and_set())
+			{
+				IComPtr<IGlobalOptions> globalOptions;
+				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
+					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+			}
+		}
+
 		bool Initializer::init()
 		{
 			try
 			{
+				// First thing on this thread, before anything reaches WIC, D2D or
+				// a shell interface.
+				ensure_com();
+
 				if(!cache)
 				{
 					cache = new CACHE;
@@ -87,9 +127,19 @@ namespace Nilesoft
 					// Determine the required bitmap size.
 					cache->glyph.name = FontCache::Default;
 
-					auto cur_dir = Path::CurrentDirectory();
-					Path::CurrentDirectory(application.Dirctory);
+					// The working directory is deliberately left alone. It used to be
+					// pointed at the install folder for the duration of the parse,
+					// which mutates state shared with every other thread in the host
+					// process (and was not restored if parsing threw). The config
+					// path is absolute (Parser roots a relative registry path at the
+					// install folder) and load_import roots every import against the
+					// importing file's own directory.
 					Parser parser;
+
+					// Taken right after the Parser has read the root config (and
+					// settled which file that is), so a save made after this point
+					// is seen as a change and triggers a retry.
+					auto config_time = last_write_time(application.Config);
 
 					load_mui();
 
@@ -97,9 +147,16 @@ namespace Nilesoft
 
 					if(!parser.Load())
 					{
+						// Remember what the failed load depended on: the root config
+						// and the file the error was in (which may be an import).
+						// has_error(true) retries once either has been written.
+						_failed_load.config_time = config_time;
+						auto error_file = parser.Path();
+						_failed_load.error_file = error_file ? error_file : L"";
+						_failed_load.error_file_time = last_write_time(_failed_load.error_file);
+
 						Status.Error = true;
 						uninit();
-						Path::CurrentDirectory(cur_dir);
 						// Release ownership of the critical section.
 						return false;
 					}
@@ -118,7 +175,6 @@ namespace Nilesoft
 						}
 					}
 
-					Path::CurrentDirectory(cur_dir);
 					cache->fonts.init(HInstance);
 					ContextMenu::FontNotFound = false;
 				}
@@ -193,25 +249,39 @@ namespace Nilesoft
 			return false;
 		}
 
-		//determine config file changed
+		// Last-write time of a file, or 0 if it cannot be read. Uses the
+		// attributes rather than opening the file, so it never holds a handle
+		// that could get in the way of an editor saving it.
+		uint64_t Initializer::last_write_time(const wchar_t *path)
+		{
+			WIN32_FILE_ATTRIBUTE_DATA data{};
+			if(!path || !*path || !::GetFileAttributesExW(path, GetFileExInfoStandard, &data))
+				return 0;
+			return (static_cast<uint64_t>(data.ftLastWriteTime.dwHighDateTime) << 32)
+				| data.ftLastWriteTime.dwLowDateTime;
+		}
+
+		// Determine whether the config changed since the last failed load. Both
+		// stamps are updated, so each change is reported once.
 		bool Initializer::config_has_changed()
 		{
-			bool res = false;
+			bool changed = false;
 			try
 			{
-				auto_handle hConfig = ::CreateFileW(application.Config, GENERIC_READ, FILE_SHARE_READ,
-													nullptr, OPEN_EXISTING, 0, nullptr);
-				if(hConfig)
+				auto config_time = last_write_time(application.Config);
+				if(config_time != _failed_load.config_time)
 				{
-					FILETIME ft_lastWriteTime{};
-					auto last_write_time = reinterpret_cast<uintptr_t *>(&ft_lastWriteTime);
-					if(::GetFileTime(hConfig, nullptr, nullptr, &ft_lastWriteTime) && *last_write_time != 0)
+					_failed_load.config_time = config_time;
+					changed = true;
+				}
+
+				if(!_failed_load.error_file.empty())
+				{
+					auto error_file_time = last_write_time(_failed_load.error_file);
+					if(error_file_time != _failed_load.error_file_time)
 					{
-						if(*last_write_time != _last_write_time)
-						{
-							res = _last_write_time > 0;
-							_last_write_time = *last_write_time;
-						}
+						_failed_load.error_file_time = error_file_time;
+						changed = true;
 					}
 				}
 			}
@@ -221,16 +291,32 @@ namespace Nilesoft
 				Logger::Exception(__func__);
 #endif
 			}
-			return res;
+			return changed;
 		}
 
 		bool Initializer::has_error(bool detect_changes)
 		{
-			if(Status.Error)
+			if(!Status.Error)
+				return false;
+
+			if(!detect_changes)
+				return true;
+
+			// A retry is already pending: let the caller go on to init(), which
+			// either loads the config (clearing Error) or fails and clears
+			// Refresh via uninit(), so this cannot repeat without a new change.
+			if(Status.Refresh)
+				return false;
+
+			// Only checked while the config is broken; a valid config is never
+			// polled here, so this is not a reload-on-change for working configs.
+			if(config_has_changed())
 			{
-				return detect_changes ? !config_has_changed() : true;
+				Status.Refresh = true;
+				return false;
 			}
-			return false;
+
+			return true;
 		}
 
 		void Initializer::load_mui()

@@ -560,7 +560,9 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 				// is injected from explorer
 				if(!_initializer.Status.Loaded)
 				{
-					if(_initializer.has_error() || has_inited)
+					// A broken config falls back to the stock menu, but is retried
+					// once it has been saved again (has_error(true) sees the change).
+					if(_initializer.has_error(true) || has_inited)
 						__leave; //goto skip;
 					_initializer.init();
 				}
@@ -761,7 +763,7 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			if(_initializer.has_error())
 			{
 				_initializer.OnState();
-				if(_initializer.has_error())
+				if(_initializer.has_error(true))
 					return wndproc(hWnd, uMsg, wParam, lParam);
 			}
 			else
@@ -852,7 +854,7 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 				_initializer.OnState();
 
-				if(_initializer.has_error())
+				if(_initializer.has_error(true))
 					return lret;
 			}
 			else
@@ -975,10 +977,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 
 			if(_initializer.init(_hInstance))
 			{
-				// DisableComExceptionHandling
-				IComPtr<IGlobalOptions> globalOptions;
-				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
-					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+				// CoInitializeEx and the IGlobalOptions activation used to run
+				// here. Both are COM calls under the loader lock, which is
+				// documented as unsupported and a plausible cause of Explorer
+				// hangs. They moved to Initializer::ensure_com, which runs on the
+				// thread that builds menus.
 
 				_initializer.process.hModule = _loader.handle;
 				_initializer.process.path = Path::Module(_loader.handle).move();
@@ -1164,9 +1167,12 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 		if(!is_registered())
 			return hr;
 		
-		if(_initializer.has_error())
+		// Only a context-menu request (made on the thread about to show a menu)
+		// may retry a broken config; icon-overlay requests can arrive on any
+		// thread at any time and must not trigger a parse.
+		if(_initializer.has_error(rclsid == IID_ContextMenu))
 			return hr;
-		
+
 		if(rclsid == IID_ContextMenu)
 		{
 			_loader.contextmenuhandler = true;
