@@ -1154,6 +1154,13 @@ namespace Nilesoft
 				m_imports.push_back(hash);
 			}
 
+			if(_imports.size() >= MaxImportDepth)
+			{
+				Logger::Error(L"line[%d] column[%d] import nesting deeper than %d, refusing '%s'",
+							  line, col, static_cast<int>(MaxImportDepth), path.c_str());
+				return 0;
+			}
+
 			auto lex = import_push();
 
 			if(hash && lex->load_File(path, ignore_failed))
