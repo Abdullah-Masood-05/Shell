@@ -269,6 +269,7 @@ namespace Nilesoft
 			if(list.empty())
 				return false;
 
+			_context.menu_count = (uint32_t)list.size();
 			int _this_index = 0;
 			
 			for(auto item : list)
@@ -1020,6 +1021,7 @@ namespace Nilesoft
 				return false;
 
 			//int _index = 0;
+			_context.menu_count = (uint32_t)menu->std_items->size();
 			for(auto item : *menu->std_items)
 			{
 				_context._this = nullptr;
@@ -4104,6 +4106,8 @@ namespace Nilesoft
 						}
 
 						_context._this = &_this;
+						// reset per item: a nested call for a submenu overwrites it
+						_context.menu_count = static_cast<uint32_t>(items->size());
 
 						//if(!Selected.verify_types(si->fso))
 						//	continue;
