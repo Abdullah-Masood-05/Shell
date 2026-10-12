@@ -16,7 +16,11 @@ namespace Nilesoft
 
 			try
 			{
-				com_initializer.initialize();
+				// COM is deliberately not touched here. This runs from DllMain
+				// under the loader lock, where CoInitializeEx is documented as
+				// unsupported, and it would initialise whichever thread happened
+				// to load the DLL rather than the one that builds menus. It is
+				// done on the menu thread by ensure_com(), called from init().
 
 				application.Name = APP_NAME;
 				application.FileName = APP_FILENAME_TITLE;
@@ -76,10 +80,46 @@ namespace Nilesoft
 			}
 		}
 
+		// Makes sure the calling thread has a COM apartment, and applies the
+		// process-wide COM option that used to be set from DllMain.
+		//
+		// If the host already initialised COM on this thread (the normal case in
+		// Explorer) nothing is done, so no reference count is taken. Otherwise an
+		// STA is created and deliberately never paired with CoUninitialize: the
+		// thread belongs to the host, and tearing the apartment down at some
+		// arbitrary later point would be worse than leaving it in place.
+		void Initializer::ensure_com()
+		{
+			static thread_local bool done = false;
+			if(done)
+				return;
+			done = true;
+
+			APTTYPE apt_type{};
+			APTTYPEQUALIFIER apt_qualifier{};
+			if(::CoGetApartmentType(&apt_type, &apt_qualifier) == CO_E_NOTINITIALIZED)
+				::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+			// DisableComExceptionHandling. Process-global, so applied once. It used
+			// to be a COM activation under the loader lock; kept, off the loader
+			// lock, rather than silently dropped.
+			static std::atomic_flag global_options_set = ATOMIC_FLAG_INIT;
+			if(!global_options_set.test_and_set())
+			{
+				IComPtr<IGlobalOptions> globalOptions;
+				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
+					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+			}
+		}
+
 		bool Initializer::init()
 		{
 			try
 			{
+				// First thing on this thread, before anything reaches WIC, D2D or
+				// a shell interface.
+				ensure_com();
+
 				if(!cache)
 				{
 					cache = new CACHE;

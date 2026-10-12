@@ -975,10 +975,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 
 			if(_initializer.init(_hInstance))
 			{
-				// DisableComExceptionHandling
-				IComPtr<IGlobalOptions> globalOptions;
-				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
-					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+				// CoInitializeEx and the IGlobalOptions activation used to run
+				// here. Both are COM calls under the loader lock, which is
+				// documented as unsupported and a plausible cause of Explorer
+				// hangs. They moved to Initializer::ensure_com, which runs on the
+				// thread that builds menus.
 
 				_initializer.process.hModule = _loader.handle;
 				_initializer.process.path = Path::Module(_loader.handle).move();

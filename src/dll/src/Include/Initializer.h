@@ -605,8 +605,10 @@ namespace Nilesoft
 			} process;
 
 			Application		application;
-			HRESULT			com_init = E_UNEXPECTED;
-			COM_INITIALIZER com_initializer;
+			// No COM_INITIALIZER member. As a member of a global it initialised
+			// COM from DllMain (under the loader lock) on whichever thread loaded
+			// the DLL, and at teardown called CoUninitialize from whichever thread
+			// destroys globals. COM is now brought up per thread in ensure_com().
 			bool			is_elevated{};
 			CACHE *cache{};
 			//Hooker			user32_TrackPopupMenu;
@@ -620,6 +622,7 @@ namespace Nilesoft
 			bool query(int ch = 0);
 			bool init(HINSTANCE hInstance);
 			bool init();
+			static void ensure_com();
 			// Clean up resources allocated during initialization.
 			bool uninit();
 
