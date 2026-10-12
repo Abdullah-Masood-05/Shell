@@ -4338,9 +4338,12 @@ namespace Nilesoft
 
 							if(_settings.modify_items.remove.duplicate)
 							{
-								uint32_t indexof = 0;
-								for(auto im : menu->items)
+								// indexof has to advance with the scan; it used to be
+								// incremented after the loop, so it was always 0 and a
+								// replacement overwrote items[0] instead of the match.
+								for(size_t indexof = 0; indexof < menu->items.size(); indexof++)
 								{
+									auto im = menu->items[indexof];
 									if(im->hash == item->hash)
 									{
 										if(im->type == item->type)
@@ -4351,6 +4354,11 @@ namespace Nilesoft
 												if(!item->disabled)
 												{
 													found_duplicate = 2;
+													// The vector owns its elements, so the replaced
+													// entry (and its subtree) must be freed. Only the
+													// path map can alias it this early; forget it there.
+													unmap_system_subtree(im);
+													delete im;
 													menu->items[indexof] = item.release();
 												}
 											}
@@ -4358,7 +4366,6 @@ namespace Nilesoft
 										}
 									}
 								}
-								indexof++;
 							}
 							
 							if(found_duplicate == 1)
@@ -4373,19 +4380,45 @@ namespace Nilesoft
 							build_system_menuitems(mii.hSubMenu, itemPtr, false);
 					}
 					
-					if(found_duplicate != 2)
+					// Registered on the replacement path too, so the map points at
+					// the new entry. itemPtr, not item: there the unique_ptr has
+					// already been released into the vector.
+					if(itemPtr->is_menu())
 					{
-						if(item->is_menu())
-						{
-							string sub_path = item->name;
-							if(!item->path.empty())
-								sub_path = item->path + L'/' + sub_path;
-							__map_system_menu[sub_path.hash()] = itemPtr;
-						}
-
-						menu->items.push_back(item.release());
+						string sub_path = itemPtr->name;
+						if(!itemPtr->path.empty())
+							sub_path = itemPtr->path + L'/' + sub_path;
+						__map_system_menu[sub_path.hash()] = itemPtr;
 					}
+
+					if(found_duplicate != 2)
+						menu->items.push_back(item.release());
 				}
+			}
+		}
+
+		// Drops __map_system_menu entries that point at node or anything below it,
+		// before that subtree is deleted.
+		void ContextMenu::unmap_system_subtree(menuitem_t *node)
+		{
+			if(!node)
+				return;
+
+			std::vector<menuitem_t *> nodes;
+			std::function<void(menuitem_t *)> collect = [&](menuitem_t *n)
+			{
+				nodes.push_back(n);
+				for(auto child : n->items)
+					collect(child);
+			};
+			collect(node);
+
+			for(auto it = __map_system_menu.begin(); it != __map_system_menu.end();)
+			{
+				if(std::find(nodes.begin(), nodes.end(), it->second) != nodes.end())
+					it = __map_system_menu.erase(it);
+				else
+					++it;
 			}
 		}
 
@@ -4411,8 +4444,6 @@ namespace Nilesoft
 			// Items a modify rule moved into this subtree from elsewhere are not part
 			// of the native snapshot; detach them so they survive the rebuild.
 			std::vector<menuitem_t *> moved_in;
-			// Nodes about to be deleted, so the path map can forget them.
-			std::vector<menuitem_t *> stale;
 
 			std::function<void(menuitem_t *)> detach = [&](menuitem_t *node)
 			{
@@ -4426,23 +4457,17 @@ namespace Nilesoft
 						it = list.erase(it);
 						continue;
 					}
-					stale.push_back(child);
 					detach(child);
 					++it;
 				}
 			};
 			detach(item);
 
-			for(auto it = __map_system_menu.begin(); it != __map_system_menu.end();)
-			{
-				if(std::find(stale.begin(), stale.end(), it->second) != stale.end())
-					it = __map_system_menu.erase(it);
-				else
-					++it;
-			}
-
 			for(auto child : item->items)
+			{
+				unmap_system_subtree(child);
 				delete child;
+			}
 			item->items.clear();
 
 			build_system_menuitems(item->source_handle, item, false);

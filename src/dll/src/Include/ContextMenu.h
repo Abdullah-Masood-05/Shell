@@ -750,6 +750,7 @@ plutovg_move_to(pluto, start.x, start.y);
 			void build_main_system_menuitems(menuitem_t *menu, bool is_root = false);
 			bool refresh_system_submenu_item(menuitem_t *item);
 			void refresh_system_submenus(menuitem_t *menu);
+			void unmap_system_subtree(menuitem_t *node);
 
 
 			void backup_native_items(HMENU hMenu, uint32_t id, bool check = false);
