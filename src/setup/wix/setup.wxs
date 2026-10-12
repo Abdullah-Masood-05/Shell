@@ -64,7 +64,16 @@
 		<StandardDirectory Id='$(var.PlatformProgramFilesFolder)'>
 			<Directory Id='INSTALLFOLDER' Name='$(var.FullName)'>
 				<Directory Id='IMPORTS' Name='imports'>
-					<Component Id='IMPORTS' Guid='{FF987BEA-6195-4C05-8523-00936A1BD0E2}' NeverOverwrite='yes'>
+					<!--
+						NeverOverwrite is not set, for the same reason as on CONFIG and LANG:
+						during a major upgrade it resolved IMPORTS to "install nothing" while
+						the old product's files were still on disk, and the removal of the
+						old product (RemoveExistingProducts) then deleted imports\*.nss.
+						Without it the new product owns the component; Windows Installer
+						still keeps an unversioned file the user has edited (Modified date
+						later than Create date).
+					-->
+					<Component Id='IMPORTS' Guid='{FF987BEA-6195-4C05-8523-00936A1BD0E2}'>
 						<File Id='theme.nss' Source='$(var.bin)\imports\theme.nss' />
 						<File Id='goto.nss' KeyPath='yes' Source='$(var.bin)\imports\goto.nss' />
 						<File Id='modify.nss' Source='$(var.bin)\imports\modify.nss' />
@@ -217,13 +226,21 @@
 				INSTALLFOLDER as empty whenever no UI sequence set it (a silent
 				install), and the custom action then falls back to locating Shell by
 				its registered CLSID - possibly a different installation.
+
+				"Installed" is the Windows Installer property and property names are
+				case-sensitive. These conditions used to read INSTALLED, which is never
+				set, so "NOT INSTALLED" was always true and the actions also ran during
+				maintenance (repair). NOT Installed is true for a first install and for
+				a major upgrade (the new ProductCode is not installed yet), which is
+				when shell.dll has to be rotated, the config saved, and Shell
+				registered.
 			-->
-			<Custom Action='OnUpdate' After='CostFinalize' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
-			<Custom Action='OnUpdateElevatedData' Before='OnUpdateElevated' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
-			<Custom Action='OnUpdateElevated' Before='InstallFiles' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdate' After='CostFinalize' Condition='(NOT Installed) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevatedData' Before='OnUpdateElevated' Condition='(NOT Installed) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevated' Before='InstallFiles' Condition='(NOT Installed) AND (NOT REMOVE)' />
 			<Custom Action='OnRestoreConfigData' Before='OnRestoreConfig' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
 			<Custom Action='OnRestoreConfig' After='InstallFiles' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
-			<Custom Action='OnInstall' After='InstallFinalize' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<Custom Action='OnInstall' After='InstallFinalize' Condition='(NOT Installed) AND (NOT REMOVE)' />
 			<RemoveExistingProducts After='InstallFinalize' />
 		</InstallExecuteSequence>
 

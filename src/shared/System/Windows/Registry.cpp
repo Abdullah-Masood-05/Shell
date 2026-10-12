@@ -231,34 +231,92 @@ CString Registry::GetDataAsString(CRegKey& key, const RegistryItem& item) {
 
 	uint32_t RegistryKey::GetString(const wchar_t* name, wchar_t* value, uint32_t max_length, bool expand) const
 	{
-		uint32_t size = max_length * sizeof(wchar_t);
+		if(!value || max_length == 0)
+			return 0;
+
+		// One unit is held back so an unterminated value can still be terminated
+		// on the way out - RegQueryValueEx does not promise one. See the comment
+		// on read_string_value below.
+		uint32_t size = (max_length - 1) * sizeof(wchar_t);
 		uint32_t type = expand ? REG_EXPAND_SZ : REG_SZ;
 		if(GetValue(name, type, (LPBYTE)value, &size) && size)
 		{
-			return (size / sizeof(TCHAR)) - 1;
+			auto count = size / sizeof(wchar_t);
+			if(count > 0 && value[count - 1] == L'\0')
+				count--;
+			value[count] = L'\0';
+			return static_cast<uint32_t>(count);
 		}
 		return 0;
+	}
+
+	/*
+		Read one REG_SZ / REG_EXPAND_SZ value into `value`, and report its type.
+
+		RegQueryValueEx carries an explicit warning about string values:
+
+			"the value returned is NOT guaranteed to be null-terminated ... even
+			if the function returns ERROR_SUCCESS, the application should ensure
+			that the string is properly terminated before using it"
+
+		https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryvalueexw
+
+		So the length comes from the byte count the API reports back, and the
+		terminator is treated as optional rather than assumed. Deriving it as
+		`datasize/2 - 1` instead had two consequences: an empty value underflowed
+		to SIZE_MAX characters, which string::terminate then clamped to a
+		15-character run of NULs; and a value stored without its terminator lost
+		its last character. The second one is not hypothetical - see the comment
+		in exe/src/Main.cpp about the TreatAs redirect that Unregister could never
+		recognise.
+	*/
+	static bool read_string_value(HKEY hkey, const wchar_t *name,
+								  uint32_t &type, string &value)
+	{
+		type = REG_NONE;
+
+		uint32_t bytes = 0;
+		if(ERROR_SUCCESS != ::RegQueryValueExW(hkey, name, nullptr,
+											   reinterpret_cast<DWORD *>(&type),
+											   nullptr, reinterpret_cast<DWORD *>(&bytes)))
+			return false;
+
+		if(type != REG_SZ && type != REG_EXPAND_SZ)
+			return false;
+
+		// One spare unit, so a value stored without a terminator can be given one.
+		auto count = bytes / sizeof(wchar_t);
+		auto data = value.buffer(static_cast<uint32_t>(count + 1));
+		if(!data)
+			return false;
+
+		if(bytes != 0 &&
+		   ERROR_SUCCESS != ::RegQueryValueExW(hkey, name, nullptr,
+											   reinterpret_cast<DWORD *>(&type),
+											   reinterpret_cast<LPBYTE>(data),
+											   reinterpret_cast<DWORD *>(&bytes)))
+		{
+			value.release(0u);
+			return false;
+		}
+
+		// What the second call reports is what was actually written.
+		count = bytes / sizeof(wchar_t);
+		if(count > 0 && data[count - 1] == L'\0')
+			count--;
+
+		value.release(static_cast<uint32_t>(count));
+		return true;
 	}
 
 	string RegistryKey::ReadString(const wchar_t *name) const
 	{
 		if(is_valid(m_hkey))
 		{
-			uint32_t datasize = 0;
-			auto dwtype = REG_NONE;
-			if(ERROR_SUCCESS == ::RegQueryValueExW(m_hkey, name, nullptr, &dwtype, nullptr, reinterpret_cast<DWORD *>(&datasize)))
-			{
-				if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
-				{
-					string ret;
-					uint32_t len = (datasize / sizeof(wchar_t));
-					if(ERROR_SUCCESS == ::RegQueryValueExW(m_hkey, name, nullptr, &dwtype, (LPBYTE)ret.buffer(len), reinterpret_cast<DWORD*>(&datasize)))
-					{
-						ret.release(len - 1);
-						return (dwtype == REG_SZ) ? ret.move() : Environment::Expand(ret).move();
-					}
-				}
-			}
+			uint32_t type = REG_NONE;
+			string ret;
+			if(read_string_value(m_hkey, name, type, ret))
+				return (type == REG_SZ) ? ret.move() : Environment::Expand(ret).move();
 		}
 		return nullptr;
 	}
@@ -267,39 +325,35 @@ CString Registry::GetDataAsString(CRegKey& key, const RegistryItem& item) {
 	{
 		if(is_valid(m_hkey))
 		{
-			uint32_t datasize = 0;
-			auto dwtype = REG_NONE;
-			if(ERROR_SUCCESS == ::RegQueryValueExW(m_hkey, name, nullptr, &dwtype, nullptr, reinterpret_cast<DWORD *>(&datasize)))
+			uint32_t type = REG_NONE;
+			if(read_string_value(m_hkey, name, type, value))
 			{
-				if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
-				{
-					uint32_t len = (datasize / sizeof(wchar_t));
-					if(ERROR_SUCCESS == ::RegQueryValueExW(m_hkey, name, nullptr, &dwtype, (LPBYTE)value.buffer(len), reinterpret_cast<DWORD *>(&datasize)))
-					{
-						value.release(len - 1);
-						if(dwtype == REG_EXPAND_SZ)
-							Environment::Expand(value).move();
-						return true;
-					}
-					value.release(0);
-				}
+				// Environment::Expand returns the expansion, it does not modify
+				// its argument - the result used to be computed and thrown away,
+				// so REG_EXPAND_SZ values came back with the %VARIABLES% intact.
+				if(type == REG_EXPAND_SZ)
+					value = Environment::Expand(value).move();
+				return true;
 			}
+			value.release(0u);
 		}
 		return false;
 	}
 
 	string RegistryKey::GetString(const wchar_t* name, bool expand) const
 	{
-		uint32_t size = 0;
-		uint32_t type = expand ? REG_EXPAND_SZ : REG_SZ;
-		if(GetValue(name, type, nullptr, &size))
+		if(is_valid(m_hkey))
 		{
-			uint32_t len = (size / sizeof(wchar_t)) + 1;
-			if(len > 1)
+			uint32_t type = REG_NONE;
+			string ret;
+			// Same terminator rules as ReadString. The old form also ignored
+			// whether the second read succeeded, and returned a string over the
+			// zero-filled buffer when it had not.
+			if(read_string_value(m_hkey, name, type, ret))
 			{
-				string ret;
-				GetValue(name, type, (LPBYTE)ret.buffer(len - 1), &size);
-				return ret.release(len - 2).move();
+				if(expand || type == REG_EXPAND_SZ)
+					return Environment::Expand(ret).move();
+				return ret.move();
 			}
 		}
 		return nullptr;

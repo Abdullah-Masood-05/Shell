@@ -1504,13 +1504,28 @@ namespace Nilesoft
 
 		HMODULE get() const { return _handle; }
 
+		// GetModuleFileNameW truncates to nSize and returns nSize; it never
+		// returns more, and there is no sizing query. So a result that
+		// exactly fills the buffer has to be retried at a larger size, and a
+		// fixed 260 characters silently lost everything past a module path
+		// that long - which is the ordinary case under a deep profile or a
+		// long-path-enabled volume.
+		//
+		//   https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew
 		std::wstring path() const
 		{
-			std::wstring p(260, L'\0');
-			if(auto z = ::GetModuleFileNameW(_handle, &p[0], 260); z > 0)
+			for(DWORD capacity = MAX_PATH; capacity <= 32768; capacity *= 2)
 			{
-				p.resize(z);
-				return std::move(p);
+				std::wstring p(capacity, L'\0');
+				DWORD written = ::GetModuleFileNameW(_handle, &p[0], capacity);
+				if(written == 0)
+					return {};
+
+				if(written < capacity)
+				{
+					p.resize(written);
+					return p;
+				}
 			}
 			return {};
 		}
@@ -1771,21 +1786,50 @@ namespace wrt
 		return !(left < right);
 	}*/
 }
+	/*
+		A COM pointer that owns exactly one reference.
+
+		Every operation below states which of AddRef, Release or neither it
+		performs, because the version this replaces did not and got several of
+		them wrong:
+
+		  * the move constructor was `= default`, which copies the pointer
+		    memberwise and leaves the moved-from object still holding it - so
+		    both destructors released the same interface;
+		  * release() called Release() and left the member pointing at what it
+		    had just released;
+		  * the output conversions called that release() and then handed the
+		    address of the stale pointer to a COM call, so a call that failed
+		    without writing left a dangling pointer to be released again later;
+		  * CreateInstance overwrote the member without releasing what was
+		    already there;
+		  * copy assignment called a swap that cannot bind to its const argument,
+		    which compiled only because no call site ever instantiated it.
+
+		The _release toggle is gone too. Its only use was inside a commented-out
+		block in Selections.cpp, and an owning pointer that might not own is not
+		a thing call sites can reason about. detach() expresses that intent
+		where it is really needed.
+	*/
 	template<class T>
 	class IComPtr
 	{
-		bool _release = true;
 	public:
 		T *pointer = nullptr;//IUnknown*
 
-		IComPtr(bool release = true) noexcept : _release(release) {}
+		IComPtr() noexcept = default;
 
+		// AddRef: two owners now.
 		IComPtr(const IComPtr<T> &other) : pointer(other.pointer)
 		{
 			if(pointer) ((IUnknown *)pointer)->AddRef();
 		}
 
-		IComPtr(IComPtr<T> &&other) noexcept = default;
+		// Steals. The source must not release what it no longer owns.
+		IComPtr(IComPtr<T> &&other) noexcept : pointer(other.pointer)
+		{
+			other.pointer = nullptr;
+		}
 
 		explicit IComPtr(T *ptr) : pointer(ptr)
 		{
@@ -1801,24 +1845,19 @@ namespace wrt
 
 		IComPtr(nullptr_t) {}
 
-		~IComPtr() {
-			if(_release)
-				this->release();
-		}
+		~IComPtr() { this->release(); }
 
-		IComPtr<T> &operator=(T *rhs)
-		{
-			if(pointer != rhs)
-			{
-				this->release();
-				pointer = rhs;
-			}
-			return *this;
-		}
-
+		// Release, then AddRef - in that order only when they are not the same
+		// pointer, so self-assignment cannot release the thing it is copying.
 		IComPtr<T> &operator=(const IComPtr<T> &rhs)
 		{
-			this->swap(rhs);
+			if(pointer != rhs.pointer)
+			{
+				T *incoming = rhs.pointer;
+				if(incoming) ((IUnknown *)incoming)->AddRef();
+				this->release();
+				pointer = incoming;
+			}
 			return *this;
 		}
 
@@ -1834,10 +1873,9 @@ namespace wrt
 			return *this;
 		}
 
-		template<typename Q = T>
-		void swap(IComPtr<Q> &other) throw()
+		void swap(IComPtr<T> &other) noexcept
 		{
-			std::swap(this->pointer, (T*)other.pointer);
+			std::swap(this->pointer, other.pointer);
 		}
 
 		unsigned long addref()
@@ -1845,9 +1883,46 @@ namespace wrt
 			return pointer ? ((IUnknown *)pointer)->AddRef() : 0;
 		}
 
+		// Releases the reference and forgets the pointer. Leaving the member set
+		// was the root of the dangling-output bug: everything that released in
+		// order to reuse the object went on to hand out the address of a pointer
+		// to something already released.
 		unsigned long release()
 		{
-			return pointer ? ((IUnknown *)pointer)->Release() : 0;
+			unsigned long count = 0;
+			if(pointer)
+			{
+				count = ((IUnknown *)pointer)->Release();
+				pointer = nullptr;
+			}
+			return count;
+		}
+
+		// Takes ownership of an existing reference without adding one.
+		void attach(T *raw)
+		{
+			if(pointer != raw)
+			{
+				this->release();
+				pointer = raw;
+			}
+		}
+
+		// Gives up ownership without releasing; the caller owns the reference.
+		T *detach()
+		{
+			T *raw = pointer;
+			pointer = nullptr;
+			return raw;
+		}
+
+		// Address of the member for a COM out-parameter, after releasing
+		// whatever was there. A call that fails without writing leaves this
+		// null rather than stale.
+		T **put()
+		{
+			this->release();
+			return &pointer;
 		}
 
 		bool operator==(const IComPtr<T> &other)
@@ -1876,12 +1951,16 @@ namespace wrt
 	//	template<typename Q = T>
 	//	operator Q *()const { return (Q *)pointer; }
 
-		T* set_release(bool b)
-		{
-			_release = b;
-			return *this;
-		}
 
+		// The implicit out-parameter conversion the call sites are written
+		// against. release() nulls the member now, so a COM call that fails
+		// without writing leaves this empty instead of pointing at an interface
+		// it has already released.
+		//
+		// Still implicit, and that is not ideal - `put()` above says the same
+		// thing where a reader can see it. Replacing 70-odd call sites is a
+		// mechanical change worth doing on its own rather than inside a fix for
+		// the ownership bugs.
 		template<typename Q = void> 
 		operator Q **()
 		{
@@ -1937,14 +2016,16 @@ namespace wrt
 			return S_OK == QueryServiceProvider(pointer, guidService, riid, ppvOut) && (ppvOut && *ppvOut);
 		}
 
+		// put() rather than &pointer: creating into a pointer that already holds
+		// an interface used to overwrite it and leak the reference.
 		bool CreateInstance(REFIID rclsid, DWORD dwClsContext = CLSCTX_LOCAL_SERVER)
 		{
-			return SUCCEEDED(::CoCreateInstance(rclsid, nullptr, dwClsContext, __uuidof(T), (void **)&pointer));
+			return SUCCEEDED(::CoCreateInstance(rclsid, nullptr, dwClsContext, __uuidof(T), (void **)put()));
 		}
 
 		bool CreateInstance(REFIID rclsid, REFIID riid, DWORD dwClsContext = CLSCTX_LOCAL_SERVER)
 		{
-			return SUCCEEDED(::CoCreateInstance(rclsid, nullptr, dwClsContext, riid, (void **)&pointer));
+			return SUCCEEDED(::CoCreateInstance(rclsid, nullptr, dwClsContext, riid, (void **)put()));
 		}
 
 		/*bool CreateInstance(REFIID rclsid, IUnknown *pUnkOuter = nullptr, DWORD dwClsContext = CLSCTX_LOCAL_SERVER)
@@ -2214,6 +2295,10 @@ inline static auto PostMSG(HWND hWnd, uint32_t msg, auto wparam, auto lparam)
 #include "System\Text\string.h"
 #include "System\Text\TString.h"
 #include "System\Text\Text.h"
+
+// Win32 buffer-sizing contracts; needs Text::string, used by Path.h and
+// Diagnostics\Shell.h alike.
+#include "System\IO\PathContracts.h"
 
 //static const auto typeid_string = typeid(Nilesoft::Text::string).hash_code();
 //static const auto typeid_const_string = typeid(const Nilesoft::Text::string).hash_code();

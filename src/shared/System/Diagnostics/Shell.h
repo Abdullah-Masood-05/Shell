@@ -72,20 +72,31 @@ namespace Nilesoft
 
 			static string getpath(const wchar_t *file)
 			{
-				wchar_t szfile[MAX_PATH]{};
-				auto len = ::SearchPathW(nullptr, file, nullptr, MAX_PATH, szfile, nullptr);
-				if(len == 0)
+				// SearchPathW returns the capacity it needs, not 0, when the
+				// buffer is too small; a fixed MAX_PATH buffer was then returned
+				// unfilled. See IO::Contracts::fill_then_resize.
+				auto search = [file](const wchar_t *ext) -> string
+				{
+					return IO::Contracts::fill_then_resize(
+						[&](wchar_t *buffer, DWORD capacity)
+						{
+							return ::SearchPathW(nullptr, file, ext, capacity, buffer, nullptr);
+						});
+				};
+
+				string found = search(nullptr).move();
+				if(found.empty())
 				{
 					if(!string::FindLast(file, L'.', false))
 					{
-						len = ::SearchPathW(nullptr, file, L".exe", MAX_PATH, szfile, nullptr);
-						if(len == 0)
-							len = ::SearchPathW(nullptr, file, L".cmd", MAX_PATH, szfile, nullptr);
-						if(len == 0)
-							len = ::SearchPathW(nullptr, file, L".bat", MAX_PATH, szfile, nullptr);
+						found = search(L".exe").move();
+						if(found.empty())
+							found = search(L".cmd").move();
+						if(found.empty())
+							found = search(L".bat").move();
 					}
 				}
-				return len == 0 ? file : szfile;
+				return found.empty() ? string(file) : found.move();
 			}
 
 			static uint32_t Run(const wchar_t* file, const wchar_t* parameters,

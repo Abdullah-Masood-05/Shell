@@ -99,6 +99,10 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <!-- Control Flow Guard (/guard:cf). Setting it on ClCompile also makes the
+           build pass /guard:cf to the linker. Release only: /guard:cf cannot be
+           combined with Edit and Continue (/ZI) in debug builds. -->
+      <ControlFlowGuard>Guard</ControlFlowGuard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='release|Win32'">MinSpace</Optimization>
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='release|Win32'">StdCall</CallingConvention>
