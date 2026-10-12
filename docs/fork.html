@@ -1,0 +1,86 @@
+<h4>About this fork</h4>
+<br>
+<p>This site documents <a href="https://github.com/Abdullah-Masood-05/Shell">Abdullah-Masood-05/Shell</a>, a fork of
+	<a href="https://github.com/moudey/Shell">Nilesoft Shell</a> by Moudey and Nilesoft. The configuration language and the
+	rest of this documentation are the same as upstream; this page lists what the fork changes.</p>
+
+<h5 id="security">Security</h5>
+<ul>
+	<li>Registration no longer widens the access rights on the program folder, and no longer gives the Users group full
+		control of the Windows 11 context-menu CLSID key. <code>scripts\repair-treatas-acl.ps1</code> repairs machines
+		where an earlier build already did.</li>
+	<li>Windows' own DLLs are no longer loaded through the DLL search path.</li>
+	<li><code>shell.dll</code> and <code>shell.exe</code> are built with Control Flow Guard.</li>
+</ul>
+
+<h5 id="stability">Stability</h5>
+<ul>
+	<li>COM is no longer initialised from <code>DllMain</code>.</li>
+	<li>Import nesting is bounded, so a configuration that imports itself cannot crash Explorer.</li>
+	<li>A configuration with an error is retried on the next right-click once it has been saved again, and a working
+		configuration reloads when it or any import changes. No restart is needed after editing.</li>
+	<li>Fixes for COM reference counting, registry string reads, Win32 path buffers, UTF-8 conversion, file copying and
+		the taskbar origin on multiple threads.</li>
+	<li>Theme colours fall back to the system colours when a lookup fails.</li>
+	<li><code>shell.exe</code> exits with 0 on success and non-zero on failure, and restarting Explorer works from 32-bit
+		processes on 64-bit Windows.</li>
+</ul>
+
+<h5 id="menu">Menu fixes</h5>
+<ul>
+	<li>Removing duplicate items no longer overwrites the first item; leading separators are removed.</li>
+	<li>System submenus that fill themselves in later (such as <i>Send to</i> and <i>New</i>) are read again when opened.</li>
+	<li>Menus and tooltips are positioned correctly on monitors with negative coordinates, and the DPI is taken from the
+		window rather than the monitor.</li>
+	<li><code>this.count</code> returns the number of items in the menu.</li>
+	<li>Shell no longer changes your submenu show delay or selection-fade settings, or Explorer's working directory.</li>
+</ul>
+
+<h5 id="per-user">Per-user mode</h5>
+<p>Shell can be set up for one user without administrator rights:</p>
+<ul>
+	<li><code>shell -register -user</code> registers under <code>HKEY_CURRENT_USER</code>, including the Windows 11
+		classic-menu redirect with <code>-treat</code>.</li>
+	<li>The configuration is read from <code>%APPDATA%\Nilesoft\Shell\shell.nss</code> when it exists, and
+		<code>shell -config:init</code> creates it.</li>
+	<li><code>-restart</code> restarts Explorer for the current session only.</li>
+	<li><code>-config:check</code> and <code>-status</code> report the configuration and installation as JSON.</li>
+</ul>
+<p>See <a href="/docs/command-line">Command line</a> for the details.</p>
+
+<h5 id="setup">Setup</h5>
+<ul>
+	<li>Upgrading with the installer no longer deletes your <code>shell.nss</code>.</li>
+	<li>All language files are installed, and the language is chosen from your Windows locale, falling back to the language
+		and then to English. Norwegian (<code>nb-NO</code>, <code>nn-NO</code>) loads <code>no.nss</code>.</li>
+	<li>Unregistering always removes the Windows 11 redirect.</li>
+</ul>
+
+<h5 id="default-configs">Default configuration</h5>
+<p>The default <code>shell.nss</code> adds menus from Abdullah Masood's
+	<a href="https://github.com/Abdullah-Masood-05/nilesoft-shell-config">nilesoft-shell-config</a> (MIT):</p>
+<ul>
+	<li><code>imports\develop.nss</code>: a <i>Develop</i> menu shown while <kbd>Shift</kbd> is held. Items for programs that
+		are not installed, such as Visual Studio Code or the .NET SDK, are hidden.</li>
+	<li><code>imports\my-tools.nss</code>: <i>Copy</i> (path, name, extension, parent folder), <i>New file</i> and <i>System</i>
+		(restart Explorer, empty the Recycle Bin, lock, sleep and more) menus.</li>
+</ul>
+
+<h5 id="settings-app">Settings app</h5>
+<p>A desktop app for checking the installation, editing the configuration and restoring backups.
+	See <a href="/docs/settings-app">Settings app</a>.</p>
+
+<h5 id="credits">Credits</h5>
+<p>Nilesoft Shell is created by <a href="https://github.com/moudey">Moudey</a> and Nilesoft and is released under the MIT
+	License. Many fixes in this fork were ported, with credit in each commit message, from other forks:</p>
+<ul>
+	<li><a href="https://github.com/opj161/Shell">opj161/Shell</a>: the security fixes, Control Flow Guard, path, COM,
+		registry and encoding fixes, DPI, and keeping <code>shell.nss</code> on upgrade.</li>
+	<li><a href="https://github.com/TCNOco/Shell">TCNOco/Shell</a>: COM outside <code>DllMain</code>, bounded imports,
+		duplicate removal, and leaving Explorer's settings and working directory alone.</li>
+	<li><a href="https://github.com/arvaidasre/Shell">arvaidasre/Shell</a>: removing the Windows 11 redirect on unregister,
+		the theme colour fallback, <code>File::Copy</code> and <code>this.count</code>.</li>
+	<li><a href="https://github.com/iMAboud/Shell">iMAboud/Shell</a>: its work on recovering from a broken configuration
+		was reviewed when designing the retry-on-save behaviour.</li>
+</ul>
+<p>The fork keeps the documentation pages shared with upstream, so changes there can still be merged.</p>

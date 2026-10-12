@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{canonical}}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{base}}assets/logo-32.png">
+<link rel="apple-touch-icon" href="{{base}}assets/logo-256.png">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="{{base}}assets/site.css">
+<script defer src="{{base}}assets/site.js"></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+	<button class="nav-toggle" type="button" aria-controls="sidebar" aria-expanded="false">Menu</button>
+	<a class="brand" href="{{base}}">
+		<img src="{{base}}assets/logo-32.png" srcset="{{base}}assets/logo-128.png 4x" width="24" height="24" alt="">
+		<span>Nilesoft Shell</span>
+	</a>
+	<div class="search" role="search">
+		<input id="search" type="search" placeholder="Search" aria-label="Search the documentation" autocomplete="off" spellcheck="false" aria-controls="search-results" aria-expanded="false">
+		<kbd class="search-key" aria-hidden="true">/</kbd>
+		<ul id="search-results" role="listbox" hidden></ul>
+	</div>
+	<button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+		<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.5v11a5.5 5.5 0 0 1 0-11Z" fill="currentColor"/></svg>
+	</button>
+	<a class="repo" href="https://github.com/Abdullah-Masood-05/Shell">GitHub</a>
+</header>
+<div class="layout">
+	<nav id="sidebar" class="sidebar" aria-label="Documentation">
+{{sidebar}}
+	</nav>
+	<main id="content" class="main">
+		<article class="content">
+{{content}}
+		</article>
+		<nav class="pager" aria-label="Previous and next page">{{pager}}</nav>
+		<footer class="footer">
+			<p>Nilesoft Shell is created by <a href="https://github.com/moudey/Shell">Moudey and Nilesoft</a>. This site documents the <a href="https://github.com/Abdullah-Masood-05/Shell">Abdullah-Masood-05/Shell</a> fork and is built from the same pages as <a href="https://nilesoft.org/docs">nilesoft.org</a>. MIT License.</p>
+			<p>{{edit}}</p>
+		</footer>
+	</main>
+</div>
+</body>
+</html>
