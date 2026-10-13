@@ -1,6 +1,6 @@
-import { Button } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
+import { AppButton } from "controls.slint";
 
 // A modal confirmation over the page: scrim, title, text, Cancel and a
 // primary (or destructive) action. Esc cancels.
@@ -37,7 +37,7 @@ export component ConfirmDialog inherits Rectangle {
         border-width: 1px;
         border-color: Tokens.stroke-strong;
         drop-shadow-blur: 24px;
-        drop-shadow-color: #00000060;
+        drop-shadow-color: Tokens.shadow;
         drop-shadow-offset-y: 8px;
 
         body := VerticalLayout {
@@ -69,11 +69,11 @@ export component ConfirmDialog inherits Rectangle {
             HorizontalLayout {
                 alignment: end;
                 spacing: Tokens.s2;
-                Button {
+                AppButton {
                     text: root.cancel-label;
                     clicked => { root.cancelled(); }
                 }
-                Button {
+                AppButton {
                     text: root.confirm-label;
                     primary: true;
                     clicked => { root.confirmed(); }

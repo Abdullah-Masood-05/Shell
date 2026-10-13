@@ -30,11 +30,6 @@ bool fileExists(const std::string &utf8)
     return !utf8.empty() && fs::is_regular_file(fs::path(widen(utf8)), ec);
 }
 
-slint::Color rgb(uint32_t c)
-{
-    return slint::Color::from_rgb_uint8(uint8_t(c >> 16), uint8_t(c >> 8), uint8_t(c));
-}
-
 // The Windows UAC shield as a Slint image (stock icon, so it matches the OS).
 slint::Image shieldIcon()
 {
@@ -241,13 +236,13 @@ void AppController::attachWindow(HWND hwnd)
     hwnd_ = hwnd;
     dwm::applyIcon(hwnd_);
     dwm::applyTitleBar(hwnd_, lastDark_);
-    // Follow Windows' app mode and accent while "System" is selected.
+    // Follow Windows' app mode while "System" is selected. The app's accent is its own
+    // blue (ui/theme/tokens.slint), so the Windows accent doesn't matter here.
     themePoll_.start(slint::TimerMode::Repeated, 2s, [this] {
         bool dark = !registry::appsUseLightTheme();
-        auto accent = registry::accentColor();
         int mode = ui_->global<AppState>().get_theme_mode();
         bool effective = mode == 2 || (mode == 0 && dark);
-        if (effective != lastDark_ || accent != lastAccent_)
+        if (effective != lastDark_)
             applyTheme();
     });
 }
@@ -259,12 +254,6 @@ void AppController::applyTheme()
     const auto &state = ui_->global<AppState>();
     int mode = state.get_theme_mode();
     bool dark = mode == 2 || (mode == 0 && !registry::appsUseLightTheme());
-    const auto &tokens = ui_->global<Tokens>();
-    if (auto a = registry::accentFor(true))
-        tokens.set_accent_on_dark(rgb(*a));
-    if (auto a = registry::accentFor(false))
-        tokens.set_accent_on_light(rgb(*a));
-    lastAccent_ = registry::accentColor();
     lastDark_ = dark;
     ui_->invoke_apply_theme(dark);
     dwm::applyTitleBar(hwnd_, dark);

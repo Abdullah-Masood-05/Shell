@@ -11,7 +11,7 @@ export component Toggle inherits Rectangle {
     width: 40px;
     height: 20px;
     border-radius: 10px;
-    background: root.on ? (root.enabled ? Tokens.accent : Tokens.text-3) : transparent;
+    background: root.on ? (!root.enabled ? Tokens.text-3 : ta.has-hover ? Tokens.accent-fill-hover : Tokens.accent-fill) : (ta.has-hover && root.enabled ? Tokens.hover : transparent);
     border-width: root.on ? 0 : 1px;
     border-color: root.enabled ? Tokens.text-2 : Tokens.text-3;
     opacity: root.enabled ? 1 : 0.55;

@@ -5,12 +5,16 @@
 // edits to SaveService as pending changes, and drives the live preview through
 // ThemeModel::resolve().
 //
+// The theme presets gallery at the top of the page has its own controller
+// (src/PresetsController.h); rebuild() hands it the values and the preview mode.
+//
 // Development switches (read from the command line, for scripted checks):
 //   --set <key>=<literal>   put a pending change once the page has loaded (repeatable)
 //   --save                  then save it
 
 #include "app.h"
 
+#include "PresetsController.h"
 #include "SaveService.h"
 #include "ThemeModel.h"
 #include "Wallpaper.h"
@@ -68,4 +72,5 @@ private:
     bool previewDark_ = false;
     bool devApplied_ = false;
     std::shared_ptr<slint::VectorModel<ThemeField>> fields_;
+    PresetsController presets_;
 };

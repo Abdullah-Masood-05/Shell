@@ -544,6 +544,53 @@ Resolved resolve(const Values &values, const SystemInfo &sys)
         th.background = withAlpha(th.background, 255);
     const uint32_t backgroundOpacity = alphaOf(th.background);
 
+    // theme.background.gradient (ContextMenu.cpp, "theme.gradient"): enabled, then
+    // linear = [x1, y1, x2, y2] in percent of the menu or radial = [...], then the
+    // stops, each [offset, colour, opacity].
+    const Literal *gradientOn = get(values, "theme.background.gradient.enabled");
+    if (gradientOn && (gradientOn->kind == LiteralKind::Number ? gradientOn->number != 0 : gradientOn->boolValue())) {
+        bool shape = false;
+        auto nums = [](const Literal &v, std::vector<double> &out) {
+            for (const auto &item : v.items)
+                out.push_back(item.kind == LiteralKind::Number ? item.number : 0.0);
+        };
+        if (auto v = get(values, "theme.background.gradient.linear"); v && v->kind == LiteralKind::Array) {
+            std::vector<double> p;
+            nums(*v, p);
+            p.resize(4, 0.0);
+            if (p[0] > 0 || p[1] > 0 || p[2] > 0 || p[3] > 0) {
+                shape = true;
+                const double dx = p[2] - p[0], dy = p[3] - p[1];
+                th.gradientAngle = (dx == 0 && dy == 0) ? 180.0 : std::atan2(dx, -dy) * 180.0 / 3.14159265358979323846;
+            }
+        } else if (auto r = get(values, "theme.background.gradient.radial")) {
+            shape = r->kind == LiteralKind::Array || r->kind == LiteralKind::Number;
+            th.gradientRadial = shape;
+        }
+        if (auto v = get(values, "theme.background.gradient.stop"); shape && v && v->kind == LiteralKind::Array) {
+            for (const auto &item : v->items) {
+                if (item.kind != LiteralKind::Array || item.items.empty() || item.items.size() > 3 ||
+                    item.items[0].kind != LiteralKind::Number)
+                    continue;
+                GradientStop gs;
+                gs.offset = std::clamp(item.items[0].number, 0.0, 1.0);
+                if (item.items.size() >= 2)
+                    if (auto c = colorOf(item.items[1], sys))
+                        gs.color = *c | 0xFF000000u;
+                if (item.items.size() == 3 && item.items[2].kind == LiteralKind::Number)
+                    gs.color = withAlpha(gs.color, percentToByte(item.items[2].number));
+                th.gradientStops.push_back(gs);
+            }
+            std::stable_sort(th.gradientStops.begin(), th.gradientStops.end(),
+                             [](const GradientStop &a, const GradientStop &b) { return a.offset < b.offset; });
+            th.gradient = !th.gradientStops.empty();
+        }
+        if (!th.gradient) {
+            th.gradientRadial = false;
+            th.gradientAngle = 0;
+        }
+    }
+
     // theme.view
     if (auto v = get(values, "theme.view")) {
         if (auto pad = viewPadding(*v)) {
@@ -647,6 +694,27 @@ Resolved resolve(const Values &values, const SystemInfo &sys)
         th.italic = *b;
     th.scale = th.fontSize / defaultSize;
     return th;
+}
+
+uint32_t gradientAt(const Resolved &r, double t)
+{
+    const auto &stops = r.gradientStops;
+    if (!r.gradient || stops.empty())
+        return 0;
+    if (t <= stops.front().offset)
+        return stops.front().color;
+    if (t >= stops.back().offset)
+        return stops.back().color;
+    for (size_t i = 1; i < stops.size(); ++i) {
+        const auto &a = stops[i - 1], &b = stops[i];
+        if (t > b.offset)
+            continue;
+        const double span = b.offset - a.offset;
+        const double k = span > 0 ? (t - a.offset) / span : 1.0;
+        const double alpha = double(alphaOf(a.color)) + (double(alphaOf(b.color)) - double(alphaOf(a.color))) * k;
+        return withAlpha(mix(a.color, b.color, k), uint32_t(std::lround(alpha)));
+    }
+    return stops.back().color;
 }
 
 std::string themeNameLiteral(int index)

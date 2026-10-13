@@ -1,11 +1,11 @@
-import { Button, ListView, TextEdit } from "std-widgets.slint";
+import { ListView, TextEdit } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { EditorState, EditorFile, EditorProblem } from "../editor-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
-import { Segmented } from "../components/controls.slint";
+import { AppButton, Segmented } from "../components/controls.slint";
 import { CodeColors, CodeRow } from "../components/code.slint";
 import { ConfirmDialog } from "../components/dialog.slint";
 
@@ -180,7 +180,7 @@ export component EditorPage inherits Rectangle {
             description: "Edit shell.nss and its imports. Every save is checked and snapshotted first.";
             busy: EditorState.saving;
             busy-label: "Saving…";
-            Button {
+            AppButton {
                 text: "Open in external editor";
                 icon: Icons.folder;
                 icon-size: 16px;
@@ -295,12 +295,12 @@ export component EditorPage inherits Rectangle {
                         selected: EditorState.editing ? 1 : 0;
                         changed(i) => { EditorState.set-editing(i == 1); }
                     }
-                    Button {
+                    AppButton {
                         text: "Discard";
                         enabled: EditorState.dirty-count > 0 && !EditorState.saving;
                         clicked => { EditorState.discard(); }
                     }
-                    Button {
+                    AppButton {
                         text: EditorState.dirty-count > 1 ? "Save " + EditorState.dirty-count + " files" : "Save";
                         primary: true;
                         enabled: EditorState.dirty-count > 0 && !EditorState.saving;

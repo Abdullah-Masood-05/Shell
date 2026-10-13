@@ -1,5 +1,100 @@
 import { Tokens } from "../theme/tokens.slint";
 
+// The app's button. Secondary by default (a raised field colour with a hairline);
+// `primary` fills it with the accent. Same properties as the std Button it replaces.
+export component AppButton inherits Rectangle {
+    in property <string> text;
+    in property <image> icon;
+    in property <length> icon-size: 16px;
+    in property <bool> colorize-icon;   // monochrome icons take the text colour
+    in property <bool> icon-after;      // the icon after the text (an arrow)
+    in property <bool> primary;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    property <bool> has-icon: root.icon.width > 0;
+    property <color> fg: root.primary ? Tokens.on-accent : Tokens.text;
+
+    height: 32px;
+    min-width: max(32px, row.min-width);
+    preferred-width: max(32px, row.preferred-width);
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    border-radius: Tokens.radius-control;
+    border-width: root.primary ? 0px : 1px;
+    border-color: fs.has-focus ? Tokens.focus-ring : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+    background: root.primary
+        ? (!root.enabled ? Tokens.accent-fill : ta.pressed ? Tokens.accent-fill-pressed : ta.has-hover ? Tokens.accent-fill-hover : Tokens.accent-fill)
+        : (ta.pressed && root.enabled ? Tokens.layer-2 : ta.has-hover && root.enabled ? Tokens.layer-3 : Tokens.layer-2);
+    opacity: root.enabled ? 1 : 0.45;
+    animate background, border-color, opacity { duration: Tokens.fast; easing: ease-out; }
+
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+
+    row := HorizontalLayout {
+        padding-left: root.text == "" ? 8px : 12px;
+        padding-right: root.text == "" ? 8px : 14px;
+        spacing: 6px;
+        alignment: center;
+        if root.has-icon && !root.icon-after: VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                width: root.icon-size;
+                height: root.icon-size;
+                colorize: root.colorize-icon ? root.fg : transparent;
+            }
+        }
+        if root.text != "": Text {
+            text: root.text;
+            font-size: Tokens.body;
+            font-weight: root.primary ? 600 : 400;
+            color: root.fg;
+            vertical-alignment: center;
+        }
+        if root.has-icon && root.icon-after: VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                width: root.icon-size;
+                height: root.icon-size;
+                colorize: root.colorize-icon ? root.fg : transparent;
+            }
+        }
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            return reject;
+        }
+    }
+    if fs.has-focus && root.primary: Rectangle {
+        x: -3px;
+        y: -3px;
+        width: root.width + 6px;
+        height: root.height + 6px;
+        border-radius: root.border-radius + 3px;
+        border-width: 2px;
+        border-color: Tokens.focus-ring;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => {
+            fs.focus();
+            root.clicked();
+        }
+    }
+}
+
 // A clickable tile: icon, title and a one-line caption (Home quick actions).
 export component ActionTile inherits Rectangle {
     in property <image> icon;
@@ -11,10 +106,10 @@ export component ActionTile inherits Rectangle {
     min-width: 140px;
     border-radius: Tokens.radius-card;
     border-width: 1px;
-    border-color: fs.has-focus ? Tokens.focus-ring : Tokens.stroke;
-    background: !root.enabled ? Tokens.layer : ta.pressed ? Tokens.layer-2 : ta.has-hover ? Tokens.layer-2 : Tokens.layer;
+    border-color: fs.has-focus ? Tokens.focus-ring : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+    background: !root.enabled ? Tokens.layer : ta.pressed ? Tokens.layer-2 : ta.has-hover ? Tokens.layer-3 : Tokens.layer;
     opacity: root.enabled ? 1 : 0.5;
-    animate background, opacity { duration: Tokens.fast; easing: ease-out; }
+    animate background, border-color, opacity { duration: Tokens.fast; easing: ease-out; }
 
     accessible-role: button;
     accessible-label: root.title;
@@ -30,19 +125,19 @@ export component ActionTile inherits Rectangle {
         HorizontalLayout {
             alignment: start;
             Rectangle {
-                width: 32px;
-                height: 32px;
-                border-radius: Tokens.radius-card;
+                width: 36px;
+                height: 36px;
+                border-radius: Tokens.radius-control + 2px;
                 background: Tokens.accent-soft;
                 Image {
                     source: root.icon;
-                    width: 18px;
-                    height: 18px;
+                    width: 20px;
+                    height: 20px;
                     colorize: Tokens.accent;
                 }
             }
         }
-        Rectangle { height: Tokens.s1; }
+        Rectangle { height: Tokens.s2; }
         Text {
             text: root.title;
             font-size: Tokens.body;
@@ -78,20 +173,26 @@ export component ActionTile inherits Rectangle {
     }
 }
 
-// Segmented buttons (System / Light / Dark). Arrow keys move the selection.
+// Segmented buttons (System / Light / Dark): one well with the options as pills; the
+// accent pill slides to the selection. Arrow keys move the selection.
 export component Segmented inherits Rectangle {
     in property <[string]> options;
     in-out property <int> selected;
+    in property <bool> enabled: true;
+    in property <length> min-option-width: 88px;
     callback changed(index: int);
 
     height: 32px;
+    min-width: root.options.length * root.min-option-width + 6px;
     border-radius: Tokens.radius-control;
-    background: Tokens.layer-2;
+    background: Tokens.dark ? Tokens.sidebar : Tokens.layer-3;
     border-width: 1px;
     border-color: fs.has-focus ? Tokens.focus-ring : Tokens.stroke;
+    opacity: root.enabled ? 1 : 0.5;
     accessible-role: tab-list;
 
     fs := FocusScope {
+        enabled: root.enabled;
         key-pressed(event) => {
             if (event.text == Key.LeftArrow && root.selected > 0) {
                 root.selected -= 1;
@@ -108,35 +209,40 @@ export component Segmented inherits Rectangle {
     }
 
     // Sliding selection under the labels.
-    Rectangle {
-        width: (root.width - 4px) / max(1, root.options.length);
-        height: root.height - 4px;
-        x: 2px + self.width * root.selected;
-        y: 2px;
-        border-radius: Tokens.radius-control - 1px;
-        background: Tokens.accent;
+    if root.selected >= 0 && root.selected < root.options.length: Rectangle {
+        width: (root.width - 6px) / max(1, root.options.length);
+        height: root.height - 6px;
+        x: 3px + self.width * root.selected;
+        y: 3px;
+        border-radius: Tokens.radius-control - 2px;
+        background: Tokens.accent-fill;
         animate x { duration: Tokens.normal; easing: ease-out; }
     }
 
     HorizontalLayout {
-        padding: 2px;
+        padding: 3px;
         for option[i] in root.options: Rectangle {
             horizontal-stretch: 1;
-            min-width: 88px;
+            border-radius: Tokens.radius-control - 2px;
+            background: i != root.selected && ta.has-hover && root.enabled ? Tokens.hover : transparent;
             accessible-role: tab;
             accessible-label: option;
             accessible-item-selected: i == root.selected;
             accessible-action-default => {
-                root.selected = i;
-                root.changed(i);
+                if (root.enabled) {
+                    root.selected = i;
+                    root.changed(i);
+                }
             }
             Text {
                 text: option;
-                font-size: Tokens.body;
-                color: i == root.selected ? Tokens.on-accent : Tokens.text;
+                font-size: 13px;
+                font-weight: i == root.selected ? 600 : 400;
+                color: i == root.selected ? Tokens.on-accent : Tokens.text-2;
                 animate color { duration: Tokens.fast; }
             }
-            TouchArea {
+            ta := TouchArea {
+                enabled: root.enabled;
                 mouse-cursor: pointer;
                 clicked => {
                     fs.focus();
@@ -166,5 +272,103 @@ export component Link inherits Rectangle {
     ta := TouchArea {
         mouse-cursor: pointer;
         clicked => { root.activated(); }
+    }
+}
+
+export struct TabSpec {
+    label: string,
+    icon: image,
+}
+
+// A row of tabs with an icon and a label; the accent underline slides to the
+// selection. Arrow keys move it.
+export component Tabs inherits Rectangle {
+    in property <[TabSpec]> tabs;
+    in-out property <int> selected;
+    callback changed(index: int);
+
+    height: 44px;
+    accessible-role: tab-list;
+
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Tokens.stroke;
+    }
+
+    fs := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow && root.selected > 0) {
+                root.selected -= 1;
+                root.changed(root.selected);
+                return accept;
+            }
+            if (event.text == Key.RightArrow && root.selected < root.tabs.length - 1) {
+                root.selected += 1;
+                root.changed(root.selected);
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    row := HorizontalLayout {
+        alignment: start;
+        spacing: Tokens.s1;
+        for spec[i] in root.tabs: Rectangle {
+            min-width: label-row.preferred-width + Tokens.s3;
+            preferred-width: label-row.preferred-width + 2 * Tokens.s4;
+            border-radius: Tokens.radius-control;
+            background: tab-ta.has-hover && i != root.selected ? Tokens.hover : transparent;
+            animate background { duration: Tokens.fast; }
+            accessible-role: tab;
+            accessible-label: spec.label;
+            accessible-item-selected: i == root.selected;
+            accessible-action-default => {
+                root.selected = i;
+                root.changed(i);
+            }
+            label-row := HorizontalLayout {
+                alignment: center;
+                spacing: Tokens.s2;
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: spec.icon;
+                        width: 16px;
+                        height: 16px;
+                        colorize: i == root.selected ? Tokens.accent : Tokens.text-2;
+                    }
+                }
+                Text {
+                    text: spec.label;
+                    font-size: Tokens.body;
+                    font-weight: i == root.selected ? 600 : 400;
+                    color: i == root.selected ? Tokens.text : Tokens.text-2;
+                    vertical-alignment: center;
+                }
+            }
+            if i == root.selected: Rectangle {
+                y: parent.height - 2px;
+                height: 2px;
+                x: Tokens.s3;
+                width: parent.width - 2 * Tokens.s3;
+                border-radius: 1px;
+                background: Tokens.accent;
+            }
+            if fs.has-focus && i == root.selected: Rectangle {
+                border-radius: Tokens.radius-control;
+                border-width: 2px;
+                border-color: Tokens.focus-ring;
+            }
+            tab-ta := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    fs.focus();
+                    root.selected = i;
+                    root.changed(i);
+                }
+            }
+        }
     }
 }

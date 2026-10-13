@@ -1,11 +1,12 @@
 // The unsaved-changes footer ("N unsaved changes · Discard · Save") with the
 // result of the last save, and the "use a personal config" prompt.
 
-import { Button, Spinner } from "std-widgets.slint";
+import { Spinner } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { SaveState } from "../save-state.slint";
 import { CloseGlyph } from "banner.slint";
+import { AppButton } from "controls.slint";
 
 export component SaveFooter inherits Rectangle {
     property <bool> has-changes: SaveState.unsaved > 0;
@@ -84,7 +85,7 @@ export component SaveFooter inherits Rectangle {
 
         if root.has-changes: VerticalLayout {
             alignment: center;
-            Button {
+            AppButton {
                 text: "Discard";
                 enabled: !SaveState.saving;
                 clicked => { SaveState.discard(); }
@@ -92,7 +93,7 @@ export component SaveFooter inherits Rectangle {
         }
         if root.has-changes: VerticalLayout {
             alignment: center;
-            Button {
+            AppButton {
                 text: "Save  (Ctrl+S)";
                 primary: true;
                 enabled: !SaveState.saving;
@@ -122,7 +123,7 @@ export component UserConfigPrompt inherits Rectangle {
         border-color: Tokens.stroke-strong;
         drop-shadow-blur: 32px;
         drop-shadow-offset-y: 8px;
-        drop-shadow-color: #00000060;
+        drop-shadow-color: Tokens.shadow;
         accessible-role: groupbox;
         accessible-label: "Use a personal config";
 
@@ -144,11 +145,11 @@ export component UserConfigPrompt inherits Rectangle {
                 alignment: end;
                 spacing: Tokens.s2;
                 padding-top: Tokens.s2;
-                Button {
+                AppButton {
                     text: "Cancel";
                     clicked => { SaveState.cancel-user-config(); }
                 }
-                Button {
+                AppButton {
                     text: "Create and save";
                     primary: true;
                     clicked => { SaveState.create-user-config(); }

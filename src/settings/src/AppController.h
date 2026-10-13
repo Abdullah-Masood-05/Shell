@@ -67,7 +67,6 @@ private:
     bool firstStatus_ = true;
     bool busy_ = false;
     bool lastDark_ = true;
-    std::optional<uint32_t> lastAccent_;
     std::vector<std::function<void()>> configChanged_;
     slint::Timer toastTimer_;
     slint::Timer themePoll_;

@@ -156,6 +156,12 @@ PreviewTheme toPreview(const theme::Resolved &r)
     p.effect = r.effect;
     p.background = argb(r.background);
     p.tint = argb(r.tint);
+    p.gradient = r.gradient;
+    p.gradient_radial = r.gradientRadial;
+    p.gradient_angle = float(r.gradientAngle);
+    p.gradient_0 = argb(theme::gradientAt(r, 0.0));
+    p.gradient_1 = argb(theme::gradientAt(r, 0.5));
+    p.gradient_2 = argb(theme::gradientAt(r, 1.0));
     p.border_size = float(r.borderSize) * s;
     p.border_color = argb(r.borderColor);
     p.radius = float(r.borderRadius) * s;
@@ -268,7 +274,8 @@ const std::vector<AppearanceController::FieldDef> &AppearanceController::fieldDe
 }
 
 AppearanceController::AppearanceController(slint::ComponentHandle<AppWindow> ui, SaveService &save)
-    : ui_(std::move(ui)), save_(save), fields_(std::make_shared<slint::VectorModel<ThemeField>>())
+    : ui_(std::move(ui)), save_(save), fields_(std::make_shared<slint::VectorModel<ThemeField>>()),
+      presets_(ui_, save, [](const theme::Resolved &r) { return toPreview(r); })
 {
     previewDark_ = !registry::appsUseLightTheme();
     system_ = systemInfo(previewDark_);
@@ -605,6 +612,8 @@ void AppearanceController::rebuild()
         cards->push_back(toPreview(theme::resolve(v, system_)));
     }
     st.set_card_themes(cards);
+
+    presets_.rebuild(values, system_);
 }
 
 void AppearanceController::applyDevArgs()

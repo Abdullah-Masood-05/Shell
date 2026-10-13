@@ -1,10 +1,10 @@
-import { AboutSlint, Button } from "std-widgets.slint";
+import { AboutSlint } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { Card, KeyValue } from "../components/card.slint";
 import { PageHeader } from "../components/page-header.slint";
-import { Link, Segmented } from "../components/controls.slint";
+import { AppButton, Link, Segmented } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
 
 export component PreferencesPage inherits PageFrame {
@@ -16,6 +16,7 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.moon;
         heading: "App theme";
         description: "System follows the Windows app mode and changes with it.";
         HorizontalLayout {
@@ -30,6 +31,7 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.person;
         heading: "All users on this PC";
         description: "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.";
         KeyValue {
@@ -43,7 +45,7 @@ export component PreferencesPage inherits PageFrame {
         HorizontalLayout {
             alignment: start;
             spacing: Tokens.s2;
-            Button {
+            AppButton {
                 text: AppState.status.machine-registered ? "Unregister for all users" : "Register for all users";
                 icon: AppState.shield-icon;
                 icon-size: 16px;
@@ -54,6 +56,7 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.info;
         heading: "About";
         HorizontalLayout {
             spacing: Tokens.s4;

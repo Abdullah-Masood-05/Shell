@@ -18,6 +18,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace theme {
 
@@ -42,6 +43,13 @@ struct States
     uint32_t nor = 0, sel = 0, norDis = 0, selDis = 0;
 };
 
+// One colour stop of theme.background.gradient: offset 0..1, colour with its opacity.
+struct GradientStop
+{
+    double offset = 0;
+    uint32_t color = 0xFF000000;
+};
+
 struct Resolved
 {
     std::string type = "auto"; // auto | modern | classic | white | black
@@ -50,6 +58,14 @@ struct Resolved
     int effect = 0;            // 0 none, 1 transparent, 2 blur, 3 acrylic
     uint32_t background = 0xFFF9F9F9;
     uint32_t tint = 0;
+
+    // theme.background.gradient, drawn over the background (ContextMenu.cpp): a
+    // linear gradient along `gradientAngle` (CSS degrees: 0 is bottom to top, 90
+    // left to right), or a radial one from the centre.
+    bool gradient = false;
+    bool gradientRadial = false;
+    double gradientAngle = 0;
+    std::vector<GradientStop> gradientStops;
 
     int borderSize = 1;
     uint32_t borderColor = 0;
@@ -95,6 +111,9 @@ std::optional<int> viewPadding(const nss::Literal &value);
 std::optional<uint32_t> colorOf(const nss::Literal &value, const SystemInfo &sys);
 
 Resolved resolve(const Values &values, const SystemInfo &sys);
+
+// The gradient's colour at `t` (0..1) between its stops; transparent without one.
+uint32_t gradientAt(const Resolved &r, double t);
 
 // The default font size (lfHeight) the core uses on this Windows version.
 double defaultFontSize(const SystemInfo &sys);

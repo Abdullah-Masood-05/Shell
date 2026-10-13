@@ -6,6 +6,12 @@ export struct PreviewTheme {
     effect: int,              // 0 none, 1 transparent, 2 blur, 3 acrylic
     background: color,        // with its opacity
     tint: color,              // blur/acrylic tint
+    gradient: bool,           // theme.background.gradient, over the background
+    gradient-radial: bool,
+    gradient-angle: angle,
+    gradient-0: color,        // its colour at the start, middle and end
+    gradient-1: color,
+    gradient-2: color,
     border-size: length,
     border-color: color,
     radius: length,           // menu corners

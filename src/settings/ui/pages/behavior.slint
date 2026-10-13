@@ -1,8 +1,9 @@
 // Behavior: the settings{} keys that decide how the menu opens and what it adds
 // or removes. Values go to SaveService as pending changes; the footer saves.
 
-import { Button } from "std-widgets.slint";
+
 import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { Card } from "../components/card.slint";
 import { Banner } from "../components/banner.slint";
@@ -10,6 +11,7 @@ import { PageHeader } from "../components/page-header.slint";
 import { SettingRow, SettingBlock, RowDivider, ChipGroup, ValueSlider, ColorField, ToggleSwitch } from "../components/theme-controls.slint";
 import { PageFrame } from "page-frame.slint";
 import { SettingsState, SK, ThemeField } from "settings-state.slint";
+import { AppButton } from "../components/controls.slint";
 
 // A labelled on/off row.
 component SwitchRow inherits SettingRow {
@@ -47,6 +49,7 @@ export component BehaviorPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.window;
         heading: "Opening the menu";
         SwitchRow {
             label: "Open Shell's menu instead of the Windows 11 menu";
@@ -83,6 +86,7 @@ export component BehaviorPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.info;
         heading: "Tooltips";
         SwitchRow {
             label: "Show tooltips";
@@ -144,6 +148,7 @@ export component BehaviorPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.desktop;
         heading: "Screenshots";
         SwitchRow {
             label: "Print Screen saves the open menu";
@@ -157,7 +162,7 @@ export component BehaviorPage inherits PageFrame {
             hint: (root.f[SK.screenshot-dir].display != "" ? root.f[SK.screenshot-dir].display : "Screenshots folder · " + SettingsState.default-screenshot-dir) + " · " + root.f[SK.screenshot-dir].origin;
             control-width: 110px;
             reset => { SettingsState.reset(SK.screenshot-dir); }
-            Button {
+            AppButton {
                 text: "Choose…";
                 enabled: root.ready && !root.f[SK.screenshot-dir].locked;
                 clicked => { SettingsState.pick-folder(SK.screenshot-dir); }
@@ -166,6 +171,7 @@ export component BehaviorPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.menus;
         heading: "Windows' own items";
         description: "What Shell does to the items Windows and other apps put in the menu.";
         SwitchRow {
