@@ -29,8 +29,12 @@
   a per-user mode that needs no administrator rights, and an app to set it up and configure it.
 </p>
 
-Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
-or x86, or a portable zip that installs per user without administrator rights.
+**Download the latest release:**
+[setup-x64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi) ·
+[setup-arm64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi) ·
+[setup-x86.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi) ·
+[portable zip (per user, no admin)](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip) ·
+[all releases](https://github.com/Abdullah-Masood-05/Shell/releases). These links always point to the newest release.
 
 ## What's different in Pro
 

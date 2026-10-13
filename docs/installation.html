@@ -1,7 +1,7 @@
 ﻿<h4>Installation</h4>
 <br>
 <div class="notification is-warning mt-5" role="alert">
-	<i>Info:</i> Administrative permissions are required for installation.
+	<i>Info:</i> The installer (MSI) needs administrator rights once; the portable version can be set up per user without them.
 </div>
 <div class="notification is-info mt-5">
 	<i>Tip:</i> To use Shell for your account only, without administrator rights, register an extracted
@@ -24,21 +24,35 @@
 	<li><a href="#keys">Keys to enable/disable Shell functionalities</a></li>
 </ul>
 <br>
+<div id="download">
+	<h5>Download</h5>
+	<p>These links always point to the newest release of Nilesoft Shell Pro:</p>
+	<ul>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi"><b>setup-x64.msi</b></a>: installer for most PCs (64-bit Intel/AMD).</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi">setup-arm64.msi</a>: installer for ARM64 PCs.</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi">setup-x86.msi</a>: installer for 32-bit Windows (without the Nilesoft Shell Pro app).</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a>: portable, per user, no administrator rights.</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>: checksums. Release notes and older versions: <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest">release page</a>.</li>
+	</ul>
+	<p>The files are not code-signed, so Windows SmartScreen may ask for confirmation (<i>More info</i> &rarr; <i>Run anyway</i>).</p>
+</div>
+<br/>
 <div id="installer">
 	<h5>Installer version</h5>
 	<div id="installer-install">
 		<h5>Install</h5>
-		<p><a href="/download">Download</a> the installation file (Installer/Portable),
-			run <code>setup.exe</code>, follow the installation steps, and agree to restart Windows File Explorer.</p>
-		<p>The program will be installed to <code>C:\Program Files\Nilesoft Shell\</code>, unless you have chosen
-			a different installation path during the installation steps.</p>
+		<p>Download <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi">setup-x64.msi</a> (or the ARM64/x86 one), run it and approve the
+			administrator prompt. It installs to <code>C:\Program Files\Nilesoft Shell\</code>, registers Shell for all users
+			with the Windows 11 classic menu, restarts File Explorer and adds <i>Nilesoft Shell Pro</i> to the Start menu.</p>
+		<p>Installing a newer version over an older one (including upstream Nilesoft Shell 1.9.x) upgrades it in place and
+			keeps your <code>shell.nss</code>.</p>
 	</div>
 	<hr>
 	<div id="installer-uninstall">
 		<h5>Uninstall</h5>
-		<p>Inside the Shell program folder (<code>C:\Program Files\Nilesoft Shell\</code> by default), run the <code>unst000.exe</code>
-			or <code>unstall.exe</code> file, then follow the steps, and then agree to restart Windows File Explorer.
-		</p>
+		<p>Open <i>Settings &rarr; Apps &rarr; Installed apps</i>, find <i>Nilesoft Shell Pro</i> and choose <i>Uninstall</i>.
+			Shell is unregistered and File Explorer restarts. Your per-user configuration in
+			<code>%APPDATA%\Nilesoft\Shell</code> is left in place.</p>
 	</div>
 </div>
 <br/>
@@ -46,27 +60,28 @@
 	<h5>Portable version</h5>
 	<div id="portable-install">
 		<h5>Install</h5>
-		<p><a href="/download">Download</a> the
-			installation file (Installer/Portable),
-			run <code>setup.exe</code>,
-			click Next, chose the folder you want the program to be extracted
-			to, <strong>Check the option Portable Mode</strong>, and click
-			Extract.</p>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), change to the directory you have extracted the program to, and run</p>
+		<p>Download <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a> and extract it
+			to a folder you own, for example <code>%LOCALAPPDATA%\Programs\NilesoftShellPro</code>. Run
+			<code>NilesoftShellPro.exe</code>: its first-run setup creates your configuration and registers Shell for your
+			account, with no administrator rights. Or run these yourself from that folder:</p>
 		<div class="console">
-			<div class="console-title">Administrator: Command Prompt</div>
-			<div class="console-body">shell -register -restart</div>
+			<div class="console-title">Command Prompt</div>
+			<div class="console-body">shell -config:init<br>shell -register -user -treat -restart</div>
 		</div>
-		<p>For further details, see the chapter <a href="#cli">Command-Line Help</a> below.</p>
+		<p>To register for all users instead, run <code>shell -register -treat -restart</code> from an
+			<strong>elevated</strong> command prompt.</p>
+<p>For further details, see the chapter <a href="#cli">Command-Line Help</a> below.</p>
 	</div>
 	<hr>
 	<div id="portable-uninstall">
 		<h5>Uninstall</h5>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), change to the directory you have extracted the program to, and run</p>
+		<p>From the folder you extracted the program to, run (no administrator rights needed for a per-user registration;
+			use an elevated prompt and leave out <code>-user</code> if you registered it for all users):</p>
 		<div class="console">
-			<div class="console-title">Administrator: Command Prompt</div>
-			<div class="console-body">shell -unregister -restart</div>
+			<div class="console-title">Command Prompt</div>
+			<div class="console-body">shell -unregister -user -restart</div>
 		</div>
+		<p>Then delete the folder.</p>
 		<br>
 		<div class="notification is-info mt-5">
 			<i>Tip:</i> Close all instances of Windows File Explorer before uninstalling to avoid needing a reboot after
