@@ -81,6 +81,9 @@ export global AppState {
     // Busy: one action at a time; every action button is disabled meanwhile.
     in property <bool> busy;
     in property <string> busy-label;
+    // The last action(): its id, and why it failed or was cancelled ("" when it worked).
+    in property <string> action-id;
+    in property <string> action-error;
 
     // Toast
     in property <bool> toast-shown;

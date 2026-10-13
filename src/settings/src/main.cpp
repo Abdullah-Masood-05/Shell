@@ -11,6 +11,7 @@
 //   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
+//   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --set <key>=<literal>, --save    see AppearanceController.h
 
 #include "app.h"
@@ -86,6 +87,8 @@ AppOptions parseArgs()
             for (int p = 0; p < int(std::size(pages)); ++p)
                 if (_wcsicmp(argv[i], pages[p]) == 0)
                     o.startPage = p;
+        } else if (_wcsicmp(argv[i], L"--status-json") == 0 && i + 1 < argc) {
+            o.statusFile = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {

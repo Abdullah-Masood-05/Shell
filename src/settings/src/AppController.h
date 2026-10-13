@@ -10,6 +10,7 @@
 #include "Status.h"
 #include "Worker.h"
 
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -18,6 +19,8 @@ struct AppOptions
 {
     bool noOnboarding = false; // --no-onboarding (development)
     int startPage = 0;         // --page <name>  (development)
+    int onboardingStep = -1;   // --onboarding <1|2|3>: show the dialog at that step (development)
+    std::wstring statusFile;   // --status-json <file>: Home reads it instead of -status (development)
 };
 
 class AppController
@@ -30,6 +33,10 @@ public:
     void attachWindow(HWND hwnd);
     void start();
     void saveWindowPlacement();
+
+    // A `-config:init` from Home or the first-run dialog went through: the active
+    // root shell.nss changed. UI thread.
+    void onConfigChanged(std::function<void()> fn) { configChanged_.push_back(std::move(fn)); }
 
 private:
     struct Snapshot
@@ -61,6 +68,7 @@ private:
     bool busy_ = false;
     bool lastDark_ = true;
     std::optional<uint32_t> lastAccent_;
+    std::vector<std::function<void()>> configChanged_;
     slint::Timer toastTimer_;
     slint::Timer themePoll_;
     Worker worker_; // last: joined first, before cli_ goes away
