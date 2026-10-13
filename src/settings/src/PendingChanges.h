@@ -28,6 +28,11 @@ public:
     // only for keys that take one (ValueType::Any, e.g. settings.exclude.where);
     // shell.exe -config:check judges them when the change is saved.
     std::vector<std::string> set(std::string_view key, std::string_view literal, std::string_view page = {});
+    // set(), unless `literal` is the value already saved (`saved`: this app's value,
+    // else the files'; nullopt for the built-in default): then the key's pending
+    // change is dropped instead of staging a no-op. What every page's edit does.
+    std::vector<std::string> stage(std::string_view key, std::string_view literal, std::string_view page,
+                                   const std::optional<std::string> &saved);
     void reset(std::string_view key, std::string_view page = {});
     // Forgets the pending change for `key` (the value goes back to the saved one).
     void forget(std::string_view key);
@@ -47,6 +52,11 @@ public:
 private:
     std::map<std::string, Change> changes_;
 };
+
+// Two value texts are the same literal ("modern" and 'modern', 8 and 8.0, #fff and
+// #FFFFFF); expressions compare as written. Picking the value already saved drops
+// the pending change instead of staging a no-op (SaveService::set).
+bool sameValue(std::string_view a, std::string_view b);
 
 // What a save writes, computed from the current files.
 struct SavePlan

@@ -15,11 +15,74 @@ namespace Nilesoft
 
 	string Logger::GetPath()
 	{
-		string path = IO::Path::Module(CurrentModule).move();
+		return ResolvePath(IO::Path::Module(CurrentModule)).move();
+	}
+
+	// Whether this process can append to `log`, or create it. Probes with real
+	// opens instead of reading the folder's ACL, so the answer cannot disagree
+	// with what open() will get. The probe file is deleted when its handle
+	// closes. kernel32 only.
+	static bool CanWriteLog(const string &log)
+	{
+		auto h = ::CreateFileW(log.c_str(), FILE_APPEND_DATA,
+							   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+							   nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if(h != INVALID_HANDLE_VALUE)
+		{
+			::CloseHandle(h);
+			return true;
+		}
+
+		auto error = ::GetLastError();
+		// Open elsewhere without FILE_SHARE_WRITE: still the file to use.
+		if(error == ERROR_SHARING_VIOLATION)
+			return true;
+		if(error != ERROR_FILE_NOT_FOUND)
+			return false;
+
+		string probe = log;
+		probe.append_format(L".%lu.probe", ::GetCurrentProcessId());
+		h = ::CreateFileW(probe.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+						  FILE_ATTRIBUTE_TEMPORARY | FILE_ATTRIBUTE_HIDDEN | FILE_FLAG_DELETE_ON_CLOSE,
+						  nullptr);
+		if(h == INVALID_HANDLE_VALUE)
+			return false;
+		::CloseHandle(h);
+		return true;
+	}
+
+	string Logger::ResolvePath(const string &module_path, bool create_dir)
+	{
+		string path = module_path;
 		auto len = path.length();
 		if(len > 4)
 			path = (path.substr(0, len - 3) + L"log").move();
-		return path.move();
+
+		if(path.empty() || CanWriteLog(path))
+			return path.move();
+
+		wchar_t local[MAX_PATH]{};
+		auto n = ::GetEnvironmentVariableW(L"LOCALAPPDATA", local, MAX_PATH);
+		if(n == 0 || n >= MAX_PATH)
+			return path.move();
+
+		// %LOCALAPPDATA%\Nilesoft\Shell\<name>.log
+		string dir = IO::Path::Combine(local, APP_COMPANY).move();
+		if(create_dir)
+			::CreateDirectoryW(dir.c_str(), nullptr);
+		dir = IO::Path::Combine(dir, APP_NAME).move();
+		if(create_dir)
+			::CreateDirectoryW(dir.c_str(), nullptr);
+		return IO::Path::Combine(dir, IO::Path::Name(path)).move();
+	}
+
+	const string &Logger::path() const
+	{
+		static std::mutex resolving;
+		std::lock_guard<std::mutex> lock(resolving);
+		if(_path.empty())
+			_path = GetPath().move();
+		return _path;
 	}
 
 	string Logger::Now()
@@ -60,7 +123,7 @@ namespace Nilesoft
 		if(hFile != INVALID_HANDLE_VALUE)
 			return true;
 
-		hFile = ::CreateFileW(_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE,
+		hFile = ::CreateFileW(path().c_str(), GENERIC_WRITE, FILE_SHARE_WRITE,
 							  nullptr, creation,
 							  FILE_ATTRIBUTE_NORMAL, nullptr);
 
@@ -79,7 +142,7 @@ namespace Nilesoft
 		}
 		else if(creation == CREATE_NEW)
 		{
-			Security::Permission::SetFile(_path.c_str());
+			Security::Permission::SetFile(path().c_str());
 
 			uint8_t smarker[2] = {0xFF, 0xFE};
 			::WriteFile(hFile, smarker, 2, nullptr, nullptr);

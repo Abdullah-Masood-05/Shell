@@ -1268,18 +1268,324 @@ namespace Nilesoft
 			return 0;
 		}
 
-		void Parser::parse_loc(bool has_curly)
+		void Parser::parse_loc(bool has_curly, Scope *into)
 		{
+			if(!into)
+				into = &context.Cache->variables.loc;
 			if(has_curly)
 				expect_openCurly();
 			while(!l->eof)
 			{
 				if(has_curly && l->tok == L'}')
 					break;
-				parse_variable(&context.Cache->variables.loc, false);
+				parse_variable(into, false);
 			}
 			if(has_curly)
 				expect_closeCurly();
+		}
+
+		void Parser::note_loc(uint32_t key, const string &name, size_t line, size_t column)
+		{
+			if(m_loc_refs.contains(key) || !l)
+				return;
+
+			LocRef ref;
+			ref.name = name;
+			ref.file = l->path;
+			ref.line = line;
+			ref.column = column;
+			ref.order = m_loc_refs.size();
+			m_loc_refs.emplace(key, std::move(ref));
+		}
+
+		// A string with nothing to evaluate: "text", or 'text' (parsed as an
+		// interpolated string) with no @ or % parts.
+		static bool is_literal(const Expression *e)
+		{
+			if(!e)
+				return false;
+			if(e->Type() == ExpressionType::String)
+				return true;
+			if(e->Type() != ExpressionType::Statement)
+				return false;
+			auto stmt = static_cast<const StatementExpression *>(e);
+			if(!stmt->HasReturn)
+				return false;
+			for(auto part : stmt->Body)
+			{
+				if(!part || part->Type() != ExpressionType::String)
+					return false;
+			}
+			return true;
+		}
+
+		void Parser::record_title(const Expression *e, size_t line, size_t column)
+		{
+			// Only -config:check (which collects diagnostics) reports titles.
+			if(!e || !Diagnostics)
+				return;
+
+			TitleRef ref;
+			ref.file = l ? l->path : m_path;
+			ref.line = line;
+			ref.column = column;
+			if(e == m_last_ident.expr)
+			{
+				ref.root = m_last_ident.root;
+				ref.key = m_last_ident.key;
+				ref.name = m_last_ident.name;
+			}
+			else
+			{
+				ref.literal = is_literal(e);
+			}
+			// Keyed by address: a later title at a reused address replaces it.
+			m_titles.insert_or_assign(e, std::move(ref));
+		}
+
+		// "file_manage" -> "File manage", for a loc name defined nowhere.
+		static string humanize_loc_name(const string &name)
+		{
+			std::wstring text;
+			for(auto c : std::wstring_view(name.c_str(), name.length()))
+				text += (c == L'_' || c == L'-') ? L' ' : c;
+			if(!text.empty())
+				text[0] = static_cast<wchar_t>(std::towupper(text[0]));
+			return string(text);
+		}
+
+		bool Parser::load_loc_file(const string &path, Scope &into)
+		{
+			// A broken fallback file must not fail the configuration that only
+			// borrowed it: its errors are rolled back and it is skipped.
+			auto saved_error = m_error;
+			auto saved_code = error_code;
+			auto saved_diagnostics = Diagnostics ? Diagnostics->size() : 0;
+
+			bool ok = false;
+			auto lex = import_push();
+			add_source(path);
+			try
+			{
+				if(lex->load_File(path, true))
+				{
+					l = lex;
+					skip();
+					parse_loc(false, &into);
+					ok = !m_error;
+				}
+			}
+			catch(...)
+			{
+				ok = false;
+			}
+			pop_import();
+
+			if(!ok)
+			{
+				m_error = saved_error;
+				error_code = saved_code;
+				if(Diagnostics && Diagnostics->size() > saved_diagnostics)
+					Diagnostics->resize(saved_diagnostics);
+				into.clear(true);
+			}
+			return ok;
+		}
+
+		void Parser::resolve_loc()
+		{
+			auto &loc = context.Cache->variables.loc;
+
+			std::vector<std::pair<uint32_t, const LocRef *>> missing;
+			for(auto &[key, ref] : m_loc_refs)
+			{
+				if(!loc.exists(key))
+					missing.emplace_back(key, &ref);
+			}
+			if(missing.empty())
+				return;
+
+			std::sort(missing.begin(), missing.end(),
+					  [](auto &a, auto &b) { return a.second->order < b.second->order; });
+
+			// The configuration imports no language file (an older shell.nss
+			// with newer imports), or one that lacks these names: English, from
+			// imports\lang\en.nss next to the root config, then (for names an
+			// older copy there lacks) the one in the install folder. Read here,
+			// once per load, into this load's cache: nothing is read when a menu
+			// opens, and a reload starts again from a new cache.
+			string english_path;
+			const LocRef *first_english = nullptr;
+			uint32_t from_english = 0;
+			string dirs[] = { location, context.Application ? string(context.Application->Dirctory) : string() };
+			for(size_t d = 0; d < std::size(dirs) && !missing.empty(); d++)
+			{
+				if(dirs[d].empty() || (d > 0 && dirs[d].equals(dirs[0], true)))
+					continue;
+				auto path = Path::Combine(dirs[d], L"imports\\lang\\en.nss").move();
+				Scope english;
+				if(!Path::IsFileExists(path) || !load_loc_file(path, english))
+					continue;
+
+				for(auto it = missing.begin(); it != missing.end();)
+				{
+					if(auto e = english.detach(it->first))
+					{
+						loc.set(it->first, e);
+						if(!first_english)
+						{
+							first_english = it->second;
+							english_path = path;
+						}
+						from_english++;
+						it = missing.erase(it);
+					}
+					else
+						++it;
+				}
+			}
+
+			// Defined nowhere: a readable form of the name, never a blank title.
+			for(auto &[key, ref] : missing)
+			{
+				auto text = humanize_loc_name(ref->name).move();
+				loc.set(key, text);
+
+				string message;
+				message.format(L"loc.%s is not defined in any language file; it shows as '%s'",
+							   ref->name.c_str(), text.c_str());
+				Logger::Warning(L"line[%d] column[%d] %s", static_cast<int>(ref->line), static_cast<int>(ref->column), message.c_str());
+				diagnose(false, ref->file, ref->line, ref->column, message);
+			}
+
+			if(from_english)
+			{
+				string message;
+				message.format(L"no imported language file defines %u of the loc.* names used (such as loc.%s); "
+							   L"the English text from '%s' is used. Add the localization block (import lang ...) "
+							   L"from the default shell.nss to get translated titles",
+							   from_english, first_english->name.c_str(), english_path.c_str());
+				Logger::Info(L"%s", message.c_str());
+				diagnose(false, _imports.front()->path, 0, 0, message);
+			}
+		}
+
+		bool Parser::ReportTitles(std::vector<TitleInfo> &out, const wchar_t *where)
+		{
+			// The selection a right-click in `where` makes, as Selections
+			// describes it; only type= is tested (where= and vis= need the real
+			// selection and are not evaluated).
+			int32_t types[FSO_MAX]{};
+			bool background = false;
+			size_t count = 1;
+			bool filter = where && *where;
+			if(filter)
+			{
+				string name = where;
+				if(name.equals(L"file", true))
+					types[FSO_FILE] = 1;
+				else if(name.equals(L"folder", true) || name.equals(L"dir", true))
+					types[FSO_DIRECTORY] = 1;
+				else if(name.equals(L"back", true) || name.equals(L"background", true))
+				{
+					background = true;
+					types[FSO_BACK_DIRECTORY] = 1;
+				}
+				else if(name.equals(L"desktop", true))
+				{
+					background = true;
+					types[FSO_DESKTOP] = 1;
+				}
+				else if(name.equals(L"taskbar", true))
+				{
+					types[FSO_TASKBAR] = 1;
+					count = 0;
+				}
+				else
+					return false;
+
+				types[FSO_BACK] = background;
+				for(int32_t i = 0; i < FSO_BACK; i++)
+					types[FSO_COUNT] += types[i];
+			}
+
+			auto &loc = context.Cache->variables.loc;
+
+			auto report = [&](NativeMenu *item, uint32_t depth, TitleInfo::Kind kind)
+			{
+				auto e = item->title.get();
+				if(!e)
+					return;
+
+				TitleInfo info;
+				info.state = TitleInfo::Dynamic;
+				info.kind = kind;
+				info.depth = depth;
+				if(auto it = m_titles.find(e); it != m_titles.end())
+				{
+					auto &ref = it->second;
+					info.file = ref.file;
+					info.line = ref.line;
+					info.column = ref.column;
+					if(ref.root)
+						info.source.format(L"%s.%s", ref.root == IDENT_LOC ? L"loc" : L"title", ref.name.c_str());
+
+					Expression *value = nullptr;
+					if(ref.literal)
+						value = e;
+					else if(ref.root == IDENT_LOC)
+					{
+						// Undefined (null) evaluates to an empty title.
+						value = loc.at(ref.key);
+						if(!value)
+							info.state = TitleInfo::Empty;
+						else if(!is_literal(value))
+							value = nullptr;	// e.g. 'Copy @sel.count paths'
+					}
+					else if(ref.root == IDENT_TITLE)
+					{
+						info.state = TitleInfo::Empty;
+						if(auto uid = Initializer::get_muid(ref.key); uid)
+						{
+							info.text = uid->get_title().move();
+							if(!info.text.empty())
+								info.state = TitleInfo::Text;
+						}
+					}
+
+					if(value)
+					{
+						info.text = context.Eval(value).to_string().move();
+						info.state = info.text.empty() ? TitleInfo::Empty : TitleInfo::Text;
+					}
+				}
+				out.push_back(std::move(info));
+			};
+
+			// A menu that does not show in `where` hides everything in it.
+			std::function<void(std::vector<NativeMenu *> &, uint32_t)> walk = [&](std::vector<NativeMenu *> &items, uint32_t depth)
+			{
+				for(auto item : items)
+				{
+					if(!item)
+						continue;
+					if(filter && !Selections::match_types(item->fso, types, background, count))
+						continue;
+					report(item, depth, item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item);
+					walk(item->items, depth + 1);
+				}
+			};
+
+			walk(context.Cache->dynamic.items, 0);
+			for(auto item : context.Cache->statics)
+			{
+				if(!item)
+					continue;
+				if(filter && !Selections::match_types(item->fso, types, background, count))
+					continue;
+				report(item, 0, TitleInfo::Modify);
+			}
+			return true;
 		}
 
 		// load data from disk and populate
@@ -1406,6 +1712,9 @@ namespace Nilesoft
 
 				location = Path::Parent(l->path);
 				parse_config();
+				// Before the cache goes live: no title may be blank.
+				if(!m_error)
+					resolve_loc();
 
 				result = /*parse_config() && */!m_error;
 				if(result)

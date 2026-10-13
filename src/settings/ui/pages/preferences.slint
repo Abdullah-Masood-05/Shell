@@ -31,7 +31,7 @@ export component PreferencesPage inherits PageFrame {
 
     Card {
         heading: "All users on this PC";
-        description: "Registering for everyone writes to HKEY_LOCAL_MACHINE and needs administrator rights. Everything else in this app works without them.";
+        description: "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.";
         KeyValue {
             key: "All users";
             value: !AppState.status.loaded ? "—" : AppState.status.machine-registered ? "Registered" : "Not registered";
@@ -66,7 +66,7 @@ export component PreferencesPage inherits PageFrame {
                 alignment: center;
                 spacing: 2px;
                 Text {
-                    text: "Nilesoft Shell Settings";
+                    text: "Nilesoft Shell Pro";
                     font-size: Tokens.body-large;
                     font-weight: 600;
                     color: Tokens.text;
@@ -93,13 +93,14 @@ export component PreferencesPage inherits PageFrame {
                 text: "Documentation";
                 activated => { AppState.open-url("https://nilesoft.org/docs"); }
             }
+            // This build is the Nilesoft Shell Pro fork: its own source and issue tracker.
             Link {
                 text: "Source code";
-                activated => { AppState.open-url("https://github.com/moudey/Shell"); }
+                activated => { AppState.open-url("https://github.com/Abdullah-Masood-05/Shell"); }
             }
             Link {
                 text: "Report an issue";
-                activated => { AppState.open-url("https://github.com/moudey/Shell/issues"); }
+                activated => { AppState.open-url("https://github.com/Abdullah-Masood-05/Shell/issues"); }
             }
         }
         Rectangle {

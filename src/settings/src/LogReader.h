@@ -20,7 +20,13 @@ struct LogEntry
 
 namespace logreader {
 
+// shell.log next to the dll; if there is none there but there is one in
+// %LOCALAPPDATA%\Nilesoft\Shell (where shell.dll logs when it cannot write next to
+// itself, e.g. in Program Files), that one.
 std::filesystem::path logPathForDll(const std::filesystem::path &dll);
+
+// The log to read: `reported` (shell -status "log.path") if set, else logPathForDll.
+std::filesystem::path logPathFor(const std::filesystem::path &reported, const std::filesystem::path &dll);
 
 // The newest maxEntries entries of level error/warning/info, newest first.
 // Reads at most maxBytes from the end of the file. Handles UTF-16 LE (with BOM) and UTF-8.

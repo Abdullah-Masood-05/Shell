@@ -5,6 +5,7 @@
 
 using namespace Nilesoft::Diagnostics;
 #include <mutex>
+#include <atomic>
 
 extern Logger &_log;
 
@@ -269,7 +270,15 @@ namespace Nilesoft
 			if(list.empty())
 				return false;
 
-			_context.menu_count = (uint32_t)list.size();
+			// this.count is the number of system items at this level - the same
+			// value prepare_system_items and build_main_system_menuitems give it -
+			// not the number of items the configuration adds. The shipped
+			// taskbar.nss shows its whole taskbar menu (Apps, Windows, Desktop,
+			// Settings, Task Manager, Taskbar settings) only `where=this.count == 0`,
+			// i.e. when Windows supplied no menu of its own, as on the Windows 11
+			// taskbar. Counting `list` here made that false whenever the
+			// configuration defines more than one item, so the menu vanished.
+			_context.menu_count = (menu && menu->std_items) ? static_cast<uint32_t>(menu->std_items->size()) : 0;
 			int _this_index = 0;
 			
 			for(auto item : list)
@@ -1139,6 +1148,34 @@ namespace Nilesoft
 				// insert top items
 				if(_new_items.size() > 0)
 					items.insert(items.end(), _new_items.Top.begin(), _new_items.Top.end());
+			}
+
+			// Taskbar diagnostics. The first taskbar menu of each Explorer session
+			// is summarised at info level (one line per session, so shell.log does
+			// not grow with every right-click); debug builds log every one.
+			if(menu->is_main && Selected.Window.parent == WINDOW_TASKBAR)
+			{
+				static std::atomic_bool taskbar_logged{ false };
+				const bool first = !taskbar_logged.exchange(true);
+#ifndef _DEBUG
+				if(first)
+#endif
+				{
+					const auto system_count = menu->std_items ? static_cast<uint32_t>(menu->std_items->size()) : 0u;
+					const auto configured = static_cast<uint32_t>(menu->dynamics.size());
+					const auto window_class = Selected.Window.handle.class_name().move();
+					const wchar_t *format = L"Taskbar menu: window '%s' (id %u), new items %s, %u system item(s) (this.count), "
+						L"%u configured top-level item(s), %u system and %u new item(s) to show.";
+					const wchar_t *new_items = _settings.new_items.enabled ? L"enabled" : L"disabled";
+					const auto shown_system = static_cast<uint32_t>(_system_items.size());
+					const auto shown_new = static_cast<uint32_t>(_new_items.size());
+					if(first)
+						Logger::Info(format, window_class.c_str(), Selected.Window.id, new_items,
+									 system_count, configured, shown_system, shown_new);
+					else
+						Logger::Debug(format, window_class.c_str(), Selected.Window.id, new_items,
+									  system_count, configured, shown_system, shown_new);
+				}
 			}
 
 			if(_system_items.size() > 0)

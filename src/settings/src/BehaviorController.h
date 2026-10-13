@@ -45,6 +45,7 @@ private:
     void apply(int index, const std::string &literal);
     void reset(int index);
     void pickFolder(int index);
+    void setShowDelay(int index, bool on);
     std::vector<std::string> names(int index) const;
 
     slint::ComponentHandle<AppWindow> ui_;

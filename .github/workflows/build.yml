@@ -1,7 +1,7 @@
 name: Build
 
-# Builds the core (shell.dll, shell.exe, ca.dll) for x64, x86 and ARM64, the Settings app
-# (settings.exe, x64 only), the MSIs and the x64 portable zip. release.yml calls this
+# Builds the core (shell.dll, shell.exe, ca.dll) for x64, x86 and ARM64, the app
+# (NilesoftShellPro.exe, x64 only), the MSIs and the x64 portable zip. release.yml calls this
 # workflow for tagged releases.
 
 on:
@@ -33,8 +33,8 @@ concurrency:
 # x86, x64 and ARM64, CMake and rustup.
 
 jobs:
-  settings:
-    name: Settings app (x64)
+  app:
+    name: Nilesoft Shell Pro app (x64)
     runs-on: windows-2022
     timeout-minutes: 75
     defaults:
@@ -78,7 +78,7 @@ jobs:
         working-directory: src/settings
         run: cmake --preset x64-release
 
-      - name: Build settings.exe and settings_tests
+      - name: Build NilesoftShellPro.exe and settings_tests
         working-directory: src/settings
         run: cmake --build --preset x64-release
 
@@ -96,26 +96,26 @@ jobs:
           & src/settings/out/nss/Release/nsscore_tests.exe
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
-      - name: Check that settings.exe has no runtime DLLs
+      - name: Check that NilesoftShellPro.exe has no runtime DLLs
         run: |
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * `
             -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
           $msvc = (Get-Content "$vs\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" -TotalCount 1).Trim()
           $dumpbin = "$vs\VC\Tools\MSVC\$msvc\bin\Hostx64\x64\dumpbin.exe"
-          $deps = & $dumpbin /nologo /dependents src/bin/settings.exe | Where-Object { $_ -match '^\s+\S+\.dll\s*$' } | ForEach-Object { $_.Trim() }
+          $deps = & $dumpbin /nologo /dependents src/bin/NilesoftShellPro.exe | Where-Object { $_ -match '^\s+\S+\.dll\s*$' } | ForEach-Object { $_.Trim() }
           $deps
           $bad = $deps | Where-Object { $_ -match '^(slint|vcruntime|msvcp|ucrtbase)' }
-          if ($bad) { throw "settings.exe depends on: $($bad -join ', ')" }
+          if ($bad) { throw "NilesoftShellPro.exe depends on: $($bad -join ', ')" }
 
       - uses: actions/upload-artifact@v7
         with:
-          name: settings-exe
-          path: src/bin/settings.exe
+          name: app-exe
+          path: src/bin/NilesoftShellPro.exe
           if-no-files-found: error
 
   core:
     name: Core and MSI (${{ matrix.platform }})
-    needs: settings
+    needs: app
     runs-on: windows-2022
     timeout-minutes: 45
     strategy:
@@ -127,8 +127,8 @@ jobs:
       BUILD_CONFIGURATION: release
       BUILD_PLATFORM: ${{ matrix.platform }}
       BIN_PATH: ${{ github.workspace }}\src\bin
-      # The x64 and ARM64 MSIs must contain settings.exe (ARM64 ships the x64 exe).
-      REQUIRE_SETTINGS: ${{ matrix.platform != 'x86' }}
+      # The x64 and ARM64 MSIs must contain NilesoftShellPro.exe (ARM64 ships the x64 exe).
+      REQUIRE_APP: ${{ matrix.platform != 'x86' }}
     defaults:
       run:
         shell: pwsh
@@ -140,18 +140,25 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v3
 
-      - name: Get settings.exe
+      - name: Get NilesoftShellPro.exe
         if: matrix.platform != 'x86'
         uses: actions/download-artifact@v8
         with:
-          name: settings-exe
+          name: app-exe
           path: src/bin
 
       - name: Restore NuGet packages
         run: msbuild $env:SOLUTION_FILE_PATH -t:restore -p:RestorePackagesConfig=true -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM
 
       - name: Build the core and the MSI
-        run: msbuild $env:SOLUTION_FILE_PATH -m -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:RequireSettingsExe=$env:REQUIRE_SETTINGS
+        run: msbuild $env:SOLUTION_FILE_PATH -m -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:RequireAppExe=$env:REQUIRE_APP
+
+      # No menu title may evaluate empty: the shipped shell.nss, an older one with no
+      # `import lang` block, and that one after -config:init (all in a temp folder).
+      # ARM64 binaries cannot run on the x64 runner.
+      - name: Check the menu titles
+        if: matrix.platform != 'ARM64'
+        run: ./scripts/check-titles.ps1 -BinDir $env:BIN_PATH
 
       - name: Make the portable zip
         if: matrix.platform == 'x64'

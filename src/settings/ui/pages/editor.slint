@@ -184,6 +184,7 @@ export component EditorPage inherits Rectangle {
                 text: "Open in external editor";
                 icon: Icons.folder;
                 icon-size: 16px;
+                colorize-icon: true;
                 enabled: EditorState.current-path != "";
                 clicked => { EditorState.open-external(); }
             }

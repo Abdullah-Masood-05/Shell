@@ -9,8 +9,11 @@
 #include <shellapi.h>
 #include <shlobj.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -140,7 +143,12 @@ StatusInfo toInfo(const ShellStatus &s)
     else
         i.source_text = "Unknown";
 
-    if (s.regMode == "none") {
+    if (!s.conflictDlls().empty()) {
+        i.health_kind = "error";
+        i.health_title = "Two copies of Shell are registered";
+        i.health_detail = "Explorer can load the other copy, and then Shell's menu doesn't appear.";
+        i.pill_text = "Needs attention";
+    } else if (s.regMode == "none") {
         i.health_kind = "error";
         i.health_title = "Shell is not enabled";
         i.health_detail = "The context menu isn't registered for you or for all users.";
@@ -174,24 +182,21 @@ StatusInfo toInfo(const ShellStatus &s)
 std::vector<Issue> issuesFor(const ShellStatus &s, bool dllExists)
 {
     std::vector<Issue> out;
-    auto add = [&](const char *kind, const char *title, const char *msg, const char *action = "",
-                   const char *label = "") {
-        out.push_back(Issue{ kind, title, msg, action, label });
-    };
-    if (s.regMode == "none")
-        add("error", "Shell isn't enabled", "Enable it for your account; no administrator rights are needed.",
-            "register-user", "Enable for me");
-    else if (!dllExists)
-        add("error", "The registered shell.dll is missing",
-            "Register again from the install folder to repair it.", "register-user", "Register for me");
-    if (!s.configExists)
-        add("error", "The config file is missing", "Create a personal config to get the default menu back.",
-            "config-init", "Create personal config");
-    else if (s.configSource == "install")
-        add("info", "You're using the shared config",
-            "A personal copy in %APPDATA% is kept per user and survives updates.",
-            "config-init", "Use per-user config");
+    for (const auto &i : statusIssues(s, dllExists))
+        out.push_back(Issue{ ss(i.kind), ss(i.title), ss(i.message), ss(i.action), ss(i.actionLabel) });
     return out;
+}
+
+// shell.exe in the install folder `-status` reports, else the one this app found.
+ShellCli installCli(const ShellStatus *s, const ShellCli &fallback)
+{
+    if (s && !s->installDir.empty()) {
+        auto exe = fs::path(widen(s->installDir)) / L"shell.exe";
+        std::error_code ec;
+        if (fs::is_regular_file(exe, ec))
+            return ShellCli(exe);
+    }
+    return fallback;
 }
 
 } // namespace
@@ -224,12 +229,7 @@ void AppController::bindCallbacks()
             ShellExecuteW(nullptr, L"open", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     });
     state.on_open_path([this](slint::SharedString path) { openPath(std::string(path.data(), path.size())); });
-    state.on_dismiss_onboarding([this] {
-        const auto &st = ui_->global<AppState>();
-        st.set_onboarding_shown(false);
-        registry::app::set(L"OnboardingDismissed", 1);
-        registry::app::set(L"ClassicMenu", st.get_classic_menu_option() ? 1 : 0);
-    });
+    // The first-run dialog's callbacks are in OnboardingController.
     state.on_dismiss_toast([this] {
         toastTimer_.stop();
         ui_->global<AppState>().set_toast_shown(false);
@@ -300,7 +300,16 @@ void AppController::showToast(const std::string &kind, const std::string &title,
 AppController::Snapshot AppController::collect() const
 {
     Snapshot snap;
-    auto r = cli_.run({ L"-status" }, 10000);
+    CliResult r;
+    if (!options_.statusFile.empty()) {
+        // --status-json <file> (development): Home shows this instead of `shell.exe -status`.
+        r.started = true;
+        r.exitCode = 0;
+        std::ifstream in(options_.statusFile, std::ios::binary);
+        r.output.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+    } else {
+        r = cli_.run({ L"-status" }, 10000);
+    }
     if (!r.started || r.timedOut) {
         snap.error = describeFailure(r);
         return snap;
@@ -313,7 +322,7 @@ AppController::Snapshot AppController::collect() const
     }
     auto dll = snap.status->activeDll();
     if (!dll.empty()) {
-        auto log = logreader::logPathForDll(fs::path(widen(dll)));
+        auto log = logreader::logPathFor(fs::path(widen(snap.status->activeLog())), fs::path(widen(dll)));
         std::error_code ec;
         if (fs::is_regular_file(log, ec)) {
             snap.logPath = narrow(log.wstring());
@@ -330,12 +339,12 @@ void AppController::refresh(bool quiet)
     if (!cli_.available()) {
         const auto &state = ui_->global<AppState>();
         std::vector<Issue> issues{ Issue{ "error", "shell.exe was not found",
-                                          "Install Nilesoft Shell, or put settings.exe next to shell.exe.", "", "" } };
+                                          "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe.", "", "" } };
         state.set_issues(std::make_shared<slint::VectorModel<Issue>>(issues));
         StatusInfo info{};
         info.health_kind = "error";
         info.health_title = "Nilesoft Shell was not found";
-        info.health_detail = "settings.exe looks for shell.exe next to itself and next to the registered shell.dll.";
+        info.health_detail = "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll.";
         info.pill_text = "Not found";
         info.loaded = true;
         state.set_status(info);
@@ -375,9 +384,14 @@ void AppController::applySnapshot(Snapshot snap, bool quiet)
 
     if (firstStatus_) {
         firstStatus_ = false;
-        bool needsSetup = status_->configSource != "appdata" || status_->regMode == "none";
+        // A custom config path in the registry is the user's own config too.
+        bool ownConfig = status_->configSource == "appdata" || status_->configSource == "registry";
+        bool needsSetup = !ownConfig || status_->regMode == "none";
         bool dismissed = registry::app::get(L"OnboardingDismissed").value_or(0) != 0;
-        if (needsSetup && !dismissed && !options_.noOnboarding) {
+        if (options_.onboardingStep >= 0) {
+            state.set_onboarding_step(std::clamp(options_.onboardingStep, 0, 2));
+            state.set_onboarding_shown(true);
+        } else if (needsSetup && !dismissed && !options_.noOnboarding) {
             state.set_onboarding_step(0);
             state.set_onboarding_shown(true);
         }
@@ -421,6 +435,7 @@ void AppController::runAction(const std::string &id)
         DWORD timeout = 30000;
         std::string done;
         std::string hint;
+        bool restartAfter = false; // then `shell.exe -restart`
     };
     const bool treat = status_ && status_->win11Applicable &&
                        ui_->global<AppState>().get_classic_menu_option();
@@ -446,26 +461,58 @@ void AppController::runAction(const std::string &id)
     } else if (id == "unregister-machine")
         spec = { "Waiting for administrator approval…", { L"-unregister" }, true, 120000,
                  "Unregistered for all users", "Restart Explorer to unload it." };
-    else
+    else if (id == "fix-conflicts") {
+        // Register this copy for all users again, which takes the CLSIDs back from the
+        // other copy, then restart Explorer so it drops the old dll.
+        spec = { "Waiting for administrator approval…", { L"-register" }, true, 120000,
+                 "Only this copy is registered now", "Explorer was restarted.", true };
+        if (treat)
+            spec.args.push_back(L"-treat");
+    } else
         return;
 
     setBusy(true, spec.label);
+    const auto &state = ui_->global<AppState>();
+    state.set_action_id(ss(id));
+    state.set_action_error("");
     HWND owner = hwnd_;
-    worker_.post([this, spec, owner] {
-        CliResult r = spec.elevated ? cli_.runElevated(spec.args, owner, spec.timeout)
-                                    : cli_.run(spec.args, spec.timeout);
+    // The fix runs the shell.exe of the install folder -status reports.
+    ShellCli cli = id == "fix-conflicts" ? installCli(status_ ? &*status_ : nullptr, cli_) : cli_;
+    worker_.post([this, spec, owner, cli, id] {
+        CliResult r = spec.elevated ? cli.runElevated(spec.args, owner, spec.timeout) : cli.run(spec.args, spec.timeout);
         std::string failure = r.ok() ? std::string{} : describeFailure(r);
         bool cancelled = r.cancelled;
+        if (failure.empty() && spec.restartAfter) {
+            slint::invoke_from_event_loop([this] { setBusy(true, "Restarting Explorer…"); });
+            auto restart = cli.run({ L"-restart" }, 45000);
+            if (!restart.ok())
+                failure = "Registered, but Explorer didn't restart: " + describeFailure(restart);
+        }
         auto snap = collect();
+        // The other copy can still be there (it re-registers itself, or the core is older).
+        if (failure.empty() && id == "fix-conflicts" && snap.status) {
+            auto others = snap.status->conflictDlls();
+            if (!others.empty())
+                failure = "Another copy is still registered: " + others[0] +
+                          ". Uninstall it from Settings > Apps, then try again.";
+        }
         slint::invoke_from_event_loop([this, spec, failure, cancelled, snap = std::move(snap)]() mutable {
             setBusy(false);
-            if (cancelled)
+            const auto &st = ui_->global<AppState>();
+            if (cancelled) {
+                st.set_action_error("The administrator prompt was cancelled. Nothing was changed.");
                 showToast("info", "Cancelled", failure);
-            else if (failure.empty())
+            } else if (failure.empty()) {
                 showToast("ok", spec.done, spec.hint);
-            else
+            } else {
+                st.set_action_error(ss(failure));
                 showToast("error", "That didn't work", failure);
+            }
+            bool configChanged = failure.empty() && !cancelled && st.get_action_id() == "config-init";
             applySnapshot(std::move(snap), true);
+            if (configChanged)
+                for (auto &fn : configChanged_)
+                    fn();
         });
     });
 }

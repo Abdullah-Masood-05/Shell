@@ -112,6 +112,16 @@ namespace Nilesoft
 			}
 		}
 
+		Expression *Scope::detach(uint32_t id)
+		{
+			auto pair = _dispatch.find(id);
+			if(pair == _dispatch.end())
+				return nullptr;
+			auto e = pair->second;
+			_dispatch.erase(pair);
+			return e;
+		}
+
 		bool Scope::exists(uint32_t id, bool hierarchy)
 		{
 			bool result = _dispatch.find(id) != _dispatch.end();

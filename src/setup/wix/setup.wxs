@@ -9,11 +9,11 @@
 <?define Platform = '$(sys.BUILDARCH)' ?>
 <?define Name = 'Shell' ?>
 <!--
-	FullName is the install folder and the shell.exe Start menu shortcut, and stays
-	"Nilesoft Shell" on purpose: the components keep their GUIDs, so they have to keep
-	their paths for a major upgrade over upstream to replace the files in place, and
-	shell.exe, ca.dll and the Settings app expect "Program Files\Nilesoft Shell".
-	ProductName and Manufacturer are what users see (setup dialogs, Installed apps).
+	FullName is the install folder, and stays "Nilesoft Shell" on purpose: the
+	components keep their GUIDs, so they have to keep their paths for a major upgrade
+	over upstream to replace the files in place, and shell.exe, ca.dll and the app
+	(NilesoftShellPro.exe) expect "Program Files\Nilesoft Shell". ProductName and
+	Manufacturer are what users see (setup dialogs, Installed apps, the Start menu).
 -->
 <?define FullName = 'Nilesoft Shell' ?>
 <?define ProductName = 'Nilesoft Shell Pro' ?>
@@ -151,47 +151,74 @@
 					<RemoveFile Id='PurgeAppFiles' Name='*.*' On='uninstall' Directory='INSTALLFOLDER' />
 					<RemoveFolder Id='PurgeAppFolder' On='uninstall' Directory='INSTALLFOLDER' />
 				</Component>
+				<!-- The Installed apps icon: the app's where there is one, else shell.exe's (the same logo). -->
 				<Component Id='DisplayIcon' Guid='{69292D86-8518-4C68-867C-192767154C54}'>
+<?ifdef AppExe ?>
+					<RegistryValue Id='DisplayIcon' Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]'
+						Name='DisplayIcon' Root='HKLM' Type='string' Value='[!NilesoftShellPro.exe]' KeyPath='yes'/>
+<?else ?>
 					<RegistryValue Id='DisplayIcon' Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]'
 						Name='DisplayIcon' Root='HKLM' Type='string' Value='[!shell.exe]' KeyPath='yes'/>
+<?endif ?>
 				</Component>
 			</Directory>
 		</StandardDirectory>
+		<!--
+			The one Start menu entry, "Nilesoft Shell Pro". ProgramMenuFolder is the
+			all-users Start menu, because the package is per-machine. The HKCU key path is
+			there because ICE38/ICE43 want a per-user key path for a shortcut.
+
+			Earlier packages had two entries in other components: "Nilesoft Shell" (to
+			shell.exe; component StartMenuShortcut, {41AFAF39-4B3F-4D1E-800E-DD3231C004C9},
+			also upstream's) and "Nilesoft Shell Settings" (to settings.exe; component
+			SettingsShortcut, {FDF5A611-42D0-4720-8607-A18485D853D6}), with settings.exe in
+			SettingsExe, {F27A72F1-038C-48AD-BFF4-942526AFDF03}. Those GUIDs must not be
+			reused: this package doesn't have them, so RemoveExistingProducts removes them
+			with the old product, which deletes both old shortcuts and settings.exe. A reused
+			GUID would stay installed (now owned by this product) and leave the old
+			shortcut or file behind. The key path is a new value for the same reason: the
+			old components' values are removed with them.
+		-->
 		<StandardDirectory Id='ProgramMenuFolder'>
-			<Component Id='StartMenuShortcut' Guid='{41AFAF39-4B3F-4D1E-800E-DD3231C004C9}'>
-				<Shortcut Id='StartMenuShortcut' Directory='ProgramMenuFolder' Description='$(var.Info)'
-					WorkingDirectory='INSTALLFOLDER' Name='$(var.FullName)' Target='[!shell.exe]' />
-				<RegistryValue Key='Software\Nilesoft\Shell' Root='HKCU' Type='string' Value='' KeyPath='yes' />
+			<Component Id='AppShortcut' Guid='{320BF04E-03FB-4996-9200-8B6718BA6A5D}'>
+<?ifdef AppExe ?>
+				<!--
+					The app, with the AppUserModelID the app gives itself (main.cpp), so a
+					pinned taskbar button and the running window are one icon.
+				-->
+				<Shortcut Id='AppShortcut' Directory='ProgramMenuFolder' Name='$(var.ProductName)' Description='$(var.Info)'
+					WorkingDirectory='INSTALLFOLDER' Target='[!NilesoftShellPro.exe]'>
+					<ShortcutProperty Key='System.AppUserModel.ID' Value='Nilesoft.ShellPro' />
+				</Shortcut>
+<?else ?>
+				<!-- No app in this package (x86): shell.exe, which then shows its own window. -->
+				<Shortcut Id='AppShortcut' Directory='ProgramMenuFolder' Name='$(var.ProductName)' Description='$(var.Info)'
+					WorkingDirectory='INSTALLFOLDER' Target='[!shell.exe]' />
+<?endif ?>
+				<RegistryValue Key='Software\Nilesoft\Shell' Root='HKCU' Name='StartMenuShortcut' Type='integer' Value='1' KeyPath='yes' />
 			</Component>
 		</StandardDirectory>
-<?ifdef SettingsExe ?>
+<?ifdef AppExe ?>
 		<!--
-			The Settings app (settings.exe, x64). SettingsExe is defined by setup.wixproj
-			only for x64 and ARM64 builds, and only when the exe exists: Win32 has no
-			Settings app, and ARM64 ships the x64 exe, which runs under emulation.
-			ProgramMenuFolder is the all-users Start menu, because the package is
-			per-machine. The shortcut's HKCU key path follows the StartMenuShortcut
-			component above (ICE38/ICE43 want a per-user key path for a shortcut).
+			The app, Nilesoft Shell Pro (NilesoftShellPro.exe, x64). AppExe is defined by
+			setup.wixproj only for x64 and ARM64 builds, and only when the exe exists: Win32
+			has no app, and ARM64 ships the x64 exe, which runs under emulation. A new
+			component GUID, not settings.exe's (see above), so upgrades delete settings.exe.
 		-->
-		<ComponentGroup Id='SettingsApp'>
-			<Component Id='SettingsExe' Directory='INSTALLFOLDER' Guid='{F27A72F1-038C-48AD-BFF4-942526AFDF03}'>
-				<File Id='settings.exe' Name='settings.exe' Checksum='yes' KeyPath='yes' Source='$(var.SettingsExe)' />
-			</Component>
-			<Component Id='SettingsShortcut' Directory='ProgramMenuFolder' Guid='{FDF5A611-42D0-4720-8607-A18485D853D6}'>
-				<Shortcut Id='SettingsShortcut' Name='Nilesoft Shell Settings' Description='Configure Nilesoft Shell Pro'
-					WorkingDirectory='INSTALLFOLDER' Target='[!settings.exe]' />
-				<RegistryValue Key='Software\Nilesoft\Shell' Root='HKCU' Name='SettingsShortcut' Type='integer' Value='1' KeyPath='yes' />
+		<ComponentGroup Id='App'>
+			<Component Id='AppExe' Directory='INSTALLFOLDER' Guid='{64B4DEA1-658B-4528-B03B-20A05055877A}'>
+				<File Id='NilesoftShellPro.exe' Name='NilesoftShellPro.exe' Checksum='yes' KeyPath='yes' Source='$(var.AppExe)' />
 			</Component>
 		</ComponentGroup>
 
-		<!-- "Open Nilesoft Shell Settings" on the finish page (ExitDialog in ui.wxi). -->
-		<Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' Value='Open Nilesoft Shell Settings' />
+		<!-- "Open Nilesoft Shell Pro" on the finish page (ExitDialog in ui.wxi). -->
+		<Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' Value='Open $(var.ProductName)' />
 		<Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value='1' />
 		<!--
 			Runs from the UI sequence, so in the msiexec client process: as the user who
 			started setup, not elevated unless setup itself was started elevated.
 		-->
-		<CustomAction Id='LaunchSettings' FileRef='settings.exe' ExeCommand='' Return='asyncNoWait' />
+		<CustomAction Id='LaunchApp' FileRef='NilesoftShellPro.exe' ExeCommand='' Return='asyncNoWait' />
 <?endif ?>
 <!--
 		<ComponentGroup Id="IMPORTFiles" Directory="IMPORTS">
@@ -230,23 +257,36 @@
 				<Exclude Files='$(var.bin)\imports\lang\zh-CN.nss' />
 			</Files>
 			<ComponentRef Id='CLEANUP' />
-			<ComponentRef Id='StartMenuShortcut' />
+			<ComponentRef Id='AppShortcut' />
 			<ComponentRef Id='DisplayIcon' />
-<?ifdef SettingsExe ?>
-			<ComponentGroupRef Id='SettingsApp' />
+<?ifdef AppExe ?>
+			<ComponentGroupRef Id='App' />
 <?endif ?>
 			<!--<ComponentGroupRef Id="IMPORTSFiles"/>-->
 		</Feature>
 		
 		<!-- Upgrade -->
+		<!--
+			"e" instead of the default "o": replace versioned files (shell.exe, shell.dll,
+			NilesoftShellPro.exe) whose version is equal, not only older. Pre-releases share
+			the file version 2.0.0.0, and with "o" an upgrade kept the previous build's
+			shell.exe ("Existing file is of an equal version"). Unversioned files (shell.nss,
+			imports) still follow the default rule, so files the user edited are kept.
+		-->
+		<Property Id='REINSTALLMODE' Value='emus' />
 		<Property Id='NEWPRODUCTFOUND' Secure='yes' />
 		<Property Id='UPGRADEFOUND' Secure='yes' />
 		
 		<CustomAction Id='OnDowngrading' Error='A newer version of [ProductName] is already installed. Setup will now exit.' />
 		
 		<Upgrade Id='$(var.UpgradeCode)'>
-			<UpgradeVersion Property='NEWPRODUCTFOUND' Minimum='$(var.Version)' OnlyDetect='yes' />
-			<UpgradeVersion Property='UPGRADEFOUND' Minimum='1.0.0' Maximum='$(var.Version)' IncludeMinimum='yes' />
+			<!--
+				Same-version upgrades are allowed: pre-releases (2.0.0-beta.1, -beta.2, ...)
+				share the MSI version 2.0.0, and each build must replace the previous one.
+				Only a strictly newer installed version blocks setup.
+			-->
+			<UpgradeVersion Property='NEWPRODUCTFOUND' Minimum='$(var.Version)' IncludeMinimum='no' OnlyDetect='yes' />
+			<UpgradeVersion Property='UPGRADEFOUND' Minimum='1.0.0' Maximum='$(var.Version)' IncludeMinimum='yes' IncludeMaximum='yes' />
 		</Upgrade>
 		
 		<InstallUISequence>
@@ -278,6 +318,14 @@
 		<CustomAction Id='OnRestoreConfigData' Property='OnRestoreConfig' Value='[INSTALLFOLDER]' />
 		<CustomAction Id='OnRestoreConfig' Execute='deferred' Impersonate='no' Return='ignore'
 					  BinaryRef='CA' DllEntry='RestoreConfig' />
+		<!--
+			Install runs "shell.exe -r -s -t -restart". Registering also repairs stale
+			registrations (RegistryConfig::RepairStale): any of Shell's three CLSIDs
+			still naming another shell.dll, e.g. a manual install in
+			C:\Windows\nilesoft, is repointed to this one or removed together with its
+			Drive\shellex\FolderExtensions / overlay entry. The old files are left on
+			disk. Without this, Explorer loaded both DLLs and showed no menu at all.
+		-->
 		<CustomAction Id='OnInstall' Return='ignore' BinaryRef='CA' DllEntry='Install' />
 		<CustomAction Id='OnUninstall' Execute='firstSequence' Return='asyncWait' BinaryRef='CA' DllEntry='Uninstall' />
 		

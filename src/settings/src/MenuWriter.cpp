@@ -76,7 +76,7 @@ std::string MenuWriter::generate(const Tree &tree, nss::Eol eol)
     std::string out;
     out += header;
     out += nl;
-    out += "// Edit these menus on the Menu Builder page of Nilesoft Shell Settings.";
+    out += "// Edit these menus on the Menu Builder page of Nilesoft Shell Pro.";
     out += nl;
 
     auto write = [&](auto &&self, const Node &n, int depth) -> void {

@@ -54,6 +54,7 @@ public:
 
     const PendingChanges &pending() const { return pending_; }
     // Validated with ThemeSchema; returns the errors (and changes nothing) on failure.
+    // The value already saved drops the key's pending change instead.
     std::vector<std::string> set(std::string_view key, std::string_view literal, std::string_view page);
     void reset(std::string_view key, std::string_view page);
     void forget(std::string_view key);
@@ -63,6 +64,15 @@ public:
     void onChanged(std::function<void()> fn) { changed_.push_back(std::move(fn)); }
     // The files changed on disk (a save went through). UI thread.
     void onSaved(std::function<void()> fn) { saved_.push_back(std::move(fn)); }
+
+    // How each save() ended (also a failed personal-config creation). UI thread.
+    struct Result
+    {
+        bool ok = false;
+        bool needsUserConfig = false; // the "use a personal config" prompt is up instead
+        std::string message;          // the footer's text
+    };
+    void onResult(std::function<void(const Result &)> fn) { result_.push_back(std::move(fn)); }
 
     // Runs `-status` on the worker, then `done` on the UI thread.
     void loadTarget(std::function<void(ConfigTarget)> done);
@@ -119,6 +129,7 @@ private:
     void publish();
     void notifyChanged();
     void setResult(const std::string &kind, const std::string &text);
+    void notifyResult(const Result &result);
     void saveFromKeyboard();
 
     static LRESULT CALLBACK keyProc(HWND, UINT, WPARAM, LPARAM, UINT_PTR, DWORD_PTR);
@@ -132,6 +143,7 @@ private:
     std::vector<std::function<void()>> changed_;
     std::vector<std::function<void()>> saved_;
     std::vector<std::function<void()>> config_;
+    std::vector<std::function<void(const Result &)>> result_;
     std::shared_ptr<const nss::ConfigGraph> graph_;
     std::filesystem::path overridesPath_;
     bool configLoading_ = false;

@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 
-# Nilesoft Shell Settings (settings.exe). It talks to the core only through shell.exe,
-# files and HKCU: nothing here includes src/shared or links the core.
+# Nilesoft Shell Pro, the app (NilesoftShellPro.exe; the CMake target is still called
+# "settings"). It talks to the core only through shell.exe, files and HKCU: nothing here
+# includes src/shared or links the core.
 
 # The version comes from the core's Resource.h, read by regex (never #included).
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../shared/Resource.h" _resource_h)
@@ -19,11 +20,11 @@ else()
 endif()
 set(SHELL_VERSION "${SHELL_VERSION_MAJOR}.${SHELL_VERSION_MINOR}.${SHELL_VERSION_BUILD}")
 
-project(NilesoftShellSettings VERSION ${SHELL_VERSION}.${SHELL_VERSION_REV} LANGUAGES CXX RC)
+project(NilesoftShellPro VERSION ${SHELL_VERSION}.${SHELL_VERSION_REV} LANGUAGES CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Slint either comes from source as a static library (default; settings.exe then needs no
+# Slint either comes from source as a static library (default; NilesoftShellPro.exe then needs no
 # DLLs beyond Windows itself, no VC++ Redistributable) or from the prebuilt SDK
 # (slint_cpp.dll + dynamic CRT; quicker for dev builds). See README.md.
 option(SETTINGS_SLINT_FROM_SOURCE "Build Slint from source as a static library and link the static CRT" ON)
@@ -74,6 +75,7 @@ add_executable(settings WIN32
     src/MenuBuilderController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
+    src/OnboardingController.cpp
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
@@ -121,6 +123,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_rules.cpp
         tests/test_save_roundtrip.cpp
         tests/test_menus.cpp
+        tests/test_status.cpp
+        tests/test_onboarding.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -129,6 +133,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/Status.cpp
         src/ThemeModel.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
@@ -144,7 +149,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
 endif()
 
 set_target_properties(settings PROPERTIES
-    OUTPUT_NAME settings
+    OUTPUT_NAME NilesoftShellPro
     RUNTIME_OUTPUT_DIRECTORY "${SETTINGS_BIN_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${SETTINGS_BIN_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${SETTINGS_BIN_DIR}"
@@ -152,7 +157,7 @@ set_target_properties(settings PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${SETTINGS_BIN_DIR}")
 
 if(NOT SETTINGS_SLINT_FROM_SOURCE)
-    # Prebuilt SDK only: slint_cpp.dll goes next to settings.exe.
+    # Prebuilt SDK only: slint_cpp.dll goes next to NilesoftShellPro.exe.
     add_custom_command(TARGET settings POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_RUNTIME_DLLS:settings> $<TARGET_FILE_DIR:settings>

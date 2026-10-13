@@ -317,6 +317,9 @@ namespace Nilesoft
 
 			bool verify_mode(SelectionMode mode);
 			bool verify_types(const FileSystemObjects &fso) const;
+			// verify_types on a selection described only by its Types, Background
+			// and item count (shell -config:check -titles:<context> makes one up).
+			static bool match_types(const FileSystemObjects &fso, const int32_t (&types)[FSO_MAX], bool background, size_t count);
 			
 			void QuerySelectionMode();
 			bool QueryShellWindow();

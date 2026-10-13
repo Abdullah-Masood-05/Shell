@@ -334,7 +334,11 @@ void AppearanceController::bindCallbacks()
         if (i < 0 || i >= int(fieldDefs().size()))
             return;
         const auto &def = fieldDefs()[size_t(i)];
-        if (choice >= 0 && choice < int(def.choices.size()))
+        if (std::string_view(def.key) == "theme.name") {
+            // The cards, shared with the first-run dialog.
+            if (auto literal = theme::themeNameLiteral(choice); !literal.empty())
+                apply(i, literal);
+        } else if (choice >= 0 && choice < int(def.choices.size()))
             apply(i, def.choices[size_t(choice)]);
     });
     st.on_reset([this](int i) { reset(i); });
@@ -480,13 +484,7 @@ void AppearanceController::rebuild()
             int index = 0;
             if (l) {
                 if (key == "theme.name") {
-                    std::string w = (l->kind == LiteralKind::String || l->kind == LiteralKind::Keyword) ? nss::toLower(l->string) : "";
-                    if (l->kind == LiteralKind::Number)
-                        w = r.type;
-                    static const char *names[] = { "auto", "modern", "classic", "white", "black" };
-                    for (int k = 0; k < 5; ++k)
-                        if (w == names[k])
-                            index = k;
+                    index = theme::themeIndex(*l, r.type);
                 } else if (key == "theme.dark") {
                     if (l->isBool())
                         index = l->boolValue() ? 1 : 2;

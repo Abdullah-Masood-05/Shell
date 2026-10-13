@@ -736,12 +736,33 @@ namespace Nilesoft
 		{
 			prevCol = l->column - 1;
 			auto ident_col = l->column;
+			auto ident_line = l->line;
+			auto ident_index = l->index;
 			Ident ident;
 
 			if(!parse_ident(ident))
 				return nullptr;
 
 			prevCol = l->column - 1;
+
+			// loc.<name> / title.<name>: <name> as written, for resolve_loc()
+			// and ReportTitles().
+			string member_name;
+			if(ident.length() == 2 && (ident[0] == IDENT_LOC || ident[0] == IDENT_TITLE) &&
+			   l->buffer && ident_index < l->index)
+			{
+				std::wstring_view text(l->buffer + ident_index, l->index - ident_index);
+				if(auto dot = text.find(L'.'); dot != text.npos)
+				{
+					text.remove_prefix(dot + 1);
+					size_t n = 0;
+					while(n < text.size() && (std::iswalnum(text[n]) || text[n] == L'_'))
+						n++;
+					member_name = string(text.substr(0, n));
+				}
+				if(ident[0] == IDENT_LOC && !member_name.empty())
+					note_loc(ident[1], member_name, ident_line, ident_col);
+			}
 
 			if(ident[0] == IDENT_FOR)
 				return parse_for_statement(parent);
@@ -921,6 +942,15 @@ namespace Nilesoft
 
 					for(auto &arg : args)
 						func->push_back(arg.release());
+
+					if(ident.length() == 2 && (ident[0] == IDENT_LOC || ident[0] == IDENT_TITLE) &&
+					   !brackets && !func->Array && !func->Child && func->Arguments.empty())
+					{
+						m_last_ident.expr = func.get();
+						m_last_ident.root = ident[0];
+						m_last_ident.key = ident[1];
+						m_last_ident.name = member_name;
+					}
 
 					return func.release();
 				}

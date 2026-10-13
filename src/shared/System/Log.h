@@ -144,7 +144,10 @@ public:
 		static constexpr const wchar_t *sLogLevel[6] = { L"error", L"warning", L"info", L"debug", L"", L"" };
 
 	private:
-		string _path;
+		// Resolved on first use (see path()), not when the logger is built:
+		// shell.dll's logger is a global constructed under the loader lock of
+		// every process the DLL is mapped into, most of which never log.
+		mutable string _path;
 		HANDLE hFile = INVALID_HANDLE_VALUE;
 		//Logger() = default;
 
@@ -166,16 +169,27 @@ public:
 			{
 				// The logger variable is initialized once with a move assignment of a logger
 				// object build with the private constructor.
-				static auto &&logger = Logger(path.empty() ? GetPath() : path);
+				static auto &&logger = Logger(path);
 				plogger = &logger;
 			}
 			return (*plogger);
 		}
 
 		static string Now();
+		// The log of the module this code is linked into (shell.exe or
+		// shell.dll); see ResolvePath.
 		static string GetPath();
 
-		const string &path() const { return _path; }
+		// The log file for a module: "<name>.log" next to it when this process
+		// can write there (or append to an existing log there), else
+		// %LOCALAPPDATA%\Nilesoft\Shell\<name>.log. shell.dll in Program Files
+		// runs inside Explorer as a standard user and cannot write next to
+		// itself; before this fallback it logged nothing at all.
+		// The fallback folder is created unless `create_dir` is false (shell
+		// -status, which only reports the path).
+		static string ResolvePath(const string &module_path, bool create_dir = true);
+
+		const string &path() const;
 
 		// Set by a thread whose messages are reported elsewhere (shell
 		// -config:check returns its diagnostics as JSON): nothing it logs

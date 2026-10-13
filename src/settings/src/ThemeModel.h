@@ -99,4 +99,12 @@ Resolved resolve(const Values &values, const SystemInfo &sys);
 // The default font size (lfHeight) the core uses on this Windows version.
 double defaultFontSize(const SystemInfo &sys);
 
+// The theme cards of the Appearance page and the first-run dialog, in order.
+inline constexpr const char *kThemeNames[] = { "auto", "modern", "classic", "white", "black" };
+// The theme.name literal a card writes ("\"modern\""); "" for an index out of range.
+std::string themeNameLiteral(int index);
+// The card for a theme.name value: its index in kThemeNames, 0 (auto) when unknown.
+// A number (the core's legacy form) goes by `resolvedType`, resolve()'s Resolved::type.
+int themeIndex(const nss::Literal &name, const std::string &resolvedType = "auto");
+
 } // namespace theme

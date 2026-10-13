@@ -5,6 +5,7 @@
 #include "RegistryConfig.h"
 #include "ConfigCheck.h"
 #include <UIAutomation.h>
+#include <atomic>
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
 
@@ -520,6 +521,22 @@ STDAPI WINAPI DllGetClassObjectHook(REFCLSID rclsid, _In_ REFIID riid, LPVOID *p
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
 BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
 
+// Out of line: NtUserTrackPopupMenu uses __try and cannot hold objects that
+// need unwinding.
+static __declspec(noinline) void log_taskbar_not_built(HWND hWnd) noexcept
+{
+	try
+	{
+		static std::atomic_bool logged{ false };
+		if(!logged.exchange(true))
+			_log.info(L"Taskbar menu: not built for window '%s' (no context for it); the stock menu is shown.",
+					  Window::class_name(hWnd).c_str());
+	}
+	catch(...)
+	{
+	}
+}
+
 BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm, int tfunc)
 {
 #ifdef _DIJA
@@ -570,6 +587,13 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 				}
 
 				auto ctx = ContextMenu::CreateAndInitialize(hWnd, hMenu, { x, y }, _loader.explorer, _loader.contextmenuhandler);
+
+				// A taskbar popup Shell declined to build falls through to the
+				// menu it was given, which for the Windows 11 taskbar is empty.
+				// Said once per session; see also "Taskbar menu:" in ContextMenu.
+				if(ctx == nullptr && Nilesoft::Shell::in_taskbar())
+					log_taskbar_not_built(hWnd);
+
 				if(ctx != nullptr)
 				{
 
@@ -933,7 +957,142 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	return ::DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-//integrate 
+/*
+	One set of hooks per process.
+
+	A stale registration (say {...BAF3} still naming C:\Windows\nilesoft\shell.dll
+	after an install in Program Files) maps two copies of shell.dll into
+	Explorer. Each one detours CoCreateInstance and patches TrackPopupMenu(Ex)
+	in every module, and with both in place no context menu appears at all.
+	The hook logic itself is unchanged; this only decides, in DllMain, whether
+	this copy installs it:
+
+	  1. A copy that is not the one {...BAF1} resolves to (HKCR, as Explorer
+	     sees it) stands down, when that registered file exists. Not applied in
+	     shell.exe, which loads its own shell.dll whatever is registered.
+	  2. A Nilesoft shell.dll that predates this guard (no HookGuard export) is
+	     already mapped: it hooked in its own DllMain, so this copy stands down.
+	  3. Copies with this guard agree through a per-process named section,
+	     Local\NilesoftShell.Hooks.<pid>: whoever creates it hooks and writes
+	     its path there; a later copy finds it, logs the owner and stands down.
+	     If the section cannot be created at all, first come hooks.
+
+	A copy that stands down logs why, declines DllGetClassObject and leaves
+	unhooking alone on detach.
+*/
+namespace hook_guard
+{
+	bool owner = false;
+	HANDLE section{};
+	constexpr DWORD section_size = MAX_PATH * 2 * sizeof(wchar_t);
+
+	// Exported (Shell.def): marks a shell.dll that follows rule 3.
+	extern "C" UINT __stdcall HookGuard() { return 1; }
+
+	static bool same_name(const wchar_t *path, const wchar_t *name)
+	{
+		auto slash = ::wcsrchr(path, L'\\');
+		return ::CompareStringOrdinal(slash ? slash + 1 : path, -1, name, -1, TRUE) == CSTR_EQUAL;
+	}
+
+	// Rule 1: the DLL {...BAF1} resolves to, in this process's registry view;
+	// empty if it is not registered or the file is missing (undeterminable).
+	static string registered_path()
+	{
+		wchar_t path[MAX_PATH * 2]{};
+		DWORD bytes = sizeof(path) - sizeof(wchar_t);
+		if(ERROR_SUCCESS != ::RegGetValueW(HKEY_CLASSES_ROOT, L"CLSID\\" CLS_ContextMenu L"\\InprocServer32",
+										   nullptr, RRF_RT_REG_SZ, nullptr, path, &bytes))
+			return {};
+		string value = path;
+		value.trim(L" \t\"");
+		auto attr = ::GetFileAttributesW(value.c_str());
+		if(attr == INVALID_FILE_ATTRIBUTES || (attr & FILE_ATTRIBUTE_DIRECTORY))
+			return {};
+		return value.move();
+	}
+
+	// Rule 2: another Nilesoft shell.dll without the HookGuard export.
+	static string legacy_instance()
+	{
+		for(auto module : Process::Modules(::GetCurrentProcess()))
+		{
+			if(module == _hInstance)
+				continue;
+			wchar_t path[MAX_PATH * 2]{};
+			if(!::GetModuleFileNameW(module, path, MAX_PATH * 2) || !same_name(path, L"shell.dll"))
+				continue;
+			if(!::GetProcAddress(module, "DllGetClassObject") || ::GetProcAddress(module, "HookGuard"))
+				continue;
+			if(IsNilesoftModule(module))
+				return path;
+		}
+		return {};
+	}
+
+	// True if this copy is to install the hooks.
+	static bool acquire()
+	{
+		auto self = Path::Module(_hInstance).move();
+
+		if(!_loader.path.ends_with(L"\\shell.exe"))
+		{
+			auto registered = registered_path().move();
+			if(!registered.empty() && !RegistryConfig::SameFile(registered, self))
+			{
+				_log.warning(L"Not hooking in %s (pid %lu): this shell.dll ('%s') is not the registered one ('%s'). "
+							 L"A stale registration loads it; run 'shell -status' and see \"conflicts\".",
+							 _loader.path.c_str(), ::GetCurrentProcessId(), self.c_str(), registered.c_str());
+				return false;
+			}
+		}
+
+		if(auto legacy = legacy_instance().move(); !legacy.empty())
+		{
+			_log.warning(L"Not hooking in %s (pid %lu): an older Nilesoft shell.dll ('%s') is already loaded and hooked. "
+						 L"Remove its registration (shell -status lists it under \"conflicts\") and restart Explorer.",
+						 _loader.path.c_str(), ::GetCurrentProcessId(), legacy.c_str());
+			return false;
+		}
+
+		wchar_t name[64]{};
+		::swprintf_s(name, L"Local\\NilesoftShell.Hooks.%lu", ::GetCurrentProcessId());
+		section = ::CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, section_size, name);
+		if(!section)
+			return true;	// cannot tell: first come hooks
+
+		const bool existed = ::GetLastError() == ERROR_ALREADY_EXISTS;
+		auto view = static_cast<wchar_t *>(::MapViewOfFile(section, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, section_size));
+		if(!existed)
+		{
+			if(view)
+				::wcsncpy_s(view, section_size / sizeof(wchar_t), self.c_str(), _TRUNCATE);
+			if(view)
+				::UnmapViewOfFile(view);
+			return true;
+		}
+
+		string other = view ? view : L"";
+		if(view)
+			::UnmapViewOfFile(view);
+		::CloseHandle(section);
+		section = nullptr;
+
+		_log.warning(L"Not hooking in %s (pid %lu): another Nilesoft shell.dll ('%s') already hooked this process; "
+					 L"this one is '%s'.",
+					 _loader.path.c_str(), ::GetCurrentProcessId(), other.c_str(), self.c_str());
+		return false;
+	}
+
+	static void release()
+	{
+		if(section)
+			::CloseHandle(section);
+		section = nullptr;
+	}
+}
+
+//integrate
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 {
 	try
@@ -998,6 +1157,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 				_initializer.process.handle = ::GetCurrentProcess();
 
 				//_log.info(L"%s", _initializer.process.name.c_str());
+
+				// Another copy of shell.dll already hooks this process (or will,
+				// being the registered one): see hook_guard.
+				hook_guard::owner = hook_guard::acquire();
+				if(!hook_guard::owner)
+					return TRUE;
 
 				ContextMenu::RegisterLayer();
 
@@ -1104,7 +1269,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 		}
 		else if(dwReason == DLL_PROCESS_DETACH)
 		{
-			if(!is_registered())
+			// A copy that stood down (hook_guard) installed nothing to remove.
+			if(hook_guard::owner && !is_registered())
 			{
 				if(_loader.explorer)
 				{
@@ -1133,6 +1299,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 			}
 
 			taskbar_t::_IUIAutomation.release();
+			hook_guard::release();
 
 			_log.close();
 
@@ -1170,6 +1337,10 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 			return hr;
 
 		if(Initializer::Status.Disabled)
+			return hr;
+
+		// Without the hooks this copy cannot show anything; the owner does.
+		if(!hook_guard::owner)
 			return hr;
 
 		if(!is_registered())
@@ -1240,7 +1411,7 @@ STDAPI DllCanUnloadNow(void)
 // duration; which is why this refuses to run inside Explorer or once a live
 // configuration exists (it would be swapped out under a menu). In shell.exe,
 // its only caller, there is never one.
-STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context)
 {
 	if(!root || !*root || !sink)
 		return E_INVALIDARG;
@@ -1249,7 +1420,9 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 		return E_ACCESSDENIED;
 
 	std::vector<ParseDiagnostic> diagnostics;
+	std::vector<Parser::TitleInfo> titles;
 	bool ok = false;
+	bool where_ok = true;
 
 	// Restores the global state whichever way the parse ends.
 	struct scope_t
@@ -1285,6 +1458,9 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 
 		Parser parser(root);
 		ok = parser.Load() && !parser.HasError();
+		// While the cache and the MUI titles are still there.
+		if(ok && title_sink)
+			where_ok = parser.ReportTitles(titles, where);
 	}
 	catch(...)
 	{
@@ -1301,7 +1477,39 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 	if(!ok && !reported_error)
 		sink(context, TRUE, root, 0, 0, L"the configuration could not be loaded");
 
+	if(!where_ok)
+		return E_INVALIDARG;
+
+	for(auto &t : titles)
+	{
+		CONFIG_TITLE info{};
+		info.state = t.state == Parser::TitleInfo::Text ? CONFIG_TITLE_TEXT :
+			t.state == Parser::TitleInfo::Empty ? CONFIG_TITLE_EMPTY : CONFIG_TITLE_DYNAMIC;
+		info.kind = t.kind == Parser::TitleInfo::Menu ? CONFIG_TITLE_MENU :
+			t.kind == Parser::TitleInfo::Item ? CONFIG_TITLE_ITEM : CONFIG_TITLE_MODIFY;
+		info.depth = t.depth;
+		info.file = t.file.c_str();
+		info.line = static_cast<UINT>(t.line);
+		info.column = static_cast<UINT>(t.column);
+		info.source = t.source.c_str();
+		info.title = t.text.c_str();
+		title_sink(context, &info);
+	}
+
 	return ok ? S_OK : S_FALSE;
+}
+
+STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+{
+	return config_check(root, nullptr, sink, nullptr, context);
+}
+
+// shell -config:check <root.nss> -titles: see ConfigCheck.h.
+STDAPI ConfigCheckTitles(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink titles, void *context)
+{
+	if(!titles)
+		return E_INVALIDARG;
+	return config_check(root, where, sink, titles, context);
 }
 
 // Register the COM server and the context menu handler.
@@ -1344,7 +1552,7 @@ HRESULT Register(bool reg)
 		if(reg)
 		{
 			//_log.create();
-			REGOP regop;
+			REGOP regop{};
 			regop.REGISTER = regop.CONTEXTMENU = regop.ICONOVERLAY = true;
 
 			if(!RegistryConfig::Register(path, regop))
