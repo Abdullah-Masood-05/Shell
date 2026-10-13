@@ -31,7 +31,7 @@ export component PreferencesPage inherits PageFrame {
 
     Card {
         heading: "All users on this PC";
-        description: "Registering for everyone writes to HKEY_LOCAL_MACHINE and needs administrator rights. Everything else in this app works without them.";
+        description: "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.";
         KeyValue {
             key: "All users";
             value: !AppState.status.loaded ? "—" : AppState.status.machine-registered ? "Registered" : "Not registered";
