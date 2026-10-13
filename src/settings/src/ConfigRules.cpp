@@ -53,6 +53,8 @@ constexpr KnownModule kKnown[] = {
     { "goto", nsp::mark("Go to"), nsp::mark("Jump to common folders and Windows Settings pages."), nullptr },
     { "taskbar", nsp::mark("Taskbar"), nsp::mark("Apps, window arrangement and Task Manager on the taskbar's menu."), nullptr },
     { "my-tools", nsp::mark("My tools"), nsp::mark("New file and System menus from Abdullah Masood's config."), nullptr },
+    { "winx", nsp::mark("Win+X menu (experimental)"),
+      nsp::mark("A power-user menu for Win+X and right-click on Start, in place of Windows' own items."), nullptr },
     { "settings-app-menus", nsp::mark("Your menus"), nsp::mark("The menus and items you built on the Menu Builder page."), nullptr },
     { "settings-app-map", nsp::mark("Menu map"), nsp::mark("The items you hid, renamed or moved on the Menu map page."), nullptr },
     { "settings-app-openwith", nsp::mark("Open with"), nsp::mark("Editors and terminals you picked on the Open with page."), nullptr },
@@ -307,7 +309,7 @@ bool summarizeWhere(std::string_view where, const Names &n, std::vector<std::str
     static const std::regex idItem(R"(^id\.(\w+)$)", std::regex::icase);
     static const std::regex nameEq(R"(^this\.name\s*==\s*(["'][^"']*["'])$)", std::regex::icase);
     static const std::regex strEquals(R"(^str\.equals\s*\(\s*this\.name\s*,\s*([\s\S]*)\)$)", std::regex::icase);
-    static const std::regex windowIs(R"(^(window|wnd)\.is_(desktop|taskbar|explorer|edit|start)$)", std::regex::icase);
+    static const std::regex windowIs(R"(^(window|wnd)\.is_(desktop|taskbar|explorer|edit|start|winx)$)", std::regex::icase);
 
     std::vector<std::string> missing; // ids with no such item on this Windows
     auto addId = [&](const std::string &id) {

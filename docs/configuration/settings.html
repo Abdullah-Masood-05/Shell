@@ -91,6 +91,15 @@
 		// disable/enable image
 		image = boolean value
 	}
+
+	// Experimental: the Win+X menu (also right-click on Start)
+	winx
+	{
+		// Show only the configured items, not Windows' own
+		replace = boolean value
+		// Log how each taskbar and Win+X popup was recognised to shell.log
+		debug = boolean value
+	}
 }</code></pre>
 <h5 id="exclude-taskbar">The taskbar</h5>
 <p>When <code>exclude</code> is true on the taskbar, Shell leaves the taskbar's right-click alone and you get Windows'
@@ -117,3 +126,4 @@
 }</code></pre>
 <p>This is new and has had little testing with these programs. If one of them misbehaves, take it off the list. A
 	right-click on empty space in such a program still has no files.</p>
+<p id="winx">The <code>winx</code> settings are experimental; see <a href="/docs/configuration/winx">Win+X menu</a>.</p>
