@@ -2,20 +2,32 @@
   <img src="packages/assets/logo-128.png" width="96" height="96" alt="Nilesoft Shell logo">
 </p>
 
-# Nilesoft Shell Pro
+<h1 align="center">Nilesoft Shell Pro</h1>
 
-A context menu manager for Windows File Explorer: add, change or remove menu items with a plain-text configuration.
+<p align="center">
+  A context menu manager for Windows File Explorer: add, change or remove menu items with a plain-text configuration.
+</p>
 
-[![Docs](https://github.com/Abdullah-Masood-05/Shell/actions/workflows/docs.yml/badge.svg)](https://github.com/Abdullah-Masood-05/Shell/actions/workflows/docs.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/Abdullah-Masood-05/Shell/actions/workflows/build.yml"><img src="https://github.com/Abdullah-Masood-05/Shell/actions/workflows/build.yml/badge.svg?branch=dev" alt="Build"></a>
+  <a href="https://github.com/Abdullah-Masood-05/Shell/actions/workflows/docs.yml"><img src="https://github.com/Abdullah-Masood-05/Shell/actions/workflows/docs.yml/badge.svg" alt="Docs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+</p>
 
-Nilesoft Shell Pro is a community fork of [Nilesoft Shell](https://github.com/moudey/Shell) by Moudey and
-[Nilesoft](https://nilesoft.org). It is not an official Nilesoft release. It keeps the upstream configuration language
-and adds security and stability fixes, a per-user mode that needs no administrator rights, and a Settings app.
+<p align="center">
+  <a href="https://abdullah-masood-05.github.io/Shell/"><b>Documentation</b></a> &middot;
+  <a href="https://github.com/Abdullah-Masood-05/Shell/releases"><b>Download</b></a> &middot;
+  <a href="https://github.com/Abdullah-Masood-05/Shell/issues">Issues</a> &middot;
+  <a href="https://github.com/moudey/Shell">Original project</a> &middot;
+  <a href="https://nilesoft.org">nilesoft.org</a>
+</p>
 
-- Documentation: https://abdullah-masood-05.github.io/Shell/
-- Releases: https://github.com/Abdullah-Masood-05/Shell/releases
-- Issues: https://github.com/Abdullah-Masood-05/Shell/issues
+<p align="center">
+  A community fork of <a href="https://github.com/moudey/Shell">Nilesoft Shell</a> by Moudey and
+  <a href="https://nilesoft.org">Nilesoft</a>; not an official Nilesoft release.<br>
+  It keeps the upstream configuration language and adds security and stability fixes,<br>
+  a per-user mode that needs no administrator rights, and a Settings app.
+</p>
 
 Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
 or x86, or a portable zip that installs per user without administrator rights. Releases are marked as pre-releases
