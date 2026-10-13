@@ -1,12 +1,13 @@
 // Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
 // Development switches:
-//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences>
+//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith>
 //   --no-onboarding    don't show the first-run dialog this time
 //   --onboarding <1|2|3>   show the first-run dialog at that step, whatever the status;
 //                          with --snapshot, the tour starts with that step and the ones after it
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
+//   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
@@ -15,6 +16,7 @@
 //   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
+//   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --set <key>=<literal>, --save    see AppearanceController.h
 
@@ -28,6 +30,7 @@
 #include "EditorController.h"
 #include "MenuBuilderController.h"
 #include "OnboardingController.h"
+#include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
 
@@ -50,6 +53,7 @@ namespace {
 std::wstring g_snapshotPath;
 std::vector<int> g_snapshotPages;
 bool g_snapshotDark = false;
+int g_snapshotHeight = 0;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -87,7 +91,8 @@ AppOptions parseArgs()
     if (!argv)
         return o;
     static constexpr const wchar_t *pages[] = { L"home",  L"appearance", L"behavior", L"rules",      L"menus",
-                                                L"builder", L"editor",   L"backups",  L"preferences" };
+                                                L"builder", L"editor",   L"backups",  L"preferences",
+                                                L"openwith" };
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;
@@ -104,6 +109,8 @@ AppOptions parseArgs()
             g_snapshotPath = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
+        } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
+            g_snapshotHeight = std::clamp(_wtoi(argv[++i]), 0, 4000);
         } else if (_wcsicmp(argv[i], L"--snapshot-pages") == 0 && i + 1 < argc) {
             std::wstring list = argv[++i];
             size_t start = 0;
@@ -172,6 +179,7 @@ int main()
     auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
     auto contextMenus = std::make_unique<ContextMenusController>(ui);
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
+    auto openWith = std::make_unique<OpenWithController>(ui);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
     // A personal config created from Home or the first-run dialog is the new root: read it.
     controller->onConfigChanged([&] { saveService->reloadConfig(); });
@@ -185,6 +193,8 @@ int main()
     } else if (snapshot) {
         ui->window().set_position(slint::PhysicalPosition(
             { GetSystemMetrics(SM_XVIRTUALSCREEN) + GetSystemMetrics(SM_CXVIRTUALSCREEN) + 64, 0 }));
+        if (g_snapshotHeight > 0)
+            ui->window().set_size(slint::LogicalSize({ 1120.f, float(g_snapshotHeight) }));
     }
 
     ui->window().on_close_requested([&] {
@@ -262,6 +272,7 @@ int main()
     behavior.reset();
     appearance.reset();
     saveService.reset();
+    openWith.reset();
     menuBuilder.reset();
     contextMenus.reset();
     backups.reset();

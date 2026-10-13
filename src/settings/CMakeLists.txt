@@ -76,6 +76,8 @@ add_executable(settings WIN32
     src/MenuModel.cpp
     src/MenuWriter.cpp
     src/OnboardingController.cpp
+    src/OpenWithController.cpp
+    src/OpenWithModel.cpp
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
@@ -125,6 +127,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_menus.cpp
         tests/test_status.cpp
         tests/test_onboarding.cpp
+        tests/test_openwith.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -137,6 +140,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/ThemeModel.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
+        src/OpenWithModel.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest")
     target_compile_definitions(settings_tests PRIVATE
