@@ -2,6 +2,14 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
+## Fixed since 2.0.0-beta.1
+
+- **No context menu after installing over an older manual install** (for example a copy in `C:\Windows\nilesoft`). Registering left one of Shell's COM entries pointing at the old DLL, so Explorer loaded two copies and showed no menu. Registering now repoints or removes stale entries (and `-register` no longer reads uninitialised options), a second copy in the same Explorer no longer hooks menus, and `shell -status` lists any `conflicts`. The app shows a warning with a one-click fix. Already affected? Installing this build repairs it; otherwise use *Fix* on the app's Home page, or [`scripts/repair-stale-registration.ps1`](https://github.com/Abdullah-Masood-05/Shell/blob/main/scripts/repair-stale-registration.ps1) `-Fix` as administrator.
+- `shell.log` is written to `%LOCALAPPDATA%\Nilesoft\Shell` when the program folder isn't writable, so errors are visible again.
+- First-run setup: the *Pick a look* step works (Auto, Modern, Classic, White, Black), and it no longer offers a per-user registration on top of an all-users one.
+- One app: a single Start menu entry, *Nilesoft Shell Pro* (`NilesoftShellPro.exe`); the separate *Nilesoft Shell Settings* entry is gone.
+- The submenu-delay switch can turn off the shipped delay; links to a config line jump to that line; folder icons are visible in the dark theme; picking the saved value no longer counts as a change.
+
 ## Highlights
 
 **Security**
@@ -12,7 +20,7 @@ Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork
 - COM is no longer initialised from `DllMain`; import nesting is bounded, so a self-importing config can't crash Explorer.
 - The configuration reloads when `shell.nss` or any import changes, and a broken config is retried once it has been saved again.
 - Fixes for COM reference counting, registry and UTF-8 handling, path buffers, duplicate removal, orphan separators, lazily filled system submenus (Send to, New), negative monitor coordinates and per-window DPI.
-- Shell no longer changes your submenu delay, selection-fade setting or Explorer's working directory.
+- Shell no longer changes your selection-fade setting or Explorer's working directory. The submenu delay is one visible line in `shell.nss` (`showdelay = 200`), and the app can turn it off.
 
 **Per-user mode (no admin)**
 - `shell -register -user [-treat]` registers under `HKEY_CURRENT_USER`, including the Windows 11 classic-menu redirect.
