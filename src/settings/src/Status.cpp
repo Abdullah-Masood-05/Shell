@@ -70,11 +70,15 @@ std::string ShellStatus::activeLog() const
 
 std::vector<std::string> ShellStatus::conflictDlls() const
 {
-    // shell.exe lists registrations naming a dll other than installDir's; the same
+    // shell.exe lists registrations naming a dll other than installDir's. When
+    // installDir's copy isn't registered at all (settings.exe run from a build or
+    // portable folder), the registered copy in use is not "another copy". The same
     // copy under several CLSIDs or views is one copy.
     std::vector<std::string> out;
+    const bool installRegistered = samePath(machineDll, dllPath) || samePath(userDll, dllPath);
+    const auto active = activeDll();
     for (const auto &c : conflicts) {
-        if (c.dll.empty() || samePath(c.dll, dllPath))
+        if (c.dll.empty() || samePath(c.dll, dllPath) || (!installRegistered && samePath(c.dll, active)))
             continue;
         bool seen = false;
         for (const auto &d : out)

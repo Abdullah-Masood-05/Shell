@@ -116,6 +116,40 @@ TEST_CASE("status: a conflict naming installDir's dll is not another copy")
     CHECK(s->conflictDlls().empty());
     CHECK(statusIssues(*s, true).empty());
 
+    // Run from a build folder while the installed copy is registered (what shell.exe
+    // printed on a dev machine): the registered copy in use isn't flagged, the stale
+    // c:\windows\nilesoft one is.
+    auto dev = parseStatus(R"({"installDir":"D:\\src\\bin","dll":{"path":"D:\\src\\bin\\shell.dll","exists":true},
+        "registration":{"mode":"machine","machine":{"registered":true,"dll":"C:\\Program Files\\Nilesoft Shell\\shell.dll"},
+                        "user":{"registered":false,"dll":null}},
+        "config":{"exists":true,"source":"appdata"},
+        "conflicts":[
+          {"clsid":"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF1}","role":"contextMenu","scope":"machine","dll":"C:\\Program Files\\Nilesoft Shell\\shell.dll","exists":true},
+          {"clsid":"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF2}","role":"iconOverlay","scope":"machine","dll":"C:\\Program Files\\Nilesoft Shell\\shell.dll","exists":true},
+          {"clsid":"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}","role":"folderExtensions","scope":"machine","dll":"c:\\windows\\nilesoft\\shell.dll","exists":true}],
+        "loadedInExplorer":[{"path":"c:\\windows\\nilesoft\\shell.dll","ours":false}],
+        "log":{"path":"D:\\src\\bin\\shell.log","exists":false}})",
+                           error);
+    REQUIRE(dev);
+    REQUIRE(dev->conflictDlls().size() == 1);
+    CHECK(dev->conflictDlls()[0] == "c:\\windows\\nilesoft\\shell.dll");
+    CHECK(dev->activeLog().empty()); // the log reported is the build folder's, not the active copy's
+
+    // Installed normally, with a stale per-user registration that wins: that one is flagged.
+    auto stale = parseStatus(R"({"installDir":"C:\\Program Files\\Nilesoft Shell",
+        "dll":{"path":"C:\\Program Files\\Nilesoft Shell\\shell.dll","exists":true},
+        "registration":{"mode":"both","machine":{"registered":true,"dll":"C:\\Program Files\\Nilesoft Shell\\shell.dll"},
+                        "user":{"registered":true,"dll":"C:\\Old\\shell.dll"}},
+        "config":{"exists":true,"source":"appdata"},
+        "conflicts":[{"clsid":"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF1}","role":"contextMenu","scope":"user","dll":"C:\\Old\\shell.dll","exists":true}]})",
+                             error);
+    REQUIRE(stale);
+    REQUIRE(stale->conflictDlls().size() == 1);
+    CHECK(stale->conflictDlls()[0] == "C:\\Old\\shell.dll");
+    auto staleIssues = statusIssues(*stale, true);
+    REQUIRE(staleIssues.size() == 1); // the conflict; not also "registered twice"
+    CHECK(staleIssues[0].action == "fix-conflicts");
+
     // Malformed entries are skipped, not fatal.
     auto bad = parseStatus(R"({"conflicts":[1, "x", {"dll":"C:\\B\\shell.dll"}], "log": "nope"})", error);
     REQUIRE(bad);
