@@ -1,6 +1,7 @@
 import { Button, ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
 import { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "../backups-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
@@ -245,6 +246,9 @@ export component BackupsPage inherits Rectangle {
             kind: "info";
             title: "No personal config to back up";
             text: BackupsState.unavailable-text;
+            action-label: AppState.status.config-source == "install" || !AppState.status.config-exists ? "Create personal config" : "";
+            action-enabled: !AppState.busy && AppState.cli-available;
+            action => { AppState.action("config-init"); }
         }
 
         HorizontalLayout {

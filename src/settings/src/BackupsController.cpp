@@ -123,9 +123,9 @@ void BackupsController::pollStatus()
     available_ = status.config_exists && !shared;
     const auto &st = ui_->global<BackupsState>();
     st.set_available(available_);
-    st.set_unavailable_text(shared ? "The active config is the shared one in the install folder, which this app never "
-                                     "writes to. Create a personal config (Home or Config Editor) to get snapshots."
-                                   : "The config file doesn't exist yet.");
+    st.set_unavailable_text(ss(shared ? std::string("The active config is the shared one in the install folder, which "
+                                                    "this app never writes to. Create a personal config to get snapshots.")
+                                      : "The config file doesn't exist: " + path));
     st.set_folder(ss(nss::narrow(nss::ConfigStore(root_).backupsDir().wstring())));
     refresh();
 }
