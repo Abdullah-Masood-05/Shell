@@ -82,6 +82,36 @@
 	<code>imports\settings-app-menus.nss</code>, shown as code next to the tree, and read back when you open the page
 	again.</p>
 
+<h5 id="open-with">Open with</h5>
+<p>Adds "Open with" items for your editors and terminals, so a file or folder opens in Zed, Cursor or PyCharm as easily as
+	in VS Code. The page lists the apps it knows and looks for each one on this PC (read-only: the usual install folders,
+	JetBrains Toolbox scripts and <code>PATH</code>):</p>
+<ul>
+	<li>VS Code, VS Code Insiders, Zed, Cursor, Windsurf, Sublime Text, Notepad++, IntelliJ IDEA, PyCharm, WebStorm, Rider,
+		CLion, Visual Studio, Neovim (in a Windows Terminal tab), Windows Terminal, PowerShell 7, Git Bash and Notepad.</li>
+	<li>An app that wasn't found is greyed out with <kbd>Locate…</kbd> to point at its program yourself.</li>
+	<li><kbd>Add app</kbd> adds any other program: a name, the program, an icon (its own by default), arguments, and whether it
+		shows for everything, files only, folders only, or files with some extensions. Apps can be reordered, switched off,
+		or set to run as administrator.</li>
+	<li>Arguments use placeholders: <code>{path}</code> the selected item, quoted (<code>@sel.path.quote</code>);
+		<code>{paths}</code> every selected item (<code>@sel(true)</code>); <code>{dir}</code> its folder, or the folder
+		itself (<code>"@sel.dir"</code>); <code>{name}</code> its name. <kbd>Test</kbd> shows the exact command line for a
+		sample file and folder. It never starts the program.</li>
+	<li>The items go in a submenu (titled <i>Open in</i> by default, so it isn't confused with Windows' own <i>Open
+		with</i>) or at the top level as <i>Open with &lt;name&gt;</i>, on files, folders, the folder background and the
+		desktop as you choose. A preview shows the resulting menu.</li>
+	<li>Each item has the program's icon and a <a href="/docs/configuration/properties#where">where</a>
+		<code>path.exists(...)</code> condition, so it disappears when the program is uninstalled.</li>
+</ul>
+<p>The first time, the editors found on this PC are switched on; terminals and Notepad are off, because the Terminal and
+	Develop menus have them already. The Develop menu's own <i>Editors</i> submenu (VS Code and Notepad) is left as it is by
+	default: it only shows while <kbd>Shift</kbd> is held, so it doesn't crowd the everyday menu. If you'd rather have one
+	place, the page can hide it (the lines in <code>develop.nss</code> are commented out, not deleted).</p>
+<p>Saving writes <code>imports\settings-app-openwith.nss</code> (generated; edit it on this page rather than by hand) and
+	imports it at the end of <code>shell.nss</code> once. As on the other pages, it is checked with
+	<code>shell -config:check</code> first, a snapshot named <i>Open with: …</i> is taken, and <kbd>Ctrl</kbd>+<kbd>S</kbd>
+	saves.</p>
+
 <h5 id="config-editor">Config Editor</h5>
 <ul>
 	<li>A tree of <code>shell.nss</code> and every file it imports. Imports that cannot be found are marked.</li>
