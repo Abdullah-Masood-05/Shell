@@ -129,7 +129,51 @@ namespace Nilesoft
 			void parse_menu(NativeMenu *menu, bool has_curly = true);
 			bool parse_modify_properties(NativeMenu *item, uint32_t action = 0);
 
-			void parse_loc(bool has_curly = false);
+			// into: the scope to fill; the configuration's loc strings if null.
+			void parse_loc(bool has_curly = false, Scope *into = nullptr);
+
+			// loc.<name> names used by the configuration, by name hash: the
+			// name as written and where it was first used. See resolve_loc().
+			struct LocRef
+			{
+				string name;
+				string file;
+				size_t line{}, column{};
+				size_t order{};
+			};
+			std::unordered_map<uint32_t, LocRef> m_loc_refs;
+			void note_loc(uint32_t key, const string &name, size_t line, size_t column);
+
+			// The last loc.<name> or title.<name> built by parse_identifier
+			// with nothing after it (no arguments, index or member), so a title
+			// that is exactly one of them can be recognised. See record_title().
+			struct
+			{
+				const Expression *expr{};
+				uint32_t root{}, key{};
+				string name;		// as written: "file_manage"
+			} m_last_ident;
+
+			// Where each menu/item title expression was written, and what it is
+			// when that is known without running it. For ReportTitles().
+			struct TitleRef
+			{
+				string file;
+				size_t line{}, column{};
+				uint32_t root{};	// IDENT_LOC, IDENT_TITLE, or 0
+				uint32_t key{};
+				string name;		// the <name> of loc.<name> / title.<name>
+				bool literal{};		// a plain string
+			};
+			std::unordered_map<const Expression *, TitleRef> m_titles;
+			void record_title(const Expression *e, size_t line, size_t column);
+
+			// Every loc.<name> the configuration uses but no imported language
+			// file defines gets the English string from imports\lang\en.nss
+			// (next to the root config, else in the install folder), or failing
+			// that a readable form of the name, so a title is never blank.
+			void resolve_loc();
+			bool load_loc_file(const string &path, Scope &into);
 
 			void parse_settings(std::vector<struct SETTING> *settings, const Ident &id, bool imported = false);
 			void parse_settings(struct SETTING *setting, const Ident &id = 0, bool imported = false);
@@ -223,6 +267,24 @@ namespace Nilesoft
 
 			bool			Load();
 			bool			HasError() const;
+
+			// shell -config:check -titles: every menu/item title in the loaded
+			// configuration, in menu order, evaluated where that needs no
+			// selection (a string, loc.<name>, title.<name>).
+			struct TitleInfo
+			{
+				enum State { Text, Empty, Dynamic } state{};
+				enum Kind { Menu, Item, Modify } kind{};
+				uint32_t depth{};	// 0: top level
+				string file;
+				size_t line{}, column{};
+				string source;		// "loc.<name>" / "title.<name>", else empty
+				string text;
+			};
+			// where: null for every title, else only those whose type= lets
+			// them show in "file", "folder", "back" (a folder's background),
+			// "desktop" or "taskbar"; false if `where` is none of these.
+			bool ReportTitles(std::vector<TitleInfo> &out, const wchar_t *where = nullptr);
 			TokenError		Error() const;
 
 			size_t			Line() const;

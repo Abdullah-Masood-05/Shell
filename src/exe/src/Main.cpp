@@ -1227,6 +1227,8 @@ namespace ConfigCommand
 	struct CheckResult
 	{
 		string errors, warnings;
+		string titles;
+		uint32_t empty_titles{};
 	};
 
 	static void CALLBACK check_sink(void *context, BOOL is_error, const wchar_t *file,
@@ -1244,7 +1246,59 @@ namespace ConfigCommand
 		list += L" }";
 	}
 
-	static int check(CliOutput &out, const string &root_arg)
+	/*
+		With -titles[:<where>], also "where", "empty_titles": <count> and
+		"titles": [...], every menu/item title in menu order (only those whose
+		type= shows them in <where>: file, folder, back, desktop or taskbar),
+		each {"kind","depth","state","title","source","file","line","column"}:
+		kind is "menu", "item" or "modify"; depth 0 is the top level; state is
+		"text", "empty" (a blank menu entry) or "dynamic" (depends on the
+		selection, not evaluated); source is "loc.<name>"/"title.<name>" or "".
+		Each "empty" title is also a warning. See ConfigCheck.h.
+	*/
+	static void CALLBACK title_sink(void *context, const CONFIG_TITLE *t)
+	{
+		auto result = static_cast<CheckResult *>(context);
+		auto &list = result->titles;
+		list += list.empty() ? L"\r\n    " : L",\r\n    ";
+		string head;
+		head.format(L"{ \"kind\": \"%s\", \"depth\": %u, \"state\": \"%s\", \"title\": ",
+					t->kind == CONFIG_TITLE_MENU ? L"menu" : t->kind == CONFIG_TITLE_ITEM ? L"item" : L"modify",
+					t->depth,
+					t->state == CONFIG_TITLE_TEXT ? L"text" : t->state == CONFIG_TITLE_EMPTY ? L"empty" : L"dynamic");
+		list += head;
+		json_quote(list, t->title);
+		list += L", \"source\": ";
+		json_quote(list, t->source);
+		list += L", \"file\": ";
+		json_quote(list, t->file);
+		string numbers;
+		numbers.format(L", \"line\": %u, \"column\": %u }", t->line, t->column);
+		list += numbers;
+		if(t->state == CONFIG_TITLE_EMPTY)
+		{
+			result->empty_titles++;
+			string message = L"this menu title is empty";
+			if(t->source && *t->source)
+				message.append_format(L" (%s)", t->source);
+			check_sink(context, FALSE, t->file, t->line, t->column, message);
+		}
+	}
+
+	// The <where> of -titles:<where>, as ConfigCheckTitles takes it.
+	static bool valid_where(const string &where)
+	{
+		if(where.empty())
+			return true;
+		for(auto name : { L"file", L"folder", L"dir", L"back", L"background", L"desktop", L"taskbar" })
+		{
+			if(where.equals(name, true))
+				return true;
+		}
+		return false;
+	}
+
+	static int check(CliOutput &out, const string &root_arg, bool titles, const string &where)
 	{
 		CheckResult result;
 		HRESULT hr = E_FAIL;
@@ -1262,7 +1316,9 @@ namespace ConfigCommand
 		// Kept loaded until the process exits, which is right after this.
 		auto module = ::LoadLibraryExW(dll_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
 		auto proc = module ? reinterpret_cast<ConfigCheckProc>(::GetProcAddress(module, CONFIG_CHECK_EXPORT)) : nullptr;
-		if(!proc)
+		auto titles_proc = module && titles ?
+			reinterpret_cast<ConfigCheckTitlesProc>(::GetProcAddress(module, CONFIG_CHECK_TITLES_EXPORT)) : nullptr;
+		if(!proc || (titles && !titles_proc))
 		{
 			string msg;
 			msg.format(L"cannot load the parser from '%s' (error %lu)", dll_path.c_str(), ::GetLastError());
@@ -1270,7 +1326,7 @@ namespace ConfigCommand
 		}
 		else
 		{
-			hr = proc(root, check_sink, &result);
+			hr = titles ? titles_proc(root, where, check_sink, title_sink, &result) : proc(root, check_sink, &result);
 			if(FAILED(hr))
 			{
 				string msg;
@@ -1290,24 +1346,35 @@ namespace ConfigCommand
 		json += L",\r\n  \"warnings\": [";
 		json += result.warnings;
 		json += result.warnings.empty() ? L"]" : L"\r\n  ]";
+		if(titles)
+		{
+			json += L",\r\n  \"where\": ";
+			json_quote(json, where.empty() ? string(L"all") : where);
+			string count;
+			count.format(L",\r\n  \"empty_titles\": %u", result.empty_titles);
+			json += count;
+			json += L",\r\n  \"titles\": [";
+			json += result.titles;
+			json += result.titles.empty() ? L"]" : L"\r\n  ]";
+		}
 		json += L"\r\n}";
 		out.line(json);
 		return ok ? cli_ok : cli_failed;
 	}
 
-	static int run(const string &command, const string &root, bool force, const wchar_t *out_path)
+	static int run(const string &command, const string &root, bool force, bool titles, const string &where, const wchar_t *out_path)
 	{
 		CliOutput out(out_path);
 
 		int ret;
 		if(command.equals(L"check"))
 		{
-			if(root.empty())
+			if(root.empty() || !valid_where(where))
 			{
-				out.line(L"usage: shell -config:check <root.nss> [-out:<file>]");
+				out.line(L"usage: shell -config:check <root.nss> [-titles[:file|folder|back|desktop|taskbar]] [-out:<file>]");
 				return cli_usage;
 			}
-			ret = check(out, root);
+			ret = check(out, root, titles, where);
 		}
 		else if(command.equals(L"init"))
 			ret = init(out, force);
@@ -1317,7 +1384,7 @@ namespace ConfigCommand
 			ret = path(out);
 		else
 		{
-			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:check <root.nss> [-out:<file>]");
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:check <root.nss> [-titles[:<where>]] [-out:<file>]");
 			return cli_usage;
 		}
 
@@ -1965,6 +2032,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// -config:check <root.nss>: the first plain argument after it.
 		string config_root;
 		bool want_root = false;
+		// -config:check <root.nss> -titles[:<where>]
+		bool titles = false;
+		string titles_where;
 		// -status [-out:<file>]
 		bool status = false;
         for(auto op : cmdline)
@@ -1975,6 +2045,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					//runglyphs = true;
 					//break;
+				}
+				else if(op->has_name(L"titles"))
+				{
+					titles = true;
+					titles_where = op->Value;
 				}
 				else  if(op->has_name({ L"r", L"register", L"e", L"enable" }))
 				{
@@ -2062,7 +2137,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// Never elevated, never interactive; handled on its own.
 		if(config)
 		{
-			auto ret = ConfigCommand::run(config_command, config_root, force, out_path.empty() ? nullptr : out_path.c_str());
+			auto ret = ConfigCommand::run(config_command, config_root, force, titles, titles_where, out_path.empty() ? nullptr : out_path.c_str());
 			_log->close();
 			return ret;
 		}
@@ -2437,6 +2512,8 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"-config:check <file>\r\n"
                 L"\t\tParse <file> and its imports; print the\r\n"
                 L"\t\terrors and warnings as JSON (exit 1 on error).\r\n"
+                L"\t\tWith -titles[:<where>], also list the menu titles\r\n"
+                L"\t\t(where: file, folder, back, desktop, taskbar).\r\n"
                 L"-status\t\tPrint registration, Windows 11 menu and\r\n"
                 L"\t\tconfig state as JSON (read-only).\r\n"
                 L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"
