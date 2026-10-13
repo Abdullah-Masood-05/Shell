@@ -5,7 +5,7 @@
 
 	// Submenus open 200 ms after hover while a Shell menu is open. This sets
 	// SPI_SETMENUSHOWDELAY, overriding the Windows setting for that time; remove
-	// the line (or turn it off in the Settings app, Behavior) to use the Windows value.
+	// the line (or turn it off in Nilesoft Shell Pro, Behavior) to use the Windows value.
 	showdelay = 200
 
 	// Options to allow modification of system items

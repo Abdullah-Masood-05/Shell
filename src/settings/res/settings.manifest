@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity type="win32" name="Nilesoft.Shell.Settings" version="1.0.0.0" processorArchitecture="*"/>
-  <description>Nilesoft Shell Settings</description>
+  <assemblyIdentity type="win32" name="Nilesoft.ShellPro" version="1.0.0.0" processorArchitecture="*"/>
+  <description>Nilesoft Shell Pro</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>

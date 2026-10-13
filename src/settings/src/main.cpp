@@ -1,4 +1,4 @@
-// Nilesoft Shell Settings (settings.exe).
+// Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
 // Development switches:
 //   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences>
@@ -11,7 +11,7 @@
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
 //                          The window is 1120x760 and placed off-screen, and a running
-//                          Settings window is left alone (no single-instance check)
+//                          window of the app is left alone (no single-instance check)
 //   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
@@ -34,6 +34,7 @@
 #include <windows.h>
 #include <objbase.h>
 #include <shellapi.h>
+#include <shobjidl.h>
 
 #include <algorithm>
 #include <chrono>
@@ -122,13 +123,21 @@ AppOptions parseArgs()
     return o;
 }
 
-// One window per user session: a second start brings the first one forward.
+// The taskbar groups the window with the Start menu shortcut, which the installer gives
+// the same ID (setup.wxs, System.AppUserModel.ID).
+constexpr const wchar_t *appUserModelId = L"Nilesoft.ShellPro";
+
+// One window per user session: a second start brings the first one forward. The mutex
+// name predates the rename and stays, so an older build that is still open counts too.
 bool activateExistingInstance(HANDLE &mutex)
 {
     mutex = CreateMutexW(nullptr, TRUE, L"Local\\Nilesoft.Shell.Settings");
     if (GetLastError() != ERROR_ALREADY_EXISTS)
         return false;
-    if (HWND hwnd = FindWindowW(nullptr, L"Nilesoft Shell Settings")) {
+    HWND hwnd = FindWindowW(nullptr, L"Nilesoft Shell Pro");
+    if (!hwnd)
+        hwnd = FindWindowW(nullptr, L"Nilesoft Shell Settings"); // the title before the rename
+    if (hwnd) {
         if (IsIconic(hwnd))
             ShowWindow(hwnd, SW_RESTORE);
         SetForegroundWindow(hwnd);
@@ -143,10 +152,13 @@ int main()
     auto options = parseArgs();
     const bool snapshot = !g_snapshotPath.empty();
 
-    // Snapshots never touch a running Settings window (no single-instance check).
+    // Snapshots never touch a running window of the app (no single-instance check).
     HANDLE mutex = nullptr;
     if (!snapshot && activateExistingInstance(mutex))
         return 0;
+
+    // Before the first window exists, so the window picks it up.
+    SetCurrentProcessExplicitAppUserModelID(appUserModelId);
 
     // The UI thread is an STA (the folder picker and SHOpenFolderAndSelectItems need COM).
     const HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);

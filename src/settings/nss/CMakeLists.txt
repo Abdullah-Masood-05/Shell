@@ -1,4 +1,4 @@
-# nsscore: the .nss config library for Nilesoft Shell Settings.
+# nsscore: the .nss config library for Nilesoft Shell Pro.
 # Builds standalone (cmake -S src/settings/nss) or via add_subdirectory.
 cmake_minimum_required(VERSION 3.21)
 

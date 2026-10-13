@@ -22,12 +22,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Nilesoft"
-            VALUE "FileDescription", "Nilesoft Shell Settings"
+            VALUE "FileDescription", "Nilesoft Shell Pro"
             VALUE "FileVersion", "@SHELL_VERSION@"
-            VALUE "InternalName", "settings"
+            VALUE "InternalName", "NilesoftShellPro"
             VALUE "LegalCopyright", "Copyright (C) 2021-@SHELL_VERSION_YEAR@ Nilesoft Ltd."
-            VALUE "OriginalFilename", "settings.exe"
-            VALUE "ProductName", "Nilesoft Shell"
+            VALUE "OriginalFilename", "NilesoftShellPro.exe"
+            VALUE "ProductName", "Nilesoft Shell Pro"
             VALUE "ProductVersion", "@SHELL_VERSION@"
         END
     END

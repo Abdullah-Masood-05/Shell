@@ -114,7 +114,7 @@ CliResult ShellCli::run(const std::vector<std::wstring> &args, DWORD timeoutMs) 
 {
     CliResult r;
     if (!available()) {
-        r.error = L"shell.exe was not found next to settings.exe or the registered shell.dll.";
+        r.error = L"shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll.";
         return r;
     }
 

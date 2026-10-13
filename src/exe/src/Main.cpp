@@ -1732,6 +1732,36 @@ Theme m_theme;
 
 HTHEME _hTheme = nullptr;
 
+// shell.exe without arguments opens the app, Nilesoft Shell Pro, when NilesoftShellPro.exe
+// sits next to it (the installer and the portable zip both put it there). It is started
+// with no arguments; a running copy brings its window forward itself. Returns false when
+// the app isn't there or can't be started, and shell.exe then shows its own window.
+static bool LaunchApp()
+{
+	string dir = IO::Path::Parent(IO::Path::Module(nullptr)).move();
+	string app = IO::Path::Combine(dir, L"NilesoftShellPro.exe").move();
+
+	auto attributes = ::GetFileAttributesW(app.c_str());
+	if(attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY))
+		return false;
+
+	// CreateProcess may write to the command line, so it gets its own buffer.
+	std::wstring command_line = L"\"" + std::wstring(app.c_str()) + L"\"";
+	STARTUPINFOW si{ sizeof(si) };
+	PROCESS_INFORMATION pi{};
+	if(!::CreateProcessW(app.c_str(), command_line.data(), nullptr, nullptr, FALSE, 0, nullptr, dir.c_str(), &si, &pi))
+	{
+		_log->error(L"cannot start '%s' (error %lu)", app.c_str(), ::GetLastError());
+		return false;
+	}
+
+	// Let the app take the foreground (or bring an already open window forward).
+	::AllowSetForegroundWindow(pi.dwProcessId);
+	::CloseHandle(pi.hThread);
+	::CloseHandle(pi.hProcess);
+	return true;
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
 	//auto argc = __argc;
@@ -1778,6 +1808,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 	}
 	else if(cmdline.empty())
     {
+		// Double-click: open the app if it's installed next to shell.exe.
+		if(LaunchApp())
+		{
+			_log->close();
+			return 0;
+		}
+
 		auto shell_window = ::FindWindowExW(nullptr, nullptr, UI::WC_Window, APP_FULLNAME);
 		if (shell_window)
 		{
@@ -2377,6 +2414,10 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
 			//WCHAR szTitle[100];
 			// LoadString(g_hInstance, IDS_APP_TITLE, szTitle, ARRAYSIZE(szTitle));
             auto usage = L"Command-Line Help\r\n\r\n"
+                L"Without arguments, shell.exe opens the app,\r\n"
+                L"Nilesoft Shell Pro (NilesoftShellPro.exe next to\r\n"
+                L"shell.exe), or this program's own register and\r\n"
+                L"unregister window when the app isn't there.\r\n\r\n"
                 //L"shell.exe [-[r][u]] [-i] [-s] [-re]\n\n"
                 L"-register\t\tRegistering.\r\n"
                 L"-unregister\tUnregistering.\r\n"

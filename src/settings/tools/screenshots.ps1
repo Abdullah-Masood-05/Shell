@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Renders the Settings app's pages to PNG files for the docs and the README.
+    Renders the pages of the app, Nilesoft Shell Pro, to PNG files for the docs and the README.
 
 .DESCRIPTION
-    Builds nothing. Runs src\bin\settings.exe with its --snapshot switch, which renders the
+    Builds nothing. Runs src\bin\NilesoftShellPro.exe with its --snapshot switch, which renders the
     app's own window to <prefix>-N.bmp files and exits (no screen capture involved), then
     converts the BMPs to PNG in docs\images\settings-app.
 
@@ -20,10 +20,10 @@
     Shots 1 to 4 use the app's normal theme, which is the Windows app mode unless changed in
     Preferences; the "-dark" names assume Windows is in dark mode (the script warns if not).
     Shot 4 is kept only once Appearance is no longer a PlaceholderPage in ui\app.slint;
-    the other "coming soon" pages are not captured. Each run starts settings.exe once
+    the other "coming soon" pages are not captured. Each run starts NilesoftShellPro.exe once
     (two runs in total). If the tour changes, update $Runs below.
 
-    Run it again after UI changes. Build first if settings.exe is missing:
+    Run it again after UI changes. Build first if NilesoftShellPro.exe is missing:
       cd src\settings; cmake --preset x64-release; cmake --build --preset x64-release
 
 .PARAMETER OutDir
@@ -64,20 +64,20 @@ Add-Type -AssemblyName System.Drawing
 
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $bin = Join-Path $repo 'src\bin'
-$settingsExe = Join-Path $bin 'settings.exe'
+$appExe = Join-Path $bin 'NilesoftShellPro.exe'
 $shellExe = Join-Path $bin 'shell.exe'
 if (-not $OutDir) { $OutDir = Join-Path $repo 'docs\images\settings-app' }
 
-foreach ($exe in $settingsExe, $shellExe) {
+foreach ($exe in $appExe, $shellExe) {
     if (-not (Test-Path $exe)) {
         throw "$exe not found. Build the core (src\Shell.sln) and the app (src\settings, CMake preset x64-release) first."
     }
 }
 
-# settings.exe allows one window per session: a second start only brings the first forward.
-if (Get-Process -Name settings -ErrorAction SilentlyContinue |
-        Where-Object { $_.MainWindowTitle -eq 'Nilesoft Shell Settings' -or $_.Path -eq $settingsExe }) {
-    throw 'Nilesoft Shell Settings is already running. Close it and run this script again.'
+# NilesoftShellPro.exe allows one window per session: a second start only brings the first forward.
+if (Get-Process -Name NilesoftShellPro -ErrorAction SilentlyContinue |
+        Where-Object { $_.MainWindowTitle -eq 'Nilesoft Shell Pro' -or $_.Path -eq $appExe }) {
+    throw 'Nilesoft Shell Pro is already running. Close it and run this script again.'
 }
 
 # The window opens at its saved size and position (HKCU, read only); a maximized window
@@ -219,17 +219,17 @@ try {
         $n++
         $prefix = Join-Path $work "run$n"
         $arguments = @('--no-onboarding') + $run.Args + @('--snapshot', $prefix)
-        Write-Host "settings.exe $($run.Args -join ' ')"
-        $p = Start-Process -FilePath $settingsExe -ArgumentList (Join-Arguments $arguments) -WorkingDirectory $bin -PassThru
+        Write-Host "NilesoftShellPro.exe $($run.Args -join ' ')"
+        $p = Start-Process -FilePath $appExe -ArgumentList (Join-Arguments $arguments) -WorkingDirectory $bin -PassThru
         $launched += $p
         # The tour takes about 10 s (a shot every 1.2 s after a short wait).
         if (-not $p.WaitForExit(60000)) {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-            throw 'settings.exe did not finish the snapshot tour within 60 s and was stopped.'
+            throw 'NilesoftShellPro.exe did not finish the snapshot tour within 60 s and was stopped.'
         }
         foreach ($shot in ($run.Shots.Keys | Sort-Object)) {
             $bmp = "$prefix-$shot.bmp"
-            if (-not (Test-Path $bmp)) { throw "settings.exe did not write $bmp." }
+            if (-not (Test-Path $bmp)) { throw "NilesoftShellPro.exe did not write $bmp." }
             $png = Join-Path $OutDir ($run.Shots[$shot] + '.png')
             Save-Png $bmp $png
             $img = [Drawing.Image]::FromFile($png)

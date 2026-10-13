@@ -1,6 +1,6 @@
 #pragma once
 
-// nsscore: the .nss config library used by Nilesoft Shell Settings.
+// nsscore: the .nss config library used by Nilesoft Shell Pro.
 
 #include "nss/Text.h"
 #include "nss/NssLexer.h"

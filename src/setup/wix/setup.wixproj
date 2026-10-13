@@ -6,28 +6,28 @@
   </PropertyGroup>
 
   <!--
-    The Settings app (settings.exe) is built by CMake (src/settings), not by this solution.
-    It goes into the x64 and ARM64 packages; ARM64 ships the x64 exe, which runs under
-    emulation. Win32 has no Settings app.
+    The app, Nilesoft Shell Pro (NilesoftShellPro.exe), is built by CMake (src/settings),
+    not by this solution. It goes into the x64 and ARM64 packages; ARM64 ships the x64 exe,
+    which runs under emulation. Win32 has no app: its Start menu entry opens shell.exe.
 
     It is included only when the exe exists, so the core and the MSI still build on a
     machine without Rust or the Slint build; the build then prints a warning. CI and
-    release builds pass -p:RequireSettingsExe=true, which turns the warning into an error
+    release builds pass -p:RequireAppExe=true, which turns the warning into an error
     so a package can't silently ship without it.
 
-    Override the location with -p:SettingsExe=<path to settings.exe>.
+    Override the location with -p:AppExe=<path to NilesoftShellPro.exe>.
   -->
   <PropertyGroup>
-    <SettingsExe Condition="'$(SettingsExe)' == ''">$(MSBuildThisFileDirectory)..\..\bin\settings.exe</SettingsExe>
-    <SettingsAppPlatform Condition="'$(Platform)' == 'x64' or '$(Platform)' == 'ARM64'">true</SettingsAppPlatform>
-    <IncludeSettingsApp Condition="'$(SettingsAppPlatform)' == 'true' and Exists('$(SettingsExe)')">true</IncludeSettingsApp>
-    <DefineConstants Condition="'$(IncludeSettingsApp)' == 'true'">$(DefineConstants);SettingsExe=$(SettingsExe)</DefineConstants>
+    <AppExe Condition="'$(AppExe)' == ''">$(MSBuildThisFileDirectory)..\..\bin\NilesoftShellPro.exe</AppExe>
+    <AppPlatform Condition="'$(Platform)' == 'x64' or '$(Platform)' == 'ARM64'">true</AppPlatform>
+    <IncludeApp Condition="'$(AppPlatform)' == 'true' and Exists('$(AppExe)')">true</IncludeApp>
+    <DefineConstants Condition="'$(IncludeApp)' == 'true'">$(DefineConstants);AppExe=$(AppExe)</DefineConstants>
   </PropertyGroup>
 
-  <Target Name="CheckSettingsExe" BeforeTargets="BeforeBuild" Condition="'$(SettingsAppPlatform)' == 'true' and '$(IncludeSettingsApp)' != 'true'">
-    <Error Condition="'$(RequireSettingsExe)' == 'true'"
-           Text="settings.exe not found at '$(SettingsExe)'. Build it first (src\settings: cmake --preset x64-release, then cmake --build --preset x64-release; see src\settings\README.md) or pass -p:SettingsExe=&lt;path&gt;." />
-    <Warning Condition="'$(RequireSettingsExe)' != 'true'"
-             Text="settings.exe not found at '$(SettingsExe)': building $(TargetName).msi WITHOUT the Settings app. To include it, build src\settings first (see src\settings\README.md) and rebuild." />
+  <Target Name="CheckAppExe" BeforeTargets="BeforeBuild" Condition="'$(AppPlatform)' == 'true' and '$(IncludeApp)' != 'true'">
+    <Error Condition="'$(RequireAppExe)' == 'true'"
+           Text="NilesoftShellPro.exe not found at '$(AppExe)'. Build it first (src\settings: cmake --preset x64-release, then cmake --build --preset x64-release; see src\settings\README.md) or pass -p:AppExe=&lt;path&gt;." />
+    <Warning Condition="'$(RequireAppExe)' != 'true'"
+             Text="NilesoftShellPro.exe not found at '$(AppExe)': building $(TargetName).msi WITHOUT the app. To include it, build src\settings first (see src\settings\README.md) and rebuild." />
   </Target>
 </Project>

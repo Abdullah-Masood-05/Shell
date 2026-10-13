@@ -3,11 +3,11 @@
 	Packages the portable (per-user, no admin) Nilesoft Shell Pro zip.
 
 .DESCRIPTION
-	Collects shell.dll, shell.exe, settings.exe, shell.nss, imports\**, the license and
+	Collects shell.dll, shell.exe, NilesoftShellPro.exe, shell.nss, imports\**, the license and
 	the readme from the build output folder (src\bin by default), adds PORTABLE.txt
 	and writes NilesoftShellPro-<version>-<arch>-portable.zip.
 
-	Build the core (src\Shell.sln) and the Settings app (src\settings) first; the
+	Build the core (src\Shell.sln) and the app (src\settings) first; the
 	script stops if a required file is missing. It only reads the build output and
 	writes the zip: nothing is registered or installed.
 
@@ -60,12 +60,12 @@ $Version = $Version.TrimStart('v')
 
 # source (relative to BinDir) -> name in the zip
 $files = [ordered]@{
-	'shell.dll'    = 'shell.dll'
-	'shell.exe'    = 'shell.exe'
-	'settings.exe' = 'settings.exe'
-	'shell.nss'    = 'shell.nss'
-	'license.txt'  = 'LICENSE.txt'
-	'readme.txt'   = 'readme.txt'
+	'shell.dll'            = 'shell.dll'
+	'shell.exe'            = 'shell.exe'
+	'NilesoftShellPro.exe' = 'NilesoftShellPro.exe'
+	'shell.nss'            = 'shell.nss'
+	'license.txt'          = 'LICENSE.txt'
+	'readme.txt'           = 'readme.txt'
 }
 $missing = @($files.Keys | Where-Object { -not (Test-Path -LiteralPath (Join-Path $BinDir $_) -PathType Leaf) })
 if (-not (Test-Path -LiteralPath (Join-Path $BinDir 'imports') -PathType Container)) { $missing += 'imports\' }
@@ -104,8 +104,9 @@ Install
        %LOCALAPPDATA%\Programs\NilesoftShellPro
    Explorer loads shell.dll from this folder, so don't extract it to Downloads
    or a temporary folder, and don't move it while Shell is registered.
-2. Run settings.exe, enable Shell for yourself (a per-user registration),
-   then restart Explorer from the app.
+2. Run NilesoftShellPro.exe (the Nilesoft Shell Pro app; double-clicking
+   shell.exe opens it too), enable Shell for yourself (a per-user
+   registration), then restart Explorer from the app.
    Or, from a command prompt in that folder:
        shell.exe -register -user -treat
        shell.exe -restart
@@ -134,8 +135,8 @@ Notes
 - If Nilesoft Shell is also installed for all users (the MSI), the per-user
   registration takes precedence for this user.
 - The binaries are not code-signed; SmartScreen may warn the first time you
-  run shell.exe or settings.exe.
-- settings.exe is an x64 program; on Windows on ARM it runs under emulation.
+  run shell.exe or NilesoftShellPro.exe.
+- NilesoftShellPro.exe is an x64 program; on Windows on ARM it runs under emulation.
 "@
 	Set-Content -LiteralPath (Join-Path $stage 'PORTABLE.txt') -Value ($portable -replace "`r?`n", "`r`n") -Encoding utf8 -NoNewline
 
