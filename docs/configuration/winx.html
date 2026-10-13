@@ -1,0 +1,74 @@
+<h4 id="_top">Win+X menu <small class="text-muted">(experimental)</small></h4>
+<br>
+<p>The Win+X menu is the menu that opens with <kbd>Win</kbd>+<kbd>X</kbd> or a right-click on the Start button.
+	Shell draws it like any other menu, and a configuration can add items to it or replace Windows' own items.
+	Support for it is <strong>experimental</strong>: test it before relying on it, and see
+	<a href="#troubleshooting">Troubleshooting</a> if the menu is not recognised.</p>
+
+<h5 id="type">Targeting the menu</h5>
+<p>Use <code>type='winx'</code> (or the older name <code>type='start'</code>) to show an item only in the Win+X menu,
+	and <code>window.is_winx</code> (or <code>window.is_start</code>) in expressions. The Win+X menu is not a taskbar
+	menu: <code>type='taskbar'</code> does not match it, although <code>window.is_taskbar</code> is true there, as it is
+	for every menu opened from the taskbar.</p>
+<pre><code class="lang-shell">item(type='winx' title='&amp;Task Manager' image=image.mdl(\uE9D9) cmd='taskmgr.exe')
+item(where=window.is_winx title='Services' cmd='services.msc')</code></pre>
+<p>On Windows 11, configurations that used the workaround <code>type='taskbar' where=window.parent.name == null</code>
+	should use <code>type='winx'</code> instead.</p>
+
+<h5 id="settings">Settings</h5>
+<pre><code class="lang-shell">settings
+{
+	winx
+	{
+		// Show only the configured items; Windows' own items are left out.
+		replace = true
+
+		// Log how every taskbar and Win+X popup was recognised to shell.log.
+		debug = true
+	}
+	// or, short for winx.replace = true
+	winx = true
+}</code></pre>
+<dl>
+	<dt><code>replace</code></dt>
+	<dd>Off by default, which adds the configured items to Windows' own. When on, Windows' items are not read at all
+		(<code>this.count</code> is 0), so no <a href="/docs/configuration/modify-items">modify</a> rule can show, move
+		or rename one. Explorer numbers its Win+X commands by its own list of entries, and editing those entries used to
+		crash it; with <code>replace</code> the menu can only return a command Explorer put in it or none, and Shell runs
+		its own items itself.</dd>
+	<dt><code>debug</code></dt>
+	<dd>Off by default. Writes one line per taskbar or Win+X popup to <code>shell.log</code>; see
+		<a href="#troubleshooting">Troubleshooting</a>.</dd>
+</dl>
+
+<h5 id="access-keys">Access keys</h5>
+<p>An <code>&amp;</code> before a letter in a title makes that letter the item's access key, as in Windows' own menu:
+	press <kbd>Win</kbd>+<kbd>X</kbd>, then the letter. Write <code>&amp;&amp;</code> for a literal ampersand. In the
+	Win+X menu the keys are always underlined and work without setting <code>theme.item.prefix</code>. When several items
+	share a letter, pressing it moves between them and <kbd>Enter</kbd> runs the highlighted one.</p>
+
+<h5 id="import">The power-user menu (imports/winx.nss)</h5>
+<p>Shell ships <code>imports/winx.nss</code>, which is <strong>not imported by default</strong>. Remove the
+	<code>//</code> from this line at the end of <code>shell.nss</code> to use it (or turn on "Win+X menu" under Context
+	Menus in the Nilesoft Shell Pro app):</p>
+<pre><code class="lang-shell">// import 'imports/winx.nss'</code></pre>
+<p>It turns on <code>winx.replace</code> and shows Terminal, Terminal (Admin), Device Manager, Disk Management, Event
+	Viewer, Services, Task Manager, Settings, Network, Power Options, Run and a <em>Shut down or sign out</em> submenu
+	(Lock, Sign out, Restart, Shut down). Sign out, Restart and Shut down ask first. Each item has an icon and an access
+	key. The shipped Terminal and Go To menus (<code>terminal.nss</code>, <code>goto.nss</code>) still show in the Win+X
+	menu, as they do for every menu opened from the taskbar; add <code>&amp;&amp; !window.is_winx</code> to their
+	<code>where</code> to leave them out.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<p>The first Win+X menu after Explorer starts is noted in <code>shell.log</code> (next to <code>shell.dll</code>, or
+	<code>%LOCALAPPDATA%\Nilesoft\Shell\shell.log</code> when that folder is not writable). With
+	<code>settings.winx.debug = true</code> every taskbar or Win+X popup is logged:</p>
+<pre><code>[info] Win+X menu: recognised by caller module (window 'Shell_TrayWnd'; callers twinui.pcshell.dll &lt; ...; 9 of 41 stack frame(s) attributed).
+[info] Win+X menu: replace is on; 18 Windows item(s) are left out.
+[info] Win+X menu: 0 Windows item(s) (this.count), 15 configured top-level item(s), 0 system and 15 new item(s) to show, replace on.
+[info] Win+X menu: access key 'K', 1 match(es).
+[info] Win+X check: a taskbar menu, not the Win+X menu (none; window 'Shell_TrayWnd'; callers explorer.exe; 3 of 37 stack frame(s) attributed).</code></pre>
+<p>Windows 10 owns the menu by a <code>LauncherTipWnd</code> window, which is enough to recognise it ("owner class").
+	Windows 11 owns it by the taskbar itself, so Shell checks which code opened it: Explorer's
+	<code>twinui.pcshell.dll</code> ("caller module"). If a taskbar tool sits between them, the line shows its name
+	among the callers. Please include these lines when reporting a problem.</p>

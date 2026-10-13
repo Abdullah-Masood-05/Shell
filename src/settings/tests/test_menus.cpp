@@ -15,6 +15,7 @@
 
 #include <windows.h>
 
+#include <algorithm>
 #include <atomic>
 #include <fstream>
 
@@ -440,9 +441,14 @@ TEST_CASE("menus: generated file and toggles pass shell.exe -config:check (real 
     //    rule off; the config still passes, and turning them on restores it.
     rootDoc = nss::NssDocument::load(root);
     auto rootBefore = rootDoc->text();
+    // Only the ones that are on: the shipped shell.nss also has commented-out
+    // imports (winx.nss), which must stay off when the others are restored.
+    std::vector<std::string> turnedOff;
     for (const auto &m : rules::listModules(*rootDoc))
-        if (!m.locked && m.name != "theme")
+        if (!m.locked && m.name != "theme" && m.enabled) {
             CHECK(rules::setModuleEnabled(*rootDoc, m.importIndex, false));
+            turnedOff.push_back(m.name);
+        }
     auto modifyPath = rootDir / L"imports" / L"modify.nss";
     auto modifyDoc = nss::NssDocument::load(modifyPath);
     REQUIRE(modifyDoc);
@@ -459,7 +465,7 @@ TEST_CASE("menus: generated file and toggles pass shell.exe -config:check (real 
         if (!m.locked && m.name != "theme")
             CHECK(!m.enabled);
     for (const auto &m : rules::listModules(*rootDoc))
-        if (!m.enabled)
+        if (!m.enabled && std::find(turnedOff.begin(), turnedOff.end(), m.name) != turnedOff.end())
             CHECK(rules::setModuleEnabled(*rootDoc, m.importIndex, true));
     CHECK(rootDoc->text() == rootBefore);
 }

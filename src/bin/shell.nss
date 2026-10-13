@@ -53,3 +53,7 @@ import 'imports/taskbar.nss'
 // Copy / New file / System menus, from Abdullah Masood's config
 // (https://github.com/Abdullah-Masood-05/nilesoft-shell-config)
 import 'imports/my-tools.nss'
+
+// Experimental: a power-user Win+X menu (also on right-click Start) that
+// replaces Windows' own items. Remove the // to try it.
+// import 'imports/winx.nss'

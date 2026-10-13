@@ -77,14 +77,17 @@ TEST_CASE("the shipped shell.nss parses into the expected tree")
 	CHECK(d->assigns().size() == 5);
 
 	auto imports = d->imports();
-	REQUIRE(imports.size() == 11);
+	REQUIRE(imports.size() == 12);
 	CHECK(imports[0]->importKind == ImportKind::Lang);
 	CHECK(d->slice(imports[0]->valueSpan) == "loc_path + \"en.nss\"");
 	CHECK(imports[1]->importKind == ImportKind::Lang);
 	CHECK(d->slice(imports[2]->valueSpan) == "'imports/theme.nss'");
-	CHECK(d->slice(imports.back()->valueSpan) == "'imports/my-tools.nss'");
-	for(auto n : imports)
-		CHECK(n->enabled);
+	CHECK(d->slice(imports[10]->valueSpan) == "'imports/my-tools.nss'");
+	// The experimental Win+X menu ships commented out.
+	CHECK(d->slice(imports.back()->valueSpan) == "'imports/winx.nss'");
+	CHECK_FALSE(imports.back()->enabled);
+	for(size_t i = 0; i + 1 < imports.size(); i++)
+		CHECK(imports[i]->enabled);
 
 	size_t menus = 0, vars = 0;
 	for(auto &n : d->nodes())

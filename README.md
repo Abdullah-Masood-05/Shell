@@ -60,6 +60,10 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 - **Default configuration.** The default `shell.nss` adds the *Develop*, *Copy*, *New file* and *System* menus from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config)
   (`imports/develop.nss`, `imports/my-tools.nss`). Items for programs that are not installed are hidden.
+- **Win+X menu (experimental).** The menu from Win+X or right-clicking Start is recognised on Windows 11 too
+  (`type='winx'`, `window.is_winx`), access keys work in it, and `settings { winx.replace = true }` shows only your
+  items. `imports/winx.nss` is a power-user menu for it, not imported by default. See
+  [docs/configuration/winx.html](docs/configuration/winx.html).
 - **The Nilesoft Shell Pro app.** A desktop app for checking the installation, editing the configuration and restoring
   backups. See [The app](#the-app).
 

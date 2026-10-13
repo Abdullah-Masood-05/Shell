@@ -51,6 +51,8 @@ constexpr KnownModule kKnown[] = {
     { "goto", "Go to", "Jump to common folders and Windows Settings pages.", nullptr },
     { "taskbar", "Taskbar", "Apps, window arrangement and Task Manager on the taskbar's menu.", nullptr },
     { "my-tools", "My tools", "Copy, New file and System menus from Abdullah Masood's config.", nullptr },
+    { "winx", "Win+X menu (experimental)",
+      "A power-user menu for Win+X and right-click on Start, in place of Windows' own items.", nullptr },
     { "settings-app-menus", "Your menus", "The menus and items you built on the Menu Builder page.", nullptr },
 };
 
@@ -225,7 +227,7 @@ bool summarizeWhere(std::string_view where, std::vector<std::string> &names, std
     static const std::regex idItem(R"(^id\.(\w+)$)", std::regex::icase);
     static const std::regex nameEq(R"(^this\.name\s*==\s*(["'][^"']*["'])$)", std::regex::icase);
     static const std::regex strEquals(R"(^str\.equals\s*\(\s*this\.name\s*,\s*([\s\S]*)\)$)", std::regex::icase);
-    static const std::regex windowIs(R"(^(window|wnd)\.is_(desktop|taskbar|explorer|edit|start)$)", std::regex::icase);
+    static const std::regex windowIs(R"(^(window|wnd)\.is_(desktop|taskbar|explorer|edit|start|winx)$)", std::regex::icase);
 
     for (const auto &alt : splitTop(where, true)) {
         bool any = false;
@@ -259,7 +261,9 @@ bool summarizeWhere(std::string_view where, std::vector<std::string> &names, std
                 any = true;
             } else if (std::regex_match(c, m, windowIs)) {
                 auto w = nss::toLower(m[2].str());
-                auto q = w == "explorer" ? std::string("in File Explorer") : "on the " + w;
+                auto q = w == "explorer" ? std::string("in File Explorer")
+                         : (w == "start" || w == "winx") ? std::string("in the Win+X menu")
+                                                         : "on the " + w;
                 if (std::find(qualifiers.begin(), qualifiers.end(), q) == qualifiers.end())
                     qualifiers.push_back(q);
             } else {
