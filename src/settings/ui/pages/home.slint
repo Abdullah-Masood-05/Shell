@@ -1,4 +1,3 @@
-import { Button } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState, Pages } from "../types.slint";
@@ -7,7 +6,7 @@ import { Card, KeyValue, SectionTitle } from "../components/card.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { StatusPill } from "../components/status-pill.slint";
-import { ActionTile, Link } from "../components/controls.slint";
+import { AppButton, ActionTile, Link } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
 
 component DiagnosticRow inherits Rectangle {
@@ -86,7 +85,7 @@ export component HomePage inherits PageFrame {
         description: "Nilesoft Shell at a glance: registration, the active config and recent diagnostics.";
         busy: AppState.busy;
         busy-label: AppState.busy-label;
-        Button {
+        AppButton {
             text: "Refresh";
             icon: Icons.refresh;
             colorize-icon: true;
@@ -176,6 +175,7 @@ export component HomePage inherits PageFrame {
             horizontal-stretch: 1;
             min-width: 280px;
             preferred-width: 320px;
+            icon: Icons.document;
             heading: "Active config";
             description: "The shell.nss Shell builds its menu from, and the files it imports.";
             HorizontalLayout {
@@ -211,13 +211,13 @@ export component HomePage inherits PageFrame {
             HorizontalLayout {
                 spacing: Tokens.s2;
                 alignment: start;
-                if AppState.status.loaded && AppState.status.config-source != "appdata": Button {
+                if AppState.status.loaded && AppState.status.config-source != "appdata": AppButton {
                     text: "Use per-user config";
                     primary: true;
                     enabled: !AppState.busy;
                     clicked => { AppState.action("config-init"); }
                 }
-                Button {
+                AppButton {
                     text: "Open folder";
                     icon: Icons.folder;
                     colorize-icon: true;

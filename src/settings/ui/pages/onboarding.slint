@@ -1,10 +1,11 @@
-import { Button, Spinner, Switch } from "std-widgets.slint";
+import { Spinner } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState, Pages } from "../types.slint";
 import { SaveState } from "../save-state.slint";
-import { Link } from "../components/controls.slint";
+import { AppButton, Link } from "../components/controls.slint";
 import { ThemePicker } from "../components/theme-picker.slint";
+import { Toggle } from "../components/toggle.slint";
 import { AppearanceState, ThemeField, K } from "appearance-state.slint";
 import { PresetsState } from "presets-state.slint";
 
@@ -141,7 +142,7 @@ export component Onboarding inherits Rectangle {
             border-color: Tokens.stroke-strong;
             drop-shadow-blur: 48px;
             drop-shadow-offset-y: 16px;
-            drop-shadow-color: #00000060;
+            drop-shadow-color: Tokens.shadow;
             accessible-role: groupbox;
             accessible-label: "Set up Nilesoft Shell Pro";
 
@@ -210,7 +211,7 @@ export component Onboarding inherits Rectangle {
                     }
                     if !root.config-done: HorizontalLayout {
                         alignment: start;
-                        Button {
+                        AppButton {
                             text: root.last-error("config-init") != "" ? "Try again" : "Create personal config";
                             primary: true;
                             enabled: !root.working && AppState.cli-available && AppState.status.loaded;
@@ -248,10 +249,23 @@ export component Onboarding inherits Rectangle {
                         text: "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home.";
                         font-size: Tokens.caption + 1px;
                     }
-                    if root.offer-register && AppState.status.win11-applicable: Switch {
-                        text: "Use the classic context menu on Windows 11";
-                        checked <=> AppState.classic-menu-option;
-                        enabled: !root.working;
+                    if root.offer-register && AppState.status.win11-applicable: HorizontalLayout {
+                        spacing: Tokens.s3;
+                        alignment: start;
+                        VerticalLayout {
+                            alignment: center;
+                            Toggle {
+                                on: AppState.classic-menu-option;
+                                label: classic-label.text;
+                                enabled: !root.working;
+                                toggled(v) => { AppState.classic-menu-option = v; }
+                            }
+                        }
+                        classic-label := Text {
+                            text: "Use the classic context menu on Windows 11";
+                            color: root.working ? Tokens.text-3 : Tokens.text;
+                            vertical-alignment: center;
+                        }
                     }
                     if root.offer-register && AppState.busy && AppState.action-id == "register-user": StateRow {
                         kind: "busy";
@@ -263,7 +277,7 @@ export component Onboarding inherits Rectangle {
                     }
                     if root.offer-register: HorizontalLayout {
                         alignment: start;
-                        Button {
+                        AppButton {
                             text: root.also-for-me ? "Enable for my account too" : "Enable for me";
                             primary: true;
                             icon: Icons.person-add;
@@ -325,7 +339,7 @@ export component Onboarding inherits Rectangle {
                     }
                     HorizontalLayout {
                         spacing: Tokens.s3;
-                        Button {
+                        AppButton {
                             text: "Restart Explorer";
                             icon: Icons.restart;
                             colorize-icon: true;
@@ -349,24 +363,24 @@ export component Onboarding inherits Rectangle {
                 HorizontalLayout {
                     spacing: Tokens.s2;
                     padding-top: Tokens.s2;
-                    Button {
+                    AppButton {
                         text: "Skip setup";
                         enabled: !root.working;
                         clicked => { AppState.dismiss-onboarding(); }
                     }
                     Rectangle { horizontal-stretch: 1; }
-                    if root.step > 0: Button {
+                    if root.step > 0: AppButton {
                         text: "Back";
                         enabled: !root.working;
                         clicked => { AppState.onboarding-step -= 1; }
                     }
-                    if root.step < 2: Button {
+                    if root.step < 2: AppButton {
                         text: "Next";
                         primary: true;
                         enabled: !AppState.onboarding-saving;
                         clicked => { AppState.onboarding-step += 1; }
                     }
-                    if root.step == 2: Button {
+                    if root.step == 2: AppButton {
                         text: AppState.onboarding-saving ? "Saving…" : "Finish";
                         primary: true;
                         enabled: !root.working;

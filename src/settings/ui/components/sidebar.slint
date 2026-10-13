@@ -2,10 +2,9 @@ import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState, NavEntry, Pages } from "../types.slint";
 import { NavItem } from "nav-item.slint";
-import { StatusPill } from "status-pill.slint";
 
 // Grouped navigation: logo and version on top, the pages in the middle, the status
-// pill and Preferences at the bottom. Up/Down/Home/End move between pages when the
+// line and Preferences at the bottom. Up/Down/Home/End move between pages when the
 // sidebar has keyboard focus (Tab into it).
 export component Sidebar inherits Rectangle {
     in property <[NavEntry]> entries: [
@@ -22,8 +21,15 @@ export component Sidebar inherits Rectangle {
     // Pages are numbered in sidebar order; the arrow keys walk 0..last (Preferences).
     property <int> last-page: Pages.preferences;
 
-    background: Tokens.bg;
+    background: Tokens.sidebar;
     animate background { duration: Tokens.normal; }
+
+    // The hairline between the sidebar and the content.
+    Rectangle {
+        x: parent.width - 1px;
+        width: 1px;
+        background: Tokens.stroke;
+    }
 
     function go(page: int) {
         AppState.page = page;
@@ -62,56 +68,48 @@ export component Sidebar inherits Rectangle {
         }
 
         VerticalLayout {
-            padding-left: Tokens.s2;
-            padding-right: Tokens.s2;
-            padding-top: Tokens.s4;
+            padding-left: Tokens.s3;
+            padding-right: Tokens.s3;
+            padding-top: Tokens.s5;
             padding-bottom: Tokens.s3;
-            spacing: Tokens.s1;
+            spacing: 2px;
 
-            // Header: logo, name, version badge.
+            // Header: logo, name, version.
             HorizontalLayout {
                 padding-left: Tokens.s2;
-                padding-bottom: Tokens.s4;
+                padding-bottom: Tokens.s5;
                 spacing: Tokens.s3;
                 Image {
                     source: Icons.logo;
-                    width: 40px;
-                    height: 40px;
+                    width: 36px;
+                    height: 36px;
                 }
                 VerticalLayout {
                     alignment: center;
-                    spacing: 2px;
+                    spacing: 1px;
                     Text {
                         text: "Nilesoft Shell Pro";
                         font-size: 15px;
                         font-weight: 600;
                         color: Tokens.text;
                     }
-                    HorizontalLayout {
-                        alignment: start;
-                        Rectangle {
-                            height: 18px;
-                            width: ver.preferred-width + 12px;
-                            border-radius: 9px;
-                            background: Tokens.selected;
-                            ver := Text {
-                                text: "v" + AppState.app-version;
-                                font-size: 11px;
-                                color: Tokens.text-2;
-                            }
-                        }
+                    Text {
+                        text: "Version " + AppState.app-version;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
                     }
                 }
             }
 
             for entry in root.entries: VerticalLayout {
-                spacing: Tokens.s1;
+                spacing: 2px;
                 if entry.header != "": HorizontalLayout {
                     padding-left: Tokens.s3;
+                    padding-top: Tokens.s3;
                     Text {
                         text: entry.header;
                         height: 28px;
-                        vertical-alignment: bottom;
+                        vertical-alignment: center;
                         font-size: Tokens.caption;
                         font-weight: 600;
                         color: Tokens.text-3;
@@ -131,19 +129,34 @@ export component Sidebar inherits Rectangle {
 
             Rectangle { vertical-stretch: 1; }
 
+            // Shell's state: a coloured dot and one line (Home has the details).
             HorizontalLayout {
-                padding-left: Tokens.s2;
-                padding-bottom: Tokens.s2;
-                alignment: start;
-                StatusPill {
-                    kind: AppState.status.loaded ? AppState.status.health-kind : "neutral";
-                    text: AppState.busy ? AppState.busy-label : AppState.status.loaded ? AppState.status.pill-text : "Checking status…";
-                    busy: AppState.busy;
+                padding-left: Tokens.s3;
+                padding-right: Tokens.s3;
+                padding-bottom: Tokens.s3;
+                spacing: 10px;
+                accessible-role: text;
+                accessible-label: status-text.text;
+                VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: Tokens.status-color(AppState.status.loaded ? AppState.status.health-kind : "neutral");
+                        opacity: AppState.busy ? 0.4 : 1.0;
+                        animate background { duration: Tokens.normal; }
+                        animate opacity { duration: 600ms; easing: ease-in-out; }
+                    }
                 }
-            }
-            Rectangle {
-                height: 1px;
-                background: Tokens.stroke;
+                status-text := Text {
+                    horizontal-stretch: 1;
+                    text: AppState.busy ? AppState.busy-label : AppState.status.loaded ? AppState.status.pill-text : "Checking status…";
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
             }
             NavItem {
                 icon: Icons.preferences;

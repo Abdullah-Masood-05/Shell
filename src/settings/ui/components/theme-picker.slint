@@ -9,32 +9,54 @@ import { PreviewTheme } from "../preview/preview-types.slint";
 import { MiniMenu } from "../preview/menu-preview.slint";
 import { AppearanceState } from "../pages/appearance-state.slint";
 
+// Names and one-line descriptions of the five themes (ThemeModel.cpp has the values).
+export global ThemeInfo {
+    out property <[string]> names: ["Auto", "Modern", "Classic", "White", "Black"];
+    out property <[string]> tags: [
+        "Like Windows' own menu",
+        "Rounded · roomy",
+        "Compact · blue highlight",
+        "Always light",
+        "Always dark",
+    ];
+    out property <[string]> about: [
+        "Copies Windows' own menu, light or dark as Dark mode says.",
+        "Rounded menu and items with roomy rows, light or dark as Dark mode says.",
+        "Compact rows with a blue highlight, light or dark as Dark mode says.",
+        "The Modern shape, always light.",
+        "The Modern shape, always dark.",
+    ];
+}
+
 component ThemeCard inherits Rectangle {
     in property <string> label;
+    in property <string> caption;
     in property <PreviewTheme> t;
     in property <bool> selected;
     in property <bool> enabled: true;
     in property <bool> focused;     // the group has keyboard focus and this is its current card
     callback clicked;
 
-    height: 112px;
+    height: root.caption != "" ? 136px : 114px;
     border-radius: Tokens.radius-card;
     border-width: root.selected || root.focused ? 2px : 1px;
     border-color: root.focused ? Tokens.focus-ring : root.selected ? Tokens.accent : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
-    background: Tokens.layer-2;
+    background: root.selected ? Tokens.accent-soft.mix(Tokens.layer-2, 0.5) : ta.has-hover && root.enabled ? Tokens.layer-3 : Tokens.layer-2;
     opacity: root.enabled ? 1 : 0.6;
+    animate background, border-color { duration: Tokens.fast; easing: ease-out; }
     accessible-role: radio-button;
     accessible-label: root.label;
+    accessible-description: root.caption;
     accessible-checked: root.selected;
     accessible-enabled: root.enabled;
     accessible-action-default => { if (root.enabled) { root.clicked(); } }
 
     VerticalLayout {
         padding: 5px;
-        spacing: 5px;
+        spacing: 6px;
         Rectangle {
             height: 78px;
-            border-radius: 5px;
+            border-radius: Tokens.radius-control;
             clip: true;
             Image {
                 width: 100%;
@@ -50,23 +72,32 @@ component ThemeCard inherits Rectangle {
                 blurred: AppearanceState.wallpaper-blurred;
             }
         }
-        HorizontalLayout {
-            padding-left: 4px;
-            padding-right: 2px;
-            Text {
-                horizontal-stretch: 1;
-                text: root.label;
-                font-size: 13px;
-                font-weight: root.selected ? 600 : 400;
-                color: Tokens.text;
-                vertical-alignment: center;
+        VerticalLayout {
+            padding-left: 5px;
+            padding-right: 3px;
+            spacing: 1px;
+            HorizontalLayout {
+                Text {
+                    horizontal-stretch: 1;
+                    text: root.label;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    vertical-alignment: center;
+                }
+                if root.selected: Image {
+                    source: Icons.ok;
+                    width: 16px;
+                    height: 16px;
+                    y: (parent.height - self.height) / 2;
+                    colorize: Tokens.accent;
+                }
             }
-            if root.selected: Image {
-                source: Icons.ok;
-                width: 14px;
-                height: 14px;
-                y: (parent.height - self.height) / 2;
-                colorize: Tokens.accent;
+            if root.caption != "": Text {
+                text: root.caption;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                overflow: elide;
             }
         }
     }
@@ -83,7 +114,6 @@ export component ThemePicker inherits FocusScope {
     in property <bool> one-row;          // five in a row; else three and two
     callback picked(index: int);
 
-    property <[string]> names: ["Auto", "Modern", "Classic", "White", "Black"];
     // Keyboard position: the selection, or the first card when nothing is selected.
     property <int> cursor: root.selected >= 0 && root.selected < 5 ? root.selected : 0;
 
@@ -126,7 +156,8 @@ export component ThemePicker inherits FocusScope {
             spacing: Tokens.s2;
             for i in (root.one-row ? 5 : 3): ThemeCard {
                 horizontal-stretch: 1;
-                label: root.names[i];
+                label: ThemeInfo.names[i];
+                caption: root.one-row ? "" : ThemeInfo.tags[i];
                 t: AppearanceState.card-themes[i];
                 selected: root.selected == i;
                 enabled: root.enabled;
@@ -141,7 +172,8 @@ export component ThemePicker inherits FocusScope {
             spacing: Tokens.s2;
             for i in 2: ThemeCard {
                 horizontal-stretch: 1;
-                label: root.names[i + 3];
+                label: ThemeInfo.names[i + 3];
+                caption: ThemeInfo.tags[i + 3];
                 t: AppearanceState.card-themes[i + 3];
                 selected: root.selected == i + 3;
                 enabled: root.enabled;

@@ -16,23 +16,27 @@ export component PageHeader inherits HorizontalLayout {
         horizontal-stretch: 1;
         spacing: Tokens.s1;
 
+        // A quiet breadcrumb: where the page sits, not a second title.
         HorizontalLayout {
-            spacing: Tokens.s2;
+            spacing: 6px;
             alignment: start;
+            padding-bottom: 2px;
             Text {
                 text: root.section;
-                font-size: Tokens.body;
+                font-size: Tokens.caption + 1px;
                 color: Tokens.text-3;
             }
             Text {
-                text: "/";
-                font-size: Tokens.body;
+                text: "\u{E76C}";
+                font-family: "Segoe Fluent Icons";
+                font-size: 8px;
                 color: Tokens.text-3;
+                vertical-alignment: center;
             }
             Text {
                 text: root.title;
-                font-size: Tokens.body;
-                color: Tokens.accent;
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
             }
         }
         Text {

@@ -47,19 +47,16 @@ export component AppWindow inherits Window {
 
     HorizontalLayout {
         Sidebar {
-            width: 264px;
+            width: 240px;
         }
 
-        // Content layer with a rounded top-left corner, like WinUI's NavigationView,
+        // The content (#101823 in dark; the sidebar draws the hairline between them)
         // and the unsaved-changes footer under it.
         VerticalLayout {
         horizontal-stretch: 1;
         Rectangle {
             vertical-stretch: 1;
             background: Tokens.content;
-            border-top-left-radius: Tokens.radius-card;
-            border-width: 1px;
-            border-color: Tokens.stroke;
             animate background { duration: Tokens.normal; }
 
             if AppState.page == Pages.home: HomePage {
@@ -108,8 +105,8 @@ export component AppWindow inherits Window {
     }
 
     Toast {
-        max-available: root.width - 264px - 48px;
-        x: 264px + (root.width - 264px - self.width) / 2;
+        max-available: root.width - 240px - 48px;
+        x: 240px + (root.width - 240px - self.width) / 2;
         y: root.height - SaveState.footer-height - self.height - Tokens.s6 + (AppState.toast-shown ? 0px : 12px);
         animate y { duration: Tokens.normal; easing: ease-out; }
         shown: AppState.toast-shown;

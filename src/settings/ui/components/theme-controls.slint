@@ -1,18 +1,20 @@
 // Controls for editing theme keys: a labelled row with the override dot and a
 // reset link, chips, a radius picker, sliders, a colour field with an HSV
-// picker, a font picker and a padding/margin pair.
+// picker, palette swatches, a font picker and a padding/margin pair.
 //
 // Controls take their value through an `in` property and report edits through
 // a callback; C++ validates and sends the new value back. Widgets that keep
-// their own copy (Slider, SpinBox, LineEdit) are re-synced with `changed`.
+// their own copy (the slider while dragging, SpinBox, LineEdit) are re-synced
+// with `changed`.
 
-import { Slider, LineEdit, SpinBox, ListView, Switch } from "std-widgets.slint";
+import { LineEdit, SpinBox, ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { ThemeField } from "../pages/appearance-state.slint";
 import { AppState, Pages } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
 import { Link } from "controls.slint";
+import { Toggle } from "toggle.slint";
 
 // Opens a file at a line in the Config Editor page.
 export global EditorLink {
@@ -164,39 +166,46 @@ export component RowDivider inherits Rectangle {
     background: Tokens.stroke;
 }
 
-// A row of small toggle chips (one selected).
-export component ChipGroup inherits HorizontalLayout {
+// A group of choices in one well; the chosen one is filled with the accent.
+export component ChipGroup inherits Rectangle {
     in property <[string]> options;
     in property <int> selected;
     in property <bool> enabled: true;
     callback changed(index: int);
 
-    spacing: Tokens.s1;
+    height: 32px;
+    min-width: row.min-width;
+    border-radius: Tokens.radius-control;
+    background: Tokens.dark ? Tokens.sidebar : Tokens.layer-3;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    opacity: root.enabled ? 1 : 0.5;
     accessible-role: tab-list;
 
-    for option[i] in root.options: Rectangle {
-        height: 30px;
-        min-width: label.preferred-width + 12px;
-        horizontal-stretch: 1;
-        border-radius: Tokens.radius-control;
-        border-width: 1px;
-        border-color: i == root.selected ? Tokens.accent : Tokens.stroke;
-        background: i == root.selected ? Tokens.accent : ta.has-hover && root.enabled ? Tokens.hover : Tokens.layer-2;
-        opacity: root.enabled ? 1 : 0.5;
-        animate background { duration: Tokens.fast; }
-        accessible-role: tab;
-        accessible-label: option;
-        accessible-item-selected: i == root.selected;
-        accessible-action-default => { if (root.enabled) { root.changed(i); } }
-        label := Text {
-            text: option;
-            font-size: 13px;
-            color: i == root.selected ? Tokens.on-accent : Tokens.text;
-        }
-        ta := TouchArea {
-            enabled: root.enabled;
-            mouse-cursor: root.enabled ? pointer : default;
-            clicked => { root.changed(i); }
+    row := HorizontalLayout {
+        padding: 3px;
+        spacing: 2px;
+        for option[i] in root.options: Rectangle {
+            min-width: label.preferred-width + 16px;
+            horizontal-stretch: 1;
+            border-radius: Tokens.radius-control - 2px;
+            background: i == root.selected ? Tokens.accent-fill : ta.has-hover && root.enabled ? Tokens.hover : transparent;
+            animate background { duration: Tokens.fast; easing: ease-out; }
+            accessible-role: tab;
+            accessible-label: option;
+            accessible-item-selected: i == root.selected;
+            accessible-action-default => { if (root.enabled) { root.changed(i); } }
+            label := Text {
+                text: option;
+                font-size: 13px;
+                font-weight: i == root.selected ? 600 : 400;
+                color: i == root.selected ? Tokens.on-accent : ta.has-hover && root.enabled ? Tokens.text : Tokens.text-2;
+            }
+            ta := TouchArea {
+                enabled: root.enabled;
+                mouse-cursor: root.enabled ? pointer : default;
+                clicked => { root.changed(i); }
+            }
         }
     }
 }
@@ -254,7 +263,8 @@ export component RadiusSteps inherits HorizontalLayout {
     }
 }
 
-// A slider with its value on the right. Reports whole steps.
+// A slider with its value on the right. Reports whole steps. Drawn here rather
+// than with the std Slider so it takes the app's accent.
 export component ValueSlider inherits HorizontalLayout {
     in property <float> value;
     in property <float> minimum: 0;
@@ -264,21 +274,128 @@ export component ValueSlider inherits HorizontalLayout {
     in property <bool> enabled: true;
     callback changed(value: float);
 
-    spacing: Tokens.s3;
-    changed value => { slider.value = root.value; }
+    // The value shown while dragging; the model's value wins whenever it changes.
+    property <float> shown: root.value;
+    changed value => { root.shown = root.value; }
 
-    slider := Slider {
+    spacing: Tokens.s3;
+
+    function set(v: float) {
+        let s = clamp(Math.round(v / root.step) * root.step, root.minimum, root.maximum);
+        if (s != root.shown) {
+            root.shown = s;
+            root.changed(s);
+        }
+    }
+
+    track := Rectangle {
         horizontal-stretch: 1;
-        minimum: root.minimum;
-        maximum: root.maximum;
-        value: root.value;
-        step: root.step;
-        enabled: root.enabled;
-        changed(v) => { root.changed(Math.round(v / root.step) * root.step); }
+        min-width: 96px;
+        height: 24px;
+        property <length> knob: 18px;
+        property <float> ratio: root.maximum > root.minimum ? clamp((root.shown - root.minimum) / (root.maximum - root.minimum), 0, 1) : 0;
+        opacity: root.enabled ? 1 : 0.5;
+
+        accessible-role: slider;
+        accessible-value: root.shown;
+        accessible-value-minimum: root.minimum;
+        accessible-value-maximum: root.maximum;
+        accessible-value-step: root.step;
+        accessible-enabled: root.enabled;
+        accessible-action-increment => { root.set(root.shown + root.step); }
+        accessible-action-decrement => { root.set(root.shown - root.step); }
+
+        // Rail and fill
+        Rectangle {
+            x: track.knob / 2;
+            y: (parent.height - self.height) / 2;
+            width: parent.width - track.knob;
+            height: 4px;
+            border-radius: 2px;
+            background: Tokens.stroke-strong;
+        }
+        Rectangle {
+            x: track.knob / 2;
+            y: (parent.height - self.height) / 2;
+            width: track.ratio * (parent.width - track.knob);
+            height: 4px;
+            border-radius: 2px;
+            background: root.enabled ? Tokens.accent-fill : Tokens.text-3;
+        }
+        // Thumb: a light disc with an accent centre that grows under the pointer.
+        Rectangle {
+            x: track.ratio * (parent.width - track.knob);
+            y: (parent.height - self.height) / 2;
+            width: track.knob;
+            height: track.knob;
+            border-radius: self.width / 2;
+            background: #FFFFFF;
+            border-width: 1px;
+            border-color: Tokens.stroke-strong;
+            drop-shadow-blur: 4px;
+            drop-shadow-color: Tokens.shadow;
+            Rectangle {
+                width: ta.pressed ? 8px : ta.has-hover ? 12px : 10px;
+                height: self.width;
+                border-radius: self.width / 2;
+                background: root.enabled ? Tokens.accent-fill : Tokens.text-3;
+                animate width { duration: Tokens.fast; easing: ease-out; }
+            }
+            if fs.has-focus: Rectangle {
+                x: -3px;
+                y: -3px;
+                width: parent.width + 6px;
+                height: parent.height + 6px;
+                border-radius: self.width / 2;
+                border-width: 2px;
+                border-color: Tokens.focus-ring;
+            }
+        }
+
+        fs := FocusScope {
+            enabled: root.enabled;
+            key-pressed(event) => {
+                if (event.text == Key.LeftArrow || event.text == Key.DownArrow) {
+                    root.set(root.shown - root.step);
+                    return accept;
+                }
+                if (event.text == Key.RightArrow || event.text == Key.UpArrow) {
+                    root.set(root.shown + root.step);
+                    return accept;
+                }
+                if (event.text == Key.Home) {
+                    root.set(root.minimum);
+                    return accept;
+                }
+                if (event.text == Key.End) {
+                    root.set(root.maximum);
+                    return accept;
+                }
+                return reject;
+            }
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: root.enabled ? pointer : default;
+            function at(x: length) {
+                root.set(root.minimum + clamp((x - track.knob / 2) / (track.width - track.knob), 0, 1) * (root.maximum - root.minimum));
+            }
+            pointer-event(e) => {
+                if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                    fs.focus();
+                    self.at(self.mouse-x);
+                }
+            }
+            moved => {
+                if (self.pressed) {
+                    self.at(self.mouse-x);
+                }
+            }
+        }
     }
     Text {
-        width: 52px;
-        text: (Math.round(slider.value / root.step) * root.step) + root.unit;
+        width: 56px;
+        text: root.shown + root.unit;
         horizontal-alignment: right;
         vertical-alignment: center;
         color: Tokens.text-2;
@@ -326,19 +443,23 @@ export component BoxField inherits HorizontalLayout {
     }
 }
 
-// A Switch that follows its `on` value (Switch's own `checked` stops following a
-// binding once clicked).
+// An on/off switch that follows its `on` value: a click asks for the change and
+// C++ sends the new value back (see Toggle).
 export component ToggleSwitch inherits HorizontalLayout {
     in property <bool> on;
     in property <bool> enabled: true;
+    in property <string> label;
     callback toggled(on: bool);
 
     alignment: end;
-    changed on => { sw.checked = root.on; }
-    sw := Switch {
-        checked: root.on;
-        enabled: root.enabled;
-        toggled => { root.toggled(self.checked); }
+    VerticalLayout {
+        alignment: center;
+        Toggle {
+            on: root.on;
+            enabled: root.enabled;
+            label: root.label;
+            toggled(v) => { root.toggled(v); }
+        }
     }
 }
 
@@ -539,7 +660,7 @@ export component ColorField inherits HorizontalLayout {
             border-color: Tokens.stroke-strong;
             drop-shadow-blur: 16px;
             drop-shadow-offset-y: 4px;
-            drop-shadow-color: #00000050;
+            drop-shadow-color: Tokens.shadow;
             ColorPicker {
                 initial: root.value;
                 show-alpha: root.show-alpha;
@@ -607,7 +728,7 @@ export component FontPicker inherits Rectangle {
             border-color: Tokens.stroke-strong;
             drop-shadow-blur: 16px;
             drop-shadow-offset-y: 4px;
-            drop-shadow-color: #00000050;
+            drop-shadow-color: Tokens.shadow;
             VerticalLayout {
                 padding: Tokens.s2;
                 spacing: Tokens.s2;
@@ -640,6 +761,119 @@ export component FontPicker inherits Rectangle {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+// One colour of a palette: swatch, name and hex. A click makes it the current one
+// (the row under the palette edits it) and opens the colour picker.
+export component PaletteSwatch inherits Rectangle {
+    in property <string> label;
+    in property <ThemeField> field;
+    in property <bool> show-alpha;
+    in property <bool> enabled: true;
+    in property <bool> current;
+    callback picked();
+    callback changed(value: color);
+
+    min-width: 112px;
+    height: 52px;
+    border-radius: Tokens.radius-control + 2px;
+    border-width: 1px;
+    border-color: root.current ? Tokens.accent-border : ta.has-hover ? Tokens.stroke : transparent;
+    background: root.current ? Tokens.layer-2 : ta.has-hover ? Tokens.hover : transparent;
+    animate background, border-color { duration: Tokens.fast; easing: ease-out; }
+    accessible-role: button;
+    accessible-label: root.label + ", " + root.field.display;
+    accessible-description: root.field.locked ? "Set by an expression" : "Pick a colour";
+    accessible-action-default => {
+        root.picked();
+        if (root.enabled) { popup.show(); }
+    }
+
+    HorizontalLayout {
+        padding-left: Tokens.s2;
+        padding-right: Tokens.s2;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            swatch := Rectangle {
+                width: 32px;
+                height: 32px;
+                border-radius: Tokens.radius-control;
+                border-width: 1px;
+                border-color: Tokens.stroke-strong;
+                clip: true;
+                opacity: root.enabled ? 1 : 0.5;
+                Checker {
+                    width: 100%;
+                    height: 100%;
+                }
+                Rectangle {
+                    background: root.field.color;
+                }
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 1px;
+            HorizontalLayout {
+                spacing: 5px;
+                Text {
+                    text: root.label;
+                    font-size: 13px;
+                    color: root.field.locked ? Tokens.text-3 : Tokens.text;
+                    overflow: elide;
+                }
+                if root.field.overridden || root.field.pending: VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 3px;
+                        background: root.field.overridden ? Tokens.accent : transparent;
+                        border-width: root.field.overridden ? 0px : 1.5px;
+                        border-color: Tokens.accent;
+                    }
+                }
+            }
+            Text {
+                text: root.field.display;
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                overflow: elide;
+            }
+        }
+    }
+
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.picked();
+            if (root.enabled) { popup.show(); }
+        }
+    }
+
+    // Right-aligned with the swatch, so the last column's picker stays in the window.
+    popup := PopupWindow {
+        x: min(0px, root.width - 252px);
+        y: root.height + 6px;
+        width: 252px;
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Tokens.layer;
+            border-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke-strong;
+            drop-shadow-blur: 16px;
+            drop-shadow-offset-y: 4px;
+            drop-shadow-color: Tokens.shadow;
+            ColorPicker {
+                initial: root.field.color;
+                show-alpha: root.show-alpha;
+                changed(c) => { root.changed(c); }
             }
         }
     }

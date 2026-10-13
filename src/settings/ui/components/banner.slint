@@ -1,6 +1,6 @@
-import { Button } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
+import { AppButton } from "controls.slint";
 
 // A small square "x" button.
 export component CloseGlyph inherits Rectangle {
@@ -81,7 +81,7 @@ export component Banner inherits Rectangle {
         }
         if root.action-label != "": VerticalLayout {
             alignment: center;
-            Button {
+            AppButton {
                 text: root.action-label;
                 enabled: root.action-enabled;
                 clicked => { root.action(); }

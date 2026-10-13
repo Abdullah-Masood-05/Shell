@@ -1,6 +1,7 @@
 import { Tokens } from "../theme/tokens.slint";
 
-// Sidebar entry: hover/selection fills animate, the accent pill grows on selection.
+// Sidebar entry. The selected one is filled with the soft accent and its icon turns
+// accent; hover and selection fade in.
 export component NavItem inherits Rectangle {
     in property <image> icon;
     in property <string> label;
@@ -8,9 +9,9 @@ export component NavItem inherits Rectangle {
     in property <bool> show-focus; // keyboard focus is on this entry
     callback clicked;
 
-    height: 36px;
-    border-radius: Tokens.radius-control;
-    background: ta.pressed ? Tokens.pressed : root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    height: 38px;
+    border-radius: Tokens.radius-control + 2px;
+    background: root.selected ? Tokens.accent-soft : ta.pressed ? Tokens.pressed : ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; easing: ease-out; }
 
     accessible-role: tab;
@@ -18,10 +19,11 @@ export component NavItem inherits Rectangle {
     accessible-item-selected: root.selected;
     accessible-action-default => { root.clicked(); }
 
+    // The accent pill on the left edge grows in on selection.
     Rectangle {
         x: 0;
         width: 3px;
-        height: root.selected ? 16px : 0px;
+        height: root.selected ? 18px : 0px;
         y: (root.height - self.height) / 2;
         border-radius: 1.5px;
         background: Tokens.accent;
@@ -39,7 +41,7 @@ export component NavItem inherits Rectangle {
                 source: root.icon;
                 width: 20px;
                 height: 20px;
-                colorize: root.selected ? Tokens.accent : Tokens.text;
+                colorize: root.selected ? Tokens.accent : Tokens.text-2;
                 animate colorize { duration: Tokens.fast; }
             }
         }
@@ -48,13 +50,14 @@ export component NavItem inherits Rectangle {
             vertical-alignment: center;
             font-size: Tokens.body;
             font-weight: root.selected ? 600 : 400;
-            color: Tokens.text;
+            color: root.selected || ta.has-hover ? Tokens.text : Tokens.text.mix(Tokens.text-2, 0.6);
             overflow: elide;
+            animate color { duration: Tokens.fast; }
         }
     }
 
     if root.show-focus: Rectangle {
-        border-radius: Tokens.radius-control;
+        border-radius: root.border-radius;
         border-width: 2px;
         border-color: Tokens.focus-ring;
     }

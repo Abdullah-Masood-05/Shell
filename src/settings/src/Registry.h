@@ -23,10 +23,6 @@ bool appsUseLightTheme();
 // The accent colour as 0xRRGGBB. HKCU\Software\Microsoft\Windows\DWM: AccentColor (ABGR).
 std::optional<uint32_t> accentColor();
 
-// A readable accent for the given background: AccentPalette's "light 2" shade on dark,
-// "dark 1" on light (what Windows uses for accent text), else AccentColor.
-std::optional<uint32_t> accentFor(bool dark);
-
 // shell.dll paths registered for the context-menu CLSID, HKCU first, then HKLM.
 std::vector<std::wstring> registeredDllPaths();
 

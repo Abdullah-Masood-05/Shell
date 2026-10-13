@@ -2,13 +2,14 @@
 // A builder for the common cases (only in File Explorer, programs, window
 // classes) plus a raw condition. Values go to SaveService; the footer saves.
 
-import { Button, LineEdit } from "std-widgets.slint";
+import { LineEdit } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { Card } from "../components/card.slint";
 import { Banner, CloseGlyph } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
-import { Link } from "../components/controls.slint";
+import { AppButton, Link } from "../components/controls.slint";
 import { FieldLabel, SettingRow, RowDivider, ToggleSwitch, EditorLink } from "../components/theme-controls.slint";
 import { PageFrame } from "page-frame.slint";
 import { SettingsState, SK, ThemeField } from "settings-state.slint";
@@ -107,7 +108,7 @@ component NameList inherits VerticalLayout {
                 }
             }
         }
-        Button {
+        AppButton {
             text: "Add";
             enabled: root.ready && input.text != "";
             clicked => {
@@ -145,6 +146,7 @@ export component RulesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.rules;
         heading: "Where the menu appears";
         SettingRow {
             label: "Only in File Explorer and on the desktop";
@@ -183,7 +185,7 @@ export component RulesPage inherits PageFrame {
                     enabled: root.ready;
                     accepted(t) => { SettingsState.set-text(SK.where, t); }
                 }
-                Button {
+                AppButton {
                     text: "Apply";
                     enabled: root.ready && raw.text != root.where.text;
                     clicked => { SettingsState.set-text(SK.where, raw.text); }
@@ -207,6 +209,7 @@ export component RulesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.window;
         heading: "Keep Windows' own menu";
         description: "Shell's menu stays out of these programs and windows.";
         NameList {

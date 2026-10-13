@@ -28,6 +28,17 @@ export global Icons {
     out property <image> error: @image-url("../icons/error_circle.svg");
     out property <image> close: @image-url("../icons/dismiss.svg");
 
+    // Card and tab headers
+    out property <image> eye: @image-url("../icons/eye.svg");
+    out property <image> palette: @image-url("../icons/color.svg");
+    out property <image> typography: @image-url("../icons/text_font.svg");
+    out property <image> effects: @image-url("../icons/sparkle.svg");
+    out property <image> arrow-right: @image-url("../icons/arrow_right.svg");
+    out property <image> desktop: @image-url("../icons/desktop.svg");
+    out property <image> window: @image-url("../icons/window.svg");
+    out property <image> document: @image-url("../icons/document.svg");
+    out property <image> moon: @image-url("../icons/weather_moon.svg");
+
     public pure function status(kind: string) -> image {
         if (kind == "ok") { return ok; }
         if (kind == "warning") { return warning; }
