@@ -1110,6 +1110,292 @@ namespace ConfigCommand
 		return path.move();
 	}
 
+	/*
+		The localization block of the default shell.nss (src/bin/shell.nss),
+		from its "// localization" line to its "// or import lang" line; keep
+		the two the same (nsscore's tests compare them).
+
+		An installer upgrade keeps a shell.nss the user changed, so an older one
+		(no language import) can sit next to newer imports whose titles are
+		loc.<name>. shell.dll shows those in English then; add_localization()
+		gives the per-user copy this block so translations load too.
+	*/
+	static constexpr const char *localization_block[] = {
+		"// localization",
+		"// English is always loaded first so untranslated keys fall back to it, then",
+		"// the best match for sys.lang (e.g. \"de-DE\") is loaded on top of it:",
+		"//   exact locale (de-DE.nss) -> base language (de.nss) -> en.nss",
+		"// path.exists() resolves relative paths against the host process's current",
+		"// directory (not this file), so the path must be absolute: use app.dir.",
+		"$loc_path=app.dir + '\\imports\\lang\\'",
+		"$loc_lang=if(str.contains(sys.lang, '-'), str.left(sys.lang, str.find(sys.lang, '-')), sys.lang)",
+		"// Norwegian: Windows reports nb-NO (Bokmal) or nn-NO (Nynorsk); the file is no.nss",
+		"$loc_base=if(loc_lang == 'nb' || loc_lang == 'nn', 'no', loc_lang)",
+		"import lang loc_path + \"en.nss\"",
+		"import lang if(path.exists(loc_path + sys.lang + \".nss\"),",
+		"               loc_path + sys.lang + \".nss\",",
+		"               if(path.exists(loc_path + loc_base + \".nss\"),",
+		"                  loc_path + loc_base + \".nss\",",
+		"                  loc_path + \"en.nss\"))",
+		"",
+		"// or import lang 'imports/lang/en.nss'",
+	};
+
+	// shell.dll's ConfigCheck on `root`: false only if it ran and found errors.
+	static bool parses(const string &root)
+	{
+		auto dll_path = IO::Path::Combine(InstallDirectory(), dll_name).move();
+		// Kept loaded until the process exits, which is right after this.
+		auto module = ::LoadLibraryExW(dll_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+		auto proc = module ? reinterpret_cast<ConfigCheckProc>(::GetProcAddress(module, CONFIG_CHECK_EXPORT)) : nullptr;
+		if(!proc)
+			return true;
+		ConfigCheckSink ignore = [](void *, BOOL, const wchar_t *, UINT, UINT, const wchar_t *) {};
+		return proc(root, ignore, nullptr) != S_FALSE;
+	}
+
+	static std::string_view trim_left(std::string_view s)
+	{
+		while(!s.empty() && (s.front() == ' ' || s.front() == '\t'))
+			s.remove_prefix(1);
+		return s;
+	}
+
+	// `s` starts with the word `word` (ASCII, any case), followed by a blank,
+	// a quote, '{' or the end of the line.
+	static bool starts_with_word(std::string_view s, std::string_view word)
+	{
+		if(s.size() < word.size())
+			return false;
+		for(size_t i = 0; i < word.size(); i++)
+		{
+			if(::tolower(static_cast<unsigned char>(s[i])) != word[i])
+				return false;
+		}
+		if(s.size() == word.size())
+			return true;
+		auto c = s[word.size()];
+		return c == ' ' || c == '\t' || c == '\'' || c == '"' || c == '{' || c == '\r' || c == '\n';
+	}
+
+	// Reads a whole (small) file; false if it cannot.
+	static bool read_bytes(const string &path, std::string &text)
+	{
+		text.clear();
+		auto handle = ::CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+		if(handle == INVALID_HANDLE_VALUE)
+			return false;
+		bool ok = false;
+		LARGE_INTEGER size{};
+		if(::GetFileSizeEx(handle, &size) && size.QuadPart >= 0 && size.QuadPart < 16 * 1024 * 1024)
+		{
+			text.resize(static_cast<size_t>(size.QuadPart));
+			DWORD read = 0;
+			ok = text.empty() || (::ReadFile(handle, text.data(), static_cast<DWORD>(text.size()), &read, nullptr) && read == text.size());
+		}
+		::CloseHandle(handle);
+		return ok;
+	}
+
+	static bool write_bytes(const string &path, std::string_view text)
+	{
+		auto handle = ::CreateFileW(path, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if(handle == INVALID_HANDLE_VALUE)
+			return false;
+		DWORD written = 0;
+		bool ok = ::WriteFile(handle, text.data(), static_cast<DWORD>(text.size()), &written, nullptr) &&
+			written == text.size();
+		::CloseHandle(handle);
+		if(!ok)
+			::DeleteFileW(path);
+		return ok;
+	}
+
+	/*
+		Gives `config` (the per-user shell.nss, just copied from the install
+		folder or kept from before) the localization block of the default
+		shell.nss when it has no language import of its own. That is an older
+		shell.nss: the installer keeps one the user changed, and -config:init
+		copies it next to the newer imports, whose titles are loc.<name>.
+		shell.dll shows those in English anyway (Parser::resolve_loc); this
+		makes them follow the Windows display language again.
+
+		The block goes right after the top-level settings { } block (where the
+		default has it), else before the first top-level import, else at the
+		end, so the imports after it see the strings. Nothing else in the file
+		changes: the user's own lines and imports stay as they are. The file as
+		it was is kept as shell.nss.old (.old.2, ... if that exists), and the
+		new one only replaces it if shell.dll loads it without errors. A file
+		that is not UTF-8/ANSI is left alone. Returns true if it was changed.
+	*/
+	static bool add_localization(CliOutput &out, const string &config)
+	{
+		std::string text;
+		if(!read_bytes(config, text))
+			return false;
+
+		// UTF-16 (BOM FF FE / FE FF, or NULs in the text): leave it.
+		if(text.size() < 2 || text.find('\0') != text.npos ||
+		   (static_cast<unsigned char>(text[0]) == 0xFF && static_cast<unsigned char>(text[1]) == 0xFE) ||
+		   (static_cast<unsigned char>(text[0]) == 0xFE && static_cast<unsigned char>(text[1]) == 0xFF))
+			return false;
+
+		size_t start = text.starts_with("\xEF\xBB\xBF") ? 3 : 0;
+		const char *eol = text.find("\r\n") != text.npos ? "\r\n" : "\n";
+
+		size_t first_import = text.npos;	// start of the first top-level import line
+		size_t settings_end = text.npos;	// just after the top-level settings { } block
+		bool in_settings = false, settings_open = false;
+		bool in_comment = false;
+		int depth = 0;	// of { } and ( ), outside strings and comments
+		for(size_t pos = start; pos < text.size();)
+		{
+			auto end = text.find('\n', pos);
+			auto next = end == text.npos ? text.size() : end + 1;
+			auto line = trim_left(std::string_view(text).substr(pos, next - pos));
+			auto line_start = pos;
+			pos = next;
+
+			if(!in_comment && depth == 0)
+			{
+				// Already loads strings: import lang/loc ..., or a lang/loc { } block.
+				if(starts_with_word(line, "import"))
+				{
+					auto rest = trim_left(line.substr(6));
+					if(starts_with_word(rest, "lang") || starts_with_word(rest, "loc"))
+						return false;
+					if(first_import == text.npos)
+						first_import = line_start;
+				}
+				else if(starts_with_word(line, "lang") || starts_with_word(line, "loc"))
+					return false;
+				else if(settings_end == text.npos && !in_settings && starts_with_word(line, "settings"))
+					in_settings = true;
+			}
+
+			// Track comments, strings and nesting through the line.
+			char quote = 0;
+			for(size_t i = 0; i < line.size(); i++)
+			{
+				auto c = line[i];
+				auto n = i + 1 < line.size() ? line[i + 1] : '\0';
+				if(in_comment)
+				{
+					if(c == '*' && n == '/')
+					{
+						in_comment = false;
+						i++;
+					}
+				}
+				else if(quote)
+				{
+					if(c == quote)
+						quote = 0;
+				}
+				else if(c == '/' && n == '/')
+					break;
+				else if(c == '/' && n == '*')
+				{
+					in_comment = true;
+					i++;
+				}
+				else if(c == '\'' || c == '"' || c == '`')
+					quote = c;
+				else if(c == '{' || c == '(')
+				{
+					depth++;
+					settings_open |= in_settings;
+				}
+				else if((c == '}' || c == ')') && depth > 0)
+					depth--;
+			}
+
+			if(in_settings && settings_open && depth == 0)
+			{
+				settings_end = next;
+				in_settings = false;
+			}
+		}
+
+		// The file as it was is kept there (never overwriting an earlier one).
+		auto backup = (config + L".old").move();
+		for(int i = 2; exists(backup) && i < 100; i++)
+			backup.format(L"%s.old.%d", config.c_str(), i);
+		if(exists(backup))
+			return false;
+
+		std::string block = "// Added by shell -config:init; the file as it was is ";
+		std::wstring_view backup_name(backup.c_str());
+		backup_name.remove_prefix(backup_name.find_last_of(L"\\/") + 1);
+		for(auto c : backup_name)
+			block += c < 0x80 ? static_cast<char>(c) : '?';
+		block += eol;
+		for(auto line : localization_block)
+		{
+			block += line;
+			block += eol;
+		}
+
+		std::string patched = text;
+		if(settings_end != text.npos && (first_import == text.npos || settings_end <= first_import))
+		{
+			// settings { ... }\n + \n<block>, then whatever followed.
+			if(settings_end == patched.size() && !patched.ends_with('\n'))
+			{
+				patched += eol;
+				settings_end = patched.size();
+			}
+			patched.insert(settings_end, eol + block);
+		}
+		else if(first_import != text.npos)
+			patched.insert(first_import, block + eol);
+		else
+		{
+			if(!patched.ends_with('\n'))
+				patched += eol;
+			patched += eol + block;
+		}
+
+		if(!write_bytes(backup, text))
+		{
+			_log->error(L"config: cannot keep a copy of '%s'; the localization block was not added", config.c_str());
+			return false;
+		}
+
+		// Next to the original, so its relative imports resolve the same way.
+		auto temp = (config + L".tmp").move();
+		if(!write_bytes(temp, patched))
+		{
+			::DeleteFileW(backup);
+			_log->error(L"config: cannot write '%s' (error %lu)", temp.c_str(), ::GetLastError());
+			return false;
+		}
+
+		if(!parses(temp))
+		{
+			::DeleteFileW(temp);
+			::DeleteFileW(backup);
+			_log->warning(L"config: '%s' does not load with the localization block added; left as it was", config.c_str());
+			return false;
+		}
+
+		if(!::MoveFileExW(temp, config, MOVEFILE_REPLACE_EXISTING))
+		{
+			auto error = ::GetLastError();
+			::DeleteFileW(temp);
+			::DeleteFileW(backup);
+			_log->error(L"config: cannot add the localization block to '%s' (error %lu)", config.c_str(), error);
+			return false;
+		}
+
+		string msg;
+		msg.format(L"'%s' loaded no language file: added the localization block of the default shell.nss "
+				   L"(its own lines and imports are unchanged; the file as it was is '%s').",
+				   config.c_str(), backup.c_str());
+		out.line(msg);
+		return true;
+	}
+
 	// Copies <install>\shell.nss and <install>\imports\ into the per-user folder.
 	static int seed(CliOutput &out, const string &user_dir, bool overwrite)
 	{
@@ -1133,11 +1419,17 @@ namespace ConfigCommand
 		}
 
 		CopyStats stats;
-		copy_file(src_config, ConfigLocation::Join(user_dir, ConfigLocation::FileName), overwrite, stats);
+		auto dst_config = ConfigLocation::Join(user_dir, ConfigLocation::FileName).move();
+		copy_file(src_config, dst_config, overwrite, stats);
 
 		auto src_imports = ConfigLocation::Join(install_dir, ConfigLocation::ImportsName).move();
 		if(is_directory(src_imports))
 			copy_tree(src_imports, ConfigLocation::Join(user_dir, ConfigLocation::ImportsName), overwrite, stats);
+
+		// Copied or kept: an older shell.nss next to these imports gets their
+		// strings, in the Windows display language (see add_localization).
+		if(ConfigLocation::IsFile(dst_config))
+			add_localization(out, dst_config);
 
 		string msg;
 		msg.format(L"%s: %u copied, %u kept (already present), %u failed.",
