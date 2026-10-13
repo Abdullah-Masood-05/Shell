@@ -1,0 +1,114 @@
+// The "Open with" page's data shared with C++ (src/OpenWithController.cpp).
+
+import { CodeLine } from "editor-types.slint";
+
+// One app in the list: a preset (VS Code, Zed, ...) or one the user added.
+export struct OpenWithRow {
+    name: string,
+    detail: string,            // the program's path, or why it's missing
+    found: bool,               // the program exists
+    enabled: bool,
+    custom: bool,
+    icon: image,
+    has-icon: bool,
+    problem: string,           // why it stays out of the menu, or ""
+}
+
+// The selected app, for the editor under its row.
+export struct OpenWithForm {
+    name: string,
+    exe: string,
+    args: string,
+    icon: string,
+    scope: int,                // 0 everything the menu shows on, 1 files, 2 folders, 3 extensions
+    extensions: string,
+    admin: bool,
+    custom: bool,
+}
+
+// One line of the Test result: "A file" -> the command line.
+export struct OpenWithTestLine {
+    label: string,
+    command: string,
+}
+
+// One row of the preview menu.
+export struct OpenWithPreviewRow {
+    kind: string,              // menu | item
+    title: string,
+    icon: image,
+    has-icon: bool,
+    open: bool,                // the submenu whose flyout is shown
+}
+
+export global OpenWithState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <bool> shared-config;
+    in property <string> notice;           // lines of the file that were not understood
+    in property <bool> import-off;         // imported, but the line is commented out
+    in property <bool> first-run;          // no file yet: found apps are on, not saved
+    in property <int> found-count;
+    in property <int> preset-count;
+
+    in property <[OpenWithRow]> rows;
+    in property <int> selected: -1;
+    in property <OpenWithForm> form;
+    in property <int> form-serial;         // bumped when the editor must reload its fields
+    in property <bool> can-up;
+    in property <bool> can-down;
+    in property <int> missing-count;       // presets not found on this PC (listed last)
+    in-out property <bool> show-missing;   // list them too
+
+    // The menu
+    in property <bool> submenu: true;
+    in property <string> title;
+    in property <bool> show-files;
+    in property <bool> show-folders;
+    in property <bool> show-background;
+    in property <bool> show-desktop;
+    in property <int> options-serial;
+    in property <string> options-problem;
+
+    // Test (the selected app)
+    in property <bool> test-shown;
+    in property <[OpenWithTestLine]> test-lines;
+    in property <string> test-note;
+
+    // Preview and the generated file
+    in-out property <int> preview-kind;    // 0 a file, 1 a folder, 2 folder background
+    in property <[OpenWithPreviewRow]> preview;
+    in property <[OpenWithPreviewRow]> flyout;
+    in property <string> preview-empty;
+    in property <[CodeLine]> code;
+    in property <int> code-columns: 60;
+    in property <string> file-label;
+
+    // develop.nss: the Develop > Editors submenu
+    in property <bool> develop-found;
+    in property <bool> develop-hidden;
+    in property <bool> develop-locked;
+
+    in property <bool> dirty;
+    in property <bool> saving;
+
+    callback activated();
+    callback select(index: int);
+    callback toggle(index: int, on: bool);
+    callback locate(index: int);
+    callback move-up();
+    callback move-down();
+    callback add-custom();
+    callback remove();
+    callback browse-program();
+    callback browse-icon();
+    callback set-text(field: string, value: string);
+    callback set-choice(field: string, value: int);
+    callback set-flag(field: string, value: bool);
+    callback set-preview-kind(kind: int);
+    callback test();
+    callback save();
+    callback discard();
+    callback create-user-config();
+    callback open-context-menus();
+}

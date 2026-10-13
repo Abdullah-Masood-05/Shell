@@ -15,6 +15,7 @@ export component Sidebar inherits Rectangle {
         { page: Pages.rules, label: "Rules & Filters", icon: Icons.rules, header: "" },
         { page: Pages.menus, label: "Context Menus", icon: Icons.menus, header: "Menus" },
         { page: Pages.builder, label: "Menu Builder", icon: Icons.builder, header: "" },
+        { page: Pages.openwith, label: "Open with", icon: Icons.open-with, header: "" },
         { page: Pages.editor, label: "Config Editor", icon: Icons.editor, header: "Advanced" },
         { page: Pages.backups, label: "Backups", icon: Icons.backups, header: "" },
     ];
@@ -27,15 +28,26 @@ export component Sidebar inherits Rectangle {
     function go(page: int) {
         AppState.page = page;
     }
+    // Open with (page 9) sits between Menu Builder and Config Editor.
+    function next(page: int) -> int {
+        if (page == Pages.builder) { return Pages.openwith; }
+        if (page == Pages.openwith) { return Pages.editor; }
+        return min(root.last-page, page + 1);
+    }
+    function previous(page: int) -> int {
+        if (page == Pages.editor) { return Pages.openwith; }
+        if (page == Pages.openwith) { return Pages.builder; }
+        return max(0, page - 1);
+    }
 
     fs := FocusScope {
         key-pressed(event) => {
             if (event.text == Key.UpArrow) {
-                root.go(max(0, AppState.page - 1));
+                root.go(root.previous(AppState.page));
                 return accept;
             }
             if (event.text == Key.DownArrow) {
-                root.go(min(root.last-page, AppState.page + 1));
+                root.go(root.next(AppState.page));
                 return accept;
             }
             if (event.text == Key.Home) {

@@ -52,6 +52,7 @@ constexpr KnownModule kKnown[] = {
     { "taskbar", "Taskbar", "Apps, window arrangement and Task Manager on the taskbar's menu.", nullptr },
     { "my-tools", "My tools", "Copy, New file and System menus from Abdullah Masood's config.", nullptr },
     { "settings-app-menus", "Your menus", "The menus and items you built on the Menu Builder page.", nullptr },
+    { "settings-app-openwith", "Open with", "Editors and terminals you picked on the Open with page.", nullptr },
 };
 
 std::string lineText(std::string_view text, size_t begin)

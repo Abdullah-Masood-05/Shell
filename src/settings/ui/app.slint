@@ -18,12 +18,14 @@ import { RulesPage } from "pages/rules.slint";
 import { SettingsState, SK } from "pages/settings-state.slint";
 import { ContextMenusPage } from "pages/context-menus.slint";
 import { MenuBuilderPage } from "pages/menu-builder.slint";
+import { OpenWithPage } from "pages/openwith.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
 export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
 export { SaveState, AppearanceState, K, Pages, SettingsState, SK }
 export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
+export { OpenWithState, OpenWithRow, OpenWithForm, OpenWithTestLine, OpenWithPreviewRow } from "openwith-types.slint";
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Pro";
@@ -80,6 +82,10 @@ export component AppWindow inherits Window {
                 height: 100%;
             }
             if AppState.page == Pages.builder: MenuBuilderPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.openwith: OpenWithPage {
                 width: 100%;
                 height: 100%;
             }
