@@ -94,8 +94,8 @@
 		</Dialog>
 		<Dialog Id='ExitDialog' X='50' Y='50' Width='370' Height='270' Title='[ProductName] Setup'>
 			<Control Id='Finish' Type='PushButton' X='236' Y='243' Width='56' Height='17' Text='&amp;Finish' TabSkip='no' Default='yes' Cancel='yes'>
-<?ifdef SettingsExe ?>
-				<Publish Event='DoAction' Value='LaunchSettings' Condition='WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed' />
+<?ifdef AppExe ?>
+				<Publish Event='DoAction' Value='LaunchApp' Condition='WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed' />
 <?endif ?>
 				<Publish Event='EndDialog' Value='Return' />
 			</Control>
