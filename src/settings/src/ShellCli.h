@@ -24,7 +24,7 @@ struct CliResult
 class ShellCli
 {
 public:
-    // shell.exe next to settings.exe, else next to the registered shell.dll
+    // shell.exe next to NilesoftShellPro.exe, else next to the registered shell.dll
     // (HKCU first, then HKLM). Empty if neither exists.
     static std::filesystem::path locate();
 

@@ -71,7 +71,7 @@ std::string ShellStatus::activeLog() const
 std::vector<std::string> ShellStatus::conflictDlls() const
 {
     // shell.exe lists registrations naming a dll other than installDir's. When
-    // installDir's copy isn't registered at all (settings.exe run from a build or
+    // installDir's copy isn't registered at all (NilesoftShellPro.exe run from a build or
     // portable folder), the registered copy in use is not "another copy". The same
     // copy under several CLSIDs or views is one copy.
     std::vector<std::string> out;

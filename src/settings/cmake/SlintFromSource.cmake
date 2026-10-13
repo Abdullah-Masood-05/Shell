@@ -1,5 +1,5 @@
 # Builds Slint (the C++ API crate slint-cpp) from source as a static library, linked
-# into settings.exe together with the static CRT, so the exe has no runtime dependency
+# into NilesoftShellPro.exe together with the static CRT, so the exe has no runtime dependency
 # beyond Windows system DLLs (no slint_cpp.dll, no VC++ Redistributable).
 #
 # Source: SLINT_SOURCE_DIR (cache var or env var) pointing at a checkout of the

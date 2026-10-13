@@ -339,12 +339,12 @@ void AppController::refresh(bool quiet)
     if (!cli_.available()) {
         const auto &state = ui_->global<AppState>();
         std::vector<Issue> issues{ Issue{ "error", "shell.exe was not found",
-                                          "Install Nilesoft Shell, or put settings.exe next to shell.exe.", "", "" } };
+                                          "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe.", "", "" } };
         state.set_issues(std::make_shared<slint::VectorModel<Issue>>(issues));
         StatusInfo info{};
         info.health_kind = "error";
         info.health_title = "Nilesoft Shell was not found";
-        info.health_detail = "settings.exe looks for shell.exe next to itself and next to the registered shell.dll.";
+        info.health_detail = "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll.";
         info.pill_text = "Not found";
         info.loaded = true;
         state.set_status(info);
