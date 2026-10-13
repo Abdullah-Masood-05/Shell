@@ -1,5 +1,7 @@
 ﻿<Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
+    <!-- ICE61/ICE40: same-version major upgrades and REINSTALLMODE=emus are intended (pre-releases share the MSI and file version). -->
+    <SuppressIces>ICE61;ICE40</SuppressIces>
     <OutputType>Package</OutputType>
     <OutputPath>..\..\bin\</OutputPath>
     <TargetName>setup-$(Platform.ToLower().Replace('win32', 'x86'))</TargetName>

@@ -266,14 +266,27 @@
 		</Feature>
 		
 		<!-- Upgrade -->
+		<!--
+			"e" instead of the default "o": replace versioned files (shell.exe, shell.dll,
+			NilesoftShellPro.exe) whose version is equal, not only older. Pre-releases share
+			the file version 2.0.0.0, and with "o" an upgrade kept the previous build's
+			shell.exe ("Existing file is of an equal version"). Unversioned files (shell.nss,
+			imports) still follow the default rule, so files the user edited are kept.
+		-->
+		<Property Id='REINSTALLMODE' Value='emus' />
 		<Property Id='NEWPRODUCTFOUND' Secure='yes' />
 		<Property Id='UPGRADEFOUND' Secure='yes' />
 		
 		<CustomAction Id='OnDowngrading' Error='A newer version of [ProductName] is already installed. Setup will now exit.' />
 		
 		<Upgrade Id='$(var.UpgradeCode)'>
-			<UpgradeVersion Property='NEWPRODUCTFOUND' Minimum='$(var.Version)' OnlyDetect='yes' />
-			<UpgradeVersion Property='UPGRADEFOUND' Minimum='1.0.0' Maximum='$(var.Version)' IncludeMinimum='yes' />
+			<!--
+				Same-version upgrades are allowed: pre-releases (2.0.0-beta.1, -beta.2, ...)
+				share the MSI version 2.0.0, and each build must replace the previous one.
+				Only a strictly newer installed version blocks setup.
+			-->
+			<UpgradeVersion Property='NEWPRODUCTFOUND' Minimum='$(var.Version)' IncludeMinimum='no' OnlyDetect='yes' />
+			<UpgradeVersion Property='UPGRADEFOUND' Minimum='1.0.0' Maximum='$(var.Version)' IncludeMinimum='yes' IncludeMaximum='yes' />
 		</Upgrade>
 		
 		<InstallUISequence>
