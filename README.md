@@ -26,7 +26,7 @@
   A community fork of <a href="https://github.com/moudey/Shell">Nilesoft Shell</a> by Moudey and
   <a href="https://nilesoft.org">Nilesoft</a>; not an official Nilesoft release.<br>
   It keeps the upstream configuration language and adds security and stability fixes,<br>
-  a per-user mode that needs no administrator rights, and a Settings app.
+  a per-user mode that needs no administrator rights, and an app to set it up and configure it.
 </p>
 
 Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
@@ -48,7 +48,7 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 - **Menu fixes.** Duplicate removal no longer overwrites the first item, leading separators are removed, *Send to* and
   *New* are read again when opened, and menus are placed correctly on monitors with negative coordinates. Shell no
   longer changes your selection-fade setting or Explorer's working directory, and the submenu delay is one visible
-  line in `shell.nss` (`showdelay = 200`) that you can remove or turn off in the Settings app.
+  line in `shell.nss` (`showdelay = 200`) that you can remove or turn off in the app.
 - **Per-user mode.** `shell -register -user` registers for the current user under `HKEY_CURRENT_USER` without
   administrator rights, and the configuration can live in `%APPDATA%\Nilesoft\Shell`.
 - **Auto-reload.** The configuration reloads when `shell.nss` or any file it imports changes. A configuration with an
@@ -60,17 +60,17 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 - **Default configuration.** The default `shell.nss` adds the *Develop*, *Copy*, *New file* and *System* menus from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config)
   (`imports/develop.nss`, `imports/my-tools.nss`). Items for programs that are not installed are hidden.
-- **Settings app.** A desktop app for checking the installation, editing the configuration and restoring backups. See
-  [Settings app](#settings-app).
+- **The Nilesoft Shell Pro app.** A desktop app for checking the installation, editing the configuration and restoring
+  backups. See [The app](#the-app).
 
 ## Screenshots
 
 | | |
 |---|---|
-| ![Settings app, Home page](docs/images/settings-app/home-dark.png) | ![Settings app, Config Editor](docs/images/settings-app/editor-dark.png) |
-| Settings app: Home | Settings app: Config Editor |
-| ![Settings app, Backups](docs/images/settings-app/backups-dark.png) | ![Settings app, Home in the light theme](docs/images/settings-app/home-light.png) |
-| Settings app: Backups | Settings app: Home in the light theme |
+| ![Nilesoft Shell Pro, Home page](docs/images/settings-app/home-dark.png) | ![Nilesoft Shell Pro, Config Editor](docs/images/settings-app/editor-dark.png) |
+| Home | Config Editor |
+| ![Nilesoft Shell Pro, Backups](docs/images/settings-app/backups-dark.png) | ![Nilesoft Shell Pro, Home in the light theme](docs/images/settings-app/home-light.png) |
+| Backups | Home in the light theme |
 
 The menu itself, from upstream:
 
@@ -79,7 +79,7 @@ The menu itself, from upstream:
   <img src="screenshots/terminal.png" alt="Terminal menu" width="49%">
 </p>
 
-The screenshots of the Settings app are made by
+The screenshots of the app are made by
 [`src/settings/tools/screenshots.ps1`](src/settings/tools/screenshots.ps1), which renders the app's own window.
 
 ## Install
@@ -90,11 +90,11 @@ Windows SmartScreen may warn before running them.
 
 **For all users (needs administrator rights once).** Run the MSI for your platform. It installs to
 `C:\Program Files\Nilesoft Shell`, registers Shell with the Windows 11 classic menu, restarts Explorer and adds
-*Nilesoft Shell Settings* to the Start menu. It upgrades an existing Nilesoft Shell installation and keeps your
+*Nilesoft Shell Pro* to the Start menu. It upgrades an existing Nilesoft Shell installation and keeps your
 `shell.nss`.
 
 **For the current user only (no administrator rights).** Extract the portable zip to a folder you own, for example
-`%LOCALAPPDATA%\Programs\NilesoftShellPro`, and run `settings.exe`: its first-run setup does the steps below. Or run
+`%LOCALAPPDATA%\Programs\NilesoftShellPro`, and run `NilesoftShellPro.exe`: its first-run setup does the steps below. Or run
 them yourself from that folder:
 
 ```bat
@@ -106,14 +106,15 @@ shell -register -user -treat -restart
 the classic context menu on Windows 11; leave it out on Windows 10. To remove it again:
 `shell -unregister -user -restart`.
 
-**Settings app.** `settings.exe` is a single file with no other dependencies (no VC++ runtime) and sits next to
-`shell.exe`. Both the MSI and the portable zip include it (x64; ARM64 runs it under emulation; not included for x86).
+**The app.** `NilesoftShellPro.exe` is a single file with no other dependencies (no VC++ runtime) and sits next to
+`shell.exe`; double-clicking `shell.exe` opens it too. Both the MSI and the portable zip include it (x64; ARM64 runs it
+under emulation; not included for x86, where the Start menu entry opens `shell.exe`).
 
-Upstream Nilesoft Shell supports Windows 7 to 11. The Settings app has only been run on Windows 11 so far.
+Upstream Nilesoft Shell supports Windows 7 to 11. The app has only been run on Windows 11 so far.
 
-## Settings app
+## The app
 
-`settings.exe` runs as the current user and needs no administrator rights. It works on the per-user configuration in
+Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs no administrator rights. It works on the per-user configuration in
 `%APPDATA%\Nilesoft\Shell` and reads the installation state through `shell -status`.
 
 | Page | What it does |
@@ -131,7 +132,7 @@ Upstream Nilesoft Shell supports Windows 7 to 11. The Settings app has only been
 
 Changes made on Appearance, Behavior and Rules & Filters are written to `imports/settings-app.nss`, imported last, so
 your own files stay as you wrote them. Every save is checked with `shell -config:check` first, and a configuration that
-Shell would reject is not written. Details: [Settings app](https://abdullah-masood-05.github.io/Shell/settings-app.html).
+Shell would reject is not written. Details: [The app](https://abdullah-masood-05.github.io/Shell/settings-app.html).
 
 The app is built with [Slint](https://slint.dev) 1.18 (C++), used under the Slint Royalty-free License 2.0. It also
 uses [JSON for Modern C++](https://github.com/nlohmann/json) and
@@ -139,7 +140,8 @@ uses [JSON for Modern C++](https://github.com/nlohmann/json) and
 
 ## Command line
 
-Run `shell.exe` from its folder. Options start with `-` or `/`; `shell -?` shows a summary.
+Run `shell.exe` from its folder. Options start with `-` or `/`; `shell -?` shows a summary. Without options,
+`shell.exe` opens the app (or, when `NilesoftShellPro.exe` isn't next to it, its own register and unregister window).
 
 | Option | What it does | Admin |
 |---|---|---|
@@ -171,7 +173,7 @@ $msbuild = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSB
 With the full Visual Studio instead of Build Tools, change `BuildTools` in the path to `Community`, `Professional` or
 `Enterprise`. Output goes to `src\bin`.
 
-**Settings app.** Needs CMake 3.25 or later, git and Rust stable for `x86_64-pc-windows-msvc` (via
+**The app.** Needs CMake 3.25 or later, git and Rust stable for `x86_64-pc-windows-msvc` (via
 [rustup](https://rustup.rs)). The release preset builds Slint 1.18.1 from source as a static library, so the first
 build takes a few minutes; later builds take seconds. Set `SLINT_SOURCE_DIR` to a local Slint checkout to avoid
 cloning it at configure time.
@@ -182,8 +184,8 @@ cmake --preset x64-release
 cmake --build --preset x64-release
 ```
 
-This writes a self-contained `settings.exe` to `src\bin`. Build the core first (for `shell.exe`); then rebuild the MSI
-with `-t:setup:Rebuild` to include `settings.exe`. More, including a quicker dev build with the prebuilt Slint SDK:
+This writes a self-contained `NilesoftShellPro.exe` to `src\bin`. Build the core first (for `shell.exe`); then rebuild
+the MSI with `-t:setup:Rebuild` to include `NilesoftShellPro.exe`. More, including a quicker dev build with the prebuilt Slint SDK:
 [src/settings/README.md](src/settings/README.md). To refresh the screenshots, run
 `pwsh -File src\settings\tools\screenshots.ps1`.
 

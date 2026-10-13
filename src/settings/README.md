@@ -1,11 +1,13 @@
-# Nilesoft Shell Settings (settings.exe)
+# Nilesoft Shell Pro, the app (NilesoftShellPro.exe)
 
-A Slint 1.18.1 C++ app. The build writes `src/bin/settings.exe`, next to `shell.exe` and
-`shell.dll`.
+A Slint 1.18.1 C++ app. The build writes `src/bin/NilesoftShellPro.exe`, next to `shell.exe`
+and `shell.dll`. The folder and the CMake target are still called `settings`; the exe, its
+window, the Start menu entry and the docs say Nilesoft Shell Pro. Running `shell.exe` with no
+arguments opens it, and its settings stay under `HKCU\Software\Nilesoft\Shell\Settings`.
 
 ## Runtime dependencies: none
 
-The release build is a single self-contained `settings.exe`:
+The release build is a single self-contained `NilesoftShellPro.exe`:
 
 - Slint is built from source as a **static library** (`BUILD_SHARED_LIBS=OFF`) and linked
   into the exe. `slint_cpp.dll` is not built, needed or shipped any more.
@@ -14,7 +16,7 @@ The release build is a single self-contained `settings.exe`:
   `-Ctarget-feature=+crt-static` (so rustc links `libcmt` and cc-rs builds bundled C code
   with `/MT`). Users don't need the VC++ Redistributable.
 
-`dumpbin /dependents src\bin\settings.exe` lists only Windows system DLLs:
+`dumpbin /dependents src\bin\NilesoftShellPro.exe` lists only Windows system DLLs:
 ```
 kernel32  user32  gdi32  advapi32  shell32  shlwapi  ole32  oleaut32  combase
 comctl32  uxtheme  dwmapi  dwrite  imm32  opengl32  uiautomationcore
@@ -82,7 +84,7 @@ simply a cold one again.
 The `x64-release-prebuilt` and `x64-debug` presets use the prebuilt Slint C++ SDK
 (`SETTINGS_SLINT_FROM_SOURCE=OFF`) found via `SLINT_DIR` (env or `-D`, default
 `D:/Projects/_deps/slint-cpp-1.18.1`). Those builds use the dynamic CRT (`/MD`), copy
-`slint_cpp.dll` next to `settings.exe` and need the VC++ runtime: **don't ship them**.
+`slint_cpp.dll` next to `NilesoftShellPro.exe` and need the VC++ runtime: **don't ship them**.
 
 ```bat
 cd src\settings
