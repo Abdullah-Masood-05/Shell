@@ -313,7 +313,7 @@ AppController::Snapshot AppController::collect() const
     }
     auto dll = snap.status->activeDll();
     if (!dll.empty()) {
-        auto log = logreader::logPathForDll(fs::path(widen(dll)));
+        auto log = logreader::logPathFor(fs::path(widen(snap.status->activeLog())), fs::path(widen(dll)));
         std::error_code ec;
         if (fs::is_regular_file(log, ec)) {
             snap.logPath = narrow(log.wstring());

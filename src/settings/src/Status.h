@@ -31,8 +31,15 @@ struct ShellStatus
     std::string configRegistryValue;
     std::string userConfigDir;
 
+    // "log.path": where installDir's shell.dll logs for this user (next to it, or
+    // %LOCALAPPDATA%\Nilesoft\Shell when that folder is not writable).
+    std::string logPath;
+
     // The dll Explorer actually loads: the user one wins over the machine one.
     std::string activeDll() const;
+
+    // logPath when the active dll is installDir's, else empty (unknown).
+    std::string activeLog() const;
 };
 
 // Returns the parsed status, or nullopt and an error message.

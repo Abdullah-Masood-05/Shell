@@ -294,7 +294,7 @@ ConfigTarget SaveService::queryTarget() const
         t.installDir = cli_.exe().parent_path();
     auto dll = status->activeDll();
     if (!dll.empty())
-        t.logPath = logreader::logPathForDll(fs::path(widen(dll)));
+        t.logPath = logreader::logPathFor(fs::path(widen(status->activeLog())), fs::path(widen(dll)));
     std::error_code ec;
     if (t.root.empty() || !status->configExists || !fs::is_regular_file(t.root, ec)) {
         t.error = "The config file was not found. Create a personal config from Home.";

@@ -2,6 +2,8 @@
 
 #include "Text.h"
 
+#include <windows.h>
+
 #include <algorithm>
 #include <fstream>
 #include <regex>
@@ -10,7 +12,24 @@ namespace fs = std::filesystem;
 
 namespace logreader {
 
-fs::path logPathForDll(const fs::path &dll) { return dll.parent_path() / L"shell.log"; }
+fs::path logPathForDll(const fs::path &dll)
+{
+    auto beside = dll.parent_path() / L"shell.log";
+    std::error_code ec;
+    if (fs::is_regular_file(beside, ec))
+        return beside;
+    wchar_t local[MAX_PATH]{};
+    auto n = GetEnvironmentVariableW(L"LOCALAPPDATA", local, MAX_PATH);
+    if (n == 0 || n >= MAX_PATH)
+        return beside;
+    auto fallback = fs::path(local) / L"Nilesoft" / L"Shell" / L"shell.log";
+    return fs::is_regular_file(fallback, ec) ? fallback : beside;
+}
+
+fs::path logPathFor(const fs::path &reported, const fs::path &dll)
+{
+    return reported.empty() ? logPathForDll(dll) : reported;
+}
 
 bool parseLine(const std::string &line, LogEntry &out)
 {
