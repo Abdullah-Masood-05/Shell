@@ -35,7 +35,8 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
   copying. `shell.exe` exits with 0 on success and non-zero on failure.
 - **Menu fixes.** Duplicate removal no longer overwrites the first item, leading separators are removed, *Send to* and
   *New* are read again when opened, and menus are placed correctly on monitors with negative coordinates. Shell no
-  longer changes your submenu delay, selection-fade setting or Explorer's working directory.
+  longer changes your selection-fade setting or Explorer's working directory, and the submenu delay is one visible
+  line in `shell.nss` (`showdelay = 200`) that you can remove or turn off in the Settings app.
 - **Per-user mode.** `shell -register -user` registers for the current user under `HKEY_CURRENT_USER` without
   administrator rights, and the configuration can live in `%APPDATA%\Nilesoft\Shell`.
 - **Auto-reload.** The configuration reloads when `shell.nss` or any file it imports changes. A configuration with an
