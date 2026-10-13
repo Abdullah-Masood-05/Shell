@@ -636,6 +636,8 @@ namespace Nilesoft
 					error(TokenError::PropertyUnexpected, l->column);
 
 				start_column = l->column;
+				auto prop_line = l->line;
+				m_last_ident.expr = nullptr;
 				Ident id;
 				parse_property_ident(id);
 
@@ -711,6 +713,7 @@ namespace Nilesoft
 							break;
 						case MENU_TEXT:
 						case MENU_TITLE:
+							record_title(expr.get(), prop_line, start_column);
 							menu->title = expr.release();
 							break;
 						case MENU_TIP:
@@ -870,6 +873,8 @@ namespace Nilesoft
 				if(l->tok == ')') break;
 
 				start_column = l->column;
+				auto prop_line = l->line;
+				m_last_ident.expr = nullptr;
 				Ident id;
 				parse_property_ident(id);
 				id.signer = expect_assign(!id.equals(0, { MENU_SEP, MENU_SEPARATOR }));
@@ -918,6 +923,7 @@ namespace Nilesoft
 					case MENU_TEXT:
 					case MENU_TITLE:
 						_parse_expression(item->title, action == IDENT_REMOVE);
+						record_title(item->title.get(), prop_line, start_column);
 						break;
 					case MENU_TIP:
 						_parse_expression(item->tip, action == IDENT_REMOVE);

@@ -55,6 +55,7 @@ if(NSSCORE_BUILD_TESTS)
 		tests/test_graph.cpp
 		tests/test_overrides.cpp
 		tests/test_store.cpp
+		tests/test_titles.cpp
 	)
 	target_include_directories(nsscore_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest)
 	target_link_libraries(nsscore_tests PRIVATE nsscore)

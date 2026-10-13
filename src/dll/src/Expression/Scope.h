@@ -22,6 +22,8 @@ namespace Nilesoft
 			void set(uint32_t id, double value);
 			void set(uint32_t id, const string &value);
 			void erase(uint32_t id);
+			// Removes the entry without deleting it; the caller owns the result.
+			Expression *detach(uint32_t id);
 			bool exists(uint32_t id, bool hierarchy = false);
 			size_t size() const;
 			Expression *at(uint32_t id);

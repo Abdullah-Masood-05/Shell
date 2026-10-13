@@ -375,13 +375,18 @@ namespace Nilesoft
 
 		bool Selections::verify_types(const FileSystemObjects &fso) const
 		{
+			return match_types(fso, Types, Background, Count());
+		}
+
+		bool Selections::match_types(const FileSystemObjects &fso, const int32_t (&types)[FSO_MAX], bool background, size_t count)
+		{
 			if(fso.any_types)
 				return true;
 
-			if(!fso.defined && Count() == 0)
+			if(!fso.defined && count == 0)
 				return false;
 
-			if(Items.empty() && !(Types[FSO_START] + Types[FSO_TASKBAR] + Types[FSO_EDIT] + Types[FSO_TITLEBAR]))
+			if(count == 0 && !(types[FSO_START] + types[FSO_TASKBAR] + types[FSO_EDIT] + types[FSO_TITLEBAR]))
 			{
 				return false;
 			}
@@ -393,7 +398,7 @@ namespace Nilesoft
 			{
 				for(int32_t i = 0; i < FSO_SIZE; i++)
 				{
-					if(Types[i] && fso.Types[i] == FileSystemObjects::EXCLUDE)
+					if(types[i] && fso.Types[i] == FileSystemObjects::EXCLUDE)
 						return false;
 				}
 				return true;
@@ -420,38 +425,38 @@ namespace Nilesoft
 			int32_t namespaces = 0;
 			int32_t backs = 0;
 			
-			_fso.titlebar = Types[FSO_TITLEBAR];
-			_fso.edit = Types[FSO_EDIT];
-			_fso.start = Types[FSO_START];
-			_fso.taskbar = Types[FSO_TASKBAR];
-			_fso.desktop = Types[FSO_DESKTOP];
-			_fso.file = Types[FSO_DIRECTORY];
-			_fso.dirctory = Types[FSO_DIRECTORY];
-			_fso.ns = Types[FSO_NAMESPACE];
-			_fso.drive = Types[FSO_DRIVE];
+			_fso.titlebar = types[FSO_TITLEBAR];
+			_fso.edit = types[FSO_EDIT];
+			_fso.start = types[FSO_START];
+			_fso.taskbar = types[FSO_TASKBAR];
+			_fso.desktop = types[FSO_DESKTOP];
+			_fso.file = types[FSO_DIRECTORY];
+			_fso.dirctory = types[FSO_DIRECTORY];
+			_fso.ns = types[FSO_NAMESPACE];
+			_fso.drive = types[FSO_DRIVE];
 
 			if(fso.Types[FSO_DRIVE] > 0)
 			{
-				drives += Types[FSO_DRIVE];
-				drives += Types[FSO_DRIVE_FIXED];
-				drives += Types[FSO_DRIVE_USB];
-				drives += Types[FSO_DRIVE_VHD];
-				drives += Types[FSO_DRIVE_REMOVABLE];
-				drives += Types[FSO_DRIVE_REMOTE];
+				drives += types[FSO_DRIVE];
+				drives += types[FSO_DRIVE_FIXED];
+				drives += types[FSO_DRIVE_USB];
+				drives += types[FSO_DRIVE_VHD];
+				drives += types[FSO_DRIVE_REMOVABLE];
+				drives += types[FSO_DRIVE_REMOTE];
 			}
 
 			if(fso.Types[FSO_NAMESPACE] > 0)
 			{
-				namespaces += Types[FSO_NAMESPACE];
-				namespaces += Types[FSO_NAMESPACE_COMPUTER];
-				namespaces += Types[FSO_NAMESPACE_RECYCLEBIN];
+				namespaces += types[FSO_NAMESPACE];
+				namespaces += types[FSO_NAMESPACE_COMPUTER];
+				namespaces += types[FSO_NAMESPACE_RECYCLEBIN];
 			}
 
-			if(Items.size() > 1)
+			if(count > 1)
 			{
-				if(!Background && fso.Types[FSO_COUNT] > 0)
+				if(!background && fso.Types[FSO_COUNT] > 0)
 				{
-					if(Types[FSO_COUNT] > fso.Types[FSO_COUNT])
+					if(types[FSO_COUNT] > fso.Types[FSO_COUNT])
 					{
 						int c = (drives > 0) + (namespaces > 0) + _fso.titlebar + _fso.edit + _fso.start + _fso.taskbar + _fso.desktop + _fso.file + _fso.dirctory;
 						if(c > fso.Types[FSO_COUNT] || (drives + namespaces) == 0)
@@ -462,38 +467,38 @@ namespace Nilesoft
 				}
 			}
 
-			if(Background)
+			if(background)
 			{
 				if(fso.Types[FSO_BACK] > 0)
 				{
-					backs += Types[FSO_BACK];
-					backs += Types[FSO_BACK_DIRECTORY];
-					backs += Types[FSO_BACK_DRIVE];
-					backs += Types[FSO_BACK_DRIVE_FIXED];
-					backs += Types[FSO_BACK_DRIVE_USB];
-					backs += Types[FSO_BACK_DRIVE_VHD];
-					backs += Types[FSO_BACK_DRIVE_REMOVABLE];
-					backs += Types[FSO_BACK_DRIVE_REMOTE];
-					backs += Types[FSO_BACK_NAMESPACE];
-					backs += Types[FSO_BACK_NAMESPACE_COMPUTER];
-					backs += Types[FSO_BACK_NAMESPACE_RECYCLEBIN];
+					backs += types[FSO_BACK];
+					backs += types[FSO_BACK_DIRECTORY];
+					backs += types[FSO_BACK_DRIVE];
+					backs += types[FSO_BACK_DRIVE_FIXED];
+					backs += types[FSO_BACK_DRIVE_USB];
+					backs += types[FSO_BACK_DRIVE_VHD];
+					backs += types[FSO_BACK_DRIVE_REMOVABLE];
+					backs += types[FSO_BACK_DRIVE_REMOTE];
+					backs += types[FSO_BACK_NAMESPACE];
+					backs += types[FSO_BACK_NAMESPACE_COMPUTER];
+					backs += types[FSO_BACK_NAMESPACE_RECYCLEBIN];
 				}
 
 				if(fso.Types[FSO_BACK_DRIVE] > 0)
 				{
-					backs += Types[FSO_BACK_DRIVE];
-					backs += Types[FSO_BACK_DRIVE_FIXED];
-					backs += Types[FSO_BACK_DRIVE_USB];
-					backs += Types[FSO_BACK_DRIVE_VHD];
-					backs += Types[FSO_BACK_DRIVE_REMOVABLE];
-					backs += Types[FSO_BACK_DRIVE_REMOTE];
+					backs += types[FSO_BACK_DRIVE];
+					backs += types[FSO_BACK_DRIVE_FIXED];
+					backs += types[FSO_BACK_DRIVE_USB];
+					backs += types[FSO_BACK_DRIVE_VHD];
+					backs += types[FSO_BACK_DRIVE_REMOVABLE];
+					backs += types[FSO_BACK_DRIVE_REMOTE];
 				}
 
 				if(fso.Types[FSO_BACK_NAMESPACE] > 0)
 				{
-					backs += Types[FSO_BACK_NAMESPACE];
-					backs += Types[FSO_BACK_NAMESPACE_COMPUTER];
-					backs += Types[FSO_BACK_NAMESPACE_RECYCLEBIN];
+					backs += types[FSO_BACK_NAMESPACE];
+					backs += types[FSO_BACK_NAMESPACE_COMPUTER];
+					backs += types[FSO_BACK_NAMESPACE_RECYCLEBIN];
 				}
 			}
 
@@ -504,7 +509,7 @@ namespace Nilesoft
 			if(res == 0)
 			{
 				for(int32_t i = 0; i < FSO_SIZE; i++)
-					res += (fso.Types[i] > 0) && (Types[i] > 0);
+					res += (fso.Types[i] > 0) && (types[i] > 0);
 			}
 
 			return res > 0;

@@ -153,6 +153,13 @@ jobs:
       - name: Build the core and the MSI
         run: msbuild $env:SOLUTION_FILE_PATH -m -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:RequireAppExe=$env:REQUIRE_APP
 
+      # No menu title may evaluate empty: the shipped shell.nss, an older one with no
+      # `import lang` block, and that one after -config:init (all in a temp folder).
+      # ARM64 binaries cannot run on the x64 runner.
+      - name: Check the menu titles
+        if: matrix.platform != 'ARM64'
+        run: ./scripts/check-titles.ps1 -BinDir $env:BIN_PATH
+
       - name: Make the portable zip
         if: matrix.platform == 'x64'
         env:

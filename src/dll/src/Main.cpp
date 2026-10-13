@@ -1411,7 +1411,7 @@ STDAPI DllCanUnloadNow(void)
 // duration; which is why this refuses to run inside Explorer or once a live
 // configuration exists (it would be swapped out under a menu). In shell.exe,
 // its only caller, there is never one.
-STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context)
 {
 	if(!root || !*root || !sink)
 		return E_INVALIDARG;
@@ -1420,7 +1420,9 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 		return E_ACCESSDENIED;
 
 	std::vector<ParseDiagnostic> diagnostics;
+	std::vector<Parser::TitleInfo> titles;
 	bool ok = false;
+	bool where_ok = true;
 
 	// Restores the global state whichever way the parse ends.
 	struct scope_t
@@ -1456,6 +1458,9 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 
 		Parser parser(root);
 		ok = parser.Load() && !parser.HasError();
+		// While the cache and the MUI titles are still there.
+		if(ok && title_sink)
+			where_ok = parser.ReportTitles(titles, where);
 	}
 	catch(...)
 	{
@@ -1472,7 +1477,39 @@ STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
 	if(!ok && !reported_error)
 		sink(context, TRUE, root, 0, 0, L"the configuration could not be loaded");
 
+	if(!where_ok)
+		return E_INVALIDARG;
+
+	for(auto &t : titles)
+	{
+		CONFIG_TITLE info{};
+		info.state = t.state == Parser::TitleInfo::Text ? CONFIG_TITLE_TEXT :
+			t.state == Parser::TitleInfo::Empty ? CONFIG_TITLE_EMPTY : CONFIG_TITLE_DYNAMIC;
+		info.kind = t.kind == Parser::TitleInfo::Menu ? CONFIG_TITLE_MENU :
+			t.kind == Parser::TitleInfo::Item ? CONFIG_TITLE_ITEM : CONFIG_TITLE_MODIFY;
+		info.depth = t.depth;
+		info.file = t.file.c_str();
+		info.line = static_cast<UINT>(t.line);
+		info.column = static_cast<UINT>(t.column);
+		info.source = t.source.c_str();
+		info.title = t.text.c_str();
+		title_sink(context, &info);
+	}
+
 	return ok ? S_OK : S_FALSE;
+}
+
+STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+{
+	return config_check(root, nullptr, sink, nullptr, context);
+}
+
+// shell -config:check <root.nss> -titles: see ConfigCheck.h.
+STDAPI ConfigCheckTitles(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink titles, void *context)
+{
+	if(!titles)
+		return E_INVALIDARG;
+	return config_check(root, where, sink, titles, context);
 }
 
 // Register the COM server and the context menu handler.
