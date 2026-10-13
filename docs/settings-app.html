@@ -47,6 +47,25 @@
 <p>Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live
 	preview of the menu on your wallpaper in light and dark, for the desktop or File Explorer. Each value shows which file
 	and line set it; values written as expressions are shown read-only with a link to the Config Editor.</p>
+<p id="themes">At the top, <strong>Themes</strong> has the example themes of the original Nilesoft Shell project as cards,
+	each a small menu drawn in that theme over your wallpaper. Click a card (or <strong>Apply</strong> in its
+	<strong>&hellip;</strong> menu) to stage its <code>theme</code> keys as pending changes: the preview updates at once,
+	and <kbd>Save</kbd>, <kbd>Discard</kbd> and <kbd>Ctrl</kbd>+<kbd>S</kbd> work as for any other change. A theme
+	replaces the theme settings changed in the app, so if you have some, the app asks first; your own files are not
+	touched. The card in use is marked <strong>Active</strong>. <strong>Export to clipboard</strong> copies a theme's
+	<code>theme{}</code> block with its credit, and <strong>Export current look</strong> copies the theme settings in
+	effect, ready to paste into a <code>.nss</code> file.</p>
+<table class="table">
+	<tr><td class="w-25">Default</td><td>The look Shell ships with, <code>imports/theme.nss</code>.</td></tr>
+	<tr><td>Shell 1.8</td><td>The theme of the 1.8 <code>shell.nss</code> (<a href="https://github.com/moudey/Shell/commit/26b7dfd">26b7dfd</a>): modern, opaque.</td></tr>
+	<tr><td>Acrylic, Gradient</td><td>The two README screenshots, as the maintainer posted them in
+		<a href="https://github.com/moudey/Shell/discussions/174">discussion #174</a>.</td></tr>
+	<tr><td>Clear acrylic</td><td>Acrylic without a background colour, from <a href="https://github.com/moudey/Shell/issues/348">issue #348</a>.</td></tr>
+	<tr><td>Accent outline</td><td>An accent border and accent icons, from <a href="https://github.com/moudey/Shell/issues/162">issue #162</a>.</td></tr>
+	<tr><td>Flat</td><td>No border, no shadow, square highlights, from <a href="https://github.com/moudey/Shell/issues/79">issue #79</a>.</td></tr>
+	<tr><td>Blue, Gray, Green, Yellow</td><td>The Shell 1.x colour templates in <a href="https://github.com/moudey/Shell/tree/main/templates/themes">templates/themes</a>,
+		ported value for value to today's <code>theme</code> keys.</td></tr>
+</table>
 
 <h5 id="behavior">Behavior</h5>
 <ul>

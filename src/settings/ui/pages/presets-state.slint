@@ -1,0 +1,38 @@
+// Theme presets: the gallery's data and its bridge to C++
+// (src/PresetsController.cpp, src/ThemePresets.cpp).
+
+import { PreviewTheme } from "../preview/preview-types.slint";
+
+export struct PresetCard {
+    id: string,
+    name: string,
+    tags: string,         // "Modern • Acrylic"
+    about: string,        // one line
+    source: string,       // the credit line
+    t: PreviewTheme,      // the preset resolved over the user's own files
+    active: bool,         // the preset in use (at most one card)
+}
+
+export global PresetsState {
+    in property <[PresetCard]> presets;
+    in property <int> active: -1;
+    in property <bool> ready;             // the config is loaded
+    // This app's theme settings (saved or pending) that Apply would replace; the
+    // gallery asks first when this isn't 0.
+    in property <int> replaced;
+    // The preset waiting for that confirmation, -1 for none.
+    in-out property <int> confirm: -1;
+
+    callback apply(index: int);
+    callback export-preset(index: int);
+    callback export-current();
+
+    // Apply, or ask first when it would replace settings changed in this app.
+    public function request-apply(index: int) {
+        if (replaced > 0) {
+            confirm = index;
+        } else {
+            apply(index);
+        }
+    }
+}

@@ -242,6 +242,14 @@ void SaveService::forget(std::string_view key)
     notifyChanged();
 }
 
+void SaveService::edit(const std::function<void(PendingChanges &)> &fn)
+{
+    if (saving_)
+        return;
+    fn(pending_);
+    notifyChanged();
+}
+
 void SaveService::discard()
 {
     if (saving_ || pending_.empty())

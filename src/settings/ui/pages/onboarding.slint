@@ -1,11 +1,12 @@
 import { Button, Spinner, Switch } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
-import { AppState } from "../types.slint";
+import { AppState, Pages } from "../types.slint";
 import { SaveState } from "../save-state.slint";
 import { Link } from "../components/controls.slint";
 import { ThemePicker } from "../components/theme-picker.slint";
 import { AppearanceState, ThemeField, K } from "appearance-state.slint";
+import { PresetsState } from "presets-state.slint";
 
 component StepDot inherits HorizontalLayout {
     in property <int> index;
@@ -309,6 +310,18 @@ export component Onboarding inherits Rectangle {
                                 ? root.theme-names[root.theme.index] + " is saved when you press Finish, after shell.exe checks the config."
                                 : "Finish creates your personal config, then saves " + root.theme-names[root.theme.index] + " there.")
                             : "In use: " + root.theme-names[root.theme.index] + " · " + root.theme.origin;
+                    }
+                    // The theme presets are on the Appearance page: the link finishes (saving
+                    // a theme picked above) and opens that page behind the dialog.
+                    if PresetsState.presets.length > 0: Link {
+                        text: "More themes on the Appearance page";
+                        font-size: Tokens.caption + 1px;
+                        activated => {
+                            if (!root.working) {
+                                AppState.page = Pages.appearance;
+                                AppState.finish-onboarding();
+                            }
+                        }
                     }
                     HorizontalLayout {
                         spacing: Tokens.s3;

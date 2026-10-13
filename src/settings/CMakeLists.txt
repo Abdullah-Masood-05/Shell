@@ -53,6 +53,9 @@ set(SETTINGS_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../bin")
 
 configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONLY)
 
+# The theme presets (presets/themes/*.nss), embedded as ThemePresetsData.inc.
+include(cmake/ThemePresets.cmake)
+
 add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
@@ -72,6 +75,7 @@ add_executable(settings WIN32
     src/Highlight.cpp
     src/LogReader.cpp
     src/PendingChanges.cpp
+    src/PresetsController.cpp
     src/MenuBuilderController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
@@ -83,13 +87,14 @@ add_executable(settings WIN32
     src/ShellCli.cpp
     src/Status.cpp
     src/ThemeModel.cpp
+    src/ThemePresets.cpp
     src/Wallpaper.cpp
     src/Worker.cpp
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
 )
 slint_target_sources(settings ui/app.slint)
 
-target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res")
+target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
     SETTINGS_VERSION="${SHELL_VERSION}")
@@ -128,6 +133,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_status.cpp
         tests/test_onboarding.cpp
         tests/test_openwith.cpp
+        tests/test_presets.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -138,11 +144,12 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/PendingChanges.cpp
         src/Status.cpp
         src/ThemeModel.cpp
+        src/ThemePresets.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
     )
-    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest")
+    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}")
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}")
