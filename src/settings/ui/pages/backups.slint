@@ -231,6 +231,7 @@ export component BackupsPage inherits Rectangle {
                 text: "Open folder";
                 icon: Icons.folder;
                 icon-size: 16px;
+                colorize-icon: true;
                 enabled: BackupsState.available;
                 clicked => { BackupsState.open-folder(); }
             }
