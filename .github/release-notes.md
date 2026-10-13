@@ -2,7 +2,13 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
-## Fixed since 2.0.0-beta.1
+## New in this release
+
+- **A new look for the app:** a blue-tinted dark theme on #101823 (and a matching light theme), a refreshed sidebar, cards and controls on every page.
+- **Themes gallery** on the Appearance page: the original Nilesoft Shell example themes (Default, Shell 1.8, Acrylic, Gradient, Clear acrylic, Accent outline, Flat, Blue, Gray, Green, Yellow), previewed on your wallpaper and applied with one click.
+- **Open with:** add "Open with" items for VS Code, Zed, Cursor, Windsurf, Sublime Text, Notepad++, JetBrains IDEs, Visual Studio, Windows Terminal and more, detected automatically, plus your own apps.
+
+## Fixed since the betas
 
 - **No context menu after installing over an older manual install** (for example a copy in `C:\Windows\nilesoft`). Registering left one of Shell's COM entries pointing at the old DLL, so Explorer loaded two copies and showed no menu. Registering now repoints or removes stale entries (and `-register` no longer reads uninitialised options), a second copy in the same Explorer no longer hooks menus, and `shell -status` lists any `conflicts`. The app shows a warning with a one-click fix. Already affected? Installing this build repairs it; otherwise use *Fix* on the app's Home page, or [`scripts/repair-stale-registration.ps1`](https://github.com/Abdullah-Masood-05/Shell/blob/main/scripts/repair-stale-registration.ps1) `-Fix` as administrator.
 - **Taskbar menu showed only Terminal and Go To.** `this.count` counted every configured item instead of the menu's own Windows items, which hid the taskbar block (Apps, Windows, Desktop, Settings, Task Manager, Taskbar settings). Fixed.

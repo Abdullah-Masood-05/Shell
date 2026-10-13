@@ -30,8 +30,7 @@
 </p>
 
 Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
-or x86, or a portable zip that installs per user without administrator rights. Releases are marked as pre-releases
-until the per-user mode has been tested on more machines.
+or x86, or a portable zip that installs per user without administrator rights.
 
 ## What's different in Pro
 
