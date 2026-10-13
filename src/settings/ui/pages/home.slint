@@ -244,8 +244,9 @@ export component HomePage inherits PageFrame {
         ActionTile {
             horizontal-stretch: 1;
             icon: AppState.status.user-registered ? Icons.person-remove : Icons.person-add;
-            title: AppState.status.user-registered ? "Unregister for me" : "Register for me";
-            caption: AppState.status.user-registered ? "Remove it from your account" : "No administrator rights needed";
+            title: AppState.status.user-registered ? "Unregister for me" : AppState.status.machine-registered ? "Also register for me" : "Register for me";
+            // On top of the all-users registration, a per-user one takes priority over it.
+            caption: AppState.status.user-registered ? "Remove it from your account" : AppState.status.machine-registered ? "Overrides the all-users copy" : "No administrator rights needed";
             enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
             clicked => { AppState.action(AppState.status.user-registered ? "unregister-user" : "register-user"); }
         }

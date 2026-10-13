@@ -9,6 +9,7 @@
 #include <shellapi.h>
 #include <shlobj.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -228,12 +229,7 @@ void AppController::bindCallbacks()
             ShellExecuteW(nullptr, L"open", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     });
     state.on_open_path([this](slint::SharedString path) { openPath(std::string(path.data(), path.size())); });
-    state.on_dismiss_onboarding([this] {
-        const auto &st = ui_->global<AppState>();
-        st.set_onboarding_shown(false);
-        registry::app::set(L"OnboardingDismissed", 1);
-        registry::app::set(L"ClassicMenu", st.get_classic_menu_option() ? 1 : 0);
-    });
+    // The first-run dialog's callbacks are in OnboardingController.
     state.on_dismiss_toast([this] {
         toastTimer_.stop();
         ui_->global<AppState>().set_toast_shown(false);
@@ -388,9 +384,14 @@ void AppController::applySnapshot(Snapshot snap, bool quiet)
 
     if (firstStatus_) {
         firstStatus_ = false;
-        bool needsSetup = status_->configSource != "appdata" || status_->regMode == "none";
+        // A custom config path in the registry is the user's own config too.
+        bool ownConfig = status_->configSource == "appdata" || status_->configSource == "registry";
+        bool needsSetup = !ownConfig || status_->regMode == "none";
         bool dismissed = registry::app::get(L"OnboardingDismissed").value_or(0) != 0;
-        if (needsSetup && !dismissed && !options_.noOnboarding) {
+        if (options_.onboardingStep >= 0) {
+            state.set_onboarding_step(std::clamp(options_.onboardingStep, 0, 2));
+            state.set_onboarding_shown(true);
+        } else if (needsSetup && !dismissed && !options_.noOnboarding) {
             state.set_onboarding_step(0);
             state.set_onboarding_shown(true);
         }

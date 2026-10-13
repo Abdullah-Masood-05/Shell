@@ -216,8 +216,13 @@ std::string SaveService::originText(const std::string &key) const
 
 std::vector<std::string> SaveService::set(std::string_view key, std::string_view literal, std::string_view page)
 {
-    auto errors = pending_.set(key, literal, page);
-    if (errors.empty())
+    // The value already saved (this app's, else the files'): nothing to change, so drop
+    // a pending change instead of staging a no-op (e.g. clicking back to the theme in use).
+    auto o = origins(std::string(key));
+    const auto *saved = o.app ? o.app : o.file;
+    const bool wasPending = pending_.find(key) != nullptr;
+    auto errors = pending_.stage(key, literal, page, saved ? std::optional<std::string>(saved->value) : std::nullopt);
+    if (errors.empty() && (wasPending || pending_.find(key)))
         notifyChanged();
     return errors;
 }
@@ -321,7 +326,9 @@ void SaveService::save()
     if (saving_ || pending_.empty())
         return;
     if (!cli_.available()) {
-        setResult("error", "shell.exe was not found, so the config can't be checked before saving.");
+        const std::string text = "shell.exe was not found, so the config can't be checked before saving.";
+        setResult("error", text);
+        notifyResult({ false, false, text });
         return;
     }
     saving_ = true;
@@ -410,8 +417,10 @@ void SaveService::finish(Outcome outcome)
     if (outcome.needsUserConfig) {
         ui_->global<SaveState>().set_user_config_prompt(true);
         publish();
+        notifyResult({ false, true, {} });
         return;
     }
+    std::string text;
     if (outcome.ok) {
         // Drop what was saved, unless it was edited again while saving.
         for (const auto &[key, change] : outcome.saved) {
@@ -419,15 +428,15 @@ void SaveService::finish(Outcome outcome)
             if (now && now->literal == change.literal)
                 pending_.forget(key);
         }
-        setResult("ok", outcome.nothingToDo ? "Nothing to save · the files already match"
-                                            : "Saved · Shell reloads on next right-click");
+        text = outcome.nothingToDo ? "Nothing to save · the files already match" : "Saved · Shell reloads on next right-click";
     } else if (outcome.rolledBack) {
-        setResult("error", "Shell rejected the config, rolled back: " + outcome.message);
+        text = "Shell rejected the config, rolled back: " + outcome.message;
     } else if (outcome.rejected) {
-        setResult("error", "Shell rejected the config, nothing was written: " + outcome.message);
+        text = "Shell rejected the config, nothing was written: " + outcome.message;
     } else {
-        setResult("error", "Not saved: " + outcome.message);
+        text = "Not saved: " + outcome.message;
     }
+    setResult(outcome.ok ? "ok" : "error", text);
     publish();
     for (auto &fn : changed_)
         fn();
@@ -436,6 +445,15 @@ void SaveService::finish(Outcome outcome)
             fn();
         reloadConfig();
     }
+    notifyResult({ outcome.ok, false, text });
+}
+
+void SaveService::notifyResult(const Result &result)
+{
+    // A listener may add listeners; iterate over a copy.
+    auto listeners = result_;
+    for (auto &fn : listeners)
+        fn(result);
 }
 
 void SaveService::createUserConfig()
@@ -450,13 +468,27 @@ void SaveService::createUserConfig()
     worker_.post([this] {
         auto r = cli_.run({ L"-config:init" }, 30000);
         bool ok = r.ok();
-        std::string err = ok ? std::string{} : (r.started ? r.output : narrow(r.error));
+        std::string err;
+        if (!ok) {
+            // shell.exe prints {"error": "..."} on failure; show the message, not the JSON.
+            auto j = nlohmann::json::parse(r.output, nullptr, false);
+            if (j.is_object() && j.contains("error") && j["error"].is_string())
+                err = j["error"].get<std::string>();
+            else if (!r.started)
+                err = narrow(r.error);
+            else if (r.timedOut)
+                err = "shell.exe did not finish in time.";
+            else
+                err = r.output.empty() ? "shell.exe exited with code " + std::to_string(long(r.exitCode)) + "."
+                                       : r.output;
+        }
         slint::invoke_from_event_loop([this, ok, err] {
             saving_ = false;
             ui_->global<AppState>().invoke_refresh(); // Home shows the new source
             if (!ok) {
                 setResult("error", "Couldn't create the personal config: " + err);
                 publish();
+                notifyResult({ false, false, "Couldn't create the personal config: " + err });
                 return;
             }
             publish();

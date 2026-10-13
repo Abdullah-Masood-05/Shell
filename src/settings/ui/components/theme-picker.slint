@@ -1,0 +1,160 @@
+// The five theme cards (Auto, Modern, Classic, White, Black), each a real mini
+// menu drawn with that theme over the wallpaper. Used by the Appearance page and
+// the first-run dialog. One radio group: Tab focuses it, the arrow keys move the
+// selection, a click picks a card.
+
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { PreviewTheme } from "../preview/preview-types.slint";
+import { MiniMenu } from "../preview/menu-preview.slint";
+import { AppearanceState } from "../pages/appearance-state.slint";
+
+component ThemeCard inherits Rectangle {
+    in property <string> label;
+    in property <PreviewTheme> t;
+    in property <bool> selected;
+    in property <bool> enabled: true;
+    in property <bool> focused;     // the group has keyboard focus and this is its current card
+    callback clicked;
+
+    height: 112px;
+    border-radius: Tokens.radius-card;
+    border-width: root.selected || root.focused ? 2px : 1px;
+    border-color: root.focused ? Tokens.focus-ring : root.selected ? Tokens.accent : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+    background: Tokens.layer-2;
+    opacity: root.enabled ? 1 : 0.6;
+    accessible-role: radio-button;
+    accessible-label: root.label;
+    accessible-checked: root.selected;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+
+    VerticalLayout {
+        padding: 5px;
+        spacing: 5px;
+        Rectangle {
+            height: 78px;
+            border-radius: 5px;
+            clip: true;
+            Image {
+                width: 100%;
+                height: 100%;
+                source: AppearanceState.wallpaper;
+                image-fit: cover;
+            }
+            MiniMenu {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                t: root.t;
+                icon-font: AppearanceState.icon-font;
+                blurred: AppearanceState.wallpaper-blurred;
+            }
+        }
+        HorizontalLayout {
+            padding-left: 4px;
+            padding-right: 2px;
+            Text {
+                horizontal-stretch: 1;
+                text: root.label;
+                font-size: 13px;
+                font-weight: root.selected ? 600 : 400;
+                color: Tokens.text;
+                vertical-alignment: center;
+            }
+            if root.selected: Image {
+                source: Icons.ok;
+                width: 14px;
+                height: 14px;
+                y: (parent.height - self.height) / 2;
+                colorize: Tokens.accent;
+            }
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => { root.clicked(); }
+    }
+}
+
+export component ThemePicker inherits FocusScope {
+    // `enabled` (FocusScope's own): false greys the cards out and takes them out of the tab order.
+    in property <int> selected;          // 0 auto .. 4 black
+    in property <bool> one-row;          // five in a row; else three and two
+    callback picked(index: int);
+
+    property <[string]> names: ["Auto", "Modern", "Classic", "White", "Black"];
+    // Keyboard position: the selection, or the first card when nothing is selected.
+    property <int> cursor: root.selected >= 0 && root.selected < 5 ? root.selected : 0;
+
+    accessible-role: groupbox;
+    accessible-label: "Theme";
+
+    function pick(i: int) {
+        if (root.enabled && i >= 0 && i < 5) {
+            root.picked(i);
+        }
+    }
+
+    key-pressed(event) => {
+        if (event.text == Key.LeftArrow || event.text == Key.UpArrow) {
+            root.pick(root.cursor - 1);
+            return accept;
+        }
+        if (event.text == Key.RightArrow || event.text == Key.DownArrow) {
+            root.pick(root.cursor + 1);
+            return accept;
+        }
+        if (event.text == Key.Home) {
+            root.pick(0);
+            return accept;
+        }
+        if (event.text == Key.End) {
+            root.pick(4);
+            return accept;
+        }
+        if (event.text == " " || event.text == Key.Return) {
+            root.pick(root.cursor);
+            return accept;
+        }
+        return reject;
+    }
+
+    VerticalLayout {
+        spacing: Tokens.s2;
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            for i in (root.one-row ? 5 : 3): ThemeCard {
+                horizontal-stretch: 1;
+                label: root.names[i];
+                t: AppearanceState.card-themes[i];
+                selected: root.selected == i;
+                enabled: root.enabled;
+                focused: root.has-focus && root.cursor == i;
+                clicked => {
+                    root.focus();
+                    root.pick(i);
+                }
+            }
+        }
+        if !root.one-row: HorizontalLayout {
+            spacing: Tokens.s2;
+            for i in 2: ThemeCard {
+                horizontal-stretch: 1;
+                label: root.names[i + 3];
+                t: AppearanceState.card-themes[i + 3];
+                selected: root.selected == i + 3;
+                enabled: root.enabled;
+                focused: root.has-focus && root.cursor == i + 3;
+                clicked => {
+                    root.focus();
+                    root.pick(i + 3);
+                }
+            }
+            // Keeps the second row's cards the size of the first row's.
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+        }
+    }
+}
