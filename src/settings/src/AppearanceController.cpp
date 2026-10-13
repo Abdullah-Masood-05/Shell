@@ -156,6 +156,12 @@ PreviewTheme toPreview(const theme::Resolved &r)
     p.effect = r.effect;
     p.background = argb(r.background);
     p.tint = argb(r.tint);
+    p.gradient = r.gradient;
+    p.gradient_radial = r.gradientRadial;
+    p.gradient_angle = float(r.gradientAngle);
+    p.gradient_0 = argb(theme::gradientAt(r, 0.0));
+    p.gradient_1 = argb(theme::gradientAt(r, 0.5));
+    p.gradient_2 = argb(theme::gradientAt(r, 1.0));
     p.border_size = float(r.borderSize) * s;
     p.border_color = argb(r.borderColor);
     p.radius = float(r.borderRadius) * s;
