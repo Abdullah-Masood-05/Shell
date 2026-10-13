@@ -18,7 +18,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 ## Pages
 - **Home:** health card (registration none/user/machine/both, TreatAs state ours/foreign/absent, DLL path, versions). Active config card (path and where it comes from, "use per-user config"). Diagnostics from the end of `shell.log`, linked to the editor. Quick actions.
 - **Onboarding** (first run): 1) `-config:init` 2) `-register -user` 3) pick a look, then restart Explorer.
-- **Appearance:** theme cards; dark mode auto/on/off; density; background (color, hex, eyedropper, opacity, effect plus tint); font, size, weight; radius as a 5-step control; border; shadow; an Advanced expander. Live preview with Desktop/Explorer and Light/Dark toggles. Overridden keys show a "reset" dot.
+- **Appearance:** a Themes gallery on top (the original project's example themes from `src/settings/presets/themes`, one card each: the wallpaper with a mini menu in that theme, name, tags, an Active badge, and a "…" menu with Apply and Export to clipboard; Apply stages the keys as pending changes, asking first when it replaces theme settings changed in the app); theme cards; dark mode auto/on/off; density; background (color, hex, eyedropper, opacity, effect plus tint); font, size, weight; radius as a 5-step control; border; shadow; an Advanced expander. Live preview with Desktop/Explorer and Light/Dark toggles. Overridden keys show a "reset" dot.
 - **Behavior:** the `settings{}` block (priority, showdelay, tip, screenshot, modify.*, new.*).
 - **Rules & Filters:** an `exclude.*` builder plus a raw expression box.
 - **Context Menus:** import-module toggles and a list of `modify(find=...)` rules (hide, move, rename).
@@ -45,6 +45,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 `PreviewTheme` is computed by `ThemeModel::resolve()` from a copy of the defaults table in `Theme::Default()`, the accent color in `HKCU\...\DWM\AccentColor`, and `AppsUseLightTheme`.
 - **Items:** Slint Rectangles and Text using the Segoe Fluent Icons system font, with the codepoints from images.nss.
 - **Background:** the real wallpaper (`SPI_GETDESKWALLPAPER`), shrunk and blurred for the blur effect, with tint and noise added for acrylic.
+- **Gradient:** `theme.background.gradient` is sampled at its start, middle and end and drawn as a linear (or centred radial) gradient over the background.
 - **Caption:** "Approximate; right-click the desktop to see the real menu".
 
 ## Architecture (`src/settings/src`)
