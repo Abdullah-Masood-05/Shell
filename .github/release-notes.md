@@ -58,6 +58,16 @@ Be careful with this build on a machine you depend on.
 - If both the MSI (all users) and a per-user registration exist, the per-user one wins for that user.
 - `settings.exe` is x64 only; there is no 32-bit Settings app.
 
+## Known issues / upgrading from a manual install
+
+If Nilesoft Shell was installed by hand before (for example copied to `C:\Windows\nilesoft` and registered from there), 2.0.0-beta.1 left one of the old registrations in place: the folder-extensions class `{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}` kept pointing at the old `shell.dll`. Explorer then loads both DLLs and right-click shows **no menu at all**, even though `shell.exe -status` reports Shell as registered.
+
+- **This release repairs it during setup.** The MSI runs `shell.exe -register`, which now repoints or removes every Shell CLSID (context menu, icon overlay, folder extensions) that names a different `shell.dll`, and logs each repair. `-unregister` removes all three and their `FolderExtensions` / overlay entries. The old files are not deleted; they just stop being registered. Restart Explorer (or sign out and back in) afterwards so the old DLL is unloaded.
+- **Already affected?** Run `scripts\repair-stale-registration.ps1` to see what is stale, then the same with `-Fix` from an elevated PowerShell (`-Fix -WhatIf` previews), and restart Explorer.
+- `shell.exe -status` now lists stale registrations under `"conflicts"`, the Nilesoft `shell.dll` files loaded in Explorer under `"loadedInExplorer"`, and the log file under `"log"`.
+- A second copy of `shell.dll` in the same process no longer installs its hooks a second time; it logs a warning instead. (An old upstream DLL loaded first keeps the menu until the registration is repaired.)
+- `shell.dll` installed in Program Files cannot write `shell.log` next to itself from Explorer, so it now logs to `%LOCALAPPDATA%\Nilesoft\Shell\shell.log`. The Settings app reads that file.
+
 Report problems at https://github.com/Abdullah-Masood-05/Shell/issues and include the output of `shell.exe -status`.
 
 ## Credits

@@ -278,6 +278,14 @@
 		<CustomAction Id='OnRestoreConfigData' Property='OnRestoreConfig' Value='[INSTALLFOLDER]' />
 		<CustomAction Id='OnRestoreConfig' Execute='deferred' Impersonate='no' Return='ignore'
 					  BinaryRef='CA' DllEntry='RestoreConfig' />
+		<!--
+			Install runs "shell.exe -r -s -t -restart". Registering also repairs stale
+			registrations (RegistryConfig::RepairStale): any of Shell's three CLSIDs
+			still naming another shell.dll, e.g. a manual install in
+			C:\Windows\nilesoft, is repointed to this one or removed together with its
+			Drive\shellex\FolderExtensions / overlay entry. The old files are left on
+			disk. Without this, Explorer loaded both DLLs and showed no menu at all.
+		-->
 		<CustomAction Id='OnInstall' Return='ignore' BinaryRef='CA' DllEntry='Install' />
 		<CustomAction Id='OnUninstall' Execute='firstSequence' Return='asyncWait' BinaryRef='CA' DllEntry='Uninstall' />
 		

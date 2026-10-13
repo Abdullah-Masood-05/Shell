@@ -197,6 +197,156 @@ namespace Nilesoft
 				return path.move();
 			}
 
+			/*
+				Stale registrations.
+
+				Shell registers up to three CLSIDs, all served by shell.dll:
+				  {...BAF1} context menu, {...BAF2} icon overlay, and {...BAF3}
+				  folder extensions (Drive\shellex\FolderExtensions; machine only,
+				  and not written by current builds).
+				Explorer loads the DLL each of them names. When one still names an
+				older copy (a manual install in C:\Windows\nilesoft, an earlier
+				install folder), Explorer maps two shell.dll files, both hook the
+				same menu functions, and no menu appears at all. Register() used to
+				rewrite only the roles it was asked for, so a stale {...BAF3} from a
+				manual upstream install survived every reinstall.
+			*/
+			struct Role
+			{
+				const wchar_t *clsid;
+				const wchar_t *name;	// as reported by shell -status
+				bool REGOP:: *flag;		// the REGOP switch that registers it
+			};
+
+			static constexpr Role Roles[] =
+			{
+				{ CLS_ContextMenu, L"contextMenu", &REGOP::CONTEXTMENU },
+				{ CLS_IconOverlay, L"iconOverlay", &REGOP::ICONOVERLAY },
+				{ CLS_FolderExtensions, L"folderExtensions", &REGOP::FOLDEREXTENSIONS },
+			};
+
+			// The InprocServer32 of `clsid` below `classes` ("Software\Classes",
+			// or its WOW6432Node), REG_SZ or REG_EXPAND_SZ, expanded and unquoted.
+			// Empty if there is none. Always read in the 64-bit view
+			// (RRF_SUBKEY_WOW6464KEY); WOW6432Node is addressed by name.
+			static string ServerPath(HKEY root, const wchar_t *classes, const wchar_t *clsid)
+			{
+				string subkey = classes;
+				subkey += L"\\CLSID\\";
+				subkey += clsid;
+				subkey += L"\\InprocServer32";
+
+				wchar_t raw[MAX_PATH * 2]{};
+				DWORD bytes = sizeof(raw) - sizeof(wchar_t);
+				if(ERROR_SUCCESS != ::RegGetValueW(root, subkey, nullptr,
+												   RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND | RRF_SUBKEY_WOW6464KEY,
+												   nullptr, raw, &bytes))
+					return {};
+
+				wchar_t expanded[MAX_PATH * 2]{};
+				auto n = ::ExpandEnvironmentStringsW(raw, expanded, static_cast<DWORD>(std::size(expanded)));
+				string path = (n > 0 && n <= std::size(expanded)) ? expanded : raw;
+				path.trim(L" \t\"");
+				return path.move();
+			}
+
+			static string ServerPath(RegScope scope, const wchar_t *clsid)
+			{
+				return ServerPath(Root(scope), L"Software\\Classes", clsid).move();
+			}
+
+			// Whether two paths name the same file: compared as text first, then,
+			// when both exist, by volume and file index, so 8.3 names, case and
+			// links do not make the one install look like two.
+			static bool SameFile(const wchar_t *a, const wchar_t *b)
+			{
+				if(!a || !b || !*a || !*b)
+					return false;
+				if(::CompareStringOrdinal(a, -1, b, -1, TRUE) == CSTR_EQUAL)
+					return true;
+
+				auto identity = [](const wchar_t *path, BY_HANDLE_FILE_INFORMATION &info)
+				{
+					auto h = ::CreateFileW(path, FILE_READ_ATTRIBUTES,
+										   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+										   nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+					if(h == INVALID_HANDLE_VALUE)
+						return false;
+					auto ok = ::GetFileInformationByHandle(h, &info) != FALSE;
+					::CloseHandle(h);
+					return ok;
+				};
+
+				BY_HANDLE_FILE_INFORMATION ia{}, ib{};
+				return identity(a, ia) && identity(b, ib) &&
+					ia.dwVolumeSerialNumber == ib.dwVolumeSerialNumber &&
+					ia.nFileIndexHigh == ib.nFileIndexHigh &&
+					ia.nFileIndexLow == ib.nFileIndexLow;
+			}
+
+			// Deletes one role's CLSID and the entries that make Explorer load it,
+			// in one store. Used for a stale role this registration does not
+			// rewrite, and by Unregister()/UnregisterUser().
+			static int RemoveRole(RegScope scope, const wchar_t *clsid)
+			{
+				auto root = Root(scope);
+				int ret = 0;
+				if(::CompareStringOrdinal(clsid, -1, CLS_FolderExtensions, -1, TRUE) == CSTR_EQUAL)
+				{
+					ret += DeleteTree(root, HKLM_DRIVE_FolderExtensions);
+				}
+				else if(::CompareStringOrdinal(clsid, -1, CLS_IconOverlay, -1, TRUE) == CSTR_EQUAL)
+				{
+					// Ours by name; only removed while it still names our CLSID.
+					string value;
+					if(GetString(root, HKLM_ICONOVERLAY, nullptr, value) && value.equals(CLS_IconOverlay))
+						ret += DeleteTree(root, HKLM_ICONOVERLAY);
+				}
+				else
+				{
+					ret += DeleteValue(root, HKLM_APPROVED, CLS_ContextMenu);
+					ret += RegisterContextMenuHandler(scope, false);
+				}
+				ret += DeleteTree(root, ClsidKey(clsid));
+				return ret;
+			}
+
+			/*
+				Called by Register() and RegisterUser() before they write. For each
+				of our CLSIDs in `scope` whose InprocServer32 names a DLL other than
+				`dllPath`: a role this registration writes is simply overwritten
+				(logged as repointed); any other is removed with its
+				FolderExtensions / overlay entry. Every repair is logged. Returns the
+				number of repairs.
+			*/
+			static int RepairStale(RegScope scope, const wchar_t *dllPath, const REGOP &reg)
+			{
+				int repaired = 0;
+				for(const auto &role : Roles)
+				{
+					auto current = ServerPath(scope, role.clsid).move();
+					if(current.empty() || SameFile(current, dllPath))
+						continue;
+
+					if(reg.*role.flag)
+					{
+						Logger::Info(L"Registration repair (%s): %s %s pointed at '%s'; repointing it to '%s'.",
+									 scope == RegScope::Machine ? L"machine" : L"user",
+									 role.name, role.clsid, current.c_str(), dllPath);
+					}
+					else
+					{
+						RemoveRole(scope, role.clsid);
+						Logger::Warning(L"Registration repair (%s): removed stale %s %s, which pointed at '%s' "
+										L"instead of '%s'. Restart Explorer to unload the old DLL.",
+										scope == RegScope::Machine ? L"machine" : L"user",
+										role.name, role.clsid, current.c_str(), dllPath);
+					}
+					repaired++;
+				}
+				return repaired;
+			}
+
 			static bool IsHKCR(const string &key)
 			{
 				return Registry::Exists(HKCR, L"CLSID\\" + key);
@@ -244,6 +394,10 @@ namespace Nilesoft
 
 				constexpr auto scope = RegScope::Machine;
 				int ret = 0;
+
+				// Before writing: roles registered to another copy of shell.dll
+				// are repointed (by the writes below) or removed.
+				RepairStale(scope, dllPath, reg);
 
 				if(reg.FOLDEREXTENSIONS)
 				{
@@ -310,6 +464,12 @@ namespace Nilesoft
 
 				constexpr auto scope = RegScope::User;
 
+				// Only the context menu is registered per user; an icon overlay
+				// or folder extension CLSID in HKCU naming another DLL is removed.
+				REGOP user{};
+				user.CONTEXTMENU = true;
+				RepairStale(scope, dllPath, user);
+
 				if(!RegisterInprocServer(scope, dllPath, CLS_ContextMenu, APP_COMP_NAME))
 					return false;
 
@@ -334,8 +494,12 @@ namespace Nilesoft
 				auto root = Root(scope);
 				int ret = 0;
 
+				// All three CLSIDs and the entries that load them go, whichever of
+				// them this build registered and whichever DLL they name: a
+				// FolderExtensions entry left behind keeps an old shell.dll
+				// loading into Explorer.
 				ret += DeleteTree(root, ClsidKey(CLS_FolderExtensions));
-				//ret += Registry::DeleteSubKey(HKLM, HKLM_DRIVE_FolderExtensions);
+				ret += DeleteTree(root, HKLM_DRIVE_FolderExtensions);
 
 				ret += Registry::DeleteSubKey(HKLM, HKLM_ICONOVERLAY);
 				// unregister COM-object Delete the CLSID\{<CLSID>} key.
@@ -366,6 +530,10 @@ namespace Nilesoft
 				ret += DeleteValue(HKEY_CURRENT_USER, HKLM_APPROVED, CLS_ContextMenu);
 				ret += DeleteTree(Root(scope), ClsidKey(CLS_ContextMenu));
 				ret += RegisterContextMenuHandler(scope, false);
+				// Never written per user by this build, but an HKCU copy of
+				// either would shadow the machine one for this user.
+				RemoveRole(scope, CLS_IconOverlay);
+				RemoveRole(scope, CLS_FolderExtensions);
 				UnregisterNss(scope);
 				return ret > 0;
 			}

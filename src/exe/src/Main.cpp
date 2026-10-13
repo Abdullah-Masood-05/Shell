@@ -650,7 +650,9 @@ bool Registration(REGOP reg)
 			{
 				//logger->create();
 
-				REGOP regop;
+				// Zero-initialised: FOLDEREXTENSIONS used to be left indeterminate
+				// here, so whether {...BAF3} was (re)written depended on the stack.
+				REGOP regop{};
 				regop.CONTEXTMENU = regop.ICONOVERLAY = true;
 
 				if(!RegistryConfig::Register(dll_path, regop))
@@ -1354,11 +1356,128 @@ namespace ConfigCommand
 	    "exists": bool,
 	    "registryValue": "<HKCU config value, rooted>" | null
 	  },
-	  "userConfigDir": "%APPDATA%\\Nilesoft\\Shell" (expanded) | null
+	  "userConfigDir": "%APPDATA%\\Nilesoft\\Shell" (expanded) | null,
+	  "conflicts": [                   // our CLSIDs naming a DLL other than installDir\shell.dll
+	    { "clsid": "{BAE3934B-...-3FC599A1BAF3}",
+	      "role": "contextMenu" | "iconOverlay" | "folderExtensions",
+	      "scope": "machine" | "user" | "machineWow64" | "userWow64",
+	      "dll": "c:\\windows\\nilesoft\\shell.dll", "exists": bool }
+	  ],
+	  "loadedInExplorer": [            // Nilesoft shell.dll files mapped into explorer.exe
+	    { "path": "...\\shell.dll", "ours": bool }
+	  ],
+	  "log": { "path": "<the shell.log shell.dll writes>", "exists": bool }
 	}
 */
 namespace StatusCommand
 {
+	struct ClassesStore
+	{
+		HKEY root;
+		const wchar_t *classes;
+		const wchar_t *scope;
+	};
+
+	// Every store Explorer (or a 32-bit process) could resolve our CLSIDs from.
+	// const, not constexpr: HKEY_LOCAL_MACHINE is a reinterpret_cast.
+	static const ClassesStore classes_stores[] =
+	{
+		{ HKEY_LOCAL_MACHINE, L"Software\\Classes", L"machine" },
+		{ HKEY_CURRENT_USER, L"Software\\Classes", L"user" },
+		{ HKEY_LOCAL_MACHINE, L"Software\\Classes\\WOW6432Node", L"machineWow64" },
+		{ HKEY_CURRENT_USER, L"Software\\Classes\\WOW6432Node", L"userWow64" },
+	};
+
+	// "conflicts": registrations of our CLSIDs that name another shell.dll.
+	// Each one makes Explorer load a second copy next to (or instead of) ours.
+	static string conflicts(const string &dll_path)
+	{
+		string items;
+		for(const auto &store : classes_stores)
+		{
+			for(const auto &role : RegistryConfig::Roles)
+			{
+				auto server = RegistryConfig::ServerPath(store.root, store.classes, role.clsid).move();
+				if(server.empty() || RegistryConfig::SameFile(server, dll_path))
+					continue;
+
+				items += items.empty() ? L"\r\n    { \"clsid\": " : L",\r\n    { \"clsid\": ";
+				json_quote(items, role.clsid);
+				items += L", \"role\": ";
+				json_quote(items, role.name);
+				items += L", \"scope\": ";
+				json_quote(items, store.scope);
+				items += L", \"dll\": ";
+				json_quote(items, server);
+				items += L", \"exists\": ";
+				items += json_bool(ConfigLocation::IsFile(server));
+				items += L" }";
+			}
+		}
+		return items.empty() ? string(L"[]") : (L"[" + items + L"\r\n  ]").move();
+	}
+
+	// "loadedInExplorer": the Nilesoft shell.dll files mapped into any
+	// explorer.exe of this session, read from a Toolhelp module snapshot.
+	// Read-only; Explorer is never touched. An explorer.exe that cannot be
+	// opened (another user's) is skipped.
+	static string loaded_in_explorer(const string &dll_path)
+	{
+		std::vector<string> paths;
+
+		auto processes = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if(processes != INVALID_HANDLE_VALUE)
+		{
+			PROCESSENTRY32W pe{ sizeof(pe) };
+			for(auto more = ::Process32FirstW(processes, &pe); more; more = ::Process32NextW(processes, &pe))
+			{
+				if(::CompareStringOrdinal(pe.szExeFile, -1, L"explorer.exe", -1, TRUE) != CSTR_EQUAL)
+					continue;
+
+				// May fail with ERROR_BAD_LENGTH while modules are loading; once more.
+				auto modules = ::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pe.th32ProcessID);
+				if(modules == INVALID_HANDLE_VALUE && ::GetLastError() == ERROR_BAD_LENGTH)
+					modules = ::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pe.th32ProcessID);
+				if(modules == INVALID_HANDLE_VALUE)
+					continue;
+
+				MODULEENTRY32W me{ sizeof(me) };
+				for(auto m = ::Module32FirstW(modules, &me); m; m = ::Module32NextW(modules, &me))
+				{
+					if(::CompareStringOrdinal(me.szModule, -1, dll_name, -1, TRUE) != CSTR_EQUAL)
+						continue;
+
+					bool seen = false;
+					for(const auto &known : paths)
+						seen |= ::CompareStringOrdinal(known, -1, me.szExePath, -1, TRUE) == CSTR_EQUAL;
+					if(seen)
+						continue;
+
+					auto image = ::LoadLibraryExW(me.szExePath, nullptr,
+												  LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					auto nilesoft = IsNilesoftModule(image);
+					if(image)
+						::FreeLibrary(image);
+					if(nilesoft)
+						paths.emplace_back(me.szExePath);
+				}
+				::CloseHandle(modules);
+			}
+			::CloseHandle(processes);
+		}
+
+		string items;
+		for(const auto &loaded : paths)
+		{
+			items += items.empty() ? L"\r\n    { \"path\": " : L",\r\n    { \"path\": ";
+			json_quote(items, loaded);
+			items += L", \"ours\": ";
+			items += json_bool(RegistryConfig::SameFile(loaded, dll_path));
+			items += L" }";
+		}
+		return items.empty() ? string(L"[]") : (L"[" + items + L"\r\n  ]").move();
+	}
+
 	static const wchar_t *state_name(TreatAsState state)
 	{
 		switch(state)
@@ -1450,6 +1569,19 @@ namespace StatusCommand
 
 		json += L",\r\n  \"userConfigDir\": ";
 		json_quote_or_null(json, user_dir);
+
+		json += L",\r\n  \"conflicts\": ";
+		json += conflicts(dll_path);
+		json += L",\r\n  \"loadedInExplorer\": ";
+		json += loaded_in_explorer(dll_path);
+
+		// Where shell.dll, running as this user, writes its log.
+		auto log_path = Logger::ResolvePath(dll_path, false).move();
+		json += L",\r\n  \"log\": { \"path\": ";
+		json_quote(json, log_path);
+		json += L", \"exists\": ";
+		json += json_bool(ConfigLocation::IsFile(log_path));
+		json += L" }";
 		json += L"\r\n}";
 		return json.move();
 	}

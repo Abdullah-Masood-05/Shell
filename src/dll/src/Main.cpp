@@ -933,7 +933,142 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	return ::DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-//integrate 
+/*
+	One set of hooks per process.
+
+	A stale registration (say {...BAF3} still naming C:\Windows\nilesoft\shell.dll
+	after an install in Program Files) maps two copies of shell.dll into
+	Explorer. Each one detours CoCreateInstance and patches TrackPopupMenu(Ex)
+	in every module, and with both in place no context menu appears at all.
+	The hook logic itself is unchanged; this only decides, in DllMain, whether
+	this copy installs it:
+
+	  1. A copy that is not the one {...BAF1} resolves to (HKCR, as Explorer
+	     sees it) stands down, when that registered file exists. Not applied in
+	     shell.exe, which loads its own shell.dll whatever is registered.
+	  2. A Nilesoft shell.dll that predates this guard (no HookGuard export) is
+	     already mapped: it hooked in its own DllMain, so this copy stands down.
+	  3. Copies with this guard agree through a per-process named section,
+	     Local\NilesoftShell.Hooks.<pid>: whoever creates it hooks and writes
+	     its path there; a later copy finds it, logs the owner and stands down.
+	     If the section cannot be created at all, first come hooks.
+
+	A copy that stands down logs why, declines DllGetClassObject and leaves
+	unhooking alone on detach.
+*/
+namespace hook_guard
+{
+	bool owner = false;
+	HANDLE section{};
+	constexpr DWORD section_size = MAX_PATH * 2 * sizeof(wchar_t);
+
+	// Exported (Shell.def): marks a shell.dll that follows rule 3.
+	extern "C" UINT __stdcall HookGuard() { return 1; }
+
+	static bool same_name(const wchar_t *path, const wchar_t *name)
+	{
+		auto slash = ::wcsrchr(path, L'\\');
+		return ::CompareStringOrdinal(slash ? slash + 1 : path, -1, name, -1, TRUE) == CSTR_EQUAL;
+	}
+
+	// Rule 1: the DLL {...BAF1} resolves to, in this process's registry view;
+	// empty if it is not registered or the file is missing (undeterminable).
+	static string registered_path()
+	{
+		wchar_t path[MAX_PATH * 2]{};
+		DWORD bytes = sizeof(path) - sizeof(wchar_t);
+		if(ERROR_SUCCESS != ::RegGetValueW(HKEY_CLASSES_ROOT, L"CLSID\\" CLS_ContextMenu L"\\InprocServer32",
+										   nullptr, RRF_RT_REG_SZ, nullptr, path, &bytes))
+			return {};
+		string value = path;
+		value.trim(L" \t\"");
+		auto attr = ::GetFileAttributesW(value.c_str());
+		if(attr == INVALID_FILE_ATTRIBUTES || (attr & FILE_ATTRIBUTE_DIRECTORY))
+			return {};
+		return value.move();
+	}
+
+	// Rule 2: another Nilesoft shell.dll without the HookGuard export.
+	static string legacy_instance()
+	{
+		for(auto module : Process::Modules(::GetCurrentProcess()))
+		{
+			if(module == _hInstance)
+				continue;
+			wchar_t path[MAX_PATH * 2]{};
+			if(!::GetModuleFileNameW(module, path, MAX_PATH * 2) || !same_name(path, L"shell.dll"))
+				continue;
+			if(!::GetProcAddress(module, "DllGetClassObject") || ::GetProcAddress(module, "HookGuard"))
+				continue;
+			if(IsNilesoftModule(module))
+				return path;
+		}
+		return {};
+	}
+
+	// True if this copy is to install the hooks.
+	static bool acquire()
+	{
+		auto self = Path::Module(_hInstance).move();
+
+		if(!_loader.path.ends_with(L"\\shell.exe"))
+		{
+			auto registered = registered_path().move();
+			if(!registered.empty() && !RegistryConfig::SameFile(registered, self))
+			{
+				_log.warning(L"Not hooking in %s (pid %lu): this shell.dll ('%s') is not the registered one ('%s'). "
+							 L"A stale registration loads it; run 'shell -status' and see \"conflicts\".",
+							 _loader.path.c_str(), ::GetCurrentProcessId(), self.c_str(), registered.c_str());
+				return false;
+			}
+		}
+
+		if(auto legacy = legacy_instance().move(); !legacy.empty())
+		{
+			_log.warning(L"Not hooking in %s (pid %lu): an older Nilesoft shell.dll ('%s') is already loaded and hooked. "
+						 L"Remove its registration (shell -status lists it under \"conflicts\") and restart Explorer.",
+						 _loader.path.c_str(), ::GetCurrentProcessId(), legacy.c_str());
+			return false;
+		}
+
+		wchar_t name[64]{};
+		::swprintf_s(name, L"Local\\NilesoftShell.Hooks.%lu", ::GetCurrentProcessId());
+		section = ::CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, section_size, name);
+		if(!section)
+			return true;	// cannot tell: first come hooks
+
+		const bool existed = ::GetLastError() == ERROR_ALREADY_EXISTS;
+		auto view = static_cast<wchar_t *>(::MapViewOfFile(section, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, section_size));
+		if(!existed)
+		{
+			if(view)
+				::wcsncpy_s(view, section_size / sizeof(wchar_t), self.c_str(), _TRUNCATE);
+			if(view)
+				::UnmapViewOfFile(view);
+			return true;
+		}
+
+		string other = view ? view : L"";
+		if(view)
+			::UnmapViewOfFile(view);
+		::CloseHandle(section);
+		section = nullptr;
+
+		_log.warning(L"Not hooking in %s (pid %lu): another Nilesoft shell.dll ('%s') already hooked this process; "
+					 L"this one is '%s'.",
+					 _loader.path.c_str(), ::GetCurrentProcessId(), other.c_str(), self.c_str());
+		return false;
+	}
+
+	static void release()
+	{
+		if(section)
+			::CloseHandle(section);
+		section = nullptr;
+	}
+}
+
+//integrate
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 {
 	try
@@ -998,6 +1133,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 				_initializer.process.handle = ::GetCurrentProcess();
 
 				//_log.info(L"%s", _initializer.process.name.c_str());
+
+				// Another copy of shell.dll already hooks this process (or will,
+				// being the registered one): see hook_guard.
+				hook_guard::owner = hook_guard::acquire();
+				if(!hook_guard::owner)
+					return TRUE;
 
 				ContextMenu::RegisterLayer();
 
@@ -1104,7 +1245,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 		}
 		else if(dwReason == DLL_PROCESS_DETACH)
 		{
-			if(!is_registered())
+			// A copy that stood down (hook_guard) installed nothing to remove.
+			if(hook_guard::owner && !is_registered())
 			{
 				if(_loader.explorer)
 				{
@@ -1133,6 +1275,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 			}
 
 			taskbar_t::_IUIAutomation.release();
+			hook_guard::release();
 
 			_log.close();
 
@@ -1170,6 +1313,10 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 			return hr;
 
 		if(Initializer::Status.Disabled)
+			return hr;
+
+		// Without the hooks this copy cannot show anything; the owner does.
+		if(!hook_guard::owner)
 			return hr;
 
 		if(!is_registered())
@@ -1344,7 +1491,7 @@ HRESULT Register(bool reg)
 		if(reg)
 		{
 			//_log.create();
-			REGOP regop;
+			REGOP regop{};
 			regop.REGISTER = regop.CONTEXTMENU = regop.ICONOVERLAY = true;
 
 			if(!RegistryConfig::Register(path, regop))

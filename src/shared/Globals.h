@@ -171,6 +171,34 @@ namespace Nilesoft
 #endif
 	}
 
+	// Whether a module (loaded, or mapped as a data file or image resource)
+	// carries Nilesoft's version resource: CompanyName "Nilesoft" in every
+	// shell.dll, upstream builds included. Scans the raw VS_VERSIONINFO block
+	// (WORD-aligned UTF-16), so it needs no version.dll and can run under the
+	// loader lock.
+	inline bool IsNilesoftModule(HMODULE module)
+	{
+		if(!module)
+			return false;
+		auto res = ::FindResourceW(module, MAKEINTRESOURCEW(1), RT_VERSION);
+		if(!res)
+			return false;
+		auto size = ::SizeofResource(module, res);
+		auto data = ::LoadResource(module, res);
+		auto text = data ? static_cast<const wchar_t *>(::LockResource(data)) : nullptr;
+		if(!text)
+			return false;
+		constexpr wchar_t needle[] = L"Nilesoft";
+		constexpr size_t length = sizeof(needle) / sizeof(wchar_t) - 1;
+		const size_t count = size / sizeof(wchar_t);
+		for(size_t i = 0; i + length <= count; i++)
+		{
+			if(::wmemcmp(text + i, needle, length) == 0)
+				return true;
+		}
+		return false;
+	}
+
 	// Calculate the powers
 	inline double Pow(double n, double p)
 	{

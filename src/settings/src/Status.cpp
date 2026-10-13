@@ -2,6 +2,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
+#include <cctype>
+
 using json = nlohmann::json;
 
 namespace {
@@ -36,6 +39,17 @@ std::string ShellStatus::activeDll() const
     if (machineRegistered && !machineDll.empty())
         return machineDll;
     return dllPath;
+}
+
+std::string ShellStatus::activeLog() const
+{
+    const auto active = activeDll();
+    const bool same = active.size() == dllPath.size() &&
+                      std::equal(active.begin(), active.end(), dllPath.begin(), [](char a, char b) {
+                          return std::tolower(static_cast<unsigned char>(a)) ==
+                                 std::tolower(static_cast<unsigned char>(b));
+                      });
+    return same ? logPath : std::string{};
 }
 
 std::optional<ShellStatus> parseStatus(const std::string &text, std::string &error)
@@ -76,5 +90,6 @@ std::optional<ShellStatus> parseStatus(const std::string &text, std::string &err
     s.configExists = boolean(cfg, "exists");
     s.configRegistryValue = str(cfg, "registryValue");
     s.userConfigDir = str(j, "userConfigDir");
+    s.logPath = str(at(j, "log"), "path");
     return s;
 }
