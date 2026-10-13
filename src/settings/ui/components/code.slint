@@ -1,0 +1,70 @@
+import { Tokens } from "../theme/tokens.slint";
+import { CodeLine } from "../editor-types.slint";
+
+// Syntax colours for the read view (kinds from src/Highlight.h), close to the
+// VS Code Dark+/Light+ themes.
+export global CodeColors {
+    out property <length> row-height: 20px;
+    out property <length> font-size: 13px;
+    // Cascadia Mono / Consolas at 13 px: 0.55-0.6 em per column.
+    out property <length> column-width: 7.8px;
+
+    public pure function color(kind: int) -> color {
+        if (kind == 1) { return Tokens.dark ? #569CD6 : #0000FF; }   // keyword
+        if (kind == 2) { return Tokens.dark ? #CE9178 : #A31515; }   // string
+        if (kind == 3) { return Tokens.dark ? #B5CEA8 : #098658; }   // number
+        if (kind == 4) { return Tokens.dark ? #D7BA7D : #A0522D; }   // color
+        if (kind == 5) { return Tokens.dark ? #6A9955 : #008000; }   // comment
+        if (kind == 6) { return Tokens.dark ? #9CDCFE : #001080; }   // identifier
+        if (kind == 7) { return Tokens.dark ? #C586C0 : #AF00DB; }   // variable
+        if (kind == 8) { return Tokens.dark ? #4FC1FF : #0451A5; }   // property
+        if (kind == 9) { return Tokens.dark ? #DCDCAA : #795E26; }   // function
+        if (kind == 10) { return Tokens.dark ? #F44747 : #CD3131; }  // error
+        return Tokens.dark ? #D4D4D4 : #1F1F1F;
+    }
+}
+
+// One line of highlighted code with a line-number gutter.
+export component CodeRow inherits Rectangle {
+    in property <CodeLine> line;
+    in property <bool> highlighted;
+    in property <string> font;
+    in property <length> gutter: 56px;
+
+    height: CodeColors.row-height;
+    background: root.highlighted ? Tokens.accent-soft : transparent;
+
+    // Problem marker
+    if root.line.issue > 0: Rectangle {
+        x: 4px;
+        y: (parent.height - self.height) / 2;
+        width: 8px;
+        height: 8px;
+        border-radius: 4px;
+        background: root.line.issue == 2 ? Tokens.danger : Tokens.warning;
+    }
+    Text {
+        x: 0;
+        width: root.gutter - 16px;
+        height: parent.height;
+        text: root.line.number;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        font-family: root.font;
+        font-size: CodeColors.font-size;
+        color: root.highlighted ? Tokens.text : Tokens.text-3;
+    }
+    HorizontalLayout {
+        x: root.gutter;
+        width: self.preferred-width;
+        height: parent.height;
+        spacing: 0;
+        for span in root.line.spans: Text {
+            text: span.text;
+            vertical-alignment: center;
+            font-family: root.font;
+            font-size: CodeColors.font-size;
+            color: CodeColors.color(span.kind);
+        }
+    }
+}

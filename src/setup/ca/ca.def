@@ -4,6 +4,7 @@ EXPORTS
 	Install
 	Uninstall
 	Update
+	RestoreConfig
 	;ShellExecute
 	ValidatePath
 

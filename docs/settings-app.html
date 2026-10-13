@@ -1,0 +1,129 @@
+<h4>Settings app</h4>
+<br>
+<p><b>Nilesoft Shell Settings</b> (<code>settings.exe</code>, next to <code>shell.exe</code> in the program folder) is a
+	desktop app for checking an installation and editing the configuration without opening
+	<code>shell.nss</code> by hand. It is part of this fork and is included in the MSI and the portable zip.</p>
+<div class="notification is-info mt-5">
+	<i>Info:</i> The app runs as the current user and needs no administrator rights. It works on the per-user
+	configuration in <code>%APPDATA%\Nilesoft\Shell</code> and the per-user registration under
+	<code>HKEY_CURRENT_USER</code>. The only action that asks for administrator rights is machine-wide registration in
+	Preferences, which is marked with the UAC shield.
+</div>
+
+<h5 id="first-run">First run</h5>
+<p>On first start the app offers three steps:</p>
+<ol>
+	<li>create the per-user configuration (<a href="/docs/command-line#config"><code>shell -config:init</code></a>);</li>
+	<li>register Shell for the current user (<a href="/docs/command-line#register"><code>shell -register -user</code></a>);</li>
+	<li>restart Explorer.</li>
+</ol>
+
+<h5 id="home">Home</h5>
+<ul>
+	<li><strong>Health:</strong> whether Shell is registered (none, user, machine or both), the state of the Windows 11
+		classic-menu redirect, the DLL in use and the version.</li>
+	<li><strong>Active configuration:</strong> which <code>shell.nss</code> Explorer loads and where it was found, with an
+		action to switch to a per-user copy.</li>
+	<li><strong>Diagnostics:</strong> recent errors from <code>shell.log</code>. Each one opens the file at that line in the
+		Config Editor.</li>
+	<li><strong>Quick actions:</strong> register or unregister for the current user, restart Explorer, open the
+		configuration folder, and run first-time setup again.</li>
+</ul>
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-dark.png" width="1120" height="760"
+		alt="The Home page in the dark theme">
+	<figcaption>Home: Shell registered for all users, with the classic Windows 11 menu, reading a personal <code>shell.nss</code>.</figcaption>
+</figure>
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-light.png" width="1120" height="760"
+		alt="The Home page in the light theme">
+	<figcaption>The same page in the light theme. The app follows the Windows app mode unless you pick a theme in Preferences.</figcaption>
+</figure>
+<p>The app reads all of this through <a href="/docs/command-line#status"><code>shell -status</code></a>, so it shows the
+	same state the command line reports.</p>
+
+<h5 id="appearance">Appearance</h5>
+<p>Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live
+	preview of the menu on your wallpaper in light and dark, for the desktop or File Explorer. Each value shows which file
+	and line set it; values written as expressions are shown read-only with a link to the Config Editor.</p>
+
+<h5 id="behavior">Behavior</h5>
+<ul>
+	<li>Whether Shell's menu replaces the Windows 11 menu, and the submenu delay. The shipped configuration opens submenus after 200 ms; this replaces your Windows setting while a Shell menu is open, and you can turn it off here.</li>
+	<li>Tooltips: on or off, delay, width and colours.</li>
+	<li>Screenshots: on or off and the folder they are saved to.</li>
+	<li>Windows' own items: remove duplicates, disabled items and extra separators; show icons on them.</li>
+</ul>
+
+<h5 id="rules">Rules &amp; Filters</h5>
+<p>Where the menu is shown: only in File Explorer and on the desktop, programs and window classes to leave alone, or a
+	raw <a href="/docs/configuration/settings">exclude</a> condition, which is checked when you save.</p>
+
+<h5 id="saving">How changes are saved</h5>
+<p>Appearance, Behavior and Rules &amp; Filters collect your changes until you press <kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>).
+	Only the keys you change are written, to an app-owned <code>imports\settings-app.nss</code> imported last by
+	<code>shell.nss</code>, so your own <a href="/docs/configuration/themes">theme</a> and settings stay as you wrote them.
+	Before writing, the new configuration is checked with
+	<a href="/docs/command-line#config"><code>shell -config:check</code></a>; a configuration Shell would reject is not
+	written. Each save takes a snapshot first (see <a href="#backups">Backups</a>).</p>
+
+<h5 id="context-menus">Context Menus</h5>
+<ul>
+	<li><strong>Modules:</strong> turn the bundled menus imported by <code>shell.nss</code> (terminal, file manage, develop,
+		go to, taskbar, my tools) on or off. The line is commented out, not deleted.</li>
+	<li><strong>System items:</strong> the <a href="/docs/configuration/modify-items">modify and remove</a> rules that hide,
+		move or rename Windows' own items, in plain words, each with an on/off switch.</li>
+</ul>
+
+<h5 id="menu-builder">Menu Builder</h5>
+<p>Build your own menus, items and separators without writing NSS: title, icon (from Shell's icon font), command and
+	arguments, where the item appears, and options such as running as administrator. The result is written to
+	<code>imports\settings-app-menus.nss</code>, shown as code next to the tree, and read back when you open the page
+	again.</p>
+
+<h5 id="config-editor">Config Editor</h5>
+<ul>
+	<li>A tree of <code>shell.nss</code> and every file it imports. Imports that cannot be found are marked.</li>
+	<li>A highlighted read view with line numbers and problem markers, and an edit view.</li>
+	<li>While you type, the edit is checked with <a href="/docs/command-line#config"><code>shell -config:check</code></a> on a
+		temporary copy, so the menu you are using is not affected. Problems link to their line.</li>
+	<li>Saving keeps the file's encoding, byte order mark and line endings. A file with errors is not saved unless you
+		confirm, because one parse error turns the whole Shell menu off.</li>
+	<li>Files changed on disk by another editor are reloaded, or flagged if you have unsaved edits.</li>
+	<li>The shared configuration in the program folder is read-only here; the editor offers to create a per-user copy.</li>
+</ul>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/editor-dark.png" width="1120" height="760"
+		alt="The Config Editor showing shell.nss in the read view">
+	<figcaption>Config Editor: the import tree on the left (the warning marks an import whose path is an expression), the read view, and the result of the last check.</figcaption>
+</figure>
+
+<h5 id="backups">Backups</h5>
+<p>Every save first takes a snapshot of the configuration in <code>%APPDATA%\Nilesoft\Shell\backups</code>. The Backups page
+	lists them with the time, the reason and the files changed. You can:</p>
+<ul>
+	<li>compare a snapshot with the current files, line by line;</li>
+	<li>restore a snapshot;</li>
+	<li>pin a snapshot so it is never removed when old snapshots are cleaned up;</li>
+	<li>create a snapshot by hand, delete one, or open the folder.</li>
+</ul>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/backups-dark.png" width="1120" height="760"
+		alt="The Backups page comparing a snapshot with the current files">
+	<figcaption>Backups: two snapshots, one pinned. The selected one is compared with the current files; restoring it would undo the green line.</figcaption>
+</figure>
+
+<h5 id="preferences">Preferences</h5>
+<p>The app's own theme, registration for all users (needs administrator rights), and version and licence information.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
+		alt="The Preferences page">
+	<figcaption>Preferences: app theme, registration for all users (the UAC shield marks the one action that needs administrator rights), and About.</figcaption>
+</figure>
+
+<h5 id="reload">Applying changes</h5>
+<p>There is no restart step for configuration changes: Shell reloads the configuration when a file it loaded changes.
+	Registration changes still need Explorer to restart, which the app does for the current session only.</p>

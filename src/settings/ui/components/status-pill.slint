@@ -1,0 +1,41 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A rounded chip with a coloured dot: "Shell is active", "Not enabled", ...
+export component StatusPill inherits Rectangle {
+    in property <string> kind; // ok | warning | error | info | neutral
+    in property <string> text;
+    in property <bool> busy;
+
+    height: 28px;
+    min-width: row.preferred-width;
+    border-radius: self.height / 2;
+    background: Tokens.status-bg(root.kind);
+    animate background { duration: Tokens.normal; }
+
+    row := HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s3;
+        spacing: Tokens.s2;
+        alignment: start;
+
+        VerticalLayout {
+            alignment: center;
+            dot := Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: Tokens.status-color(root.kind);
+                opacity: root.busy ? 0.4 : 1.0;
+                animate background { duration: Tokens.normal; }
+                animate opacity { duration: 600ms; easing: ease-in-out; }
+            }
+        }
+        Text {
+            text: root.text;
+            vertical-alignment: center;
+            font-size: Tokens.caption;
+            color: Tokens.text;
+            overflow: elide;
+        }
+    }
+}

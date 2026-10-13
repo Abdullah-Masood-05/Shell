@@ -352,15 +352,25 @@ namespace Nilesoft
 			{
 				File from_file(from);
 				if(from_file.Open(false, Encoding::Binary)) {
+					// Size() is in bytes (-1 on failure), so copy bytes, not
+					// wchar_t elements: the old code wrote twice the file size.
 					auto z = from_file.Size();
-					auto buf = new wchar_t[z] { };
-					if(from_file.Read(buf, sizeof(wchar_t), z)) {
+					if(z < 0)
+						return false;
+					auto n = static_cast<size_t>(z);
+					auto buf = new char[n + 1] { };
+					if(from_file.Read(buf, 1, n) == n) {
 						File to_file(to);
 						if(to_file.Open(true, Encoding::Binary)) {
-							to_file.Write(buf, sizeof(wchar_t), z);
+							if(to_file.Write(buf, 1, n) == n) {
+								delete[] buf;
+								return true;
+							}
 						}
 					}
+					delete[] buf;
 				}
+				return false;
 			}
 		
 			static EncodingType GetFileEncoding(const wchar_t* path)

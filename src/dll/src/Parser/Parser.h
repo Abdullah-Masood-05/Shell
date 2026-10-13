@@ -6,7 +6,24 @@ namespace Nilesoft
 	{
 		using namespace Windows;
 		using namespace Drawing;
-		
+
+		// A file a parse depended on, with its last-write time taken just
+		// before it was read (0 if it did not exist). See Parser::Sources.
+		struct SourceFile
+		{
+			string path;
+			uint64_t time{};
+		};
+
+		// One problem found while parsing, for shell -config:check.
+		struct ParseDiagnostic
+		{
+			bool error{};		// false: a warning, the parse went on
+			string file;
+			size_t line{}, column{};
+			string message;
+		};
+
 		class Parser
 		{
 			static constexpr auto error_format0 = L"error %s";
@@ -129,6 +146,18 @@ namespace Nilesoft
 			TokenError verify(const Ident &id, bool signer);
 			TokenError verify(const NativeMenu *menu, const Ident &id, bool _signed);
 
+			// Ceiling on import nesting. _imports is the stack of files currently
+			// open, so its size is the nesting depth. Nothing else bounds the
+			// recursion: the duplicate check in load_import only traces, and it
+			// consults every file ever imported rather than the ones still open,
+			// so it cannot tell a cycle from a snippet imported from two places.
+			// Without this a config that imports itself recursed until the stack
+			// was exhausted, inside Explorer.
+			static constexpr size_t MaxImportDepth = 32;
+
+			void add_source(const wchar_t *path);
+			void diagnose(bool is_error, const wchar_t *file, size_t line, size_t column, const string &message);
+
 			Lexer *import_push()
 			{
 				_imports.emplace_back(new Lexer);
@@ -181,8 +210,15 @@ namespace Nilesoft
 */
 
 		public:
-			Parser();
+			// root: parse this file instead of resolving the config location
+			// (ConfigLocation), and leave Application::Config alone. Used by
+			// shell -config:check.
+			explicit Parser(const wchar_t *root = nullptr);
 			~Parser();
+
+			// When set, errors and warnings are also collected here. Per thread,
+			// so a check never sees another thread's parse.
+			inline static thread_local std::vector<ParseDiagnostic> *Diagnostics = nullptr;
 
 
 			bool			Load();
@@ -196,6 +232,13 @@ namespace Nilesoft
 			string			ConfigVersion;
 			Context			context;
 			string			location;
+
+			// Every file this parse read or tried to read: the root config, each
+			// import (missing ones too, with time 0), and the higher-priority
+			// config locations that did not exist, so creating one is noticed.
+			// Each is stamped before it is read: a save racing the read can only
+			// cause one extra reload, never a missed one.
+			std::vector<SourceFile> Sources;
 
 			private:
 				struct FUNC

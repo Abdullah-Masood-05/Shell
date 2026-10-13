@@ -1,0 +1,170 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A clickable tile: icon, title and a one-line caption (Home quick actions).
+export component ActionTile inherits Rectangle {
+    in property <image> icon;
+    in property <string> title;
+    in property <string> caption;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    min-width: 140px;
+    border-radius: Tokens.radius-card;
+    border-width: 1px;
+    border-color: fs.has-focus ? Tokens.focus-ring : Tokens.stroke;
+    background: !root.enabled ? Tokens.layer : ta.pressed ? Tokens.layer-2 : ta.has-hover ? Tokens.layer-2 : Tokens.layer;
+    opacity: root.enabled ? 1 : 0.5;
+    animate background, opacity { duration: Tokens.fast; easing: ease-out; }
+
+    accessible-role: button;
+    accessible-label: root.title;
+    accessible-description: root.caption;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+
+    VerticalLayout {
+        padding: Tokens.s4;
+        spacing: Tokens.s1;
+        alignment: start;
+
+        HorizontalLayout {
+            alignment: start;
+            Rectangle {
+                width: 32px;
+                height: 32px;
+                border-radius: Tokens.radius-card;
+                background: Tokens.accent-soft;
+                Image {
+                    source: root.icon;
+                    width: 18px;
+                    height: 18px;
+                    colorize: Tokens.accent;
+                }
+            }
+        }
+        Rectangle { height: Tokens.s1; }
+        Text {
+            text: root.title;
+            font-size: Tokens.body;
+            font-weight: 600;
+            color: Tokens.text;
+            overflow: elide;
+        }
+        Text {
+            text: root.caption;
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            overflow: elide;
+        }
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            return reject;
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: root.enabled ? pointer : default;
+            clicked => {
+                fs.focus();
+                root.clicked();
+            }
+        }
+    }
+}
+
+// Segmented buttons (System / Light / Dark). Arrow keys move the selection.
+export component Segmented inherits Rectangle {
+    in property <[string]> options;
+    in-out property <int> selected;
+    callback changed(index: int);
+
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: Tokens.layer-2;
+    border-width: 1px;
+    border-color: fs.has-focus ? Tokens.focus-ring : Tokens.stroke;
+    accessible-role: tab-list;
+
+    fs := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow && root.selected > 0) {
+                root.selected -= 1;
+                root.changed(root.selected);
+                return accept;
+            }
+            if (event.text == Key.RightArrow && root.selected < root.options.length - 1) {
+                root.selected += 1;
+                root.changed(root.selected);
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    // Sliding selection under the labels.
+    Rectangle {
+        width: (root.width - 4px) / max(1, root.options.length);
+        height: root.height - 4px;
+        x: 2px + self.width * root.selected;
+        y: 2px;
+        border-radius: Tokens.radius-control - 1px;
+        background: Tokens.accent;
+        animate x { duration: Tokens.normal; easing: ease-out; }
+    }
+
+    HorizontalLayout {
+        padding: 2px;
+        for option[i] in root.options: Rectangle {
+            horizontal-stretch: 1;
+            min-width: 88px;
+            accessible-role: tab;
+            accessible-label: option;
+            accessible-item-selected: i == root.selected;
+            accessible-action-default => {
+                root.selected = i;
+                root.changed(i);
+            }
+            Text {
+                text: option;
+                font-size: Tokens.body;
+                color: i == root.selected ? Tokens.on-accent : Tokens.text;
+                animate color { duration: Tokens.fast; }
+            }
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    fs.focus();
+                    root.selected = i;
+                    root.changed(i);
+                }
+            }
+        }
+    }
+}
+
+// A link-styled text button.
+export component Link inherits Rectangle {
+    in property <string> text;
+    in property <length> font-size: Tokens.body;
+    callback activated;
+    width: label.preferred-width;
+    height: label.preferred-height;
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-action-default => { root.activated(); }
+    label := Text {
+        text: root.text;
+        color: ta.has-hover ? Tokens.accent.mix(Tokens.text, 0.75) : Tokens.accent;
+        font-size: root.font-size;
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.activated(); }
+    }
+}

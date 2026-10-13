@@ -3,6 +3,7 @@ VERSION 1.9
 EXPORTS
 	DllCanUnloadNow			PRIVATE
 	DllGetClassObject		PRIVATE
+	ConfigCheck				PRIVATE
 	;DllRegisterServer		PRIVATE
 	;DllUnregisterServer		PRIVATE
 	;DllInstall				PRIVATE

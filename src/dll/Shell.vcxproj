@@ -105,6 +105,10 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <!-- Control Flow Guard (/guard:cf). Setting it on ClCompile also makes the
+           build pass /guard:cf to the linker. Release only: /guard:cf cannot be
+           combined with Edit and Continue (/ZI) in debug builds. -->
+      <ControlFlowGuard>Guard</ControlFlowGuard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>MaxSpeed</Optimization>
@@ -148,7 +152,6 @@
     <ClInclude Include="src\Expression\LiteralExpression.h" />
     <ClInclude Include="src\Expression\Variable.h" />
     <ClInclude Include="src\Include\Cache.h" />
-    <ClInclude Include="src\Include\RegistryConfig.h" />
     <ClInclude Include="src\Include\Theme.h" />
     <ClInclude Include="src\Include\Keyboard.h" />
     <ClInclude Include="src\Include\Styles.h" />

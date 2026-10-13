@@ -1,0 +1,24 @@
+// The save pipeline shared by every editing page (src/SaveService.cpp).
+// Pages put changes in SaveService; the footer shows the count and saves them.
+
+export global SaveState {
+    in property <int> unsaved;          // pending changes, from every page
+    in property <bool> saving;
+    in property <string> saving-label;  // "Checking with shell.exe…"
+    in property <string> result-kind;   // "" | ok | error | info
+    in property <string> result-text;
+    in property <string> config-path;   // the root shell.nss saves go to
+
+    // The active config is the shared one in the install folder: offer a
+    // personal copy first (shell.exe -config:init); never write to Program Files.
+    in property <bool> user-config-prompt;
+
+    // The footer's height, so overlays (the toast) can stay above it.
+    out property <length> footer-height: unsaved > 0 || saving || result-kind != "" ? 56px : 0px;
+
+    callback save();
+    callback discard();
+    callback create-user-config();
+    callback cancel-user-config();
+    callback dismiss-result();
+}

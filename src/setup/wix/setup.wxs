@@ -1,11 +1,23 @@
 ﻿
 <?include var.wxi ?>
 
+<!--
+	The UpgradeCode is upstream Nilesoft Shell's and must not change: it is how this
+	package finds an installed Nilesoft Shell (upstream or Pro) and upgrades it in place.
+-->
 <?define UpgradeCode = '{7BCA6512-254B-456F-8F08-AAD7508BEE00}' ?>
 <?define Platform = '$(sys.BUILDARCH)' ?>
 <?define Name = 'Shell' ?>
-<?define Manufacturer = 'Nilesoft' ?>
-<?define FullName = '$(var.Manufacturer) $(var.Name)' ?>
+<!--
+	FullName is the install folder and the shell.exe Start menu shortcut, and stays
+	"Nilesoft Shell" on purpose: the components keep their GUIDs, so they have to keep
+	their paths for a major upgrade over upstream to replace the files in place, and
+	shell.exe, ca.dll and the Settings app expect "Program Files\Nilesoft Shell".
+	ProductName and Manufacturer are what users see (setup dialogs, Installed apps).
+-->
+<?define FullName = 'Nilesoft Shell' ?>
+<?define ProductName = 'Nilesoft Shell Pro' ?>
+<?define Manufacturer = 'Nilesoft Shell Pro (community fork)' ?>
 <?define Info = 'Powerful context menu manager for Windows File Explorer' ?>
 <?define bin = '..\..\bin' ?>
 <?define PlatformProgramFilesFolder = 'ProgramFiles6432Folder' ?>
@@ -27,15 +39,19 @@
 		InstallerVersion='500'
 		Compressed='yes'
 		Scope='perMachine'
-		ProductCode='$(var.ProductCode)'
 		UpgradeCode='$(var.UpgradeCode)'
 		Manufacturer='$(var.Manufacturer)'
-		Name='$(var.FullName)'
+		Name='$(var.ProductName)'
 		Version='$(var.Version)'>
+		<!--
+			No ProductCode: WiX generates a new one for every build. The fixed one in
+			var.wxi made two releases the "same product", so installing a newer build
+			over an older one failed with error 1638 instead of doing the major upgrade.
+		-->
 
 		<SummaryInformation
-			Comments='$(var.FullName)'
-			Description='$(var.FullName) $(var.Version) $(var.Platform) Setup'
+			Comments='$(var.ProductName)'
+			Description='$(var.ProductName) $(var.Version) $(var.Platform) Setup'
 			Keywords='context-menu, right-click, file-explorer' />
 
 		<Media Id='1' EmbedCab='yes' Cabinet='main.cab' CompressionLevel='high' />
@@ -53,8 +69,8 @@
 		<Property Id='MSIRESTARTMANAGERCONTROL' Value='Disable' />
 		<Property Id='DefaultUIFont' Value='WixUI_Font_Normal' />
 		<Property Id='ErrorDialog' Value='ErrorDlg' />
-		<Property Id='ARPURLINFOABOUT' Value='https://nilesoft.org/' />
-		<Property Id='ARPHELPLINK' Value='https://nilesoft.org/docs/' />
+		<Property Id='ARPURLINFOABOUT' Value='https://github.com/Abdullah-Masood-05/Shell' />
+		<Property Id='ARPHELPLINK' Value='https://abdullah-masood-05.github.io/Shell/' />
 		<Property Id='ARPNOMODIFY' Value='1' Secure='yes' />
 		<Property Id='ARPNOREPAIR' Value='1' Secure='yes' />
 		<Property Id='BURNMSIMODIFY' Value='0' Secure='yes' />
@@ -64,7 +80,16 @@
 		<StandardDirectory Id='$(var.PlatformProgramFilesFolder)'>
 			<Directory Id='INSTALLFOLDER' Name='$(var.FullName)'>
 				<Directory Id='IMPORTS' Name='imports'>
-					<Component Id='IMPORTS' Guid='{FF987BEA-6195-4C05-8523-00936A1BD0E2}' NeverOverwrite='yes'>
+					<!--
+						NeverOverwrite is not set, for the same reason as on CONFIG and LANG:
+						during a major upgrade it resolved IMPORTS to "install nothing" while
+						the old product's files were still on disk, and the removal of the
+						old product (RemoveExistingProducts) then deleted imports\*.nss.
+						Without it the new product owns the component; Windows Installer
+						still keeps an unversioned file the user has edited (Modified date
+						later than Create date).
+					-->
+					<Component Id='IMPORTS' Guid='{FF987BEA-6195-4C05-8523-00936A1BD0E2}'>
 						<File Id='theme.nss' Source='$(var.bin)\imports\theme.nss' />
 						<File Id='goto.nss' KeyPath='yes' Source='$(var.bin)\imports\goto.nss' />
 						<File Id='modify.nss' Source='$(var.bin)\imports\modify.nss' />
@@ -75,7 +100,21 @@
 						<File Id='terminal.nss' Source='$(var.bin)\imports\terminal.nss' />
 					</Component>
 				<Directory Id='LANG' Name='lang'>
-					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}' NeverOverwrite='yes'>
+					<!--
+						The original seven translations keep their component, GUID and file
+						list unchanged, so a major upgrade keeps resolving them to the same
+						component. Every other imports\lang\*.nss is harvested by the Files
+						element in the APPLICATION feature below, one generated component
+						per file, so a new translation ships without editing this file.
+
+						NeverOverwrite is not set, for the same reason as on CONFIG: it
+						resolved LANG to "install nothing" during costing, and the removal
+						of the old product then deleted every language file. Without it,
+						translations are refreshed on upgrade unless the user edited them
+						(Windows Installer keeps an unversioned file whose Modified date is
+						later than its Create date).
+					-->
+					<Component Id='LANG' Guid='{FF987BEA-6195-4C05-8523-00936A1BD092}'>
 						<File Id='en.nss' Source='$(var.bin)\imports\lang\en.nss' />
 						<File Id='ar.nss' Source='$(var.bin)\imports\lang\ar.nss' />
 						<File Id='de_DE.nss' Source='$(var.bin)\imports\lang\de-DE.nss' />
@@ -93,7 +132,19 @@
 					<File Id='readme.txt' Name='readme.txt' Source='$(var.bin)\readme.txt' />
 					<File Id='license.txt' Name='LICENSE' Source='$(var.bin)\license.txt' />
 				</Component>
-				<Component Id='CONFIG' Guid='{BEC55C6A-30C7-4E1F-B64D-8636AB379E31}' NeverOverwrite='yes'>
+				<!--
+					NeverOverwrite is deliberately *not* set on CONFIG. It resolves the
+					component to "install nothing" during costing, while the old
+					product's shell.nss is still on disk, so the removal of the old
+					product (RemoveExistingProducts) then deleted the user's config.
+					Without it the new product owns the component and the removal
+					leaves the file alone; the custom actions OnUpdate (backup) and
+					OnRestoreConfig (restore) put back a customised config that the
+					stock one would otherwise replace.
+
+					  https://learn.microsoft.com/en-us/windows/win32/msi/component-table
+				-->
+				<Component Id='CONFIG' Guid='{BEC55C6A-30C7-4E1F-B64D-8636AB379E31}'>
 					<File Id='shell.nss' Name='shell.nss' KeyPath='yes' Source='$(var.bin)\shell.nss' />
 				</Component>
 				<Component Id='CLEANUP' Guid='{838501CD-485B-4587-9195-6CFB416202B9}' KeyPath='yes'>
@@ -113,19 +164,77 @@
 				<RegistryValue Key='Software\Nilesoft\Shell' Root='HKCU' Type='string' Value='' KeyPath='yes' />
 			</Component>
 		</StandardDirectory>
+<?ifdef SettingsExe ?>
+		<!--
+			The Settings app (settings.exe, x64). SettingsExe is defined by setup.wixproj
+			only for x64 and ARM64 builds, and only when the exe exists: Win32 has no
+			Settings app, and ARM64 ships the x64 exe, which runs under emulation.
+			ProgramMenuFolder is the all-users Start menu, because the package is
+			per-machine. The shortcut's HKCU key path follows the StartMenuShortcut
+			component above (ICE38/ICE43 want a per-user key path for a shortcut).
+		-->
+		<ComponentGroup Id='SettingsApp'>
+			<Component Id='SettingsExe' Directory='INSTALLFOLDER' Guid='{F27A72F1-038C-48AD-BFF4-942526AFDF03}'>
+				<File Id='settings.exe' Name='settings.exe' Checksum='yes' KeyPath='yes' Source='$(var.SettingsExe)' />
+			</Component>
+			<Component Id='SettingsShortcut' Directory='ProgramMenuFolder' Guid='{FDF5A611-42D0-4720-8607-A18485D853D6}'>
+				<Shortcut Id='SettingsShortcut' Name='Nilesoft Shell Settings' Description='Configure Nilesoft Shell Pro'
+					WorkingDirectory='INSTALLFOLDER' Target='[!settings.exe]' />
+				<RegistryValue Key='Software\Nilesoft\Shell' Root='HKCU' Name='SettingsShortcut' Type='integer' Value='1' KeyPath='yes' />
+			</Component>
+		</ComponentGroup>
+
+		<!-- "Open Nilesoft Shell Settings" on the finish page (ExitDialog in ui.wxi). -->
+		<Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' Value='Open Nilesoft Shell Settings' />
+		<Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value='1' />
+		<!--
+			Runs from the UI sequence, so in the msiexec client process: as the user who
+			started setup, not elevated unless setup itself was started elevated.
+		-->
+		<CustomAction Id='LaunchSettings' FileRef='settings.exe' ExeCommand='' Return='asyncNoWait' />
+<?endif ?>
 <!--
 		<ComponentGroup Id="IMPORTFiles" Directory="IMPORTS">
 			<Files Include="$(var.bin)\imports\*.nss" />
 		</ComponentGroup>
 -->
-		<Feature Id='APPLICATION' Title='$(var.FullName)' Level='1'>
+		<Feature Id='APPLICATION' Title='$(var.ProductName)' Level='1'>
 			<ComponentRef Id='APPLICATION' />
 			<ComponentRef Id='CONFIG' />
 			<ComponentRef Id='IMPORTS' />
 			<ComponentRef Id='LANG' />
+			<!--
+				Every other imports\*.nss (e.g. my-tools.nss), one generated component
+				per file, same as the translations below. The files already in the
+				IMPORTS component are excluded so their component stays unchanged.
+				The pattern is not recursive, so imports\lang is not picked up here.
+			-->
+			<Files Directory='IMPORTS' Include='$(var.bin)\imports\*.nss'>
+				<Exclude Files='$(var.bin)\imports\theme.nss' />
+				<Exclude Files='$(var.bin)\imports\goto.nss' />
+				<Exclude Files='$(var.bin)\imports\modify.nss' />
+				<Exclude Files='$(var.bin)\imports\images.nss' />
+				<Exclude Files='$(var.bin)\imports\taskbar.nss' />
+				<Exclude Files='$(var.bin)\imports\develop.nss' />
+				<Exclude Files='$(var.bin)\imports\file-manage.nss' />
+				<Exclude Files='$(var.bin)\imports\terminal.nss' />
+			</Files>
+			<!-- All other translations; the ones already in LANG are excluded. -->
+			<Files Directory='LANG' Include='$(var.bin)\imports\lang\*.nss'>
+				<Exclude Files='$(var.bin)\imports\lang\en.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ar.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\de-DE.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\ko.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\no.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\pt-BR.nss' />
+				<Exclude Files='$(var.bin)\imports\lang\zh-CN.nss' />
+			</Files>
 			<ComponentRef Id='CLEANUP' />
 			<ComponentRef Id='StartMenuShortcut' />
 			<ComponentRef Id='DisplayIcon' />
+<?ifdef SettingsExe ?>
+			<ComponentGroupRef Id='SettingsApp' />
+<?endif ?>
 			<!--<ComponentGroupRef Id="IMPORTSFiles"/>-->
 		</Feature>
 		
@@ -145,15 +254,57 @@
 		</InstallUISequence>
 		<!-- End Upgrade -->
 		
+		<!--
+			shell.dll is mapped into every process that has raised a shell context
+			menu and cannot be overwritten, so it is renamed aside before the new
+			one is written. This runs twice on purpose: the immediate OnUpdate runs
+			as the invoking user (not elevated when the package was started that
+			way) and also backs up shell.nss; the deferred OnUpdateElevated runs in
+			the installer's elevated process before InstallFiles and catches a
+			rename the first one could not do. Rotation is a no-op when the path is
+			already free, so running both is harmless.
+		-->
 		<CustomAction Id='OnUpdate' Return='ignore' BinaryRef='CA' DllEntry='Update' />
+		<CustomAction Id='OnUpdateElevatedData' Property='OnUpdateElevated' Value='[INSTALLFOLDER]' />
+		<CustomAction Id='OnUpdateElevated' Execute='deferred' Impersonate='no' Return='ignore'
+					  BinaryRef='CA' DllEntry='Update' />
+		<!--
+			The other half of the config rescue: OnUpdate saved shell.nss and set
+			SHELLCONFIGSAVED; this puts it back once the package's own files are on
+			disk. Deferred and non-impersonating, because writing into Program Files
+			needs the installer's elevated context; a deferred action can read only
+			CustomActionData, hence the type 51 action that hands it the path.
+		-->
+		<CustomAction Id='OnRestoreConfigData' Property='OnRestoreConfig' Value='[INSTALLFOLDER]' />
+		<CustomAction Id='OnRestoreConfig' Execute='deferred' Impersonate='no' Return='ignore'
+					  BinaryRef='CA' DllEntry='RestoreConfig' />
 		<CustomAction Id='OnInstall' Return='ignore' BinaryRef='CA' DllEntry='Install' />
 		<CustomAction Id='OnUninstall' Execute='firstSequence' Return='asyncWait' BinaryRef='CA' DllEntry='Uninstall' />
 		
 		<InstallExecuteSequence>
 			<Custom Action='OnDowngrading' After='FindRelatedProducts' Condition='NEWPRODUCTFOUND' />
 			<Custom Action='OnUninstall' After='FindRelatedProducts' Condition='(REMOVE ="ALL") AND (NOT UPGRADINGPRODUCTCODE)' />
-			<Custom Action='OnUpdate' After='FindRelatedProducts' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
-			<Custom Action='OnInstall' After='InstallFinalize' Condition='(NOT INSTALLED) AND (NOT REMOVE)' />
+			<!--
+				After CostFinalize, not after FindRelatedProducts: directory properties
+				are not resolved until CostFinalize, so an earlier action reads
+				INSTALLFOLDER as empty whenever no UI sequence set it (a silent
+				install), and the custom action then falls back to locating Shell by
+				its registered CLSID - possibly a different installation.
+
+				"Installed" is the Windows Installer property and property names are
+				case-sensitive. These conditions used to read INSTALLED, which is never
+				set, so "NOT INSTALLED" was always true and the actions also ran during
+				maintenance (repair). NOT Installed is true for a first install and for
+				a major upgrade (the new ProductCode is not installed yet), which is
+				when shell.dll has to be rotated, the config saved, and Shell
+				registered.
+			-->
+			<Custom Action='OnUpdate' After='CostFinalize' Condition='(NOT Installed) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevatedData' Before='OnUpdateElevated' Condition='(NOT Installed) AND (NOT REMOVE)' />
+			<Custom Action='OnUpdateElevated' Before='InstallFiles' Condition='(NOT Installed) AND (NOT REMOVE)' />
+			<Custom Action='OnRestoreConfigData' Before='OnRestoreConfig' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
+			<Custom Action='OnRestoreConfig' After='InstallFiles' Condition='SHELLCONFIGSAVED AND (NOT REMOVE)' />
+			<Custom Action='OnInstall' After='InstallFinalize' Condition='(NOT Installed) AND (NOT REMOVE)' />
 			<RemoveExistingProducts After='InstallFinalize' />
 		</InstallExecuteSequence>
 

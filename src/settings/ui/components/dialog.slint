@@ -1,0 +1,84 @@
+import { Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+
+// A modal confirmation over the page: scrim, title, text, Cancel and a
+// primary (or destructive) action. Esc cancels.
+export component ConfirmDialog inherits Rectangle {
+    in property <string> title;
+    in property <string> text;
+    in property <string> kind: "warning";      // warning | error | info
+    in property <string> confirm-label: "OK";
+    in property <string> cancel-label: "Cancel";
+    callback confirmed();
+    callback cancelled();
+
+    background: Tokens.scrim;
+
+    // Swallow clicks outside the card.
+    TouchArea { }
+
+    fs := FocusScope {
+        init => { self.focus(); }
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                root.cancelled();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    Rectangle {
+        width: min(460px, root.width - 64px);
+        height: body.preferred-height;
+        background: Tokens.layer;
+        border-radius: Tokens.radius-card;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000060;
+        drop-shadow-offset-y: 8px;
+
+        body := VerticalLayout {
+            padding: Tokens.s6;
+            spacing: Tokens.s3;
+            HorizontalLayout {
+                spacing: Tokens.s3;
+                Image {
+                    source: Icons.status(root.kind);
+                    width: 20px;
+                    height: 20px;
+                    colorize: Tokens.status-color(root.kind);
+                }
+                Text {
+                    text: root.title;
+                    font-size: Tokens.subtitle;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    wrap: word-wrap;
+                    horizontal-stretch: 1;
+                }
+            }
+            Text {
+                text: root.text;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+            Rectangle { height: Tokens.s2; }
+            HorizontalLayout {
+                alignment: end;
+                spacing: Tokens.s2;
+                Button {
+                    text: root.cancel-label;
+                    clicked => { root.cancelled(); }
+                }
+                Button {
+                    text: root.confirm-label;
+                    primary: true;
+                    clicked => { root.confirmed(); }
+                }
+            }
+        }
+    }
+}

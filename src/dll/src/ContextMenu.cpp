@@ -269,6 +269,7 @@ namespace Nilesoft
 			if(list.empty())
 				return false;
 
+			_context.menu_count = (uint32_t)list.size();
 			int _this_index = 0;
 			
 			for(auto item : list)
@@ -995,6 +996,7 @@ namespace Nilesoft
 					
 					m_sub->owner = mii;
 					m_sub->std_items = &item->items;
+					m_sub->std_owner = item;
 
 					string path;
 					if(!mii->path.empty())
@@ -1019,6 +1021,7 @@ namespace Nilesoft
 				return false;
 
 			//int _index = 0;
+			_context.menu_count = (uint32_t)menu->std_items->size();
 			for(auto item : *menu->std_items)
 			{
 				_context._this = nullptr;
@@ -1096,12 +1099,17 @@ namespace Nilesoft
 			MenuItemInfo *owner = nullptr;
 			if(menu->is_main)
 			{
+				// Re-read any system submenu shell32 has populated since Initialize(),
+				// before the empty-cascade cleanup below can drop it.
+				refresh_system_submenus(__system_menu_tree);
 				menu->dynamics = _cache->dynamic.items;
 				menu->std_items = &__system_menu_tree->items;
 			}
 			else
 			{
 				owner = menu->owner;
+				if(menu->std_owner && !refresh_system_submenu_item(menu->std_owner))
+					refresh_system_submenus(menu->std_owner);
 			}
 			
 			prepare_system_items(_system_items, menu);
@@ -1355,6 +1363,20 @@ namespace Nilesoft
 						items.back()->separator &= ~(int)Separator::Bottom;
 					break;
 				}
+			}
+
+			// remove leading separators, e.g. left behind when modify rules move or
+			// hide the items they used to group
+			{
+				size_t leading = 0;
+				while(leading < items.size() && items[leading]->is_separator())
+					leading++;
+
+				if(leading > 0)
+					items.erase(items.begin(), items.begin() + leading);
+
+				if(!items.empty() && items.front()->is_sep_before())
+					items.front()->separator &= ~(int)Separator::Top;
 			}
 
 			_items.reserve(items.size());
@@ -2800,9 +2822,6 @@ namespace Nilesoft
 						{
 							Color nor, sel, dis, dis_sel;
 
-							// Special handling for Windows 11 Canary and Dev builds
-							bool isCanaryOrDev = ver->IsWindows11CanaryOrDev();
-
 							auto get_bk_clr = [&](Color &clr, int iPartId, int iStateId, int x = -1, int y = -1, int size = 9)->bool
 							{
 								DC dc = hwnd.owner;
@@ -2829,86 +2848,47 @@ namespace Nilesoft
 								return false;
 							};
 
-							// Use more reliable theme color detection for Canary builds
-							if (isCanaryOrDev)
+							// The theme API can fail here on stable Windows 11 builds too
+							// (26200/26300 and later), not only on Canary/Dev, leaving the
+							// text colours unset. Fall back to the system colours; those have
+							// no dark variant, so in dark mode keep the Dark() preset already
+							// in _theme instead.
+							auto fallback = [&](Color &clr, Color const &preset, int index)
 							{
-								// Get text colors with fallbacks to system colors
-								if (!get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR))
-								{
-									nor.from(::GetSysColor(COLOR_MENUTEXT), 100);
-								}
-								
-								if (!get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR))
-								{
-									sel.from(::GetSysColor(COLOR_HIGHLIGHTTEXT), 100);
-								}
-								
-								if (!get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR))
-								{
-									dis.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
-								
-								if (!get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR))
-								{
-									dis_sel.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
-							}
-							else
-							{
-								// Standard theme color detection for non-Canary builds
-								get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR);
-								get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR);
-								get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR);
-								get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR);
-							}
+								if(is_dark)
+									clr = preset;
+								else
+									clr.from(::GetSysColor(index), 100);
+							};
+
+							if(!get_clr(nor, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR))
+								fallback(nor, _theme.text.color.nor, COLOR_MENUTEXT);
+							if(!get_clr(sel, MENU_POPUPITEM, MPI_HOT, TMT_TEXTCOLOR))
+								fallback(sel, _theme.text.color.sel, COLOR_HIGHLIGHTTEXT);
+							if(!get_clr(dis, MENU_POPUPITEM, MPI_DISABLED, TMT_TEXTCOLOR))
+								fallback(dis, _theme.text.color.nor_dis, COLOR_GRAYTEXT);
+							if(!get_clr(dis_sel, MENU_POPUPITEM, MPI_DISABLEDHOT, TMT_TEXTCOLOR))
+								fallback(dis_sel, _theme.text.color.sel_dis, COLOR_GRAYTEXT);
 
 							_theme.text.color = { nor, sel, dis, dis_sel };
 							_theme.symbols.checked = { nor, sel, dis, dis_sel };
 							_theme.symbols.bullet = { nor, sel, dis, dis_sel };
 							_theme.symbols.chevron = { nor, sel, dis, dis_sel };
 
-							// More reliable background color detection for Canary builds
-							if (isCanaryOrDev)
+							if(!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
 							{
-								if (!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
-								{
-									if (!get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL))
-									{
-										_theme.background.color.from(::GetSysColor(COLOR_MENU), 100);
-									}
-								}
-								
-								if (!get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT))
-								{
-									_theme.back.color.sel.from(::GetSysColor(COLOR_HIGHLIGHT), 100);
-								}
-								
-								if (!get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED))
-								{
-									_theme.back.color.nor_dis.from(::GetSysColor(COLOR_MENU), 100);
-								}
-								
-								if (!get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT))
-								{
-									_theme.back.color.sel_dis.from(::GetSysColor(COLOR_BTNFACE), 100);
-								}
-								
-								if (!get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3))
-								{
-									_theme.separator.color.from(::GetSysColor(COLOR_GRAYTEXT), 100);
-								}
+								if(!get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL))
+									fallback(_theme.background.color, _theme.background.color, COLOR_MENU);
 							}
-							else
-							{
-								// Standard background color detection for non-Canary builds
-								if(!get_clr(_theme.background.color, MENU_POPUPBACKGROUND, MPI_NORMAL, TMT_FILLCOLOR))
-									get_bk_clr(_theme.background.color, MENU_POPUPITEM, MPI_NORMAL);
 
-								get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT);
-								get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED);
-								get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT);
-								get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3);
-							}
+							if(!get_bk_clr(_theme.back.color.sel, MENU_POPUPITEM, MPI_HOT))
+								fallback(_theme.back.color.sel, _theme.back.color.sel, COLOR_HIGHLIGHT);
+							if(!get_bk_clr(_theme.back.color.nor_dis, MENU_POPUPITEM, MPI_DISABLED))
+								fallback(_theme.back.color.nor_dis, _theme.back.color.nor_dis, COLOR_MENU);
+							if(!get_bk_clr(_theme.back.color.sel_dis, MENU_POPUPITEM, MPI_DISABLEDHOT))
+								fallback(_theme.back.color.sel_dis, _theme.back.color.sel_dis, COLOR_BTNFACE);
+							if(!get_bk_clr(_theme.separator.color, MENU_POPUPSEPARATOR, 0, -1, -1, 3))
+								fallback(_theme.separator.color, _theme.separator.color, COLOR_GRAYTEXT);
 
 							_theme.border.color = _theme.separator.color;// getbkclr(MENU_POPUPBORDERS, 0, 0, 4, 9);
 							if(enableTransparency)
@@ -3720,9 +3700,16 @@ namespace Nilesoft
 
 			if(ver->IsWindows11OrGreater()) 
 			{
-				DWORD dwTextScaleFactor = 100, cbData;
-				::RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility", 
-							   L"TextScaleFactor", RRF_RT_DWORD, nullptr, &dwTextScaleFactor, &cbData);
+				// TextScaleFactor is the accessibility text size in percent and is
+				// absent unless the user changed it. cbData is in/out: it used to be
+				// left uninitialised, so a garbage stack value decided whether the
+				// read happened at all, and the result was never checked.
+				DWORD dwTextScaleFactor = 100, cbData = sizeof(dwTextScaleFactor);
+				if(ERROR_SUCCESS != ::RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility",
+												   L"TextScaleFactor", RRF_RT_DWORD, nullptr,
+												   &dwTextScaleFactor, &cbData)
+				   || dwTextScaleFactor == 0)
+					dwTextScaleFactor = 100;
 				long scale = ((dpi.val + 24) * dwTextScaleFactor) / 100;
 				_theme.font.lfHeight = 12 * scale / 100;
 			}
@@ -4084,6 +4071,8 @@ namespace Nilesoft
 						}
 
 						_context._this = &_this;
+						// reset per item: a nested call for a submenu overwrites it
+						_context.menu_count = static_cast<uint32_t>(items->size());
 
 						//if(!Selected.verify_types(si->fso))
 						//	continue;
@@ -4173,16 +4162,48 @@ namespace Nilesoft
 								if(!moveto.equals(item->path))
 								{
 									item->path = moveto.move();
+
+									// When a re-read submenu is processed again, the item
+									// this one replaces was already moved on the first pass.
+									auto already_moved = [&](std::vector<menuitem_t *> const &list)
+									{
+										if(!__refreshing_system_items)
+											return false;
+										for(auto x : list)
+										{
+											if(x != item && x->hash == item->hash && x->type == item->type &&
+											   x->wid == item->wid && x->path.equals(item->path))
+												return true;
+										}
+										return false;
+									};
+
+									bool duplicate = false;
 									if(auto submenu = __map_system_menu[item->path.hash()]; submenu)
 									{
-										item->parent = submenu;
-										submenu->items.push_back(item);
+										if(duplicate = already_moved(submenu->items); !duplicate)
+										{
+											item->parent = submenu;
+											item->moved_in = true;
+											submenu->items.push_back(item);
+										}
 									}
-									else
+									else if(duplicate = already_moved(__movable_system_items); !duplicate)
 									{
 										__movable_system_items.push_back(item);
 									}
 									items->erase(items->begin() + i--);
+
+									if(duplicate)
+									{
+										// A re-read popup was registered in the path map
+										// when it was built; forget it (and its children)
+										// before freeing it, or later lookups by that path
+										// would push items into freed memory.
+										unmap_system_subtree(item);
+										delete item;
+										continue;
+									}
 								}
 							}
 						}
@@ -4217,6 +4238,8 @@ namespace Nilesoft
 
 			auto itmes_count = ::GetMenuItemCount(hMenu);
 
+			menu->source_handle = hMenu;
+			menu->source_count = itmes_count;
 			menu->items.reserve(itmes_count);
 
 			for(int i = 0; i < itmes_count; i++)
@@ -4285,9 +4308,12 @@ namespace Nilesoft
 
 							if(_settings.modify_items.remove.duplicate)
 							{
-								uint32_t indexof = 0;
-								for(auto im : menu->items)
+								// indexof has to advance with the scan; it used to be
+								// incremented after the loop, so it was always 0 and a
+								// replacement overwrote items[0] instead of the match.
+								for(size_t indexof = 0; indexof < menu->items.size(); indexof++)
 								{
+									auto im = menu->items[indexof];
 									if(im->hash == item->hash)
 									{
 										if(im->type == item->type)
@@ -4298,6 +4324,11 @@ namespace Nilesoft
 												if(!item->disabled)
 												{
 													found_duplicate = 2;
+													// The vector owns its elements, so the replaced
+													// entry (and its subtree) must be freed. Only the
+													// path map can alias it this early; forget it there.
+													unmap_system_subtree(im);
+													delete im;
 													menu->items[indexof] = item.release();
 												}
 											}
@@ -4305,7 +4336,6 @@ namespace Nilesoft
 										}
 									}
 								}
-								indexof++;
 							}
 							
 							if(found_duplicate == 1)
@@ -4320,19 +4350,156 @@ namespace Nilesoft
 							build_system_menuitems(mii.hSubMenu, itemPtr, false);
 					}
 					
-					if(found_duplicate != 2)
+					// Registered on the replacement path too, so the map points at
+					// the new entry. itemPtr, not item: there the unique_ptr has
+					// already been released into the vector.
+					if(itemPtr->is_menu())
 					{
-						if(item->is_menu())
-						{
-							string sub_path = item->name;
-							if(!item->path.empty())
-								sub_path = item->path + L'/' + sub_path;
+						string sub_path = itemPtr->name;
+						if(!itemPtr->path.empty())
+							sub_path = itemPtr->path + L'/' + sub_path;
+						// While a submenu is being re-read, a path that is already
+						// mapped belongs to the live node a modify rule moved out of
+						// it earlier; the re-read copy of that node is discarded as a
+						// duplicate, so it must not take the entry over.
+						if(__refreshing_system_items)
+							__map_system_menu.try_emplace(sub_path.hash(), itemPtr);
+						else
 							__map_system_menu[sub_path.hash()] = itemPtr;
-						}
-
-						menu->items.push_back(item.release());
 					}
+
+					if(found_duplicate != 2)
+						menu->items.push_back(item.release());
 				}
+			}
+		}
+
+		// Drops __map_system_menu entries that point at node or anything below it,
+		// before that subtree is deleted.
+		void ContextMenu::unmap_system_subtree(menuitem_t *node)
+		{
+			if(!node)
+				return;
+
+			std::vector<menuitem_t *> nodes;
+			std::function<void(menuitem_t *)> collect = [&](menuitem_t *n)
+			{
+				nodes.push_back(n);
+				for(auto child : n->items)
+					collect(child);
+			};
+			collect(node);
+
+			for(auto it = __map_system_menu.begin(); it != __map_system_menu.end();)
+			{
+				if(std::find(nodes.begin(), nodes.end(), it->second) != nodes.end())
+					it = __map_system_menu.erase(it);
+				else
+					++it;
+			}
+		}
+
+		/*
+			shell32 fills some submenus ("Send to", "New", ...) lazily, after
+			QueryContextMenu, so the snapshot taken in Initialize() can be missing
+			items. When the native popup now holds more items than it did when it
+			was read, read it again and re-apply the modify rules to the new copy.
+			The items cannot be copied out of the native HMENU directly: they are
+			owner-drawn and their dwItemData belongs to explorer.
+		*/
+		bool ContextMenu::refresh_system_submenu_item(menuitem_t *item)
+		{
+			if(!item || !item->is_menu())
+				return false;
+
+			if(!item->source_handle || !::IsMenu(item->source_handle))
+				return false;
+
+			if(::GetMenuItemCount(item->source_handle) <= item->source_count)
+				return false;
+
+			// Items a modify rule moved into this subtree from elsewhere are not part
+			// of the native snapshot; detach them so they survive the rebuild.
+			std::vector<menuitem_t *> moved_in;
+
+			std::function<void(menuitem_t *)> detach = [&](menuitem_t *node)
+			{
+				auto &list = node->items;
+				for(auto it = list.begin(); it != list.end();)
+				{
+					auto child = *it;
+					if(child->moved_in)
+					{
+						moved_in.push_back(child);
+						it = list.erase(it);
+						continue;
+					}
+					detach(child);
+					++it;
+				}
+			};
+			detach(item);
+
+			for(auto child : item->items)
+			{
+				unmap_system_subtree(child);
+				delete child;
+			}
+			item->items.clear();
+
+			{
+				// Covers the re-read as well as the re-applied rules: the path map
+				// registration in build_system_menuitems depends on it too.
+				struct refreshing_scope
+				{
+					bool &flag;
+					explicit refreshing_scope(bool &f) : flag(f) { flag = true; }
+					~refreshing_scope() { flag = false; }
+				} refreshing(__refreshing_system_items);
+
+				build_system_menuitems(item->source_handle, item, false);
+
+				if(_settings.modify_items.enabled)
+				{
+					build_main_system_menuitems(item, false);
+					_context._this = nullptr;
+				}
+			}
+
+			// Back to wherever their rule put them, now that the path map points
+			// at the rebuilt nodes.
+			for(auto x : moved_in)
+			{
+				if(auto submenu = __map_system_menu[x->path.hash()]; submenu)
+				{
+					x->parent = submenu;
+					submenu->items.push_back(x);
+				}
+				else
+				{
+					x->moved_in = false;
+					__movable_system_items.push_back(x);
+				}
+			}
+
+			return true;
+		}
+
+		void ContextMenu::refresh_system_submenus(menuitem_t *menu)
+		{
+			if(!menu)
+				return;
+
+			// By index: re-applied modify rules may move items into this list.
+			for(size_t i = 0; i < menu->items.size(); i++)
+			{
+				auto item = menu->items[i];
+				if(!item || !item->is_menu())
+					continue;
+
+				// A rebuilt node's children are already current.
+				if(!refresh_system_submenu_item(item))
+					refresh_system_submenus(item);
 			}
 		}
 
@@ -4362,8 +4529,6 @@ namespace Nilesoft
 				//if(is_excluded())
 				//	return false;
 
-				auto sets = &_cache->settings;
-				
 				/*if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
 					_result = Window::class_name(h);
 				*/
@@ -4378,6 +4543,10 @@ namespace Nilesoft
 					}
 				}
 
+				// query() may reload the config (a requested reload, or an edit to
+				// the config or an import), deleting the cache the constructor took.
+				// Nothing derived from that cache may be kept across this call.
+				auto previous_cache = _cache;
 				if(!initializer->query())
 				{
 					__trace(L"initializer query");
@@ -4389,6 +4558,13 @@ namespace Nilesoft
 				_context.variables.global = &_cache->variables.global;
 				_context.variables.runtime = &_cache->variables.runtime;
 				_context.variables.local = nullptr;
+
+				// A new cache: size its fonts for this menu, as the constructor
+				// did for the old one.
+				if(_cache != previous_cache)
+					_cache->reload(dpi.val);
+
+				auto sets = &_cache->settings;
 
 				switch(Selected.Window.id)
 				{
@@ -4934,8 +5110,8 @@ namespace Nilesoft
 							long x = rect.left + (rect.width() / 2) - (size.cx / 2);
 							long y = rect.top - size.cy - ctx->dpi(10);
 
-							if(x < 0) x = 0;
-							if(y < 0) y = rect.bottom + ctx->dpi(10);
+							if(x < ctx->_rcMonitor.left) x = ctx->_rcMonitor.left;
+							if(y < ctx->_rcMonitor.top) y = rect.bottom + ctx->dpi(10);
 
 							if((x + size.cx) > ctx->_rcMonitor.right)
 								x = ctx->_rcMonitor.right - size.cx;
@@ -5819,13 +5995,13 @@ namespace Nilesoft
 
 							if(wnd->has_scroll)
 							{
-								wp->y = (ctx->_rcMonitor.height() - wnd->height) / 2;
+								wp->y = ctx->_rcMonitor.top + ((ctx->_rcMonitor.height() - wnd->height) / 2);
 							}
 							else if((wnd->height + 100) > (ctx->_rcMonitor.height() / 2))
 							{
 								//wp->y -= 50;
 							}
-							else if((wp->y + wnd->height) > (ctx->_rcMonitor.height() - ctx->dpi(40)))
+							else if((wp->y + wnd->height) > (ctx->_rcMonitor.bottom - ctx->dpi(40)))
 							{
 								//wp->y -= ctx->dpi(40);
 								//wp->y /= 2;
@@ -6089,23 +6265,13 @@ namespace Nilesoft
 						}
 					}
 
-					int pvParam{};
-					::SystemParametersInfoW(SPI_GETSELECTIONFADE, 0, &pvParam, 0);
-					if(!pvParam)
-					{
-						// Fade out animation is disabled system-wide
-						break;
-					}
-					// We need to prevent the system default menu fade out animation
-					// and begin a re-implemented one
-					// 
-					// Windows does not show animation if the selection was done
-					// with keyboard (i.e. Enter)
-
-					::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, FALSE, 0);
-					lret = defSubclassProc();
-					::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, (PVOID)TRUE, 0);
-					return lret;
+					// This used to turn SPI_SETSELECTIONFADE off around
+					// defSubclassProc and back on afterwards, to suppress the system
+					// fade-out "and begin a re-implemented one". That replacement was
+					// never written, so all it did was override the user's setting
+					// session-wide on every click, and anything that stopped the
+					// thread between the two calls left fade disabled. Users whose
+					// fade was already off took the early break, now the only path.
 				}
 				break;
 				case MN_DBLCLK:

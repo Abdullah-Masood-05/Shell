@@ -3,7 +3,7 @@
 #include <tuple>
 #include "Expression\Variable.h"
 #include "Include\Theme.h"
-#include "RegistryConfig.h"
+#include "ConfigLocation.h"
 
 // Windows State (Hidden | Normal | Minimized | Maximized)
 namespace Nilesoft
@@ -12,7 +12,7 @@ namespace Nilesoft
 	{
 		extern Logger &_log = Logger::Instance();
 
-		Parser::Parser()
+		Parser::Parser(const wchar_t *root)
 		{
 			context.Application = &Initializer::instance->application;
 
@@ -21,43 +21,72 @@ namespace Nilesoft
 			context.variables.runtime = &context.Cache->variables.runtime;
 			context.Selections = nullptr;
 
-			string cfg;
-			if(RegistryConfig::get(nullptr, L"config", cfg) && !cfg.empty())
+			if(root && *root)
 			{
-				//if(Path::IsFileExists(cfg))
-				m_path = cfg.move();
-			}
-
-			if(m_path.empty() || !Path::IsFileExists(m_path))
-			{
-				if(Path::IsFileExists(context.Application->ConfigPortable))
-					m_path = context.Application->ConfigPortable;
-				else
+				m_path = root;
+				add_source(m_path);
+				if(!ConfigLocation::IsFile(m_path))
 				{
-					/*string ss = L"config file ";
-					if(!m_path.empty())
-						ss.append_format(L"'%s' ", m_path.c_str());
-					ss.append(L"not found.");
-					_log.warning(ss);
-					.*/
-					string ss = L"config file ";
-					if(!m_path.empty())
-					{
-						ss += L"'";
-						ss += m_path;
-						ss += L"' ";
-					}
-					ss += L"not found.";
-					_log.warning(ss);
+					error_code = TokenError::CannotFoundConfigFile;
+					m_error = true;
+					diagnose(true, m_path, 0, 0, L"config file not found");
 					return;
 				}
+
+				_imports.emplace_back(new Lexer);
+				l = _imports.front().get();
+				if(!l->load_File(m_path.c_str()) || l->length < 5)
+				{
+					if(l->error != TokenError::None)
+					{
+						error_code = l->error;
+						m_error = true;
+						diagnose(true, m_path, 0, 0, ParserException::errortostr(l->error));
+					}
+					else
+					{
+						diagnose(false, m_path, 0, 0, L"config file is empty");
+					}
+				}
+				return;
 			}
 
+			// HKCU "config" value, then %APPDATA%\Nilesoft\Shell\shell.nss, then
+			// the install folder's shell.nss; see ConfigLocation. Shared with
+			// shell.exe so -status/-config:path report this same file. The DLL
+			// only ever reads it.
+			auto location = ConfigLocation::Resolve(context.Application->Dirctory);
+
+			// Watch the locations that would take precedence over the one in
+			// use (they do not exist now), so creating one, e.g. with
+			// shell -config:init, is picked up like an edit.
+			if(location.source != ConfigLocation::Source::registry && !location.configured.empty())
+				add_source(location.configured);
+			if(location.source == ConfigLocation::Source::install || location.source == ConfigLocation::Source::none)
+				add_source(ConfigLocation::UserConfig());
+
+			if(location.source == ConfigLocation::Source::none)
+			{
+				add_source(location.path);
+				string ss = L"config file ";
+				if(!location.configured.empty())
+				{
+					ss += L"'";
+					ss += location.configured;
+					ss += L"' ";
+				}
+				ss += L"not found.";
+				_log.warning(ss);
+				return;
+			}
+
+			m_path = location.path.move();
 			context.Application->Config = m_path;
 
 			_imports.emplace_back(new Lexer);
 			l = _imports.front().get();
-			
+
+			add_source(m_path);
 			if(!l->load_File(m_path.c_str()) || l->length < 5)
 			{
 				if(HasError())
@@ -68,6 +97,24 @@ namespace Nilesoft
 		}
 
 		Parser::~Parser() { }
+
+		void Parser::diagnose(bool is_error, const wchar_t *file, size_t line, size_t column, const string &message)
+		{
+			if(auto list = Diagnostics)
+				list->push_back({ is_error, file ? file : L"", line, column, message });
+		}
+
+		void Parser::add_source(const wchar_t *path)
+		{
+			if(!path || !*path)
+				return;
+			for(auto &source : Sources)
+			{
+				if(source.path.equals(path, true))
+					return;
+			}
+			Sources.push_back({ path, Initializer::last_write_time(path) });
+		}
 		size_t Parser::Line() const { return l ? l->line : 0; };
 		size_t Parser::Column() const { return l ? l->column : 0; };
 		const wchar_t *Parser::Path() const { return l ? l->path.c_str() : nullptr; };
@@ -90,6 +137,9 @@ namespace Nilesoft
 				m_error = true;
 			}
 
+			// Every call aborts the parse (it throws), so it is reported each time.
+			diagnose(true, l->path, l->line, l->column, ParserException::errortostr(tokenError));
+
 			bool log = true;
 			auto le = &Initializer::LastError;
 			if(le->code != TokenError::None)
@@ -104,6 +154,14 @@ namespace Nilesoft
 			{
 				error_code = tokenError;
 				m_error = true;
+
+				string text = ParserException::errortostr(tokenError);
+				if(message)
+				{
+					text += L", ";
+					text += message;
+				}
+				diagnose(true, l ? l->path.c_str() : m_path.c_str(), l ? l->line : 0, l ? l->column : 0, text);
 
 				auto le = &Initializer::LastError;
 				if(le->code != TokenError::None && (le->code == error_code && le->line == l->line && le->col == l->column))
@@ -1126,13 +1184,24 @@ namespace Nilesoft
 			if(path.empty())
 				return 0;
 			
-			if(path.length() > 2)
-			{
-				if(!((path[1] == L':' && path[2] == L'\\') || (path[0] == L'\\' && path[1] == L'\\')))
-					path = Path::Combine(l->location, path).move();
-			}
+			// Root every relative import against the importing file's own
+			// directory. The old length > 2 guard let short names such as "a"
+			// through unrooted, to be resolved against the process working
+			// directory, which is not ours to rely on.
+			if(!Path::IsAbsolute(path))
+				path = Path::Combine(l->location, path).move();
 
 			path = Path::FixSeparator(path).move();
+
+			// Legacy alias: the Ukrainian translation used to ship as "ua.nss"
+			// (country code); it is now "uk.nss" (ISO 639-1 language code).
+			// Keep existing configs that still import "ua.nss" working.
+			if(path.ends_with(L"\\ua.nss") && !Path::IsFileExists(path))
+			{
+				auto alias = (path.substr(0, path.length() - 6) + L"uk.nss").move();
+				if(Path::IsFileExists(alias))
+					path = alias.move();
+			}
 
 			auto hash = path.hash();
 			
@@ -1154,8 +1223,20 @@ namespace Nilesoft
 				m_imports.push_back(hash);
 			}
 
+			if(_imports.size() >= MaxImportDepth)
+			{
+				Logger::Error(L"line[%d] column[%d] import nesting deeper than %d, refusing '%s'",
+							  line, col, static_cast<int>(MaxImportDepth), path.c_str());
+				string text;
+				text.format(L"import nesting deeper than %d, refusing '%s'", static_cast<int>(MaxImportDepth), path.c_str());
+				diagnose(false, l->path, line, col, text);
+				return 0;
+			}
+
 			auto lex = import_push();
 
+			if(hash)
+				add_source(path);
 			if(hash && lex->load_File(path, ignore_failed))
 			{
 				__trace(L"import '%s'", path.c_str());
@@ -1166,16 +1247,21 @@ namespace Nilesoft
 				return 1;
 			}
 
+			// Not fatal: the import is skipped and the parse goes on.
+			string text;
 			if(lex->error != TokenError::None)
 			{
 				Logger::Error(L"line[%d] column[%d], %s '%s'",
 							  line, col, ParserException::errortostr(lex->error), l->path.c_str());
+				text.format(L"import '%s': %s", path.c_str(), ParserException::errortostr(lex->error));
 			}
 			else
 			{
 				Logger::Warning(L"line[%d] column[%d] invalid import file, '%s'",
 								line, col, path.c_str());
+				text.format(L"invalid import file '%s'", path.c_str());
 			}
+			diagnose(false, l->path, line, col, text);
 
 			pop_import();
 

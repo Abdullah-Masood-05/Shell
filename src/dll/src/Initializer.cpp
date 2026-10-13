@@ -16,7 +16,11 @@ namespace Nilesoft
 
 			try
 			{
-				com_initializer.initialize();
+				// COM is deliberately not touched here. This runs from DllMain
+				// under the loader lock, where CoInitializeEx is documented as
+				// unsupported, and it would initialise whichever thread happened
+				// to load the DLL rather than the one that builds menus. It is
+				// done on the menu thread by ensure_com(), called from init().
 
 				application.Name = APP_NAME;
 				application.FileName = APP_FILENAME_TITLE;
@@ -76,10 +80,46 @@ namespace Nilesoft
 			}
 		}
 
+		// Makes sure the calling thread has a COM apartment, and applies the
+		// process-wide COM option that used to be set from DllMain.
+		//
+		// If the host already initialised COM on this thread (the normal case in
+		// Explorer) nothing is done, so no reference count is taken. Otherwise an
+		// STA is created and deliberately never paired with CoUninitialize: the
+		// thread belongs to the host, and tearing the apartment down at some
+		// arbitrary later point would be worse than leaving it in place.
+		void Initializer::ensure_com()
+		{
+			static thread_local bool done = false;
+			if(done)
+				return;
+			done = true;
+
+			APTTYPE apt_type{};
+			APTTYPEQUALIFIER apt_qualifier{};
+			if(::CoGetApartmentType(&apt_type, &apt_qualifier) == CO_E_NOTINITIALIZED)
+				::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+			// DisableComExceptionHandling. Process-global, so applied once. It used
+			// to be a COM activation under the loader lock; kept, off the loader
+			// lock, rather than silently dropped.
+			static std::atomic_flag global_options_set = ATOMIC_FLAG_INIT;
+			if(!global_options_set.test_and_set())
+			{
+				IComPtr<IGlobalOptions> globalOptions;
+				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
+					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+			}
+		}
+
 		bool Initializer::init()
 		{
 			try
 			{
+				// First thing on this thread, before anything reaches WIC, D2D or
+				// a shell interface.
+				ensure_com();
+
 				if(!cache)
 				{
 					cache = new CACHE;
@@ -87,19 +127,31 @@ namespace Nilesoft
 					// Determine the required bitmap size.
 					cache->glyph.name = FontCache::Default;
 
-					auto cur_dir = Path::CurrentDirectory();
-					Path::CurrentDirectory(application.Dirctory);
+					// The working directory is deliberately left alone. It used to be
+					// pointed at the install folder for the duration of the parse,
+					// which mutates state shared with every other thread in the host
+					// process (and was not restored if parsing threw). The config
+					// path is absolute (Parser roots a relative registry path at the
+					// install folder) and load_import roots every import against the
+					// importing file's own directory.
 					Parser parser;
 
 					load_mui();
 
 					cache->Packages.load();
 
-					if(!parser.Load())
+					auto loaded = parser.Load();
+
+					// Remember every file this load depended on, stamped as each
+					// was read, so an edit to any of them (or the file the error
+					// was in, for a failed load) is seen by config_has_changed().
+					watch(std::move(parser.Sources));
+
+					if(!loaded)
 					{
+						// has_error(true) retries once one of them has been written.
 						Status.Error = true;
 						uninit();
-						Path::CurrentDirectory(cur_dir);
 						// Release ownership of the critical section.
 						return false;
 					}
@@ -118,7 +170,6 @@ namespace Nilesoft
 						}
 					}
 
-					Path::CurrentDirectory(cur_dir);
 					cache->fonts.init(HInstance);
 					ContextMenu::FontNotFound = false;
 				}
@@ -179,6 +230,13 @@ namespace Nilesoft
 				if(Status.Error && ch < 2)
 					return false;
 
+				// Reload a working config when the root or any import has been
+				// edited since it was loaded. query() runs as a menu is being
+				// built, the same place the Ctrl / right+left-click reload acts,
+				// so this adds no new point at which the cache is replaced.
+				if(Status.Loaded && !Status.Refresh && config_has_changed())
+					Status.Refresh = true;
+
 				if(Status.Refresh)
 					uninit();
 				
@@ -193,25 +251,46 @@ namespace Nilesoft
 			return false;
 		}
 
-		//determine config file changed
+		// Last-write time of a file, or 0 if it cannot be read. Uses the
+		// attributes rather than opening the file, so it never holds a handle
+		// that could get in the way of an editor saving it.
+		uint64_t Initializer::last_write_time(const wchar_t *path)
+		{
+			WIN32_FILE_ATTRIBUTE_DATA data{};
+			if(!path || !*path || !::GetFileAttributesExW(path, GetFileExInfoStandard, &data))
+				return 0;
+			return (static_cast<uint64_t>(data.ftLastWriteTime.dwHighDateTime) << 32)
+				| data.ftLastWriteTime.dwLowDateTime;
+		}
+
+		void Initializer::watch(std::vector<SourceFile> &&files)
+		{
+			std::lock_guard lock(_watched_lock);
+			_watched = std::move(files);
+		}
+
+		// Determine whether any file the last load depended on changed since.
+		// The stamps are updated, so each change is reported once.
 		bool Initializer::config_has_changed()
 		{
-			bool res = false;
+			bool changed = false;
 			try
 			{
-				auto_handle hConfig = ::CreateFileW(application.Config, GENERIC_READ, FILE_SHARE_READ,
-													nullptr, OPEN_EXISTING, 0, nullptr);
-				if(hConfig)
+				// Throttle: at most one poll per CheckInterval, and only by the
+				// thread that wins the exchange.
+				auto now = ::GetTickCount64();
+				auto next = _next_check.load();
+				if(now < next || !_next_check.compare_exchange_strong(next, now + CheckInterval))
+					return false;
+
+				std::lock_guard lock(_watched_lock);
+				for(auto &file : _watched)
 				{
-					FILETIME ft_lastWriteTime{};
-					auto last_write_time = reinterpret_cast<uintptr_t *>(&ft_lastWriteTime);
-					if(::GetFileTime(hConfig, nullptr, nullptr, &ft_lastWriteTime) && *last_write_time != 0)
+					auto time = last_write_time(file.path);
+					if(time != file.time)
 					{
-						if(*last_write_time != _last_write_time)
-						{
-							res = _last_write_time > 0;
-							_last_write_time = *last_write_time;
-						}
+						file.time = time;
+						changed = true;
 					}
 				}
 			}
@@ -221,20 +300,52 @@ namespace Nilesoft
 				Logger::Exception(__func__);
 #endif
 			}
-			return res;
+			return changed;
 		}
 
 		bool Initializer::has_error(bool detect_changes)
 		{
-			if(Status.Error)
+			if(!Status.Error)
+				return false;
+
+			if(!detect_changes)
+				return true;
+
+			// A retry is already pending: let the caller go on to init(), which
+			// either loads the config (clearing Error) or fails and clears
+			// Refresh via uninit(), so this cannot repeat without a new change.
+			if(Status.Refresh)
+				return false;
+
+			// A working config is checked in query() instead, when a menu is built.
+			if(config_has_changed())
 			{
-				return detect_changes ? !config_has_changed() : true;
+				Status.Refresh = true;
+				return false;
 			}
-			return false;
+
+			return true;
 		}
 
 		void Initializer::load_mui()
 		{
+			// Every module named below is a Windows binary, read for its localised
+			// strings/menus. Never resolve them through the search path: mapped as
+			// data no code would run, but the menu titles would be a planted
+			// file's. Bare names go to System32 first, then the Windows directory
+			// (regedit.exe and explorer.exe live there, not in System32); names
+			// with a directory are relative to the Windows directory. Either way
+			// LoadLibraryEx only ever sees System32 or a fully qualified path.
+			auto load_resource_module = [](const wchar_t *dll) -> HMODULE
+			{
+				constexpr DWORD flags = LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE;
+				if(::wcspbrk(dll, L"\\/"))
+					return DLL::LoadSafeWindows(dll, flags);
+				if(auto hModule = DLL::LoadSafe(dll, flags))
+					return hModule;
+				return DLL::LoadSafeWindows(dll, flags);
+			};
+
 			auto ldstr = [&, this](const wchar_t *dll,
 								std::initializer_list<MUID> list)
 			{
@@ -242,7 +353,7 @@ namespace Nilesoft
 				bool load_as_dynamic = false;
 				if(!hModule)
 				{
-					hModule = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					hModule = load_resource_module(dll);
 					load_as_dynamic = true;
 				}
 
@@ -336,7 +447,7 @@ namespace Nilesoft
 				HMODULE lib{}, hModule = ::GetModuleHandleW(dll);
 				if(!hModule)
 				{
-					lib = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					lib = load_resource_module(dll);
 					hModule = lib;
 				}
 
@@ -355,7 +466,7 @@ namespace Nilesoft
 				HMODULE lib{}, hModule = ::GetModuleHandleW(dll);
 				if(!hModule)
 				{
-					lib = ::LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+					lib = load_resource_module(dll);
 					hModule = lib;
 				}
 
@@ -711,7 +822,9 @@ namespace Nilesoft
 			ldstr(L"display.dll", { {IDENT_ID_DISPLAY_SETTINGS, 4} });
 			ldstr(L"themecpl.dll", { {IDENT_ID_PERSONALIZE, 10} });
 			ldstr(L"regedit.exe", { {IDENT_ID_MERGE, 310, {L'\uE142'} } });
-			ldstr(L"powershell.exe", { {IDENT_ID_RUN_WITH_POWERSHELL, 108} });
+			// Not in System32 itself; named relative to the Windows directory.
+			ldstr(L"System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+				  { {IDENT_ID_RUN_WITH_POWERSHELL, 108} });
 
 			ldstr(L"stobject.dll", {
 				{IDENT_ID_SET_AS_DESKTOP_BACKGROUND, 417},

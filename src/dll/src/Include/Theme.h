@@ -919,11 +919,81 @@ namespace Nilesoft
 				return (uint32_t)DC(hWnd).GetDeviceCapsX();
 			}
 
-			static uint32_t GetDpi(Point const &pt, HWND hWnd = nullptr)
+			/*
+				Is this window scaled per monitor, or does the system scale it?
+
+				DPI_AWARENESS_PER_MONITOR_AWARE == 2 and PROCESS_PER_MONITOR_DPI_AWARE
+				== 2; both are spelled out rather than included, so this header keeps
+				needing nothing but windows.h.
+			*/
+			static bool is_per_monitor_aware(HWND hWnd)
 			{
-				auto dpiX = 96u, dpiY = 96u;
+				if(!hWnd)
+					return false;
+
+				// Windows 10 1607 and later can answer for the window itself, which is
+				// what matters: awareness is per top-level window, not only per process.
+				if(ver.IsWindowsVersionOrGreater(10, 0, 14393))
+				{
+					if(auto context = DLL::User32<void *>("GetWindowDpiAwarenessContext", hWnd))
+						return 2 == DLL::User32<int>("GetAwarenessFromDpiAwarenessContext", context);
+				}
+
+				// Windows 8.1 has only the process-wide setting.
 				if(ver.IsWindows81OrGreater())
 				{
+					int awareness = 0;
+					if(S_OK == DLL::Invoke<HRESULT>(L"Shcore.dll", "GetProcessDpiAwareness", nullptr, &awareness))
+						return awareness == 2;
+				}
+
+				// Before that there is no per-monitor DPI to be aware of.
+				return false;
+			}
+
+			/*
+				The DPI to draw a menu at, for a menu opening at `pt` over `hWnd`.
+
+				Both available answers are scaled to the caller's DPI awareness, but at
+				different granularity, and that is the whole point.
+
+				GetDpiForMonitor reports according to the *process*:
+
+					PROCESS_DPI_UNAWARE           -> 96
+					PROCESS_SYSTEM_DPI_AWARE      -> the system DPI
+					PROCESS_PER_MONITOR_DPI_AWARE -> the display's actual DPI
+
+				and its own page says "this API is not DPI aware and should not be used
+				if the calling thread is per-monitor DPI aware. For the DPI-aware version
+				of this API, see GetDpiForWindow".
+
+				  https://learn.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getdpiformonitor
+
+				GetDpiForWindow reports according to the *window* - 96 when unaware, the
+				system DPI when system aware, the window's monitor when per-monitor aware.
+
+				  https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow
+
+				Since Windows 10 1607 awareness is a per-window property, so the window is
+				the authority. This code used to reach the monitor query first and never
+				get past it, which meant a host whose process is per-monitor aware got the
+				display's real DPI for a menu raised over a window that is not - the
+				window is scaled by the system and the menu beside it is not. Mixed
+				awareness inside one process is ordinary: it is what
+				SetThreadDpiAwarenessContext exists for.
+
+				The point rather than the window is still what gets measured once the
+				window is per-monitor aware, because there the two can genuinely differ:
+				a desktop right-click on a second monitor is owned by a Progman window
+				living on the first.
+			*/
+			static uint32_t GetDpi(Point const &pt, HWND hWnd = nullptr)
+			{
+				auto per_monitor = !hWnd || is_per_monitor_aware(hWnd);
+
+				if(per_monitor && ver.IsWindows81OrGreater())
+				{
+					auto dpiX = 96u, dpiY = 96u;
 					if(auto hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST); hMonitor)
 					{
 						if(S_OK == DLL::Invoke<HRESULT>(L"Shcore.dll", "GetDpiForMonitor", hMonitor, 0, &dpiX, &dpiY) && dpiX != 0)
@@ -934,11 +1004,15 @@ namespace Nilesoft
 				if(hWnd)
 				{
 					if(ver.IsWindowsVersionOrGreater(10, 0, 14393))
-						return DLL::User32<uint32_t>("GetDpiForWindow", hWnd);
-					return (uint32_t)DC(hWnd).GetDeviceCapsY();
+					{
+						if(auto dpi = DLL::User32<uint32_t>("GetDpiForWindow", hWnd); dpi != 0)
+							return dpi;
+					}
+					if(auto dpi = (uint32_t)DC(hWnd).GetDeviceCapsY(); dpi != 0)
+						return dpi;
 				}
 
-				return dpiX;
+				return 96u;
 			}
 
 			static HTHEME OpenThemeData(HWND hWnd, wchar_t const *pszClassList, uint32_t dpi = 96)

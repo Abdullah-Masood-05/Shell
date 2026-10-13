@@ -529,16 +529,21 @@ namespace Nilesoft
 					{
 						if(context->Runtime)
 						{
+							// Passed explicitly so the launched process still starts in
+							// the selected folder. This used to be inherited from the
+							// process working directory, which Selections changed on
+							// every menu.
+							auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
 							Object arg0 = eval_arg(0).move();
 							if(argc > 1)
 							{
 								Diagnostics::ShellExec::Run(arg0, eval_arg(1),
-															nullptr, L"runas", eval_arg(2, SW_NORMAL));
+															cwd, L"runas", eval_arg(2, SW_NORMAL));
 							}
 							else
 							{
 								Diagnostics::ShellExec::Run(arg0, nullptr,
-															nullptr, L"open", SW_NORMAL);
+															cwd, L"open", SW_NORMAL);
 							}
 						}
 						//else if(Id[0] == IDENT_CMD && argc == 0)
@@ -550,7 +555,8 @@ namespace Nilesoft
 				{
 					if(context->Runtime && argc > 0)
 					{
-						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), nullptr,
+						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
+						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
 															  eval_arg(2), eval_arg(3, SW_NORMAL));
 					}
 					break;
@@ -3451,7 +3457,11 @@ namespace Nilesoft
 						string wsl = L"/mnt/";
 						string path = Path::FixSeparator(arg0, L"/").move();
 						
-						if(path[1] == L':')
+						// A one-character argument reaches here too - "C", or a bare
+						// separator - and reading [1] to decide is one past the end of
+						// it. Prove the drive-letter shape before consuming it.
+						if(path.length() >= 2 && path[1] == L':' &&
+						   Char::IsLetter(path[0]))
 						{
 							wsl += Char::ToLower(path[0]);
 							path = path.substr(2).move();
@@ -5225,12 +5235,23 @@ namespace Nilesoft
 						if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
 						{
 							string value;
+							// Size from the byte count the second read reports, and
+							// only drop a terminator that is actually there -
+							// RegQueryValueEx does not promise one, and an empty
+							// value used to underflow into a run of NULs.
+							// https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryvalueexw
 							uint32_t len = (cbdata / sizeof(wchar_t));
-							if(key.get_value(name, &dwtype, &cbdata, value.buffer(len)))
+							auto data = value.buffer(len + 1);
+							if(data && key.get_value(name, &dwtype, &cbdata, data))
 							{
-								value.release(len - 1);
+								len = (cbdata / sizeof(wchar_t));
+								if(len > 0 && data[len - 1] == L'\0')
+									len--;
+								value.release(len);
+								// Expand returns the expansion; it does not modify
+								// its argument, so the result has to be taken.
 								if(dwtype == REG_EXPAND_SZ)
-									Environment::Expand(value).move();
+									value = Environment::Expand(value).move();
 								_result = value.move();
 							}
 						}

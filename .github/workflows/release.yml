@@ -1,0 +1,133 @@
+name: Release
+
+# Builds everything with build.yml and publishes a GitHub Release for a v* tag with the
+# MSIs, the portable zip and SHA256SUMS.txt. A tag with a "-" (v2.0.0-beta.1) is
+# published as a pre-release. Run it by hand for an existing tag with workflow_dispatch.
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and release, e.g. v2.0.0-beta.1
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
+      - name: Tag, version and pre-release flag
+        id: meta
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag like v2.0.0 or v2.0.0-beta.1"
+            exit 1
+          fi
+          version="${TAG#v}"
+          prerelease=false
+          [[ "$version" == *-* ]] && prerelease=true
+          {
+            echo "tag=$TAG"
+            echo "version=$version"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ steps.meta.outputs.tag }}
+
+      # The MSI's version comes from src/shared/Resource.h (and var.wxi); the tag must match.
+      - name: Check the tag against Resource.h
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          get() { sed -nE "s/^#define[[:space:]]+VERSION_$1[[:space:]]+([0-9]+).*/\1/p" src/shared/Resource.h; }
+          source_version="$(get MAJOR).$(get MINOR).$(get BUILD)"
+          if [[ "${VERSION%%-*}" != "$source_version" ]]; then
+            echo "::error::Tag version ${VERSION%%-*} does not match Resource.h ($source_version)"
+            exit 1
+          fi
+          grep -q "Version = '$source_version'" src/setup/wix/var.wxi \
+            || { echo "::error::src/setup/wix/var.wxi does not say Version = '$source_version'"; exit 1; }
+
+  build:
+    name: Build
+    needs: meta
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: refs/tags/${{ needs.meta.outputs.tag }}
+      version: ${{ needs.meta.outputs.version }}
+
+  release:
+    name: Publish the release
+    needs: [ meta, build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.meta.outputs.tag }}
+      VERSION: ${{ needs.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.meta.outputs.tag }}
+
+      - name: Download the MSIs
+        uses: actions/download-artifact@v8
+        with:
+          pattern: msi-*
+          path: dist
+          merge-multiple: true
+
+      - name: Download the portable zip
+        uses: actions/download-artifact@v8
+        with:
+          name: portable-x64
+          path: dist
+
+      - name: SHA256SUMS.txt and release notes
+        run: |
+          set -euo pipefail
+          cd dist
+          ls -l
+          for f in setup-x64.msi setup-arm64.msi setup-x86.msi "NilesoftShellPro-$VERSION-x64-portable.zip"; do
+            [[ -f "$f" ]] || { echo "::error::$f is missing"; exit 1; }
+          done
+          sha256sum setup-*.msi NilesoftShellPro-*.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          cd ..
+          sed -e "s/{{VERSION}}/$VERSION/g" -e "s/{{TAG}}/$TAG/g" .github/release-notes.md > dist/release-notes.md
+
+      - name: Create the GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          name: Nilesoft Shell Pro ${{ needs.meta.outputs.version }}
+          body_path: dist/release-notes.md
+          prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
+          make_latest: ${{ needs.meta.outputs.prerelease == 'true' && 'false' || 'true' }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/setup-x64.msi
+            dist/setup-arm64.msi
+            dist/setup-x86.msi
+            dist/NilesoftShellPro-${{ needs.meta.outputs.version }}-x64-portable.zip
+            dist/SHA256SUMS.txt

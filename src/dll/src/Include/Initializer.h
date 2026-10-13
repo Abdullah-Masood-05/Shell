@@ -593,9 +593,29 @@ namespace Nilesoft
 		class Initializer
 		{
 		private:
-			uintptr_t _last_write_time{};
+			// The files the last load attempt depended on (Parser::Sources: the
+			// root config, every import, and the config locations that would
+			// take precedence), with their last-write times as read. Recorded
+			// after every load, successful or not, and compared by
+			// config_has_changed(): a working config is reloaded when one of
+			// them is edited, and a broken one retried once a fix is saved.
+			//
+			// Menus can be built on more than one Explorer thread, so the list
+			// is only touched under _watched_lock (held for a handful of
+			// GetFileAttributesExW calls at most), and the poll is throttled
+			// through _next_check, which also lets one thread at a time poll.
+			std::vector<SourceFile>	_watched;
+			std::mutex				_watched_lock;
+			std::atomic<uint64_t>	_next_check{};
+			// Minimum time between two polls of the watched files.
+			static constexpr uint64_t CheckInterval = 500; // ms
+
+			void watch(std::vector<SourceFile> &&files);
 
 		public:
+			// Last-write time of a file, or 0 if it cannot be read.
+			static uint64_t last_write_time(const wchar_t *path);
+
 			struct {
 				HMODULE	hModule{};
 				HANDLE	handle{};
@@ -605,8 +625,10 @@ namespace Nilesoft
 			} process;
 
 			Application		application;
-			HRESULT			com_init = E_UNEXPECTED;
-			COM_INITIALIZER com_initializer;
+			// No COM_INITIALIZER member. As a member of a global it initialised
+			// COM from DllMain (under the loader lock) on whichever thread loaded
+			// the DLL, and at teardown called CoUninitialize from whichever thread
+			// destroys globals. COM is now brought up per thread in ensure_com().
 			bool			is_elevated{};
 			CACHE *cache{};
 			//Hooker			user32_TrackPopupMenu;
@@ -620,12 +642,17 @@ namespace Nilesoft
 			bool query(int ch = 0);
 			bool init(HINSTANCE hInstance);
 			bool init();
+			static void ensure_com();
 			// Clean up resources allocated during initialization.
 			bool uninit();
 
-			//reloadOnChange
-			//determine
+			// True if any file the last load depended on has been written,
+			// created or deleted since. Each change is reported once. Polls at
+			// most once per CheckInterval; in between it reports no change.
 			bool config_has_changed();
+			// detect_changes: if the config failed to load but has changed since,
+			// request a retry (Status.Refresh) and report no error, so the caller
+			// goes on to init() instead of falling back to the stock menu.
 			bool has_error(bool detect_changes = false);
 			void load_mui();
 

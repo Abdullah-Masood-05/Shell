@@ -1,13 +1,30 @@
-﻿menu(mode="multiple" title=loc.develop sep=sep.bottom image=\uE26E)
+﻿/*
+	Develop menu
+	Default configuration adapted from Abdullah Masood's Nilesoft Shell config
+	(https://github.com/Abdullah-Masood-05/nilesoft-shell-config, MIT),
+	itself based on Nilesoft Shell's stock develop.nss by Moudey.
+
+	From that config: the menu only shows while SHIFT is held, and the
+	machine-specific tools (reshack, peview, Web server under D:\config\...)
+	are gone. Items for tools that are not installed are hidden.
+*/
+menu(mode="multiple" title=loc.develop vis=key.shift() sep=sep.bottom image=\uE26E)
 {
 	menu(mode="single" title=loc.editors image=\uE17A)
 	{
-		item(title='Visual Studio Code' image=[\uE272, #22A7F2] cmd='code' args='"@sel.path"')
+		// Visual Studio Code: per-user install first, then per-machine.
+		// Launched by full path so it works even when 'code' is not on PATH.
+		$vscode_user = user.localappdata + '\Programs\Microsoft VS Code\Code.exe'
+		$vscode_machine = sys.prog + '\Microsoft VS Code\Code.exe'
+		$vscode = if(path.exists(vscode_user), vscode_user, if(path.exists(vscode_machine), vscode_machine, ''))
+		item(where=length(vscode) > 0 title='Visual Studio Code' image=[\uE272, #22A7F2] cmd=vscode args='"@sel.path"')
 		separator
 		item(type='file' mode="single" title=loc.windows_notepad image cmd='@sys.bin\notepad.exe' args='"@sel.path"')
 	}
 
-	menu(mode="multiple" title='dotnet' image=\uE143)
+	// Only when the .NET SDK/runtime is installed (machine-wide or per-user).
+	menu(where=path.exists(sys.prog + '\dotnet\dotnet.exe') || path.exists(user.localappdata + '\Microsoft\dotnet\dotnet.exe')
+		mode="multiple" title='dotnet' image=\uE143)
 	{
 		item(title='run' cmd-line='/K dotnet run' image=\uE149)
 		item(title='watch' cmd-line='/K dotnet watch')
@@ -19,7 +36,7 @@
 		menu(mode="multiple" sep="both" title='publish' image=\ue11f)
 		{
 			$publish='dotnet publish -r win-x64 -c release --output publish /*/p:CopyOutputSymbolsToPublishDirectory=false*/'
-			item(title='publish sinale file' sep="after" cmd-line='/K @publish --no-self-contained /p:PublishSingleFile=true')
+			item(title='publish single file' sep="after" cmd-line='/K @publish --no-self-contained /p:PublishSingleFile=true')
 			item(title='framework-dependent deployment' cmd-line='/K @publish')
 			item(title='framework-dependent executable' cmd-line='/K @publish --self-contained false')
 			item(title='self-contained deployment' cmd-line='/K @publish --self-contained true')
@@ -33,9 +50,4 @@
 		item(title='help' image=\uE136 cmd-line='/k dotnet -h')
 		item(title='version' cmd-line='/k dotnet --info')
 	}
-
-	item(type="file" title="reshack" sep="top" image cmd='D:\config\Programs\dev\petools\resource\reshack\reshack.exe' args=sel(1))
-	item(type="file" title="peview" image cmd='D:\config\Programs\dev\petools\peview.exe' args=sel(1))
-	
-	item(type="dir|dir.back" title="Web server" vis=key.shift() cmd='D:\config\Programs\dev\web\HTTPServer\WebServer.exe' args='-open -path:"@sel.path"')
 }

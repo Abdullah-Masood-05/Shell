@@ -1,0 +1,102 @@
+#pragma once
+
+// ThemeModel: an approximation of how shell.dll turns theme{} values into the
+// colours and metrics of a menu, for the Appearance preview.
+//
+// resolve() follows ContextMenu.cpp (the theme section of the menu set-up): pick
+// the base theme from theme.name and the dark mode, apply the background effect,
+// then the individual theme.* keys on top. The base tables are a copy of
+// Theme::Default/Modern/Light/Dark/White/Black in src/dll/src/Include/Theme.h,
+// for Windows 11. Only literal values are used; expressions keep the default.
+//
+// Colours are 0xAARRGGBB. Lengths are in DIPs at 100 % scaling, before the font
+// scale (Resolved::scale) is applied.
+
+#include "nss/Literal.h"
+
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+
+namespace theme {
+
+using Values = std::map<std::string, nss::Literal>; // canonical key -> literal
+
+struct SystemInfo
+{
+    bool appsDark = false;      // AppsUseLightTheme == 0
+    bool transparency = true;   // Personalize\EnableTransparency
+    uint32_t accent = 0xFF0078D4;
+    bool win11 = true;
+};
+
+struct Box
+{
+    int l = 0, t = 0, r = 0, b = 0;
+    bool operator==(const Box &) const = default;
+};
+
+struct States
+{
+    uint32_t nor = 0, sel = 0, norDis = 0, selDis = 0;
+};
+
+struct Resolved
+{
+    std::string type = "auto"; // auto | modern | classic | white | black
+    bool dark = false;
+    bool transparency = false; // the "enableTransparency" path of the core
+    int effect = 0;            // 0 none, 1 transparent, 2 blur, 3 acrylic
+    uint32_t background = 0xFFF9F9F9;
+    uint32_t tint = 0;
+
+    int borderSize = 1;
+    uint32_t borderColor = 0;
+    int borderRadius = 8;      // px
+    Box borderPadding;
+
+    bool shadow = true;
+    int shadowSize = 3;
+    int shadowOffset = 2;
+    uint32_t shadowColor = 0x40000000;
+
+    States text;
+    States back;
+    States symbol;
+    int itemRadius = 4;        // px
+    int itemOpacity = 100;
+    Box itemPadding;
+    Box itemMargin;
+
+    int separatorSize = 1;
+    uint32_t separatorColor = 0;
+    Box separatorMargin;
+
+    std::string fontName;      // empty: the menu font (Segoe UI)
+    double fontSize = 14;      // the core's lfHeight
+    int fontWeight = 400;
+    bool italic = false;
+    double scale = 1.0;        // fontSize / default size: the core rescales every metric
+
+    bool imageEnabled = true;
+    int imageSize = 16;
+    int imageGap = 10;
+    uint32_t imageColor[3] = { 0, 0, 0 };
+};
+
+// The 0..4 radius step -> px (Theme::radius).
+int radiusPx(int step);
+// theme.view value -> vertical item padding; nullopt for auto.
+std::optional<int> viewPadding(const nss::Literal &value);
+
+// A colour literal (hex, color.* names, none) as 0xAARRGGBB; nullopt for
+// auto/default and anything that is not a colour.
+std::optional<uint32_t> colorOf(const nss::Literal &value, const SystemInfo &sys);
+
+Resolved resolve(const Values &values, const SystemInfo &sys);
+
+// The default font size (lfHeight) the core uses on this Windows version.
+double defaultFontSize(const SystemInfo &sys);
+
+} // namespace theme

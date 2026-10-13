@@ -1,0 +1,99 @@
+// Config Editor data shared with C++ (src/EditorController.cpp).
+
+// One highlighted run of text. `kind` matches hl::Kind in src/Highlight.h.
+export struct CodeSpan {
+    text: string,
+    kind: int,
+}
+
+// One line of the read view.
+export struct CodeLine {
+    number: int,
+    spans: [CodeSpan],
+    issue: int,                // 0 none, 1 warning, 2 error
+}
+
+// One row of the import tree.
+export struct EditorFile {
+    path: string,
+    label: string,             // relative to the config folder
+    name: string,
+    depth: int,
+    managed: bool,             // imports/settings-app*.nss: owned by the app
+    missing: bool,
+    unresolved: bool,
+    outside: bool,             // outside the config folder: read-only
+    dirty: bool,
+    errors: int,
+    note: string,
+}
+
+// A problem from the live check or from shell.log.
+export struct EditorProblem {
+    source: string,            // check | log
+    error: bool,
+    file: string,
+    file-label: string,
+    line: int,
+    column: int,
+    message: string,
+}
+
+export global EditorState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <string> root-label;       // the config folder
+    in property <[EditorFile]> files;
+    in property <int> current: -1;
+    in property <string> current-label;
+    in property <string> current-path;
+
+    // Read view
+    in property <[CodeLine]> lines;
+    in property <int> max-columns: 80;
+    in property <int> highlight-line;      // 1-based; 0 none
+    in property <string> mono-font: "Cascadia Mono";
+
+    // Edit view
+    in-out property <string> text;
+    in-out property <bool> editing;
+    in property <bool> dirty;              // the current file
+    in property <int> dirty-count;         // all files
+    in property <bool> read-only;
+    in property <string> read-only-reason;
+    in property <bool> shared-config;      // the install folder's config is active
+
+    // Diagnostics
+    in property <[EditorProblem]> problems;
+    in property <string> check-state;      // idle | checking | ok | errors | failed
+    in property <string> check-text;
+    in property <int> error-count;
+
+    // Banners and dialogs
+    in property <bool> external-change;
+    in property <string> external-text;
+    in property <bool> saving;
+    in property <bool> confirm-force;
+    in property <string> confirm-text;
+
+    // Jump requests: C++ bumps jump-serial; the page selects or scrolls.
+    in property <int> jump-serial;
+    in property <int> jump-line;
+    in property <int> jump-start;          // byte offsets into `text`
+    in property <int> jump-end;
+
+    callback activated();
+    callback select-file(index: int);
+    callback set-editing(editing: bool);
+    callback edited(text: string);
+    callback save();
+    callback save-anyway();
+    callback cancel-force();
+    callback discard();
+    callback open-external();
+    callback reload-external();
+    callback keep-mine();
+    callback jump(index: int);              // index into `problems`
+    callback open-at(file: string, line: int);
+    callback create-user-config();
+}

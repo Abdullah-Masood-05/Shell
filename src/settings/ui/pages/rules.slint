@@ -1,0 +1,232 @@
+// Rules & Filters: settings.exclude{}, where Shell's menu stays out of the way.
+// A builder for the common cases (only in File Explorer, programs, window
+// classes) plus a raw condition. Values go to SaveService; the footer saves.
+
+import { Button, LineEdit } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { AppState } from "../types.slint";
+import { Card } from "../components/card.slint";
+import { Banner, CloseGlyph } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Link } from "../components/controls.slint";
+import { FieldLabel, SettingRow, RowDivider, ToggleSwitch, EditorLink } from "../components/theme-controls.slint";
+import { PageFrame } from "page-frame.slint";
+import { SettingsState, SK, ThemeField } from "settings-state.slint";
+
+// One excluded name, with a remove button.
+component NameRow inherits Rectangle {
+    in property <string> name;
+    in property <bool> enabled;
+    callback remove();
+
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover ? Tokens.hover : transparent;
+    ta := TouchArea { }
+    HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s1;
+        spacing: Tokens.s2;
+        Text {
+            horizontal-stretch: 1;
+            text: root.name;
+            font-family: Tokens.mono;
+            font-size: 13px;
+            color: Tokens.text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        if root.enabled: VerticalLayout {
+            alignment: center;
+            CloseGlyph {
+                accessible-label: "Remove " + root.name;
+                clicked => { root.remove(); }
+            }
+        }
+    }
+}
+
+// A list of names (programs or window classes) with an add box. A value that
+// is an expression is shown as it is written, with a link to the editor.
+component NameList inherits VerticalLayout {
+    in property <int> index;
+    in property <string> label;
+    in property <string> hint;
+    in property <string> placeholder;
+    in property <string> empty-text;
+    in property <[string]> names;
+    in property <bool> ready;
+    property <ThemeField> field: SettingsState.fields[root.index];
+
+    spacing: Tokens.s2;
+
+    FieldLabel {
+        label: root.label;
+        field: root.field;
+        hint: root.hint != "" ? root.hint + " · " + root.field.origin : root.field.origin;
+        reset => { SettingsState.reset(root.index); }
+    }
+    if root.field.locked: Rectangle {
+        height: expr.preferred-height + 2 * Tokens.s2;
+        border-radius: Tokens.radius-control;
+        background: Tokens.layer-2;
+        border-width: 1px;
+        border-color: Tokens.stroke;
+        expr := Text {
+            x: Tokens.s3;
+            width: parent.width - 2 * Tokens.s3;
+            text: root.field.display;
+            font-family: Tokens.mono;
+            font-size: 13px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+        }
+    }
+    if !root.field.locked: VerticalLayout {
+        spacing: 2px;
+        if root.names.length == 0: Text {
+            text: root.empty-text;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+        }
+        for name[i] in root.names: NameRow {
+            name: name;
+            enabled: root.ready;
+            remove => { SettingsState.remove-name(root.index, i); }
+        }
+    }
+    if !root.field.locked: HorizontalLayout {
+        spacing: Tokens.s2;
+        input := LineEdit {
+            horizontal-stretch: 1;
+            placeholder-text: root.placeholder;
+            enabled: root.ready;
+            accepted(t) => {
+                if (SettingsState.add-name(root.index, t)) {
+                    self.text = "";
+                }
+            }
+        }
+        Button {
+            text: "Add";
+            enabled: root.ready && input.text != "";
+            clicked => {
+                if (SettingsState.add-name(root.index, input.text)) {
+                    input.text = "";
+                }
+            }
+        }
+    }
+}
+
+export component RulesPage inherits PageFrame {
+    property <[ThemeField]> f: SettingsState.fields;
+    property <bool> ready: SettingsState.loaded && f.length > SK.window;
+    // Read the files again: the Config Editor may have changed them.
+    init => { SettingsState.reload(); }
+    property <ThemeField> where: f[SK.where];
+    property <string> where-text: where.text;
+    // The box keeps what was typed; follow the value when it changes elsewhere.
+    changed where-text => { raw.text = root.where-text; }
+
+    PageHeader {
+        title: "Rules & Filters";
+        description: "Where Shell's menu appears. Everywhere else, Windows shows its own menu.";
+        busy: AppState.busy;
+        busy-label: AppState.busy-label;
+    }
+
+    if SettingsState.load-error != "": Banner {
+        kind: "error";
+        title: "Couldn't read your config";
+        text: SettingsState.load-error;
+        action-label: "Try again";
+        action => { SettingsState.reload(); }
+    }
+
+    Card {
+        heading: "Where the menu appears";
+        SettingRow {
+            label: "Only in File Explorer and on the desktop";
+            field: root.where;
+            hint: SettingsState.where-kind == 2
+                ? "A custom condition is set below · " + root.where.origin
+                : "Other programs' file dialogs keep Windows' menu · " + root.where.origin;
+            control-width: 80px;
+            reset => { SettingsState.reset(SK.where); }
+            ToggleSwitch {
+                on: SettingsState.where-kind == 1;
+                enabled: root.ready && SettingsState.where-kind != 2;
+                toggled(on) => { SettingsState.set-explorer-only(on); }
+            }
+        }
+        RowDivider { }
+        VerticalLayout {
+            spacing: Tokens.s2;
+            Text {
+                text: "Custom condition";
+                color: Tokens.text;
+            }
+            Text {
+                text: "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save.";
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                wrap: word-wrap;
+            }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                raw := LineEdit {
+                    horizontal-stretch: 1;
+                    text: root.where.text;
+                    font-size: 13px;
+                    placeholder-text: "e.g. process.name == \"notepad\"";
+                    enabled: root.ready;
+                    accepted(t) => { SettingsState.set-text(SK.where, t); }
+                }
+                Button {
+                    text: "Apply";
+                    enabled: root.ready && raw.text != root.where.text;
+                    clicked => { SettingsState.set-text(SK.where, raw.text); }
+                }
+            }
+            if root.where.error != "": Text {
+                text: root.where.error;
+                font-size: Tokens.caption;
+                color: Tokens.danger;
+                wrap: word-wrap;
+            }
+            if root.where.source-file != "" && !root.where.overridden: HorizontalLayout {
+                alignment: start;
+                Link {
+                    text: "Show it in the Config Editor";
+                    font-size: Tokens.caption;
+                    activated => { EditorLink.open(root.where.source-file, root.where.source-line); }
+                }
+            }
+        }
+    }
+
+    Card {
+        heading: "Keep Windows' own menu";
+        description: "Shell's menu stays out of these programs and windows.";
+        NameList {
+            index: SK.process;
+            label: "Programs";
+            hint: "By name, without .exe";
+            placeholder: "notepad, or a path to an .exe";
+            empty-text: "No programs.";
+            names: SettingsState.processes;
+            ready: root.ready;
+        }
+        RowDivider { }
+        NameList {
+            index: SK.window;
+            label: "Window classes";
+            hint: "The class of the top-level window, e.g. CabinetWClass for File Explorer";
+            placeholder: "Window class name";
+            empty-text: "No window classes.";
+            names: SettingsState.windows;
+            ready: root.ready;
+        }
+    }
+}

@@ -177,6 +177,11 @@ public:
 
 		const string &path() const { return _path; }
 
+		// Set by a thread whose messages are reported elsewhere (shell
+		// -config:check returns its diagnostics as JSON): nothing it logs
+		// is written to the shared log file.
+		inline static thread_local bool Muted = false;
+
 		void close();
 		bool open(const wchar_t *path);
 		bool open(uint32_t creation = CREATE_NEW);

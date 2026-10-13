@@ -1,0 +1,125 @@
+// Nilesoft Shell Settings: main window.
+import { Palette } from "std-widgets.slint";
+import { Tokens } from "theme/tokens.slint";
+import { Icons } from "theme/icons.slint";
+import { AppState, Pages, StatusInfo, Diagnostic, Issue, NavEntry } from "types.slint";
+import { Sidebar } from "components/sidebar.slint";
+import { Toast } from "components/toast.slint";
+import { HomePage } from "pages/home.slint";
+import { PlaceholderPage } from "pages/placeholder.slint";
+import { PreferencesPage } from "pages/preferences.slint";
+import { Onboarding } from "pages/onboarding.slint";
+import { EditorPage } from "pages/editor.slint";
+import { BackupsPage } from "pages/backups.slint";
+import { SaveState } from "save-state.slint";
+import { SaveFooter, UserConfigPrompt } from "components/save-footer.slint";
+import { AppearancePage, AppearanceState } from "pages/appearance.slint";
+import { BehaviorPage } from "pages/behavior.slint";
+import { RulesPage } from "pages/rules.slint";
+import { SettingsState, SK } from "pages/settings-state.slint";
+import { ContextMenusPage } from "pages/context-menus.slint";
+import { MenuBuilderPage } from "pages/menu-builder.slint";
+
+export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
+export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
+export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
+export { SaveState, AppearanceState, Pages, SettingsState, SK }
+export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
+
+export component AppWindow inherits Window {
+    title: "Nilesoft Shell Settings";
+    preferred-width: 1120px;
+    preferred-height: 760px;
+    min-width: 880px;
+    min-height: 600px;
+    background: Tokens.bg;
+    default-font-family: "Segoe UI Variable Text";
+    default-font-size: 14px;
+    animate background { duration: Tokens.normal; }
+
+    // Called from C++ with the effective theme (preference + Windows app mode).
+    public function apply-theme(dark: bool) {
+        Tokens.dark = dark;
+        Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
+    }
+
+    HorizontalLayout {
+        Sidebar {
+            width: 264px;
+        }
+
+        // Content layer with a rounded top-left corner, like WinUI's NavigationView,
+        // and the unsaved-changes footer under it.
+        VerticalLayout {
+        horizontal-stretch: 1;
+        Rectangle {
+            vertical-stretch: 1;
+            background: Tokens.content;
+            border-top-left-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke;
+            animate background { duration: Tokens.normal; }
+
+            if AppState.page == Pages.home: HomePage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.appearance: AppearancePage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.behavior: BehaviorPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.rules: RulesPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.menus: ContextMenusPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.builder: MenuBuilderPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.editor: EditorPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.backups: BackupsPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.preferences: PreferencesPage {
+                width: 100%;
+                height: 100%;
+            }
+        }
+        SaveFooter { }
+        }
+    }
+
+    Toast {
+        max-available: root.width - 264px - 48px;
+        x: 264px + (root.width - 264px - self.width) / 2;
+        y: root.height - SaveState.footer-height - self.height - Tokens.s6 + (AppState.toast-shown ? 0px : 12px);
+        animate y { duration: Tokens.normal; easing: ease-out; }
+        shown: AppState.toast-shown;
+        kind: AppState.toast-kind;
+        title: AppState.toast-title;
+        text: AppState.toast-text;
+        close => { AppState.dismiss-toast(); }
+    }
+
+    if SaveState.user-config-prompt: UserConfigPrompt {
+        width: 100%;
+        height: 100%;
+    }
+
+    if AppState.onboarding-shown: Onboarding {
+        width: 100%;
+        height: 100%;
+    }
+}

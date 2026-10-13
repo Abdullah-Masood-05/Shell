@@ -1,7 +1,9 @@
 ﻿#include <pch.h>
 #include "Include/ContextMenu.h"
+#include "Include/TaskbarOrigin.h"
 #include "Library/detours.h"
 #include "RegistryConfig.h"
+#include "ConfigCheck.h"
 #include <UIAutomation.h>
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
@@ -513,7 +515,7 @@ STDAPI WINAPI DllGetClassObjectHook(REFCLSID rclsid, _In_ REFIID riid, LPVOID *p
 }
 
 #define TPM_SYSMENU	0x0200L
-bool is_in_taskbar;
+// Whether a popup came from the taskbar is per thread now; see TaskbarOrigin.h.
 
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
 BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
@@ -553,14 +555,16 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 			}
 
 			//cs.lock();
-			auto has_inited = 0; Initializer::OnState(is_in_taskbar);
+			auto has_inited = 0; Initializer::OnState(Nilesoft::Shell::in_taskbar());
 
 			if(!_initializer.Status.Disabled)
 			{
 				// is injected from explorer
 				if(!_initializer.Status.Loaded)
 				{
-					if(_initializer.has_error() || has_inited)
+					// A broken config falls back to the stock menu, but is retried
+					// once it has been saved again (has_error(true) sees the change).
+					if(_initializer.has_error(true) || has_inited)
 						__leave; //goto skip;
 					_initializer.init();
 				}
@@ -659,7 +663,9 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 	{
 		invoke(hMenu, uFlags, { x, y });
 		_loader.contextmenuhandler = false;
-		is_in_taskbar = false;
+		// The taskbar flag used to be cleared here, which was the only place it
+		// was cleared and not a place every taskbar menu passes through.
+		// ScopedTaskbarOrigin in ShowTaskbarContextMenu owns it now.
 		return result;
 	}
 }
@@ -690,7 +696,11 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 
 		if(_menu.handle)
 		{
-			is_in_taskbar = true;
+			// Restored on the way out of this block, so the branch below that
+			// invokes the saved native target directly - and therefore never
+			// reaches the hook's __finally - cannot leave it set.
+			Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
+
 			//::SetForegroundWindow(hTaskbar);
 			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
 			if(uMsg == WM_CONTEXTMENU)
@@ -761,7 +771,7 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			if(_initializer.has_error())
 			{
 				_initializer.OnState();
-				if(_initializer.has_error())
+				if(_initializer.has_error(true))
 					return wndproc(hWnd, uMsg, wParam, lParam);
 			}
 			else
@@ -852,7 +862,7 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 				_initializer.OnState();
 
-				if(_initializer.has_error())
+				if(_initializer.has_error(true))
 					return lret;
 			}
 			else
@@ -975,10 +985,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 
 			if(_initializer.init(_hInstance))
 			{
-				// DisableComExceptionHandling
-				IComPtr<IGlobalOptions> globalOptions;
-				if(globalOptions.CreateInstance(CLSID_GlobalOptions, CLSCTX_SERVER))
-					globalOptions->Set(COMGLB_EXCEPTION_HANDLING, COMGLB_EXCEPTION_DONOT_HANDLE_ANY);
+				// CoInitializeEx and the IGlobalOptions activation used to run
+				// here. Both are COM calls under the loader lock, which is
+				// documented as unsupported and a plausible cause of Explorer
+				// hangs. They moved to Initializer::ensure_com, which runs on the
+				// thread that builds menus.
 
 				_initializer.process.hModule = _loader.handle;
 				_initializer.process.path = Path::Module(_loader.handle).move();
@@ -1164,9 +1175,12 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 		if(!is_registered())
 			return hr;
 		
-		if(_initializer.has_error())
+		// Only a context-menu request (made on the thread about to show a menu)
+		// may retry a broken config; icon-overlay requests can arrive on any
+		// thread at any time and must not trigger a parse.
+		if(_initializer.has_error(rclsid == IID_ContextMenu))
 			return hr;
-		
+
 		if(rclsid == IID_ContextMenu)
 		{
 			_loader.contextmenuhandler = true;
@@ -1219,6 +1233,77 @@ STDAPI DllCanUnloadNow(void)
 	*/
 }
 
+// shell -config:check <root.nss>: see ConfigCheck.h.
+//
+// Runs the real parser on `root` with a private CACHE. The parser reaches the
+// cache through Initializer::instance->cache, so that pointer is set for the
+// duration; which is why this refuses to run inside Explorer or once a live
+// configuration exists (it would be swapped out under a menu). In shell.exe,
+// its only caller, there is never one.
+STDAPI ConfigCheck(const wchar_t *root, ConfigCheckSink sink, void *context)
+{
+	if(!root || !*root || !sink)
+		return E_INVALIDARG;
+
+	if(_loader.explorer || _initializer.cache || _initializer.Status.Loaded)
+		return E_ACCESSDENIED;
+
+	std::vector<ParseDiagnostic> diagnostics;
+	bool ok = false;
+
+	// Restores the global state whichever way the parse ends.
+	struct scope_t
+	{
+		std::unique_ptr<CACHE> cache = std::make_unique<CACHE>();
+		scope_t(std::vector<ParseDiagnostic> *list)
+		{
+			_initializer.cache = cache.get();
+			Parser::Diagnostics = list;
+			// Reported through the sink instead; the user's shell.log is not
+			// the place for diagnostics about a scratch copy.
+			Logger::Muted = true;
+		}
+		~scope_t()
+		{
+			Logger::Muted = false;
+			Parser::Diagnostics = nullptr;
+			_initializer.cache = nullptr;
+			Initializer::MAP_MUID.clear();
+		}
+	};
+
+	try
+	{
+		Initializer::ensure_com();
+
+		scope_t scope(&diagnostics);
+		scope.cache->glyph.name = FontCache::Default;
+		// As init() does: the parser verifies names such as title.copy
+		// against these, and expressions may query installed packages.
+		_initializer.load_mui();
+		scope.cache->Packages.load();
+
+		Parser parser(root);
+		ok = parser.Load() && !parser.HasError();
+	}
+	catch(...)
+	{
+		return E_FAIL;
+	}
+
+	bool reported_error = false;
+	for(auto &d : diagnostics)
+	{
+		reported_error |= d.error;
+		sink(context, d.error, d.file.c_str(), static_cast<UINT>(d.line), static_cast<UINT>(d.column), d.message.c_str());
+	}
+
+	if(!ok && !reported_error)
+		sink(context, TRUE, root, 0, 0, L"the configuration could not be loaded");
+
+	return ok ? S_OK : S_FALSE;
+}
+
 // Register the COM server and the context menu handler.
 HRESULT Register(bool reg)
 {
@@ -1250,14 +1335,9 @@ HRESULT Register(bool reg)
 
 		string path = Path::Module(_hInstance).move();
 
-		if(reg)
-		{
-			string dir = Path::Parent(path).move();
-			if(!dir.empty())
-				Security::Permission::SetFile(dir.c_str());
-			//_log.reset();
-			//IO::Path::Delete(_log.path());
-		}
+		// Registration no longer widens the install folder's ACL (it tried to
+		// grant BUILTIN\Users GENERIC_ALL on the folder holding this DLL); see
+		// the matching comment in exe/src/Main.cpp.
 
 		string msg;
 
@@ -1277,7 +1357,8 @@ HRESULT Register(bool reg)
 		}
 		else
 		{
-			if(!RegistryConfig::IsRegistered())
+			// Machine registration only: a per-user one is not ours to remove here.
+			if(!RegistryConfig::IsRegistered(RegScope::Machine))
 				return S_OK;
 
 			if(!RegistryConfig::Unregister())

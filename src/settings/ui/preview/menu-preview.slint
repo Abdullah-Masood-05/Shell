@@ -1,0 +1,367 @@
+// A mock of a Nilesoft Shell menu, drawn from a PreviewTheme. Approximate by
+// design: the real menu is drawn by shell.dll with GDI and DWM effects.
+
+import { PreviewTheme, PreviewItem, PreviewMenu } from "preview-types.slint";
+
+// One menu: background (with blur/acrylic over what is behind it), rows,
+// separators, chevrons, and a border on top.
+export component MenuSurface inherits Rectangle {
+    in property <PreviewTheme> t;
+    in property <PreviewMenu> menu;
+    in property <string> icon-font;
+    // What is behind the menu: the blurred wallpaper laid out like the backdrop
+    // (menu position inside it), or a flat colour (an Explorer window).
+    in property <image> blurred;
+    in property <length> backdrop-x;
+    in property <length> backdrop-y;
+    in property <length> backdrop-width;
+    in property <length> backdrop-height;
+    in property <bool> flat-backdrop;
+    in property <color> flat-color;
+    in-out property <int> hovered: -1;
+
+    property <string> family: t.font-family != "" ? t.font-family : "Segoe UI";
+    property <length> label-x: t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px);
+
+    width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + root.label-x + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
+    height: root.menu.height;
+    border-radius: t.radius;
+    drop-shadow-blur: t.shadow ? t.shadow-size * 3 : 0px;
+    drop-shadow-offset-y: t.shadow ? t.shadow-offset : 0px;
+    drop-shadow-color: t.shadow ? t.shadow-color : transparent;
+    accessible-role: list;
+
+    // Measures the widest label (never shown).
+    Rectangle {
+        width: 0px;
+        height: 0px;
+        clip: true;
+        opacity: 0;
+        measure := VerticalLayout {
+            for it in root.menu.items: Text {
+                text: it.label;
+                font-size: t.font-size;
+                font-family: root.family;
+                font-weight: t.font-weight;
+                font-italic: t.italic;
+            }
+        }
+    }
+
+    Rectangle {
+        border-radius: t.radius;
+        clip: true;
+
+        if t.effect >= 2 && !root.flat-backdrop: Image {
+            x: -root.backdrop-x;
+            y: -root.backdrop-y;
+            width: root.backdrop-width;
+            height: root.backdrop-height;
+            source: root.blurred;
+            image-fit: cover;
+        }
+        if t.effect >= 2 && root.flat-backdrop: Rectangle {
+            background: root.flat-color;
+        }
+        // Acrylic: DWM's luminosity layer (the core sets the Luminosity accent
+        // flag), which keeps the text readable over any wallpaper.
+        if t.effect >= 3: Rectangle {
+            background: t.dark ? #2C2C2C8C : #F3F3F3A6;
+        }
+        if t.effect >= 2: Rectangle {
+            background: t.tint;
+        }
+        Rectangle {
+            background: t.background;
+        }
+
+        for it[i] in root.menu.items: Rectangle {
+            x: t.pad-left;
+            y: it.y;
+            width: parent.width - t.pad-left - t.pad-right;
+            height: it.h;
+            property <bool> selected: i == root.hovered && !it.separator;
+
+            if it.separator: Rectangle {
+                x: t.sep-mar-left;
+                y: t.sep-mar-top;
+                width: parent.width - t.sep-mar-left - t.sep-mar-right;
+                height: t.sep-size;
+                background: t.sep-color;
+            }
+            if !it.separator: Rectangle {
+                x: t.item-mar-left;
+                y: t.item-mar-top;
+                width: parent.width - t.item-mar-left - t.item-mar-right;
+                height: parent.height - t.item-mar-top - t.item-mar-bottom;
+                border-radius: t.item-radius;
+                background: !selected ? transparent : it.disabled ? t.back-dis-sel : t.back-sel;
+                accessible-role: list-item;
+                accessible-label: it.label;
+
+                if t.show-images && it.glyph != "": Text {
+                    x: t.item-pad-left;
+                    width: t.image-size;
+                    height: parent.height;
+                    text: it.glyph;
+                    font-family: root.icon-font;
+                    font-size: t.image-size * 0.94;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    color: it.disabled ? t.text-dis : selected ? t.icon-sel : t.icon;
+                }
+                Text {
+                    x: root.label-x;
+                    width: parent.width - self.x - t.item-pad-right - t.font-size * 1.5;
+                    height: parent.height;
+                    text: it.label;
+                    font-family: root.family;
+                    font-size: t.font-size;
+                    font-weight: t.font-weight;
+                    font-italic: t.italic;
+                    vertical-alignment: center;
+                    overflow: elide;
+                    color: it.disabled ? t.text-dis : selected ? t.text-sel : t.text;
+                }
+                if it.sub >= 0: Text {
+                    x: parent.width - t.item-pad-right - self.width;
+                    height: parent.height;
+                    text: "\u{E76C}";
+                    font-family: root.icon-font;
+                    font-size: t.font-size * 0.72;
+                    vertical-alignment: center;
+                    color: it.disabled ? t.text-dis : selected ? t.chevron-sel : t.chevron;
+                }
+            }
+            TouchArea {
+                changed has-hover => {
+                    if (self.has-hover && !it.separator) {
+                        root.hovered = i;
+                    }
+                }
+            }
+        }
+    }
+
+    // The border is drawn over the rows, like the core does.
+    Rectangle {
+        border-radius: t.radius;
+        border-width: t.border-size;
+        border-color: t.border-color;
+    }
+}
+
+// The small three-row menu on a theme card.
+export component MiniMenu inherits Rectangle {
+    in property <PreviewTheme> t;
+    in property <string> icon-font;
+    in property <image> blurred;
+
+    property <[string]> labels: ["View", "Sort by", "Refresh"];
+    property <[string]> glyphs: ["\u{E8A9}", "\u{E8CB}", "\u{E72C}"];
+
+    width: 104px;
+    height: 3 * 20px + 8px;
+    border-radius: min(t.radius, 8px);
+    drop-shadow-blur: t.shadow ? 6px : 0px;
+    drop-shadow-offset-y: t.shadow ? 1px : 0px;
+    drop-shadow-color: t.shadow ? t.shadow-color : transparent;
+
+    Rectangle {
+        border-radius: parent.border-radius;
+        clip: true;
+        if t.effect >= 2: Image {
+            width: 100%;
+            height: 100%;
+            source: root.blurred;
+            image-fit: cover;
+        }
+        // Acrylic: DWM's luminosity layer (the core sets the Luminosity accent
+        // flag), which keeps the text readable over any wallpaper.
+        if t.effect >= 3: Rectangle {
+            background: t.dark ? #2C2C2C8C : #F3F3F3A6;
+        }
+        if t.effect >= 2: Rectangle {
+            background: t.tint;
+        }
+        Rectangle {
+            background: t.background;
+        }
+        for label[i] in root.labels: Rectangle {
+            x: 4px;
+            y: 4px + i * 20px;
+            width: parent.width - 8px;
+            height: 20px;
+            border-radius: min(t.item-radius, 4px);
+            background: i == 1 ? t.back-sel : transparent;
+            Text {
+                x: 6px;
+                width: 12px;
+                text: root.glyphs[i];
+                font-family: root.icon-font;
+                font-size: 10px;
+                horizontal-alignment: center;
+                color: i == 1 ? t.icon-sel : t.icon;
+            }
+            Text {
+                x: 24px;
+                text: label;
+                font-family: t.font-family != "" ? t.font-family : "Segoe UI";
+                font-size: 10px;
+                color: i == 1 ? t.text-sel : t.text;
+            }
+            if i < 2: Text {
+                x: parent.width - 12px;
+                text: "\u{E76C}";
+                font-family: root.icon-font;
+                font-size: 7px;
+                color: i == 1 ? t.chevron-sel : t.chevron;
+            }
+        }
+    }
+    Rectangle {
+        border-radius: parent.border-radius;
+        border-width: t.border-size > 0px ? 1px : 0px;
+        border-color: t.border-color;
+    }
+}
+
+// A mock File Explorer window, behind the menu in the Explorer context.
+component ExplorerWindow inherits Rectangle {
+    in property <bool> dark;
+    property <color> chrome: dark ? #202020 : #EEF4F9;
+    property <color> body: dark ? #191919 : #FFFFFF;
+    property <color> ink: dark ? #FFFFFF : #1A1A1A;
+    property <color> ink-2: dark ? #FFFFFF99 : #00000099;
+    property <color> line: dark ? #FFFFFF14 : #0000000F;
+    property <color> sel: dark ? #FFFFFF1A : #CCE8FF;
+    property <[string]> files: ["Documents", "Pictures", "Projects", "report.docx", "budget.xlsx", "notes.txt", "photo.jpg"];
+
+    background: body;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: line;
+    clip: true;
+    drop-shadow-blur: 24px;
+    drop-shadow-offset-y: 8px;
+    drop-shadow-color: #00000050;
+
+    Rectangle {
+        height: 76px;
+        y: 0;
+        background: chrome;
+        Text {
+            x: 14px;
+            y: 10px;
+            text: "Home";
+            font-size: 12px;
+            color: ink;
+        }
+        Rectangle {
+            x: 12px;
+            y: 40px;
+            width: parent.width - 24px;
+            height: 26px;
+            border-radius: 4px;
+            background: body;
+            Text {
+                x: 10px;
+                text: "This PC  ›  Documents";
+                font-size: 11px;
+                color: ink-2;
+            }
+        }
+    }
+    for f[i] in root.files: Rectangle {
+        x: 12px;
+        y: 88px + i * 28px;
+        width: parent.width - 24px;
+        height: 26px;
+        border-radius: 4px;
+        background: i == 3 ? sel : transparent;
+        Text {
+            x: 10px;
+            text: i < 3 ? "\u{E8B7}" : "\u{E8A5}";
+            font-family: "Segoe Fluent Icons";
+            font-size: 13px;
+            color: i < 3 ? #E8B33A : ink-2;
+        }
+        Text {
+            x: 34px;
+            text: f;
+            font-size: 12px;
+            color: ink;
+        }
+    }
+}
+
+// The whole preview: wallpaper (or an Explorer window), the menu and one
+// submenu that follows the hovered item.
+export component PreviewPane inherits Rectangle {
+    in property <PreviewTheme> t;
+    in property <int> context;          // 0 desktop, 1 File Explorer
+    in property <PreviewMenu> menu;
+    in property <[PreviewMenu]> subs;
+    in property <image> wallpaper;
+    in property <image> blurred;
+    in property <string> icon-font;
+    in property <bool> dark;            // the simulated Windows mode (Explorer window colours)
+
+    property <int> hovered: menu.open;
+    property <int> open-sub: hovered >= 0 && hovered < menu.items.length ? menu.items[hovered].sub : -1;
+    property <bool> explorer: root.context == 1;
+    changed context => { root.hovered = root.menu.open; }
+
+    clip: true;
+    background: #1B2A44;
+    border-radius: 6px;
+
+    Image {
+        width: 100%;
+        height: 100%;
+        source: root.wallpaper;
+        image-fit: cover;
+    }
+
+    if root.explorer: ExplorerWindow {
+        x: 14px;
+        y: 14px;
+        width: parent.width - 28px;
+        height: parent.height - 28px;
+        dark: root.dark;
+    }
+
+    main := MenuSurface {
+        x: root.explorer ? min(64px, max(16px, root.width - self.width * 2 - 8px)) : 16px;
+        y: root.explorer ? 100px : 20px;
+        t: root.t;
+        menu: root.menu;
+        icon-font: root.icon-font;
+        blurred: root.blurred;
+        backdrop-x: self.x;
+        backdrop-y: self.y;
+        backdrop-width: root.width;
+        backdrop-height: root.height;
+        flat-backdrop: root.explorer;
+        flat-color: root.dark ? #191919 : #FFFFFF;
+        hovered <=> root.hovered;
+    }
+
+    if root.open-sub >= 0 && root.open-sub < root.subs.length: sub := MenuSurface {
+        // Opens to the right like the real menu; in a narrow preview it cascades
+        // over the parent's right edge rather than covering it.
+        property <length> right-x: main.x + main.width - 4px;
+        x: self.right-x + self.width <= root.width - 4px ? self.right-x : max(main.x + main.width * 0.55, root.width - self.width - 4px);
+        y: min(main.y + root.menu.items[root.hovered].y - root.t.pad-top, max(0px, root.height - self.height - 8px));
+        t: root.t;
+        menu: root.subs[root.open-sub];
+        icon-font: root.icon-font;
+        blurred: root.blurred;
+        backdrop-x: self.x;
+        backdrop-y: self.y;
+        backdrop-width: root.width;
+        backdrop-height: root.height;
+        flat-backdrop: root.explorer;
+        flat-color: root.dark ? #191919 : #FFFFFF;
+    }
+}
