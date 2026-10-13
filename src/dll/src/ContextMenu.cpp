@@ -1,6 +1,7 @@
 #include <pch.h>
 #include "Include/Theme.h"
 #include "Include/ContextMenu.h"
+#include "Include/WinX.h"
 #include "Include/stb_image_write.h"
 
 using namespace Nilesoft::Diagnostics;
@@ -1153,7 +1154,17 @@ namespace Nilesoft
 			// Taskbar diagnostics. The first taskbar menu of each Explorer session
 			// is summarised at info level (one line per session, so shell.log does
 			// not grow with every right-click); debug builds log every one.
-			if(menu->is_main && Selected.Window.parent == WINDOW_TASKBAR)
+			if(menu->is_main && Selected.Window.id == WINDOW_START)
+			{
+				if(_winx_debug)
+					Logger::Info(L"Win+X menu: %u Windows item(s) (this.count), %u configured top-level item(s), "
+								  L"%u system and %u new item(s) to show, replace %s.",
+								  menu->std_items ? static_cast<uint32_t>(menu->std_items->size()) : 0u,
+								  static_cast<uint32_t>(menu->dynamics.size()),
+								  static_cast<uint32_t>(_system_items.size()), static_cast<uint32_t>(_new_items.size()),
+								  _winx_replace ? L"on" : L"off");
+			}
+			else if(menu->is_main && Selected.Window.parent == WINDOW_TASKBAR)
 			{
 				static std::atomic_bool taskbar_logged{ false };
 				const bool first = !taskbar_logged.exchange(true);
@@ -1634,6 +1645,125 @@ namespace Nilesoft
 			//m_log->info(L"WM_INITMENU");
 			//m_INITMENU = hMenu;
 			return msg.invoke();
+		}
+
+		// An access key typed in the Win+X menu. Every item is owner-drawn, so
+		// Windows does not match "&x" in the titles itself and asks the owner.
+		// The first "&" not doubled marks the key, as in a stock menu. One match
+		// runs (or opens) the item; several move the highlight between them.
+		LRESULT ContextMenu::OnMenuChar(wchar_t ch, HMENU hMenu)
+		{
+			auto upper = [](wchar_t c) -> wchar_t
+			{
+				return static_cast<wchar_t>(reinterpret_cast<uintptr_t>(::CharUpperW(reinterpret_cast<LPWSTR>(static_cast<uintptr_t>(c)))));
+			};
+
+			auto access_key = [](const wchar_t *text) -> wchar_t
+			{
+				for(auto p = text; p && *p; p++)
+				{
+					if(*p != L'&')
+						continue;
+					if(p[1] == L'&')
+					{
+						p++;
+						continue;
+					}
+					return p[1];
+				}
+				return 0;
+			};
+
+			const auto key = upper(ch);
+			const int count = ::GetMenuItemCount(hMenu);
+			int highlighted = -1;
+			std::vector<int> matches;
+
+			for(int i = 0; i < count; i++)
+			{
+				wchar_t text[MAX_PATH]{};
+				MENUITEMINFOW mii{ sizeof(mii) };
+				mii.fMask = MIIM_FTYPE | MIIM_STATE | MIIM_STRING | MIIM_ID;
+				mii.dwTypeData = text;
+				mii.cch = static_cast<uint32_t>(std::size(text) - 1);
+				if(!::GetMenuItemInfoW(hMenu, static_cast<uint32_t>(i), TRUE, &mii))
+					continue;
+
+				if(mii.fState & MFS_HILITE)
+					highlighted = i;
+
+				if((mii.fType & MFT_SEPARATOR) || (mii.fState & MFS_DISABLED))
+					continue;
+
+				// The title as inserted; else Shell's own copy of it, found by
+				// command ID (never through item data, which may be twinui's).
+				wchar_t c = access_key(text);
+				if(!c)
+				{
+					for(auto item : _items)
+					{
+						if(item && item->handle == hMenu && item->wID == mii.wID && !item->is_separator())
+						{
+							c = access_key(item->title.text.c_str());
+							break;
+						}
+					}
+				}
+
+				if(c && upper(c) == key)
+					matches.push_back(i);
+			}
+
+			if(_winx_debug)
+			{
+				const wchar_t typed[2]{ ch, 0 };
+				Logger::Info(L"Win+X menu: access key '%s', %u match(es).", typed, static_cast<uint32_t>(matches.size()));
+			}
+
+			if(matches.empty())
+				return MAKELRESULT(0, MNC_IGNORE);
+
+			if(matches.size() == 1)
+				return MAKELRESULT(matches.front(), MNC_EXECUTE);
+
+			for(auto i : matches)
+			{
+				if(i > highlighted)
+					return MAKELRESULT(i, MNC_SELECT);
+			}
+			return MAKELRESULT(matches.front(), MNC_SELECT);
+		}
+
+		// The Win+X decision for this popup. The first Win+X menu of each Explorer
+		// session is logged; settings.winx.debug logs every decision, including
+		// taskbar popups judged not to be one. Both at info level: debug-level
+		// lines are only written by debug builds.
+		void ContextMenu::log_winx(bool debug)
+		{
+			try
+			{
+				const bool is_winx = Selected.Window.id == WINDOW_START;
+				static std::atomic_bool logged{ false };
+				const bool first = is_winx && !logged.exchange(true);
+				if(!first && !debug)
+					return;
+
+				const auto source = WinX::source_name(static_cast<WinX::Source>(Selected.Window.start_source));
+				const auto window_class = Selected.Window.handle.class_name().move();
+				const string callers = Selected.winx.examined ? Selected.winx.callers : string(L"not examined");
+				const auto frames = static_cast<uint32_t>(Selected.winx.frames);
+				const auto attributed = static_cast<uint32_t>(Selected.winx.attributed);
+				const wchar_t *callers_text = callers.empty() ? L"none" : callers.c_str();
+
+				const wchar_t *format = is_winx
+					? L"Win+X menu: recognised by %s (window '%s'; callers %s; %u of %u stack frame(s) attributed)."
+					: L"Win+X check: a taskbar menu, not the Win+X menu (%s; window '%s'; callers %s; %u of %u stack frame(s) attributed).";
+
+				Logger::Info(format, source, window_class.c_str(), callers_text, attributed, frames);
+			}
+			catch(...)
+			{
+			}
 		}
 
 		//VirtualFolder
@@ -2675,7 +2805,9 @@ namespace Nilesoft
 			_theme.isHighContrast = isHighContrast;
 			
 
-			auto is_sys_dark = Selected.Window.isTaskbar() ? !systemUsesLightTheme : !appsUseLightTheme;// Theme::IsDarkMode(Selected.Window.isTaskbar());
+			// The taskbar and the Win+X menu follow the Windows mode, other menus the app mode.
+			const bool system_mode = Selected.Window.isTaskbar() || Selected.Window.id == WINDOW_START;
+			auto is_sys_dark = system_mode ? !systemUsesLightTheme : !appsUseLightTheme;// Theme::IsDarkMode(Selected.Window.isTaskbar());
 
 			_theme.mode = is_sys_dark;
 
@@ -3456,8 +3588,11 @@ namespace Nilesoft
 					_theme.text.prefix = DT_HIDEPREFIX;
 			}
 
+			// Underlined access keys show while Shift is held, and always on the
+			// Win+X menu, which is mostly used from the keyboard (Win+X, then a
+			// letter). OnMenuChar makes those letters work there.
 			if(_theme.text.prefix == 0xFFFFFFFF)
-				_theme.text.prefix = keyboard.key_shift() ? 0 : DT_HIDEPREFIX;
+				_theme.text.prefix = (keyboard.key_shift() || Selected.Window.id == WINDOW_START) ? 0 : DT_HIDEPREFIX;
 
 			// theme.image
 			if(_theme.image.enabled)
@@ -4556,6 +4691,7 @@ namespace Nilesoft
 
 				Selected.Window.handle = hwnd.owner;
 				Selected.Window.hInstance = _window.instance();
+				Selected.winx.menu = _hMenu_original;
 
 				if(!Selected.QueryShellWindow())
 				{
@@ -4603,11 +4739,23 @@ namespace Nilesoft
 
 				auto sets = &_cache->settings;
 
+				// How a taskbar or Start owned popup was judged (see WinX.h).
+				if(Selected.Window.id == WINDOW_START || Selected.winx.examined)
+				{
+					_winx_debug = _context.eval_bool(sets->winx.debug);
+					log_winx(_winx_debug);
+				}
+
 				switch(Selected.Window.id)
 				{
 					case WINDOW_TASKBAR:
 						Selected.Types[FSO_TASKBAR] = TRUE;
 						Selected.front = FSO_TASKBAR;
+						Selected.Directory = Path::GetKnownFolder(FOLDERID_Desktop).move();
+						break;
+					case WINDOW_START:
+						// Commands start in the Desktop folder, as from the taskbar
+						// (which is what Windows 11's Win+X menu was taken for).
 						Selected.Directory = Path::GetKnownFolder(FOLDERID_Desktop).move();
 						break;
 					default:
@@ -4680,11 +4828,25 @@ namespace Nilesoft
 				__system_menu_tree->type = 10;
 				__map_system_menu[0] = __system_menu_tree;
 
-				if(0 == ::GetPropW(hwnd.owner, UxSubclass))
-					build_system_menuitems(_hMenu_original, __system_menu_tree, true);
+				// settings.winx.replace: the Win+X menu shows only the configured
+				// items. Windows' items are not read at all, rather than read and
+				// hidden, so no rule can show, move or rename one, and the menu
+				// can only return 0 or a command ID twinui put in it (#25).
+				_winx_replace = Selected.Window.id == WINDOW_START && _context.eval_bool(sets->winx.replace);
+				if(_winx_replace)
+				{
+					if(_winx_debug)
+						Logger::Info(L"Win+X menu: replace is on; %d Windows item(s) are left out.",
+									  ::GetMenuItemCount(_hMenu_original));
+				}
+				else
+				{
+					if(0 == ::GetPropW(hwnd.owner, UxSubclass))
+						build_system_menuitems(_hMenu_original, __system_menu_tree, true);
 
-				if(_settings.modify_items.enabled)
-					build_main_system_menuitems(__system_menu_tree, true);
+					if(_settings.modify_items.enabled)
+						build_main_system_menuitems(__system_menu_tree, true);
+				}
 
 				return true;
 			}
@@ -6596,6 +6758,12 @@ namespace Nilesoft
 					}
 					case WM_MENUSELECT:
 						return ctx->OnMenuSelect(reinterpret_cast<HMENU>(lParam), LOWORD(wParam), HIWORD(wParam));
+					case WM_MENUCHAR:
+						// Win+X access keys. Left to the owner, twinui would look
+						// them up in a menu it did not build.
+						if(ctx->Selected.Window.id == WINDOW_START && HIWORD(wParam) == MF_POPUP && lParam)
+							return ctx->OnMenuChar(static_cast<wchar_t>(LOWORD(wParam)), reinterpret_cast<HMENU>(lParam));
+						break;
 					case WM_ENTERIDLE:
 						if(wParam == MSGF_MENU)
 						{

@@ -144,6 +144,8 @@ namespace nss
 				add("settings.modify.remove.separator", ValueType::Bool);
 				add("settings.new.enabled", ValueType::Bool);
 				add("settings.new.image", ValueType::Bool);
+				add("settings.winx.replace", ValueType::Bool);
+				add("settings.winx.debug", ValueType::Bool);
 
 				// A block's own value (SETTING::value) is one of its children.
 				alias("theme", "theme.name");
@@ -160,6 +162,7 @@ namespace nss
 				alias("settings.tip", "settings.tip.enabled");
 				alias("settings.modify", "settings.modify.enabled");
 				alias("settings.new", "settings.new.enabled");
+				alias("settings.winx", "settings.winx.replace");
 			}
 		};
 

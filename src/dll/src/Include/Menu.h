@@ -58,6 +58,13 @@ namespace Nilesoft
 				auto_expr keys;
 			} new_items;
 
+			// settings.winx (experimental): the Win+X menu
+			struct
+			{
+				auto_expr replace;	// hide Windows' own items
+				auto_expr debug;	// log every Win+X decision to shell.log
+			} winx;
+
 			struct MARGIN
 			{
 				uint32_t id = IDENT_MARGIN;

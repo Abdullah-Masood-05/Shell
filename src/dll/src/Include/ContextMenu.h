@@ -715,6 +715,12 @@ plutovg_move_to(pluto, start.x, start.y);
 			// True while modify rules are re-applied to a re-read system submenu.
 			bool __refreshing_system_items = false;
 
+			// settings.winx.replace on a Win+X menu: Windows' own items are not
+			// read, so none of their command IDs can be shown or returned.
+			bool _winx_replace = false;
+			// settings.winx.debug: log every Win+X decision and menu.
+			bool _winx_debug = false;
+
 		public:// functions
 
 			bool set_prop(auto hWnd) { return Prop::Set(hWnd, this); }
@@ -736,6 +742,8 @@ plutovg_move_to(pluto, start.x, start.y);
 			LRESULT OnInitMenuPopup(HMENU hMenu, uint32_t uPosition);
 			LRESULT OnUninitMenuPopup(HMENU hMenu);
 			LRESULT OnMenuSelect(HMENU hMenu, uint32_t id, uint32_t flags);
+			LRESULT OnMenuChar(wchar_t ch, HMENU hMenu);
+			void log_winx(bool debug);
 			LRESULT OnDrawItem(DRAWITEMSTRUCT *di);
 			LRESULT OnMeasureItem(MEASUREITEMSTRUCT *mi);
 

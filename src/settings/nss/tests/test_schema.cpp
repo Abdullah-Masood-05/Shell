@@ -30,6 +30,8 @@ TEST_CASE("schema: key tables and aliases")
 	CHECK(ThemeSchema::canonical("theme.tip") == "settings.tip.enabled");
 	CHECK(ThemeSchema::canonical("settings") == "settings.priority");
 	CHECK(ThemeSchema::canonical("settings.exclude") == "settings.exclude.where");
+	CHECK(ThemeSchema::canonical("settings.winx") == "settings.winx.replace");
+	CHECK(ThemeSchema::isKnown("settings.winx.debug"));
 	CHECK(ThemeSchema::order("theme.name") < ThemeSchema::order("settings.priority"));
 	CHECK(ThemeSchema::order("bogus") == ThemeSchema::keys().size());
 }

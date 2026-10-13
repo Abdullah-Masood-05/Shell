@@ -998,6 +998,12 @@ namespace Nilesoft
 				}}
 			}};
 
+			// winx = true is short for winx.replace = true
+			SETTING _winx = { IDENT_WINX, &sets->winx.replace, {
+				{IDENT_REPLACE, &sets->winx.replace},
+				{IDENT_DEBUG, &sets->winx.debug},
+			} };
+
 			SETTING _settings = { CONFIG_SETTINGS, &sets->priority, {
 				{ IDENT_PRIORITY, &sets->priority },
 				{ IDENT_SHOWDELAY, &sets->showdelay },
@@ -1010,7 +1016,7 @@ namespace Nilesoft
 					{ IDENT_WINDOW, &sets->exclude.window },
 					{ IDENT_PROCESS, &sets->exclude.process }
 				}},
-				_tip, _modify, _new,
+				_tip, _modify, _new, _winx,
 			} };
 
 			auto _setting = &_settings;
