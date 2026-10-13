@@ -81,6 +81,9 @@ export global AppState {
     // Busy: one action at a time; every action button is disabled meanwhile.
     in property <bool> busy;
     in property <string> busy-label;
+    // The last action(): its id, and why it failed or was cancelled ("" when it worked).
+    in property <string> action-id;
+    in property <string> action-error;
 
     // Toast
     in property <bool> toast-shown;
@@ -92,16 +95,20 @@ export global AppState {
     in-out property <int> theme-mode;  // 0 system, 1 light, 2 dark
     in property <image> shield-icon;   // the Windows UAC shield (stock icon)
 
-    // Onboarding
+    // Onboarding (src/OnboardingController.cpp)
     in-out property <bool> onboarding-shown;
     in-out property <int> onboarding-step;
     in-out property <bool> classic-menu-option: true;
+    in property <bool> onboarding-saving;     // Finish is saving the theme
+    in property <string> onboarding-error;    // why that save failed
 
     callback refresh();
     callback action(id: string);       // see AppController::runAction
     callback set-theme(mode: int);
     callback open-url(url: string);
     callback open-path(path: string);
-    callback dismiss-onboarding();
+    callback dismiss-onboarding();     // Skip setup / Esc: closes without saving the theme
+    callback onboarding-theme(index: int); // 0 auto .. 4 black, staged like the Appearance page does
+    callback finish-onboarding();      // saves a staged theme (checked by shell.exe), then closes
     callback dismiss-toast();
 }

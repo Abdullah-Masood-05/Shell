@@ -179,10 +179,27 @@ TEST_CASE("save round trip: pending changes through shell.exe -config:check (rea
     CHECK_FALSE(rejected.check.ok);
     CHECK(readText(overrides) == before);
 
+    // 2b. Behavior's "Custom submenu delay" off over the shipped `showdelay = 200`:
+    //     `auto` makes the core leave the Windows setting alone, and shell.exe accepts it.
+    {
+        auto g = nss::ConfigGraph::load(root, graphOptions);
+        auto [delay, fromApp] = effective(g, overrides, "settings.showdelay");
+        CHECK(delay == "150"); // step 1 set it
+        PendingChanges off;
+        REQUIRE(off.set("settings.showdelay", "auto", "Behavior").empty());
+        auto turnedOff = commit(root, off);
+        REQUIRE_MESSAGE(turnedOff.ok, (turnedOff.error + " " + turnedOff.check.message));
+        auto g2 = nss::ConfigGraph::load(root, graphOptions);
+        auto [now, nowFromApp] = effective(g2, overrides, "settings.showdelay");
+        CHECK(now == "auto");
+        CHECK(nowFromApp);
+    }
+
     // 3. Resets drop keys from settings-app.nss; the file's own values apply again.
     PendingChanges reset;
     reset.reset("settings.exclude.where", "Rules");
     reset.reset("theme.item.radius", "Appearance");
+    reset.reset("settings.showdelay", "Behavior");
     auto afterReset = commit(root, reset);
     REQUIRE_MESSAGE(afterReset.ok, (afterReset.error + " " + afterReset.check.message));
     {
@@ -191,5 +208,8 @@ TEST_CASE("save round trip: pending changes through shell.exe -config:check (rea
         CHECK(where == "!process.is_explorer");
         CHECK_FALSE(fromApp);
         CHECK(effective(g, overrides, "theme.background.color").second);
+        auto [delay, delayFromApp] = effective(g, overrides, "settings.showdelay");
+        CHECK(delay == "200"); // the shipped shell.nss again
+        CHECK_FALSE(delayFromApp);
     }
 }

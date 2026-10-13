@@ -3,14 +3,19 @@
 // Development switches:
 //   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences>
 //   --no-onboarding    don't show the first-run dialog this time
+//   --onboarding <1|2|3>   show the first-run dialog at that step, whatever the status;
+//                          with --snapshot, the tour starts with that step and the ones after it
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
-//                          to <prefix>-N.bmp, then exit; for screenshots without screen capture
+//                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
+//                          The window is 1120x760 and placed off-screen, and a running
+//                          Settings window is left alone (no single-instance check)
 //   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
+//   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --set <key>=<literal>, --save    see AppearanceController.h
 
 #include "app.h"
@@ -22,16 +27,20 @@
 #include "ContextMenusController.h"
 #include "EditorController.h"
 #include "MenuBuilderController.h"
+#include "OnboardingController.h"
 #include "Registry.h"
 #include "SaveService.h"
 
 #include <windows.h>
+#include <objbase.h>
 #include <shellapi.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cwchar>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -86,6 +95,10 @@ AppOptions parseArgs()
             for (int p = 0; p < int(std::size(pages)); ++p)
                 if (_wcsicmp(argv[i], pages[p]) == 0)
                     o.startPage = p;
+        } else if (_wcsicmp(argv[i], L"--status-json") == 0 && i + 1 < argc) {
+            o.statusFile = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--onboarding") == 0 && i + 1 < argc) {
+            o.onboardingStep = std::clamp(_wtoi(argv[++i]), 1, 3) - 1;
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
@@ -127,11 +140,17 @@ bool activateExistingInstance(HANDLE &mutex)
 
 int main()
 {
+    auto options = parseArgs();
+    const bool snapshot = !g_snapshotPath.empty();
+
+    // Snapshots never touch a running Settings window (no single-instance check).
     HANDLE mutex = nullptr;
-    if (activateExistingInstance(mutex))
+    if (!snapshot && activateExistingInstance(mutex))
         return 0;
 
-    auto options = parseArgs();
+    // The UI thread is an STA (the folder picker and SHOpenFolderAndSelectItems need COM).
+    const HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
     auto ui = AppWindow::create();
     auto controller = std::make_unique<AppController>(ui, options);
     auto editor = std::make_unique<EditorController>(ui);
@@ -141,12 +160,19 @@ int main()
     auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
     auto contextMenus = std::make_unique<ContextMenusController>(ui);
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
+    auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
+    // A personal config created from Home or the first-run dialog is the new root: read it.
+    controller->onConfigChanged([&] { saveService->reloadConfig(); });
 
     // Restore the last size and position (physical pixels) before the first frame.
-    auto placement = registry::app::loadPlacement();
+    // Snapshots: the default size, off-screen.
+    auto placement = snapshot ? std::nullopt : registry::app::loadPlacement();
     if (placement) {
         ui->window().set_position(slint::PhysicalPosition({ placement->x, placement->y }));
         ui->window().set_size(slint::PhysicalSize({ uint32_t(placement->width), uint32_t(placement->height) }));
+    } else if (snapshot) {
+        ui->window().set_position(slint::PhysicalPosition(
+            { GetSystemMetrics(SM_XVIRTUALSCREEN) + GetSystemMetrics(SM_CXVIRTUALSCREEN) + 64, 0 }));
     }
 
     ui->window().on_close_requested([&] {
@@ -155,6 +181,25 @@ int main()
     });
 
     ui->show();
+
+    // The snapshot tour: the first shot is the window as started; each later one is a
+    // frame from this list. With --onboarding, the dialog's later steps come first.
+    struct Frame
+    {
+        int page;
+        int onboarding; // the dialog's step, or -1 for no dialog
+        bool light;
+    };
+    std::vector<Frame> frames;
+    if (snapshot) {
+        if (options.onboardingStep >= 0)
+            for (int s = options.onboardingStep + 1; s <= 2; ++s)
+                frames.push_back({ options.startPage, s, false });
+        for (int page : g_snapshotPages.empty() ? std::vector<int>{ 0, 8, 1 } : g_snapshotPages)
+            frames.push_back({ page, -1, false });
+        // Last, in light (not saved): Home, or the start page for --snapshot-pages.
+        frames.push_back({ g_snapshotPages.empty() ? 0 : options.startPage, -1, true });
+    }
 
     // The native window is created once the event loop runs; poll briefly for it.
     slint::Timer hwndPoll, snapshotTour;
@@ -167,7 +212,7 @@ int main()
                 ui->window().set_maximized(true);
             controller->start();
             appearance->start();
-            if (!g_snapshotPath.empty())
+            if (snapshot)
                 snapshotTour.start(slint::TimerMode::Repeated, std::chrono::milliseconds(1200), [&] {
                     static int step = 0;
                     if (++step < 3) {
@@ -177,31 +222,31 @@ int main()
                         }
                         return; // let the first status load land
                     }
-                    int shot = step - 2;
+                    const int shot = step - 2;
                     if (auto px = ui->window().take_snapshot())
                         writeBmp(g_snapshotPath + L"-" + std::to_wstring(shot) + L".bmp", *px);
-                    const auto &state = ui->global<AppState>();
-                    state.set_onboarding_shown(false);
-                    static const std::vector<int> tour =
-                        g_snapshotPages.empty() ? std::vector<int>{ 0, 8, 1 } : g_snapshotPages;
-                    if (shot > int(tour.size()) + 1) {
+                    if (shot > int(frames.size())) {
                         snapshotTour.stop();
                         slint::quit_event_loop();
                         return;
                     }
-                    if (shot == int(tour.size()) + 1) {
-                        // Last shot, in light (not saved): Home, or the start page for --snapshot-pages.
-                        state.set_page(g_snapshotPages.empty() ? 0 : options.startPage);
+                    const auto &frame = frames[size_t(shot - 1)];
+                    const auto &state = ui->global<AppState>();
+                    state.set_onboarding_shown(frame.onboarding >= 0);
+                    if (frame.onboarding >= 0)
+                        state.set_onboarding_step(frame.onboarding);
+                    state.set_page(frame.page);
+                    if (frame.light) {
                         ui->invoke_apply_theme(false);
                         ui->global<AppearanceState>().invoke_set_preview_dark(false);
-                    } else
-                        state.set_page(tour[size_t(shot - 1)]);
+                    }
                 });
         }
     });
 
     slint::run_event_loop();
 
+    onboarding.reset();
     behavior.reset();
     appearance.reset();
     saveService.reset();
@@ -210,7 +255,10 @@ int main()
     backups.reset();
     editor.reset();
     controller.reset();
+    if (SUCCEEDED(com))
+        CoUninitialize();
     if (mutex)
         CloseHandle(mutex);
     return 0;
 }
+

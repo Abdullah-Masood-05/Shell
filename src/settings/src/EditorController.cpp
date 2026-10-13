@@ -89,6 +89,15 @@ void EditorController::bindCallbacks()
             startEditing_ = false;
             ui_->global<EditorState>().set_editing(true);
         }
+        // Home's diagnostics and "Edit in Config Editor" links jump before the page
+        // exists, so it never saw the change: scroll there once it is laid out.
+        if (replayJump_) {
+            replayJump_ = false;
+            replayTimer_.start(slint::TimerMode::SingleShot, 120ms, [this] {
+                const auto &es = ui_->global<EditorState>();
+                es.set_jump_serial(es.get_jump_serial() + 1);
+            });
+        }
     });
     st.on_select_file([this](int i) { selectFile(i); });
     st.on_set_editing([this](bool editing) {
@@ -697,4 +706,5 @@ void EditorController::jumpTo(const fs::path &file, int line)
     st.set_jump_start(int(begin));
     st.set_jump_end(int(end));
     st.set_jump_serial(st.get_jump_serial() + 1);
+    replayJump_ = ui_->global<AppState>().get_page() != ui_->global<Pages>().get_editor();
 }

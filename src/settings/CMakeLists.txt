@@ -74,6 +74,7 @@ add_executable(settings WIN32
     src/MenuBuilderController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
+    src/OnboardingController.cpp
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
@@ -121,6 +122,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_rules.cpp
         tests/test_save_roundtrip.cpp
         tests/test_menus.cpp
+        tests/test_status.cpp
+        tests/test_onboarding.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -129,6 +132,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/Status.cpp
         src/ThemeModel.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp

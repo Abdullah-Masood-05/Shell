@@ -61,21 +61,15 @@ export component BehaviorPage inherits PageFrame {
             label: "Custom submenu delay";
             field: root.f[SK.showdelay];
             hint: root.f[SK.showdelay].index == 0
-                ? "Off: your Windows setting applies (" + SettingsState.windows-showdelay + " ms)."
+                ? "Off: your Windows setting applies (" + SettingsState.windows-showdelay + " ms) · " + root.f[SK.showdelay].origin
                 : "Replaces your Windows setting (" + SettingsState.windows-showdelay + " ms) while a Shell menu is open · " + root.f[SK.showdelay].origin;
             control-width: 80px;
             reset => { SettingsState.reset(SK.showdelay); }
             ToggleSwitch {
                 on: root.f[SK.showdelay].index == 1;
-                // Turning it off only drops this app's value; a value in your files stays.
-                enabled: root.ready && !root.f[SK.showdelay].locked && (root.f[SK.showdelay].index == 0 || root.f[SK.showdelay].source-file == "" || root.f[SK.showdelay].overridden);
-                toggled(on) => {
-                    if (on) {
-                        SettingsState.set-number(SK.showdelay, root.f[SK.showdelay].number);
-                    } else {
-                        SettingsState.reset(SK.showdelay);
-                    }
-                }
+                // Off over a delay in your files writes showdelay = auto (BehaviorController::setShowDelay).
+                enabled: root.ready && !root.f[SK.showdelay].locked;
+                toggled(on) => { SettingsState.set-bool(SK.showdelay, on); }
             }
         }
         if root.f[SK.showdelay].index == 1: ValueSlider {

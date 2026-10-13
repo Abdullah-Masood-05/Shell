@@ -6,14 +6,13 @@ import { AppState, Pages, StatusInfo, Diagnostic, Issue, NavEntry } from "types.
 import { Sidebar } from "components/sidebar.slint";
 import { Toast } from "components/toast.slint";
 import { HomePage } from "pages/home.slint";
-import { PlaceholderPage } from "pages/placeholder.slint";
 import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
 import { EditorPage } from "pages/editor.slint";
 import { BackupsPage } from "pages/backups.slint";
 import { SaveState } from "save-state.slint";
 import { SaveFooter, UserConfigPrompt } from "components/save-footer.slint";
-import { AppearancePage, AppearanceState } from "pages/appearance.slint";
+import { AppearancePage, AppearanceState, K } from "pages/appearance.slint";
 import { BehaviorPage } from "pages/behavior.slint";
 import { RulesPage } from "pages/rules.slint";
 import { SettingsState, SK } from "pages/settings-state.slint";
@@ -23,7 +22,7 @@ import { MenuBuilderPage } from "pages/menu-builder.slint";
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
 export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
-export { SaveState, AppearanceState, Pages, SettingsState, SK }
+export { SaveState, AppearanceState, K, Pages, SettingsState, SK }
 export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
 
 export component AppWindow inherits Window {

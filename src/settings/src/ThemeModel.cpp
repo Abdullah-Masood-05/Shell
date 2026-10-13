@@ -649,4 +649,24 @@ Resolved resolve(const Values &values, const SystemInfo &sys)
     return th;
 }
 
+std::string themeNameLiteral(int index)
+{
+    if (index < 0 || index >= int(std::size(kThemeNames)))
+        return {};
+    return std::string("\"") + kThemeNames[index] + "\"";
+}
+
+int themeIndex(const nss::Literal &name, const std::string &resolvedType)
+{
+    std::string word;
+    if (name.kind == nss::LiteralKind::String || name.kind == nss::LiteralKind::Keyword)
+        word = nss::toLower(nss::trim(name.string));
+    else if (name.kind == nss::LiteralKind::Number)
+        word = resolvedType;
+    for (int i = 0; i < int(std::size(kThemeNames)); ++i)
+        if (word == kThemeNames[i])
+            return i;
+    return 0;
+}
+
 } // namespace theme

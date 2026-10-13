@@ -1,5 +1,6 @@
 #include "PendingChanges.h"
 
+#include "nss/Literal.h"
 #include "nss/NssDocument.h"
 #include "nss/ThemeSchema.h"
 
@@ -83,6 +84,46 @@ std::string PendingChanges::describe() const
         }
     }
     return out;
+}
+
+namespace {
+
+bool sameLiteral(const nss::Literal &a, const nss::Literal &b)
+{
+    if (a.kind != b.kind)
+        return false;
+    switch (a.kind) {
+    case nss::LiteralKind::Number: return a.number == b.number;
+    case nss::LiteralKind::String:
+    case nss::LiteralKind::Keyword:
+    case nss::LiteralKind::Name: return a.string == b.string;
+    case nss::LiteralKind::Color: return a.rgba == b.rgba;
+    case nss::LiteralKind::Array:
+        if (a.items.size() != b.items.size())
+            return false;
+        for (size_t i = 0; i < a.items.size(); ++i)
+            if (!sameLiteral(a.items[i], b.items[i]))
+                return false;
+        return true;
+    default: return a.text == b.text;
+    }
+}
+
+} // namespace
+
+bool sameValue(std::string_view a, std::string_view b)
+{
+    return sameLiteral(nss::Literal::parse(a), nss::Literal::parse(b));
+}
+
+std::vector<std::string> PendingChanges::stage(std::string_view key, std::string_view literal, std::string_view page,
+                                               const std::optional<std::string> &saved)
+{
+    if (saved && sameValue(*saved, literal)) {
+        forget(key);
+        return {};
+    }
+    return set(key, literal, page);
 }
 
 SavePlan planSave(const fs::path &root, const PendingChanges &pending)

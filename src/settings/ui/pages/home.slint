@@ -177,7 +177,7 @@ export component HomePage inherits PageFrame {
             min-width: 280px;
             preferred-width: 320px;
             heading: "Active config";
-            description: "The root file Explorer loads. Later milestones edit it from this app.";
+            description: "The shell.nss Shell builds its menu from, and the files it imports.";
             HorizontalLayout {
                 alignment: start;
                 StatusPill {
@@ -244,8 +244,9 @@ export component HomePage inherits PageFrame {
         ActionTile {
             horizontal-stretch: 1;
             icon: AppState.status.user-registered ? Icons.person-remove : Icons.person-add;
-            title: AppState.status.user-registered ? "Unregister for me" : "Register for me";
-            caption: AppState.status.user-registered ? "Remove it from your account" : "No administrator rights needed";
+            title: AppState.status.user-registered ? "Unregister for me" : AppState.status.machine-registered ? "Also register for me" : "Register for me";
+            // On top of the all-users registration, a per-user one takes priority over it.
+            caption: AppState.status.user-registered ? "Remove it from your account" : AppState.status.machine-registered ? "Overrides the all-users copy" : "No administrator rights needed";
             enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
             clicked => { AppState.action(AppState.status.user-registered ? "unregister-user" : "register-user"); }
         }

@@ -73,6 +73,7 @@ private:
     std::string statusPath_;      // AppState.status.config-path last seen
     bool shared_ = false;
     bool startEditing_ = false;
+    bool replayJump_ = false; // a jump landed while the page was hidden: show it once it is up
     std::vector<editor::FileEntry> entries_;
     std::map<std::string, editor::Buffer> buffers_; // pathKey -> buffer
     int current_ = -1;
@@ -90,6 +91,7 @@ private:
     slint::Timer statusPoll_;
     slint::Timer checkTimer_;
     slint::Timer toastTimer_;
+    slint::Timer replayTimer_;
     FileWatcher watcher_;
     Worker worker_; // last: joined first
 };
