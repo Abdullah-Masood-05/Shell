@@ -32,7 +32,8 @@
 	<li>System submenus that fill themselves in later (such as <i>Send to</i> and <i>New</i>) are read again when opened.</li>
 	<li>Menus and tooltips are positioned correctly on monitors with negative coordinates, and the DPI is taken from the
 		window rather than the monitor.</li>
-	<li><code>this.count</code> returns the number of items in the menu.</li>
+	<li><code>this.count</code> returns the number of system items in the menu (0 on the Windows 11 taskbar, whose own
+		menu is empty).</li>
 	<li>Shell no longer changes your submenu show delay or selection-fade settings, or Explorer's working directory.</li>
 </ul>
 

@@ -5,6 +5,7 @@
 #include "RegistryConfig.h"
 #include "ConfigCheck.h"
 #include <UIAutomation.h>
+#include <atomic>
 using namespace Nilesoft::Shell;
 using namespace Diagnostics;
 
@@ -520,6 +521,22 @@ STDAPI WINAPI DllGetClassObjectHook(REFCLSID rclsid, _In_ REFIID riid, LPVOID *p
 BOOL WINAPI TrackPopupMenuProc(HMENU hMenu, uint32_t uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
 BOOL WINAPI TrackPopupMenuExProc(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
 
+// Out of line: NtUserTrackPopupMenu uses __try and cannot hold objects that
+// need unwinding.
+static __declspec(noinline) void log_taskbar_not_built(HWND hWnd) noexcept
+{
+	try
+	{
+		static std::atomic_bool logged{ false };
+		if(!logged.exchange(true))
+			_log.info(L"Taskbar menu: not built for window '%s' (no context for it); the stock menu is shown.",
+					  Window::class_name(hWnd).c_str());
+	}
+	catch(...)
+	{
+	}
+}
+
 BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm, int tfunc)
 {
 #ifdef _DIJA
@@ -570,6 +587,13 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 				}
 
 				auto ctx = ContextMenu::CreateAndInitialize(hWnd, hMenu, { x, y }, _loader.explorer, _loader.contextmenuhandler);
+
+				// A taskbar popup Shell declined to build falls through to the
+				// menu it was given, which for the Windows 11 taskbar is empty.
+				// Said once per session; see also "Taskbar menu:" in ContextMenu.
+				if(ctx == nullptr && Nilesoft::Shell::in_taskbar())
+					log_taskbar_not_built(hWnd);
+
 				if(ctx != nullptr)
 				{
 
