@@ -4,6 +4,7 @@ EXPORTS
 	DllCanUnloadNow			PRIVATE
 	DllGetClassObject		PRIVATE
 	ConfigCheck				PRIVATE
+	HookGuard				PRIVATE
 	;DllRegisterServer		PRIVATE
 	;DllUnregisterServer		PRIVATE
 	;DllInstall				PRIVATE
