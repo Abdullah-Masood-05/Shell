@@ -133,12 +133,13 @@ TEST_CASE("config graph: the shipped configuration")
 
 	// The locale-specific lang import is an if(...) expression.
 	REQUIRE(g.unresolved().size() == 1);
-	CHECK(g.unresolved()[0].line == 28);
+	CHECK(g.unresolved()[0].line == 27);
 
 	CHECK(g.find("theme.name")->effective().value == "\"modern\"");
 	CHECK(g.find("theme.name")->effective().file.filename() == "theme.nss");
 	CHECK(g.find("theme.image.display")->effective().writtenAs == "theme.image.align");
 	CHECK(g.find("settings.priority")->effective().value == "1");
 	CHECK(g.find("settings.exclude.where")->effective().literal == false);
-	CHECK(g.find("settings.showdelay") == nullptr);
+	CHECK(g.find("settings.showdelay")->effective().value == "200");
+	CHECK(g.find("settings.showdelay")->effective().file.filename() == "shell.nss");
 }

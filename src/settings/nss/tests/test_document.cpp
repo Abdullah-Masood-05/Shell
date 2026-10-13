@@ -73,7 +73,8 @@ TEST_CASE("the shipped shell.nss parses into the expected tree")
 	CHECK(d->slice(d->findAssign("settings.exclude.where")->valueSpan) == "!process.is_explorer");
 	CHECK(d->slice(d->findAssign("settings.modify.remove.duplicate")->valueSpan) == "1");
 	CHECK(d->slice(d->findAssign("settings.tip.enabled")->valueSpan) == "true");
-	CHECK(d->assigns().size() == 4);
+	CHECK(d->slice(d->findAssign("settings.showdelay")->valueSpan) == "200");
+	CHECK(d->assigns().size() == 5);
 
 	auto imports = d->imports();
 	REQUIRE(imports.size() == 11);
