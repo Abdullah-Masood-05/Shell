@@ -1,11 +1,11 @@
-import { Button, CheckBox, ComboBox, LineEdit, ListView, ScrollView } from "std-widgets.slint";
+import { CheckBox, ComboBox, LineEdit, ListView, ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
 import { BuilderState, BuilderRow, BuilderNode, PreviewRow } from "../menus-types.slint";
 import { Banner, CloseGlyph } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
-import { Segmented } from "../components/controls.slint";
+import { AppButton, Segmented } from "../components/controls.slint";
 import { CodeColors, CodeRow } from "../components/code.slint";
 
 // The glyph font the core draws `image=\uXXXX` with (src/shared/Resource/Shell.ttf).
@@ -298,7 +298,7 @@ component GlyphPicker inherits Rectangle {
         border-width: 1px;
         border-color: Tokens.stroke-strong;
         drop-shadow-blur: 24px;
-        drop-shadow-color: #00000060;
+        drop-shadow-color: Tokens.shadow;
         drop-shadow-offset-y: 8px;
         TouchArea { }  // keep clicks inside the card
 
@@ -315,7 +315,7 @@ component GlyphPicker inherits Rectangle {
                     font-weight: 600;
                     color: Tokens.text;
                 }
-                Button {
+                AppButton {
                     text: "No icon";
                     clicked => {
                         BuilderState.pick-glyph(-1);
@@ -399,12 +399,12 @@ export component MenuBuilderPage inherits Rectangle {
             description: "Your own menus and items, kept in their own file. Shell checks them before every save.";
             busy: BuilderState.saving;
             busy-label: "Checking and saving…";
-            Button {
+            AppButton {
                 text: "Discard";
                 enabled: BuilderState.dirty && !BuilderState.saving;
                 clicked => { BuilderState.discard(); }
             }
-            Button {
+            AppButton {
                 text: "Save";
                 primary: true;
                 enabled: BuilderState.dirty && !BuilderState.saving && !root.locked;
@@ -454,19 +454,19 @@ export component MenuBuilderPage inherits Rectangle {
                     spacing: Tokens.s1;
                     HorizontalLayout {
                         spacing: Tokens.s1;
-                        Button {
+                        AppButton {
                             text: "Item";
                             enabled: !root.locked;
                             horizontal-stretch: 1;
                             clicked => { BuilderState.add("item"); }
                         }
-                        Button {
+                        AppButton {
                             text: "Menu";
                             enabled: !root.locked;
                             horizontal-stretch: 1;
                             clicked => { BuilderState.add("menu"); }
                         }
-                        Button {
+                        AppButton {
                             text: "Separator";
                             enabled: !root.locked;
                             horizontal-stretch: 1;
@@ -645,7 +645,7 @@ export component MenuBuilderPage inherits Rectangle {
                                         enabled: !root.locked;
                                         placeholder-text: "None";
                                     }
-                                    Button {
+                                    AppButton {
                                         text: "Choose…";
                                         enabled: !root.locked;
                                         clicked => { root.picker-open = true; }
@@ -840,7 +840,7 @@ export component MenuBuilderPage inherits Rectangle {
                         if root.bottom-tab == 0: Rectangle {
                             vertical-stretch: 1;
                             border-radius: Tokens.radius-control;
-                            background: Tokens.dark ? #1C1C1C : #E9E9E9;
+                            background: Tokens.sidebar;
                             clip: true;
                             if BuilderState.preview.length == 0: Text {
                                 text: "Nothing to preview yet.";

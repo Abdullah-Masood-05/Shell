@@ -220,3 +220,45 @@ TEST_CASE("theme model: separator alpha follows a translucent background")
     // the separator takes the background's opacity + 5.
     CHECK(alpha(opaqueSep.separatorColor) == 127 + 5);
 }
+
+TEST_CASE("theme model: background gradient")
+{
+    // The "Gradient" example (discussion #174): bottom to top, accent dark3 -> accent -> dark3 at 90 %.
+    auto g = resolve(make({ { "theme.background.opacity", "0" },
+                            { "theme.background.gradient.enabled", "1" },
+                            { "theme.background.gradient.linear", "[0, 100, 0, 0]" },
+                            { "theme.background.gradient.stop",
+                              "[[0, color.accent_dark3, 90], [.5, color.accent, 90], [1, color.accent_dark3, 90]]" } }),
+                     sys(true, true));
+    REQUIRE(g.gradient);
+    CHECK_FALSE(g.gradientRadial);
+    CHECK(g.gradientAngle == doctest::Approx(0.0)); // from (0, 100 %) up to (0, 0)
+    REQUIRE(g.gradientStops.size() == 3);
+    CHECK(alpha(g.gradientStops[1].color) == 229);   // 90 %
+    CHECK((gradientAt(g, 0.5) & 0xFFFFFFu) == 0x3366CCu); // the accent in the middle
+    CHECK(gradientAt(g, 0.0) == g.gradientStops[0].color);
+    CHECK(gradientAt(g, 0.25) != gradientAt(g, 0.0));
+
+    // Left to right.
+    auto lr = resolve(make({ { "theme.background.gradient.enabled", "true" },
+                             { "theme.background.gradient.linear", "[0, 0, 100, 0]" },
+                             { "theme.background.gradient.stop", "[[0, #FF0000], [1, #0000FF]]" } }),
+                      sys(true, true));
+    REQUIRE(lr.gradient);
+    CHECK(lr.gradientAngle == doctest::Approx(90.0));
+    CHECK(gradientAt(lr, 0) == 0xFFFF0000u);
+    CHECK(gradientAt(lr, 1) == 0xFF0000FFu);
+
+    // Off without enabled, without a shape, or with the single-stop form the core ignores.
+    CHECK_FALSE(resolve(make({ { "theme.background.gradient.linear", "[0, 0, 100, 0]" },
+                               { "theme.background.gradient.stop", "[[0, #FF0000]]" } }),
+                        sys(true, true)).gradient);
+    CHECK_FALSE(resolve(make({ { "theme.background.gradient.enabled", "1" },
+                               { "theme.background.gradient.stop", "[[0, #FF0000]]" } }),
+                        sys(true, true)).gradient);
+    CHECK_FALSE(resolve(make({ { "theme.background.gradient.enabled", "1" },
+                               { "theme.background.gradient.linear", "[0, 0, 100, 0]" },
+                               { "theme.background.gradient.stop", "[0.5, #FF0000, 20]" } }),
+                        sys(true, true)).gradient);
+    CHECK(gradientAt(Resolved{}, 0.5) == 0u);
+}

@@ -1,4 +1,4 @@
-import { Button, ListView } from "std-widgets.slint";
+import { ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
@@ -7,6 +7,7 @@ import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { CodeColors } from "../components/code.slint";
 import { ConfirmDialog } from "../components/dialog.slint";
+import { AppButton } from "../components/controls.slint";
 
 component Tag inherits Rectangle {
     in property <string> text;
@@ -227,7 +228,7 @@ export component BackupsPage inherits Rectangle {
             description: "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it.";
             busy: BackupsState.working;
             busy-label: "Working…";
-            Button {
+            AppButton {
                 text: "Open folder";
                 icon: Icons.folder;
                 icon-size: 16px;
@@ -235,7 +236,7 @@ export component BackupsPage inherits Rectangle {
                 enabled: BackupsState.available;
                 clicked => { BackupsState.open-folder(); }
             }
-            Button {
+            AppButton {
                 text: "Create snapshot now";
                 primary: true;
                 enabled: BackupsState.available && !BackupsState.working;
@@ -347,7 +348,7 @@ export component BackupsPage inherits Rectangle {
                         }
                         VerticalLayout {
                             alignment: center;
-                            Button {
+                            AppButton {
                                 text: root.sel.pinned ? "Unpin" : "Pin";
                                 enabled: !BackupsState.working;
                                 clicked => { BackupsState.toggle-pin(BackupsState.selected); }
@@ -355,7 +356,7 @@ export component BackupsPage inherits Rectangle {
                         }
                         VerticalLayout {
                             alignment: center;
-                            Button {
+                            AppButton {
                                 text: "Delete…";
                                 enabled: !root.sel.pinned && !BackupsState.working;
                                 clicked => { BackupsState.ask-delete(BackupsState.selected); }
@@ -363,7 +364,7 @@ export component BackupsPage inherits Rectangle {
                         }
                         VerticalLayout {
                             alignment: center;
-                            Button {
+                            AppButton {
                                 text: "Restore…";
                                 primary: true;
                                 enabled: !root.sel.current && !BackupsState.working && BackupsState.available;

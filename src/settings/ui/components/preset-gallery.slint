@@ -1,0 +1,385 @@
+// The theme presets gallery: the example themes of the original Nilesoft Shell
+// project as cards. Each card is the user's wallpaper with a mini menu drawn in
+// the preset's own colours, corners and effect, its name and tags, an "Active"
+// badge on the one in use, and a "…" menu (Apply, Export to clipboard).
+//
+// Self-contained: drop PresetGallery into a card and PresetConfirm over the page
+// (`if PresetsState.confirm >= 0: PresetConfirm { }`). The data and the actions
+// are PresetsState (src/PresetsController.cpp).
+
+import { Button } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { MiniMenu } from "../preview/menu-preview.slint";
+import { AppearanceState } from "../pages/appearance-state.slint";
+import { PresetsState, PresetCard } from "../pages/presets-state.slint";
+import { Link } from "controls.slint";
+import { ConfirmDialog } from "dialog.slint";
+
+// One row of the "…" menu.
+component MenuRow inherits Rectangle {
+    in property <string> glyph;
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback activated;
+
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover && root.enabled ? Tokens.hover : transparent;
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.activated(); } }
+
+    HorizontalLayout {
+        padding-left: Tokens.s2;
+        padding-right: Tokens.s2;
+        spacing: Tokens.s3;
+        Text {
+            width: 16px;
+            text: root.glyph;
+            font-family: AppearanceState.icon-font;
+            font-size: 14px;
+            color: root.enabled ? Tokens.text : Tokens.text-3;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: root.text;
+            font-size: Tokens.body;
+            color: root.enabled ? Tokens.text : Tokens.text-3;
+            vertical-alignment: center;
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.activated(); }
+    }
+}
+
+component PresetTile inherits Rectangle {
+    in property <PresetCard> card;
+    in property <length> thumb-height;
+    in property <bool> enabled: true;
+    in property <bool> focused;      // the gallery has keyboard focus and this is its current card
+    callback apply;
+    callback export;
+
+    border-radius: Tokens.radius-card;
+    border-width: root.card.active || root.focused ? 2px : 1px;
+    border-color: root.focused ? Tokens.focus-ring
+        : root.card.active ? Tokens.accent
+        : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
+    background: Tokens.layer-2;
+    opacity: root.enabled ? 1 : 0.6;
+    accessible-role: button;
+    accessible-label: root.card.name + (root.card.active ? ", active" : "");
+    accessible-description: root.card.tags + ". " + root.card.about;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled && !root.card.active) { root.apply(); } }
+    animate border-color { duration: Tokens.fast; }
+
+    // A click anywhere but the "…" button applies the preset.
+    ta := TouchArea {
+        enabled: root.enabled && !root.card.active;
+        mouse-cursor: self.enabled ? pointer : default;
+        clicked => { root.apply(); }
+    }
+
+    // The thumbnail: the wallpaper with the mini menu over it.
+    Rectangle {
+        x: 5px;
+        y: 5px;
+        width: parent.width - 10px;
+        height: root.thumb-height;
+        border-radius: Tokens.radius-card - 3px;
+        clip: true;
+        Image {
+            width: 100%;
+            height: 100%;
+            source: AppearanceState.wallpaper;
+            image-fit: cover;
+        }
+        MiniMenu {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            t: root.card.t;
+            icon-font: AppearanceState.icon-font;
+            blurred: AppearanceState.wallpaper-blurred;
+        }
+    }
+
+    HorizontalLayout {
+        y: root.thumb-height + 5px;
+        height: parent.height - self.y;
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s1;
+        padding-top: Tokens.s2;
+        padding-bottom: Tokens.s2;
+        spacing: Tokens.s2;
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                Text {
+                    text: root.card.name;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    overflow: elide;
+                    vertical-alignment: center;
+                }
+                if root.card.active: Rectangle {
+                    width: badge.preferred-width + 2 * Tokens.s2;
+                    height: 18px;
+                    y: (parent.height - self.height) / 2;
+                    border-radius: Tokens.radius-control;
+                    background: Tokens.accent-soft;
+                    badge := Text {
+                        text: "Active";
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: Tokens.accent;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle { horizontal-stretch: 1; }
+            }
+            Text {
+                text: root.card.tags;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                overflow: elide;
+            }
+        }
+
+        more := Rectangle {
+            width: 28px;
+            height: 28px;
+            y: (parent.height - self.height) / 2;
+            border-radius: Tokens.radius-control;
+            background: more-ta.pressed ? Tokens.pressed : more-ta.has-hover ? Tokens.hover : transparent;
+            accessible-role: button;
+            accessible-label: "More for " + root.card.name;
+            accessible-action-default => { popup.show(); }
+            Text {
+                text: "\u{E712}";
+                font-family: AppearanceState.icon-font;
+                font-size: 14px;
+                color: Tokens.text-2;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            more-ta := TouchArea {
+                mouse-cursor: pointer;
+                clicked => { popup.show(); }
+            }
+        }
+    }
+
+    popup := PopupWindow {
+        x: root.width - 260px - Tokens.s1;
+        y: root.height - Tokens.s1;
+        width: 260px;
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Tokens.layer;
+            border-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Tokens.stroke-strong;
+            drop-shadow-blur: 16px;
+            drop-shadow-offset-y: 4px;
+            drop-shadow-color: #00000050;
+            VerticalLayout {
+                padding: Tokens.s1;
+                spacing: 2px;
+                VerticalLayout {
+                    padding: Tokens.s2;
+                    spacing: Tokens.s1;
+                    Text {
+                        text: root.card.about;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-2;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: "From " + root.card.source;
+                        font-size: 11px;
+                        color: Tokens.text-3;
+                        wrap: word-wrap;
+                    }
+                }
+                Rectangle {
+                    height: 1px;
+                    background: Tokens.stroke;
+                }
+                MenuRow {
+                    glyph: "\u{E73E}";
+                    text: root.card.active ? "Applied" : "Apply";
+                    enabled: root.enabled && !root.card.active;
+                    activated => {
+                        popup.close();
+                        root.apply();
+                    }
+                }
+                MenuRow {
+                    glyph: "\u{E8C8}";
+                    text: "Export to clipboard";
+                    activated => {
+                        popup.close();
+                        root.export();
+                    }
+                }
+            }
+        }
+    }
+}
+
+// The section: a header with "Export current look", the cards (about six until
+// "Show all"), and the keyboard: Tab focuses the cards, the arrow keys move,
+// Enter or Space applies.
+export component PresetGallery inherits VerticalLayout {
+    in property <bool> show-header: true;
+    // Collapsed, the rows that hold this many cards show.
+    in property <int> collapsed-count: 6;
+    property <bool> open;
+
+    property <int> count: PresetsState.presets.length;
+    property <length> gap: Tokens.s3;
+    property <int> columns: grid.width >= 820px ? 4 : grid.width >= 500px ? 3 : 2;
+    property <length> tile-width: (grid.width - (root.columns - 1) * root.gap) / root.columns;
+    property <length> thumb-height: clamp(root.tile-width * 0.5, 84px, 132px);
+    property <length> tile-height: root.thumb-height + 5px + 54px;
+    property <int> all-rows: Math.ceil(root.count / root.columns);
+    property <int> collapsed-rows: Math.ceil(root.collapsed-count / root.columns);
+    // Collapsed, the rows down to the active card still show.
+    property <int> closed-rows: min(root.all-rows, max(root.collapsed-rows, PresetsState.active < 0 ? 0 : Math.floor(PresetsState.active / root.columns) + 1));
+    property <int> rows: root.open ? root.all-rows : root.closed-rows;
+    property <int> cursor: PresetsState.active >= 0 ? PresetsState.active : 0;
+
+    // The keyboard's card; the hidden rows open when it gets there.
+    function move(to: int) {
+        root.cursor = clamp(to, 0, root.count - 1);
+        if (Math.floor(root.cursor / root.columns) >= root.rows) {
+            root.open = true;
+        }
+    }
+
+    spacing: Tokens.s3;
+
+    if root.show-header: VerticalLayout {
+        spacing: 2px;
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            Text {
+                horizontal-stretch: 1;
+                text: "Themes";
+                font-size: Tokens.body-large;
+                font-weight: 600;
+                color: Tokens.text;
+                vertical-alignment: center;
+            }
+            Button {
+                text: "Export current look";
+                enabled: PresetsState.ready;
+                clicked => { PresetsState.export-current(); }
+            }
+        }
+        Text {
+            text: "The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it.";
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+        }
+    }
+
+    grid := FocusScope {
+        height: root.rows * root.tile-height + max(0, root.rows - 1) * root.gap;
+        enabled: PresetsState.ready;
+        accessible-role: groupbox;
+        accessible-label: "Themes";
+
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow) {
+                root.move(root.cursor - 1);
+                return accept;
+            }
+            if (event.text == Key.RightArrow) {
+                root.move(root.cursor + 1);
+                return accept;
+            }
+            if (event.text == Key.UpArrow) {
+                root.move(max(root.cursor - root.columns, Math.mod(root.cursor, root.columns)));
+                return accept;
+            }
+            if (event.text == Key.DownArrow) {
+                if (root.cursor + root.columns < root.count) {
+                    root.move(root.cursor + root.columns);
+                }
+                return accept;
+            }
+            if (event.text == Key.Home || event.text == Key.End) {
+                root.move(event.text == Key.Home ? 0 : root.count - 1);
+                return accept;
+            }
+            if (event.text == " " || event.text == Key.Return) {
+                if (root.cursor >= 0 && root.cursor < root.count && !PresetsState.presets[root.cursor].active) {
+                    PresetsState.request-apply(root.cursor);
+                }
+                return accept;
+            }
+            return reject;
+        }
+
+        for card[i] in PresetsState.presets: PresetTile {
+            x: Math.mod(i, root.columns) * (root.tile-width + root.gap);
+            y: Math.floor(i / root.columns) * (root.tile-height + root.gap);
+            width: root.tile-width;
+            height: root.tile-height;
+            visible: Math.floor(i / root.columns) < root.rows;
+            card: card;
+            thumb-height: root.thumb-height;
+            enabled: PresetsState.ready;
+            focused: grid.has-focus && root.cursor == i;
+            apply => {
+                root.cursor = i;
+                PresetsState.request-apply(i);
+            }
+            export => { PresetsState.export-preset(i); }
+        }
+    }
+
+    // Always there (an `if` would tie the layout to the width), empty when every card shows.
+    HorizontalLayout {
+        alignment: start;
+        Link {
+            property <bool> needed: root.closed-rows < root.all-rows;
+            visible: self.needed;
+            height: self.needed ? Tokens.caption + 6px : 0px;
+            text: root.open ? "Show fewer" : "Show all " + root.count + " themes";
+            font-size: Tokens.caption + 1px;
+            activated => { root.open = !root.open; }
+        }
+    }
+}
+
+// The confirmation before a preset replaces theme settings changed in this app.
+export component PresetConfirm inherits ConfirmDialog {
+    property <int> index: PresetsState.confirm;
+    property <int> n: PresetsState.replaced;
+
+    title: "Apply " + (root.index >= 0 && root.index < PresetsState.presets.length ? PresetsState.presets[root.index].name : "this theme") + "?";
+    text: "It replaces " + (root.n == 1 ? "the theme setting" : "the " + root.n + " theme settings")
+        + " changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save.";
+    kind: "warning";
+    confirm-label: "Apply";
+    confirmed => {
+        PresetsState.confirm = -1;
+        PresetsState.apply(root.index);
+    }
+    cancelled => { PresetsState.confirm = -1; }
+}

@@ -55,21 +55,6 @@ std::optional<uint32_t> accentColor()
     return abgrToRgb(*v);
 }
 
-std::optional<uint32_t> accentFor(bool dark)
-{
-    BYTE palette[32]{};
-    DWORD size = sizeof palette;
-    if (RegGetValueW(HKEY_CURRENT_USER,
-                     L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
-                     L"AccentPalette", RRF_RT_REG_BINARY, nullptr, palette, &size) == ERROR_SUCCESS &&
-        size >= 32) {
-        // Eight RGBA entries: light3, light2, light1, base, dark1, dark2, dark3, extra.
-        const BYTE *c = palette + (dark ? 1 : 4) * 4;
-        return (uint32_t(c[0]) << 16) | (uint32_t(c[1]) << 8) | c[2];
-    }
-    return accentColor();
-}
-
 std::vector<std::wstring> registeredDllPaths()
 {
     std::vector<std::wstring> out;

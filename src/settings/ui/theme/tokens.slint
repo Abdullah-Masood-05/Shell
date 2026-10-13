@@ -1,35 +1,46 @@
-// Design tokens (docs/settings-app/DESIGN.md, "Look"). `dark` and the two accents are set
-// from C++ (app theme preference, AppsUseLightTheme, the Windows accent palette).
+// Design tokens (docs/settings-app/DESIGN.md, "Look"). `dark` is set from C++ (the app
+// theme preference and AppsUseLightTheme).
+//
+// Dark is a blue-tinted palette built on #101823, the content background; light is its
+// counterpart with a soft blue tint. The accent is the app's own blue, not the Windows
+// accent (the menu preview still uses the Windows accent, as Shell does).
+// Text contrast (WCAG): text >= 12:1, text-2 >= 5.9:1, text-3 >= 4.7:1 on every surface;
+// white on accent-fill >= 4.5:1.
 
 export global Tokens {
     in-out property <bool> dark: true;
-    in-out property <color> accent-on-dark: #60CDFF;
-    in-out property <color> accent-on-light: #005FB8;
 
-    // Surfaces
-    out property <color> bg: dark ? #202020 : #F3F3F3;
-    out property <color> content: dark ? #272727 : #F9F9F9;
-    out property <color> layer: dark ? #2B2B2B : #FFFFFF;
-    out property <color> layer-2: dark ? #323232 : #F9F9F9;
-    out property <color> stroke: dark ? #FFFFFF14 : #0000000F;
-    out property <color> stroke-strong: dark ? #FFFFFF24 : #00000024;
-    out property <color> scrim: dark ? #0000009A : #0000004D;
+    // Surfaces, back to front
+    out property <color> sidebar: dark ? #0C121B : #EAEFF7;
+    out property <color> bg: dark ? #101823 : #F3F6FB;          // the window and the content area
+    out property <color> content: bg;
+    out property <color> layer: dark ? #152031 : #FFFFFF;       // cards
+    out property <color> layer-2: dark ? #1A2638 : #F5F8FC;     // fields, tiles and wells inside cards
+    out property <color> layer-3: dark ? #1F2D42 : #EBF0F7;     // hovered tiles
+    out property <color> stroke: dark ? #FFFFFF14 : #0F172A14;
+    out property <color> stroke-strong: dark ? #FFFFFF26 : #0F172A29;
+    out property <color> scrim: dark ? #050A12A6 : #0F172A59;
+    out property <color> shadow: dark ? #00000066 : #0F172A26;
 
     // Text
-    out property <color> text: dark ? #FFFFFF : #1A1A1A;
-    out property <color> text-2: dark ? #FFFFFFC8 : #5D5D5D;
-    out property <color> text-3: dark ? #FFFFFF8B : #8A8A8A;
+    out property <color> text: dark ? #E5E7EB : #0F172A;
+    out property <color> text-2: dark ? #94A3B8 : #475569;
+    out property <color> text-3: dark ? #8391A6 : #5B6B82;
 
-    // Accent
-    out property <color> accent: dark ? accent-on-dark : accent-on-light;
-    out property <color> on-accent: dark ? #000000 : #FFFFFF;
-    out property <color> accent-soft: accent.with-alpha(dark ? 0.16 : 0.12);
+    // Accent: lines, icons and links use `accent`; filled controls `accent-fill` with `on-accent` text.
+    out property <color> accent: dark ? #4F8CFF : #2563EB;
+    out property <color> accent-fill: dark ? #2F6FEB : #2563EB;
+    out property <color> accent-fill-hover: dark ? #3573EC : #1D4ED8;
+    out property <color> accent-fill-pressed: dark ? #2A63D6 : #1E40AF;
+    out property <color> on-accent: #FFFFFF;
+    out property <color> accent-soft: accent.with-alpha(dark ? 0.16 : 0.10);   // selected nav item, chips
+    out property <color> accent-border: accent.with-alpha(dark ? 0.55 : 0.45);
 
     // Interaction overlays
-    out property <color> hover: dark ? #FFFFFF0F : #00000009;
-    out property <color> pressed: dark ? #FFFFFF0A : #00000006;
-    out property <color> selected: dark ? #FFFFFF14 : #0000000F;
-    out property <color> focus-ring: dark ? #FFFFFF : #000000E4;
+    out property <color> hover: dark ? #FFFFFF0B : #0F172A0A;
+    out property <color> pressed: dark ? #FFFFFF07 : #0F172A06;
+    out property <color> selected: dark ? #FFFFFF12 : #0F172A0F;
+    out property <color> focus-ring: dark ? #E5E7EB : #0F172AE4;
 
     // Status
     out property <color> success: dark ? #6CCB5F : #0F7B0F;
@@ -38,7 +49,7 @@ export global Tokens {
     out property <color> success-bg: dark ? #393D1B : #DFF6DD;
     out property <color> warning-bg: dark ? #433519 : #FFF4CE;
     out property <color> danger-bg: dark ? #442726 : #FDE7E9;
-    out property <color> info-bg: dark ? #2C3A44 : #E5F1FB;
+    out property <color> info-bg: dark ? #1A2C4A : #E5EEFD;
 
     // 4 px grid
     out property <length> s1: 4px;
@@ -50,12 +61,15 @@ export global Tokens {
     out property <length> s8: 32px;
     out property <length> s10: 40px;
 
-    out property <length> radius-control: 4px;
-    out property <length> radius-card: 8px;
+    // Radius by size: chips and small tiles, controls, cards
+    out property <length> radius-small: 4px;
+    out property <length> radius-control: 6px;
+    out property <length> radius-card: 10px;
 
     // Type ramp (Segoe UI Variable)
     out property <length> caption: 12px;
     out property <length> body: 14px;
+    out property <length> heading: 16px;      // card titles
     out property <length> body-large: 18px;
     out property <length> subtitle: 20px;
     out property <length> title: 28px;

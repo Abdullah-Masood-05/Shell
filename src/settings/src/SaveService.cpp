@@ -121,8 +121,11 @@ LRESULT CALLBACK SaveService::keyProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp,
 void SaveService::saveFromKeyboard()
 {
     // The Config Editor has its own files and its own Save; route Ctrl+S there.
-    if (ui_->global<AppState>().get_page() == ui_->global<Pages>().get_editor())
+    const int page = ui_->global<AppState>().get_page();
+    if (page == ui_->global<Pages>().get_editor())
         ui_->global<EditorState>().invoke_save();
+    else if (page == ui_->global<Pages>().get_openwith())
+        ui_->global<OpenWithState>().invoke_save(); // its own file, like the Config Editor
     else
         save();
 }
@@ -236,6 +239,14 @@ void SaveService::reset(std::string_view key, std::string_view page)
 void SaveService::forget(std::string_view key)
 {
     pending_.forget(key);
+    notifyChanged();
+}
+
+void SaveService::edit(const std::function<void(PendingChanges &)> &fn)
+{
+    if (saving_)
+        return;
+    fn(pending_);
     notifyChanged();
 }
 

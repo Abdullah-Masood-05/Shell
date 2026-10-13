@@ -18,11 +18,17 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 ## Pages
 - **Home:** health card (registration none/user/machine/both, TreatAs state ours/foreign/absent, DLL path, versions). Active config card (path and where it comes from, "use per-user config"). Diagnostics from the end of `shell.log`, linked to the editor. Quick actions.
 - **Onboarding** (first run): 1) `-config:init` 2) `-register -user` 3) pick a look, then restart Explorer.
-- **Appearance:** theme cards; dark mode auto/on/off; density; background (color, hex, eyedropper, opacity, effect plus tint); font, size, weight; radius as a 5-step control; border; shadow; an Advanced expander. Live preview with Desktop/Explorer and Light/Dark toggles. Overridden keys show a "reset" dot.
+- **Appearance:** a Themes gallery on top (the original project's example themes from `src/settings/presets/themes`, one card each: the wallpaper with a mini menu in that theme, name, tags, an Active badge, and a "…" menu with Apply and Export to clipboard; Apply stages the keys as pending changes, asking first when it replaces theme settings changed in the app); the base theme (the five built-in theme cards); then the theme in use (thumbnail of the current look, name, "In use" / "Not saved yet") with four tabs:
+  - **Colors:** a palette of six real keys: Background `theme.background.color`, Text `theme.item.text.normal`, Highlight `theme.item.back.select`, Highlighted text `theme.item.text.select`, Disabled text `theme.item.text.normal.disabled`, Border `theme.border.color`. A swatch opens the colour picker; the row under the palette has the hex box, origin and reset. Dark mode auto/on/off.
+  - **Typography:** font, size, weight, density (`theme.view`).
+  - **Effects:** effect plus tint, opacity, menu and item corners (5 steps), border size, shadow.
+  - **Advanced:** item padding and margin, image size and gap, disabled-item highlight, separators.
+  - Live preview with Desktop/Explorer and Light/Dark toggles, and a link to the Config Editor for keys the page doesn't have. Overridden keys show a "reset" dot. No highlight-style or accent-intensity controls: the core has no such keys.
 - **Behavior:** the `settings{}` block (priority, showdelay, tip, screenshot, modify.*, new.*).
 - **Rules & Filters:** an `exclude.*` builder plus a raw expression box.
 - **Context Menus:** import-module toggles and a list of `modify(find=...)` rules (hide, move, rename).
 - **Menu Builder:** a tree of menu/item/separator in an app-owned file, with drag to reorder.
+- **Open with:** editors and terminals detected read-only (fixed folders, Toolbox scripts, PATH) plus custom apps, written to the app-owned `imports/settings-app-openwith.nss` as a submenu or top-level items; a menu preview and a dry-run Test that only shows the command line.
 - **Config Editor:** import-graph file tree, editor, diagnostics.
 - **Backups:** timeline, diff, restore, pin.
 - **Preferences:** app theme, the Live apply option, external editor, how many backups to keep, and machine-wide registration (the only button with a UAC shield).
@@ -45,6 +51,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 `PreviewTheme` is computed by `ThemeModel::resolve()` from a copy of the defaults table in `Theme::Default()`, the accent color in `HKCU\...\DWM\AccentColor`, and `AppsUseLightTheme`.
 - **Items:** Slint Rectangles and Text using the Segoe Fluent Icons system font, with the codepoints from images.nss.
 - **Background:** the real wallpaper (`SPI_GETDESKWALLPAPER`), shrunk and blurred for the blur effect, with tint and noise added for acrylic.
+- **Gradient:** `theme.background.gradient` is sampled at its start, middle and end and drawn as a linear (or centred radial) gradient over the background.
 - **Caption:** "Approximate; right-click the desktop to see the real menu".
 
 ## Architecture (`src/settings/src`)
@@ -60,10 +67,13 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 
 ## Look
 - **Style and color tokens:** `SLINT_STYLE=fluent`, with `Palette.color-scheme` switched at runtime.
-  - **Dark:** bg #202020, layers #2B2B2B/#323232, stroke #FFFFFF14, text #FFF / #FFFFFFC8 / #FFFFFF8B, accent = system accent (#60CDFF).
-  - **Light:** #F3F3F3 / #FFF / #F9F9F9, text #1A1A1A / #5D5D5D, accent #005FB8.
-  - Spacing on a 4 px grid; radius 4 for controls, 8 for cards.
-- **Type:** Segoe UI Variable (14 body, 20 subtitle, 28 page title, 12 caption). Cascadia Mono in the editor.
+  - **Dark** (2026-10-14, blue, built on the user's #101823): sidebar #0C121B, content #101823, cards #152031, fields #1A2638, hovered tiles #1F2D42, stroke #FFFFFF14 / #FFFFFF26, text #E5E7EB / #94A3B8 / #8391A6.
+  - **Light:** sidebar #EAEFF7, content #F3F6FB, cards #FFFFFF, fields #F5F8FC, stroke #0F172A14, text #0F172A / #475569 / #5B6B82.
+  - **Accent:** the app's own blue, not the Windows accent: #4F8CFF (dark) / #2563EB (light) for icons, lines and links; filled controls #2F6FEB / #2563EB with white text (>= 4.5:1). The selected sidebar item is filled with the accent at 16% (10% in light). Semantic colours unchanged. Body text is >= 4.7:1 on every surface in both themes.
+  - Std widgets that would take the Windows accent are replaced: `AppButton`, `ValueSlider`, `ToggleSwitch` (Toggle), `Segmented`, `ChipGroup`.
+  - Spacing on a 4 px grid; radius 4 (chips), 6 (controls), 10 (cards).
+- **Type:** Segoe UI Variable (14 body, 16 card title, 20 subtitle, 28 page title, 12 caption). Cascadia Mono in the editor.
+- **Cards:** an optional header row (icon, 16 px title, description, an action button on the right). Choice groups are one recessed well with the selection filled with the accent. Motion 120-200 ms, ease-out.
 - **Icons:** Fluent UI System Icons SVGs (MIT) for the app chrome. Segoe Fluent Icons as a system font for the preview only, since it can't be redistributed. Use the original Nilesoft Shell logo (`src/shared/Resource/main.ico`, `packages/assets/logo-*.png`).
 - **Window:** keep the native title bar. Mica plus the immersive dark title bar through DWM. Whether Mica can show through a transparent Slint window is uncertain and needs a spike in M1; the fallback is a solid background.
 

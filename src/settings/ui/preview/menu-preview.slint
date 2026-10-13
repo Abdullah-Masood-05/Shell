@@ -74,6 +74,12 @@ export component MenuSurface inherits Rectangle {
         Rectangle {
             background: t.background;
         }
+        // theme.background.gradient, sampled at three points (src/ThemeModel.cpp).
+        if t.gradient: Rectangle {
+            background: t.gradient-radial
+                ? @radial-gradient(circle, t.gradient-0 0%, t.gradient-1 50%, t.gradient-2 100%)
+                : @linear-gradient(t.gradient-angle, t.gradient-0 0%, t.gradient-1 50%, t.gradient-2 100%);
+        }
 
         for it[i] in root.menu.items: Rectangle {
             x: t.pad-left;
@@ -186,6 +192,11 @@ export component MiniMenu inherits Rectangle {
         }
         Rectangle {
             background: t.background;
+        }
+        if t.gradient: Rectangle {
+            background: t.gradient-radial
+                ? @radial-gradient(circle, t.gradient-0 0%, t.gradient-1 50%, t.gradient-2 100%)
+                : @linear-gradient(t.gradient-angle, t.gradient-0 0%, t.gradient-1 50%, t.gradient-2 100%);
         }
         for label[i] in root.labels: Rectangle {
             x: 4px;

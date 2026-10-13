@@ -1,11 +1,18 @@
 import { Tokens } from "../theme/tokens.slint";
+import { AppButton } from "controls.slint";
 
-// A layer-1 surface with an optional heading. Children are stacked vertically.
+// A card: a raised surface with an optional header row (icon, title, description and
+// an action button on the right). Children are stacked vertically under it.
 export component Card inherits Rectangle {
     in property <string> heading;
     in property <string> description;
+    in property <image> icon;
+    in property <string> action-label;
+    in property <image> action-icon;
+    in property <bool> action-enabled: true;
     in property <length> inner-padding: Tokens.s5;
     in property <length> inner-spacing: Tokens.s3;
+    callback action();
 
     background: Tokens.layer;
     border-radius: Tokens.radius-card;
@@ -17,19 +24,46 @@ export component Card inherits Rectangle {
         padding: root.inner-padding;
         spacing: root.inner-spacing;
 
-        if root.heading != "": VerticalLayout {
-            spacing: 2px;
-            Text {
-                text: root.heading;
-                font-size: Tokens.body;
-                font-weight: 600;
-                color: Tokens.text;
+        if root.heading != "": HorizontalLayout {
+            spacing: Tokens.s3;
+            padding-bottom: 2px;
+            if root.icon.width > 0: VerticalLayout {
+                alignment: start;
+                padding-top: 1px;
+                Image {
+                    source: root.icon;
+                    width: 20px;
+                    height: 20px;
+                    colorize: Tokens.text-2;
+                }
             }
-            if root.description != "": Text {
-                text: root.description;
-                font-size: Tokens.caption;
-                color: Tokens.text-2;
-                wrap: word-wrap;
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 2px;
+                Text {
+                    text: root.heading;
+                    font-size: Tokens.heading;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    accessible-role: text;
+                }
+                if root.description != "": Text {
+                    text: root.description;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                }
+            }
+            if root.action-label != "": VerticalLayout {
+                alignment: start;
+                AppButton {
+                    text: root.action-label;
+                    icon: root.action-icon;
+                    colorize-icon: true;
+                    enabled: root.action-enabled;
+                    clicked => { root.action(); }
+                }
             }
         }
         @children
@@ -64,7 +98,7 @@ export component KeyValue inherits HorizontalLayout {
 
 // Section title between cards.
 export component SectionTitle inherits Text {
-    font-size: Tokens.body;
+    font-size: Tokens.heading;
     font-weight: 600;
     color: Tokens.text;
 }

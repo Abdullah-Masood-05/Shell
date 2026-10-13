@@ -47,6 +47,25 @@
 <p>Theme, dark mode, density, background colour, opacity and effect, font, corner radius, border and shadow, with a live
 	preview of the menu on your wallpaper in light and dark, for the desktop or File Explorer. Each value shows which file
 	and line set it; values written as expressions are shown read-only with a link to the Config Editor.</p>
+<p id="themes">At the top, <strong>Themes</strong> has the example themes of the original Nilesoft Shell project as cards,
+	each a small menu drawn in that theme over your wallpaper. Click a card (or <strong>Apply</strong> in its
+	<strong>&hellip;</strong> menu) to stage its <code>theme</code> keys as pending changes: the preview updates at once,
+	and <kbd>Save</kbd>, <kbd>Discard</kbd> and <kbd>Ctrl</kbd>+<kbd>S</kbd> work as for any other change. A theme
+	replaces the theme settings changed in the app, so if you have some, the app asks first; your own files are not
+	touched. The card in use is marked <strong>Active</strong>. <strong>Export to clipboard</strong> copies a theme's
+	<code>theme{}</code> block with its credit, and <strong>Export current look</strong> copies the theme settings in
+	effect, ready to paste into a <code>.nss</code> file.</p>
+<table class="table">
+	<tr><td class="w-25">Default</td><td>The look Shell ships with, <code>imports/theme.nss</code>.</td></tr>
+	<tr><td>Shell 1.8</td><td>The theme of the 1.8 <code>shell.nss</code> (<a href="https://github.com/moudey/Shell/commit/26b7dfd">26b7dfd</a>): modern, opaque.</td></tr>
+	<tr><td>Acrylic, Gradient</td><td>The two README screenshots, as the maintainer posted them in
+		<a href="https://github.com/moudey/Shell/discussions/174">discussion #174</a>.</td></tr>
+	<tr><td>Clear acrylic</td><td>Acrylic without a background colour, from <a href="https://github.com/moudey/Shell/issues/348">issue #348</a>.</td></tr>
+	<tr><td>Accent outline</td><td>An accent border and accent icons, from <a href="https://github.com/moudey/Shell/issues/162">issue #162</a>.</td></tr>
+	<tr><td>Flat</td><td>No border, no shadow, square highlights, from <a href="https://github.com/moudey/Shell/issues/79">issue #79</a>.</td></tr>
+	<tr><td>Blue, Gray, Green, Yellow</td><td>The Shell 1.x colour templates in <a href="https://github.com/moudey/Shell/tree/main/templates/themes">templates/themes</a>,
+		ported value for value to today's <code>theme</code> keys.</td></tr>
+</table>
 
 <h5 id="behavior">Behavior</h5>
 <ul>
@@ -81,6 +100,36 @@
 	arguments, where the item appears, and options such as running as administrator. The result is written to
 	<code>imports\settings-app-menus.nss</code>, shown as code next to the tree, and read back when you open the page
 	again.</p>
+
+<h5 id="open-with">Open with</h5>
+<p>Adds "Open with" items for your editors and terminals, so a file or folder opens in Zed, Cursor or PyCharm as easily as
+	in VS Code. The page lists the apps it knows and looks for each one on this PC (read-only: the usual install folders,
+	JetBrains Toolbox scripts and <code>PATH</code>):</p>
+<ul>
+	<li>VS Code, VS Code Insiders, Zed, Cursor, Windsurf, Sublime Text, Notepad++, IntelliJ IDEA, PyCharm, WebStorm, Rider,
+		CLion, Visual Studio, Neovim (in a Windows Terminal tab), Windows Terminal, PowerShell 7, Git Bash and Notepad.</li>
+	<li>An app that wasn't found is greyed out with <kbd>Locate…</kbd> to point at its program yourself.</li>
+	<li><kbd>Add app</kbd> adds any other program: a name, the program, an icon (its own by default), arguments, and whether it
+		shows for everything, files only, folders only, or files with some extensions. Apps can be reordered, switched off,
+		or set to run as administrator.</li>
+	<li>Arguments use placeholders: <code>{path}</code> the selected item, quoted (<code>@sel.path.quote</code>);
+		<code>{paths}</code> every selected item (<code>@sel(true)</code>); <code>{dir}</code> its folder, or the folder
+		itself (<code>"@sel.dir"</code>); <code>{name}</code> its name. <kbd>Test</kbd> shows the exact command line for a
+		sample file and folder. It never starts the program.</li>
+	<li>The items go in a submenu (titled <i>Open in</i> by default, so it isn't confused with Windows' own <i>Open
+		with</i>) or at the top level as <i>Open with &lt;name&gt;</i>, on files, folders, the folder background and the
+		desktop as you choose. A preview shows the resulting menu.</li>
+	<li>Each item has the program's icon and a <a href="/docs/configuration/properties#where">where</a>
+		<code>path.exists(...)</code> condition, so it disappears when the program is uninstalled.</li>
+</ul>
+<p>The first time, the editors found on this PC are switched on; terminals and Notepad are off, because the Terminal and
+	Develop menus have them already. The Develop menu's own <i>Editors</i> submenu (VS Code and Notepad) is left as it is by
+	default: it only shows while <kbd>Shift</kbd> is held, so it doesn't crowd the everyday menu. If you'd rather have one
+	place, the page can hide it (the lines in <code>develop.nss</code> are commented out, not deleted).</p>
+<p>Saving writes <code>imports\settings-app-openwith.nss</code> (generated; edit it on this page rather than by hand) and
+	imports it at the end of <code>shell.nss</code> once. As on the other pages, it is checked with
+	<code>shell -config:check</code> first, a snapshot named <i>Open with: …</i> is taken, and <kbd>Ctrl</kbd>+<kbd>S</kbd>
+	saves.</p>
 
 <h5 id="config-editor">Config Editor</h5>
 <ul>
