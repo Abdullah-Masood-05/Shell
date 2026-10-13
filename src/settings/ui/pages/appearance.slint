@@ -12,6 +12,8 @@ import { FieldLabel, SettingRow, SettingBlock, RowDivider, ChipGroup, RadiusStep
 import { ThemePicker } from "../components/theme-picker.slint";
 import { PreviewPane } from "../preview/menu-preview.slint";
 import { AppearanceState, ThemeField, K } from "appearance-state.slint";
+import { PresetGallery, PresetConfirm } from "../components/preset-gallery.slint";
+import { PresetsState } from "presets-state.slint";
 
 export { AppearanceState, K }
 
@@ -109,6 +111,11 @@ export component AppearancePage inherits Rectangle {
                     padding-bottom: Tokens.s6;
                     spacing: Tokens.s4;
                     alignment: start;
+
+                    // Themes: the presets gallery (src/PresetsController.cpp)
+                    Card {
+                        PresetGallery { }
+                    }
 
                     // Theme
                     Card {
@@ -552,4 +559,6 @@ export component AppearancePage inherits Rectangle {
             }
         }
     }
+
+    if PresetsState.confirm >= 0: PresetConfirm { }
 }

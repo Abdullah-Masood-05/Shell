@@ -59,6 +59,9 @@ public:
     void reset(std::string_view key, std::string_view page);
     void forget(std::string_view key);
     void discard();
+    // Several changes at once (a theme preset): `fn` edits the pending set directly and
+    // the listeners run once afterwards. `fn` validates what it stages itself.
+    void edit(const std::function<void(PendingChanges &)> &fn);
 
     // Pending set changed (edits, discard, a save). UI thread.
     void onChanged(std::function<void()> fn) { changed_.push_back(std::move(fn)); }

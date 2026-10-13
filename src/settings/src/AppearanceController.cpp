@@ -274,7 +274,8 @@ const std::vector<AppearanceController::FieldDef> &AppearanceController::fieldDe
 }
 
 AppearanceController::AppearanceController(slint::ComponentHandle<AppWindow> ui, SaveService &save)
-    : ui_(std::move(ui)), save_(save), fields_(std::make_shared<slint::VectorModel<ThemeField>>())
+    : ui_(std::move(ui)), save_(save), fields_(std::make_shared<slint::VectorModel<ThemeField>>()),
+      presets_(ui_, save, [](const theme::Resolved &r) { return toPreview(r); })
 {
     previewDark_ = !registry::appsUseLightTheme();
     system_ = systemInfo(previewDark_);
@@ -611,6 +612,8 @@ void AppearanceController::rebuild()
         cards->push_back(toPreview(theme::resolve(v, system_)));
     }
     st.set_card_themes(cards);
+
+    presets_.rebuild(values, system_);
 }
 
 void AppearanceController::applyDevArgs()
