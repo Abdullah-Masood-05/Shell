@@ -176,6 +176,7 @@ namespace Nilesoft
 		constexpr auto IDENT_IS_SIDE = 0xA99BBC45U;
 		constexpr auto IDENT_IS_EDIT = 0xA993FA66U;
 		constexpr auto IDENT_IS_START = 0xDD19426EU;
+		constexpr auto IDENT_IS_WINX = 0xA99DEF26U;
 		constexpr auto IDENT_IS_TITLEBAR = 0x60467157U;
 		constexpr auto IDENT_IS_ICONTEXTMENU = 0xA5329703U;
 		constexpr auto IDENT_IS_CONTEXTMENUHANDLER = 0x49FA7698U;
@@ -389,6 +390,9 @@ namespace Nilesoft
 		constexpr auto IDENT_SHOWDELAY = 0xBE22D115U;
 		constexpr auto IDENT_SCREENSHOT = 0x9A37F083U;
 		constexpr auto IDENT_PRIORITY = 0x1CF615A7U;
+		// settings.winx { replace, debug }
+		constexpr auto IDENT_WINX = 0x7CA01DEBU;
+		constexpr auto IDENT_DEBUG = 0x0F49A52CU;
 
 		constexpr auto IDENT_BORDER = 0xF4916C63U;
 		constexpr auto IDENT_TIP = 0x0B88AE52U;
@@ -737,6 +741,7 @@ namespace Nilesoft
 		constexpr auto IDENT_TYPE_RECYCLEBIN = 0xA6013D65U;
 		constexpr auto IDENT_TYPE_TASKBAR = 0xCFC4E62DU;
 		constexpr auto IDENT_TYPE_START = 0x106149D3U;
+		constexpr auto IDENT_TYPE_WINX = 0x7CA01DEBU; // alias of start
 		constexpr auto IDENT_TYPE_EDIT = 0x7C96292BU;
 		constexpr auto IDENT_TYPE_TITLEBAR = 0x329C7A9CU;
 		//

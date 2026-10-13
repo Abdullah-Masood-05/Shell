@@ -1763,6 +1763,7 @@ namespace Nilesoft
 						case IDENT_IS_SIDE:
 						case IDENT_IS_EDIT:
 						case IDENT_IS_START:
+						case IDENT_IS_WINX:
 						case IDENT_IS_TITLEBAR:
 						case IDENT_IS_CONTEXTMENUHANDLER:
 						case IDENT_MODULE:

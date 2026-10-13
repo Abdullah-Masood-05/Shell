@@ -621,7 +621,13 @@ BOOL WINAPI NtUserTrackPopupMenu(HMENU hMenu, uint32_t uFlags, int x, int y, HWN
 					{
 						HWND hTaskbar = hWnd;
 						if(ctx->Selected.Window.id == WINDOW_START)
-							hTaskbar = ::WindowFromPoint({ x, y });
+						{
+							// Windows 11 owns the Win+X menu by the taskbar window
+							// itself; Windows 10 by LauncherTipWnd, so look there.
+							auto cls = Window::class_hash(hWnd);
+							if(cls != WindowClass::WC_Shell_TrayWnd && cls != WindowClass::WC_Shell_SecondaryTrayWnd)
+								hTaskbar = ::WindowFromPoint({ x, y });
+						}
 						else
 							hTaskbar = ::GetAncestor(hWnd, GA_ROOTOWNER);
 

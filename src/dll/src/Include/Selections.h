@@ -4,6 +4,8 @@ namespace Nilesoft
 {
 	namespace Shell
 	{
+		namespace WinX { enum class Source : uint8_t; } // Include/WinX.h
+
 		constexpr auto NS_COMPUTER = 0xD4FD60C2U;		//::{20D04FE0-3AEA-1069-A2D8-08002B30309D}
 		constexpr auto NS_RECYCLE = 0xC8989B8EU;		//::{645FF040-5081-101B-9F08-00AA002F954E}
 		constexpr auto NS_CONTROL = 0x0AC95438U;		//::{21EC2020-3AEA-1069-A2DD-08002B30309D}
@@ -110,6 +112,8 @@ namespace Nilesoft
 			uint32_t id = 0;
 			uint32_t parent = 0;
 			uint32_t front = 0;
+			// How a WINDOW_START (Win+X) popup was recognised: a WinX::Source.
+			uint8_t start_source = 0;
 			bool desktop{};
 			bool explorer{};
 			bool explorer_tree{};
@@ -238,6 +242,17 @@ namespace Nilesoft
 				bool		contextmenuhandler{};
 			}loader;
 
+			// Win+X recognition (see WinX.h): the native menu being tracked,
+			// set before QueryShellWindow, and what was found, for the log.
+			struct
+			{
+				HMENU menu{};
+				bool examined{};	// a taskbar or Start owned popup was looked at
+				uint16_t frames{};
+				uint16_t attributed{};
+				string callers;
+			} winx;
+
 			struct {
 				uint32_t FILE = 0;
 				uint32_t DIRECTORY = 0;
@@ -323,6 +338,8 @@ namespace Nilesoft
 			
 			void QuerySelectionMode();
 			bool QueryShellWindow();
+			// Whether a taskbar or Start owned popup is the Win+X menu.
+			WinX::Source QueryWinX(uint32_t class_hash);
 			bool QuerySelected();
 			bool Preparing();
 			bool Parse(IShellItem *shellItem);

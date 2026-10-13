@@ -1,4 +1,6 @@
 #include <pch.h>
+#include "Include/TaskbarOrigin.h"
+#include "Include/WinX.h"
 
 //Enable Narrow Classic Context Menu on Windows 10
 // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\FlightedFeatures\ImmersiveContextMenu:0
@@ -1193,6 +1195,38 @@ LauncherTipWnd // Win+X menu
 MultitaskingViewFrame // Multitask Button
 
 		*/
+		WinX::Source Selections::QueryWinX(uint32_t class_hash)
+		{
+			using WinX::Source;
+
+			if(WinX::is_launcher_class(class_hash))
+				return Source::OwnerClass;
+
+			// Shell's own taskbar menu (Windows 11) is not the Win+X menu.
+			if(in_taskbar())
+				return Source::None;
+
+			winx.examined = true;
+
+			if(WinX::owner_chain_has_launcher(Window.handle))
+				return Source::OwnerChain;
+
+			auto info = WinX::callers(Initializer::HInstance);
+			winx.frames = info.frames;
+			winx.attributed = info.attributed;
+			winx.callers = info.modules.move();
+
+			if(info.twinui)
+				return Source::Caller;
+
+			// Nothing on the stack could be attributed to a caller (a walk that
+			// stopped inside shell.dll or user32): judge by the menu instead.
+			if(info.attributed == 0 && WinX::has_shutdown_submenu(winx.menu))
+				return Source::Fallback;
+
+			return Source::None;
+		}
+
 		bool Selections::QueryShellWindow()
 		{
 			auto window = &Window.handle;
@@ -1294,7 +1328,13 @@ Edit >> ComboBox > #32770 > Notepad
 					if(from_taskbar or from_root_owner)
 					{
 						Window.id = WINDOW_TASKBAR;
-						if(cur_hash.equals({ WC_START, WC_LauncherTipWnd }))
+						Window.parent = WINDOW_TASKBAR;
+
+						// The Win+X menu (right-click Start). See WinX.h for why
+						// the window class alone is not enough on Windows 11.
+						auto source = QueryWinX(cur_hash);
+						Window.start_source = static_cast<uint8_t>(source);
+						if(source != WinX::Source::None)
 						{
 							Window.id = WINDOW_START;
 							Types[FSO_START] = 1;
@@ -1302,7 +1342,6 @@ Edit >> ComboBox > #32770 > Notepad
 						}
 						else if(from_root_owner)
 							Window.hash = root_owner_hash;
-						Window.parent = WINDOW_TASKBAR;
 						return true;
 					}
 

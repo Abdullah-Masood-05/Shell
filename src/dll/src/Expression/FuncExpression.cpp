@@ -1481,7 +1481,7 @@ namespace Nilesoft
 								_result = sel->Window.id == WINDOW_EDIT;
 								break;
 							case IDENT_IS_START:
-								//if(sel->Window.parent == WINDOW_TASKBAR)
+							case IDENT_IS_WINX: // the Win+X menu, also opened by right-clicking Start
 								_result = sel->Window.id == WINDOW_START;
 								break;
 							case IDENT_IS_TITLEBAR:

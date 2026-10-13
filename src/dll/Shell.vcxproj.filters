@@ -122,6 +122,9 @@
     <ClInclude Include="src\Include\Selections.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Include\WinX.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Include\Initializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

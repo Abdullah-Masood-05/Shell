@@ -200,6 +200,7 @@ namespace Nilesoft
 							fso.Types[FSO_COUNT]++;
 							break;
 						case IDENT_TYPE_START:
+						case IDENT_TYPE_WINX: // the Win+X menu, also opened by right-clicking Start
 							fso.Types[FSO_START] = ret;
 							fso.Types[FSO_COUNT]++;
 							break;
