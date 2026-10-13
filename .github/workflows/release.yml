@@ -1,7 +1,7 @@
 name: Release
 
 # Builds everything with build.yml and publishes a GitHub Release for a v* tag with the
-# MSIs, the portable zip and SHA256SUMS.txt. A tag with a "-" (v1.9.19-pro.1) is
+# MSIs, the portable zip and SHA256SUMS.txt. A tag with a "-" (v2.0.0-beta.1) is
 # published as a pre-release. Run it by hand for an existing tag with workflow_dispatch.
 
 on:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing tag to build and release, e.g. v1.9.19-pro.1
+        description: Existing tag to build and release, e.g. v2.0.0-beta.1
         required: true
         type: string
 
@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::'$TAG' is not a release tag like v1.9.19 or v1.9.19-pro.1"
+            echo "::error::'$TAG' is not a release tag like v2.0.0 or v2.0.0-beta.1"
             exit 1
           fi
           version="${TAG#v}"

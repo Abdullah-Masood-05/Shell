@@ -1,10 +1,10 @@
 #pragma once
 
-#define VERSION_MAJOR			1
-#define VERSION_MINOR			9
-#define VERSION_BUILD			19
+#define VERSION_MAJOR			2
+#define VERSION_MINOR			0
+#define VERSION_BUILD			0
 #define VERSION_REV				0
-#define VERSION_YEAR			2024
+#define VERSION_YEAR			2026
 
 #define IDI_LOGO				1100;
 #define IDI_IMAGES 				1101;
@@ -32,9 +32,9 @@ namespace Nilesoft
 //#define APP_FULLNAME_VERSION	APP_FULLNAME L" (debug)"
 #define APP_FILENAME_TITLE		L"shell"
 
-#define	APP_PRODUCT_VERSION		L"1.9"
-#define	APP_VERSION				L"1.9.19"
-//#define APP_VERSION_FULL		L"1.9 build 19"
+#define	APP_PRODUCT_VERSION		L"2.0"
+#define	APP_VERSION				L"2.0.0"
+//#define APP_VERSION_FULL		L"2.0 build 0"
 
 constexpr auto APP_EMAIL		= L"support@nilesoft.org";
 constexpr auto APP_WEBSITE		= L"www.nilesoft.org";

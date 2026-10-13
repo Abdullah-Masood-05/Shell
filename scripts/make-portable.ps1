@@ -18,7 +18,7 @@
 	Where to write the zip. Default: the same as BinDir.
 
 .PARAMETER Version
-	Version in the file name, e.g. 1.9.19 or 1.9.19-pro.1. Default: VERSION_MAJOR,
+	Version in the file name, e.g. 2.0.0 or 2.0.0-beta.1. Default: VERSION_MAJOR,
 	VERSION_MINOR and VERSION_BUILD from src\shared\Resource.h.
 
 .PARAMETER Arch
@@ -26,7 +26,7 @@
 
 .EXAMPLE
 	pwsh scripts\make-portable.ps1
-	pwsh scripts\make-portable.ps1 -Version 1.9.19-pro.1 -OutDir dist
+	pwsh scripts\make-portable.ps1 -Version 2.0.0-beta.1 -OutDir dist
 #>
 [CmdletBinding()]
 param(
