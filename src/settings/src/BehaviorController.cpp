@@ -95,7 +95,11 @@ void BehaviorController::bindCallbacks()
     auto valid = [](int i) { return i >= 0 && i < int(fieldDefs().size()); };
 
     st.on_set_bool([this, valid](int i, bool on) {
-        if (valid(i))
+        if (!valid(i))
+            return;
+        if (std::string_view(fieldDefs()[size_t(i)].key) == "settings.showdelay")
+            setShowDelay(i, on);
+        else
             apply(i, on ? "true" : "false");
     });
     st.on_set_number([this, valid](int i, float value) {
@@ -227,6 +231,29 @@ void BehaviorController::reset(int index)
         save_.forget(def.key);
 }
 
+// "Custom submenu delay" on/off. Off means the core leaves the Windows setting alone,
+// which `showdelay = auto` does too, so a delay set in the user's files (the shipped
+// shell.nss has 200) can be turned off here without editing them.
+void BehaviorController::setShowDelay(int index, bool on)
+{
+    const std::string key = fieldDefs()[size_t(index)].key;
+    auto o = save_.origins(key);
+    const bool fileHasDelay = o.file && Literal::parse(o.file->value).kind == LiteralKind::Number;
+    if (on) {
+        if (fileHasDelay) {
+            reset(index); // the files' delay applies again
+            return;
+        }
+        auto delay = ui_->global<SettingsState>().get_windows_showdelay();
+        apply(index, nss::formatNumber(std::clamp(delay, 0, 4000)));
+        return;
+    }
+    if (fileHasDelay)
+        apply(index, "auto");
+    else
+        reset(index);
+}
+
 void BehaviorController::pickFolder(int index)
 {
     IFileOpenDialog *dlg = nullptr;
@@ -328,7 +355,8 @@ void BehaviorController::rebuild()
             if (has && lit.kind == LiteralKind::Number)
                 v = lit.number;
             f.number = float(v);
-            f.index = has ? 1 : 0; // showdelay: 1 when the file or this app sets it
+            // showdelay: 1 when the files or this app set a delay; auto/default is off.
+            f.index = has && lit.kind == LiteralKind::Number ? 1 : 0;
             break;
         }
         case Kind::Seconds:
