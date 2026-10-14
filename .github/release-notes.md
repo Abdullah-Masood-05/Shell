@@ -2,6 +2,10 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
+## New in 2.0.4
+
+- Appearance and Behavior controls are never greyed out because a theme or settings file from an older version uses an expression for that value. Changing it in the app now simply overrides the file, and the row says so.
+
 ## New in 2.0.3
 
 - Banners (for example *Updated to 2.0.2*) grow with their text, so the second line is no longer cut off.
