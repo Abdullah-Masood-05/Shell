@@ -26,14 +26,15 @@ export component UpdateBanner inherits Rectangle {
     property <string> st: UpdateState.state;
     property <string> version: UpdateState.latest-version;
 
-    min-height: 48px;
+    // The wrapped text's height, not just the minimum, so the second line isn't clipped.
+    height: max(48px, content.preferred-height);
     border-radius: Tokens.radius-card;
     border-width: 1px;
     border-color: Tokens.accent-border;
     background: Tokens.info-bg;
     animate background { duration: Tokens.normal; }
 
-    HorizontalLayout {
+    content := HorizontalLayout {
         padding-left: Tokens.s4;
         padding-right: Tokens.s4;
         padding-top: Tokens.s3;
