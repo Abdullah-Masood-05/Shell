@@ -12,6 +12,7 @@ export struct OpenWithRow {
     icon: image,
     has-icon: bool,
     problem: string,           // why it stays out of the menu, or ""
+    own: string,               // "Also hides: PowerShell 7 ›" (the app's own menu entries), or ""
 }
 
 // The selected app, for the editor under its row.
@@ -24,6 +25,8 @@ export struct OpenWithForm {
     extensions: string,
     admin: bool,
     custom: bool,
+    keep-own: bool,            // switched off, its own menu entries stay
+    own: string,               // their titles, "" when it has none
 }
 
 // One line of the Test result: "A file" -> the command line.

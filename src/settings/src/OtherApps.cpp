@@ -225,6 +225,7 @@ std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string
         auto &item = items[it->second];
         item.where |= whereOf(v.type);
         item.shiftOnly = item.shiftOnly && v.extended; // shown without Shift anywhere: not shift-only
+        item.submenu = item.submenu || v.submenu;
         if (item.program.empty())
             item.program = program;
         item.keys.push_back(hive(v.user) + v.type + "\\shell\\" + v.key);

@@ -49,15 +49,13 @@ private:
     void pushCode();
     void pushTest();
     void pushOthers();
-    // Other apps' items: what row `index` of the list is (an item from the
-    // registry, its Hidden entry, or both).
-    struct OtherRef
-    {
-        int item = -1;   // in others_
-        int hidden = -1; // in model_.hidden
-    };
-    std::vector<OtherRef> otherRows() const;
+    // Other apps' items: what row `index` of the list is (openwith::otherRows()).
+    std::vector<openwith::OtherRef> otherRows() const;
     void toggleOther(int index, bool shown);
+    // Links each app to its own entries among others_ (App::natives, owners_).
+    void relink();
+    // The titles of an app's own entries, a submenu with " ›": "PowerShell 7 ›, Open Git Bash here".
+    std::string nativesText(size_t app) const;
     void setOtherTitle(int index, const std::string &title);
     void select(int index);
     void setText(const std::string &field, const std::string &value);
@@ -68,8 +66,16 @@ private:
                          const std::string &start);
     void requestIcons();
     std::string iconSource(const openwith::App &app) const;
-    // migrate: rewriting a file an older page wrote, right after loading it.
-    void save(bool migrate = false);
+    // Rewriting the file right after loading it, without a Save: one an older
+    // page wrote (Layout), or one whose switched-off apps' own entries changed
+    // in the registry (Own).
+    enum class Migrate
+    {
+        None,
+        Layout,
+        Own,
+    };
+    void save(Migrate migrate = Migrate::None);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
     std::filesystem::path openWithFile() const;
     bool readOnly() const { return shared_ || root_.empty() || !loaded_; }
@@ -89,6 +95,7 @@ private:
     nss::TextFormat format_ = nss::defaultFormat();
     std::vector<otherapps::Item> others_; // other apps' items in the registry (read on load)
     bool othersLoaded_ = false;
+    std::vector<int> owners_; // for each of others_: the app it belongs to, or -1
 
     // develop.nss
     std::filesystem::path developPath_;
