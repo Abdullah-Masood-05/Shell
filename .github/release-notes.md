@@ -2,6 +2,14 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
+## New in 2.0.2
+
+- **Sharper look:** cards, panels, inputs and buttons use near-square 2–3 px corners; toggles, dots and slider thumbs stay round.
+- **Open with:** "Open in VS Code", "Open in Zed" and the other apps you switch on appear as separate items directly under WinRAR (or after *Open in new window*), instead of in an "Open in" submenu. Switching an app off also hides that app's own menu entries (for example *PowerShell 7* or *Open Git Bash here*); the row lists what it hides.
+- **Other apps' menu items:** entries that other programs added can be hidden one by one, and leftovers from uninstalled programs (whose program no longer exists) are flagged with a one-click *Hide*.
+- **Acrylic:** choosing Acrylic no longer writes an opacity of 0; an `auto` opacity shows as *Auto*, the tint writes `background.tintcolor`, and the live preview matches the real menu.
+- **Config Editor:** syntax highlighting while editing, and tabs shown as indentation (saved back unchanged).
+
 ## New in 2.0.1
 
 - **In-app updates.** Nilesoft Shell Pro checks this project's GitHub releases when it starts (at most once a day; *Check for updates automatically* in Preferences, on by default) and shows *Update available* in the sidebar and a banner on Home with the release notes, *Download and install* and *Skip this version*.
