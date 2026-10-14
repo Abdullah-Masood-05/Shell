@@ -100,6 +100,7 @@ add_executable(settings WIN32
     src/OnboardingController.cpp
     src/OpenWithController.cpp
     src/OpenWithModel.cpp
+    src/OtherApps.cpp
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
@@ -153,6 +154,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_status.cpp
         tests/test_onboarding.cpp
         tests/test_openwith.cpp
+        tests/test_otherapps.cpp
+        tests/test_indexof.cpp
         tests/test_presets.cpp
         tests/test_updater.cpp
         src/BackupsModel.cpp
@@ -169,6 +172,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
+        src/OtherApps.cpp
         src/Updater.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}")
@@ -177,7 +181,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 ole32 advapi32 winhttp bcrypt)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 winhttp bcrypt)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()

@@ -6,11 +6,14 @@
 // custom apps can be added. Save writes the file (and, once, the import line
 // in the root shell.nss, and develop.nss when its Editors submenu is hidden or
 // shown) through nss::ConfigStore with the `shell.exe -config:check`
-// validator and a snapshot ("Open with: ...").
+// validator and a snapshot ("Open with: ..."). Other apps' own menu items are
+// listed read-only from the registry; switching one off adds a remove() rule
+// to the same file.
 
 #include "app.h"
 
 #include "OpenWithModel.h"
+#include "OtherApps.h"
 #include "Worker.h"
 
 #include "nss/NssDocument.h"
@@ -45,6 +48,17 @@ private:
     void pushPreview();
     void pushCode();
     void pushTest();
+    void pushOthers();
+    // Other apps' items: what row `index` of the list is (an item from the
+    // registry, its Hidden entry, or both).
+    struct OtherRef
+    {
+        int item = -1;   // in others_
+        int hidden = -1; // in model_.hidden
+    };
+    std::vector<OtherRef> otherRows() const;
+    void toggleOther(int index, bool shown);
+    void setOtherTitle(int index, const std::string &title);
     void select(int index);
     void setText(const std::string &field, const std::string &value);
     void setChoice(const std::string &field, int value);
@@ -73,6 +87,8 @@ private:
     bool fileExists_ = false;
     bool fileLegacy_ = false; // the file on disk has an older page's layout (see openwith::ParseResult)
     nss::TextFormat format_ = nss::defaultFormat();
+    std::vector<otherapps::Item> others_; // other apps' items in the registry (read on load)
+    bool othersLoaded_ = false;
 
     // develop.nss
     std::filesystem::path developPath_;

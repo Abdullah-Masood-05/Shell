@@ -239,6 +239,68 @@ void OpenWithController::bindCallbacks()
     });
     st.on_create_user_config([this] { ui_->global<AppState>().invoke_action("config-init"); });
     st.on_open_context_menus([this] { ui_->global<AppState>().set_page(kContextMenusPage); });
+    st.on_other_toggle([this](int index, bool shown) { toggleOther(index, shown); });
+    st.on_other_title([this](int index, slint::SharedString t) { setOtherTitle(index, str(t)); });
+}
+
+std::vector<OpenWithController::OtherRef> OpenWithController::otherRows() const
+{
+    // The registry's items in their order, each with its Hidden entry if
+    // switched off; then hidden ones that are gone from the registry.
+    std::vector<OtherRef> rows;
+    std::vector<bool> used(model_.hidden.size(), false);
+    for (size_t i = 0; i < others_.size(); ++i) {
+        const auto &item = others_[i];
+        OtherRef r;
+        r.item = int(i);
+        for (size_t h = 0; h < model_.hidden.size(); ++h) {
+            const auto &hd = model_.hidden[h];
+            if (used[h] || hd.kind != item.kind)
+                continue;
+            // A verb by its title (the rule matches titles), a shell extension by its name.
+            bool same = item.kind == "verb" ? nss::iequals(hd.title, item.title) : nss::iequals(hd.name, item.name);
+            if (same) {
+                r.hidden = int(h);
+                used[h] = true;
+                break;
+            }
+        }
+        rows.push_back(r);
+    }
+    for (size_t h = 0; h < model_.hidden.size(); ++h)
+        if (!used[h])
+            rows.push_back(OtherRef{ -1, int(h) });
+    return rows;
+}
+
+void OpenWithController::toggleOther(int index, bool shown)
+{
+    auto rows = otherRows();
+    if (readOnly() || index < 0 || index >= int(rows.size()))
+        return;
+    const auto r = rows[size_t(index)];
+    if (shown && r.hidden >= 0) {
+        model_.hidden.erase(model_.hidden.begin() + r.hidden);
+    } else if (!shown && r.hidden < 0 && r.item >= 0) {
+        const auto &item = others_[size_t(r.item)];
+        // A shell extension's title is the app's own: its name is the best guess, and the field is there to correct it.
+        model_.hidden.push_back(openwith::Hidden{ item.kind, item.name, item.title });
+    } else {
+        return;
+    }
+    edited(false);
+}
+
+void OpenWithController::setOtherTitle(int index, const std::string &title)
+{
+    auto rows = otherRows();
+    if (readOnly() || index < 0 || index >= int(rows.size()) || rows[size_t(index)].hidden < 0)
+        return;
+    auto &h = model_.hidden[size_t(rows[size_t(index)].hidden)];
+    if (h.kind != "handler")
+        return; // a verb's title comes from the registry
+    h.title = std::string(nss::trim(title));
+    edited(false);
 }
 
 void OpenWithController::toast(const std::string &kind, const std::string &title, const std::string &text)
@@ -307,9 +369,11 @@ void OpenWithController::load()
             bool developFound = false;
             bool developHidden = false;
             bool developWritable = false;
+            std::vector<otherapps::Item> others;
         };
         auto out = std::make_shared<Loaded>();
         out->env = openwith::Env::current();
+        out->others = otherapps::collect(otherapps::scan(), otherapps::resolveIndirect, otherapps::systemRoot());
         auto detected = openwith::detectAll(out->env);
         std::optional<openwith::Model> saved;
         std::error_code ec;
@@ -361,6 +425,8 @@ void OpenWithController::load()
                 return;
             const auto &st = ui_->global<OpenWithState>();
             env_ = out->env;
+            others_ = out->others;
+            othersLoaded_ = true;
             model_ = out->model;
             saved_ = out->saved;
             fileExists_ = out->fileExists;
@@ -396,7 +462,7 @@ void OpenWithController::load()
             if (out->legacy && !out->customised && !readOnly())
                 save(true);
             else if (out->legacy)
-                st.set_notice(ss("This file uses an older layout; Save puts the items at the top of the menu. " +
+                st.set_notice(ss("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". " +
                                  out->notice));
         });
     });
@@ -413,16 +479,20 @@ std::string OpenWithController::iconSource(const openwith::App &app) const
 void OpenWithController::requestIcons()
 {
     std::vector<std::string> wanted;
-    for (const auto &a : model_.apps) {
-        auto src = iconSource(a);
+    auto want = [&](const std::string &src) {
         if (src.empty())
-            continue;
+            return;
         auto key = lowerKey(src);
         if (icons_.count(key) || iconsPending_.count(key))
-            continue;
+            return;
         iconsPending_[key] = true;
         wanted.push_back(src);
-    }
+    };
+    for (const auto &a : model_.apps)
+        want(iconSource(a));
+    for (const auto &o : others_)
+        if (o.kind == "verb") // a shell extension's DLL rarely has the menu's icon
+            want(o.program);
     if (wanted.empty())
         return;
     worker_.post([this, wanted] {
@@ -456,6 +526,7 @@ void OpenWithController::requestIcons()
             }
             pushRows();
             pushPreview();
+            pushOthers();
         });
     });
 }
@@ -470,6 +541,7 @@ void OpenWithController::edited(bool reloadForm)
     pushPreview();
     pushCode();
     pushTest();
+    pushOthers();
     const auto &st = ui_->global<OpenWithState>();
     st.set_dirty(dirty());
     st.set_first_run(!fileExists_);
@@ -511,6 +583,49 @@ void OpenWithController::pushRows()
     bool has = selected_ >= 0 && selected_ < int(model_.apps.size()) && !readOnly();
     st.set_can_up(has && selected_ > 0);
     st.set_can_down(has && selected_ + 1 < int(model_.apps.size()));
+}
+
+void OpenWithController::pushOthers()
+{
+    const auto &st = ui_->global<OpenWithState>();
+    std::vector<OtherAppRow> rows;
+    int hidden = 0;
+    for (const auto &ref : otherRows()) {
+        OtherAppRow r{};
+        const otherapps::Item *item = ref.item >= 0 ? &others_[size_t(ref.item)] : nullptr;
+        const openwith::Hidden *h = ref.hidden >= 0 ? &model_.hidden[size_t(ref.hidden)] : nullptr;
+        r.shown = !h;
+        hidden += h != nullptr;
+        r.extension = item ? item->kind == "handler" : h->kind == "handler";
+        r.gone = !item;
+        r.hide_title = ss(h ? h->title : std::string{});
+        if (item) {
+            r.title = ss(r.extension && h && !h->title.empty() ? h->title : item->title);
+            std::string where = otherapps::describeWhere(item->where);
+            std::string program = item->program.empty() ? std::string{} : nss::narrow(fs::path(nss::widen(item->program)).filename().wstring());
+            if (r.extension)
+                r.detail = ss("Shell extension \"" + item->name + "\"" + (program.empty() ? "" : " (" + program + ")") +
+                              (where.empty() ? "" : " · " + where));
+            else
+                r.detail = ss(where + (program.empty() ? "" : " · " + program));
+            r.tag = item->shiftOnly ? "Shift only" : r.extension ? "Title shown by the app" : "";
+            auto it = icons_.find(lowerKey(item->program));
+            if (!item->program.empty() && it != icons_.end() && it->second) {
+                r.icon = *it->second;
+                r.has_icon = true;
+            }
+        } else {
+            r.title = ss(h->title.empty() ? h->name : h->title);
+            r.detail = "No longer in the registry. The rule stays until you switch it back on.";
+        }
+        if (h && openwith::exactFind(h->title).empty())
+            r.problem = ss(nss::trim(h->title).empty() ? "Type the title the menu shows, or nothing is hidden."
+                                                        : "A title with \" or | can't be matched exactly, so nothing is hidden.");
+        rows.push_back(r);
+    }
+    st.set_others(std::make_shared<slint::VectorModel<OtherAppRow>>(rows));
+    st.set_others_hidden(hidden);
+    st.set_others_loaded(othersLoaded_);
 }
 
 void OpenWithController::pushForm()
@@ -571,17 +686,17 @@ void OpenWithController::pushPreview()
         }
         items.push_back(r);
     }
-    // Ours go first (pos=top), above the start of Explorer's own menu.
-    std::vector<OpenWithPreviewRow> root, flyout;
+    // Ours go under WinRAR, else under "Open in new window", else first.
+    std::vector<OpenWithPreviewRow> ours, root, flyout;
     if (o.submenu && !items.empty()) {
         OpenWithPreviewRow m{};
         m.kind = "menu";
         m.title = ss(o.title);
         m.open = true;
-        root.push_back(m);
+        ours.push_back(m);
         flyout = items;
     } else if (!o.submenu) {
-        root = items;
+        ours = items;
     }
     auto native = [&](const char *kind, const char *title) {
         OpenWithPreviewRow r{};
@@ -608,6 +723,18 @@ void OpenWithController::pushPreview()
         native("sep", "");
         native("native", "Paste");
     }
+    size_t at = 0;
+    bool anchored = false;
+    for (auto anchor : openwith::kAnchors) {
+        for (size_t i = 0; i < root.size() && !anchored; ++i)
+            if (nss::iequals(str(root[i].title), anchor)) {
+                at = i + 1;
+                anchored = true;
+            }
+        if (anchored)
+            break;
+    }
+    root.insert(root.begin() + ptrdiff_t(at), ours.begin(), ours.end());
     st.set_preview(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(root));
     st.set_flyout(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(flyout));
     const char *what = previewKind_ == 0 ? "a .txt file" : previewKind_ == 1 ? "a folder" : "a folder's background";
@@ -859,8 +986,14 @@ void OpenWithController::save(bool migrate)
     bool developChange = developFound_ && developHidden_ != developSavedHidden_;
     if (developChange)
         reason += developHidden_ ? "; hide Develop > Editors" : "; show Develop > Editors";
+    if (!(model_.hidden == saved_.hidden)) {
+        size_t n = 0;
+        for (const auto &h : model_.hidden)
+            n += !openwith::exactFind(h.title).empty();
+        reason += "; other apps' items hidden: " + std::to_string(n);
+    }
     if (migrate)
-        reason = "Open with: moved the items to the top of the menu";
+        reason = "Open with: moved the items under WinRAR / Open in new window";
 
     auto model = model_;
     bool hideDevelop = developHidden_;
@@ -904,8 +1037,8 @@ void OpenWithController::save(bool migrate)
                 edited(false);
                 if (migrate)
                     toast("ok", "Moved the Open with items",
-                          "They're now at the top of the menu, as \"Open in <app>\". Snapshot " + result.snapshotId +
-                              " has the old layout.");
+                          "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot " +
+                              result.snapshotId + " has the old layout.");
                 else
                     toast("ok", "Saved the Open with items",
                           result.snapshotId.empty() ? std::string("No changes were needed.")
