@@ -34,7 +34,7 @@ export struct OpenWithTestLine {
 
 // One row of the preview menu.
 export struct OpenWithPreviewRow {
-    kind: string,              // menu | item
+    kind: string,              // menu | item | native (Explorer's own, dimmed) | native-menu | sep
     title: string,
     icon: image,
     has-icon: bool,
@@ -61,7 +61,7 @@ export global OpenWithState {
     in-out property <bool> show-missing;   // list them too
 
     // The menu
-    in property <bool> submenu: true;
+    in property <bool> submenu: false;
     in property <string> title;
     in property <bool> show-files;
     in property <bool> show-folders;

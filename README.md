@@ -133,7 +133,7 @@ Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs n
 | Rules & Filters | Where the menu is shown: only in File Explorer and on the desktop, excluded programs and window classes, or a raw condition. |
 | Context Menus | Turn the bundled menu modules (terminal, file manage, develop, go to, taskbar, my tools) on or off, and the rules that hide, move or rename Windows' own items. |
 | Menu Builder | Add your own menus, items and separators with a title, icon, command and where they appear; saved to `imports/settings-app-menus.nss`. |
-| Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; as a submenu or top-level items, with a preview and a dry-run Test. Saved to `imports/settings-app-openwith.nss`. |
+| Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; each an "Open in <app>" item at the top of the menu (or grouped in a submenu), with a preview and a dry-run Test. Saved to `imports/settings-app-openwith.nss`. |
 | Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
 | Backups | Snapshots of the configuration, compared line by line with your files. Restore, pin, delete or create one by hand. |
 | Preferences | The app's theme, updates, registration for all users (the one action that asks for administrator rights), and version and licence information. |

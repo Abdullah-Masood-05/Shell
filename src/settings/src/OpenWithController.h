@@ -54,7 +54,8 @@ private:
                          const std::string &start);
     void requestIcons();
     std::string iconSource(const openwith::App &app) const;
-    void save();
+    // migrate: rewriting a file an older page wrote, right after loading it.
+    void save(bool migrate = false);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
     std::filesystem::path openWithFile() const;
     bool readOnly() const { return shared_ || root_.empty() || !loaded_; }
@@ -70,6 +71,7 @@ private:
     openwith::Model model_;
     openwith::Model saved_;
     bool fileExists_ = false;
+    bool fileLegacy_ = false; // the file on disk has an older page's layout (see openwith::ParseResult)
     nss::TextFormat format_ = nss::defaultFormat();
 
     // develop.nss

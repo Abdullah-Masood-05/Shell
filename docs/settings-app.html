@@ -146,9 +146,12 @@
 		<code>{paths}</code> every selected item (<code>@sel(true)</code>); <code>{dir}</code> its folder, or the folder
 		itself (<code>"@sel.dir"</code>); <code>{name}</code> its name. <kbd>Test</kbd> shows the exact command line for a
 		sample file and folder. It never starts the program.</li>
-	<li>The items go in a submenu (titled <i>Open in</i> by default, so it isn't confused with Windows' own <i>Open
-		with</i>) or at the top level as <i>Open with &lt;name&gt;</i>, on files, folders, the folder background and the
-		desktop as you choose. A preview shows the resulting menu.</li>
+	<li>Each app that is switched on is its own <i>Open in &lt;name&gt;</i> item at the top of the menu
+		(<a href="/docs/configuration/properties#position">pos</a>=<code>top</code>), next to Explorer's <i>Open</i>
+		items, on files, folders, the folder background and the desktop as you choose. <i>Group in an "Open in"
+		submenu</i> puts them in one submenu there instead. A preview shows the resulting menu. A file saved by an
+		earlier version (an <i>Open in</i> submenu in the middle of the menu) is rewritten this way when the page
+		opens.</li>
 	<li>Each item has the program's icon and a <a href="/docs/configuration/properties#where">where</a>
 		<code>path.exists(...)</code> condition, so it disappears when the program is uninstalled.</li>
 </ul>
