@@ -146,12 +146,22 @@
 		<code>{paths}</code> every selected item (<code>@sel(true)</code>); <code>{dir}</code> its folder, or the folder
 		itself (<code>"@sel.dir"</code>); <code>{name}</code> its name. <kbd>Test</kbd> shows the exact command line for a
 		sample file and folder. It never starts the program.</li>
-	<li>Each app that is switched on is its own <i>Open in &lt;name&gt;</i> item at the top of the menu
-		(<a href="/docs/configuration/properties#position">pos</a>=<code>top</code>), next to Explorer's <i>Open</i>
-		items, on files, folders, the folder background and the desktop as you choose. <i>Group in an "Open in"
-		submenu</i> puts them in one submenu there instead. A preview shows the resulting menu. A file saved by an
-		earlier version (an <i>Open in</i> submenu in the middle of the menu) is rewritten this way when the page
-		opens.</li>
+	<li>Each app that is switched on is its own <i>Open in &lt;name&gt;</i> item, in the order of the list, right
+		under <i>WinRAR</i>; without WinRAR, under Explorer's <i>Open in new window</i>; otherwise (a file's menu, or
+		Windows in another language) at the top of the menu:
+		<code>pos=indexof('"WinRAR"|"Open in new window"', 1, 'top')</code> (see
+		<a href="/docs/functions/index#indexof">indexof</a>). They show on files, folders, the folder background and
+		the desktop as you choose. <i>Group in an "Open in" submenu</i> puts them in one submenu there instead. A
+		preview shows the resulting menu. A file saved by an earlier version (an <i>Open in</i> submenu in the middle
+		of the menu, or items at the very top) is rewritten this way when the page opens.</li>
+	<li><b>Other apps' menu items</b> lists what other programs add to the menu themselves (Git's <i>Open Git GUI
+		here</i>, VLC, File Pilot, PowerShell 7, 7-Zip and so on), read from the registry: the verbs under
+		<code>*</code>, <code>Directory</code>, <code>Directory\Background</code>, <code>Drive</code>,
+		<code>Folder</code> and <code>AllFilesystemObjects</code> <code>\shell</code> and their
+		<code>shellex\ContextMenuHandlers</code>, in HKCR and HKCU. Windows' own items and Shell's are left out. Each
+		is on by default; switching one off adds <code>remove(find="\"&lt;title&gt;\"")</code> (the whole title) to
+		the same file, and nothing in the registry changes. A shell extension sets its own title, so its name is
+		only a guess: correct the <i>Title to hide</i> to match the menu.</li>
 	<li>Each item has the program's icon and a <a href="/docs/configuration/properties#where">where</a>
 		<code>path.exists(...)</code> condition, so it disappears when the program is uninstalled.</li>
 </ul>

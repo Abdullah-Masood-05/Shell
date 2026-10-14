@@ -6,7 +6,14 @@
 	<h5>indexof</h5>
 	<p>Find the position of a menu item.</p>
 	<p>Syntax</p>
-	<code>indexof(expression[, default position])</code>
+	<code>indexof(pattern[, offset[, default position]])</code>
+	<p>Used as a <a href="/docs/configuration/properties#position">pos</a> value. Once Explorer's items are in the
+		menu, the item goes at the first item whose title matches <i>pattern</i>, plus <i>offset</i> (0 = before it,
+		1 = right after it). Patterns separated with <code>|</code> are tried in order; a quoted one
+		(<code>'"WinRAR"'</code>) matches the whole title, in any case, with <code>&amp;</code> ignored. When nothing
+		matches, the item goes to the <i>default position</i> (<code>'top'</code>, <code>'middle'</code>, else the
+		end). Items with the same <code>indexof()</code> keep their order in the file.</p>
+	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code>
 </section>
 
 <section id="if" class="my-5">
