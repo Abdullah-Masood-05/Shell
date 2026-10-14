@@ -4,7 +4,8 @@
 //  - presets for common editors and terminals, and where each one is usually
 //    installed (per-user, per-machine, PATH), found read-only with detect();
 //  - the apps the user picked (presets and custom ones) and how the menu
-//    looks (a submenu or top-level items, and where it shows);
+//    looks (top-level "Open in <Name>" items at the top of the menu, or an
+//    "Open in" submenu there; and where it shows);
 //  - generate(): the app-owned imports/settings-app-openwith.nss, and parse()
 //    to read it back (parse(generate(m)) == m for any model the page makes);
 //  - argument templates ({path}, {paths}, {dir}, {name}) and the command line
@@ -63,7 +64,7 @@ struct App
 
 struct Options
 {
-    bool submenu = true;           // false: top-level "Open with <Name>" items
+    bool submenu = false;          // true: the items in an "Open in" submenu; false: top-level "Open in <Name>" items
     std::string title = "Open in"; // the submenu's title
     bool files = true;
     bool folders = true;
@@ -152,7 +153,11 @@ constexpr std::string_view kRelativePath = "imports/settings-app-openwith.nss";
 
 // The `type` for the menu's locations ("file|dir|back"), "" when none.
 std::string locationType(const Options &options);
-// The item title as shown: "Zed" in the submenu, "Open with Zed" at the top level.
+// Where the generated items (or the submenu) go: the top of the menu, with the
+// "Open", "Open in new window" group (Shell's `pos=top`, in file order).
+constexpr std::string_view kPosition = "top";
+
+// The item title as shown: "Zed" in the submenu, "Open in Zed" at the top level.
 std::string itemTitle(const Options &options, const App &app);
 // Whether an app's item shows for a selection kind ("file", "dir", "back", "desktop").
 bool showsFor(const Options &options, const App &app, std::string_view kind, std::string_view extension = {});
@@ -163,6 +168,11 @@ struct ParseResult
 {
     Model model;
     std::vector<std::string> warnings; // lines that weren't understood (replaced on save)
+    // Written by an older version of the page (no `pos=top` on the options
+    // line): an "Open in" submenu in the middle of the menu, or "Open with
+    // <Name>" items. It reads back in today's default layout (top-level items
+    // at the top) and is rewritten on the next save.
+    bool legacy = false;
 };
 ParseResult parse(std::string_view text, const Env &env);
 

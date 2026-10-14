@@ -38,7 +38,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 - **Rules & Filters:** an `exclude.*` builder plus a raw expression box.
 - **Context Menus:** import-module toggles and a list of `modify(find=...)` rules (hide, move, rename).
 - **Menu Builder:** a tree of menu/item/separator in an app-owned file, with drag to reorder.
-- **Open with:** editors and terminals detected read-only (fixed folders, Toolbox scripts, PATH) plus custom apps, written to the app-owned `imports/settings-app-openwith.nss` as a submenu or top-level items; a menu preview and a dry-run Test that only shows the command line.
+- **Open with:** editors and terminals detected read-only (fixed folders, Toolbox scripts, PATH) plus custom apps, written to the app-owned `imports/settings-app-openwith.nss` as top-level "Open in <app>" items at the top of the menu (`pos=top`), or optionally one "Open in" submenu there; a menu preview and a dry-run Test that only shows the command line.
 - **Config Editor:** import-graph file tree, editor, diagnostics.
 - **Backups:** timeline, diff, restore, pin.
 - **Preferences:** app theme, the Live apply option, external editor, how many backups to keep, and machine-wide registration (the only button with a UAC shield).

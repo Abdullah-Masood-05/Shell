@@ -795,7 +795,7 @@ std::string locationType(const Options &options) { return join(kindsOf(options),
 
 std::string itemTitle(const Options &options, const App &app)
 {
-    return options.submenu ? app.name : "Open with " + app.name;
+    return options.submenu ? app.name : "Open in " + app.name;
 }
 
 bool showsFor(const Options &options, const App &app, std::string_view kind, std::string_view extension)
@@ -826,7 +826,8 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
     std::string out;
     out += std::string(kHeader) + nl;
     out += "// Edit these items on the Open with page of Nilesoft Shell Pro." + nl;
-    out += "// options: layout=" + std::string(o.submenu ? "submenu" : "top") + " show=" +
+    out += "// options: layout=" + std::string(o.submenu ? "submenu" : "top") + " pos=" + std::string(kPosition) +
+           " show=" +
            (kindsOf(o).empty() ? std::string("none") : locationType(o)) +
            " title=" + menus::MenuWriter::plainString(o.title) + nl;
 
@@ -850,6 +851,7 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
         m.type = menuType;
         if (anyMultiple)
             m.mode = "multiple";
+        m.extra.push_back({ "pos", menus::MenuWriter::plainString(std::string(kPosition)) });
         out += "menu(" + menus::MenuWriter::props(m) + ")" + nl + "{" + nl;
     }
     const std::string indent = inMenu ? "\t" : "";
@@ -890,6 +892,10 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
         n.admin = a.admin;
         if (isScript(a.exe))
             n.window = "hidden"; // no console flashing up for a .cmd launcher
+        // Top-level items go to the top of the menu, with Explorer's own
+        // "Open" items, in the order of the list; no separators between them.
+        if (!o.submenu)
+            n.extra.push_back({ "pos", menus::MenuWriter::plainString(std::string(kPosition)) });
         auto line = "item(" + menus::MenuWriter::props(n) + ")";
         out += indent + (shows(a) ? "" : "// ") + line + nl;
     }
@@ -910,7 +916,7 @@ ParseResult parse(std::string_view text, const Env &env)
         bool off = false;
     };
     std::optional<Meta> pending;
-    bool sawHeader = false;
+    bool sawHeader = false, sawOptions = false, sawPos = false;
     for (size_t i = 0; i < lines.size(); ++i) {
         std::string_view line = nss::trim(lines[i]);
         if (line.empty() || line == "{" || line == "}")
@@ -923,6 +929,7 @@ ParseResult parse(std::string_view text, const Env &env)
         if (body && body->rfind("Edit these items", 0) == 0)
             continue;
         if (body && body->rfind("options:", 0) == 0) {
+            sawOptions = true;
             std::string_view rest = nss::trim(std::string_view(*body).substr(8));
             auto t = rest.find("title=");
             if (t != std::string_view::npos) {
@@ -940,6 +947,8 @@ ParseResult parse(std::string_view text, const Env &env)
                     r.model.options.submenu = false;
                 else if (word == "layout=submenu")
                     r.model.options.submenu = true;
+                else if (word.rfind("pos=", 0) == 0)
+                    sawPos = true;
                 else if (word.rfind("show=", 0) == 0) {
                     auto v = "|" + word.substr(5) + "|";
                     r.model.options.files = v.find("|file|") != std::string::npos;
@@ -986,7 +995,9 @@ ParseResult parse(std::string_view text, const Env &env)
                 a.id = pending->id.empty() ? "custom" : pending->id;
                 a.enabled = !pending->off;
                 a.scope = pending->scope;
-                a.name = r.model.options.submenu ? n.title : std::string(stripPrefix(n.title, "Open with "));
+                a.name = r.model.options.submenu
+                             ? n.title
+                             : std::string(stripPrefix(n.title, sawPos ? "Open in " : "Open with ")); // older pages: "Open with"
                 a.exe = fromNssPath(n.cmd, env);
                 a.args = nssToArgs(n.args);
                 a.admin = n.admin;
@@ -1008,6 +1019,13 @@ ParseResult parse(std::string_view text, const Env &env)
     }
     if (!sawHeader && !lines.empty())
         r.warnings.insert(r.warnings.begin(), "The file doesn't start with the generated header.");
+    // An older page wrote no pos=: its "Open in" submenu (then the default)
+    // landed in the middle of the menu. It reads as today's default layout,
+    // top-level items at the top, and is rewritten on the next save.
+    if (sawOptions && !sawPos) {
+        r.legacy = true;
+        r.model.options.submenu = false;
+    }
     return r;
 }
 

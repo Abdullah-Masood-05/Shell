@@ -259,7 +259,7 @@ fs::path OpenWithController::openWithFile() const
 
 bool OpenWithController::dirty() const
 {
-    return !(model_ == saved_) || developHidden_ != developSavedHidden_;
+    return !(model_ == saved_) || developHidden_ != developSavedHidden_ || fileLegacy_;
 }
 
 void OpenWithController::pollStatus()
@@ -297,6 +297,8 @@ void OpenWithController::load()
             openwith::Model model;
             openwith::Model saved;
             bool fileExists = false;
+            bool legacy = false;     // an older page's layout
+            bool customised = false; // lines the page didn't write
             nss::TextFormat format = nss::defaultFormat();
             std::string notice;
             std::string error;
@@ -318,6 +320,8 @@ void OpenWithController::load()
                 saved = parsed.model;
                 out->fileExists = true;
                 out->format = doc->format();
+                out->legacy = parsed.legacy;
+                out->customised = !parsed.warnings.empty();
                 if (!parsed.warnings.empty())
                     out->notice = std::to_string(parsed.warnings.size()) +
                                   " line(s) of the file weren't written by this page and will be replaced on save. First: " +
@@ -360,6 +364,7 @@ void OpenWithController::load()
             model_ = out->model;
             saved_ = out->saved;
             fileExists_ = out->fileExists;
+            fileLegacy_ = out->legacy;
             format_ = out->format;
             developPath_ = out->developPath;
             developFound_ = out->developFound;
@@ -385,6 +390,14 @@ void OpenWithController::load()
             ++optionsSerial_;
             edited(true);
             requestIcons();
+            // A file from an older page (an "Open in" submenu in the middle of
+            // the menu) is rewritten in today's layout right away, unless it has
+            // lines of the user's own: then it waits for Save, with the notice.
+            if (out->legacy && !out->customised && !readOnly())
+                save(true);
+            else if (out->legacy)
+                st.set_notice(ss("This file uses an older layout; Save puts the items at the top of the menu. " +
+                                 out->notice));
         });
     });
 }
@@ -558,6 +571,7 @@ void OpenWithController::pushPreview()
         }
         items.push_back(r);
     }
+    // Ours go first (pos=top), above the start of Explorer's own menu.
     std::vector<OpenWithPreviewRow> root, flyout;
     if (o.submenu && !items.empty()) {
         OpenWithPreviewRow m{};
@@ -569,10 +583,36 @@ void OpenWithController::pushPreview()
     } else if (!o.submenu) {
         root = items;
     }
+    auto native = [&](const char *kind, const char *title) {
+        OpenWithPreviewRow r{};
+        r.kind = kind;
+        r.title = title;
+        root.push_back(r);
+    };
+    if (kind == "file") {
+        native("native", "Open");
+        native("native-menu", "Open with");
+        native("sep", "");
+        native("native", "Cut");
+        native("native", "Copy");
+    } else if (kind == "dir") {
+        native("native", "Open");
+        native("native", "Open in new window");
+        native("native", "Pin to Quick access");
+        native("sep", "");
+        native("native", "Copy");
+    } else {
+        native("native-menu", "View");
+        native("native-menu", "Sort by");
+        native("native", "Refresh");
+        native("sep", "");
+        native("native", "Paste");
+    }
     st.set_preview(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(root));
     st.set_flyout(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(flyout));
     const char *what = previewKind_ == 0 ? "a .txt file" : previewKind_ == 1 ? "a folder" : "a folder's background";
-    st.set_preview_empty(ss(std::string("Nothing shows for ") + what + "."));
+    st.set_preview_empty(items.empty() ? ss(std::string("Nothing of yours shows for ") + what + ".")
+                                       : slint::SharedString());
 }
 
 void OpenWithController::pushCode()
@@ -705,9 +745,7 @@ void OpenWithController::setChoice(const std::string &field, int value)
 {
     if (readOnly() || value < 0)
         return;
-    if (field == "layout") {
-        model_.options.submenu = value == 0;
-    } else if (field == "scope" && selected_ >= 0 && selected_ < int(model_.apps.size())) {
+    if (field == "scope" && selected_ >= 0 && selected_ < int(model_.apps.size())) {
         auto &a = model_.apps[size_t(selected_)];
         a.scope = openwith::Scope(std::min(value, int(openwith::Scope::Extensions)));
         if (a.scope == openwith::Scope::Extensions && a.extensions.empty())
@@ -724,7 +762,9 @@ void OpenWithController::setFlag(const std::string &field, bool value)
     if (readOnly())
         return;
     auto &o = model_.options;
-    if (field == "files")
+    if (field == "submenu")
+        o.submenu = value;
+    else if (field == "files")
         o.files = value;
     else if (field == "folders")
         o.folders = value;
@@ -783,10 +823,12 @@ std::string OpenWithController::pickFile(const wchar_t *title, const wchar_t *fi
     return picked;
 }
 
-void OpenWithController::save()
+void OpenWithController::save(bool migrate)
 {
     if (saving_ || readOnly() || !dirty())
         return;
+    if (migrate && shellExe_.empty())
+        return; // waits for a Save, which says why it can't
     if (shellExe_.empty()) {
         toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
         return;
@@ -817,13 +859,15 @@ void OpenWithController::save()
     bool developChange = developFound_ && developHidden_ != developSavedHidden_;
     if (developChange)
         reason += developHidden_ ? "; hide Develop > Editors" : "; show Develop > Editors";
+    if (migrate)
+        reason = "Open with: moved the items to the top of the menu";
 
     auto model = model_;
     bool hideDevelop = developHidden_;
     saving_ = true;
     ui_->global<OpenWithState>().set_saving(true);
     worker_.post([this, model, reason, file, root = root_, exe = shellExe_, format = format_, env = env_,
-                  developChange, hideDevelop, developPath = developPath_] {
+                  developChange, hideDevelop, migrate, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
@@ -849,18 +893,24 @@ void OpenWithController::save()
                 result = store.save(std::move(writes), options);
             }
         }
-        slint::invoke_from_event_loop([this, model, hideDevelop, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, result = std::move(result), root] {
             saving_ = false;
             ui_->global<OpenWithState>().set_saving(false);
             if (result.ok) {
                 saved_ = model;
                 fileExists_ = true;
+                fileLegacy_ = false;
                 developSavedHidden_ = hideDevelop;
                 edited(false);
-                toast("ok", "Saved the Open with items",
-                      result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                : "Snapshot " + result.snapshotId +
-                                                      " was taken first. Right-click a file to see them.");
+                if (migrate)
+                    toast("ok", "Moved the Open with items",
+                          "They're now at the top of the menu, as \"Open in <app>\". Snapshot " + result.snapshotId +
+                              " has the old layout.");
+                else
+                    toast("ok", "Saved the Open with items",
+                          result.snapshotId.empty() ? std::string("No changes were needed.")
+                                                    : "Snapshot " + result.snapshotId +
+                                                          " was taken first. Right-click a file to see them.");
                 return;
             }
             std::string detail = result.error;

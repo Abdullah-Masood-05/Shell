@@ -142,15 +142,6 @@ component ChoiceField inherits ComboBox {
     selected => { OpenWithState.set-choice(root.field, self.current-index); }
 }
 
-component SegmentedField inherits Segmented {
-    in property <int> value;
-    in property <int> serial;
-    in property <string> field;
-    changed serial => { self.selected = root.value; }
-    init => { self.selected = root.value; }
-    changed(i) => { OpenWithState.set-choice(root.field, i); }
-}
-
 component Mono inherits Text {
     font-family: EditorState.mono-font;
     font-size: Tokens.caption + 1px;
@@ -264,7 +255,7 @@ component AppEditor inherits Rectangle {
 
         FormRow {
             label: "Name";
-            hint: OpenWithState.submenu ? "Shown in the submenu as is." : "Shown as \"Open with " + OpenWithState.form.name + "\".";
+            hint: OpenWithState.submenu ? "Shown in the submenu as is." : "Shown as \"Open in " + OpenWithState.form.name + "\".";
             TextField {
                 field: "name";
                 value: OpenWithState.form.name;
@@ -421,8 +412,16 @@ component AppEditor inherits Rectangle {
 // One row of the preview menu, sized like Shell's default theme.
 component PreviewItem inherits Rectangle {
     in property <OpenWithPreviewRow> entry;
-    height: 32px;
-    Rectangle {
+    property <bool> native: root.entry.kind == "native" || root.entry.kind == "native-menu";
+    height: root.entry.kind == "sep" ? 9px : 32px;
+    if root.entry.kind == "sep": Rectangle {
+        x: 12px;
+        y: 4px;
+        width: root.width - 24px;
+        height: 1px;
+        background: Tokens.stroke-strong;
+    }
+    if root.entry.kind != "sep": Rectangle {
         x: 4px;
         width: root.width - 8px;
         height: root.height - 2px;
@@ -440,7 +439,7 @@ component PreviewItem inherits Rectangle {
                     height: 16px;
                     colorize: Tokens.text;
                 }
-                if root.entry.kind == "item": Rectangle {
+                if root.entry.kind != "menu": Rectangle {
                     width: 16px;
                     height: 16px;
                     if root.entry.has-icon: Image {
@@ -455,9 +454,9 @@ component PreviewItem inherits Rectangle {
                 vertical-alignment: center;
                 text: root.entry.title;
                 overflow: elide;
-                color: Tokens.text;
+                color: root.native ? Tokens.text-3 : Tokens.text;
             }
-            if root.entry.kind == "menu": Text {
+            if root.entry.kind == "menu" || root.entry.kind == "native-menu": Text {
                 vertical-alignment: center;
                 text: Mdl.chevron;
                 font-family: Mdl.family;
@@ -609,16 +608,13 @@ export component OpenWithPage inherits PageFrame {
             spacing: Tokens.s3;
             FormRow {
                 label: "Layout";
-                HorizontalLayout {
-                    spacing: Tokens.s3;
-                    SegmentedField {
-                        width: 280px;
-                        options: ["Submenu", "Top-level items"];
-                        field: "layout";
-                        value: OpenWithState.submenu ? 0 : 1;
-                        serial: OpenWithState.options-serial;
-                    }
-                    Rectangle { horizontal-stretch: 1; }
+                hint: OpenWithState.submenu ? "One submenu at the top of the menu, with each app inside it." : "Each app is its own \"Open in …\" item at the top of the menu, next to Explorer's \"Open\" items.";
+                FlagField {
+                    text: "Group in an \"Open in\" submenu";
+                    enabled: !root.locked;
+                    field: "submenu";
+                    value: OpenWithState.submenu;
+                    serial: OpenWithState.options-serial;
                 }
             }
             if OpenWithState.submenu: FormRow {
@@ -697,13 +693,18 @@ export component OpenWithPage inherits PageFrame {
                 }
             }
             if root.bottom-tab == 0: Rectangle {
-                height: max(120px, (OpenWithState.submenu ? max(1, OpenWithState.flyout.length) : OpenWithState.preview.length) * 32px + 40px);
+                height: max(120px, max(OpenWithState.preview.length, OpenWithState.flyout.length) * 32px + 40px);
                 border-radius: Tokens.radius-control;
                 background: Tokens.dark ? #1C1C1C : #E9E9E9;
                 clip: true;
-                if OpenWithState.preview.length == 0: Text {
+                // Nothing of ours shows: said next to Explorer's own items.
+                if OpenWithState.preview-empty != "": Text {
+                    x: main.x + main.width + Tokens.s4;
+                    y: main.y + 8px;
+                    width: parent.width - self.x - Tokens.s4;
                     text: OpenWithState.preview-empty;
                     color: Tokens.text-3;
+                    wrap: word-wrap;
                 }
                 main := PreviewMenu {
                     x: Tokens.s4;
