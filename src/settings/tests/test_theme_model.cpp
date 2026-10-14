@@ -1,3 +1,4 @@
+#include <cctype>
 #include "doctest.h"
 
 #include "PendingChanges.h"
@@ -365,7 +366,10 @@ TEST_CASE("theme model: the tint round-trips through background.tintcolor")
 {
     // The colour picker's value -> the literal written -> what resolve() (and the core) reads.
     const auto lit = Literal::makeColor(0x2C2C2CB0);
-    CHECK(lit.text == "#2C2C2CB0");
+    // Hex colours are case-insensitive; Literal::makeColor writes lower case.
+    auto upper = lit.text;
+    for (auto &c : upper) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    CHECK(upper == "#2C2C2CB0");
     PendingChanges p;
     REQUIRE(p.set("theme.background.tintcolor", lit.text, "Appearance").empty());
     auto r = resolve(make({ { "theme.background.effect", "3" }, { "theme.background.tintcolor", "#2C2C2CB0" } }),
