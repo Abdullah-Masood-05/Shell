@@ -152,6 +152,9 @@
     <ClInclude Include="src\Include\FindPattern.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Include\IndexOf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Include\Keyboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>

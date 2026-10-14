@@ -4,8 +4,10 @@
 //  - presets for common editors and terminals, and where each one is usually
 //    installed (per-user, per-machine, PATH), found read-only with detect();
 //  - the apps the user picked (presets and custom ones) and how the menu
-//    looks (top-level "Open in <Name>" items at the top of the menu, or an
-//    "Open in" submenu there; and where it shows);
+//    looks (top-level "Open in <Name>" items right under WinRAR or Explorer's
+//    "Open in new window", or an "Open in" submenu there; and where it shows);
+//  - other apps' own menu items the user hid (remove() rules; OtherApps.h
+//    lists them);
 //  - generate(): the app-owned imports/settings-app-openwith.nss, and parse()
 //    to read it back (parse(generate(m)) == m for any model the page makes);
 //  - argument templates ({path}, {paths}, {dir}, {name}) and the command line
@@ -74,10 +76,22 @@ struct Options
     bool operator==(const Options &) const = default;
 };
 
+// Another app's menu item that the user switched off on the page: a
+// remove(find="\"<title>\"") rule in the same file. Shown items have no line.
+struct Hidden
+{
+    std::string kind;  // "verb" (a registry verb, matched by title) or "handler" (a shell extension, by name)
+    std::string name;  // the verb's key or the handler's name in the registry: "git_gui", "7-Zip"
+    std::string title; // the menu title it hides, exactly; "" = none yet, so nothing is hidden
+
+    bool operator==(const Hidden &) const = default;
+};
+
 struct Model
 {
     Options options;
     std::vector<App> apps;
+    std::vector<Hidden> hidden; // in the order they were switched off
 
     bool operator==(const Model &) const = default;
 };
@@ -153,9 +167,22 @@ constexpr std::string_view kRelativePath = "imports/settings-app-openwith.nss";
 
 // The `type` for the menu's locations ("file|dir|back"), "" when none.
 std::string locationType(const Options &options);
-// Where the generated items (or the submenu) go: the top of the menu, with the
-// "Open", "Open in new window" group (Shell's `pos=top`, in file order).
-constexpr std::string_view kPosition = "top";
+// Where the generated items (or the submenu) go, in file order: right under
+// the first item titled exactly "WinRAR"; else right under Explorer's "Open in
+// new window"; else (no match: a file's menu, or Windows in another language)
+// at the top of the menu. Shell's indexof(): the patterns are tried in order,
+// a quoted one is the whole title (any case, '&' ignored), 1 = the item after
+// it, 'top' when nothing matches; items with the same indexof() keep their order.
+constexpr std::string_view kPosition = "indexof('\"WinRAR\"|\"Open in new window\"', 1, 'top')";
+// The options line's word for it ("pos=after-winrar"). Older pages wrote
+// "pos=top" (the very top of the menu), the first ones nothing (the middle).
+constexpr std::string_view kPositionWord = "after-winrar";
+// The titles kPosition looks for, in order (the preview uses them too).
+constexpr std::string_view kAnchors[] = { "WinRAR", "Open in new window" };
+
+// A rule's find= value matching one title exactly: "\"Open Git GUI here\"" as
+// .nss text. "" when Shell can't match it exactly (empty, or '"' or '|' in it).
+std::string exactFind(std::string_view title);
 
 // The item title as shown: "Zed" in the submenu, "Open in Zed" at the top level.
 std::string itemTitle(const Options &options, const App &app);
@@ -168,10 +195,10 @@ struct ParseResult
 {
     Model model;
     std::vector<std::string> warnings; // lines that weren't understood (replaced on save)
-    // Written by an older version of the page (no `pos=top` on the options
-    // line): an "Open in" submenu in the middle of the menu, or "Open with
-    // <Name>" items. It reads back in today's default layout (top-level items
-    // at the top) and is rewritten on the next save.
+    // Written by an older version of the page: no pos= on the options line
+    // (an "Open in" submenu in the middle of the menu, or "Open with <Name>"
+    // items; read back as today's default layout, top-level items), or
+    // pos=top (the very top of the menu). Rewritten with today's position.
     bool legacy = false;
 };
 ParseResult parse(std::string_view text, const Env &env);

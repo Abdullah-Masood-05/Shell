@@ -3,7 +3,7 @@ import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
-import { OpenWithState, OpenWithRow, OpenWithPreviewRow } from "../openwith-types.slint";
+import { OpenWithState, OpenWithRow, OpenWithPreviewRow, OtherAppRow } from "../openwith-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { Link, Segmented } from "../components/controls.slint";
@@ -409,6 +409,99 @@ component AppEditor inherits Rectangle {
     }
 }
 
+// Another program's own menu item: on (shown, the default) or off (a rule hides it).
+// A shell extension's title is the app's own, so while it's off the title to
+// hide can be corrected right there.
+component OtherItem inherits Rectangle {
+    in property <OtherAppRow> entry;
+    in property <int> index;
+    in property <bool> locked;
+
+    accessible-role: list-item;
+    accessible-label: root.entry.title;
+    accessible-description: root.entry.detail;
+
+    VerticalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s4;
+        padding-top: Tokens.s2 + 2px;
+        padding-bottom: Tokens.s2 + 2px;
+        spacing: Tokens.s2;
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                AppIcon {
+                    icon: root.entry.icon;
+                    has-icon: root.entry.has-icon;
+                    dim: !root.entry.shown;
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 1px;
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    Text {
+                        text: root.entry.title;
+                        font-weight: 600;
+                        color: root.entry.shown ? Tokens.text : Tokens.text-3;
+                        overflow: elide;
+                    }
+                    if root.entry.tag != "": Text {
+                        text: root.entry.tag;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        vertical-alignment: center;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+                Text {
+                    text: root.entry.detail;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                    overflow: elide;
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Toggle {
+                    on: root.entry.shown;
+                    enabled: !root.locked;
+                    label: "Show " + root.entry.title + " in the menu";
+                    toggled(on) => { OpenWithState.other-toggle(root.index, on); }
+                }
+            }
+        }
+        if !root.entry.shown && root.entry.extension: HorizontalLayout {
+            padding-left: 20px + Tokens.s3;
+            spacing: Tokens.s3;
+            Text {
+                vertical-alignment: center;
+                text: "Title to hide";
+                color: Tokens.text-2;
+            }
+            LineEdit {
+                horizontal-stretch: 1;
+                enabled: !root.locked;
+                placeholder-text: "Exactly as the menu shows it";
+                init => { self.text = root.entry.hide-title; }
+                edited(t) => { OpenWithState.other-title(root.index, t); }
+            }
+        }
+        if !root.entry.shown && root.entry.problem != "": HorizontalLayout {
+            padding-left: 20px + Tokens.s3;
+            Text {
+                text: root.entry.problem;
+                font-size: Tokens.caption;
+                color: Tokens.warning;
+                wrap: word-wrap;
+            }
+        }
+    }
+}
+
 // One row of the preview menu, sized like Shell's default theme.
 component PreviewItem inherits Rectangle {
     in property <OpenWithPreviewRow> entry;
@@ -608,7 +701,7 @@ export component OpenWithPage inherits PageFrame {
             spacing: Tokens.s3;
             FormRow {
                 label: "Layout";
-                hint: OpenWithState.submenu ? "One submenu at the top of the menu, with each app inside it." : "Each app is its own \"Open in …\" item at the top of the menu, next to Explorer's \"Open\" items.";
+                hint: (OpenWithState.submenu ? "One submenu with each app inside it, " : "Each app is its own \"Open in …\" item, in this order, ") + "right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu.";
                 FlagField {
                     text: "Group in an \"Open in\" submenu";
                     enabled: !root.locked;
@@ -731,6 +824,43 @@ export component OpenWithPage inherits PageFrame {
                         line: line;
                         font: EditorState.mono-font;
                     }
+                }
+            }
+        }
+    }
+
+    SectionHead {
+        title: "Other apps' menu items";
+        caption: "Items other programs put in the menu themselves, such as Git, VLC or 7-Zip. They aren't from this list. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. Windows' own items aren't listed.";
+    }
+    ListSurface {
+        if !OpenWithState.others-loaded || OpenWithState.others.length == 0: Text {
+            height: 52px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: OpenWithState.others-loaded ? "No other program adds items to the menu for files, folders or drives." : "Reading the registry…";
+            color: Tokens.text-3;
+        }
+        for o[i] in OpenWithState.others: VerticalLayout {
+            if i > 0: Hairline { }
+            OtherItem {
+                entry: o;
+                index: i;
+                locked: root.locked;
+            }
+        }
+        if OpenWithState.others-hidden > 0: VerticalLayout {
+            Hairline { }
+            HorizontalLayout {
+                padding-left: Tokens.s4;
+                padding-right: Tokens.s4;
+                height: 36px;
+                Text {
+                    vertical-alignment: center;
+                    text: "Switched off: " + OpenWithState.others-hidden + ". Each is a remove() rule in " + OpenWithState.file-label + ", after the Open in items.";
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    overflow: elide;
                 }
             }
         }

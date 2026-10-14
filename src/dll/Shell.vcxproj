@@ -180,6 +180,7 @@
     <ClCompile Include="src\Expression\OperatorExpression.cpp" />
     <ClCompile Include="src\Expression\Scope.cpp" />
     <ClInclude Include="src\Include\FindPattern.h" />
+    <ClInclude Include="src\Include\IndexOf.h" />
     <ClCompile Include="src\Parser\Lexer.cpp" />
     <ClCompile Include="src\Parser\Properties.cpp" />
     <ClCompile Include="src\Parser\Verification.cpp" />

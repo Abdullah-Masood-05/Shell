@@ -1,4 +1,4 @@
-#include <pch.h>
+﻿#include <pch.h>
 #include "Include/Theme.h"
 #include "Include/ContextMenu.h"
 #include "Include/stb_image_write.h"
@@ -1288,6 +1288,11 @@ namespace Nilesoft
 
 			auto add_custom_items = [&](std::vector<MenuItemInfo *> &custom_items)
 			{
+				// The last item placed for each indexof(pattern, offset, default), so a
+				// group with the same indexof() keeps its order in the file.
+				struct Placed { const MenuItemInfo *spec; MenuItemInfo *last; };
+				std::vector<Placed> placed;
+
 				for(auto item : custom_items)
 				{
 					if(item->indexof.val.empty())
@@ -1300,50 +1305,47 @@ namespace Nilesoft
 					}
 					else
 					{
-						int i = 0; bool found = false;
-						FindPattern find_ptattern;
-						if(find_ptattern.split(item->indexof.val, L'|'))
+						Placed *group = nullptr;
+						for(auto &p : placed)
 						{
-							for(const auto &fp : find_ptattern.matches)
+							if(p.spec->indexof.pos == item->indexof.pos && p.spec->indexof.def == item->indexof.def &&
+							   p.spec->indexof.val.equals(item->indexof.val, false))
 							{
-								i = 0;
-								for(auto &it : items)
-								{
-									if(find_ptattern.find(fp, &it->title.normalize))
-									{
-										found = true;
-										items.insert(items.begin() + i + item->indexof.pos, item);
-										break;
-									}
-									i++;
-								}
-								
-								if(found)
-									break;
+								group = &p;
+								break;
 							}
-							
-							/*for(auto it : items)
-							{
-								if(find_ptattern(&it->title.normalize))
-								{
-									items.insert(items.begin() + i + item->indexof.pos, item);
-									found = true;
-									break;
-								}
-								i++;
-							}*/
 						}
 
-						if(!found)
+						std::ptrdiff_t anchor = -1;
+						if(!group)
 						{
-							i = item->indexof.def;
-							if(i == -2)
-								items.insert(items.begin(), item);
-							else if(i == -3)
-								items.insert(items.begin() + (items.size() / 2), item);
-							else
-								items.push_back(item);
+							// The patterns are tried in order ("a|b": b only when no item matches a).
+							FindPattern find_ptattern;
+							if(find_ptattern.split(item->indexof.val, L'|'))
+							{
+								for(const auto &fp : find_ptattern.matches)
+								{
+									for(size_t i = 0; i < items.size(); i++)
+									{
+										if(find_ptattern.find(fp, &items[i]->title.normalize))
+										{
+											anchor = static_cast<std::ptrdiff_t>(i);
+											break;
+										}
+									}
+
+									if(anchor >= 0)
+										break;
+								}
+							}
 						}
+
+						IndexOf::insert(items, item, group ? &group->last : nullptr, anchor, item->indexof.pos, item->indexof.def);
+
+						if(group)
+							group->last = item;
+						else
+							placed.push_back({ item, item });
 					}
 				}
 			};
