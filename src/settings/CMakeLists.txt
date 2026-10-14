@@ -20,6 +20,24 @@ else()
 endif()
 set(SHELL_VERSION "${SHELL_VERSION_MAJOR}.${SHELL_VERSION_MINOR}.${SHELL_VERSION_BUILD}")
 
+# The full version the app shows and compares with GitHub releases, including any
+# pre-release suffix (2.0.1-beta.1). release.yml passes the tag without the "v"
+# (-DSETTINGS_VERSION_TAG=2.0.1-beta.1); empty means the Resource.h version, so a cached
+# build tree never keeps an old release's tag.
+set(SETTINGS_VERSION_TAG "" CACHE STRING "Full app version, e.g. 2.0.1 or 2.0.1-beta.1 (empty: the Resource.h version)")
+if(SETTINGS_VERSION_TAG STREQUAL "")
+    set(SETTINGS_FULL_VERSION "${SHELL_VERSION}")
+else()
+    string(REGEX REPLACE "^v" "" SETTINGS_FULL_VERSION "${SETTINGS_VERSION_TAG}")
+endif()
+if(NOT SETTINGS_FULL_VERSION MATCHES "^([0-9]+[.][0-9]+[.][0-9]+)(-[0-9A-Za-z.-]+)?$")
+    message(FATAL_ERROR "SETTINGS_VERSION_TAG '${SETTINGS_FULL_VERSION}' is not a version like 2.0.1 or 2.0.1-beta.1")
+endif()
+if(NOT CMAKE_MATCH_1 STREQUAL SHELL_VERSION)
+    message(FATAL_ERROR "SETTINGS_VERSION_TAG '${SETTINGS_FULL_VERSION}' does not match src/shared/Resource.h (${SHELL_VERSION})")
+endif()
+message(STATUS "Nilesoft Shell Pro version: ${SETTINGS_FULL_VERSION}")
+
 project(NilesoftShellPro VERSION ${SHELL_VERSION}.${SHELL_VERSION_REV} LANGUAGES CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -88,6 +106,8 @@ add_executable(settings WIN32
     src/Status.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
+    src/UpdateController.cpp
+    src/Updater.cpp
     src/Wallpaper.cpp
     src/Worker.cpp
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
@@ -97,12 +117,12 @@ slint_target_sources(settings ui/app.slint)
 target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
-    SETTINGS_VERSION="${SHELL_VERSION}")
+    SETTINGS_VERSION="${SETTINGS_FULL_VERSION}")
 target_compile_options(settings PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc)
 # /W4 for our own sources only; the Slint-generated code is noisy at that level.
 file(GLOB SETTINGS_OWN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 set_source_files_properties(${SETTINGS_OWN_SOURCES} PROPERTIES COMPILE_OPTIONS "/W4")
-target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs)
+target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs winhttp bcrypt)
 # A WIN32 executable that keeps the standard main().
 target_link_options(settings PRIVATE /ENTRY:mainCRTStartup /MANIFEST:NO)
 
@@ -134,6 +154,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_onboarding.cpp
         tests/test_openwith.cpp
         tests/test_presets.cpp
+        tests/test_updater.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -148,13 +169,15 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
+        src/Updater.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}")
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
-        SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}")
+        SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
+        SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 ole32)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 ole32 advapi32 winhttp bcrypt)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()

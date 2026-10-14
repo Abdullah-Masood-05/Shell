@@ -79,6 +79,14 @@ std::optional<DWORD> get(const wchar_t *name) { return readDword(HKEY_CURRENT_US
 
 bool set(const wchar_t *name, DWORD value) { return writeDword(HKEY_CURRENT_USER, key, name, value); }
 
+std::optional<std::wstring> getString(const wchar_t *name) { return readString(HKEY_CURRENT_USER, key, name); }
+
+bool setString(const wchar_t *name, const std::wstring &value)
+{
+    return RegSetKeyValueW(HKEY_CURRENT_USER, key, name, REG_SZ, value.c_str(),
+                           DWORD((value.size() + 1) * sizeof(wchar_t))) == ERROR_SUCCESS;
+}
+
 std::optional<Placement> loadPlacement()
 {
     auto x = get(L"WindowX"), y = get(L"WindowY"), w = get(L"WindowWidth"), h = get(L"WindowHeight");
