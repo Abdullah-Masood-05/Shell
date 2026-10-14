@@ -125,7 +125,6 @@ bool isOfflineError(DWORD code)
     case ERROR_WINHTTP_CANNOT_CONNECT:
     case ERROR_WINHTTP_TIMEOUT:
     case ERROR_WINHTTP_CONNECTION_ERROR:
-    case ERROR_WINHTTP_PROXY_AUTH_REQUIRED:
         return true;
     default:
         return false;
