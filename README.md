@@ -91,13 +91,21 @@ The screenshots of the app are made by
 
 ## Install
 
+> [!CAUTION]
+> **If the original Nilesoft Shell is installed, uninstall it before installing Nilesoft Shell Pro.** Pro has its own
+> name and does not replace the original (installed with its own installer, winget, Scoop or Chocolatey, or a portable
+> copy), so both stay registered with Explorer and collide: the context menu can stop appearing or show up twice.
+> Uninstall it from *Settings > Apps > Installed apps*; for a portable copy run `shell -unregister -restart` from its
+> folder and delete the folder. Back up your `shell.nss` and `imports` folder first if you want to keep your
+> configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
+
 Each [release](https://github.com/Abdullah-Masood-05/Shell/releases) has `setup-x64.msi`, `setup-arm64.msi`,
 `setup-x86.msi`, `NilesoftShellPro-<version>-x64-portable.zip` and `SHA256SUMS.txt`. The files are not code-signed, so
 Windows SmartScreen may warn before running them.
 
 **For all users (needs administrator rights once).** Run the MSI for your platform. It installs to
 `C:\Program Files\Nilesoft Shell`, registers Shell with the Windows 11 classic menu, restarts Explorer and adds
-*Nilesoft Shell Pro* to the Start menu. It upgrades an existing Nilesoft Shell installation and keeps your
+*Nilesoft Shell Pro* to the Start menu. It upgrades an earlier Nilesoft Shell Pro installation and keeps your
 `shell.nss`.
 
 **For the current user only (no administrator rights).** Extract the portable zip to a folder you own, for example

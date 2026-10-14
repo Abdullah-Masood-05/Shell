@@ -1,5 +1,8 @@
 **Nilesoft Shell Pro {{VERSION}}** is a community fork of [Nilesoft Shell](https://github.com/moudey/Shell) by Moudey and Nilesoft: the same context-menu extension and `.nss` configuration language, with security and stability fixes, a per-user mode that needs no administrator rights, and an app to set it up and configure it. It is not an official Nilesoft release.
 
+> [!CAUTION]
+> **If the original Nilesoft Shell is installed, uninstall it before installing Nilesoft Shell Pro.** Pro has its own name and does not replace the original (installed with its own installer, winget, Scoop or Chocolatey, or a portable copy), so both stay registered with Explorer and collide: the context menu can stop appearing or show up twice. Uninstall it from *Settings > Apps > Installed apps*; for a portable copy run `shell -unregister -restart` from its folder and delete the folder. Back up your `shell.nss` and `imports` folder first if you want to keep your configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
+
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
 ## New in 2.0.4
@@ -76,7 +79,7 @@ Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork
 | `setup-x86.msi` | 32-bit Windows | No app; the Start menu entry opens `shell.exe`. |
 | `NilesoftShellPro-{{VERSION}}-x64-portable.zip` | Windows x64, one user | No administrator rights. Extract to e.g. `%LOCALAPPDATA%\Programs\NilesoftShellPro`, then run `NilesoftShellPro.exe`, or `shell.exe -register -user -treat` and `shell.exe -restart`. See `PORTABLE.txt` in the zip. |
 
-The MSI uses the same upgrade code as Nilesoft Shell, so it upgrades an existing Nilesoft Shell installation in place (same folder, your `shell.nss` is kept). It appears as "Nilesoft Shell Pro" in Installed apps. Installing a later upstream Nilesoft Shell release over it replaces it the same way.
+The MSI upgrades an earlier Nilesoft Shell Pro installation in place (same folder, your `shell.nss` is kept) and appears as "Nilesoft Shell Pro" in Installed apps. It does not reliably replace the original Nilesoft Shell: uninstall that first (see the warning above).
 
 Verify downloads against `SHA256SUMS.txt`:
 
