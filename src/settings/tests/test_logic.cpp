@@ -186,6 +186,106 @@ TEST_CASE("highlight: token kinds")
     CHECK(tabs[0].spans[0].text == "    ");
 }
 
+TEST_CASE("highlight: tabs in the edit view")
+{
+    const std::string L = " ", P = " ";
+    std::string file = "menu\n{\n\titem(title='a\tb')\n\t\t// x\n  \tz\n";
+    auto g = hl::pickTabGlyphs(file);
+    REQUIRE(g.valid());
+    CHECK(g.lead == U' ');
+    CHECK(g.pad == U' ');
+
+    // A tab becomes a lead and pads up to the next stop of 4 columns.
+    auto display = hl::tabsToDisplay(file, g);
+    CHECK(display.find('\t') == std::string::npos);
+    CHECK(display.find("\n" + L + P + P + P + "item(title='a" + L + P + P + "b')") != std::string::npos);
+    CHECK(display.find("\n  " + L + P + "z") != std::string::npos);
+    CHECK(hl::tabsFromDisplay(display, g) == file);
+
+    // The highlighted lines carry exactly the display text.
+    auto lines = hl::highlight(file, 4, &g);
+    std::string joined;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        for (auto &s : lines[i].spans)
+            joined += s.text;
+        if (i + 1 < lines.size())
+            joined += "\n";
+    }
+    CHECK(joined == display);
+
+    // A file that already has the first pair gets another one.
+    auto g2 = hl::pickTabGlyphs("x" + L + "y");
+    CHECK(g2.lead == U' ');
+    CHECK(hl::tabsFromDisplay(hl::tabsToDisplay("a" + L + "\tb", g2), g2) == "a" + L + "\tb");
+
+    // Edits: apply `make` to the display text and check the file text and cursor.
+    auto edit = [&](const std::string &before, size_t pos, size_t removeLen, const std::string &insert) {
+        auto d = hl::tabsToDisplay(before, g);
+        auto after = d;
+        after.replace(pos, removeLen, insert);
+        return hl::applyDisplayEdit(d, after, g);
+    };
+    // Typing before a tab keeps the tab and re-pads it.
+    auto r = edit("a\tb", 0, 0, "x");
+    CHECK(r.text == "xa\tb");
+    CHECK(r.changed);
+    CHECK(r.display == "xa" + L + P + "b");
+    CHECK(r.cursor == 1);
+    // Typing elsewhere doesn't touch the TextInput.
+    r = edit("\tab", (L + P + P + P).size() + 1, 0, "x");
+    CHECK(r.text == "\taxb");
+    CHECK(!r.changed);
+    // Backspace on the last pad deletes the whole tab.
+    auto d = hl::tabsToDisplay("\t\tx", g);
+    r = hl::applyDisplayEdit(d, d.substr(0, d.size() - 1 - P.size()) + "x", g);
+    CHECK(r.text == "\tx");
+    CHECK(r.display == L + P + P + P + "x");
+    CHECK(r.cursor == (L + P + P + P).size());
+    // Delete on the lead deletes the whole tab.
+    r = edit("a\tb", 1, L.size(), "");
+    CHECK(r.text == "ab");
+    CHECK(r.cursor == 1);
+    // A raw tab (Tab key, paste) is expanded.
+    r = edit("ab", 1, 0, "\t");
+    CHECK(r.text == "a\tb");
+    CHECK(r.display == "a" + L + P + P + "b");
+    CHECK(r.cursor == (std::string("a") + L + P + P).size());
+    // Replacing a selection that ends inside a tab.
+    r = edit("ab\tc", 1, 1 + L.size(), "Z");
+    CHECK(r.text == "aZc");
+    // Non-ASCII before a tab counts one column per code point.
+    CHECK(hl::tabsToDisplay("é\tx", g) == "é" + L + P + P + "x");
+}
+
+TEST_CASE("editor: tabs survive an edit and a save (round trip)")
+{
+    TempDir dir;
+    auto path = dir.path / L"tabs.nss";
+    const std::string bytes = "menu(title='t')\r\n{\r\n\titem(title='a'\tcmd='b')\r\n\t\t// nested\r\n}\r\n";
+    writeAll(path, bytes);
+    auto buf = editor::loadBuffer(path);
+    REQUIRE(buf);
+    auto g = hl::pickTabGlyphs(buf->text);
+    auto display = hl::tabsToDisplay(buf->text, g);
+    REQUIRE(display.find('\t') == std::string::npos);
+
+    // Type a new line in the edit view, after the first item.
+    auto pos = display.find("'b')") + 4;
+    auto edited = display;
+    edited.insert(pos, "\n" + hl::tabsToDisplay("\t", g) + "sep");
+    auto r = hl::applyDisplayEdit(display, edited, g);
+    CHECK(r.text == "menu(title='t')\n{\n\titem(title='a'\tcmd='b')\n\tsep\n\t\t// nested\n}\n");
+
+    // Saving writes the tabs back as tab bytes, with the file's CRLF endings.
+    auto out = nss::encode(editor::fromEditorText(r.text, buf->format.eol), buf->format);
+    CHECK(out == "menu(title='t')\r\n{\r\n\titem(title='a'\tcmd='b')\r\n\tsep\r\n\t\t// nested\r\n}\r\n");
+    CHECK(out.find("\xE2\x80") == std::string::npos);
+
+    // An edit that is undone gives the original bytes back.
+    auto back = hl::applyDisplayEdit(r.display, display, g);
+    CHECK(nss::encode(editor::fromEditorText(back.text, buf->format.eol), buf->format) == bytes);
+}
+
 TEST_CASE("editor: text helpers")
 {
     CHECK(editor::toEditorText("a\r\nb\rc\n") == "a\nb\nc\n");
