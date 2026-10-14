@@ -1080,9 +1080,10 @@ void OpenWithController::save(Migrate migrate)
                 developSavedHidden_ = hideDevelop;
                 edited(false);
                 if (migrate == Migrate::Own)
-                    toast("ok", "Hid the switched-off apps' own items",
-                          "The menu no longer shows " + hidingText + "'s own entries. Snapshot " + result.snapshotId +
-                              " has the file before.");
+                    toast("ok", "Updated the switched-off apps' own items",
+                          (hidingText.empty() ? std::string("Their menu entries changed in the registry.")
+                                              : "The menu no longer shows " + hidingText + "'s own entries.") +
+                              " Snapshot " + result.snapshotId + " has the file before.");
                 else if (migrate == Migrate::Layout)
                     toast("ok", "Moved the Open with items",
                           "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot " +
