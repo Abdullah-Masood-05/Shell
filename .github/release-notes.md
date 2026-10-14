@@ -2,6 +2,11 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
+## New in 2.0.3
+
+- Banners (for example *Updated to 2.0.2*) grow with their text, so the second line is no longer cut off.
+- Success, warning and error banners use colours that fit the app's dark blue theme.
+
 ## New in 2.0.2
 
 - **Sharper look:** cards, panels, inputs and buttons use near-square 2–3 px corners; toggles, dots and slider thumbs stay round.

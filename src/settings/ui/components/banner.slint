@@ -37,14 +37,16 @@ export component Banner inherits Rectangle {
     callback action();
     callback close();
 
-    min-height: 48px;
+    // Grow with the text: two lines (title + message) must never be clipped.
+    min-height: max(48px, content.preferred-height);
+    preferred-height: content.preferred-height;
     border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke;
     background: Tokens.status-bg(root.kind);
     animate background { duration: Tokens.normal; }
 
-    HorizontalLayout {
+    content := HorizontalLayout {
         padding-left: Tokens.s4;
         padding-right: Tokens.s2;
         padding-top: Tokens.s3;
