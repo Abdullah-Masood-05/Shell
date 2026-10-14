@@ -22,7 +22,7 @@ component SwitchRow inherits SettingRow {
     reset => { SettingsState.reset(root.index); }
     ToggleSwitch {
         on: SettingsState.fields[root.index].number > 0.5;
-        enabled: root.ready && !SettingsState.fields[root.index].locked;
+        enabled: root.ready;
         toggled(on) => { SettingsState.set-bool(root.index, on); }
     }
 }
@@ -71,7 +71,7 @@ export component BehaviorPage inherits PageFrame {
             ToggleSwitch {
                 on: root.f[SK.showdelay].index == 1;
                 // Off over a delay in your files writes showdelay = auto (BehaviorController::setShowDelay).
-                enabled: root.ready && !root.f[SK.showdelay].locked;
+                enabled: root.ready;
                 toggled(on) => { SettingsState.set-bool(SK.showdelay, on); }
             }
         }
@@ -80,7 +80,7 @@ export component BehaviorPage inherits PageFrame {
             maximum: 4000;
             step: 50;
             unit: " ms";
-            enabled: root.ready && !root.f[SK.showdelay].locked;
+            enabled: root.ready;
             changed(v) => { SettingsState.set-number(SK.showdelay, v); }
         }
     }
@@ -103,7 +103,7 @@ export component BehaviorPage inherits PageFrame {
                 maximum: 10;
                 step: 0.1;
                 unit: " s";
-                enabled: root.ready && !root.f[SK.tip-time].locked;
+                enabled: root.ready;
                 changed(v) => { SettingsState.set-number(SK.tip-time, v); }
             }
         }
@@ -117,7 +117,7 @@ export component BehaviorPage inherits PageFrame {
                 maximum: 2000;
                 step: 10;
                 unit: " px";
-                enabled: root.ready && !root.f[SK.tip-width].locked;
+                enabled: root.ready;
                 changed(v) => { SettingsState.set-number(SK.tip-width, v); }
             }
         }
@@ -129,7 +129,7 @@ export component BehaviorPage inherits PageFrame {
             ColorField {
                 value: root.f[SK.tip-colors].color;
                 hex: root.f[SK.tip-colors].display;
-                enabled: root.ready && !root.f[SK.tip-colors].locked;
+                enabled: root.ready;
                 changed(c) => { SettingsState.set-pair(SK.tip-colors, c, root.f[SK.tip-colors].color2); }
                 hex-entered(t) => { SettingsState.set-text(SK.tip-colors, "[" + t + ", " + root.f[SK.tip-colors].display2 + "]"); }
             }
@@ -140,7 +140,7 @@ export component BehaviorPage inherits PageFrame {
             ColorField {
                 value: root.f[SK.tip-colors].color2;
                 hex: root.f[SK.tip-colors].display2;
-                enabled: root.ready && !root.f[SK.tip-colors].locked;
+                enabled: root.ready;
                 changed(c) => { SettingsState.set-pair(SK.tip-colors, root.f[SK.tip-colors].color, c); }
                 hex-entered(t) => { SettingsState.set-text(SK.tip-colors, "[" + root.f[SK.tip-colors].display + ", " + t + "]"); }
             }
@@ -164,7 +164,7 @@ export component BehaviorPage inherits PageFrame {
             reset => { SettingsState.reset(SK.screenshot-dir); }
             AppButton {
                 text: "Choose…";
-                enabled: root.ready && !root.f[SK.screenshot-dir].locked;
+                enabled: root.ready;
                 clicked => { SettingsState.pick-folder(SK.screenshot-dir); }
             }
         }
@@ -201,7 +201,7 @@ export component BehaviorPage inherits PageFrame {
             ChipGroup {
                 options: ["Off", "On", "Auto"];
                 selected: root.f[SK.modify-image].index;
-                enabled: root.ready && !root.f[SK.modify-image].locked;
+                enabled: root.ready;
                 changed(i) => { SettingsState.set-index(SK.modify-image, i); }
             }
         }

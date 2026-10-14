@@ -42,7 +42,7 @@ export component FieldLabel inherits VerticalLayout {
             text: root.label;
             font-size: Tokens.body;
             font-weight: root.strong ? 600 : 400;
-            color: root.field.locked ? Tokens.text-3 : Tokens.text;
+            color: Tokens.text;
             vertical-alignment: center;
         }
         if root.field.overridden || root.field.pending: VerticalLayout {
@@ -90,7 +90,7 @@ export component FieldLabel inherits VerticalLayout {
         }
     }
     Text {
-        text: root.field.locked ? "Set by an expression · " + root.field.origin : root.hint != "" ? root.hint : root.field.origin;
+        text: root.field.locked ? "Set by an expression (" + root.field.origin + "). Changing it here overrides it." : root.hint != "" ? root.hint : root.field.origin;
         font-size: Tokens.caption;
         color: Tokens.text-3;
         wrap: word-wrap;
@@ -831,7 +831,7 @@ export component PaletteSwatch inherits Rectangle {
                 Text {
                     text: root.label;
                     font-size: 13px;
-                    color: root.field.locked ? Tokens.text-3 : Tokens.text;
+                    color: Tokens.text;
                     overflow: elide;
                 }
                 if root.field.overridden || root.field.pending: VerticalLayout {

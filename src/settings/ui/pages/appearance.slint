@@ -121,7 +121,7 @@ export component AppearancePage inherits Rectangle {
                         description: "The built-in style under every preset: colours, corners and effects. What you change below applies on top of it.";
                         ThemePicker {
                             selected: root.f[K.name].index;
-                            enabled: root.ready && !root.f[K.name].locked;
+                            enabled: root.ready;
                             picked(i) => { AppearanceState.set-index(K.name, i); }
                         }
                     }
@@ -217,7 +217,7 @@ export component AppearancePage inherits Rectangle {
                                         spacing: Tokens.s3;
                                         alignment: start;
                                         Text {
-                                            text: root.f[K.name].locked ? "Set by an expression · " + root.f[K.name].origin : root.f[K.name].origin;
+                                            text: root.f[K.name].locked ? "Set by an expression (" + root.f[K.name].origin + "). Changing it here overrides it." : root.f[K.name].origin;
                                             font-size: Tokens.caption;
                                             color: Tokens.text-3;
                                             vertical-alignment: center;
@@ -257,7 +257,7 @@ export component AppearancePage inherits Rectangle {
                                         label: root.palette[i].label;
                                         field: root.f[root.palette[i].index];
                                         show-alpha: root.palette[i].alpha;
-                                        enabled: root.ready && !root.f[root.palette[i].index].locked;
+                                        enabled: root.ready;
                                         current: root.swatch == i;
                                         picked => { root.swatch = i; }
                                         changed(c) => { AppearanceState.set-color(root.palette[i].index, c); }
@@ -270,7 +270,7 @@ export component AppearancePage inherits Rectangle {
                                         label: root.palette[i + 3].label;
                                         field: root.f[root.palette[i + 3].index];
                                         show-alpha: root.palette[i + 3].alpha;
-                                        enabled: root.ready && !root.f[root.palette[i + 3].index].locked;
+                                        enabled: root.ready;
                                         current: root.swatch == i + 3;
                                         picked => { root.swatch = i + 3; }
                                         changed(c) => { AppearanceState.set-color(root.palette[i + 3].index, c); }
@@ -292,7 +292,7 @@ export component AppearancePage inherits Rectangle {
                                                 value: root.f[root.palette[root.swatch].index].color;
                                                 hex: root.f[root.palette[root.swatch].index].display;
                                                 show-alpha: root.palette[root.swatch].alpha;
-                                                enabled: root.ready && !root.f[root.palette[root.swatch].index].locked;
+                                                enabled: root.ready;
                                                 changed(c) => { AppearanceState.set-color(root.palette[root.swatch].index, c); }
                                                 hex-entered(t) => { AppearanceState.set-text(root.palette[root.swatch].index, t); }
                                             }
@@ -309,7 +309,7 @@ export component AppearancePage inherits Rectangle {
                                     ChipGroup {
                                         options: ["Auto", "On", "Off"];
                                         selected: root.f[K.dark].index;
-                                        enabled: root.ready && !root.f[K.dark].locked;
+                                        enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.dark, i); }
                                     }
                                 }
@@ -329,7 +329,7 @@ export component AppearancePage inherits Rectangle {
                                     FontPicker {
                                         value: root.f[K.font-name].display;
                                         fonts: AppearanceState.fonts;
-                                        enabled: root.ready && !root.f[K.font-name].locked;
+                                        enabled: root.ready;
                                         filter(t) => { AppearanceState.filter-fonts(t); }
                                         picked(name) => { AppearanceState.set-text(K.font-name, name); }
                                     }
@@ -345,7 +345,7 @@ export component AppearancePage inherits Rectangle {
                                         minimum: 6;
                                         maximum: 32;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.font-size].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.font-size, v); }
                                     }
                                 }
@@ -360,7 +360,7 @@ export component AppearancePage inherits Rectangle {
                                         minimum: 1;
                                         maximum: 9;
                                         unit: "00";
-                                        enabled: root.ready && !root.f[K.font-weight].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.font-weight, v); }
                                     }
                                 }
@@ -372,7 +372,7 @@ export component AppearancePage inherits Rectangle {
                                     ChipGroup {
                                         options: ["Auto", "Compact", "Small", "Medium", "Large", "Wide"];
                                         selected: root.f[K.view].index;
-                                        enabled: root.ready && !root.f[K.view].locked;
+                                        enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.view, i); }
                                     }
                                 }
@@ -393,7 +393,7 @@ export component AppearancePage inherits Rectangle {
                                     ChipGroup {
                                         options: ["Auto", "None", "Transparent", "Blur", "Acrylic"];
                                         selected: root.f[K.effect].index;
-                                        enabled: root.ready && !root.f[K.effect].locked;
+                                        enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.effect, i); }
                                     }
                                 }
@@ -406,7 +406,7 @@ export component AppearancePage inherits Rectangle {
                                         value: root.f[K.tint].color;
                                         hex: root.f[K.tint].display;
                                         show-alpha: true;
-                                        enabled: root.ready && !root.f[K.tint].locked;
+                                        enabled: root.ready;
                                         changed(c) => { AppearanceState.set-color(K.tint, c); }
                                         hex-entered(t) => { AppearanceState.set-text(K.tint, t); }
                                     }
@@ -421,7 +421,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.bg-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
-                                        enabled: root.ready && !root.f[K.bg-opacity].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.bg-opacity, v); }
                                     }
                                 }
@@ -436,7 +436,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.menu-radius); }
                                     RadiusSteps {
                                         selected: root.f[K.menu-radius].number;
-                                        enabled: root.ready && !root.f[K.menu-radius].locked;
+                                        enabled: root.ready;
                                         changed(i) => { AppearanceState.set-number(K.menu-radius, i); }
                                     }
                                 }
@@ -446,7 +446,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.item-radius); }
                                     RadiusSteps {
                                         selected: root.f[K.item-radius].number;
-                                        enabled: root.ready && !root.f[K.item-radius].locked;
+                                        enabled: root.ready;
                                         changed(i) => { AppearanceState.set-number(K.item-radius, i); }
                                     }
                                 }
@@ -459,7 +459,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.border-size].is-auto;
                                         maximum: 10;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.border-size].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.border-size, v); }
                                     }
                                 }
@@ -472,7 +472,7 @@ export component AppearancePage inherits Rectangle {
                                     ToggleSwitch {
                                         on: root.f[K.shadow].number > 0.5;
                                         label: "Shadow";
-                                        enabled: root.ready && !root.f[K.shadow].locked;
+                                        enabled: root.ready;
                                         toggled(on) => { AppearanceState.set-number(K.shadow, on ? 1 : 0); }
                                     }
                                 }
@@ -485,7 +485,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.shadow-size].is-auto;
                                         maximum: 30;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.shadow-size].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.shadow-size, v); }
                                     }
                                 }
@@ -498,7 +498,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.shadow-offset].is-auto;
                                         maximum: 30;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.shadow-offset].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.shadow-offset, v); }
                                     }
                                 }
@@ -511,7 +511,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.shadow-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
-                                        enabled: root.ready && !root.f[K.shadow-opacity].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.shadow-opacity, v); }
                                     }
                                 }
@@ -532,7 +532,7 @@ export component AppearancePage inherits Rectangle {
                                     BoxField {
                                         horizontal: root.f[K.item-padding].number;
                                         vertical: root.f[K.item-padding].number2;
-                                        enabled: root.ready && !root.f[K.item-padding].locked;
+                                        enabled: root.ready;
                                         changed(h, v) => { AppearanceState.set-box(K.item-padding, h, v); }
                                     }
                                 }
@@ -544,7 +544,7 @@ export component AppearancePage inherits Rectangle {
                                     BoxField {
                                         horizontal: root.f[K.item-margin].number;
                                         vertical: root.f[K.item-margin].number2;
-                                        enabled: root.ready && !root.f[K.item-margin].locked;
+                                        enabled: root.ready;
                                         changed(h, v) => { AppearanceState.set-box(K.item-margin, h, v); }
                                     }
                                 }
@@ -558,7 +558,7 @@ export component AppearancePage inherits Rectangle {
                                         minimum: 8;
                                         maximum: 48;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.image-size].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.image-size, v); }
                                     }
                                 }
@@ -571,7 +571,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.image-gap].is-auto;
                                         maximum: 40;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.image-gap].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.image-gap, v); }
                                     }
                                 }
@@ -583,7 +583,7 @@ export component AppearancePage inherits Rectangle {
                                         value: root.f[K.back-disabled].color;
                                         hex: root.f[K.back-disabled].display;
                                         show-alpha: true;
-                                        enabled: root.ready && !root.f[K.back-disabled].locked;
+                                        enabled: root.ready;
                                         changed(c) => { AppearanceState.set-color(K.back-disabled, c); }
                                         hex-entered(t) => { AppearanceState.set-text(K.back-disabled, t); }
                                     }
@@ -601,7 +601,7 @@ export component AppearancePage inherits Rectangle {
                                         auto-value: root.f[K.sep-size].is-auto;
                                         maximum: 40;
                                         unit: " px";
-                                        enabled: root.ready && !root.f[K.sep-size].locked;
+                                        enabled: root.ready;
                                         changed(v) => { AppearanceState.set-number(K.sep-size, v); }
                                     }
                                 }
@@ -613,7 +613,7 @@ export component AppearancePage inherits Rectangle {
                                         value: root.f[K.sep-color].color;
                                         hex: root.f[K.sep-color].display;
                                         show-alpha: true;
-                                        enabled: root.ready && !root.f[K.sep-color].locked;
+                                        enabled: root.ready;
                                         changed(c) => { AppearanceState.set-color(K.sep-color, c); }
                                         hex-entered(t) => { AppearanceState.set-text(K.sep-color, t); }
                                     }
@@ -626,7 +626,7 @@ export component AppearancePage inherits Rectangle {
                                     BoxField {
                                         horizontal: root.f[K.sep-margin].number;
                                         vertical: root.f[K.sep-margin].number2;
-                                        enabled: root.ready && !root.f[K.sep-margin].locked;
+                                        enabled: root.ready;
                                         changed(h, v) => { AppearanceState.set-box(K.sep-margin, h, v); }
                                     }
                                 }
