@@ -18,7 +18,7 @@
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
-//   --set <key>=<literal>, --save    see AppearanceController.h
+//   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
 //

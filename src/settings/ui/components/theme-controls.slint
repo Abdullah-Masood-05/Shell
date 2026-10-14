@@ -272,18 +272,25 @@ export component ValueSlider inherits HorizontalLayout {
     in property <float> step: 1;
     in property <string> unit;
     in property <bool> enabled: true;
+    // The core picks the value (auto): `value` is its resolved default, shown as
+    // "Auto (≈N)". Nothing is written until the user moves the slider, and then
+    // even a move to the same number counts, so auto can be pinned to it.
+    in property <bool> auto-value;
     callback changed(value: float);
 
     // The value shown while dragging; the model's value wins whenever it changes.
     property <float> shown: root.value;
-    changed value => { root.shown = root.value; }
+    property <bool> touched;
+    changed value => { root.shown = root.value; root.touched = false; }
+    changed auto-value => { root.touched = false; }
 
     spacing: Tokens.s3;
 
     function set(v: float) {
         let s = clamp(Math.round(v / root.step) * root.step, root.minimum, root.maximum);
-        if (s != root.shown) {
+        if (s != root.shown || (root.auto-value && !root.touched)) {
             root.shown = s;
+            root.touched = true;
             root.changed(s);
         }
     }
@@ -394,8 +401,8 @@ export component ValueSlider inherits HorizontalLayout {
         }
     }
     Text {
-        width: 56px;
-        text: root.shown + root.unit;
+        width: root.auto-value && !root.touched ? 92px : 56px;
+        text: root.auto-value && !root.touched ? "Auto (≈" + root.shown + root.unit + ")" : root.shown + root.unit;
         horizontal-alignment: right;
         vertical-alignment: center;
         color: Tokens.text-2;

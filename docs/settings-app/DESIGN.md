@@ -10,7 +10,17 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 - **Theme value ranges:**
   - `item.radius` is a step 0..4 (0/4/8/12/16 px).
   - Theme names: auto/classic/white/black/modern. Density is `theme.view` (compact/small/medium/large/wide).
-  - `effect`: 0 none, 1 transparent, 2 blur, 3 acrylic, or `[3, tint, opacity]`.
+  - `effect`: 0 none, 1 transparent, 2 blur, 3 acrylic, or `[3, tint, opacity]`. See below for the full semantics.
+- **Background effect, opacity and tint** (ContextMenu.cpp, the theme set-up around line 2730 and the background around 3195; drawing around 5420 and 5615; Theme.h `Modern`/`Light`/`Dark`/`White`/`Black`):
+  - **Start:** the effect is 3 when Windows *Transparency effects* (`Personalize\EnableTransparency`) is on, else 0.
+  - **`background.effect`:** a number (above 5 counts as 0; 4 mica and 5 tabbed are drawn as acrylic), `none`/`transparent`/`blur`/`acrylic`, or `auto`/`default`. **`auto` is stronger than 3:** it turns transparency on even when Windows has it off, and gives 3 on Windows 11 (2 on Windows 10). An explicit 2 or 3 with Windows transparency off becomes 0 (solid). No composition or high contrast always means 0.
+  - **Array form `[n, tint, opacity]`:** `n` as above, then the tint colour, then the tint's alpha in percent (0..100, `Color::opacity`). This only sets the **tint**. It doesn't touch `background.opacity`.
+  - **`background.tintcolor`:** read only when the effect is 2 or 3 and transparency is on. It wins over the array's tint. The alpha of the colour is the tint's strength: `#RRGGBB` (alpha FF) is an opaque tint that hides the blur, and `#2C2C2C40` is light.
+  - **Tint default:** the base theme picks it, built with "transparency on" whenever the effect isn't 0. Modern dark, Auto and Classic on Windows 11 use the background colour at alpha 0x40 (dark `#2C2C2C40`). Modern light uses alpha 0xCF for blur and white at alpha 0 (`#FFFFFF00`) for acrylic. White and Black use alpha 0xFF. A tint that is exactly 0 is sent as `0x01000000`.
+  - **`background.opacity`:** 0..100, the alpha of `background.color` (`Theme::opacity`, `percent * 255 / 100`). With an effect, the core paints the background colour at that alpha **over** the blur/acrylic window. 0 shows only the effect and its tint; 100 is solid, and then the blur window isn't even created (`background.opacity < 0xFF` is required). With effect 0 it's ignored (alpha forced to 0xFF).
+  - **`opacity = auto`** (or unset, or any non-number) under an effect resolves to 0, so with transparency on, `opacity = 0` and `opacity = auto` draw the same menu. `color = auto` keeps the theme's colour (alpha 0 under an effect).
+  - **DWM:** a separate window under the menu gets `SetWindowCompositionAttribute(WCA_ACCENT_POLICY)`. Effect 2 is `ACCENT_ENABLE_BLURBEHIND`. Effect 3 is `ACCENT_ENABLE_ACRYLICBLURBEHIND` (build 17134 and later, else blur) with flag 2 and GradientColor = the tint. The core's colours are stored ABGR, which is what GradientColor wants. `DWMWA_SYSTEMBACKDROP_TYPE` (Mica and the like) is defined but not used for menus.
+  - **The app follows this:** the Effect chips write only `background.effect`. An `[n, tint, opacity]` array keeps its tint for blur and acrylic. Opacity is cleared (back to auto) only when it's 100, which would hide the effect. An auto/unset opacity shows as "Auto (≈N %)" and is never written until the slider moves, and 0 is never written on the user's behalf. Tint writes `background.tintcolor` with its alpha (`#RRGGBBAA`). Notes next to Effect, Tint and Opacity say what each does. When Transparency effects is off, the Effect note warns that 2/3 draw solid. The example presets' `opacity=0` (Acrylic, Gradient, Clear acrylic, copied verbatim from the maintainer) is the same as auto under an effect, so they keep it.
 - **Config order:** HKCU `config` value, then `%APPDATA%\Nilesoft\Shell\shell.nss`, then the install folder.
 - **shell.exe quirks:** it is a GUI-subsystem exe, so always pass `-silent`. The log is `shell.log` next to shell.dll.
 - **Runtime libraries:** the core uses the static CRT (`/MT`). NilesoftShellPro.exe does too: Slint is built from source as a static library (with `+crt-static`) and linked in, so the app is one exe with no slint_cpp.dll and no VC++ runtime. See `src/settings/README.md`.
@@ -50,7 +60,7 @@ Slint 1.18.1 C++ app built with MSVC and CMake, in `src/settings/`. It never inc
 ## Preview
 `PreviewTheme` is computed by `ThemeModel::resolve()` from a copy of the defaults table in `Theme::Default()`, the accent color in `HKCU\...\DWM\AccentColor`, and `AppsUseLightTheme`.
 - **Items:** Slint Rectangles and Text using the Segoe Fluent Icons system font, with the codepoints from images.nss.
-- **Background:** the real wallpaper (`SPI_GETDESKWALLPAPER`), shrunk and blurred for the blur effect, with tint and noise added for acrylic.
+- **Background:** the real wallpaper (`SPI_GETDESKWALLPAPER`), shrunk and blurred for the blur effect. For acrylic, a faint layer of the tint's own colour goes on top (`theme::acrylicLayer`, about 10 % where the tint is clear), then the tint at its alpha, then the background colour at its opacity. There is no fixed grey "luminosity" layer: the real menu is as see-through as its tint.
 - **Gradient:** `theme.background.gradient` is sampled at its start, middle and end and drawn as a linear (or centred radial) gradient over the background.
 - **Caption:** "Approximate; right-click the desktop to see the real menu".
 
