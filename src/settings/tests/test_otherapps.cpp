@@ -7,7 +7,11 @@
 
 #include "OtherApps.h"
 
+#include <windows.h>
+
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -204,4 +208,108 @@ TEST_CASE("other apps: one row per title, Windows' own left out")
     CHECK(!find(plain, "Indirect title"));
     CHECK(plain.size() == items.size() - 1);
     CHECK(collect({}, resolver, "C:\\Windows").empty());
+}
+
+TEST_CASE("other apps: the file a command line needs")
+{
+    auto env = [](std::string_view name) -> std::string {
+        if (name == "LOCALAPPDATA")
+            return "C:\\Users\\me\\AppData\\Local";
+        if (name == "ProgramFiles")
+            return "C:\\Program Files";
+        if (name == "ProgramFiles(x86)")
+            return "C:\\Program Files (x86)";
+        return {};
+    };
+    // Variables: set ones expanded; %1, %V, %*, %L and unset ones left alone.
+    CHECK(expandVars("%LOCALAPPDATA%\\x %1 %V %* %L %NOPE%", env) == "C:\\Users\\me\\AppData\\Local\\x %1 %V %* %L %NOPE%");
+    CHECK(expandVars("\"%ProgramFiles(x86)%\\a.exe\" \"%1\"", env) == "\"C:\\Program Files (x86)\\a.exe\" \"%1\"");
+    CHECK(expandVars("%1%LOCALAPPDATA%", env) == "%1C:\\Users\\me\\AppData\\Local");
+    CHECK(expandVars("%LOCALAPPDATA%", nullptr) == "%LOCALAPPDATA%");
+
+    // Quoted, unquoted with spaces, with %1/%V arguments.
+    CHECK(commandTarget("\"C:\\Users\\me\\AppData\\Local\\Programs\\ZCode\\ZCode.exe\" --open-workspace \"%1\"") ==
+          "C:\\Users\\me\\AppData\\Local\\Programs\\ZCode\\ZCode.exe");
+    CHECK(commandTarget("C:\\Program Files\\Alacritty\\alacritty.exe --working-directory \"%V\"") ==
+          "C:\\Program Files\\Alacritty\\alacritty.exe");
+    CHECK(commandTarget("  \"D:\\Tools\\x.exe\"  ") == "D:\\Tools\\x.exe");
+    CHECK(commandTarget("D:\\Tools\\noargs.exe") == "D:\\Tools\\noargs.exe");
+    // Environment variables, quoted or not.
+    CHECK(commandTarget("\"%LOCALAPPDATA%\\Programs\\ZCode\\ZCode.exe\" \"%1\"", env) ==
+          "C:\\Users\\me\\AppData\\Local\\Programs\\ZCode\\ZCode.exe");
+    CHECK(commandTarget("%ProgramFiles%\\App\\app.exe %V", env) == "C:\\Program Files\\App\\app.exe");
+    // Windows' wrappers: the file they run.
+    CHECK(commandTarget("rundll32.exe \"C:\\Program Files\\App\\menu.dll\",Run %1") == "C:\\Program Files\\App\\menu.dll");
+    CHECK(commandTarget("C:\\Windows\\System32\\rundll32.exe D:\\App\\menu.dll,Run \"%1\"") == "D:\\App\\menu.dll");
+    CHECK(commandTarget("rundll32.exe shell32.dll,Control_RunDLL") == "rundll32.exe"); // System32's: the wrapper
+    CHECK(commandTarget("cmd.exe /c \"\"C:\\Program Files\\App\\run.cmd\" \"%V\"\"") == "C:\\Program Files\\App\\run.cmd");
+    CHECK(commandTarget("cmd /s /k \"D:\\Tools\\go.bat\" %1") == "D:\\Tools\\go.bat");
+    CHECK(commandTarget("cmd.exe /s /k pushd \"%V\"") == "cmd.exe");
+    CHECK(commandTarget("wscript.exe //B \"%ProgramFiles%\\App\\open.vbs\" \"%1\"", env) == "C:\\Program Files\\App\\open.vbs");
+    // Nothing to go on.
+    CHECK(commandTarget("") == "");
+    CHECK(commandTarget("code \"%1\"") == "code");
+
+    CHECK(isFullPath("C:\\x.exe"));
+    CHECK(isFullPath("\\\\server\\share\\x.exe"));
+    CHECK(!isFullPath("x.exe"));
+    CHECK(!isFullPath("Tools\\x.exe"));
+    CHECK(!isFullPath("\\\\?\\C:\\x"));
+}
+
+TEST_CASE("other apps: leftovers of uninstalled programs (temporary folder)")
+{
+    namespace fs = std::filesystem;
+    auto dir = fs::temp_directory_path() / ("settings-otherapps-tests-" + std::to_string(GetCurrentProcessId()));
+    fs::remove_all(dir);
+    fs::create_directories(dir / "Installed");
+    fs::create_directories(dir / "OnlyAFolder.exe"); // a folder isn't a program
+    auto touch = [](const fs::path &p) { std::ofstream(p, std::ios::binary) << "x"; };
+    touch(dir / "Installed" / "app.exe");
+    touch(dir / "Installed" / "ext.dll");
+    touch(dir / "Installed" / "menu.dll");
+    const std::string root = dir.string();
+    FileSystem files = realFiles();
+    auto realEnv = files.env;
+    files.env = [&](std::string_view name) { return name == "FIXTURE" ? root : realEnv(name); };
+
+    Scan s;
+    s.verbs.push_back(verb("Directory", "installed", "Open in App", "\"%FIXTURE%\\Installed\\app.exe\" \"%1\""));
+    s.verbs.push_back(verb("Directory", "ZCode.OpenInZCode", "Open in ZCode",
+                           "\"" + root + "\\Uninstalled\\ZCode\\ZCode.exe\" --open-workspace \"%1\""));
+    s.verbs.push_back(verb("Directory\\Background", "folder", "Open folder thing", root + "\\OnlyAFolder.exe %V"));
+    s.verbs.push_back(verb("Directory", "onpath", "Open on PATH", "code \"%1\"")); // can't tell: not marked
+    s.verbs.push_back(verb("*", "dll", "Run menu", "rundll32.exe \"" + root + "\\Installed\\menu.dll\",Run %1"));
+    s.verbs.push_back(verb("*", "deaddll", "Run gone", "rundll32.exe \"" + root + "\\Gone\\gone.dll\",Run %1"));
+    // The same title twice: one key's program is there, so it isn't a leftover.
+    s.verbs.push_back(verb("*", "half", "Half gone", "\"" + root + "\\Gone\\half.exe\" \"%1\""));
+    s.verbs.push_back(verb("Directory", "half", "Half gone", "\"%FIXTURE%\\Installed\\app.exe\" \"%1\""));
+    s.handlers.push_back(handler("*", "Good", "{11111111-0000-0000-0000-000000000001}", "", root + "\\Installed\\ext.dll"));
+    s.handlers.push_back(handler("*", "Stale", "{11111111-0000-0000-0000-000000000002}", "", "\"" + root + "\\Gone\\stale.dll\""));
+    s.handlers.push_back(handler("*", "ByName", "{11111111-0000-0000-0000-000000000003}", "", "Vendor\\ext.dll")); // relative: can't tell
+
+    auto items = collect(s, resolver, "C:\\Windows", files);
+    auto missing = [&](const std::string &title) {
+        auto *i = find(items, title);
+        REQUIRE_MESSAGE(i, title);
+        return i->missing;
+    };
+    CHECK(missing("Open in App") == "");
+    CHECK(missing("Open in ZCode") == root + "\\Uninstalled\\ZCode\\ZCode.exe");
+    CHECK(missing("Open folder thing") == root + "\\OnlyAFolder.exe");
+    CHECK(missing("Open on PATH") == "");
+    CHECK(missing("Run menu") == "");
+    CHECK(missing("Run gone") == root + "\\Gone\\gone.dll");
+    CHECK(missing("Half gone") == "");
+    CHECK(missing("Good") == "");
+    CHECK(missing("Stale") == root + "\\Gone\\stale.dll");
+    CHECK(missing("ByName") == "");
+    // A third-party DLL run through rundll32 is listed, with the DLL as its program.
+    CHECK(find(items, "Run menu")->program == root + "\\Installed\\menu.dll");
+
+    // Without a file system nothing is marked.
+    for (const auto &i : collect(s, resolver, "C:\\Windows"))
+        CHECK(i.missing.empty());
+    std::error_code ec;
+    fs::remove_all(dir, ec);
 }

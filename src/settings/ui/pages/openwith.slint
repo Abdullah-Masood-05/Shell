@@ -478,8 +478,17 @@ component OtherItem inherits Rectangle {
                 Text {
                     text: root.entry.detail;
                     font-size: Tokens.caption;
-                    color: Tokens.text-3;
+                    color: root.entry.leftover && root.entry.shown ? Tokens.warning : Tokens.text-3;
                     overflow: elide;
+                }
+            }
+            // A leftover of an uninstalled program: hiding it is the one thing to do.
+            if root.entry.leftover && root.entry.shown: VerticalLayout {
+                alignment: center;
+                Button {
+                    text: "Hide";
+                    enabled: !root.locked;
+                    clicked => { OpenWithState.other-toggle(root.index, false); }
                 }
             }
             VerticalLayout {
@@ -861,6 +870,38 @@ export component OpenWithPage inherits PageFrame {
         }
         for o[i] in OpenWithState.others: VerticalLayout {
             if i > 0: Hairline { }
+            // "Leftovers from uninstalled programs" over the first ones, "Other items" over the rest.
+            if o.section != "": HorizontalLayout {
+                padding-left: Tokens.s4;
+                padding-right: Tokens.s4;
+                padding-top: Tokens.s2;
+                spacing: Tokens.s3;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 1px;
+                    Text {
+                        text: o.section;
+                        font-size: Tokens.caption + 1px;
+                        font-weight: 600;
+                        color: Tokens.text-2;
+                    }
+                    if o.leftover: Text {
+                        text: "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is.";
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        wrap: word-wrap;
+                    }
+                }
+                if o.leftover && OpenWithState.others-leftovers > 1: VerticalLayout {
+                    alignment: center;
+                    Button {
+                        text: "Hide all " + OpenWithState.others-leftovers;
+                        enabled: !root.locked;
+                        clicked => { OpenWithState.hide-leftovers(); }
+                    }
+                }
+            }
             OtherItem {
                 entry: o;
                 index: i;

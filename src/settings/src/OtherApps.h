@@ -9,7 +9,9 @@
 //    <type>\shellex\ContextMenuHandlers, for files, folders, folder
 //    background and drives, in HKCR and HKCU\Software\Classes;
 //  - collect() turns that into one row per menu title, leaving out Windows'
-//    own items and Shell's own handler. It is pure, so tests feed it fixtures.
+//    own items and Shell's own handler, and marks leftovers: items whose
+//    program or DLL is gone (an uninstaller that left its verb behind). It is
+//    pure, so tests feed it fixtures and a fake file system.
 
 #include <functional>
 #include <string>
@@ -82,14 +84,30 @@ struct Item
     bool shiftOnly = false;
     bool submenu = false; // a verb that opens a submenu ("PowerShell 7 >")
     std::vector<std::string> keys; // registry keys it comes from: "HKCR\\Directory\\shell\\git_gui"
+    // A leftover from an uninstalled program: the program (or shell extension
+    // DLL) its keys need, which no longer exists. "" = found, or it can't
+    // tell (a bare name Windows looks up, no command...). With several keys,
+    // only when none of them has its file.
+    std::string missing;
 };
+
+// Environment variables and the file system, for telling leftovers. With
+// `exists` empty nothing is marked missing.
+struct FileSystem
+{
+    std::function<std::string(std::string_view name)> env; // "ProgramFiles" -> its value, "" when unset
+    std::function<bool(const std::string &path)> exists;   // a file (not a folder) is there
+};
+// This PC's environment and files (read-only).
+FileSystem realFiles();
 
 // One row per verb title (the same title under several types or both hives is
 // one item) and per handler name, sorted by title. Left out: Windows' own
 // items (system32 programs and strings, Windows' verb names), Shell's own
 // handler, and verbs Windows never shows.
 // systemRoot: "C:\\Windows" (lower or upper case).
-std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string_view systemRoot);
+// With `files`, items whose program or DLL is gone get `missing`.
+std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string_view systemRoot, const FileSystem &files = {});
 
 // A menu title as Shell compares it: "Open Git &GUI here" -> "Open Git GUI here",
 // "Save && exit" -> "Save & exit", "Add to archive..." -> "Add to archive".
@@ -98,6 +116,20 @@ std::string menuTitle(std::string_view raw);
 bool isWindowsFile(std::string_view path, std::string_view systemRoot);
 // The program a command line runs: "\"C:\\x\\a.exe\" \"%1\"" -> "C:\\x\\a.exe".
 std::string commandProgram(std::string_view command);
+// %NAME% replaced with env(NAME) when that's set; anything else (%1, %V, %*,
+// an unset variable) is left as is.
+std::string expandVars(std::string_view text, const std::function<std::string(std::string_view)> &env);
+// The file a command line needs, environment variables expanded and quotes
+// gone: its program, or the file a Windows wrapper runs (as the registry has them):
+//   "%LOCALAPPDATA%\Programs\ZCode\ZCode.exe" --open-workspace "%1"  ->  C:\Users\me\...\ZCode.exe
+//   rundll32.exe "C:\x\a.dll",Entry %1                                 ->  C:\x\a.dll
+//   cmd.exe /c ""C:\x\run.cmd" "%V""                                   ->  C:\x\run.cmd
+//   wscript.exe "C:\x\a.vbs" "%1"                                      ->  C:\x\a.vbs
+// A wrapper whose file isn't a full path (cmd.exe /k pushd "%V") is itself the answer.
+std::string commandTarget(std::string_view command, const std::function<std::string(std::string_view)> &env = {});
+// "C:\x" or "\\server\share\x": a path that doesn't depend on the current
+// folder or PATH, so a missing file there is really gone.
+bool isFullPath(std::string_view path);
 // "Files, folders, background", for the page.
 std::string describeWhere(unsigned where);
 

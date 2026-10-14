@@ -8,7 +8,8 @@
 //    "Open in new window", or an "Open in" submenu there; and where it shows);
 //  - each app's own entries in the menu (PowerShell 7's "PowerShell 7"
 //    submenu, Git's "Open Git Bash here"...), found among other apps' items
-//    by program path: hidden with the app's switch (remove() rules);
+//    by program path: hidden (remove() rules) once the user switches the app
+//    off on the page, not while it is merely off by default;
 //  - other apps' own menu items the user hid (remove() rules; OtherApps.h
 //    lists them);
 //  - generate(): the app-owned imports/settings-app-openwith.nss, and parse()
@@ -78,10 +79,16 @@ struct App
     bool admin = false;
     bool enabled = false;
     // The app's own entries in the menu (from the registry, see linkNatives()):
-    // shown while the app is on, hidden with remove() rules while it's off,
-    // unless keepOwn (then only "Open in <Name>" goes).
+    // shown while the app is on; hidden with remove() rules once the user
+    // switched it off on the page (hideOwn), unless keepOwn (then only
+    // "Open in <Name>" goes). A preset that is off because it was never
+    // switched on (off by default) leaves them alone.
     std::vector<Hidden> natives;
     bool keepOwn = false;
+    // Switched off by the user on the page ("hide-own" on its app= line, or an
+    // own rule in force in a file from before that word). Only means anything
+    // while the app is off.
+    bool hideOwn = false;
 
     bool operator==(const App &) const = default;
 };
@@ -177,14 +184,22 @@ struct OtherRef
 
     bool operator==(const OtherRef &) const = default;
 };
-// The registry's items in their order, each with its Hidden entry if switched
-// off; then hidden ones that are gone from the registry. An app's own entry
+// The registry's items, leftovers of uninstalled programs (Item::missing)
+// first, each with its Hidden entry if switched off; then hidden ones that are
+// gone from the registry. An app's own entry
 // (owners[i] >= 0) isn't listed: it goes with the app's switch. One the user
 // hid here before stays until it's switched back on.
 std::vector<OtherRef> otherRows(const std::vector<otherapps::Item> &items, const std::vector<int> &owners,
                                 const std::vector<Hidden> &hidden);
-// Whether the app's own entries are hidden now (switched off, not keepOwn).
-inline bool hidesNatives(const App &app) { return !app.enabled && !app.keepOwn; }
+// Whether the app's own entries are hidden now: switched off by the user, not keepOwn.
+inline bool hidesNatives(const App &app) { return !app.enabled && app.hideOwn && !app.keepOwn; }
+// The page's switch for an app: on, or off by the user (from then on its own
+// entries go too, unless keepOwn).
+inline void setEnabled(App &app, bool on)
+{
+    app.enabled = on;
+    app.hideOwn = !on;
+}
 
 // --- Paths in .nss ----------------------------------------------------------
 

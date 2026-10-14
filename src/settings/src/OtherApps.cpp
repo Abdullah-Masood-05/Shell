@@ -6,7 +6,9 @@
 #include <shlwapi.h>
 
 #include <algorithm>
+#include <cctype>
 #include <map>
+#include <utility>
 
 namespace otherapps {
 
@@ -115,6 +117,109 @@ std::string commandProgram(std::string_view command)
     return std::string(c.substr(0, sp));
 }
 
+namespace {
+
+// A command line's first part and the rest: as commandProgram(), plus what follows.
+std::pair<std::string, std::string_view> splitCommand(std::string_view c)
+{
+    c = nss::trim(c);
+    if (c.empty())
+        return {};
+    if (c.front() == '"') {
+        auto end = c.find('"', 1);
+        if (end == std::string_view::npos)
+            return { std::string(c.substr(1)), {} };
+        return { std::string(c.substr(1, end - 1)), nss::trim(c.substr(end + 1)) };
+    }
+    auto exe = nss::toLower(c).find(".exe");
+    auto stop = exe != std::string::npos ? exe + 4 : c.find(' ');
+    if (stop == std::string_view::npos || stop >= c.size())
+        return { std::string(c), {} };
+    return { std::string(c.substr(0, stop)), nss::trim(c.substr(stop)) };
+}
+
+// "C:\\x\\rundll32.exe" -> "rundll32"
+std::string programName(std::string_view program)
+{
+    auto slash = program.find_last_of("\\/");
+    auto name = nss::toLower(program.substr(slash == std::string_view::npos ? 0 : slash + 1));
+    if (name.ends_with(".exe"))
+        name.resize(name.size() - 4);
+    return name;
+}
+
+} // namespace
+
+std::string expandVars(std::string_view text, const std::function<std::string(std::string_view)> &env)
+{
+    std::string out(text);
+    if (!env)
+        return out;
+    for (size_t at = 0; (at = out.find('%', at)) != std::string::npos;) {
+        auto end = out.find('%', at + 1);
+        if (end == std::string::npos)
+            break;
+        auto name = std::string_view(out).substr(at + 1, end - at - 1);
+        // A variable's name: "ProgramFiles(x86)", "LOCALAPPDATA". "%1", "%V" and "%*" aren't.
+        bool plausible = name.size() >= 2 && !std::isdigit(static_cast<unsigned char>(name[0])) &&
+                         name.find_first_of(" \t\"\\/%:*") == std::string_view::npos;
+        std::string value = plausible ? env(name) : std::string{};
+        if (value.empty()) {
+            at = plausible ? end + 1 : at + 1;
+            continue;
+        }
+        out.replace(at, end - at + 1, value);
+        at += value.size();
+    }
+    return out;
+}
+
+bool isFullPath(std::string_view path)
+{
+    path = nss::trim(path);
+    if (path.size() >= 3 && std::isalpha(static_cast<unsigned char>(path[0])) && path[1] == ':' &&
+        (path[2] == '\\' || path[2] == '/'))
+        return true;
+    return path.size() >= 5 && path.substr(0, 2) == "\\\\" && path[2] != '?' && path[2] != '.';
+}
+
+std::string commandTarget(std::string_view command, const std::function<std::string(std::string_view)> &env)
+{
+    auto expanded = expandVars(nss::trim(command), env);
+    auto [program, rest] = splitCommand(expanded);
+    auto name = programName(program);
+    std::string file;
+    if (name == "rundll32") {
+        // rundll32 "C:\x\a.dll",Entry  /  rundll32 C:\x\a.dll,Entry
+        if (!rest.empty() && rest.front() == '"') {
+            auto end = rest.find('"', 1);
+            file = std::string(rest.substr(1, end == std::string_view::npos ? std::string_view::npos : end - 1));
+        } else {
+            file = std::string(rest.substr(0, rest.find(',')));
+        }
+    } else if (name == "cmd") {
+        // cmd.exe /s /c ""C:\x\run.cmd" "%V"": the program after /c or /k.
+        while (!rest.empty() && rest.front() == '/') {
+            auto sw = nss::toLower(rest.substr(0, rest.find(' ')));
+            rest = nss::trim(rest.substr(std::min(rest.size(), sw.size())));
+            if (sw == "/c" || sw == "/k")
+                break;
+        }
+        while (rest.size() >= 2 && rest[0] == '"' && rest[1] == '"')
+            rest = rest.substr(1); // /c ""C:\x y\run.cmd" args": the outer quote
+        file = splitCommand(rest).first;
+    } else if (name == "wscript" || name == "cscript" || name == "mshta") {
+        // The first argument that isn't a switch: the script.
+        while (!rest.empty() && rest.front() == '/') {
+            auto sp = rest.find(' ');
+            rest = sp == std::string_view::npos ? std::string_view{} : nss::trim(rest.substr(sp));
+        }
+        file = splitCommand(rest).first;
+    }
+    file = std::string(nss::trim(file));
+    return !file.empty() && isFullPath(file) ? file : program;
+}
+
 bool isWindowsFile(std::string_view path, std::string_view systemRoot)
 {
     std::string s(nss::trim(path));
@@ -167,7 +272,7 @@ std::string describeWhere(unsigned where)
     return out;
 }
 
-std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string_view systemRoot)
+std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string_view systemRoot, const FileSystem &files)
 {
     auto whereOf = [](const std::string &type) {
         for (const auto &t : types())
@@ -178,6 +283,23 @@ std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string
     std::vector<Item> items;
     std::map<std::string, size_t> byTitle;  // verbs: lower-case title -> index
     std::map<std::string, size_t> byHandler; // handlers: lower-case CLSID (or name) -> index
+    // Per item: how many of its keys have their file, and the first one that's gone.
+    struct Check
+    {
+        int found = 0;
+        std::string missing;
+    };
+    std::vector<Check> checks;
+    auto check = [&](size_t item, const std::string &file) {
+        if (!files.exists || !isFullPath(file))
+            return; // can't tell: a bare name is looked up on PATH or in System32
+        if (checks.size() <= item)
+            checks.resize(item + 1);
+        if (files.exists(file))
+            ++checks[item].found;
+        else if (checks[item].missing.empty())
+            checks[item].missing = file;
+    };
 
     for (const auto &v : scan.verbs) {
         if (v.hiddenByApp || v.key.empty())
@@ -195,8 +317,14 @@ std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string
             raw = resolve ? resolve(raw) : std::string{};
         }
         auto program = commandProgram(v.command);
-        if (!program.empty() && isWindowsFile(program, systemRoot))
-            continue;
+        auto target = commandTarget(v.command, files.env);
+        if (!program.empty() && isWindowsFile(program, systemRoot)) {
+            // Windows' own, unless it only runs another program's file:
+            // rundll32 "C:\Program Files\App\menu.dll",Run.
+            if (!isFullPath(target) || isWindowsFile(target, systemRoot) || nss::iequals(target, program))
+                continue;
+            program = target;
+        }
         if (program.empty() && !v.icon.empty()) {
             program = std::string(nss::trim(v.icon));
             if (program.size() >= 2 && program.front() == '"')
@@ -229,6 +357,8 @@ std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string
         if (item.program.empty())
             item.program = program;
         item.keys.push_back(hive(v.user) + v.type + "\\shell\\" + v.key);
+        if (!nss::trim(v.command).empty())
+            check(it->second, target);
     }
 
     for (const auto &h : scan.handlers) {
@@ -254,8 +384,15 @@ std::vector<Item> collect(const Scan &scan, const Resolver &resolve, std::string
         auto &item = items[it->second];
         item.where |= whereOf(h.type);
         item.keys.push_back(hive(h.user) + h.type + "\\shellex\\ContextMenuHandlers\\" + h.name);
+        std::string server(nss::trim(h.server));
+        if (server.size() >= 2 && server.front() == '"' && server.back() == '"')
+            server = server.substr(1, server.size() - 2);
+        check(it->second, expandVars(server, files.env));
     }
 
+    for (size_t i = 0; i < checks.size() && i < items.size(); ++i)
+        if (checks[i].found == 0)
+            items[i].missing = checks[i].missing;
     for (auto &item : items) {
         std::sort(item.keys.begin(), item.keys.end());
         item.keys.erase(std::unique(item.keys.begin(), item.keys.end()), item.keys.end());
@@ -386,6 +523,26 @@ Scan scan()
         }
     }
     return s;
+}
+
+FileSystem realFiles()
+{
+    FileSystem f;
+    f.env = [](std::string_view name) {
+        wchar_t buf[32768];
+        DWORD n = GetEnvironmentVariableW(nss::widen(name).c_str(), buf, DWORD(std::size(buf)));
+        return n > 0 && n < std::size(buf) ? nss::narrow(std::wstring(buf, n)) : std::string{};
+    };
+    f.exists = [](const std::string &path) {
+        DWORD a = GetFileAttributesW(nss::widen(path).c_str());
+        if (a != INVALID_FILE_ATTRIBUTES)
+            return !(a & FILE_ATTRIBUTE_DIRECTORY);
+        // Only a file that's surely not there is gone: a drive that's offline
+        // or a folder that can't be read says nothing.
+        DWORD e = GetLastError();
+        return e != ERROR_FILE_NOT_FOUND && e != ERROR_PATH_NOT_FOUND;
+    };
+    return f;
 }
 
 std::string resolveIndirect(const std::string &text)

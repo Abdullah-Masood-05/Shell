@@ -54,6 +54,8 @@ export struct OtherAppRow {
     hide-title: string,        // the title the rule matches (shell extensions, while hidden)
     problem: string,           // why the rule can't match, or ""
     gone: bool,                // hidden, but no longer in the registry
+    leftover: bool,            // its program or DLL is gone: left behind by an uninstaller
+    section: string,           // a heading to show above this row, or ""
     icon: image,
     has-icon: bool,
 }
@@ -110,6 +112,7 @@ export global OpenWithState {
     in property <bool> others-loaded;
     in property <[OtherAppRow]> others;
     in property <int> others-hidden;       // switched off
+    in property <int> others-leftovers;    // leftovers of uninstalled programs still shown
 
     in property <bool> dirty;
     in property <bool> saving;
@@ -134,5 +137,6 @@ export global OpenWithState {
     callback create-user-config();
     callback open-context-menus();
     callback other-toggle(index: int, shown: bool);
+    callback hide-leftovers();
     callback other-title(index: int, title: string);
 }
