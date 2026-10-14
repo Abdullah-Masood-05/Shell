@@ -21,7 +21,7 @@ component NameRow inherits Rectangle {
     callback remove();
 
     height: 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover ? Tokens.hover : transparent;
     ta := TouchArea { }
     HorizontalLayout {
@@ -69,7 +69,7 @@ component NameList inherits VerticalLayout {
     }
     if root.field.locked: Rectangle {
         height: expr.preferred-height + 2 * Tokens.s2;
-        border-radius: Tokens.radius-control;
+        border-radius: Tokens.radius-sm;
         background: Tokens.layer-2;
         border-width: 1px;
         border-color: Tokens.stroke;

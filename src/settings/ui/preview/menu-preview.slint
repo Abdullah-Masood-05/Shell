@@ -2,6 +2,7 @@
 // design: the real menu is drawn by shell.dll with GDI and DWM effects.
 
 import { PreviewTheme, PreviewItem, PreviewMenu } from "preview-types.slint";
+import { Tokens } from "../theme/tokens.slint";
 
 // One menu: background (with blur/acrylic over what is behind it), rows,
 // separators, chevrons, and a border on top.
@@ -327,7 +328,7 @@ export component PreviewPane inherits Rectangle {
 
     clip: true;
     background: #1B2A44;
-    border-radius: 6px;
+    border-radius: Tokens.radius-md;
 
     Image {
         width: 100%;

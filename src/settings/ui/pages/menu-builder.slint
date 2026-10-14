@@ -28,7 +28,7 @@ component ToolButton inherits Rectangle {
 
     width: 32px;
     height: 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: !root.enabled ? transparent : ta.pressed ? Tokens.pressed : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: button;
     accessible-label: root.label;
@@ -58,7 +58,7 @@ component TreeRow inherits Rectangle {
     callback clicked;
 
     height: root.entry.kind == "separator" ? 24px : root.entry.summary != "" ? 40px : 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: list-item;
     accessible-label: root.entry.kind + ": " + root.entry.title;
@@ -207,7 +207,7 @@ component PreviewItem inherits Rectangle {
         x: 4px;
         width: root.width - 8px;
         height: root.height - 2px;
-        border-radius: Tokens.radius-control;
+        border-radius: Tokens.radius-sm;
         background: root.entry.open || root.entry.selected ? Tokens.hover.with-alpha(Tokens.dark ? 0.12 : 0.07) : transparent;
         border-width: root.entry.selected ? 1px : 0;
         border-color: Tokens.accent;
@@ -253,7 +253,7 @@ component PreviewMenu inherits Rectangle {
     width: 212px;
     height: list.preferred-height;
     background: Tokens.dark ? #2C2C2C : #F9F9F9;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke-strong;
     drop-shadow-blur: 16px;
@@ -294,7 +294,7 @@ component GlyphPicker inherits Rectangle {
         width: min(600px, root.width - 64px);
         height: min(520px, root.height - 64px);
         background: Tokens.layer;
-        border-radius: Tokens.radius-card;
+        border-radius: Tokens.radius-lg;
         border-width: 1px;
         border-color: Tokens.stroke-strong;
         drop-shadow-blur: 24px;
@@ -340,7 +340,7 @@ component GlyphPicker inherits Rectangle {
                     y: Math.floor(i / root.columns) * 40px;
                     width: 36px;
                     height: 36px;
-                    border-radius: Tokens.radius-control;
+                    border-radius: Tokens.radius-sm;
                     background: g == root.current ? Tokens.accent-soft : cell.has-hover ? Tokens.hover : transparent;
                     border-width: g == root.current ? 1px : 0;
                     border-color: Tokens.accent;
@@ -446,7 +446,7 @@ export component MenuBuilderPage inherits Rectangle {
             Rectangle {
                 width: 300px;
                 background: Tokens.layer;
-                border-radius: Tokens.radius-card;
+                border-radius: Tokens.radius-lg;
                 border-width: 1px;
                 border-color: Tokens.stroke;
                 VerticalLayout {
@@ -563,7 +563,7 @@ export component MenuBuilderPage inherits Rectangle {
                     vertical-stretch: 1;
                     min-height: 180px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     clip: true;
@@ -621,7 +621,7 @@ export component MenuBuilderPage inherits Rectangle {
                                     Rectangle {
                                         width: 32px;
                                         height: 32px;
-                                        border-radius: Tokens.radius-control;
+                                        border-radius: Tokens.radius-sm;
                                         background: Tokens.layer-2;
                                         border-width: 1px;
                                         border-color: Tokens.stroke-strong;
@@ -812,7 +812,7 @@ export component MenuBuilderPage inherits Rectangle {
                 Rectangle {
                     height: 236px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     clip: true;
@@ -839,7 +839,7 @@ export component MenuBuilderPage inherits Rectangle {
                         }
                         if root.bottom-tab == 0: Rectangle {
                             vertical-stretch: 1;
-                            border-radius: Tokens.radius-control;
+                            border-radius: Tokens.radius-sm;
                             background: Tokens.sidebar;
                             clip: true;
                             if BuilderState.preview.length == 0: Text {
@@ -860,7 +860,7 @@ export component MenuBuilderPage inherits Rectangle {
                         }
                         if root.bottom-tab == 1: Rectangle {
                             vertical-stretch: 1;
-                            border-radius: Tokens.radius-control;
+                            border-radius: Tokens.radius-sm;
                             background: Tokens.layer-2;
                             code := ListView {
                                 width: 100%;

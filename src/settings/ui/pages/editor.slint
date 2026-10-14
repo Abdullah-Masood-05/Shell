@@ -15,7 +15,7 @@ component Badge inherits Rectangle {
     in property <color> tint: Tokens.text-2;
     height: 20px;
     width: label.preferred-width + 12px;
-    border-radius: 10px;
+    border-radius: Tokens.radius-xs;
     background: root.tint.with-alpha(0.14);
     label := Text {
         text: root.text;
@@ -30,7 +30,7 @@ component FileRow inherits Rectangle {
     callback clicked;
 
     height: 30px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover && !root.file.unresolved ? Tokens.hover : transparent;
     accessible-role: list-item;
     accessible-label: root.file.label;
@@ -101,7 +101,7 @@ component ProblemRow inherits Rectangle {
     callback clicked;
 
     height: 28px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover ? Tokens.hover : transparent;
     accessible-role: button;
     accessible-label: root.problem.message;
@@ -228,7 +228,7 @@ export component EditorPage inherits Rectangle {
             Rectangle {
                 width: 236px;
                 background: Tokens.layer;
-                border-radius: Tokens.radius-card;
+                border-radius: Tokens.radius-lg;
                 border-width: 1px;
                 border-color: Tokens.stroke;
                 VerticalLayout {
@@ -320,7 +320,7 @@ export component EditorPage inherits Rectangle {
                     vertical-stretch: 1;
                     min-height: 160px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     clip: true;
@@ -366,7 +366,7 @@ export component EditorPage inherits Rectangle {
                 Rectangle {
                     height: 164px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     VerticalLayout {

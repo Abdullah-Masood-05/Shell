@@ -8,7 +8,7 @@ export component StatusPill inherits Rectangle {
 
     height: 28px;
     min-width: row.preferred-width;
-    border-radius: self.height / 2;
+    border-radius: Tokens.radius-xs;
     background: Tokens.status-bg(root.kind);
     animate background { duration: Tokens.normal; }
 

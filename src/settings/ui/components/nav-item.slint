@@ -10,7 +10,7 @@ export component NavItem inherits Rectangle {
     callback clicked;
 
     height: 38px;
-    border-radius: Tokens.radius-control + 2px;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.accent-soft : ta.pressed ? Tokens.pressed : ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; easing: ease-out; }
 

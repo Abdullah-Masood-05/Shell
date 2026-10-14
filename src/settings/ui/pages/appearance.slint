@@ -129,7 +129,7 @@ export component AppearancePage inherits Rectangle {
                     // The theme in use and its keys, by tab.
                     Rectangle {
                         background: Tokens.layer;
-                        border-radius: Tokens.radius-card;
+                        border-radius: Tokens.radius-lg;
                         border-width: 1px;
                         border-color: Tokens.stroke;
 
@@ -144,7 +144,7 @@ export component AppearancePage inherits Rectangle {
                                 Rectangle {
                                     width: 112px;
                                     height: 76px;
-                                    border-radius: Tokens.radius-control;
+                                    border-radius: Tokens.radius-sm;
                                     border-width: 1px;
                                     border-color: Tokens.stroke;
                                     clip: true;
@@ -182,7 +182,7 @@ export component AppearancePage inherits Rectangle {
                                             Rectangle {
                                                 height: 20px;
                                                 width: chip-row.preferred-width + 16px;
-                                                border-radius: 10px;
+                                                border-radius: Tokens.radius-xs;
                                                 background: root.f[K.name].pending ? Tokens.warning-bg : Tokens.success-bg;
                                                 chip-row := HorizontalLayout {
                                                     alignment: center;
@@ -277,7 +277,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 Rectangle {
-                                    border-radius: Tokens.radius-control + 2px;
+                                    border-radius: Tokens.radius-sm;
                                     background: Tokens.layer-2;
                                     VerticalLayout {
                                         padding-left: Tokens.s4;
@@ -644,7 +644,7 @@ export component AppearancePage inherits Rectangle {
                 Rectangle {
                     vertical-stretch: 1;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     VerticalLayout {
@@ -710,7 +710,7 @@ export component AppearancePage inherits Rectangle {
                 }
                 Rectangle {
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     HorizontalLayout {

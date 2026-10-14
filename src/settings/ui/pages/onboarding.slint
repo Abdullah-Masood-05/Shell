@@ -54,7 +54,7 @@ component StateRow inherits Rectangle {
     in property <string> kind: "ok"; // ok | busy | error
     in property <string> text;
     height: row.preferred-height;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.kind == "ok" ? Tokens.success-bg : root.kind == "error" ? Tokens.danger-bg : Tokens.layer-2;
     accessible-role: AccessibleRole.text;
     accessible-label: root.text;
@@ -136,7 +136,7 @@ export component Onboarding inherits Rectangle {
             height: body.preferred-height;
             x: (root.width - self.width) / 2;
             y: max(Tokens.s4, (root.height - self.height) / 2);
-            border-radius: Tokens.radius-card + 4px;
+            border-radius: Tokens.radius-lg;
             background: Tokens.layer;
             border-width: 1px;
             border-color: Tokens.stroke-strong;

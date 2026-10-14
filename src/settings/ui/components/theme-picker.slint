@@ -38,7 +38,7 @@ component ThemeCard inherits Rectangle {
     callback clicked;
 
     height: root.caption != "" ? 136px : 114px;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: root.selected || root.focused ? 2px : 1px;
     border-color: root.focused ? Tokens.focus-ring : root.selected ? Tokens.accent : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
     background: root.selected ? Tokens.accent-soft.mix(Tokens.layer-2, 0.5) : ta.has-hover && root.enabled ? Tokens.layer-3 : Tokens.layer-2;
@@ -56,7 +56,7 @@ component ThemeCard inherits Rectangle {
         spacing: 6px;
         Rectangle {
             height: 78px;
-            border-radius: Tokens.radius-control;
+            border-radius: Tokens.radius-sm;
             clip: true;
             Image {
                 width: 100%;

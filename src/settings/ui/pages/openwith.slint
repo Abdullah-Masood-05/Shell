@@ -48,7 +48,7 @@ component SectionHead inherits HorizontalLayout {
 
 component ListSurface inherits Rectangle {
     background: Tokens.layer;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke;
     VerticalLayout {
@@ -390,7 +390,7 @@ component AppEditor inherits Rectangle {
             Rectangle { horizontal-stretch: 1; }
         }
         if OpenWithState.test-shown: Rectangle {
-            border-radius: Tokens.radius-control;
+            border-radius: Tokens.radius-sm;
             background: Tokens.layer;
             border-width: 1px;
             border-color: Tokens.stroke;
@@ -545,7 +545,7 @@ component PreviewItem inherits Rectangle {
         x: 4px;
         width: root.width - 8px;
         height: root.height - 2px;
-        border-radius: Tokens.radius-control;
+        border-radius: Tokens.radius-sm;
         background: root.entry.open ? Tokens.hover.with-alpha(Tokens.dark ? 0.12 : 0.07) : transparent;
         HorizontalLayout {
             padding-left: 10px;
@@ -592,7 +592,7 @@ component PreviewMenu inherits Rectangle {
     width: 220px;
     height: list.preferred-height;
     background: Tokens.dark ? #2C2C2C : #F9F9F9;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke-strong;
     drop-shadow-blur: 16px;
@@ -814,7 +814,7 @@ export component OpenWithPage inherits PageFrame {
             }
             if root.bottom-tab == 0: Rectangle {
                 height: max(120px, max(OpenWithState.preview.length, OpenWithState.flyout.length) * 32px + 40px);
-                border-radius: Tokens.radius-control;
+                border-radius: Tokens.radius-sm;
                 background: Tokens.dark ? #1C1C1C : #E9E9E9;
                 clip: true;
                 // Nothing of ours shows: said next to Explorer's own items.
@@ -840,7 +840,7 @@ export component OpenWithPage inherits PageFrame {
             }
             if root.bottom-tab == 1: Rectangle {
                 height: min(320px, max(120px, OpenWithState.code.length * CodeColors.row-height + 16px));
-                border-radius: Tokens.radius-control;
+                border-radius: Tokens.radius-sm;
                 background: Tokens.layer-2;
                 code := ListView {
                     width: 100%;
