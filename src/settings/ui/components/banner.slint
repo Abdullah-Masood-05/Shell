@@ -7,7 +7,7 @@ export component CloseGlyph inherits Rectangle {
     callback clicked;
     width: 32px;
     height: 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: button;
@@ -38,7 +38,7 @@ export component Banner inherits Rectangle {
     callback close();
 
     min-height: 48px;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke;
     background: Tokens.status-bg(root.kind);

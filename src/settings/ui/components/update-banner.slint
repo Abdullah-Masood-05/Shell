@@ -8,14 +8,14 @@ import { AppButton, Link } from "controls.slint";
 export component ProgressBar inherits Rectangle {
     in property <float> value;
     height: 4px;
-    border-radius: 2px;
+    border-radius: Tokens.radius-xs;
     background: Tokens.stroke-strong;
     clip: true;
     Rectangle {
         x: 0;
         width: parent.width * clamp(root.value, 0, 1);
         height: parent.height;
-        border-radius: 2px;
+        border-radius: Tokens.radius-xs;
         background: Tokens.accent-fill;
         animate width { duration: Tokens.normal; easing: ease-out; }
     }
@@ -28,7 +28,7 @@ export component UpdateBanner inherits Rectangle {
 
     // The wrapped text's height, not just the minimum, so the second line isn't clipped.
     height: max(48px, content.preferred-height);
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.accent-border;
     background: Tokens.info-bg;
@@ -139,7 +139,7 @@ export component UpdateNavHint inherits Rectangle {
     property <string> st: UpdateState.state;
 
     height: 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: button;

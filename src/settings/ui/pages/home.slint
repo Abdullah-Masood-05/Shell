@@ -22,7 +22,7 @@ component DiagnosticRow inherits Rectangle {
 
     property <string> kind: root.level == "error" ? "error" : root.level == "warning" ? "warning" : "info";
     height: row.preferred-height;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover && root.file != "" ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
 
@@ -68,7 +68,7 @@ component DiagnosticRow inherits Rectangle {
                 if root.line > 0: Rectangle {
                     height: 16px;
                     width: pos.preferred-width + 10px;
-                    border-radius: 8px;
+                    border-radius: Tokens.radius-xs;
                     background: Tokens.selected;
                     pos := Text {
                         text: "line " + root.line + ", column " + root.column;
@@ -207,7 +207,7 @@ export component HomePage inherits PageFrame {
             }
             Rectangle {
                 height: path-text.preferred-height + Tokens.s3 * 2;
-                border-radius: Tokens.radius-control;
+                border-radius: Tokens.radius-sm;
                 background: Tokens.layer-2;
                 border-width: 1px;
                 border-color: Tokens.stroke;
