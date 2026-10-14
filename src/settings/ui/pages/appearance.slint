@@ -342,6 +342,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.font-size); }
                                     ValueSlider {
                                         value: root.f[K.font-size].number;
+                                        auto-value: root.f[K.font-size].is-auto;
                                         minimum: 6;
                                         maximum: 32;
                                         unit: " px";
@@ -356,6 +357,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.font-weight); }
                                     ValueSlider {
                                         value: root.f[K.font-weight].number;
+                                        auto-value: root.f[K.font-weight].is-auto;
                                         minimum: 1;
                                         maximum: 9;
                                         unit: "00";
@@ -386,6 +388,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 SettingBlock {
                                     label: "Effect";
+                                    hint: AppearanceState.effect-note == "" ? root.f[K.effect].origin : AppearanceState.effect-note + " · " + root.f[K.effect].origin;
                                     field: root.f[K.effect];
                                     reset => { AppearanceState.reset(K.effect); }
                                     ChipGroup {
@@ -397,6 +400,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 if root.f[K.effect].index == 0 || root.f[K.effect].index >= 3: SettingRow {
                                     label: "Tint";
+                                    hint: AppearanceState.tint-note + " · " + root.f[K.tint].origin;
                                     field: root.f[K.tint];
                                     reset => { AppearanceState.reset(K.tint); }
                                     ColorField {
@@ -410,10 +414,12 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 SettingBlock {
                                     label: "Opacity";
+                                    hint: AppearanceState.opacity-note + " · " + root.f[K.bg-opacity].origin;
                                     field: root.f[K.bg-opacity];
                                     reset => { AppearanceState.reset(K.bg-opacity); }
                                     ValueSlider {
                                         value: root.f[K.bg-opacity].number;
+                                        auto-value: root.f[K.bg-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
                                         enabled: root.ready && !root.f[K.bg-opacity].locked;
@@ -451,6 +457,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.border-size); }
                                     ValueSlider {
                                         value: root.f[K.border-size].number;
+                                        auto-value: root.f[K.border-size].is-auto;
                                         maximum: 10;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.border-size].locked;
@@ -476,6 +483,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-size); }
                                     ValueSlider {
                                         value: root.f[K.shadow-size].number;
+                                        auto-value: root.f[K.shadow-size].is-auto;
                                         maximum: 30;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.shadow-size].locked;
@@ -488,6 +496,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-offset); }
                                     ValueSlider {
                                         value: root.f[K.shadow-offset].number;
+                                        auto-value: root.f[K.shadow-offset].is-auto;
                                         maximum: 30;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.shadow-offset].locked;
@@ -500,6 +509,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-opacity); }
                                     ValueSlider {
                                         value: root.f[K.shadow-opacity].number;
+                                        auto-value: root.f[K.shadow-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
                                         enabled: root.ready && !root.f[K.shadow-opacity].locked;
@@ -545,6 +555,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.image-size); }
                                     ValueSlider {
                                         value: root.f[K.image-size].number;
+                                        auto-value: root.f[K.image-size].is-auto;
                                         minimum: 8;
                                         maximum: 48;
                                         unit: " px";
@@ -558,6 +569,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.image-gap); }
                                     ValueSlider {
                                         value: root.f[K.image-gap].number;
+                                        auto-value: root.f[K.image-gap].is-auto;
                                         maximum: 40;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.image-gap].locked;
@@ -587,6 +599,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.sep-size); }
                                     ValueSlider {
                                         value: root.f[K.sep-size].number;
+                                        auto-value: root.f[K.sep-size].is-auto;
                                         maximum: 40;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.sep-size].locked;

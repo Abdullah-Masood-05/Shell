@@ -717,6 +717,36 @@ uint32_t gradientAt(const Resolved &r, double t)
     return stops.back().color;
 }
 
+uint32_t acrylicLayer(const Resolved &r)
+{
+    if (r.effect < 3)
+        return 0;
+    // ~10 % of the tint's colour where the tint is clear, nothing under an opaque tint.
+    const auto a = uint32_t(std::lround((255 - alphaOf(r.tint)) * 0.10));
+    return withAlpha(r.tint, a);
+}
+
+int backgroundOpacityPercent(const Resolved &r) { return int(std::lround(alphaOf(r.background) * 100.0 / 255.0)); }
+
+EffectChoice effectChoice(int choice, const Literal *effect, const Literal *opacity)
+{
+    static const char *const literals[] = { "auto", "0", "1", "2", "3" };
+    EffectChoice out;
+    if (choice < 0 || choice >= int(std::size(literals)))
+        return out;
+    out.effect = literals[choice];
+    // Blur and acrylic keep the tint (and its opacity) of an [n, tint, opacity] array.
+    if (choice >= 3 && effect && effect->kind == LiteralKind::Array && effect->items.size() >= 2) {
+        out.effect = "[" + std::string(literals[choice]);
+        for (size_t i = 1; i < effect->items.size(); ++i)
+            out.effect += ", " + effect->items[i].text;
+        out.effect += "]";
+    }
+    // Every effect but none needs a background that isn't solid.
+    out.clearOpacity = choice != 1 && opacity && opacity->kind == LiteralKind::Number && opacity->number >= 100;
+    return out;
+}
+
 std::string themeNameLiteral(int index)
 {
     if (index < 0 || index >= int(std::size(kThemeNames)))

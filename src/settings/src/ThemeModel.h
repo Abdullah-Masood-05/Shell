@@ -56,7 +56,12 @@ struct Resolved
     bool dark = false;
     bool transparency = false; // the "enableTransparency" path of the core
     int effect = 0;            // 0 none, 1 transparent, 2 blur, 3 acrylic
+    // The background colour with theme.background.opacity as its alpha: the core
+    // paints it over the effect, so 0 shows only the effect and 0xFF is solid (and
+    // turns the blur/acrylic window off).
     uint32_t background = 0xFFF9F9F9;
+    // The blur/acrylic tint the core hands to DWM (AccentPolicy.GradientColor): the
+    // theme's default, then effect = [n, tint, opacity], then background.tintcolor.
     uint32_t tint = 0;
 
     // theme.background.gradient, drawn over the background (ContextMenu.cpp): a
@@ -111,6 +116,34 @@ std::optional<int> viewPadding(const nss::Literal &value);
 std::optional<uint32_t> colorOf(const nss::Literal &value, const SystemInfo &sys);
 
 Resolved resolve(const Values &values, const SystemInfo &sys);
+
+// What the preview draws for the acrylic material under the tint (0 when the
+// effect isn't acrylic). DWM's legacy acrylic (ACCENT_ENABLE_ACRYLICBLURBEHIND,
+// which the core uses) is the blurred backdrop, a faint layer of the tint's own
+// colour, then the tint at its alpha. The faint layer fades out as the tint's
+// alpha grows, so a light tint (#2C2C2C40) stays see-through, as in the real menu.
+uint32_t acrylicLayer(const Resolved &r);
+
+// theme.background.opacity as the core applies it, in percent (0..100).
+int backgroundOpacityPercent(const Resolved &r);
+
+// The Effect choice of the Appearance page: 0 auto, 1 none, 2 transparent,
+// 3 blur, 4 acrylic. `effect` and `opacity` are the literals in effect now (null
+// when unset). Returns what to write:
+//   effect        the literal for theme.background.effect. An existing
+//                 [n, tint, opacity] array keeps its tint and opacity for blur and
+//                 acrylic (only n changes), since the tint lives in it.
+//   clearOpacity  the background opacity is a number >= 100, which paints the
+//                 background solid over the effect (the core then doesn't even
+//                 create the blur window), so it has to go back to auto for the
+//                 chosen effect to show. Otherwise opacity is left alone: an
+//                 unset or auto opacity stays so, and 0 is never written.
+struct EffectChoice
+{
+    std::string effect;
+    bool clearOpacity = false;
+};
+EffectChoice effectChoice(int choice, const nss::Literal *effect, const nss::Literal *opacity);
 
 // The gradient's colour at `t` (0..1) between its stops; transparent without one.
 uint32_t gradientAt(const Resolved &r, double t);

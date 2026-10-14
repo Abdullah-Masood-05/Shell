@@ -1,5 +1,6 @@
 #include "doctest.h"
 
+#include "PendingChanges.h"
 #include "ThemeModel.h"
 
 using namespace theme;
@@ -261,4 +262,139 @@ TEST_CASE("theme model: background gradient")
                                { "theme.background.gradient.stop", "[0.5, #FF0000, 20]" } }),
                         sys(true, true)).gradient);
     CHECK(gradientAt(Resolved{}, 0.5) == 0u);
+}
+
+namespace {
+
+// What the Effect chips stage (AppearanceController::selectEffect without the
+// SaveService): the effect literal, and opacity only when it has to go.
+PendingChanges choose(int choice, const Values &now)
+{
+    auto at = [&](const char *key) -> const Literal * {
+        auto it = now.find(key);
+        return it == now.end() ? nullptr : &it->second;
+    };
+    auto pick = effectChoice(choice, at("theme.background.effect"), at("theme.background.opacity"));
+    PendingChanges p;
+    REQUIRE(p.set("theme.background.effect", pick.effect, "Appearance").empty());
+    if (pick.clearOpacity)
+        REQUIRE(p.set("theme.background.opacity", "auto", "Appearance").empty());
+    return p;
+}
+
+} // namespace
+
+TEST_CASE("theme model: acrylic, opacity and auto (the core's semantics)")
+{
+    // The report: theme.nss has background { color=auto opacity=auto effect=auto },
+    // the app then wrote opacity = 0, effect = 3. On Windows 11 with Transparency
+    // effects on, that is exactly what auto already gave: acrylic, the theme's
+    // tint (#2C2C2C40 dark) and a fully clear background colour over it.
+    const auto user = make({ { "theme.name", "\"modern\"" },
+                             { "theme.dark", "auto" },
+                             { "theme.background.color", "auto" },
+                             { "theme.background.opacity", "auto" },
+                             { "theme.background.effect", "auto" } });
+    auto saved = user;
+    saved["theme.background.opacity"] = Literal::parse("0");
+    saved["theme.background.effect"] = Literal::parse("3");
+    const auto a = resolve(user, sys(true, true));
+    const auto b = resolve(saved, sys(true, true));
+    CHECK(a.effect == 3);
+    CHECK(b.effect == 3);
+    CHECK(a.tint == 0x402C2C2Cu);
+    CHECK(b.tint == a.tint);
+    CHECK(b.background == a.background);
+    CHECK(backgroundOpacityPercent(a) == 0); // auto resolves to 0 % under an effect
+
+    // With Transparency effects off, auto still forces acrylic; an explicit 3 is dropped.
+    CHECK(resolve(user, sys(true, false)).effect == 3);
+    CHECK(resolve(saved, sys(true, false)).effect == 0);
+    CHECK(backgroundOpacityPercent(resolve(saved, sys(true, false))) == 100);
+
+    // Opacity is the background colour over the effect: 100 % is solid.
+    auto solid = saved;
+    solid["theme.background.opacity"] = Literal::parse("100");
+    CHECK(alpha(resolve(solid, sys(true, true)).background) == 0xFF);
+}
+
+TEST_CASE("theme model: the Effect chips leave an auto opacity alone")
+{
+    // Unset, auto and a user's 0 stay as they are: only the effect is staged.
+    for (const char *opacity : { "", "auto", "0", "40" }) {
+        Values now = make({ { "theme.background.effect", "auto" } });
+        if (*opacity)
+            now["theme.background.opacity"] = Literal::parse(opacity);
+        auto p = choose(4, now);
+        CHECK_MESSAGE(p.items().size() == 1, opacity);
+        REQUIRE(p.find("theme.background.effect"));
+        CHECK(*p.find("theme.background.effect")->literal == "3");
+        CHECK_MESSAGE(p.find("theme.background.opacity") == nullptr, opacity);
+    }
+    // Every choice maps to the core's numbers.
+    CHECK(effectChoice(0, nullptr, nullptr).effect == "auto");
+    CHECK(effectChoice(1, nullptr, nullptr).effect == "0");
+    CHECK(effectChoice(2, nullptr, nullptr).effect == "1");
+    CHECK(effectChoice(3, nullptr, nullptr).effect == "2");
+    CHECK(effectChoice(4, nullptr, nullptr).effect == "3");
+    CHECK(effectChoice(5, nullptr, nullptr).effect.empty());
+}
+
+TEST_CASE("theme model: choosing acrylic writes what the core reads")
+{
+    // A solid background (a 1.x preset's opacity = 100) would hide the acrylic: it goes back to auto.
+    auto p = choose(4, make({ { "theme.background.effect", "0" }, { "theme.background.opacity", "100" } }));
+    REQUIRE(p.find("theme.background.opacity"));
+    CHECK(*p.find("theme.background.opacity")->literal == "auto");
+    // ...but not for None, where opacity doesn't apply.
+    CHECK(choose(1, make({ { "theme.background.opacity", "100" } })).find("theme.background.opacity") == nullptr);
+
+    // An [n, tint, opacity] array keeps its tint for blur and acrylic.
+    const auto arr = make({ { "theme.background.effect", "[2, color.accent, 50]" } });
+    auto q = choose(4, arr);
+    CHECK(*q.find("theme.background.effect")->literal == "[3, color.accent, 50]");
+    auto acrylic = resolve(make({ { "theme.background.effect", "[3, color.accent, 50]" } }), sys(true, true));
+    CHECK(acrylic.effect == 3);
+    CHECK(acrylic.tint == 0x7F3366CCu);
+    // None and auto write the plain value (the array's first item must be a number).
+    CHECK(*choose(0, arr).find("theme.background.effect")->literal == "auto");
+    CHECK(*choose(1, arr).find("theme.background.effect")->literal == "0");
+}
+
+TEST_CASE("theme model: the tint round-trips through background.tintcolor")
+{
+    // The colour picker's value -> the literal written -> what resolve() (and the core) reads.
+    const auto lit = Literal::makeColor(0x2C2C2CB0);
+    CHECK(lit.text == "#2C2C2CB0");
+    PendingChanges p;
+    REQUIRE(p.set("theme.background.tintcolor", lit.text, "Appearance").empty());
+    auto r = resolve(make({ { "theme.background.effect", "3" }, { "theme.background.tintcolor", "#2C2C2CB0" } }),
+                     sys(true, true));
+    CHECK(r.tint == 0xB02C2C2Cu);
+    // Without alpha the tint is opaque (FF), which hides the blur.
+    CHECK(resolve(make({ { "theme.background.effect", "3" }, { "theme.background.tintcolor", "#2C2C2C" } }),
+                  sys(true, true)).tint == 0xFF2C2C2Cu);
+    // tintcolor wins over the array's tint, as in the core.
+    auto both = resolve(make({ { "theme.background.effect", "[3, #FF0000, 50]" },
+                               { "theme.background.tintcolor", "#00FF0040" } }),
+                        sys(true, true));
+    CHECK(both.tint == 0x4000FF00u);
+}
+
+TEST_CASE("theme model: the preview's acrylic layers")
+{
+    // Dark acrylic, default tint: blurred backdrop, a faint tint-coloured layer, the 25 % tint.
+    auto dark = resolve(make({ { "theme.background.effect", "3" } }), sys(true, true));
+    CHECK(acrylicLayer(dark) == 0x132C2C2Cu); // (255 - 0x40) * 10 %
+    CHECK(alpha(dark.background) == 0);       // nothing over it
+    // An opaque tint leaves no room for the layer; blur and none have none.
+    auto opaque = resolve(make({ { "theme.background.effect", "3" }, { "theme.background.tintcolor", "#202020" } }),
+                          sys(true, true));
+    CHECK(acrylicLayer(opaque) == 0x00202020u);
+    CHECK(acrylicLayer(resolve(make({ { "theme.background.effect", "2" } }), sys(true, true))) == 0u);
+    CHECK(acrylicLayer(resolve(make({ { "theme.background.effect", "0" } }), sys(true, true))) == 0u);
+    // Light modern acrylic: the clear white tint the core sets.
+    auto light = resolve(make({ { "theme.name", "\"modern\"" }, { "theme.background.effect", "3" } }), sys(false, true));
+    CHECK(light.tint == 0x00FFFFFFu);
+    CHECK(acrylicLayer(light) == 0x1AFFFFFFu);
 }

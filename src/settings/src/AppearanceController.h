@@ -59,6 +59,7 @@ private:
     void bindCallbacks();
     void apply(int index, const std::string &literal);
     void reset(int index);
+    void selectEffect(int index, int choice);
     void applyDevArgs();
 
     theme::Values currentValues() const;

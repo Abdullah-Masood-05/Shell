@@ -156,6 +156,7 @@ PreviewTheme toPreview(const theme::Resolved &r)
     p.effect = r.effect;
     p.background = argb(r.background);
     p.tint = argb(r.tint);
+    p.acrylic = argb(theme::acrylicLayer(r));
     p.gradient = r.gradient;
     p.gradient_radial = r.gradientRadial;
     p.gradient_angle = float(r.gradientAngle);
@@ -345,6 +346,8 @@ void AppearanceController::bindCallbacks()
             // The cards, shared with the first-run dialog.
             if (auto literal = theme::themeNameLiteral(choice); !literal.empty())
                 apply(i, literal);
+        } else if (std::string_view(def.key) == "theme.background.effect") {
+            selectEffect(i, choice);
         } else if (choice >= 0 && choice < int(def.choices.size()))
             apply(i, def.choices[size_t(choice)]);
     });
@@ -429,6 +432,32 @@ void AppearanceController::apply(int index, const std::string &literal)
     }
     if (errors_.erase(index))
         rebuild(); // save_.set already rebuilt; refresh the cleared error
+}
+
+void AppearanceController::selectEffect(int index, int choice)
+{
+    const std::string opacityKey = "theme.background.opacity";
+    const auto values = currentValues();
+    auto find = [&](const char *key) -> const Literal * {
+        auto it = values.find(key);
+        return it == values.end() ? nullptr : &it->second;
+    };
+    const auto pick = theme::effectChoice(choice, find("theme.background.effect"), find(opacityKey.c_str()));
+    if (pick.effect.empty())
+        return;
+    apply(index, pick.effect);
+    if (!pick.clearOpacity)
+        return;
+    // A solid background (opacity 100) hides any effect. Drop this app's value, or,
+    // when the user's own file has the solid opacity, put auto over it.
+    const auto &defs = fieldDefs();
+    const int opacity = int(std::find_if(defs.begin(), defs.end(), [&](const FieldDef &d) { return d.key == opacityKey; }) -
+                            defs.begin());
+    reset(opacity);
+    const auto o = save_.origins(opacityKey);
+    const auto own = o.file ? Literal::parse(o.file->value) : Literal{};
+    if (own.kind == LiteralKind::Number && own.number >= 100)
+        apply(opacity, "auto");
 }
 
 void AppearanceController::reset(int index)
@@ -544,8 +573,13 @@ void AppearanceController::rebuild()
         }
         case Kind::Number: {
             double v = 0;
+            // auto/default (or, for the background opacity, nothing at all): the core
+            // picks the value, so the slider shows it as "Auto (≈N)" and writes nothing
+            // until it is moved.
+            const bool keyword = l && (l->kind == LiteralKind::Keyword || l->kind == LiteralKind::String);
+            f.is_auto = keyword || (!l && key == "theme.background.opacity");
             if (key == "theme.background.opacity")
-                v = alphaPercent(r.background);
+                v = theme::backgroundOpacityPercent(r);
             else if (key == "theme.font.size")
                 v = r.fontSize;
             else if (key == "theme.font.weight")
@@ -596,8 +630,41 @@ void AppearanceController::rebuild()
             fields_->set_row_data(i, rows[i]);
     }
 
-    // Preview
+    // What the Effects controls mean in the core (ContextMenu.cpp; docs/settings-app/DESIGN.md).
     const auto &st = ui_->global<AppearanceState>();
+    {
+        const auto effectLit = lit("theme.background.effect");
+        const Literal *first = effectLit && effectLit->kind == LiteralKind::Array && !effectLit->items.empty()
+                                   ? &effectLit->items[0]
+                                   : effectLit ? &*effectLit : nullptr;
+        const bool forcedAuto = first && (first->kind == LiteralKind::Keyword || first->kind == LiteralKind::String) &&
+                                nss::toLower(first->string) == "auto";
+        const int asked = first && first->kind == LiteralKind::Number ? int(first->number) : -1;
+        const bool arrayTint = effectLit && effectLit->kind == LiteralKind::Array && effectLit->items.size() >= 2;
+        std::string effectNote;
+        if (!system_.transparency && (asked == 2 || asked == 3))
+            effectNote = "Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in "
+                         "Personalization > Colors, or choose Auto, which Shell applies even with it off.";
+        else if (forcedAuto)
+            effectNote = system_.win11 ? "Auto is acrylic on Windows 11, even with Windows Transparency effects off."
+                                       : "Auto is blur on Windows 10, even with Windows Transparency effects off.";
+        else if (!first)
+            effectNote = "Not set: acrylic while Windows Transparency effects is on, none while it is off.";
+        else if (asked == 3)
+            effectNote = "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger "
+                         "look, raise the tint's alpha.";
+        st.set_effect_note(ss(effectNote));
+        st.set_tint_note(ss(std::string("Its alpha is the strength: 40 is light, FF hides the blur. ") +
+                            (arrayTint && !lit("theme.background.tintcolor")
+                                 ? "Now from effect = [n, tint, opacity]; a change here is saved as background.tintcolor, which wins."
+                                 : "Saved as background.tintcolor.")));
+        st.set_opacity_note(ss(r.effect == 0
+                                   ? std::string("No effect: the menu is solid, so opacity doesn't apply.")
+                                   : std::string("The background colour over the effect: 0 % shows only the effect "
+                                                 "and its tint, 100 % is solid and turns the effect off.")));
+    }
+
+    // Preview
     st.set_preview(toPreview(r));
     auto m = metricsOf(r);
     st.set_menu_desktop(buildMenu(kDesktop, m, 8));

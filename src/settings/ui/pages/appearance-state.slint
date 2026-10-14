@@ -23,6 +23,7 @@ export struct ThemeField {
     source-file: string,// the file and line of the user's own assignment ("" when none)
     source-line: int,
     error: string,
+    is-auto: bool,      // a number key the core picks (auto, or for the background opacity unset): the slider shows "Auto (≈N)"
 }
 
 // Indexes into AppearanceState.fields (the order of kFields in AppearanceController.cpp).
@@ -79,6 +80,10 @@ export global AppearanceState {
 
     // Fonts (filtered by filter-fonts)
     in property <[string]> fonts;
+    // What the Effects controls mean in the core (src/AppearanceController.cpp).
+    in property <string> effect-note;
+    in property <string> tint-note;
+    in property <string> opacity-note;
 
     callback set-text(index: int, literal: string);
     callback set-number(index: int, value: float);
