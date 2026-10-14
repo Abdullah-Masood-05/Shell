@@ -136,7 +136,12 @@ Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs n
 | Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; as a submenu or top-level items, with a preview and a dry-run Test. Saved to `imports/settings-app-openwith.nss`. |
 | Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
 | Backups | Snapshots of the configuration, compared line by line with your files. Restore, pin, delete or create one by hand. |
-| Preferences | The app's theme, registration for all users (the one action that asks for administrator rights), and version and licence information. |
+| Preferences | The app's theme, updates, registration for all users (the one action that asks for administrator rights), and version and licence information. |
+
+**Updates.** The app checks this repository's GitHub releases once a day (Preferences, *Check for updates
+automatically*, on by default), downloads the MSI or portable zip that matches your install, verifies it against the
+release's `SHA256SUMS.txt` and installs it after you click *Download and install* (MSI installs show one administrator
+prompt). Details: [Updates](https://abdullah-masood-05.github.io/Shell/settings-app.html#updates).
 
 Changes made on Appearance, Behavior and Rules & Filters are written to `imports/settings-app.nss`, imported last, so
 your own files stay as you wrote them. Every save is checked with `shell -config:check` first, and a configuration that

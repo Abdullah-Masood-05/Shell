@@ -28,7 +28,7 @@ BEGIN
             VALUE "LegalCopyright", "Copyright (C) 2021-@SHELL_VERSION_YEAR@ Nilesoft Ltd."
             VALUE "OriginalFilename", "NilesoftShellPro.exe"
             VALUE "ProductName", "Nilesoft Shell Pro"
-            VALUE "ProductVersion", "@SHELL_VERSION@"
+            VALUE "ProductVersion", "@SETTINGS_FULL_VERSION@"
         END
     END
     BLOCK "VarFileInfo"

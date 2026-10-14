@@ -6,11 +6,45 @@ import { Card, KeyValue } from "../components/card.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Link, Segmented } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
+import { UpdateState } from "../update-state.slint";
+import { ProgressBar } from "../components/update-banner.slint";
+import { ToggleSwitch, RowDivider } from "../components/theme-controls.slint";
+
+// A setting with a one-line explanation and a switch on the right.
+component PrefSwitch inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> hint;
+    in property <bool> on;
+    callback toggled(on: bool);
+    spacing: Tokens.s4;
+    VerticalLayout {
+        horizontal-stretch: 1;
+        alignment: center;
+        spacing: 2px;
+        Text {
+            text: root.label;
+            font-size: Tokens.body;
+            color: Tokens.text;
+            wrap: word-wrap;
+        }
+        Text {
+            text: root.hint;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+            wrap: word-wrap;
+        }
+    }
+    ToggleSwitch {
+        on: root.on;
+        label: root.label;
+        toggled(v) => { root.toggled(v); }
+    }
+}
 
 export component PreferencesPage inherits PageFrame {
     PageHeader {
         title: "Preferences";
-        description: "How this app looks, machine-wide registration, and about.";
+        description: "How this app looks, updates, machine-wide registration, and about.";
         busy: AppState.busy;
         busy-label: AppState.busy-label;
     }
@@ -52,6 +86,124 @@ export component PreferencesPage inherits PageFrame {
                 enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
                 clicked => { AppState.action(AppState.status.machine-registered ? "unregister-machine" : "register-machine"); }
             }
+        }
+    }
+
+    Card {
+        icon: Icons.download;
+        heading: "Updates";
+        description: "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed.";
+        KeyValue {
+            key: "Version";
+            value: UpdateState.current-version
+                + (UpdateState.install-kind == "msi" ? "  ·  installed for all users (MSI)" : UpdateState.install-kind == "portable" ? "  ·  portable copy" : "");
+        }
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            Text {
+                text: "Channel";
+                width: 132px;
+                font-size: Tokens.body;
+                color: Tokens.text-2;
+                vertical-alignment: center;
+            }
+            Segmented {
+                width: 220px;
+                min-option-width: 100px;
+                options: ["Stable", "Beta"];
+                selected: UpdateState.channel;
+                changed(i) => { UpdateState.set-channel(i); }
+            }
+            Text {
+                horizontal-stretch: 1;
+                text: UpdateState.channel == 1 ? "Pre-releases too" : "Releases only";
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                vertical-alignment: center;
+            }
+        }
+        RowDivider { }
+        PrefSwitch {
+            label: "Check for updates automatically";
+            hint: "When the app starts, at most once a day.";
+            on: UpdateState.auto-check;
+            toggled(v) => { UpdateState.set-auto-check(v); }
+        }
+        PrefSwitch {
+            label: "Download and install updates automatically";
+            hint: "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt.";
+            on: UpdateState.auto-install;
+            toggled(v) => { UpdateState.set-auto-install(v); }
+        }
+        RowDivider { }
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: start;
+                padding-top: 1px;
+                Image {
+                    property <string> kind: UpdateState.state == "error" ? "error" : UpdateState.state == "up-to-date" ? "ok" : "info";
+                    source: UpdateState.offered ? Icons.download : Icons.status(self.kind);
+                    width: 16px;
+                    height: 16px;
+                    colorize: UpdateState.offered ? Tokens.accent : Tokens.status-color(self.kind);
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 2px;
+                Text {
+                    text: UpdateState.state == "checking" ? "Checking for updates…"
+                        : UpdateState.state == "available" ? "Version " + UpdateState.latest-version + " is available"
+                        : UpdateState.state == "downloading" ? "Downloading " + UpdateState.latest-version + "…  " + UpdateState.progress-text
+                        : UpdateState.state == "ready" ? "Version " + UpdateState.latest-version + " is downloaded and verified"
+                        : UpdateState.state == "installing" ? "Installing " + UpdateState.latest-version + "…"
+                        : UpdateState.message != "" ? UpdateState.message
+                        : "Not checked yet";
+                    font-size: Tokens.body;
+                    color: UpdateState.state == "error" ? Tokens.danger : Tokens.text;
+                    wrap: word-wrap;
+                }
+                if UpdateState.offered && UpdateState.message != "": Text {
+                    text: UpdateState.message;
+                    font-size: Tokens.caption;
+                    color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
+                    wrap: word-wrap;
+                }
+                Text {
+                    text: "Last checked: " + UpdateState.last-checked;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    if UpdateState.state == "available" || UpdateState.state == "ready": AppButton {
+                        text: UpdateState.state == "ready" ? "Restart to update" : "Download and install";
+                        primary: true;
+                        icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
+                        colorize-icon: !UpdateState.needs-admin;
+                        clicked => { UpdateState.install(); }
+                    }
+                    if UpdateState.state == "downloading": AppButton {
+                        text: "Cancel";
+                        clicked => { UpdateState.cancel(); }
+                    }
+                    AppButton {
+                        text: "Check now";
+                        icon: Icons.refresh;
+                        colorize-icon: true;
+                        enabled: UpdateState.state != "checking" && UpdateState.state != "downloading" && UpdateState.state != "installing";
+                        clicked => { UpdateState.check-now(); }
+                    }
+                }
+            }
+        }
+        if UpdateState.state == "downloading": ProgressBar {
+            value: UpdateState.progress;
         }
     }
 

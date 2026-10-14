@@ -74,9 +74,13 @@ jobs:
             ~/.cargo/git
           key: ${{ steps.cachekey.outputs.key }}
 
+      # A release passes its tag without the "v" (2.0.1, 2.0.1-beta.1): the app shows it and
+      # compares it with GitHub releases to find updates. Empty: the Resource.h version.
       - name: Configure
         working-directory: src/settings
-        run: cmake --preset x64-release
+        env:
+          VERSION: ${{ inputs.version }}
+        run: cmake --preset x64-release "-DSETTINGS_VERSION_TAG=$env:VERSION"
 
       - name: Build NilesoftShellPro.exe and settings_tests
         working-directory: src/settings

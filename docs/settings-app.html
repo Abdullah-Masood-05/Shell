@@ -202,13 +202,54 @@
 </figure>
 
 <h5 id="preferences">Preferences</h5>
-<p>The app's own theme, registration for all users (needs administrator rights), and version and licence information.</p>
+<p>The app's own theme, <a href="#updates">updates</a>, registration for all users (needs administrator rights), and
+	version and licence information.</p>
 
 <figure class="screenshot my-5">
 	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
 		alt="The Preferences page">
 	<figcaption>Preferences: app theme, registration for all users (the UAC shield marks the one action that needs administrator rights), and About.</figcaption>
 </figure>
+
+<h5 id="updates">Updates</h5>
+<p>The app looks for new versions in this project's
+	<a href="https://github.com/Abdullah-Masood-05/Shell/releases">GitHub releases</a>. When one is available, Home shows a
+	banner with <strong>Release notes</strong>, <strong>Download and install</strong> and <strong>Skip this version</strong>,
+	and the sidebar shows <i>Update available</i> above the status line. The <strong>Updates</strong> section of Preferences
+	has the version you run, the channel, the last check and a <strong>Check now</strong> button.</p>
+<ul>
+	<li><strong>Check for updates automatically</strong> (on by default): when the app starts, at most once a day. A
+		failed automatic check (offline, or GitHub's request limit) stays quiet; <i>Check now</i> says what went wrong.</li>
+	<li><strong>Download and install updates automatically</strong> (off by default): the update is downloaded and
+		verified in the background, then the banner offers <i>Restart to update</i>. Nothing is installed without that
+		click, and an MSI install still asks for administrator approval once.</li>
+	<li><strong>Channel:</strong> <i>Stable</i> offers releases only; <i>Beta</i> also offers pre-releases such as
+		<code>2.1.0-beta.1</code>. A pre-release build starts on Beta, every other build on Stable.</li>
+	<li><strong>Skip this version</strong> hides that version; a newer one still shows up.</li>
+</ul>
+<p>How an update is installed:</p>
+<ol>
+	<li>The file for your install is downloaded to <code>%LOCALAPPDATA%\Nilesoft\Shell\updates\&lt;version&gt;</code>:
+		<code>setup-x64.msi</code> or <code>setup-arm64.msi</code> when the app runs from <i>Program Files</i> and Shell is
+		registered for all users from there, otherwise the x64 portable zip. Only addresses under this project's
+		releases (and the GitHub hosts they redirect to) are accepted.</li>
+	<li>It is checked against the release's <code>SHA256SUMS.txt</code>. A file that doesn't match is deleted and nothing
+		is installed.</li>
+	<li>The app closes and a copy of it in <code>%TEMP%</code> finishes the job:
+		<ul>
+			<li><strong>MSI:</strong> Windows asks for administrator approval, then
+				<code>msiexec /i setup-x64.msi /passive /norestart</code> runs (its log is saved next to the MSI). The
+				installer restarts Explorer, and the app opens again on its own.</li>
+			<li><strong>Portable:</strong> no administrator rights. The files are copied over the install folder; the
+				<code>shell.dll</code> Explorer has loaded is renamed aside first (Windows allows that for a DLL in use)
+				and removed on a later start. A <code>.nss</code> file you edited in that folder is kept, with the new
+				default saved next to it as <code>.nss.new</code>. If a file can't be replaced, everything is put back.
+				The app opens again and offers <i>Restart Explorer</i> to load the new <code>shell.dll</code>.</li>
+		</ul>
+	</li>
+</ol>
+<p>Your configuration in <code>%APPDATA%\Nilesoft\Shell</code> is never touched by an update. The settings are stored
+	under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>.</p>
 
 <h5 id="reload">Applying changes</h5>
 <p>There is no restart step for configuration changes: Shell reloads the configuration when a file it loaded changes.

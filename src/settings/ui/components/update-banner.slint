@@ -1,0 +1,178 @@
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { UpdateState } from "../update-state.slint";
+import { AppButton, Link } from "controls.slint";
+
+// A thin determinate bar (downloads).
+export component ProgressBar inherits Rectangle {
+    in property <float> value;
+    height: 4px;
+    border-radius: 2px;
+    background: Tokens.stroke-strong;
+    clip: true;
+    Rectangle {
+        x: 0;
+        width: parent.width * clamp(root.value, 0, 1);
+        height: parent.height;
+        border-radius: 2px;
+        background: Tokens.accent-fill;
+        animate width { duration: Tokens.normal; easing: ease-out; }
+    }
+}
+
+// Home: the update on offer, its download, and the restart that installs it.
+export component UpdateBanner inherits Rectangle {
+    property <string> st: UpdateState.state;
+    property <string> version: UpdateState.latest-version;
+
+    // The wrapped text's height, not just the minimum, so the second line isn't clipped.
+    height: max(48px, content.preferred-height);
+    border-radius: Tokens.radius-card;
+    border-width: 1px;
+    border-color: Tokens.accent-border;
+    background: Tokens.info-bg;
+    animate background { duration: Tokens.normal; }
+
+    content := HorizontalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s4;
+        padding-top: Tokens.s3;
+        padding-bottom: Tokens.s3;
+        spacing: Tokens.s3;
+
+        VerticalLayout {
+            alignment: start;
+            padding-top: 1px;
+            Image {
+                source: Icons.download;
+                width: 18px;
+                height: 18px;
+                colorize: Tokens.accent;
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: root.st == "downloading" ? "Downloading Nilesoft Shell Pro " + root.version + "…"
+                    : root.st == "ready" ? "Update ready: Nilesoft Shell Pro " + root.version
+                    : root.st == "installing" ? "Installing Nilesoft Shell Pro " + root.version + "…"
+                    : "Nilesoft Shell Pro " + root.version + " is available";
+                font-weight: 600;
+                font-size: Tokens.body;
+                color: Tokens.text;
+                wrap: word-wrap;
+            }
+            if root.st == "available": Text {
+                text: "You have " + UpdateState.current-version + "."
+                    + (UpdateState.released != "" ? " Released " + UpdateState.released + "." : "")
+                    + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "");
+                font-size: Tokens.body;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+            if root.st == "ready": Text {
+                text: UpdateState.needs-admin
+                    ? "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
+                    : "Downloaded and verified. The app closes for a moment and opens again.";
+                font-size: Tokens.body;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+            }
+            if root.st == "downloading": VerticalLayout {
+                spacing: 6px;
+                padding-top: 4px;
+                ProgressBar {
+                    value: UpdateState.progress;
+                }
+                Text {
+                    text: UpdateState.progress-text + " · checked against SHA256SUMS.txt when done";
+                    font-size: Tokens.caption;
+                    color: Tokens.text-2;
+                }
+            }
+            if UpdateState.message != "" && (root.st == "available" || root.st == "ready" || root.st == "installing"): Text {
+                text: UpdateState.message;
+                font-size: Tokens.body;
+                color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
+                wrap: word-wrap;
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                alignment: end;
+                if root.st == "available" || root.st == "ready": VerticalLayout {
+                    alignment: center;
+                    padding-right: Tokens.s2;
+                    Link {
+                        text: "Release notes";
+                        activated => { UpdateState.open-notes(); }
+                    }
+                }
+                if root.st == "available": AppButton {
+                    text: "Skip this version";
+                    clicked => { UpdateState.skip(); }
+                }
+                if root.st == "available" || root.st == "ready": AppButton {
+                    text: root.st == "ready" ? "Restart to update" : "Download and install";
+                    primary: true;
+                    icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
+                    colorize-icon: !UpdateState.needs-admin;
+                    clicked => { UpdateState.install(); }
+                }
+                if root.st == "downloading": AppButton {
+                    text: "Cancel";
+                    clicked => { UpdateState.cancel(); }
+                }
+            }
+        }
+    }
+}
+
+// Sidebar footer: one line while an update is on offer; it opens Home, where the banner is.
+export component UpdateNavHint inherits Rectangle {
+    callback clicked();
+    property <string> st: UpdateState.state;
+
+    height: 32px;
+    border-radius: Tokens.radius-control;
+    background: ta.has-hover ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; }
+    accessible-role: button;
+    accessible-label: label.text;
+    accessible-action-default => { root.clicked(); }
+
+    HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s3;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: Icons.download;
+                width: 14px;
+                height: 14px;
+                colorize: Tokens.accent;
+            }
+        }
+        label := Text {
+            horizontal-stretch: 1;
+            text: root.st == "downloading" ? "Downloading update… " + round(UpdateState.progress * 100) + "%"
+                : root.st == "ready" ? "Update ready: restart to update"
+                : root.st == "installing" ? "Installing update…"
+                : "Update available: " + UpdateState.latest-version;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.accent;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

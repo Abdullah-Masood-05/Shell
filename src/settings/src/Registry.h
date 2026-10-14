@@ -32,6 +32,8 @@ inline constexpr const wchar_t *key = L"Software\\Nilesoft\\Shell\\Settings";
 
 std::optional<DWORD> get(const wchar_t *name);
 bool set(const wchar_t *name, DWORD value);
+std::optional<std::wstring> getString(const wchar_t *name);
+bool setString(const wchar_t *name, const std::wstring &value);
 
 struct Placement
 {
