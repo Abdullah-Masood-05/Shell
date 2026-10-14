@@ -547,6 +547,27 @@ const std::vector<Preset> &presets()
                            { { "git.exe", "..\\git-bash.exe" } }, Scope::All, false));
         v.push_back(preset("notepad", "Notepad", "{path}", { "%WINDIR%\\System32\\notepad.exe" }, {}, Scope::Files,
                            false));
+
+        // Their own menu entries, for when the program path doesn't say (see linkNatives()).
+        auto own = [&](std::string_view id, std::vector<std::string> keys, std::vector<std::string> titles,
+                       std::string handlerTitle = {}) {
+            for (auto &p : v)
+                if (p.id == id) {
+                    p.nativeKeys = std::move(keys);
+                    p.nativeTitles = std::move(titles);
+                    p.handlerTitle = std::move(handlerTitle);
+                }
+        };
+        own("vscode", { "vscode" }, { "Open with Code" });
+        own("vscode-insiders", { "vscodeinsiders" }, { "Open with Code - Insiders" });
+        own("zed", {}, { "Open with Zed" });
+        own("cursor", { "cursor" }, { "Open with Cursor" });
+        own("windsurf", { "windsurf" }, { "Open with Windsurf" });
+        own("sublime", {}, { "Open with Sublime Text" });
+        own("notepad++", { "notepad++", "anotepad++", "anotepad++64" }, { "Edit with Notepad++" }, "Edit with Notepad++");
+        own("pwsh", { "powershell7x64", "powershell7x86", "powershell7-previewx64" },
+            { "PowerShell 7", "PowerShell 7-preview" });
+        own("git-bash", { "git_shell", "git_gui", "git_bash" }, { "Open Git Bash here", "Open Git GUI here" });
         return v;
     }();
     return list;
@@ -643,6 +664,205 @@ Model merge(const std::optional<Model> &saved, const std::vector<App> &detected)
         }
     }
     return m;
+}
+
+// --- The apps' own menu entries ------------------------------------------------
+
+namespace {
+
+// A program or folder for comparing: lower case, backslashes, no quotes or
+// ",index", no trailing backslash.
+std::string pathKey(std::string_view raw)
+{
+    std::string s(nss::trim(raw));
+    if (s.size() >= 2 && s.front() == '"') {
+        auto end = s.find('"', 1);
+        s = s.substr(1, end == std::string::npos ? std::string::npos : end - 1);
+    }
+    auto comma = s.rfind(',');
+    if (comma != std::string::npos && comma + 1 < s.size() &&
+        s.find_first_not_of("-0123456789 ", comma + 1) == std::string::npos)
+        s.resize(comma);
+    std::replace(s.begin(), s.end(), '/', '\\');
+    s = nss::toLower(nss::trim(s));
+    while (s.size() > 3 && s.back() == '\\')
+        s.pop_back();
+    return s;
+}
+
+// The programs that stand for an app: its program, and its icon when that's
+// a program too (Neovim runs in Windows Terminal; a Toolbox script has the
+// IDE as its icon).
+std::vector<std::string> appPrograms(const App &a)
+{
+    std::vector<std::string> out;
+    if (!a.exe.empty())
+        out.push_back(a.exe);
+    auto icon = pathKey(a.icon);
+    if (icon.size() > 4 && icon.compare(icon.size() - 4, 4, ".exe") == 0 && icon.find('@') == std::string::npos)
+        out.push_back(a.icon);
+    return out;
+}
+
+// The last part of each registry key an item comes from: "git_gui".
+std::vector<std::string> keyNames(const otherapps::Item &item)
+{
+    std::vector<std::string> out{ nss::toLower(item.name) };
+    for (const auto &k : item.keys) {
+        auto slash = k.rfind('\\');
+        out.push_back(nss::toLower(slash == std::string::npos ? k : k.substr(slash + 1)));
+    }
+    return out;
+}
+
+} // namespace
+
+std::string installFolder(std::string_view program, const Env &env)
+{
+    auto p = pathKey(program);
+    if (p.empty() || isScript(p))
+        return {}; // a launcher script: its folder has other scripts
+    auto dir = folderOf(p);
+    auto leaf = nameOf(dir);
+    if (leaf == "bin" || leaf == "cmd")
+        dir = folderOf(dir); // "...\Git\cmd\git.exe", "...\IDEA\bin\idea64.exe"
+    if (dir.size() < 3 || dir[1] != ':')
+        return {};
+    // At least two folders deep: "C:\Program Files\Git", not "C:\Tools".
+    if (std::count(dir.begin(), dir.end(), '\\') < 2)
+        return {};
+    auto key = [](const std::wstring &w) { return w.empty() ? std::string{} : pathKey(nss::narrow(w)); };
+    const std::string shared[] = {
+        key(env.programFiles),
+        key(env.programFilesX86),
+        key(env.localAppData),
+        key(env.localAppData) + "\\programs",
+        key(env.localAppData) + "\\microsoft\\windowsapps",
+        key(env.userProfile),
+        key(env.userProfile) + "\\scoop\\shims",
+        key(env.userProfile) + "\\appdata\\roaming",
+    };
+    for (const auto &s : shared)
+        if (!s.empty() && dir == s)
+            return {};
+    auto win = key(env.windir);
+    if (!win.empty() && (dir == win || dir.rfind(win + "\\", 0) == 0))
+        return {};
+    if (dir.find("\\windowsapps") != std::string::npos || dir.find("\\toolbox\\scripts") != std::string::npos)
+        return {};
+    return dir;
+}
+
+std::vector<int> nativeOwners(const std::vector<App> &apps, const std::vector<otherapps::Item> &items, const Env &env)
+{
+    struct Known
+    {
+        std::vector<std::string> programs; // pathKey()s
+        std::vector<std::string> folders;  // install folders
+        const Preset *preset = nullptr;
+    };
+    std::vector<Known> known(apps.size());
+    for (size_t a = 0; a < apps.size(); ++a) {
+        if (apps[a].exe.empty())
+            continue;
+        for (const auto &p : appPrograms(apps[a])) {
+            known[a].programs.push_back(pathKey(p));
+            auto dir = installFolder(p, env);
+            if (!dir.empty())
+                known[a].folders.push_back(dir);
+        }
+        known[a].preset = apps[a].id == "custom" ? nullptr : findPreset(apps[a].id);
+    }
+
+    std::vector<int> owners(items.size(), -1);
+    for (size_t i = 0; i < items.size(); ++i) {
+        const auto &item = items[i];
+        auto program = pathKey(item.program);
+        auto names = keyNames(item);
+        int best = -1, bestScore = 0;
+        size_t bestLength = 0;
+        for (size_t a = 0; a < apps.size(); ++a) {
+            const auto &k = known[a];
+            int score = 0;
+            size_t length = 0;
+            if (!program.empty() && std::find(k.programs.begin(), k.programs.end(), program) != k.programs.end())
+                score = 3;
+            for (const auto &dir : k.folders)
+                if (score < 3 && !program.empty() && program.rfind(dir + "\\", 0) == 0 && dir.size() > length) {
+                    score = 2;
+                    length = dir.size();
+                }
+            if (score == 0 && k.preset) {
+                for (const auto &n : names)
+                    if (std::find(k.preset->nativeKeys.begin(), k.preset->nativeKeys.end(), n) != k.preset->nativeKeys.end())
+                        score = 1;
+                for (const auto &t : k.preset->nativeTitles)
+                    if (item.titleKnown && nss::iequals(t, item.title))
+                        score = 1;
+            }
+            // The best kind of match wins; between folders, the deepest one.
+            if (score > bestScore || (score == 2 && bestScore == 2 && length > bestLength)) {
+                best = int(a);
+                bestScore = score;
+                bestLength = length;
+            }
+        }
+        owners[i] = best;
+    }
+    return owners;
+}
+
+std::vector<int> linkNatives(Model &model, const std::vector<otherapps::Item> &items, const Env &env)
+{
+    auto owners = nativeOwners(model.apps, items, env);
+    for (auto &a : model.apps)
+        a.natives.clear();
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (owners[i] < 0)
+            continue;
+        auto &a = model.apps[size_t(owners[i])];
+        const auto &item = items[i];
+        Hidden h{ item.kind, item.name, item.title };
+        if (item.kind == "handler") {
+            // A shell extension sets its own title: the preset knows it, else the name is the guess.
+            const auto *p = a.id == "custom" ? nullptr : findPreset(a.id);
+            if (p && !p->handlerTitle.empty())
+                h.title = p->handlerTitle;
+        }
+        a.natives.push_back(std::move(h));
+    }
+    return owners;
+}
+
+std::vector<OtherRef> otherRows(const std::vector<otherapps::Item> &items, const std::vector<int> &owners,
+                                const std::vector<Hidden> &hidden)
+{
+    std::vector<OtherRef> rows;
+    std::vector<bool> used(hidden.size(), false);
+    for (size_t i = 0; i < items.size(); ++i) {
+        const auto &item = items[i];
+        OtherRef r;
+        r.item = int(i);
+        for (size_t h = 0; h < hidden.size(); ++h) {
+            const auto &hd = hidden[h];
+            if (used[h] || hd.kind != item.kind)
+                continue;
+            // A verb by its title (the rule matches titles), a shell extension by its name.
+            bool same = item.kind == "verb" ? nss::iequals(hd.title, item.title) : nss::iequals(hd.name, item.name);
+            if (same) {
+                r.hidden = int(h);
+                used[h] = true;
+                break;
+            }
+        }
+        if (i < owners.size() && owners[i] >= 0 && r.hidden < 0)
+            continue;
+        rows.push_back(r);
+    }
+    for (size_t h = 0; h < hidden.size(); ++h)
+        if (!used[h])
+            rows.push_back(OtherRef{ -1, int(h) });
+    return rows;
 }
 
 // --- Paths in .nss ----------------------------------------------------------
@@ -863,6 +1083,8 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
             meta += std::string(" scope=") + scopeWord(a.scope);
         if (!a.enabled)
             meta += " off";
+        if (a.keepOwn)
+            meta += " keep-own";
         out += indent + meta + nl;
 
         menus::Node n;
@@ -902,6 +1124,26 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
     if (inMenu)
         out += "}" + nl;
 
+    // The apps' own entries: "// own app=pwsh verb=PowerShell7x64", then its
+    // remove() rule, commented out while the app is on (or keeps them). A
+    // custom app is "custom-<n>", the n-th custom app in the file.
+    bool anyOwn = false;
+    int customs = 0;
+    for (const auto &a : model.apps) {
+        if (a.exe.empty())
+            continue;
+        std::string ref = a.id.empty() || a.id == "custom" ? "custom-" + std::to_string(++customs) : a.id;
+        for (const auto &h : a.natives) {
+            if (!anyOwn)
+                out += nl + std::string(kOwnSection) + nl;
+            anyOwn = true;
+            out += "// own app=" + ref + " " + h.kind + "=" + h.name + nl;
+            auto find = exactFind(h.title);
+            if (!find.empty())
+                out += std::string(hidesNatives(a) ? "" : "// ") + "remove(find=" + find + ")" + nl;
+        }
+    }
+
     // Other apps' items switched off on the page.
     if (!model.hidden.empty()) {
         out += nl + "// Other apps' items, hidden on the Open with page." + nl;
@@ -937,10 +1179,18 @@ ParseResult parse(std::string_view text, const Env &env)
         std::string id;
         Scope scope = Scope::All;
         bool off = false;
+        bool keepOwn = false;
     };
     std::optional<Meta> pending;
     bool sawHeader = false, sawOptions = false, sawPos = false, olderPos = false;
     std::optional<size_t> pendingHide; // a "// hide" line waiting for its remove()
+    struct Own
+    {
+        std::string ref; // "pwsh", "custom-2"
+        Hidden hidden;
+    };
+    std::vector<Own> owns;
+    bool pendingOwn = false; // an "// own" line waiting for its remove()
     for (size_t i = 0; i < lines.size(); ++i) {
         std::string_view line = nss::trim(lines[i]);
         if (line.empty() || line == "{" || line == "}")
@@ -999,6 +1249,8 @@ ParseResult parse(std::string_view text, const Env &env)
                     m.id = word.substr(4);
                 else if (word == "off")
                     m.off = true;
+                else if (word == "keep-own")
+                    m.keepOwn = true;
                 else if (word == "scope=files")
                     m.scope = Scope::Files;
                 else if (word == "scope=folders")
@@ -1014,6 +1266,40 @@ ParseResult parse(std::string_view text, const Env &env)
         }
         if (body && *body == "Other apps' items, hidden on the Open with page.")
             continue;
+        if (body && *body == kOwnSection.substr(3))
+            continue;
+        if (body && body->rfind("own app=", 0) == 0) {
+            // "own app=git-bash verb=git_shell": the name may have spaces.
+            std::string_view rest = std::string_view(*body).substr(8);
+            auto sp = rest.find(' ');
+            auto eq = sp == std::string_view::npos ? std::string_view::npos : rest.find('=', sp);
+            if (eq != std::string_view::npos) {
+                Own o;
+                o.ref = std::string(rest.substr(0, sp));
+                o.hidden.kind = std::string(rest.substr(sp + 1, eq - sp - 1));
+                o.hidden.name = std::string(rest.substr(eq + 1));
+                if ((o.hidden.kind == "verb" || o.hidden.kind == "handler") && !o.hidden.name.empty() && !o.ref.empty()) {
+                    owns.push_back(std::move(o));
+                    pendingOwn = true;
+                    pendingHide.reset();
+                    pending.reset();
+                    continue;
+                }
+            }
+        }
+        if (pendingOwn) {
+            // Its rule: active while the app is off, commented out while it's on.
+            std::string_view rule = body ? std::string_view(*body) : line;
+            pendingOwn = false;
+            if (rule.rfind("remove(find=", 0) == 0 && rule.back() == ')') {
+                auto lit = nss::Literal::parse(nss::trim(rule.substr(12, rule.size() - 13)));
+                const auto &v = lit.string;
+                if (lit.kind == nss::LiteralKind::String && v.size() > 2 && v.front() == '"' && v.back() == '"') {
+                    owns.back().hidden.title = v.substr(1, v.size() - 2);
+                    continue;
+                }
+            }
+        }
         if (body && body->rfind("hide ", 0) == 0) {
             // "hide verb=git_gui", "hide handler=7-Zip": the name may have spaces.
             std::string_view rest = nss::trim(std::string_view(*body).substr(5));
@@ -1046,6 +1332,7 @@ ParseResult parse(std::string_view text, const Env &env)
                 App a;
                 a.id = pending->id.empty() ? "custom" : pending->id;
                 a.enabled = !pending->off;
+                a.keepOwn = pending->keepOwn;
                 a.scope = pending->scope;
                 a.name = r.model.options.submenu
                              ? n.title
@@ -1068,6 +1355,23 @@ ParseResult parse(std::string_view text, const Env &env)
             continue; // the submenu: its title and type come from the options line
         r.warnings.push_back("line " + std::to_string(i + 1) + ": " + std::string(line.substr(0, 60)));
         pending.reset();
+    }
+    // The apps' own entries, to their apps ("custom-2": the second custom app).
+    for (auto &o : owns) {
+        App *owner = nullptr;
+        int customs = 0;
+        for (auto &a : r.model.apps) {
+            bool custom = a.id == "custom";
+            customs += custom;
+            if (custom ? o.ref == "custom-" + std::to_string(customs) : o.ref == a.id) {
+                owner = &a;
+                break;
+            }
+        }
+        if (owner)
+            owner->natives.push_back(std::move(o.hidden));
+        else
+            r.warnings.push_back("own app=" + o.ref + ": no such app in the file");
     }
     if (!sawHeader && !lines.empty())
         r.warnings.insert(r.warnings.begin(), "The file doesn't start with the generated header.");

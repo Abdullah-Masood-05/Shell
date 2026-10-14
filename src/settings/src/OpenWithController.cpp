@@ -243,34 +243,9 @@ void OpenWithController::bindCallbacks()
     st.on_other_title([this](int index, slint::SharedString t) { setOtherTitle(index, str(t)); });
 }
 
-std::vector<OpenWithController::OtherRef> OpenWithController::otherRows() const
+std::vector<openwith::OtherRef> OpenWithController::otherRows() const
 {
-    // The registry's items in their order, each with its Hidden entry if
-    // switched off; then hidden ones that are gone from the registry.
-    std::vector<OtherRef> rows;
-    std::vector<bool> used(model_.hidden.size(), false);
-    for (size_t i = 0; i < others_.size(); ++i) {
-        const auto &item = others_[i];
-        OtherRef r;
-        r.item = int(i);
-        for (size_t h = 0; h < model_.hidden.size(); ++h) {
-            const auto &hd = model_.hidden[h];
-            if (used[h] || hd.kind != item.kind)
-                continue;
-            // A verb by its title (the rule matches titles), a shell extension by its name.
-            bool same = item.kind == "verb" ? nss::iequals(hd.title, item.title) : nss::iequals(hd.name, item.name);
-            if (same) {
-                r.hidden = int(h);
-                used[h] = true;
-                break;
-            }
-        }
-        rows.push_back(r);
-    }
-    for (size_t h = 0; h < model_.hidden.size(); ++h)
-        if (!used[h])
-            rows.push_back(OtherRef{ -1, int(h) });
-    return rows;
+    return openwith::otherRows(others_, owners_, model_.hidden);
 }
 
 void OpenWithController::toggleOther(int index, bool shown)
@@ -301,6 +276,30 @@ void OpenWithController::setOtherTitle(int index, const std::string &title)
         return; // a verb's title comes from the registry
     h.title = std::string(nss::trim(title));
     edited(false);
+}
+
+void OpenWithController::relink()
+{
+    if (othersLoaded_)
+        owners_ = openwith::linkNatives(model_, others_, env_);
+    else
+        owners_.clear();
+}
+
+std::string OpenWithController::nativesText(size_t app) const
+{
+    std::string out;
+    if (app >= model_.apps.size())
+        return out;
+    for (const auto &h : model_.apps[app].natives) {
+        bool submenu = false;
+        for (size_t i = 0; i < others_.size() && i < owners_.size(); ++i)
+            if (owners_[i] == int(app) && others_[i].kind == h.kind && others_[i].name == h.name)
+                submenu = others_[i].submenu;
+        std::string title = h.title.empty() ? h.name : h.title;
+        out += (out.empty() ? "" : ", ") + title + (submenu ? " \u203a" : "");
+    }
+    return out;
 }
 
 void OpenWithController::toast(const std::string &kind, const std::string &title, const std::string &text)
@@ -370,6 +369,7 @@ void OpenWithController::load()
             bool developHidden = false;
             bool developWritable = false;
             std::vector<otherapps::Item> others;
+            bool ownChanged = false; // see Migrate::Own
         };
         auto out = std::make_shared<Loaded>();
         out->env = openwith::Env::current();
@@ -395,10 +395,27 @@ void OpenWithController::load()
             }
         }
         out->model = openwith::merge(saved, detected);
+        auto inFile = out->model; // the apps' own entries as the file has them
+        openwith::linkNatives(out->model, out->others, out->env);
         out->saved = out->model;
         if (!saved)
             for (auto &a : out->saved.apps)
                 a.enabled = false; // nothing is in the menu until the first save
+        if (saved) {
+            // An app switched off whose own entries aren't the file's (installed
+            // since, or a file from before they were linked): the file is
+            // rewritten, so they're hidden. For an app that's on, nothing in
+            // the menu changes: it waits for the next save.
+            for (size_t i = 0; i < inFile.apps.size(); ++i) {
+                const auto &was = inFile.apps[i];
+                if (was.exe.empty() || was.natives == out->model.apps[i].natives)
+                    continue;
+                if (openwith::hidesNatives(was)) {
+                    out->saved.apps[i].natives = was.natives;
+                    out->ownChanged = true;
+                }
+            }
+        }
 
         if (auto rootDoc = nss::NssDocument::load(root)) {
             int idx = menus::MenuWriter::findImport(*rootDoc, openwith::kRelativePath);
@@ -459,8 +476,8 @@ void OpenWithController::load()
             // A file from an older page (an "Open in" submenu in the middle of
             // the menu) is rewritten in today's layout right away, unless it has
             // lines of the user's own: then it waits for Save, with the notice.
-            if (out->legacy && !out->customised && !readOnly())
-                save(true);
+            if ((out->legacy || out->ownChanged) && !out->customised && !readOnly())
+                save(out->legacy ? Migrate::Layout : Migrate::Own);
             else if (out->legacy)
                 st.set_notice(ss("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". " +
                                  out->notice));
@@ -533,6 +550,7 @@ void OpenWithController::requestIcons()
 
 void OpenWithController::edited(bool reloadForm)
 {
+    relink(); // a new program path can mean other entries
     if (reloadForm)
         ++formSerial_;
     pushRows();
@@ -570,6 +588,11 @@ void OpenWithController::pushRows()
         if (problem.empty() && a.enabled && !reachable(model_.options, a))
             problem = "Doesn't show: the menu isn't on the places it's for.";
         r.problem = ss(problem);
+        if (auto own = nativesText(size_t(&a - model_.apps.data())); !own.empty())
+            r.own = ss((openwith::hidesNatives(a) ? "Also hides: "
+                        : a.enabled             ? "Switching it off also hides: "
+                                                : "Keeps its own: ") +
+                       own);
         auto it = icons_.find(lowerKey(iconSource(a)));
         if (it != icons_.end() && it->second) {
             r.icon = *it->second;
@@ -642,6 +665,8 @@ void OpenWithController::pushForm()
         f.extensions = ss(a.extensions);
         f.admin = a.admin;
         f.custom = a.id == "custom";
+        f.keep_own = a.keepOwn;
+        f.own = ss(nativesText(size_t(selected_)));
     }
     st.set_form(f);
     st.set_form_serial(formSerial_);
@@ -905,6 +930,8 @@ void OpenWithController::setFlag(const std::string &field, bool value)
         developHidden_ = value;
     } else if (field == "admin" && selected_ >= 0 && selected_ < int(model_.apps.size()))
         model_.apps[size_t(selected_)].admin = value;
+    else if (field == "keep-own" && selected_ >= 0 && selected_ < int(model_.apps.size()))
+        model_.apps[size_t(selected_)].keepOwn = value;
     else
         return;
     edited(false);
@@ -950,11 +977,11 @@ std::string OpenWithController::pickFile(const wchar_t *title, const wchar_t *fi
     return picked;
 }
 
-void OpenWithController::save(bool migrate)
+void OpenWithController::save(Migrate migrate)
 {
     if (saving_ || readOnly() || !dirty())
         return;
-    if (migrate && shellExe_.empty())
+    if (migrate != Migrate::None && shellExe_.empty())
         return; // waits for a Save, which says why it can't
     if (shellExe_.empty()) {
         toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
@@ -992,15 +1019,32 @@ void OpenWithController::save(bool migrate)
             n += !openwith::exactFind(h.title).empty();
         reason += "; other apps' items hidden: " + std::to_string(n);
     }
-    if (migrate)
+    // The switched-off apps whose own entries are hidden too.
+    std::vector<std::string> hiding;
+    for (size_t i = 0; i < model_.apps.size(); ++i) {
+        const auto &a = model_.apps[i];
+        if (a.exe.empty() || a.natives.empty() || !openwith::hidesNatives(a))
+            continue;
+        const auto *was = i < saved_.apps.size() && saved_.apps[i].id == a.id ? &saved_.apps[i] : nullptr;
+        if (!was || !openwith::hidesNatives(*was) || !(was->natives == a.natives))
+            hiding.push_back(a.name);
+    }
+    std::string hidingText;
+    for (size_t i = 0; i < hiding.size(); ++i)
+        hidingText += (i == 0 ? "" : i + 1 == hiding.size() ? " and " : ", ") + hiding[i];
+    if (!hiding.empty())
+        reason += "; hide " + hidingText + "'s own items";
+    if (migrate == Migrate::Layout)
         reason = "Open with: moved the items under WinRAR / Open in new window";
+    else if (migrate == Migrate::Own)
+        reason = "Open with: hide the own menu items of " + (hidingText.empty() ? std::string("switched-off apps") : hidingText);
 
     auto model = model_;
     bool hideDevelop = developHidden_;
     saving_ = true;
     ui_->global<OpenWithState>().set_saving(true);
     worker_.post([this, model, reason, file, root = root_, exe = shellExe_, format = format_, env = env_,
-                  developChange, hideDevelop, migrate, developPath = developPath_] {
+                  developChange, hideDevelop, migrate, hidingText, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
@@ -1026,7 +1070,7 @@ void OpenWithController::save(bool migrate)
                 result = store.save(std::move(writes), options);
             }
         }
-        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, hidingText, result = std::move(result), root] {
             saving_ = false;
             ui_->global<OpenWithState>().set_saving(false);
             if (result.ok) {
@@ -1035,7 +1079,12 @@ void OpenWithController::save(bool migrate)
                 fileLegacy_ = false;
                 developSavedHidden_ = hideDevelop;
                 edited(false);
-                if (migrate)
+                if (migrate == Migrate::Own)
+                    toast("ok", "Updated the switched-off apps' own items",
+                          (hidingText.empty() ? std::string("Their menu entries changed in the registry.")
+                                              : "The menu no longer shows " + hidingText + "'s own entries.") +
+                              " Snapshot " + result.snapshotId + " has the file before.");
+                else if (migrate == Migrate::Layout)
                     toast("ok", "Moved the Open with items",
                           "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot " +
                               result.snapshotId + " has the old layout.");

@@ -6,6 +6,9 @@
 //  - the apps the user picked (presets and custom ones) and how the menu
 //    looks (top-level "Open in <Name>" items right under WinRAR or Explorer's
 //    "Open in new window", or an "Open in" submenu there; and where it shows);
+//  - each app's own entries in the menu (PowerShell 7's "PowerShell 7"
+//    submenu, Git's "Open Git Bash here"...), found among other apps' items
+//    by program path: hidden with the app's switch (remove() rules);
 //  - other apps' own menu items the user hid (remove() rules; OtherApps.h
 //    lists them);
 //  - generate(): the app-owned imports/settings-app-openwith.nss, and parse()
@@ -14,6 +17,8 @@
 //    an item would run, for the page's Test button;
 //  - the Develop menu's "Editors" submenu in develop.nss, turned off and on
 //    by commenting it out, like the Context Menus page does with rules.
+
+#include "OtherApps.h"
 
 #include "nss/NssDocument.h"
 #include "nss/Text.h"
@@ -49,6 +54,18 @@ enum class Scope
     Extensions, // files with one of `extensions`
 };
 
+// Another app's menu item that the user switched off on the page: a
+// remove(find="\"<title>\"") rule in the same file. Shown items have no line.
+// Also an app's own entry (App::natives), hidden while the app is off.
+struct Hidden
+{
+    std::string kind;  // "verb" (a registry verb, matched by title) or "handler" (a shell extension, by name)
+    std::string name;  // the verb's key or the handler's name in the registry: "git_gui", "7-Zip"
+    std::string title; // the menu title it hides, exactly; "" = none yet, so nothing is hidden
+
+    bool operator==(const Hidden &) const = default;
+};
+
 struct App
 {
     std::string id;         // a preset id, or "custom"
@@ -60,6 +77,11 @@ struct App
     std::string extensions; // ".py .js" for Scope::Extensions
     bool admin = false;
     bool enabled = false;
+    // The app's own entries in the menu (from the registry, see linkNatives()):
+    // shown while the app is on, hidden with remove() rules while it's off,
+    // unless keepOwn (then only "Open in <Name>" goes).
+    std::vector<Hidden> natives;
+    bool keepOwn = false;
 
     bool operator==(const App &) const = default;
 };
@@ -74,17 +96,6 @@ struct Options
     bool desktop = false;
 
     bool operator==(const Options &) const = default;
-};
-
-// Another app's menu item that the user switched off on the page: a
-// remove(find="\"<title>\"") rule in the same file. Shown items have no line.
-struct Hidden
-{
-    std::string kind;  // "verb" (a registry verb, matched by title) or "handler" (a shell extension, by name)
-    std::string name;  // the verb's key or the handler's name in the registry: "git_gui", "7-Zip"
-    std::string title; // the menu title it hides, exactly; "" = none yet, so nothing is hidden
-
-    bool operator==(const Hidden &) const = default;
 };
 
 struct Model
@@ -113,6 +124,11 @@ struct Preset
         std::string relative;         // from the folder it was found in: "..\\Code.exe"; "" = the file itself
     };
     std::vector<Probe> probes;
+    // The app's own menu entries when their program can't tell (see
+    // linkNatives()): verb keys or handler names, and titles (any case).
+    std::vector<std::string> nativeKeys;
+    std::vector<std::string> nativeTitles;
+    std::string handlerTitle; // the title its shell extension shows: "Edit with Notepad++"
 };
 
 const std::vector<Preset> &presets();
@@ -134,6 +150,41 @@ bool fileExists(const std::wstring &path);
 // presets the file doesn't mention (off, with their detected path; found ones
 // first). With no saved file, found presets are on and listed first.
 Model merge(const std::optional<Model> &saved, const std::vector<App> &detected);
+
+// --- The apps' own menu entries ------------------------------------------------
+
+// Which app each of other apps' items belongs to (an index in `apps`, or -1),
+// best match first:
+//  1. the item's program (command, icon or shell extension DLL) is the app's
+//     program (or its icon, for a launcher);
+//  2. it is in the app's install folder ("...\Git\cmd\git-gui.exe" is Git
+//     Bash's: git-bash.exe is in "...\Git"). Shared folders never count:
+//     Program Files itself, WindowsApps, Windows, a Toolbox scripts folder...;
+//  3. the preset's known verb keys and titles ("git_shell", "PowerShell 7").
+// Apps without a program have no entries.
+std::vector<int> nativeOwners(const std::vector<App> &apps, const std::vector<otherapps::Item> &items, const Env &env);
+// The folder an app's program is installed in, "" when it's a shared one.
+std::string installFolder(std::string_view program, const Env &env);
+// Sets every app's natives from the items (in the items' order). Returns
+// nativeOwners().
+std::vector<int> linkNatives(Model &model, const std::vector<otherapps::Item> &items, const Env &env);
+// A row of the page's "Other apps' menu items": an item from the registry, its
+// Hidden entry (switched off), or both.
+struct OtherRef
+{
+    int item = -1;   // in items
+    int hidden = -1; // in hidden
+
+    bool operator==(const OtherRef &) const = default;
+};
+// The registry's items in their order, each with its Hidden entry if switched
+// off; then hidden ones that are gone from the registry. An app's own entry
+// (owners[i] >= 0) isn't listed: it goes with the app's switch. One the user
+// hid here before stays until it's switched back on.
+std::vector<OtherRef> otherRows(const std::vector<otherapps::Item> &items, const std::vector<int> &owners,
+                                const std::vector<Hidden> &hidden);
+// Whether the app's own entries are hidden now (switched off, not keepOwn).
+inline bool hidesNatives(const App &app) { return !app.enabled && !app.keepOwn; }
 
 // --- Paths in .nss ----------------------------------------------------------
 
@@ -164,6 +215,8 @@ std::string validate(const App &app);
 
 constexpr std::string_view kHeader = "// generated by Nilesoft Shell Pro, do not edit by hand";
 constexpr std::string_view kRelativePath = "imports/settings-app-openwith.nss";
+// Heads the apps' own entries (App::natives) in the file.
+constexpr std::string_view kOwnSection = "// The apps' own menu items: hidden while the app is switched off.";
 
 // The `type` for the menu's locations ("file|dir|back"), "" when none.
 std::string locationType(const Options &options);

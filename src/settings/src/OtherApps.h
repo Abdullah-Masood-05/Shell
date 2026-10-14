@@ -80,6 +80,7 @@ struct Item
     std::string program; // the program or DLL behind it, "" when unknown
     unsigned where = 0;  // Where bits
     bool shiftOnly = false;
+    bool submenu = false; // a verb that opens a submenu ("PowerShell 7 >")
     std::vector<std::string> keys; // registry keys it comes from: "HKCR\\Directory\\shell\\git_gui"
 };
 

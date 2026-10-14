@@ -157,7 +157,7 @@ component AppItem inherits Rectangle {
     callback toggled(on: bool);
     callback locate();
 
-    height: 52px;
+    height: root.entry.own != "" ? 68px : 52px;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: list-item;
@@ -218,6 +218,13 @@ component AppItem inherits Rectangle {
                 text: root.entry.detail;
                 font-size: Tokens.caption;
                 color: Tokens.text-3;
+                overflow: elide;
+            }
+            // The app's own entries in the menu, which its switch hides too.
+            if root.entry.own != "": Text {
+                text: root.entry.own;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
                 overflow: elide;
             }
         }
@@ -333,6 +340,17 @@ component AppEditor inherits Rectangle {
                     enabled: !root.locked;
                     placeholder-text: ".py .js .md";
                 }
+            }
+        }
+        if OpenWithState.form.own != "": FormRow {
+            label: "Its own items";
+            hint: "Switched off, the app also hides " + OpenWithState.form.own + ". Tick this to hide only the item this page adds.";
+            FlagField {
+                text: "Keep the app's own menu items when it's off";
+                enabled: !root.locked;
+                field: "keep-own";
+                value: OpenWithState.form.keep-own;
+                serial: OpenWithState.form-serial;
             }
         }
         FormRow {
@@ -831,7 +849,7 @@ export component OpenWithPage inherits PageFrame {
 
     SectionHead {
         title: "Other apps' menu items";
-        caption: "Items other programs put in the menu themselves, such as Git, VLC or 7-Zip. They aren't from this list. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. Windows' own items aren't listed.";
+        caption: "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed.";
     }
     ListSurface {
         if !OpenWithState.others-loaded || OpenWithState.others.length == 0: Text {

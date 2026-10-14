@@ -624,6 +624,298 @@ TEST_CASE("open with: Develop > Editors in the shipped develop.nss")
     CHECK(!setEditorsMenuEnabled(none, false));
 }
 
+// --- The apps' own menu entries ------------------------------------------------
+
+namespace {
+
+otherapps::Verb ownVerb(std::string type, std::string key, std::string text, std::string command, std::string icon = {},
+                        std::string mui = {})
+{
+    otherapps::Verb v;
+    v.type = std::move(type);
+    v.key = std::move(key);
+    v.text = std::move(text);
+    v.command = std::move(command);
+    v.icon = std::move(icon);
+    v.muiVerb = std::move(mui);
+    return v;
+}
+
+// The registry of a PC with PowerShell 7, Git, VS Code, Notepad++, VLC,
+// File Pilot, noctty, ZCode, Alacritty, 7-Zip and NVIDIA's driver (taken from
+// a real one; the real registry is never read here).
+otherapps::Scan ownFixture()
+{
+    otherapps::Scan s;
+    for (const char *type : { "Directory", "Directory\\Background", "Drive" }) {
+        auto pwsh = ownVerb(type, "PowerShell7x64", "", "", "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "&PowerShell 7");
+        pwsh.submenu = true; // ExtendedSubCommandsKey: "PowerShell 7 >"
+        s.verbs.push_back(pwsh);
+        s.verbs.push_back(ownVerb(type, "noctty", "Open noctty here",
+                                  "\"C:\\Program Files\\noctty\\noctty.exe\" --working-directory=\"%V\\.\""));
+    }
+    for (const char *type : { "Directory", "Directory\\Background" }) {
+        s.verbs.push_back(ownVerb(type, "git_gui", "Open Git &GUI here",
+                                  "\"C:\\Program Files\\Git\\cmd\\git-gui.exe\" \"--working-dir\" \"%1\"",
+                                  "C:\\Program Files\\Git\\cmd\\git-gui.exe"));
+        s.verbs.push_back(ownVerb(type, "git_shell", "Open Git Ba&sh here",
+                                  "\"C:\\Program Files\\Git\\git-bash.exe\" \"--cd=%1\"",
+                                  "C:\\Program Files\\Git\\git-bash.exe"));
+        // Windows' own "Open PowerShell window here": not PowerShell 7's.
+        auto win = ownVerb(type, "Powershell", "@shell32.dll,-8508", "powershell.exe -noexit -command Set-Location -literalPath \"%V\"");
+        win.extended = true;
+        s.verbs.push_back(win);
+    }
+    s.verbs.push_back(ownVerb("*", "VSCode", "Open w&ith Code", "\"C:\\Users\\me\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""));
+    s.verbs.push_back(ownVerb("Directory", "VSCode", "Open w&ith Code", "\"C:\\Users\\me\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%V\""));
+    s.verbs.push_back(ownVerb("Directory", "AddToPlaylistVLC", "Add to VLC media player's Playlist",
+                              "\"C:\\Program Files\\VideoLAN\\VLC\\vlc.exe\" --started-from-file --playlist-enqueue \"%1\""));
+    s.verbs.push_back(ownVerb("*", "OpenInFilePilot", "Open in File Pilot",
+                              "C:\\Users\\me\\AppData\\Local\\Voidstar\\FilePilot\\FPilot.exe \"%1\""));
+    s.verbs.push_back(ownVerb("Directory", "ZCode.OpenInZCode", "Open in ZCode",
+                              "\"C:\\Users\\me\\AppData\\Local\\Programs\\ZCode\\ZCode.exe\" --open-workspace \"%1\""));
+    s.verbs.push_back(ownVerb("Directory\\Background", "Open Alacritty here", "",
+                              "C:\\Program Files\\Alacritty\\alacritty.exe --working-directory \"%v\""));
+    auto handler = [&](std::string type, std::string name, std::string clsid, std::string cls, std::string server) {
+        otherapps::Handler h;
+        h.type = std::move(type);
+        h.name = std::move(name);
+        h.clsid = std::move(clsid);
+        h.className = std::move(cls);
+        h.server = std::move(server);
+        s.handlers.push_back(std::move(h));
+    };
+    handler("*", "7-Zip", "{23170F69-40C1-278A-1000-000100020000}", "", "C:\\Program Files\\7-Zip\\7-zip.dll");
+    handler("*", "ANotepad++64", "{B298D29A-A6ED-11DE-BA8C-A68E55D89593}", "ANotepad++64",
+            "C:\\Program Files\\Notepad++\\contextMenu\\NppShell.dll");
+    handler("Directory\\Background", "NvCplDesktopContext", "{3D1975AF-48C6-4f8e-A182-BE0E08FA86A9}",
+            "NVIDIA CPL Context Menu Extension", "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nv.inf_amd64\\nvshext.dll");
+    return s;
+}
+
+std::vector<otherapps::Item> ownItems() { return otherapps::collect(ownFixture(), nullptr, "C:\\Windows"); }
+
+// PowerShell 7, Git Bash, VS Code, Notepad++ and Windows Terminal, as found on that PC.
+Model ownModel()
+{
+    Model m;
+    m.apps.push_back(app("vscode", "VS Code", "C:\\Users\\me\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"));
+    m.apps.push_back(app("pwsh", "PowerShell 7", "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoExit -WorkingDirectory {dir}", false));
+    m.apps.push_back(app("git-bash", "Git Bash", "C:\\Program Files\\Git\\git-bash.exe", "--cd={dir}", false));
+    m.apps.push_back(app("notepad++", "Notepad++", "C:\\Program Files\\Notepad++\\notepad++.exe"));
+    m.apps.push_back(app("wt", "Windows Terminal", "C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\wt.exe", "-d {dir}"));
+    return m;
+}
+
+std::vector<std::string> titlesOf(const std::vector<Hidden> &list)
+{
+    std::vector<std::string> out;
+    for (const auto &h : list)
+        out.push_back(h.title);
+    return out;
+}
+
+} // namespace
+
+TEST_CASE("open with: install folders that can tell an app's own items")
+{
+    auto env = fakeEnv();
+    CHECK(installFolder("C:\\Program Files\\Git\\git-bash.exe", env) == "c:\\program files\\git");
+    CHECK(installFolder("C:\\Program Files\\Git\\cmd\\git.exe", env) == "c:\\program files\\git"); // cmd\ and bin\ go up
+    CHECK(installFolder("C:\\Program Files\\PowerShell\\7\\pwsh.exe", env) == "c:\\program files\\powershell\\7");
+    CHECK(installFolder("\"C:\\Program Files\\JetBrains\\IDEA\\bin\\idea64.exe\",0", env) == "c:\\program files\\jetbrains\\idea");
+    // Shared folders never count.
+    CHECK(installFolder("C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\wt.exe", env).empty());
+    CHECK(installFolder("C:\\Windows\\System32\\notepad.exe", env).empty());
+    CHECK(installFolder("C:\\Program Files\\app.exe", env).empty());
+    CHECK(installFolder("C:\\Users\\me\\AppData\\Local\\Programs\\tool.exe", env).empty());
+    CHECK(installFolder("C:\\Tools\\x.exe", env).empty()); // one folder deep: too general
+    CHECK(installFolder("C:\\Users\\me\\AppData\\Local\\JetBrains\\Toolbox\\scripts\\idea.cmd", env).empty());
+    CHECK(installFolder("C:\\Users\\me\\scoop\\shims\\zed.exe", env).empty());
+    CHECK(installFolder("", env).empty());
+}
+
+TEST_CASE("open with: each app's own items, linked by program path")
+{
+    auto env = fakeEnv();
+    auto items = ownItems();
+    auto m = ownModel();
+    auto owners = linkNatives(m, items, env);
+    REQUIRE(owners.size() == items.size());
+
+    auto ownerOf = [&](const std::string &title) {
+        for (size_t i = 0; i < items.size(); ++i)
+            if (items[i].title == title)
+                return owners[i] < 0 ? std::string("-") : m.apps[size_t(owners[i])].id;
+        return std::string("missing");
+    };
+    // PowerShell 7's submenu: its icon is pwsh.exe (it has no command).
+    CHECK(ownerOf("PowerShell 7") == "pwsh");
+    // Git's verbs: git-bash.exe itself, and git-gui.exe in Git's folder.
+    CHECK(ownerOf("Open Git Bash here") == "git-bash");
+    CHECK(ownerOf("Open Git GUI here") == "git-bash");
+    CHECK(ownerOf("Open with Code") == "vscode");
+    // Notepad++'s shell extension: its DLL is in Notepad++'s folder; the title is the preset's.
+    CHECK(ownerOf("ANotepad++64") == "notepad++");
+    // Everyone else's stay in "Other apps' items".
+    for (const char *other : { "7-Zip", "Add to VLC media player's Playlist", "NvCplDesktopContext", "Open Alacritty here",
+                               "Open in File Pilot", "Open in ZCode", "Open noctty here" })
+        CHECK_MESSAGE(ownerOf(other) == "-", other);
+    // Windows' "Open PowerShell window here" isn't listed at all, so it's no one's.
+    CHECK(ownerOf("Open PowerShell window here") == "missing");
+
+    CHECK(m.apps[1].natives == std::vector<Hidden>{ { "verb", "PowerShell7x64", "PowerShell 7" } });
+    CHECK(m.apps[2].natives == std::vector<Hidden>{ { "verb", "git_shell", "Open Git Bash here" },
+                                                    { "verb", "git_gui", "Open Git GUI here" } });
+    CHECK(titlesOf(m.apps[0].natives) == std::vector<std::string>{ "Open with Code" });
+    CHECK(m.apps[3].natives == std::vector<Hidden>{ { "handler", "ANotepad++64", "Edit with Notepad++" } });
+    CHECK(m.apps[4].natives.empty()); // Windows Terminal: nothing in the registry is its own
+
+    // A preset that wasn't found has no program, so nothing of its own.
+    Model missing;
+    missing.apps.push_back(app("git-bash", "Git Bash", ""));
+    linkNatives(missing, items, env);
+    CHECK(missing.apps[0].natives.empty());
+
+    // Linking again gives the same (natives are replaced, not added to).
+    auto again = m;
+    linkNatives(again, items, env);
+    CHECK(again == m);
+
+    // Installed elsewhere: the known verb keys and titles still tell.
+    Model moved;
+    moved.apps.push_back(app("pwsh", "PowerShell 7", "D:\\Apps\\pwsh\\pwsh.exe"));
+    moved.apps.push_back(app("git-bash", "Git Bash", "D:\\PortableGit\\git-bash.exe"));
+    linkNatives(moved, items, env);
+    CHECK(titlesOf(moved.apps[0].natives) == std::vector<std::string>{ "PowerShell 7" });
+    CHECK(titlesOf(moved.apps[1].natives) == std::vector<std::string>{ "Open Git Bash here", "Open Git GUI here" });
+
+    // A custom app is matched by its program and folder too.
+    Model custom;
+    custom.apps.push_back(app("custom", "VLC", "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe"));
+    linkNatives(custom, items, env);
+    CHECK(titlesOf(custom.apps[0].natives) == std::vector<std::string>{ "Add to VLC media player's Playlist" });
+
+    // Two apps in nested folders: the deepest folder wins, an exact program first.
+    Model nested;
+    nested.apps.push_back(app("custom", "PS tools", "C:\\Program Files\\PowerShell\\tools.exe"));
+    nested.apps.push_back(app("pwsh", "PowerShell 7", "C:\\Program Files\\PowerShell\\7\\pwsh.exe"));
+    linkNatives(nested, items, env);
+    CHECK(nested.apps[0].natives.empty());
+    CHECK(titlesOf(nested.apps[1].natives) == std::vector<std::string>{ "PowerShell 7" });
+}
+
+TEST_CASE("open with: linked items leave Other apps' items (no duplicate switches)")
+{
+    auto env = fakeEnv();
+    auto items = ownItems();
+    auto m = ownModel();
+    auto owners = linkNatives(m, items, env);
+
+    auto titles = [&](const std::vector<OtherRef> &rows) {
+        std::vector<std::string> out;
+        for (const auto &r : rows)
+            out.push_back(r.item >= 0 ? items[size_t(r.item)].title : m.hidden[size_t(r.hidden)].title);
+        return out;
+    };
+    auto rows = otherRows(items, owners, m.hidden);
+    CHECK(titles(rows) == std::vector<std::string>{ "7-Zip", "Add to VLC media player's Playlist", "NvCplDesktopContext",
+                                                    "Open Alacritty here", "Open in File Pilot", "Open in ZCode",
+                                                    "Open noctty here" });
+    // Each item is in exactly one place: under its app, or in the list.
+    for (size_t i = 0; i < items.size(); ++i) {
+        bool listed = std::any_of(rows.begin(), rows.end(), [&](const OtherRef &r) { return r.item == int(i); });
+        CHECK_MESSAGE(listed == (owners[i] < 0), items[i].title);
+    }
+
+    // One the user had hidden in the list before it was linked stays there
+    // (switched off) until it's switched back on; others hidden as before.
+    m.hidden.push_back({ "verb", "git_gui", "Open Git GUI here" });
+    m.hidden.push_back({ "verb", "noctty", "Open noctty here" });
+    m.hidden.push_back({ "verb", "gone", "Gone from the registry" });
+    rows = otherRows(items, owners, m.hidden);
+    CHECK(titles(rows) == std::vector<std::string>{ "7-Zip", "Add to VLC media player's Playlist", "NvCplDesktopContext",
+                                                    "Open Alacritty here", "Open Git GUI here", "Open in File Pilot",
+                                                    "Open in ZCode", "Open noctty here", "Gone from the registry" });
+    CHECK(rows[4] == OtherRef{ int(std::find_if(items.begin(), items.end(), [](const auto &i) { return i.name == "git_gui"; }) - items.begin()), 0 });
+    CHECK(rows.back() == OtherRef{ -1, 2 });
+    // Without links (the registry not read yet) every item is listed.
+    CHECK(otherRows(items, {}, {}).size() == items.size());
+}
+
+// PowerShell 7 and Git Bash switched off, VS Code on, Notepad++ off but keeping its own.
+const char *kOwnGolden =
+    "\n// The apps' own menu items: hidden while the app is switched off.\n"
+    "// own app=vscode verb=VSCode\n"
+    "// remove(find=\"\\\"Open with Code\\\"\")\n"
+    "// own app=pwsh verb=PowerShell7x64\n"
+    "remove(find=\"\\\"PowerShell 7\\\"\")\n"
+    "// own app=git-bash verb=git_shell\n"
+    "remove(find=\"\\\"Open Git Bash here\\\"\")\n"
+    "// own app=git-bash verb=git_gui\n"
+    "remove(find=\"\\\"Open Git GUI here\\\"\")\n"
+    "// own app=notepad++ handler=ANotepad++64\n"
+    "// remove(find=\"\\\"Edit with Notepad++\\\"\")\n";
+
+TEST_CASE("open with: an app switched off hides its own items too")
+{
+    auto env = fakeEnv();
+    auto m = ownModel();
+    linkNatives(m, ownItems(), env);
+    m.apps[3].enabled = false;
+    m.apps[3].keepOwn = true; // only "Open in Notepad++" goes
+    CHECK(hidesNatives(m.apps[1]));
+    CHECK(!hidesNatives(m.apps[0]));
+    CHECK(!hidesNatives(m.apps[3]));
+
+    auto text = generate(m, env, nss::Eol::LF);
+    INFO(text);
+    CHECK(text.ends_with(kOwnGolden));
+    CHECK(text.find("// app=pwsh off\n// item(title=\"Open in PowerShell 7\"") != std::string::npos);
+    CHECK(text.find("// app=notepad++ off keep-own\n// item(") != std::string::npos);
+
+    // Reads back into the same model, the switches and the links.
+    auto r = parse(text, env);
+    CHECK(r.warnings.empty());
+    CHECK(!r.legacy);
+    CHECK(r.model == m);
+    CHECK(parse(generate(m, env), env).model == m); // CRLF too
+
+    // PowerShell 7 back on: its rule is commented out, the link stays.
+    m.apps[1].enabled = true;
+    text = generate(m, env, nss::Eol::LF);
+    CHECK(text.find("// own app=pwsh verb=PowerShell7x64\n// remove(find=\"\\\"PowerShell 7\\\"\")\n") != std::string::npos);
+    CHECK(parse(text, env).model == m);
+
+    // With the submenu layout the rules stay outside it, after the "}".
+    m.options.submenu = true;
+    text = generate(m, env, nss::Eol::LF);
+    CHECK(text.find("}\n\n// The apps' own menu items") != std::string::npos);
+    CHECK(parse(text, env).model == m);
+
+    // Before the other apps' rules, which read back as before.
+    m.hidden.push_back({ "verb", "noctty", "Open noctty here" });
+    text = generate(m, env, nss::Eol::LF);
+    CHECK(text.find("// The apps' own menu items") < text.find("// Other apps' items, hidden"));
+    CHECK(parse(text, env).model == m);
+
+    // Custom apps by their place among the custom ones.
+    Model customs;
+    customs.apps.push_back(app("custom", "One", "D:\\Apps\\One\\one.exe", "{path}", false));
+    customs.apps.push_back(app("custom", "VLC", "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", "{path}", false));
+    linkNatives(customs, ownItems(), env);
+    REQUIRE(customs.apps[1].natives.size() == 1);
+    text = generate(customs, env, nss::Eol::LF);
+    CHECK(text.find("// own app=custom-2 verb=AddToPlaylistVLC\nremove(find=\"\\\"Add to VLC media player's Playlist\\\"\")\n") !=
+          std::string::npos);
+    CHECK(parse(text, env).model == customs);
+
+    // An own line for an app the file doesn't have is reported.
+    auto stray = parse(text + "// own app=cursor verb=Cursor\n", env);
+    CHECK(stray.warnings.size() == 1);
+    CHECK(stray.model == customs);
+}
+
 TEST_CASE("open with: generated config passes shell.exe -config:check (real shell.exe)")
 {
     if (!haveShell()) {
@@ -730,6 +1022,30 @@ TEST_CASE("open with: generated config passes shell.exe -config:check (real shel
     REQUIRE_MESSAGE(again.ok, (again.error + " " + again.check.message));
     CHECK(readAll(developPath).find("// \tmenu(mode=\"single\" title=loc.editors") == std::string::npos);
     CHECK(nss::NssDocument::load(developPath)->text() == developBefore);
+
+    // PowerShell 7 and Git Bash switched off: their own items (the "PowerShell 7"
+    // submenu, Git's verbs) get remove() rules Shell accepts, next to the other
+    // apps' ones. Shell's offline check has no registry items to hide, so
+    // what it shows is that the rules parse and ours are gone.
+    auto own = ownModel();
+    linkNatives(own, ownItems(), env);
+    own.hidden = model.hidden;
+    auto ownText = generate(own, env);
+    REQUIRE(ownText.find("\r\nremove(find=\"\\\"PowerShell 7\\\"\")\r\n") != std::string::npos);
+    REQUIRE(ownText.find("\r\nremove(find=\"\\\"Open Git Bash here\\\"\")\r\n") != std::string::npos);
+    auto ownSaved = store.save({ { file, ownText, nss::defaultFormat() } }, options);
+    REQUIRE_MESSAGE(ownSaved.ok, (ownSaved.error + " " + ownSaved.check.message));
+    CHECK(check(root).ok);
+    CHECK(parse(readAll(file), env).model == own);
+    folderTitles = checkTitles(root, L"folder");
+    INFO(folderTitles);
+    CHECK(folderTitles.find("\"ok\": true") != std::string::npos);
+    CHECK(folderTitles.find(topLevel("item", "Open in VS Code")) != std::string::npos);
+    CHECK(folderTitles.find("Open in PowerShell 7") == std::string::npos);
+    CHECK(folderTitles.find("Open in Git Bash") == std::string::npos);
+    auto ownBack = checkTitles(root, L"back");
+    CHECK(ownBack.find("\"ok\": true") != std::string::npos);
+    CHECK(ownBack.find("Open in PowerShell 7") == std::string::npos);
 
     // A broken line is refused, and nothing is written.
     auto before = readAll(file);

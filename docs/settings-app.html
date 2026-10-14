@@ -154,8 +154,17 @@
 		the desktop as you choose. <i>Group in an "Open in" submenu</i> puts them in one submenu there instead. A
 		preview shows the resulting menu. A file saved by an earlier version (an <i>Open in</i> submenu in the middle
 		of the menu, or items at the very top) is rewritten this way when the page opens.</li>
-	<li><b>Other apps' menu items</b> lists what other programs add to the menu themselves (Git's <i>Open Git GUI
-		here</i>, VLC, File Pilot, PowerShell 7, 7-Zip and so on), read from the registry: the verbs under
+	<li>An app's switch covers its own menu entries too: switched off, PowerShell 7 also hides its <i>PowerShell 7</i>
+		submenu, Git Bash hides Git's <i>Open Git Bash here</i> and <i>Open Git GUI here</i>, VS Code its <i>Open with
+		Code</i>. They're found among the items below by program: the verb's command or icon, or the shell
+		extension's DLL, is the app's program or in its install folder (shared folders such as Program Files itself or
+		WindowsApps don't count); else by the verb names and titles the app is known to use. The app's row lists them
+		(<i>Also hides: ...</i>), and each is a <code>remove(find="\"&lt;title&gt;\"")</code> rule after an
+		<code>// own app=&lt;id&gt; verb=&lt;key&gt;</code> line, commented out while the app is on. <i>Keep the app's
+		own menu items when it's off</i> hides only the page's item. When the page opens and a switched-off app has
+		new entries (installed since), the file is rewritten so they're hidden too.</li>
+	<li><b>Other apps' menu items</b> lists what other programs add to the menu themselves (VLC, File Pilot,
+		7-Zip and so on; an app's own entries are under the app above), read from the registry: the verbs under
 		<code>*</code>, <code>Directory</code>, <code>Directory\Background</code>, <code>Drive</code>,
 		<code>Folder</code> and <code>AllFilesystemObjects</code> <code>\shell</code> and their
 		<code>shellex\ContextMenuHandlers</code>, in HKCR and HKCU. Windows' own items and Shell's are left out. Each
