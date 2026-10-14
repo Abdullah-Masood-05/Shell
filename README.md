@@ -70,10 +70,14 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 
 | | |
 |---|---|
-| ![Nilesoft Shell Pro, Home page](docs/images/settings-app/home-dark.png) | ![Nilesoft Shell Pro, Config Editor](docs/images/settings-app/editor-dark.png) |
-| Home | Config Editor |
-| ![Nilesoft Shell Pro, Backups](docs/images/settings-app/backups-dark.png) | ![Nilesoft Shell Pro, Home in the light theme](docs/images/settings-app/home-light.png) |
-| Backups | Home in the light theme |
+| ![Nilesoft Shell Pro, Appearance with the Themes gallery](docs/images/settings-app/appearance-dark.png) | ![Nilesoft Shell Pro, Home page](docs/images/settings-app/home-dark.png) |
+| Appearance and the Themes gallery | Home |
+| ![Nilesoft Shell Pro, Open with](docs/images/settings-app/openwith-dark.png) | ![Nilesoft Shell Pro, Context Menus](docs/images/settings-app/context-menus-dark.png) |
+| Open with | Context Menus |
+| ![Nilesoft Shell Pro, Behavior](docs/images/settings-app/behavior-dark.png) | ![Nilesoft Shell Pro, Menu Builder](docs/images/settings-app/menu-builder-dark.png) |
+| Behavior | Menu Builder |
+| ![Nilesoft Shell Pro, Config Editor](docs/images/settings-app/editor-dark.png) | ![Nilesoft Shell Pro, Backups](docs/images/settings-app/backups-dark.png) |
+| Config Editor | Backups |
 
 The menu itself, from upstream:
 
