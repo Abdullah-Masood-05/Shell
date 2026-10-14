@@ -61,10 +61,14 @@ export global Tokens {
     out property <length> s8: 32px;
     out property <length> s10: 40px;
 
-    // Radius by size: chips and small tiles, controls, cards
-    out property <length> radius-small: 4px;
-    out property <length> radius-control: 6px;
-    out property <length> radius-card: 10px;
+    // Corner radius: barely rounded boxes. xs for chips, tags and inner
+    // segments; sm for buttons, inputs, nav and list rows; md for tiles and
+    // panels; lg for cards and dialogs. Round shapes (toggles, dots, slider
+    // thumbs, radios, avatars) use self.height / 2 instead.
+    out property <length> radius-xs: 2px;
+    out property <length> radius-sm: 2px;
+    out property <length> radius-md: 3px;
+    out property <length> radius-lg: 3px;
 
     // Type ramp (Segoe UI Variable)
     out property <length> caption: 12px;

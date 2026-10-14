@@ -29,8 +29,12 @@
   a per-user mode that needs no administrator rights, and an app to set it up and configure it.
 </p>
 
-Download the latest build from [Releases](https://github.com/Abdullah-Masood-05/Shell/releases): an MSI for x64, ARM64
-or x86, or a portable zip that installs per user without administrator rights.
+**Download the latest release:**
+[setup-x64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi) ·
+[setup-arm64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi) ·
+[setup-x86.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi) ·
+[portable zip (per user, no admin)](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip) ·
+[all releases](https://github.com/Abdullah-Masood-05/Shell/releases). These links always point to the newest release.
 
 ## What's different in Pro
 
@@ -66,10 +70,14 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 
 | | |
 |---|---|
-| ![Nilesoft Shell Pro, Home page](docs/images/settings-app/home-dark.png) | ![Nilesoft Shell Pro, Config Editor](docs/images/settings-app/editor-dark.png) |
-| Home | Config Editor |
-| ![Nilesoft Shell Pro, Backups](docs/images/settings-app/backups-dark.png) | ![Nilesoft Shell Pro, Home in the light theme](docs/images/settings-app/home-light.png) |
-| Backups | Home in the light theme |
+| ![Nilesoft Shell Pro, Appearance with the Themes gallery](docs/images/settings-app/appearance-dark.png) | ![Nilesoft Shell Pro, Home page](docs/images/settings-app/home-dark.png) |
+| Appearance and the Themes gallery | Home |
+| ![Nilesoft Shell Pro, Open with](docs/images/settings-app/openwith-dark.png) | ![Nilesoft Shell Pro, Context Menus](docs/images/settings-app/context-menus-dark.png) |
+| Open with | Context Menus |
+| ![Nilesoft Shell Pro, Behavior](docs/images/settings-app/behavior-dark.png) | ![Nilesoft Shell Pro, Menu Builder](docs/images/settings-app/menu-builder-dark.png) |
+| Behavior | Menu Builder |
+| ![Nilesoft Shell Pro, Config Editor](docs/images/settings-app/editor-dark.png) | ![Nilesoft Shell Pro, Backups](docs/images/settings-app/backups-dark.png) |
+| Config Editor | Backups |
 
 The menu itself, from upstream:
 
@@ -125,10 +133,15 @@ Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs n
 | Rules & Filters | Where the menu is shown: only in File Explorer and on the desktop, excluded programs and window classes, or a raw condition. |
 | Context Menus | Turn the bundled menu modules (terminal, file manage, develop, go to, taskbar, my tools) on or off, and the rules that hide, move or rename Windows' own items. |
 | Menu Builder | Add your own menus, items and separators with a title, icon, command and where they appear; saved to `imports/settings-app-menus.nss`. |
-| Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; as a submenu or top-level items, with a preview and a dry-run Test. Saved to `imports/settings-app-openwith.nss`. |
+| Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; each an "Open in <app>" item right under WinRAR or "Open in new window" (or grouped in a submenu), with a preview and a dry-run Test; other apps' own menu items (Git, VLC, 7-Zip...) can be hidden there too. Saved to `imports/settings-app-openwith.nss`. |
 | Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
 | Backups | Snapshots of the configuration, compared line by line with your files. Restore, pin, delete or create one by hand. |
-| Preferences | The app's theme, registration for all users (the one action that asks for administrator rights), and version and licence information. |
+| Preferences | The app's theme, updates, registration for all users (the one action that asks for administrator rights), and version and licence information. |
+
+**Updates.** The app checks this repository's GitHub releases once a day (Preferences, *Check for updates
+automatically*, on by default), downloads the MSI or portable zip that matches your install, verifies it against the
+release's `SHA256SUMS.txt` and installs it after you click *Download and install* (MSI installs show one administrator
+prompt). Details: [Updates](https://abdullah-masood-05.github.io/Shell/settings-app.html#updates).
 
 Changes made on Appearance, Behavior and Rules & Filters are written to `imports/settings-app.nss`, imported last, so
 your own files stay as you wrote them. Every save is checked with `shell -config:check` first, and a configuration that

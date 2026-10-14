@@ -11,6 +11,7 @@
 // Development switches (read from the command line, for scripted checks):
 //   --set <key>=<literal>   put a pending change once the page has loaded (repeatable)
 //   --save                  then save it
+//   --appearance-tab <0..3> open Colors, Typography, Effects or Advanced
 
 #include "app.h"
 
@@ -59,6 +60,7 @@ private:
     void bindCallbacks();
     void apply(int index, const std::string &literal);
     void reset(int index);
+    void selectEffect(int index, int choice);
     void applyDevArgs();
 
     theme::Values currentValues() const;

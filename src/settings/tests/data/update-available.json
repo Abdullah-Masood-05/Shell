@@ -1,0 +1,13 @@
+[
+  {
+    "tag_name": "v9.9.9", "name": "Nilesoft Shell Pro 9.9.9", "draft": false, "prerelease": false,
+    "html_url": "https://github.com/Abdullah-Masood-05/Shell/releases/tag/v9.9.9",
+    "published_at": "2026-10-14T09:00:00Z",
+    "assets": [
+      { "name": "setup-x64.msi", "size": 9123456, "browser_download_url": "https://github.com/Abdullah-Masood-05/Shell/releases/download/v9.9.9/setup-x64.msi" },
+      { "name": "setup-arm64.msi", "size": 9123456, "browser_download_url": "https://github.com/Abdullah-Masood-05/Shell/releases/download/v9.9.9/setup-arm64.msi" },
+      { "name": "NilesoftShellPro-9.9.9-x64-portable.zip", "size": 8123456, "browser_download_url": "https://github.com/Abdullah-Masood-05/Shell/releases/download/v9.9.9/NilesoftShellPro-9.9.9-x64-portable.zip" },
+      { "name": "SHA256SUMS.txt", "size": 400, "browser_download_url": "https://github.com/Abdullah-Masood-05/Shell/releases/download/v9.9.9/SHA256SUMS.txt" }
+    ]
+  }
+]

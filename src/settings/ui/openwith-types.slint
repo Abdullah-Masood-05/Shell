@@ -12,6 +12,7 @@ export struct OpenWithRow {
     icon: image,
     has-icon: bool,
     problem: string,           // why it stays out of the menu, or ""
+    own: string,               // "Also hides: PowerShell 7 ›" (the app's own menu entries), or ""
 }
 
 // The selected app, for the editor under its row.
@@ -24,6 +25,8 @@ export struct OpenWithForm {
     extensions: string,
     admin: bool,
     custom: bool,
+    keep-own: bool,            // switched off, its own menu entries stay
+    own: string,               // their titles, "" when it has none
 }
 
 // One line of the Test result: "A file" -> the command line.
@@ -34,11 +37,27 @@ export struct OpenWithTestLine {
 
 // One row of the preview menu.
 export struct OpenWithPreviewRow {
-    kind: string,              // menu | item
+    kind: string,              // menu | item | native (Explorer's own, dimmed) | native-menu | sep
     title: string,
     icon: image,
     has-icon: bool,
     open: bool,                // the submenu whose flyout is shown
+}
+
+// Another program's own item in the menu (Git, VLC, 7-Zip...), from the registry.
+export struct OtherAppRow {
+    title: string,             // as the menu shows it; a shell extension's is a guess
+    detail: string,            // where it shows and which program adds it
+    tag: string,               // "Shift only", "Shell extension", or ""
+    shown: bool,               // false: a remove() rule hides it
+    extension: bool,           // a shell extension: the app sets its title
+    hide-title: string,        // the title the rule matches (shell extensions, while hidden)
+    problem: string,           // why the rule can't match, or ""
+    gone: bool,                // hidden, but no longer in the registry
+    leftover: bool,            // its program or DLL is gone: left behind by an uninstaller
+    section: string,           // a heading to show above this row, or ""
+    icon: image,
+    has-icon: bool,
 }
 
 export global OpenWithState {
@@ -61,7 +80,7 @@ export global OpenWithState {
     in-out property <bool> show-missing;   // list them too
 
     // The menu
-    in property <bool> submenu: true;
+    in property <bool> submenu: false;
     in property <string> title;
     in property <bool> show-files;
     in property <bool> show-folders;
@@ -89,6 +108,12 @@ export global OpenWithState {
     in property <bool> develop-hidden;
     in property <bool> develop-locked;
 
+    // Other apps' menu items
+    in property <bool> others-loaded;
+    in property <[OtherAppRow]> others;
+    in property <int> others-hidden;       // switched off
+    in property <int> others-leftovers;    // leftovers of uninstalled programs still shown
+
     in property <bool> dirty;
     in property <bool> saving;
 
@@ -111,4 +136,7 @@ export global OpenWithState {
     callback discard();
     callback create-user-config();
     callback open-context-menus();
+    callback other-toggle(index: int, shown: bool);
+    callback hide-leftovers();
+    callback other-title(index: int, title: string);
 }

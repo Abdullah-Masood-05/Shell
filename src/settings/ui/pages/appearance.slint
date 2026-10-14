@@ -51,7 +51,6 @@ export component AppearancePage inherits Rectangle {
     property <length> preview-width: clamp((root.width - 72px) * 0.4, 310px, 520px);
     // The left column's inner width (page padding, gap, scroll gutter, card padding).
     property <length> body-width: root.width - 2 * (Tokens.s8 + Tokens.s1) - Tokens.s4 - root.preview-width - Tokens.s3 - 2 * Tokens.s5;
-    property <int> tab;
     property <int> swatch;   // the palette entry the row under the palette edits
     property <int> theme-index: f.length > K.name ? clamp(f[K.name].index, 0, 4) : 0;
 
@@ -130,7 +129,7 @@ export component AppearancePage inherits Rectangle {
                     // The theme in use and its keys, by tab.
                     Rectangle {
                         background: Tokens.layer;
-                        border-radius: Tokens.radius-card;
+                        border-radius: Tokens.radius-lg;
                         border-width: 1px;
                         border-color: Tokens.stroke;
 
@@ -145,7 +144,7 @@ export component AppearancePage inherits Rectangle {
                                 Rectangle {
                                     width: 112px;
                                     height: 76px;
-                                    border-radius: Tokens.radius-control;
+                                    border-radius: Tokens.radius-sm;
                                     border-width: 1px;
                                     border-color: Tokens.stroke;
                                     clip: true;
@@ -183,7 +182,7 @@ export component AppearancePage inherits Rectangle {
                                             Rectangle {
                                                 height: 20px;
                                                 width: chip-row.preferred-width + 16px;
-                                                border-radius: 10px;
+                                                border-radius: Tokens.radius-xs;
                                                 background: root.f[K.name].pending ? Tokens.warning-bg : Tokens.success-bg;
                                                 chip-row := HorizontalLayout {
                                                     alignment: center;
@@ -240,12 +239,12 @@ export component AppearancePage inherits Rectangle {
                                     { label: "Effects", icon: Icons.effects },
                                     { label: "Advanced", icon: Icons.preferences },
                                 ];
-                                selected: root.tab;
-                                changed(i) => { root.tab = i; }
+                                selected: AppearanceState.tab;
+                                changed(i) => { AppearanceState.tab = i; }
                             }
 
                             // Colors
-                            if root.tab == 0: VerticalLayout {
+                            if AppearanceState.tab == 0: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Colour palette";
@@ -278,7 +277,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 Rectangle {
-                                    border-radius: Tokens.radius-control + 2px;
+                                    border-radius: Tokens.radius-sm;
                                     background: Tokens.layer-2;
                                     VerticalLayout {
                                         padding-left: Tokens.s4;
@@ -317,7 +316,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Typography
-                            if root.tab == 1: VerticalLayout {
+                            if AppearanceState.tab == 1: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Typography";
@@ -342,6 +341,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.font-size); }
                                     ValueSlider {
                                         value: root.f[K.font-size].number;
+                                        auto-value: root.f[K.font-size].is-auto;
                                         minimum: 6;
                                         maximum: 32;
                                         unit: " px";
@@ -356,6 +356,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.font-weight); }
                                     ValueSlider {
                                         value: root.f[K.font-weight].number;
+                                        auto-value: root.f[K.font-weight].is-auto;
                                         minimum: 1;
                                         maximum: 9;
                                         unit: "00";
@@ -378,7 +379,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Effects
-                            if root.tab == 2: VerticalLayout {
+                            if AppearanceState.tab == 2: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Background";
@@ -386,6 +387,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 SettingBlock {
                                     label: "Effect";
+                                    hint: AppearanceState.effect-note == "" ? root.f[K.effect].origin : AppearanceState.effect-note + " · " + root.f[K.effect].origin;
                                     field: root.f[K.effect];
                                     reset => { AppearanceState.reset(K.effect); }
                                     ChipGroup {
@@ -397,6 +399,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 if root.f[K.effect].index == 0 || root.f[K.effect].index >= 3: SettingRow {
                                     label: "Tint";
+                                    hint: AppearanceState.tint-note + " · " + root.f[K.tint].origin;
                                     field: root.f[K.tint];
                                     reset => { AppearanceState.reset(K.tint); }
                                     ColorField {
@@ -410,10 +413,12 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 SettingBlock {
                                     label: "Opacity";
+                                    hint: AppearanceState.opacity-note + " · " + root.f[K.bg-opacity].origin;
                                     field: root.f[K.bg-opacity];
                                     reset => { AppearanceState.reset(K.bg-opacity); }
                                     ValueSlider {
                                         value: root.f[K.bg-opacity].number;
+                                        auto-value: root.f[K.bg-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
                                         enabled: root.ready && !root.f[K.bg-opacity].locked;
@@ -451,6 +456,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.border-size); }
                                     ValueSlider {
                                         value: root.f[K.border-size].number;
+                                        auto-value: root.f[K.border-size].is-auto;
                                         maximum: 10;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.border-size].locked;
@@ -476,6 +482,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-size); }
                                     ValueSlider {
                                         value: root.f[K.shadow-size].number;
+                                        auto-value: root.f[K.shadow-size].is-auto;
                                         maximum: 30;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.shadow-size].locked;
@@ -488,6 +495,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-offset); }
                                     ValueSlider {
                                         value: root.f[K.shadow-offset].number;
+                                        auto-value: root.f[K.shadow-offset].is-auto;
                                         maximum: 30;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.shadow-offset].locked;
@@ -500,6 +508,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.shadow-opacity); }
                                     ValueSlider {
                                         value: root.f[K.shadow-opacity].number;
+                                        auto-value: root.f[K.shadow-opacity].is-auto;
                                         maximum: 100;
                                         unit: " %";
                                         enabled: root.ready && !root.f[K.shadow-opacity].locked;
@@ -509,7 +518,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Advanced
-                            if root.tab == 3: VerticalLayout {
+                            if AppearanceState.tab == 3: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Items";
@@ -545,6 +554,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.image-size); }
                                     ValueSlider {
                                         value: root.f[K.image-size].number;
+                                        auto-value: root.f[K.image-size].is-auto;
                                         minimum: 8;
                                         maximum: 48;
                                         unit: " px";
@@ -558,6 +568,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.image-gap); }
                                     ValueSlider {
                                         value: root.f[K.image-gap].number;
+                                        auto-value: root.f[K.image-gap].is-auto;
                                         maximum: 40;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.image-gap].locked;
@@ -587,6 +598,7 @@ export component AppearancePage inherits Rectangle {
                                     reset => { AppearanceState.reset(K.sep-size); }
                                     ValueSlider {
                                         value: root.f[K.sep-size].number;
+                                        auto-value: root.f[K.sep-size].is-auto;
                                         maximum: 40;
                                         unit: " px";
                                         enabled: root.ready && !root.f[K.sep-size].locked;
@@ -632,7 +644,7 @@ export component AppearancePage inherits Rectangle {
                 Rectangle {
                     vertical-stretch: 1;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     VerticalLayout {
@@ -698,7 +710,7 @@ export component AppearancePage inherits Rectangle {
                 }
                 Rectangle {
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     HorizontalLayout {

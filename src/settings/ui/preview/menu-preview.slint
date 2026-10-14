@@ -2,6 +2,7 @@
 // design: the real menu is drawn by shell.dll with GDI and DWM effects.
 
 import { PreviewTheme, PreviewItem, PreviewMenu } from "preview-types.slint";
+import { Tokens } from "../theme/tokens.slint";
 
 // One menu: background (with blur/acrylic over what is behind it), rows,
 // separators, chevrons, and a border on top.
@@ -63,10 +64,11 @@ export component MenuSurface inherits Rectangle {
         if t.effect >= 2 && root.flat-backdrop: Rectangle {
             background: root.flat-color;
         }
-        // Acrylic: DWM's luminosity layer (the core sets the Luminosity accent
-        // flag), which keeps the text readable over any wallpaper.
+        // Acrylic (ACCENT_ENABLE_ACRYLICBLURBEHIND): a faint layer of the tint's own
+        // colour under the tint itself; see theme::acrylicLayer. No fixed grey: the
+        // real menu is as see-through as its tint.
         if t.effect >= 3: Rectangle {
-            background: t.dark ? #2C2C2C8C : #F3F3F3A6;
+            background: t.acrylic;
         }
         if t.effect >= 2: Rectangle {
             background: t.tint;
@@ -182,10 +184,11 @@ export component MiniMenu inherits Rectangle {
             source: root.blurred;
             image-fit: cover;
         }
-        // Acrylic: DWM's luminosity layer (the core sets the Luminosity accent
-        // flag), which keeps the text readable over any wallpaper.
+        // Acrylic (ACCENT_ENABLE_ACRYLICBLURBEHIND): a faint layer of the tint's own
+        // colour under the tint itself; see theme::acrylicLayer. No fixed grey: the
+        // real menu is as see-through as its tint.
         if t.effect >= 3: Rectangle {
-            background: t.dark ? #2C2C2C8C : #F3F3F3A6;
+            background: t.acrylic;
         }
         if t.effect >= 2: Rectangle {
             background: t.tint;
@@ -325,7 +328,7 @@ export component PreviewPane inherits Rectangle {
 
     clip: true;
     background: #1B2A44;
-    border-radius: 6px;
+    border-radius: Tokens.radius-md;
 
     Image {
         width: 100%;

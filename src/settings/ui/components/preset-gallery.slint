@@ -23,7 +23,7 @@ component MenuRow inherits Rectangle {
     callback activated;
 
     height: 32px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover && root.enabled ? Tokens.hover : transparent;
     accessible-role: button;
     accessible-label: root.text;
@@ -66,7 +66,7 @@ component PresetTile inherits Rectangle {
     callback apply;
     callback export;
 
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: root.card.active || root.focused ? 2px : 1px;
     border-color: root.focused ? Tokens.focus-ring
         : root.card.active ? Tokens.accent
@@ -93,7 +93,7 @@ component PresetTile inherits Rectangle {
         y: 5px;
         width: parent.width - 10px;
         height: root.thumb-height;
-        border-radius: Tokens.radius-card - 3px;
+        border-radius: Tokens.radius-xs;
         clip: true;
         Image {
             width: 100%;
@@ -137,7 +137,7 @@ component PresetTile inherits Rectangle {
                     width: badge.preferred-width + 2 * Tokens.s2;
                     height: 18px;
                     y: (parent.height - self.height) / 2;
-                    border-radius: Tokens.radius-control;
+                    border-radius: Tokens.radius-sm;
                     background: Tokens.accent-soft;
                     badge := Text {
                         text: "Active";
@@ -161,7 +161,7 @@ component PresetTile inherits Rectangle {
             width: 28px;
             height: 28px;
             y: (parent.height - self.height) / 2;
-            border-radius: Tokens.radius-control;
+            border-radius: Tokens.radius-sm;
             background: more-ta.pressed ? Tokens.pressed : more-ta.has-hover ? Tokens.hover : transparent;
             accessible-role: button;
             accessible-label: "More for " + root.card.name;
@@ -188,7 +188,7 @@ component PresetTile inherits Rectangle {
         close-policy: close-on-click-outside;
         Rectangle {
             background: Tokens.layer;
-            border-radius: Tokens.radius-card;
+            border-radius: Tokens.radius-lg;
             border-width: 1px;
             border-color: Tokens.stroke-strong;
             drop-shadow-blur: 16px;

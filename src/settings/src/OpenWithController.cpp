@@ -152,7 +152,7 @@ void OpenWithController::bindCallbacks()
     st.on_toggle([this](int index, bool on) {
         if (readOnly() || index < 0 || index >= int(model_.apps.size()))
             return;
-        model_.apps[size_t(index)].enabled = on;
+        openwith::setEnabled(model_.apps[size_t(index)], on);
         edited(false);
     });
     st.on_locate([this](int index) {
@@ -203,7 +203,7 @@ void OpenWithController::bindCallbacks()
             }
         }
         a.exe = picked;
-        a.enabled = true;
+        openwith::setEnabled(a, true);
         edited(true);
     });
     st.on_browse_icon([this] {
@@ -239,6 +239,86 @@ void OpenWithController::bindCallbacks()
     });
     st.on_create_user_config([this] { ui_->global<AppState>().invoke_action("config-init"); });
     st.on_open_context_menus([this] { ui_->global<AppState>().set_page(kContextMenusPage); });
+    st.on_other_toggle([this](int index, bool shown) { toggleOther(index, shown); });
+    st.on_hide_leftovers([this] { hideLeftovers(); });
+    st.on_other_title([this](int index, slint::SharedString t) { setOtherTitle(index, str(t)); });
+}
+
+std::vector<openwith::OtherRef> OpenWithController::otherRows() const
+{
+    return openwith::otherRows(others_, owners_, model_.hidden);
+}
+
+void OpenWithController::toggleOther(int index, bool shown)
+{
+    auto rows = otherRows();
+    if (readOnly() || index < 0 || index >= int(rows.size()))
+        return;
+    const auto r = rows[size_t(index)];
+    if (shown && r.hidden >= 0) {
+        model_.hidden.erase(model_.hidden.begin() + r.hidden);
+    } else if (!shown && r.hidden < 0 && r.item >= 0) {
+        const auto &item = others_[size_t(r.item)];
+        // A shell extension's title is the app's own: its name is the best guess, and the field is there to correct it.
+        model_.hidden.push_back(openwith::Hidden{ item.kind, item.name, item.title });
+    } else {
+        return;
+    }
+    edited(false);
+}
+
+void OpenWithController::hideLeftovers()
+{
+    if (readOnly())
+        return;
+    bool any = false;
+    for (const auto &r : otherRows()) {
+        if (r.item < 0 || r.hidden >= 0)
+            continue;
+        const auto &item = others_[size_t(r.item)];
+        if (item.missing.empty())
+            continue;
+        model_.hidden.push_back(openwith::Hidden{ item.kind, item.name, item.title });
+        any = true;
+    }
+    if (any)
+        edited(false);
+}
+
+void OpenWithController::setOtherTitle(int index, const std::string &title)
+{
+    auto rows = otherRows();
+    if (readOnly() || index < 0 || index >= int(rows.size()) || rows[size_t(index)].hidden < 0)
+        return;
+    auto &h = model_.hidden[size_t(rows[size_t(index)].hidden)];
+    if (h.kind != "handler")
+        return; // a verb's title comes from the registry
+    h.title = std::string(nss::trim(title));
+    edited(false);
+}
+
+void OpenWithController::relink()
+{
+    if (othersLoaded_)
+        owners_ = openwith::linkNatives(model_, others_, env_);
+    else
+        owners_.clear();
+}
+
+std::string OpenWithController::nativesText(size_t app) const
+{
+    std::string out;
+    if (app >= model_.apps.size())
+        return out;
+    for (const auto &h : model_.apps[app].natives) {
+        bool submenu = false;
+        for (size_t i = 0; i < others_.size() && i < owners_.size(); ++i)
+            if (owners_[i] == int(app) && others_[i].kind == h.kind && others_[i].name == h.name)
+                submenu = others_[i].submenu;
+        std::string title = h.title.empty() ? h.name : h.title;
+        out += (out.empty() ? "" : ", ") + title + (submenu ? " \u203a" : "");
+    }
+    return out;
 }
 
 void OpenWithController::toast(const std::string &kind, const std::string &title, const std::string &text)
@@ -259,7 +339,7 @@ fs::path OpenWithController::openWithFile() const
 
 bool OpenWithController::dirty() const
 {
-    return !(model_ == saved_) || developHidden_ != developSavedHidden_;
+    return !(model_ == saved_) || developHidden_ != developSavedHidden_ || fileLegacy_;
 }
 
 void OpenWithController::pollStatus()
@@ -297,6 +377,8 @@ void OpenWithController::load()
             openwith::Model model;
             openwith::Model saved;
             bool fileExists = false;
+            bool legacy = false;     // an older page's layout
+            bool customised = false; // lines the page didn't write
             nss::TextFormat format = nss::defaultFormat();
             std::string notice;
             std::string error;
@@ -305,9 +387,13 @@ void OpenWithController::load()
             bool developFound = false;
             bool developHidden = false;
             bool developWritable = false;
+            std::vector<otherapps::Item> others;
+            bool ownChanged = false; // see Migrate::Own
         };
         auto out = std::make_shared<Loaded>();
         out->env = openwith::Env::current();
+        out->others = otherapps::collect(otherapps::scan(), otherapps::resolveIndirect, otherapps::systemRoot(),
+                                        otherapps::realFiles());
         auto detected = openwith::detectAll(out->env);
         std::optional<openwith::Model> saved;
         std::error_code ec;
@@ -318,6 +404,8 @@ void OpenWithController::load()
                 saved = parsed.model;
                 out->fileExists = true;
                 out->format = doc->format();
+                out->legacy = parsed.legacy;
+                out->customised = !parsed.warnings.empty();
                 if (!parsed.warnings.empty())
                     out->notice = std::to_string(parsed.warnings.size()) +
                                   " line(s) of the file weren't written by this page and will be replaced on save. First: " +
@@ -327,10 +415,27 @@ void OpenWithController::load()
             }
         }
         out->model = openwith::merge(saved, detected);
+        auto inFile = out->model; // the apps' own entries as the file has them
+        openwith::linkNatives(out->model, out->others, out->env);
         out->saved = out->model;
         if (!saved)
             for (auto &a : out->saved.apps)
                 a.enabled = false; // nothing is in the menu until the first save
+        if (saved) {
+            // An app switched off whose own entries aren't the file's (installed
+            // since, or a file from before they were linked): the file is
+            // rewritten, so they're hidden. For an app that's on, nothing in
+            // the menu changes: it waits for the next save.
+            for (size_t i = 0; i < inFile.apps.size(); ++i) {
+                const auto &was = inFile.apps[i];
+                if (was.exe.empty() || was.natives == out->model.apps[i].natives)
+                    continue;
+                if (openwith::hidesNatives(was)) {
+                    out->saved.apps[i].natives = was.natives;
+                    out->ownChanged = true;
+                }
+            }
+        }
 
         if (auto rootDoc = nss::NssDocument::load(root)) {
             int idx = menus::MenuWriter::findImport(*rootDoc, openwith::kRelativePath);
@@ -357,9 +462,12 @@ void OpenWithController::load()
                 return;
             const auto &st = ui_->global<OpenWithState>();
             env_ = out->env;
+            others_ = out->others;
+            othersLoaded_ = true;
             model_ = out->model;
             saved_ = out->saved;
             fileExists_ = out->fileExists;
+            fileLegacy_ = out->legacy;
             format_ = out->format;
             developPath_ = out->developPath;
             developFound_ = out->developFound;
@@ -385,6 +493,14 @@ void OpenWithController::load()
             ++optionsSerial_;
             edited(true);
             requestIcons();
+            // A file from an older page (an "Open in" submenu in the middle of
+            // the menu) is rewritten in today's layout right away, unless it has
+            // lines of the user's own: then it waits for Save, with the notice.
+            if ((out->legacy || out->ownChanged) && !out->customised && !readOnly())
+                save(out->legacy ? Migrate::Layout : Migrate::Own);
+            else if (out->legacy)
+                st.set_notice(ss("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". " +
+                                 out->notice));
         });
     });
 }
@@ -400,16 +516,20 @@ std::string OpenWithController::iconSource(const openwith::App &app) const
 void OpenWithController::requestIcons()
 {
     std::vector<std::string> wanted;
-    for (const auto &a : model_.apps) {
-        auto src = iconSource(a);
+    auto want = [&](const std::string &src) {
         if (src.empty())
-            continue;
+            return;
         auto key = lowerKey(src);
         if (icons_.count(key) || iconsPending_.count(key))
-            continue;
+            return;
         iconsPending_[key] = true;
         wanted.push_back(src);
-    }
+    };
+    for (const auto &a : model_.apps)
+        want(iconSource(a));
+    for (const auto &o : others_)
+        if (o.kind == "verb") // a shell extension's DLL rarely has the menu's icon
+            want(o.program);
     if (wanted.empty())
         return;
     worker_.post([this, wanted] {
@@ -443,12 +563,14 @@ void OpenWithController::requestIcons()
             }
             pushRows();
             pushPreview();
+            pushOthers();
         });
     });
 }
 
 void OpenWithController::edited(bool reloadForm)
 {
+    relink(); // a new program path can mean other entries
     if (reloadForm)
         ++formSerial_;
     pushRows();
@@ -457,6 +579,7 @@ void OpenWithController::edited(bool reloadForm)
     pushPreview();
     pushCode();
     pushTest();
+    pushOthers();
     const auto &st = ui_->global<OpenWithState>();
     st.set_dirty(dirty());
     st.set_first_run(!fileExists_);
@@ -485,6 +608,12 @@ void OpenWithController::pushRows()
         if (problem.empty() && a.enabled && !reachable(model_.options, a))
             problem = "Doesn't show: the menu isn't on the places it's for.";
         r.problem = ss(problem);
+        if (auto own = nativesText(size_t(&a - model_.apps.data())); !own.empty())
+            r.own = ss((openwith::hidesNatives(a) ? "Also hides: "
+                        : a.enabled             ? "Switching it off also hides: "
+                        : a.keepOwn             ? "Keeps its own: "
+                                                : "Off by default, its own still show: ") +
+                       own);
         auto it = icons_.find(lowerKey(iconSource(a)));
         if (it != icons_.end() && it->second) {
             r.icon = *it->second;
@@ -498,6 +627,65 @@ void OpenWithController::pushRows()
     bool has = selected_ >= 0 && selected_ < int(model_.apps.size()) && !readOnly();
     st.set_can_up(has && selected_ > 0);
     st.set_can_down(has && selected_ + 1 < int(model_.apps.size()));
+}
+
+void OpenWithController::pushOthers()
+{
+    const auto &st = ui_->global<OpenWithState>();
+    std::vector<OtherAppRow> rows;
+    int hidden = 0, leftovers = 0;
+    for (const auto &ref : otherRows()) {
+        OtherAppRow r{};
+        const otherapps::Item *item = ref.item >= 0 ? &others_[size_t(ref.item)] : nullptr;
+        const openwith::Hidden *h = ref.hidden >= 0 ? &model_.hidden[size_t(ref.hidden)] : nullptr;
+        r.shown = !h;
+        hidden += h != nullptr;
+        r.extension = item ? item->kind == "handler" : h->kind == "handler";
+        r.gone = !item;
+        r.hide_title = ss(h ? h->title : std::string{});
+        if (item) {
+            r.title = ss(r.extension && h && !h->title.empty() ? h->title : item->title);
+            std::string where = otherapps::describeWhere(item->where);
+            std::string program = item->program.empty() ? std::string{} : nss::narrow(fs::path(nss::widen(item->program)).filename().wstring());
+            if (r.extension)
+                r.detail = ss("Shell extension \"" + item->name + "\"" + (program.empty() ? "" : " (" + program + ")") +
+                              (where.empty() ? "" : " · " + where));
+            else
+                r.detail = ss(where + (program.empty() ? "" : " · " + program));
+            r.tag = item->shiftOnly ? "Shift only" : r.extension ? "Title shown by the app" : "";
+            if (!item->missing.empty()) {
+                // An uninstaller left it behind: the menu item does nothing.
+                r.leftover = true;
+                r.detail = ss("Program not found: " + item->missing);
+                leftovers += r.shown;
+            }
+            auto it = icons_.find(lowerKey(item->program));
+            if (!item->program.empty() && it != icons_.end() && it->second) {
+                r.icon = *it->second;
+                r.has_icon = true;
+            }
+        } else {
+            r.title = ss(h->title.empty() ? h->name : h->title);
+            r.detail = "No longer in the registry. The rule stays until you switch it back on.";
+        }
+        if (h && openwith::exactFind(h->title).empty())
+            r.problem = ss(nss::trim(h->title).empty() ? "Type the title the menu shows, or nothing is hidden."
+                                                        : "A title with \" or | can't be matched exactly, so nothing is hidden.");
+        rows.push_back(r);
+    }
+    // Leftovers come first (otherRows()): a heading over them and over the rest.
+    if (!rows.empty() && rows.front().leftover) {
+        rows.front().section = "Leftovers from uninstalled programs";
+        for (auto &r : rows)
+            if (!r.leftover) {
+                r.section = "Other items";
+                break;
+            }
+    }
+    st.set_others(std::make_shared<slint::VectorModel<OtherAppRow>>(rows));
+    st.set_others_leftovers(leftovers);
+    st.set_others_hidden(hidden);
+    st.set_others_loaded(othersLoaded_);
 }
 
 void OpenWithController::pushForm()
@@ -514,6 +702,8 @@ void OpenWithController::pushForm()
         f.extensions = ss(a.extensions);
         f.admin = a.admin;
         f.custom = a.id == "custom";
+        f.keep_own = a.keepOwn;
+        f.own = ss(nativesText(size_t(selected_)));
     }
     st.set_form(f);
     st.set_form_serial(formSerial_);
@@ -558,21 +748,60 @@ void OpenWithController::pushPreview()
         }
         items.push_back(r);
     }
-    std::vector<OpenWithPreviewRow> root, flyout;
+    // Ours go under WinRAR, else under "Open in new window", else first.
+    std::vector<OpenWithPreviewRow> ours, root, flyout;
     if (o.submenu && !items.empty()) {
         OpenWithPreviewRow m{};
         m.kind = "menu";
         m.title = ss(o.title);
         m.open = true;
-        root.push_back(m);
+        ours.push_back(m);
         flyout = items;
     } else if (!o.submenu) {
-        root = items;
+        ours = items;
     }
+    auto native = [&](const char *kind, const char *title) {
+        OpenWithPreviewRow r{};
+        r.kind = kind;
+        r.title = title;
+        root.push_back(r);
+    };
+    if (kind == "file") {
+        native("native", "Open");
+        native("native-menu", "Open with");
+        native("sep", "");
+        native("native", "Cut");
+        native("native", "Copy");
+    } else if (kind == "dir") {
+        native("native", "Open");
+        native("native", "Open in new window");
+        native("native", "Pin to Quick access");
+        native("sep", "");
+        native("native", "Copy");
+    } else {
+        native("native-menu", "View");
+        native("native-menu", "Sort by");
+        native("native", "Refresh");
+        native("sep", "");
+        native("native", "Paste");
+    }
+    size_t at = 0;
+    bool anchored = false;
+    for (auto anchor : openwith::kAnchors) {
+        for (size_t i = 0; i < root.size() && !anchored; ++i)
+            if (nss::iequals(str(root[i].title), anchor)) {
+                at = i + 1;
+                anchored = true;
+            }
+        if (anchored)
+            break;
+    }
+    root.insert(root.begin() + ptrdiff_t(at), ours.begin(), ours.end());
     st.set_preview(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(root));
     st.set_flyout(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(flyout));
     const char *what = previewKind_ == 0 ? "a .txt file" : previewKind_ == 1 ? "a folder" : "a folder's background";
-    st.set_preview_empty(ss(std::string("Nothing shows for ") + what + "."));
+    st.set_preview_empty(items.empty() ? ss(std::string("Nothing of yours shows for ") + what + ".")
+                                       : slint::SharedString());
 }
 
 void OpenWithController::pushCode()
@@ -705,9 +934,7 @@ void OpenWithController::setChoice(const std::string &field, int value)
 {
     if (readOnly() || value < 0)
         return;
-    if (field == "layout") {
-        model_.options.submenu = value == 0;
-    } else if (field == "scope" && selected_ >= 0 && selected_ < int(model_.apps.size())) {
+    if (field == "scope" && selected_ >= 0 && selected_ < int(model_.apps.size())) {
         auto &a = model_.apps[size_t(selected_)];
         a.scope = openwith::Scope(std::min(value, int(openwith::Scope::Extensions)));
         if (a.scope == openwith::Scope::Extensions && a.extensions.empty())
@@ -724,7 +951,9 @@ void OpenWithController::setFlag(const std::string &field, bool value)
     if (readOnly())
         return;
     auto &o = model_.options;
-    if (field == "files")
+    if (field == "submenu")
+        o.submenu = value;
+    else if (field == "files")
         o.files = value;
     else if (field == "folders")
         o.folders = value;
@@ -738,6 +967,8 @@ void OpenWithController::setFlag(const std::string &field, bool value)
         developHidden_ = value;
     } else if (field == "admin" && selected_ >= 0 && selected_ < int(model_.apps.size()))
         model_.apps[size_t(selected_)].admin = value;
+    else if (field == "keep-own" && selected_ >= 0 && selected_ < int(model_.apps.size()))
+        model_.apps[size_t(selected_)].keepOwn = value;
     else
         return;
     edited(false);
@@ -783,10 +1014,12 @@ std::string OpenWithController::pickFile(const wchar_t *title, const wchar_t *fi
     return picked;
 }
 
-void OpenWithController::save()
+void OpenWithController::save(Migrate migrate)
 {
     if (saving_ || readOnly() || !dirty())
         return;
+    if (migrate != Migrate::None && shellExe_.empty())
+        return; // waits for a Save, which says why it can't
     if (shellExe_.empty()) {
         toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
         return;
@@ -817,13 +1050,38 @@ void OpenWithController::save()
     bool developChange = developFound_ && developHidden_ != developSavedHidden_;
     if (developChange)
         reason += developHidden_ ? "; hide Develop > Editors" : "; show Develop > Editors";
+    if (!(model_.hidden == saved_.hidden)) {
+        size_t n = 0;
+        for (const auto &h : model_.hidden)
+            n += !openwith::exactFind(h.title).empty();
+        reason += "; other apps' items hidden: " + std::to_string(n);
+    }
+    // The switched-off apps whose own entries are hidden too.
+    std::vector<std::string> hiding;
+    for (size_t i = 0; i < model_.apps.size(); ++i) {
+        const auto &a = model_.apps[i];
+        if (a.exe.empty() || a.natives.empty() || !openwith::hidesNatives(a))
+            continue;
+        const auto *was = i < saved_.apps.size() && saved_.apps[i].id == a.id ? &saved_.apps[i] : nullptr;
+        if (!was || !openwith::hidesNatives(*was) || !(was->natives == a.natives))
+            hiding.push_back(a.name);
+    }
+    std::string hidingText;
+    for (size_t i = 0; i < hiding.size(); ++i)
+        hidingText += (i == 0 ? "" : i + 1 == hiding.size() ? " and " : ", ") + hiding[i];
+    if (!hiding.empty())
+        reason += "; hide " + hidingText + "'s own items";
+    if (migrate == Migrate::Layout)
+        reason = "Open with: moved the items under WinRAR / Open in new window";
+    else if (migrate == Migrate::Own)
+        reason = "Open with: hide the own menu items of " + (hidingText.empty() ? std::string("switched-off apps") : hidingText);
 
     auto model = model_;
     bool hideDevelop = developHidden_;
     saving_ = true;
     ui_->global<OpenWithState>().set_saving(true);
     worker_.post([this, model, reason, file, root = root_, exe = shellExe_, format = format_, env = env_,
-                  developChange, hideDevelop, developPath = developPath_] {
+                  developChange, hideDevelop, migrate, hidingText, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
@@ -849,18 +1107,29 @@ void OpenWithController::save()
                 result = store.save(std::move(writes), options);
             }
         }
-        slint::invoke_from_event_loop([this, model, hideDevelop, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, hidingText, result = std::move(result), root] {
             saving_ = false;
             ui_->global<OpenWithState>().set_saving(false);
             if (result.ok) {
                 saved_ = model;
                 fileExists_ = true;
+                fileLegacy_ = false;
                 developSavedHidden_ = hideDevelop;
                 edited(false);
-                toast("ok", "Saved the Open with items",
-                      result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                : "Snapshot " + result.snapshotId +
-                                                      " was taken first. Right-click a file to see them.");
+                if (migrate == Migrate::Own)
+                    toast("ok", "Updated the switched-off apps' own items",
+                          (hidingText.empty() ? std::string("Their menu entries changed in the registry.")
+                                              : "The menu no longer shows " + hidingText + "'s own entries.") +
+                              " Snapshot " + result.snapshotId + " has the file before.");
+                else if (migrate == Migrate::Layout)
+                    toast("ok", "Moved the Open with items",
+                          "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot " +
+                              result.snapshotId + " has the old layout.");
+                else
+                    toast("ok", "Saved the Open with items",
+                          result.snapshotId.empty() ? std::string("No changes were needed.")
+                                                    : "Snapshot " + result.snapshotId +
+                                                          " was taken first. Right-click a file to see them.");
                 return;
             }
             std::string detail = result.error;

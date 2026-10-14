@@ -20,7 +20,7 @@ export component AppButton inherits Rectangle {
     preferred-width: max(32px, row.preferred-width);
     horizontal-stretch: 0;
     vertical-stretch: 0;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     border-width: root.primary ? 0px : 1px;
     border-color: fs.has-focus ? Tokens.focus-ring : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
     background: root.primary
@@ -81,7 +81,7 @@ export component AppButton inherits Rectangle {
         y: -3px;
         width: root.width + 6px;
         height: root.height + 6px;
-        border-radius: root.border-radius + 3px;
+        border-radius: root.border-radius + 1px;
         border-width: 2px;
         border-color: Tokens.focus-ring;
     }
@@ -104,7 +104,7 @@ export component ActionTile inherits Rectangle {
     callback clicked;
 
     min-width: 140px;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: fs.has-focus ? Tokens.focus-ring : ta.has-hover && root.enabled ? Tokens.stroke-strong : Tokens.stroke;
     background: !root.enabled ? Tokens.layer : ta.pressed ? Tokens.layer-2 : ta.has-hover ? Tokens.layer-3 : Tokens.layer;
@@ -127,7 +127,7 @@ export component ActionTile inherits Rectangle {
             Rectangle {
                 width: 36px;
                 height: 36px;
-                border-radius: Tokens.radius-control + 2px;
+                border-radius: Tokens.radius-sm;
                 background: Tokens.accent-soft;
                 Image {
                     source: root.icon;
@@ -184,7 +184,7 @@ export component Segmented inherits Rectangle {
 
     height: 32px;
     min-width: root.options.length * root.min-option-width + 6px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: Tokens.dark ? Tokens.sidebar : Tokens.layer-3;
     border-width: 1px;
     border-color: fs.has-focus ? Tokens.focus-ring : Tokens.stroke;
@@ -214,7 +214,7 @@ export component Segmented inherits Rectangle {
         height: root.height - 6px;
         x: 3px + self.width * root.selected;
         y: 3px;
-        border-radius: Tokens.radius-control - 2px;
+        border-radius: Tokens.radius-xs;
         background: Tokens.accent-fill;
         animate x { duration: Tokens.normal; easing: ease-out; }
     }
@@ -223,7 +223,7 @@ export component Segmented inherits Rectangle {
         padding: 3px;
         for option[i] in root.options: Rectangle {
             horizontal-stretch: 1;
-            border-radius: Tokens.radius-control - 2px;
+            border-radius: Tokens.radius-xs;
             background: i != root.selected && ta.has-hover && root.enabled ? Tokens.hover : transparent;
             accessible-role: tab;
             accessible-label: option;
@@ -318,7 +318,7 @@ export component Tabs inherits Rectangle {
         for spec[i] in root.tabs: Rectangle {
             min-width: label-row.preferred-width + Tokens.s3;
             preferred-width: label-row.preferred-width + 2 * Tokens.s4;
-            border-radius: Tokens.radius-control;
+            border-radius: Tokens.radius-sm;
             background: tab-ta.has-hover && i != root.selected ? Tokens.hover : transparent;
             animate background { duration: Tokens.fast; }
             accessible-role: tab;
@@ -357,7 +357,7 @@ export component Tabs inherits Rectangle {
                 background: Tokens.accent;
             }
             if fs.has-focus && i == root.selected: Rectangle {
-                border-radius: Tokens.radius-control;
+                border-radius: Tokens.radius-sm;
                 border-width: 2px;
                 border-color: Tokens.focus-ring;
             }

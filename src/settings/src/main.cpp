@@ -18,7 +18,14 @@
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
-//   --set <key>=<literal>, --save    see AppearanceController.h
+//   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
+//   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
+//                          local JSON file> instead of the GitHub API, for tests)
+//
+// Update helper (UpdateController.h; started from a copy in %TEMP%, never by hand):
+//   --apply-update <staging> <installdir> <pid>, --apply-msi <msi> <installdir> <pid>
+// and what it passes back when it starts the app again:
+//   --updated <msi|portable>, --update-failed <message>, --update-cancelled
 
 #include "app.h"
 
@@ -33,6 +40,7 @@
 #include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
+#include "UpdateController.h"
 
 #include <windows.h>
 #include <objbase.h>
@@ -54,6 +62,7 @@ std::wstring g_snapshotPath;
 std::vector<int> g_snapshotPages;
 bool g_snapshotDark = false;
 int g_snapshotHeight = 0;
+UpdateOptions g_update;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -107,6 +116,14 @@ AppOptions parseArgs()
             o.onboardingStep = std::clamp(_wtoi(argv[++i]), 1, 3) - 1;
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
+            g_update.checkNow = true;
+        } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {
+            g_update.updated = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--update-failed") == 0 && i + 1 < argc) {
+            g_update.updateFailed = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--update-cancelled") == 0) {
+            g_update.updateCancelled = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
@@ -156,8 +173,17 @@ bool activateExistingInstance(HANDLE &mutex)
 
 int main()
 {
+    // The update helper: no window, no single-instance check.
+    if (int rc = runUpdateHelper(); rc >= 0)
+        return rc;
+
     auto options = parseArgs();
     const bool snapshot = !g_snapshotPath.empty();
+    // Snapshots write nothing and check only when asked to.
+    if (snapshot) {
+        g_update.persist = false;
+        g_update.allowAutoCheck = g_update.checkNow;
+    }
 
     // Snapshots never touch a running window of the app (no single-instance check).
     HANDLE mutex = nullptr;
@@ -181,6 +207,12 @@ int main()
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
     auto openWith = std::make_unique<OpenWithController>(ui);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
+    // Installing an update closes the app first: the helper waits for this process to end.
+    auto updates = std::make_unique<UpdateController>(ui, g_update, [&] {
+        controller->saveWindowPlacement();
+        ui->hide();
+        slint::quit_event_loop();
+    });
     // A personal config created from Home or the first-run dialog is the new root: read it.
     controller->onConfigChanged([&] { saveService->reloadConfig(); });
 
@@ -230,10 +262,12 @@ int main()
             hwndPoll.stop();
             controller->attachWindow(hwnd);
             saveService->attachWindow(hwnd);
+            updates->attachWindow(hwnd);
             if (placement && placement->maximized)
                 ui->window().set_maximized(true);
             controller->start();
             appearance->start();
+            updates->start();
             if (snapshot)
                 snapshotTour.start(slint::TimerMode::Repeated, std::chrono::milliseconds(1200), [&] {
                     static int step = 0;
@@ -268,6 +302,7 @@ int main()
 
     slint::run_event_loop();
 
+    updates.reset();
     onboarding.reset();
     behavior.reset();
     appearance.reset();

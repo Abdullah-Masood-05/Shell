@@ -3,7 +3,7 @@ import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
-import { OpenWithState, OpenWithRow, OpenWithPreviewRow } from "../openwith-types.slint";
+import { OpenWithState, OpenWithRow, OpenWithPreviewRow, OtherAppRow } from "../openwith-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { Link, Segmented } from "../components/controls.slint";
@@ -48,7 +48,7 @@ component SectionHead inherits HorizontalLayout {
 
 component ListSurface inherits Rectangle {
     background: Tokens.layer;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke;
     VerticalLayout {
@@ -142,15 +142,6 @@ component ChoiceField inherits ComboBox {
     selected => { OpenWithState.set-choice(root.field, self.current-index); }
 }
 
-component SegmentedField inherits Segmented {
-    in property <int> value;
-    in property <int> serial;
-    in property <string> field;
-    changed serial => { self.selected = root.value; }
-    init => { self.selected = root.value; }
-    changed(i) => { OpenWithState.set-choice(root.field, i); }
-}
-
 component Mono inherits Text {
     font-family: EditorState.mono-font;
     font-size: Tokens.caption + 1px;
@@ -166,7 +157,7 @@ component AppItem inherits Rectangle {
     callback toggled(on: bool);
     callback locate();
 
-    height: 52px;
+    height: root.entry.own != "" ? 68px : 52px;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: list-item;
@@ -229,6 +220,13 @@ component AppItem inherits Rectangle {
                 color: Tokens.text-3;
                 overflow: elide;
             }
+            // The app's own entries in the menu, which its switch hides too.
+            if root.entry.own != "": Text {
+                text: root.entry.own;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                overflow: elide;
+            }
         }
         if !root.entry.found: VerticalLayout {
             alignment: center;
@@ -264,7 +262,7 @@ component AppEditor inherits Rectangle {
 
         FormRow {
             label: "Name";
-            hint: OpenWithState.submenu ? "Shown in the submenu as is." : "Shown as \"Open with " + OpenWithState.form.name + "\".";
+            hint: OpenWithState.submenu ? "Shown in the submenu as is." : "Shown as \"Open in " + OpenWithState.form.name + "\".";
             TextField {
                 field: "name";
                 value: OpenWithState.form.name;
@@ -344,6 +342,17 @@ component AppEditor inherits Rectangle {
                 }
             }
         }
+        if OpenWithState.form.own != "": FormRow {
+            label: "Its own items";
+            hint: "Switched off, the app also hides " + OpenWithState.form.own + ". Tick this to hide only the item this page adds.";
+            FlagField {
+                text: "Keep the app's own menu items when it's off";
+                enabled: !root.locked;
+                field: "keep-own";
+                value: OpenWithState.form.keep-own;
+                serial: OpenWithState.form-serial;
+            }
+        }
         FormRow {
             label: "";
             FlagField {
@@ -381,7 +390,7 @@ component AppEditor inherits Rectangle {
             Rectangle { horizontal-stretch: 1; }
         }
         if OpenWithState.test-shown: Rectangle {
-            border-radius: Tokens.radius-control;
+            border-radius: Tokens.radius-sm;
             background: Tokens.layer;
             border-width: 1px;
             border-color: Tokens.stroke;
@@ -418,15 +427,125 @@ component AppEditor inherits Rectangle {
     }
 }
 
+// Another program's own menu item: on (shown, the default) or off (a rule hides it).
+// A shell extension's title is the app's own, so while it's off the title to
+// hide can be corrected right there.
+component OtherItem inherits Rectangle {
+    in property <OtherAppRow> entry;
+    in property <int> index;
+    in property <bool> locked;
+
+    accessible-role: list-item;
+    accessible-label: root.entry.title;
+    accessible-description: root.entry.detail;
+
+    VerticalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s4;
+        padding-top: Tokens.s2 + 2px;
+        padding-bottom: Tokens.s2 + 2px;
+        spacing: Tokens.s2;
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                AppIcon {
+                    icon: root.entry.icon;
+                    has-icon: root.entry.has-icon;
+                    dim: !root.entry.shown;
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 1px;
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    Text {
+                        text: root.entry.title;
+                        font-weight: 600;
+                        color: root.entry.shown ? Tokens.text : Tokens.text-3;
+                        overflow: elide;
+                    }
+                    if root.entry.tag != "": Text {
+                        text: root.entry.tag;
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        vertical-alignment: center;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+                Text {
+                    text: root.entry.detail;
+                    font-size: Tokens.caption;
+                    color: root.entry.leftover && root.entry.shown ? Tokens.warning : Tokens.text-3;
+                    overflow: elide;
+                }
+            }
+            // A leftover of an uninstalled program: hiding it is the one thing to do.
+            if root.entry.leftover && root.entry.shown: VerticalLayout {
+                alignment: center;
+                Button {
+                    text: "Hide";
+                    enabled: !root.locked;
+                    clicked => { OpenWithState.other-toggle(root.index, false); }
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Toggle {
+                    on: root.entry.shown;
+                    enabled: !root.locked;
+                    label: "Show " + root.entry.title + " in the menu";
+                    toggled(on) => { OpenWithState.other-toggle(root.index, on); }
+                }
+            }
+        }
+        if !root.entry.shown && root.entry.extension: HorizontalLayout {
+            padding-left: 20px + Tokens.s3;
+            spacing: Tokens.s3;
+            Text {
+                vertical-alignment: center;
+                text: "Title to hide";
+                color: Tokens.text-2;
+            }
+            LineEdit {
+                horizontal-stretch: 1;
+                enabled: !root.locked;
+                placeholder-text: "Exactly as the menu shows it";
+                init => { self.text = root.entry.hide-title; }
+                edited(t) => { OpenWithState.other-title(root.index, t); }
+            }
+        }
+        if !root.entry.shown && root.entry.problem != "": HorizontalLayout {
+            padding-left: 20px + Tokens.s3;
+            Text {
+                text: root.entry.problem;
+                font-size: Tokens.caption;
+                color: Tokens.warning;
+                wrap: word-wrap;
+            }
+        }
+    }
+}
+
 // One row of the preview menu, sized like Shell's default theme.
 component PreviewItem inherits Rectangle {
     in property <OpenWithPreviewRow> entry;
-    height: 32px;
-    Rectangle {
+    property <bool> native: root.entry.kind == "native" || root.entry.kind == "native-menu";
+    height: root.entry.kind == "sep" ? 9px : 32px;
+    if root.entry.kind == "sep": Rectangle {
+        x: 12px;
+        y: 4px;
+        width: root.width - 24px;
+        height: 1px;
+        background: Tokens.stroke-strong;
+    }
+    if root.entry.kind != "sep": Rectangle {
         x: 4px;
         width: root.width - 8px;
         height: root.height - 2px;
-        border-radius: Tokens.radius-control;
+        border-radius: Tokens.radius-sm;
         background: root.entry.open ? Tokens.hover.with-alpha(Tokens.dark ? 0.12 : 0.07) : transparent;
         HorizontalLayout {
             padding-left: 10px;
@@ -440,7 +559,7 @@ component PreviewItem inherits Rectangle {
                     height: 16px;
                     colorize: Tokens.text;
                 }
-                if root.entry.kind == "item": Rectangle {
+                if root.entry.kind != "menu": Rectangle {
                     width: 16px;
                     height: 16px;
                     if root.entry.has-icon: Image {
@@ -455,9 +574,9 @@ component PreviewItem inherits Rectangle {
                 vertical-alignment: center;
                 text: root.entry.title;
                 overflow: elide;
-                color: Tokens.text;
+                color: root.native ? Tokens.text-3 : Tokens.text;
             }
-            if root.entry.kind == "menu": Text {
+            if root.entry.kind == "menu" || root.entry.kind == "native-menu": Text {
                 vertical-alignment: center;
                 text: Mdl.chevron;
                 font-family: Mdl.family;
@@ -473,7 +592,7 @@ component PreviewMenu inherits Rectangle {
     width: 220px;
     height: list.preferred-height;
     background: Tokens.dark ? #2C2C2C : #F9F9F9;
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     border-width: 1px;
     border-color: Tokens.stroke-strong;
     drop-shadow-blur: 16px;
@@ -609,16 +728,13 @@ export component OpenWithPage inherits PageFrame {
             spacing: Tokens.s3;
             FormRow {
                 label: "Layout";
-                HorizontalLayout {
-                    spacing: Tokens.s3;
-                    SegmentedField {
-                        width: 280px;
-                        options: ["Submenu", "Top-level items"];
-                        field: "layout";
-                        value: OpenWithState.submenu ? 0 : 1;
-                        serial: OpenWithState.options-serial;
-                    }
-                    Rectangle { horizontal-stretch: 1; }
+                hint: (OpenWithState.submenu ? "One submenu with each app inside it, " : "Each app is its own \"Open in …\" item, in this order, ") + "right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu.";
+                FlagField {
+                    text: "Group in an \"Open in\" submenu";
+                    enabled: !root.locked;
+                    field: "submenu";
+                    value: OpenWithState.submenu;
+                    serial: OpenWithState.options-serial;
                 }
             }
             if OpenWithState.submenu: FormRow {
@@ -697,13 +813,18 @@ export component OpenWithPage inherits PageFrame {
                 }
             }
             if root.bottom-tab == 0: Rectangle {
-                height: max(120px, (OpenWithState.submenu ? max(1, OpenWithState.flyout.length) : OpenWithState.preview.length) * 32px + 40px);
-                border-radius: Tokens.radius-control;
+                height: max(120px, max(OpenWithState.preview.length, OpenWithState.flyout.length) * 32px + 40px);
+                border-radius: Tokens.radius-sm;
                 background: Tokens.dark ? #1C1C1C : #E9E9E9;
                 clip: true;
-                if OpenWithState.preview.length == 0: Text {
+                // Nothing of ours shows: said next to Explorer's own items.
+                if OpenWithState.preview-empty != "": Text {
+                    x: main.x + main.width + Tokens.s4;
+                    y: main.y + 8px;
+                    width: parent.width - self.x - Tokens.s4;
                     text: OpenWithState.preview-empty;
                     color: Tokens.text-3;
+                    wrap: word-wrap;
                 }
                 main := PreviewMenu {
                     x: Tokens.s4;
@@ -719,7 +840,7 @@ export component OpenWithPage inherits PageFrame {
             }
             if root.bottom-tab == 1: Rectangle {
                 height: min(320px, max(120px, OpenWithState.code.length * CodeColors.row-height + 16px));
-                border-radius: Tokens.radius-control;
+                border-radius: Tokens.radius-sm;
                 background: Tokens.layer-2;
                 code := ListView {
                     width: 100%;
@@ -730,6 +851,75 @@ export component OpenWithPage inherits PageFrame {
                         line: line;
                         font: EditorState.mono-font;
                     }
+                }
+            }
+        }
+    }
+
+    SectionHead {
+        title: "Other apps' menu items";
+        caption: "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed.";
+    }
+    ListSurface {
+        if !OpenWithState.others-loaded || OpenWithState.others.length == 0: Text {
+            height: 52px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: OpenWithState.others-loaded ? "No other program adds items to the menu for files, folders or drives." : "Reading the registry…";
+            color: Tokens.text-3;
+        }
+        for o[i] in OpenWithState.others: VerticalLayout {
+            if i > 0: Hairline { }
+            // "Leftovers from uninstalled programs" over the first ones, "Other items" over the rest.
+            if o.section != "": HorizontalLayout {
+                padding-left: Tokens.s4;
+                padding-right: Tokens.s4;
+                padding-top: Tokens.s2;
+                spacing: Tokens.s3;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 1px;
+                    Text {
+                        text: o.section;
+                        font-size: Tokens.caption + 1px;
+                        font-weight: 600;
+                        color: Tokens.text-2;
+                    }
+                    if o.leftover: Text {
+                        text: "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is.";
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        wrap: word-wrap;
+                    }
+                }
+                if o.leftover && OpenWithState.others-leftovers > 1: VerticalLayout {
+                    alignment: center;
+                    Button {
+                        text: "Hide all " + OpenWithState.others-leftovers;
+                        enabled: !root.locked;
+                        clicked => { OpenWithState.hide-leftovers(); }
+                    }
+                }
+            }
+            OtherItem {
+                entry: o;
+                index: i;
+                locked: root.locked;
+            }
+        }
+        if OpenWithState.others-hidden > 0: VerticalLayout {
+            Hairline { }
+            HorizontalLayout {
+                padding-left: Tokens.s4;
+                padding-right: Tokens.s4;
+                height: 36px;
+                Text {
+                    vertical-alignment: center;
+                    text: "Switched off: " + OpenWithState.others-hidden + ". Each is a remove() rule in " + OpenWithState.file-label + ", after the Open in items.";
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    overflow: elide;
                 }
             }
         }

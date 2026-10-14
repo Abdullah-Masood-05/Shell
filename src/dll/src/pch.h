@@ -116,6 +116,7 @@ using namespace Nilesoft;
 // Global variable definition
 // explicit declaration
 #include "Include\FindPattern.h"
+#include "Include\IndexOf.h"
 
 
 //default 4

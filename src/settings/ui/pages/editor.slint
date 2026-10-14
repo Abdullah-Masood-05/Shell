@@ -1,4 +1,4 @@
-import { ListView, TextEdit } from "std-widgets.slint";
+import { ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
@@ -6,7 +6,7 @@ import { EditorState, EditorFile, EditorProblem } from "../editor-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Segmented } from "../components/controls.slint";
-import { CodeColors, CodeRow } from "../components/code.slint";
+import { CodeColors, CodeRow, CodeEditor } from "../components/code.slint";
 import { ConfirmDialog } from "../components/dialog.slint";
 
 // A small rounded label ("Unsaved", "Read-only", "App-managed").
@@ -15,7 +15,7 @@ component Badge inherits Rectangle {
     in property <color> tint: Tokens.text-2;
     height: 20px;
     width: label.preferred-width + 12px;
-    border-radius: 10px;
+    border-radius: Tokens.radius-xs;
     background: root.tint.with-alpha(0.14);
     label := Text {
         text: root.text;
@@ -30,7 +30,7 @@ component FileRow inherits Rectangle {
     callback clicked;
 
     height: 30px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover && !root.file.unresolved ? Tokens.hover : transparent;
     accessible-role: list-item;
     accessible-label: root.file.label;
@@ -101,7 +101,7 @@ component ProblemRow inherits Rectangle {
     callback clicked;
 
     height: 28px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: ta.has-hover ? Tokens.hover : transparent;
     accessible-role: button;
     accessible-label: root.problem.message;
@@ -160,12 +160,19 @@ export component EditorPage inherits Rectangle {
     property <int> jump-serial: EditorState.jump-serial;
     changed jump-serial => {
         if (EditorState.editing) {
-            te.set-selection-offsets(EditorState.jump-start, EditorState.jump-end);
-            te.focus();
+            // The cursor at the start of the line, so a long line doesn't scroll sideways.
+            te.set-selection-offsets(EditorState.jump-end, EditorState.jump-start);
+            te.focus-input();
         } else {
             code.content-y = -min(max(0px, (EditorState.jump-line - 6) * CodeColors.row-height),
                 max(0px, code.content-height - code.visible-height));
         }
+    }
+
+    // C++ bumps caret-serial after loading a file into the edit view.
+    property <int> caret-serial: EditorState.caret-serial;
+    changed caret-serial => {
+        te.set-selection-offsets(EditorState.caret-anchor, EditorState.caret-offset);
     }
 
     VerticalLayout {
@@ -221,7 +228,7 @@ export component EditorPage inherits Rectangle {
             Rectangle {
                 width: 236px;
                 background: Tokens.layer;
-                border-radius: Tokens.radius-card;
+                border-radius: Tokens.radius-lg;
                 border-width: 1px;
                 border-color: Tokens.stroke;
                 VerticalLayout {
@@ -313,7 +320,7 @@ export component EditorPage inherits Rectangle {
                     vertical-stretch: 1;
                     min-height: 160px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     clip: true;
@@ -332,16 +339,19 @@ export component EditorPage inherits Rectangle {
                             font: EditorState.mono-font;
                         }
                     }
-                    te := TextEdit {
-                        width: 100%;
-                        height: 100%;
+                    te := CodeEditor {
+                        x: 1px;
+                        y: 1px;
+                        width: parent.width - 2px;
+                        height: parent.height - 2px;
                         visible: EditorState.editing;
+                        lines: EditorState.edit-lines;
                         text <=> EditorState.text;
-                        font-family: EditorState.mono-font;
-                        font-size: CodeColors.font-size;
-                        wrap: no-wrap;
+                        font: EditorState.mono-font;
                         read-only: EditorState.read-only;
-                        edited(t) => { EditorState.edited(t); }
+                        debug-overlay: EditorState.debug-overlay;
+                        edited(t) => { return EditorState.edited(t); }
+                        copied => { EditorState.fix-clipboard(); }
                         key-pressed(event) => {
                             if (event.modifiers.control && (event.text == "s" || event.text == "S")) {
                                 EditorState.save();
@@ -356,7 +366,7 @@ export component EditorPage inherits Rectangle {
                 Rectangle {
                     height: 164px;
                     background: Tokens.layer;
-                    border-radius: Tokens.radius-card;
+                    border-radius: Tokens.radius-lg;
                     border-width: 1px;
                     border-color: Tokens.stroke;
                     VerticalLayout {

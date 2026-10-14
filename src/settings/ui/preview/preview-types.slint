@@ -6,6 +6,7 @@ export struct PreviewTheme {
     effect: int,              // 0 none, 1 transparent, 2 blur, 3 acrylic
     background: color,        // with its opacity
     tint: color,              // blur/acrylic tint
+    acrylic: color,           // the faint acrylic layer under the tint (ThemeModel acrylicLayer)
     gradient: bool,           // theme.background.gradient, over the background
     gradient-radial: bool,
     gradient-angle: angle,

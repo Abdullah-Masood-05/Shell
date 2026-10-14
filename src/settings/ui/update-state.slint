@@ -1,0 +1,42 @@
+// In-app updates: filled by src/UpdateController.cpp.
+
+export global UpdateState {
+    in property <string> current-version;
+    in property <string> install-kind;       // msi | portable ("" before the first check)
+    in property <int> channel;               // 0 stable, 1 beta
+    in property <bool> auto-check: true;
+    in property <bool> auto-install;
+
+    // idle | checking | up-to-date | error | available | downloading | ready | installing
+    in property <string> state: "idle";
+    in property <string> message;            // the line under the state
+    in property <string> message-kind;       // "" | info | error
+    in property <string> last-checked;       // "Today at 14:05", "Never"
+
+    // The update on offer
+    in property <string> latest-version;
+    in property <string> released;           // "14 October 2026"
+    in property <string> asset-size;         // "8.7 MB"
+    in property <bool> needs-admin;          // MSI: the install button carries the UAC shield
+    in property <float> progress;            // 0..1 while downloading
+    in property <string> progress-text;      // "3.2 MB of 8.7 MB"
+
+    // A one-off note after the helper relaunched the app (updated, failed, cancelled).
+    in-out property <bool> notice-shown;
+    in property <string> notice-kind;        // ok | error | info
+    in property <string> notice-title;
+    in property <string> notice-text;
+    in property <string> notice-action;      // "restart" (Restart Explorer) or ""
+
+    out property <bool> offered: state == "available" || state == "downloading" || state == "ready" || state == "installing";
+
+    callback check-now();
+    callback install();                      // download if needed, then install (the app closes)
+    callback skip();
+    callback cancel();                       // stops a download
+    callback open-notes();
+    callback set-channel(int);
+    callback set-auto-check(bool);
+    callback set-auto-install(bool);
+    callback dismiss-notice();
+}

@@ -2,6 +2,8 @@ import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState, NavEntry, Pages } from "../types.slint";
 import { NavItem } from "nav-item.slint";
+import { UpdateState } from "../update-state.slint";
+import { UpdateNavHint } from "update-banner.slint";
 
 // Grouped navigation: logo and version on top, the pages in the middle, the status
 // line and Preferences at the bottom. Up/Down/Home/End move between pages when the
@@ -128,6 +130,13 @@ export component Sidebar inherits Rectangle {
             }
 
             Rectangle { vertical-stretch: 1; }
+
+            if UpdateState.offered: UpdateNavHint {
+                clicked => {
+                    fs.focus();
+                    root.go(Pages.home);
+                }
+            }
 
             // Shell's state: a coloured dot and one line (Home has the details).
             HorizontalLayout {

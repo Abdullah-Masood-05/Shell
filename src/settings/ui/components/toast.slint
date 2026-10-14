@@ -18,7 +18,7 @@ export component Toast inherits Rectangle {
     visible: self.opacity > 0.01;
     animate opacity { duration: Tokens.normal; easing: ease-out; }
 
-    border-radius: Tokens.radius-card;
+    border-radius: Tokens.radius-lg;
     background: Tokens.layer-2;
     border-width: 1px;
     border-color: Tokens.stroke-strong;
@@ -32,8 +32,8 @@ export component Toast inherits Rectangle {
         x: 0;
         width: 4px;
         height: parent.height;
-        border-top-left-radius: Tokens.radius-card;
-        border-bottom-left-radius: Tokens.radius-card;
+        border-top-left-radius: Tokens.radius-lg;
+        border-bottom-left-radius: Tokens.radius-lg;
         background: Tokens.status-color(root.kind);
     }
 

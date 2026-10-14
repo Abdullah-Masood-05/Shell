@@ -31,12 +31,12 @@
 		configuration folder, and run first-time setup again.</li>
 </ul>
 <figure class="screenshot my-5">
-	<img class="preview" src="/docs/images/settings-app/home-dark.png" width="1120" height="760"
+	<img class="preview" src="/docs/images/settings-app/home-dark.png" width="1120" height="562"
 		alt="The Home page in the dark theme">
 	<figcaption>Home: Shell registered for all users, with the classic Windows 11 menu, reading a personal <code>shell.nss</code>.</figcaption>
 </figure>
 <figure class="screenshot my-5">
-	<img class="preview" src="/docs/images/settings-app/home-light.png" width="1120" height="760"
+	<img class="preview" src="/docs/images/settings-app/home-light.png" width="1120" height="562"
 		alt="The Home page in the light theme">
 	<figcaption>The same page in the light theme. The app follows the Windows app mode unless you pick a theme in Preferences.</figcaption>
 </figure>
@@ -67,6 +67,12 @@
 		ported value for value to today's <code>theme</code> keys.</td></tr>
 </table>
 
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/appearance-dark.png" width="1120" height="760"
+		alt="The Appearance page with the Themes gallery and the live preview">
+	<figcaption>Appearance: the original Nilesoft Shell example themes, each previewed on your wallpaper, next to the live preview.</figcaption>
+</figure>
+
 <h5 id="behavior">Behavior</h5>
 <ul>
 	<li>Whether Shell's menu replaces the Windows 11 menu, and the submenu delay. The shipped configuration opens submenus after 200 ms; this replaces your Windows setting while a Shell menu is open, and you can turn it off here.</li>
@@ -75,9 +81,21 @@
 	<li>Windows' own items: remove duplicates, disabled items and extra separators; show icons on them.</li>
 </ul>
 
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/behavior-dark.png" width="1120" height="760"
+		alt="The Behavior page">
+	<figcaption>Behavior: how the menu opens, tooltips, screenshots and Windows' own items.</figcaption>
+</figure>
+
 <h5 id="rules">Rules &amp; Filters</h5>
 <p>Where the menu is shown: only in File Explorer and on the desktop, programs and window classes to leave alone, or a
 	raw <a href="/docs/configuration/settings">exclude</a> condition, which is checked when you save.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/rules-dark.png" width="1120" height="760"
+		alt="The Rules &amp; Filters page">
+	<figcaption>Rules &amp; Filters: where the menu shows and which programs and windows it leaves alone.</figcaption>
+</figure>
 
 <h5 id="saving">How changes are saved</h5>
 <p>Appearance, Behavior and Rules &amp; Filters collect your changes until you press <kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>).
@@ -95,11 +113,23 @@
 		move or rename Windows' own items, in plain words, each with an on/off switch.</li>
 </ul>
 
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/context-menus-dark.png" width="1120" height="760"
+		alt="The Context Menus page">
+	<figcaption>Context Menus: the bundled modules and the rules for Windows' own items, each with an on/off switch.</figcaption>
+</figure>
+
 <h5 id="menu-builder">Menu Builder</h5>
 <p>Build your own menus, items and separators without writing NSS: title, icon (from Shell's icon font), command and
 	arguments, where the item appears, and options such as running as administrator. The result is written to
 	<code>imports\settings-app-menus.nss</code>, shown as code next to the tree, and read back when you open the page
 	again.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/menu-builder-dark.png" width="1120" height="760"
+		alt="The Menu Builder page">
+	<figcaption>Menu Builder: your own menus and items, written to their own file.</figcaption>
+</figure>
 
 <h5 id="open-with">Open with</h5>
 <p>Adds "Open with" items for your editors and terminals, so a file or folder opens in Zed, Cursor or PyCharm as easily as
@@ -116,9 +146,31 @@
 		<code>{paths}</code> every selected item (<code>@sel(true)</code>); <code>{dir}</code> its folder, or the folder
 		itself (<code>"@sel.dir"</code>); <code>{name}</code> its name. <kbd>Test</kbd> shows the exact command line for a
 		sample file and folder. It never starts the program.</li>
-	<li>The items go in a submenu (titled <i>Open in</i> by default, so it isn't confused with Windows' own <i>Open
-		with</i>) or at the top level as <i>Open with &lt;name&gt;</i>, on files, folders, the folder background and the
-		desktop as you choose. A preview shows the resulting menu.</li>
+	<li>Each app that is switched on is its own <i>Open in &lt;name&gt;</i> item, in the order of the list, right
+		under <i>WinRAR</i>; without WinRAR, under Explorer's <i>Open in new window</i>; otherwise (a file's menu, or
+		Windows in another language) at the top of the menu:
+		<code>pos=indexof('"WinRAR"|"Open in new window"', 1, 'top')</code> (see
+		<a href="/docs/functions/index#indexof">indexof</a>). They show on files, folders, the folder background and
+		the desktop as you choose. <i>Group in an "Open in" submenu</i> puts them in one submenu there instead. A
+		preview shows the resulting menu. A file saved by an earlier version (an <i>Open in</i> submenu in the middle
+		of the menu, or items at the very top) is rewritten this way when the page opens.</li>
+	<li>An app's switch covers its own menu entries too: switched off, PowerShell 7 also hides its <i>PowerShell 7</i>
+		submenu, Git Bash hides Git's <i>Open Git Bash here</i> and <i>Open Git GUI here</i>, VS Code its <i>Open with
+		Code</i>. They're found among the items below by program: the verb's command or icon, or the shell
+		extension's DLL, is the app's program or in its install folder (shared folders such as Program Files itself or
+		WindowsApps don't count); else by the verb names and titles the app is known to use. The app's row lists them
+		(<i>Also hides: ...</i>), and each is a <code>remove(find="\"&lt;title&gt;\"")</code> rule after an
+		<code>// own app=&lt;id&gt; verb=&lt;key&gt;</code> line, commented out while the app is on. <i>Keep the app's
+		own menu items when it's off</i> hides only the page's item. When the page opens and a switched-off app has
+		new entries (installed since), the file is rewritten so they're hidden too.</li>
+	<li><b>Other apps' menu items</b> lists what other programs add to the menu themselves (VLC, File Pilot,
+		7-Zip and so on; an app's own entries are under the app above), read from the registry: the verbs under
+		<code>*</code>, <code>Directory</code>, <code>Directory\Background</code>, <code>Drive</code>,
+		<code>Folder</code> and <code>AllFilesystemObjects</code> <code>\shell</code> and their
+		<code>shellex\ContextMenuHandlers</code>, in HKCR and HKCU. Windows' own items and Shell's are left out. Each
+		is on by default; switching one off adds <code>remove(find="\"&lt;title&gt;\"")</code> (the whole title) to
+		the same file, and nothing in the registry changes. A shell extension sets its own title, so its name is
+		only a guess: correct the <i>Title to hide</i> to match the menu.</li>
 	<li>Each item has the program's icon and a <a href="/docs/configuration/properties#where">where</a>
 		<code>path.exists(...)</code> condition, so it disappears when the program is uninstalled.</li>
 </ul>
@@ -130,6 +182,12 @@
 	imports it at the end of <code>shell.nss</code> once. As on the other pages, it is checked with
 	<code>shell -config:check</code> first, a snapshot named <i>Open with: …</i> is taken, and <kbd>Ctrl</kbd>+<kbd>S</kbd>
 	saves.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/openwith-dark.png" width="1120" height="760"
+		alt="The Open with page">
+	<figcaption>Open with: editors and terminals found on this PC; switch them on, or add your own.</figcaption>
+</figure>
 
 <h5 id="config-editor">Config Editor</h5>
 <ul>
@@ -144,7 +202,7 @@
 </ul>
 
 <figure class="screenshot my-5">
-	<img class="preview" src="/docs/images/settings-app/editor-dark.png" width="1120" height="760"
+	<img class="preview" src="/docs/images/settings-app/editor-dark.png" width="1120" height="562"
 		alt="The Config Editor showing shell.nss in the read view">
 	<figcaption>Config Editor: the import tree on the left (the warning marks an import whose path is an expression), the read view, and the result of the last check.</figcaption>
 </figure>
@@ -166,13 +224,54 @@
 </figure>
 
 <h5 id="preferences">Preferences</h5>
-<p>The app's own theme, registration for all users (needs administrator rights), and version and licence information.</p>
+<p>The app's own theme, <a href="#updates">updates</a>, registration for all users (needs administrator rights), and
+	version and licence information.</p>
 
 <figure class="screenshot my-5">
 	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
 		alt="The Preferences page">
 	<figcaption>Preferences: app theme, registration for all users (the UAC shield marks the one action that needs administrator rights), and About.</figcaption>
 </figure>
+
+<h5 id="updates">Updates</h5>
+<p>The app looks for new versions in this project's
+	<a href="https://github.com/Abdullah-Masood-05/Shell/releases">GitHub releases</a>. When one is available, Home shows a
+	banner with <strong>Release notes</strong>, <strong>Download and install</strong> and <strong>Skip this version</strong>,
+	and the sidebar shows <i>Update available</i> above the status line. The <strong>Updates</strong> section of Preferences
+	has the version you run, the channel, the last check and a <strong>Check now</strong> button.</p>
+<ul>
+	<li><strong>Check for updates automatically</strong> (on by default): when the app starts, at most once a day. A
+		failed automatic check (offline, or GitHub's request limit) stays quiet; <i>Check now</i> says what went wrong.</li>
+	<li><strong>Download and install updates automatically</strong> (off by default): the update is downloaded and
+		verified in the background, then the banner offers <i>Restart to update</i>. Nothing is installed without that
+		click, and an MSI install still asks for administrator approval once.</li>
+	<li><strong>Channel:</strong> <i>Stable</i> offers releases only; <i>Beta</i> also offers pre-releases such as
+		<code>2.1.0-beta.1</code>. A pre-release build starts on Beta, every other build on Stable.</li>
+	<li><strong>Skip this version</strong> hides that version; a newer one still shows up.</li>
+</ul>
+<p>How an update is installed:</p>
+<ol>
+	<li>The file for your install is downloaded to <code>%LOCALAPPDATA%\Nilesoft\Shell\updates\&lt;version&gt;</code>:
+		<code>setup-x64.msi</code> or <code>setup-arm64.msi</code> when the app runs from <i>Program Files</i> and Shell is
+		registered for all users from there, otherwise the x64 portable zip. Only addresses under this project's
+		releases (and the GitHub hosts they redirect to) are accepted.</li>
+	<li>It is checked against the release's <code>SHA256SUMS.txt</code>. A file that doesn't match is deleted and nothing
+		is installed.</li>
+	<li>The app closes and a copy of it in <code>%TEMP%</code> finishes the job:
+		<ul>
+			<li><strong>MSI:</strong> Windows asks for administrator approval, then
+				<code>msiexec /i setup-x64.msi /passive /norestart</code> runs (its log is saved next to the MSI). The
+				installer restarts Explorer, and the app opens again on its own.</li>
+			<li><strong>Portable:</strong> no administrator rights. The files are copied over the install folder; the
+				<code>shell.dll</code> Explorer has loaded is renamed aside first (Windows allows that for a DLL in use)
+				and removed on a later start. A <code>.nss</code> file you edited in that folder is kept, with the new
+				default saved next to it as <code>.nss.new</code>. If a file can't be replaced, everything is put back.
+				The app opens again and offers <i>Restart Explorer</i> to load the new <code>shell.dll</code>.</li>
+		</ul>
+	</li>
+</ol>
+<p>Your configuration in <code>%APPDATA%\Nilesoft\Shell</code> is never touched by an update. The settings are stored
+	under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>.</p>
 
 <h5 id="reload">Applying changes</h5>
 <p>There is no restart step for configuration changes: Shell reloads the configuration when a file it loaded changes.

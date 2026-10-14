@@ -14,7 +14,7 @@ component Tag inherits Rectangle {
     in property <color> tint: Tokens.text-2;
     height: 18px;
     width: label.preferred-width + 10px;
-    border-radius: 9px;
+    border-radius: Tokens.radius-xs;
     background: root.tint.with-alpha(0.15);
     label := Text {
         text: root.text;
@@ -32,7 +32,7 @@ component SnapshotItem inherits Rectangle {
     callback clicked;
 
     height: 66px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: list-item;
     accessible-label: root.snap.time + ", " + root.snap.reason;
@@ -111,7 +111,7 @@ component DiffFileItem inherits Rectangle {
     callback clicked;
 
     height: 30px;
-    border-radius: Tokens.radius-control;
+    border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: list-item;
     accessible-label: root.file.path + ", " + root.file.status;
@@ -261,7 +261,7 @@ export component BackupsPage inherits Rectangle {
             Rectangle {
                 width: 300px;
                 background: Tokens.layer;
-                border-radius: Tokens.radius-card;
+                border-radius: Tokens.radius-lg;
                 border-width: 1px;
                 border-color: Tokens.stroke;
                 VerticalLayout {
@@ -315,7 +315,7 @@ export component BackupsPage inherits Rectangle {
             Rectangle {
                 horizontal-stretch: 1;
                 background: Tokens.layer;
-                border-radius: Tokens.radius-card;
+                border-radius: Tokens.radius-lg;
                 border-width: 1px;
                 border-color: Tokens.stroke;
 
@@ -383,7 +383,7 @@ export component BackupsPage inherits Rectangle {
                     // Changed files (at most four rows tall), then the diff of the selected one.
                     if BackupsState.diff-files.length > 0: Rectangle {
                         height: min(BackupsState.diff-files.length, 4) * 30px + 2 * Tokens.s1 + 2px;
-                        border-radius: Tokens.radius-control;
+                        border-radius: Tokens.radius-sm;
                         background: Tokens.layer-2;
                         border-width: 1px;
                         border-color: Tokens.stroke;
@@ -402,7 +402,7 @@ export component BackupsPage inherits Rectangle {
 
                     Rectangle {
                         vertical-stretch: 1;
-                        border-radius: Tokens.radius-control;
+                        border-radius: Tokens.radius-sm;
                         border-width: 1px;
                         border-color: Tokens.stroke;
                         clip: true;

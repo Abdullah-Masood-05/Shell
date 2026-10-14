@@ -39,7 +39,7 @@ const LINK_ALIASES: Record<string, string> = {
 	// "Dynamic" items were renamed "New items"; the #menu/#item anchors match.
 	"/docs/configuration/dynamic": "/docs/configuration/new-items",
 	// The installer download page lives on nilesoft.org.
-	"/download": "https://nilesoft.org/download",
+	"/download": "https://github.com/Abdullah-Masood-05/Shell/releases/latest",
 };
 
 function normalizeBase(b: string): string {
