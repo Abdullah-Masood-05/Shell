@@ -8,6 +8,8 @@ import { PageHeader } from "../components/page-header.slint";
 import { StatusPill } from "../components/status-pill.slint";
 import { AppButton, ActionTile, Link } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
+import { UpdateState } from "../update-state.slint";
+import { UpdateBanner } from "../components/update-banner.slint";
 
 component DiagnosticRow inherits Rectangle {
     in property <string> level;
@@ -93,6 +95,24 @@ export component HomePage inherits PageFrame {
             clicked => { AppState.refresh(); }
         }
     }
+
+    // After an update: what the helper did (and, for a portable copy, the Explorer restart
+    // that loads the new shell.dll).
+    if UpdateState.notice-shown: Banner {
+        kind: UpdateState.notice-kind;
+        title: UpdateState.notice-title;
+        text: UpdateState.notice-text;
+        action-label: UpdateState.notice-action == "restart" ? "Restart Explorer" : "";
+        action-enabled: !AppState.busy && AppState.cli-available;
+        closable: true;
+        action => {
+            AppState.action("restart");
+            UpdateState.dismiss-notice();
+        }
+        close => { UpdateState.dismiss-notice(); }
+    }
+
+    if UpdateState.offered: UpdateBanner { }
 
     for issue in AppState.issues: Banner {
         kind: issue.kind;
