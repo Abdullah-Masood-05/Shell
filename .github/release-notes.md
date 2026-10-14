@@ -2,7 +2,14 @@
 
 Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork* for the full list of changes).
 
-## New in this release
+## New in 2.0.1
+
+- **In-app updates.** Nilesoft Shell Pro checks this project's GitHub releases when it starts (at most once a day; *Check for updates automatically* in Preferences, on by default) and shows *Update available* in the sidebar and a banner on Home with the release notes, *Download and install* and *Skip this version*.
+- The update that fits your install is downloaded (`setup-x64.msi` / `setup-arm64.msi` for an MSI install, the portable zip for a portable copy) and checked against the release's `SHA256SUMS.txt` before anything is installed. MSI updates ask for administrator approval once and reopen the app; portable updates need no administrator rights, replace the files in place (a `shell.dll` Explorer has loaded is renamed aside) and offer to restart Explorer. Your configuration in `%APPDATA%` is not touched.
+- Optional: *Download and install updates automatically* (off by default) downloads and verifies updates in the background, then offers *Restart to update*. A *Beta* channel also offers pre-releases.
+- The app shows its full version, including a pre-release suffix such as `2.1.0-beta.1`, in the sidebar and in About.
+
+## New in 2.0.0
 
 - **A new look for the app:** a blue-tinted dark theme on #101823 (and a matching light theme), a refreshed sidebar, cards and controls on every page.
 - **Themes gallery** on the Appearance page: the original Nilesoft Shell example themes (Default, Shell 1.8, Acrylic, Gradient, Clear acrylic, Accent outline, Flat, Blue, Gray, Green, Yellow), previewed on your wallpaper and applied with one click.
