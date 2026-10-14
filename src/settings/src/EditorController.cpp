@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -67,6 +68,8 @@ EditorController::EditorController(slint::ComponentHandle<AppWindow> ui)
                 open = argv[++i];
             else if (_wcsicmp(argv[i], L"--editor-line") == 0 && i + 1 < argc)
                 line = _wtoi(argv[++i]);
+            else if (_wcsicmp(argv[i], L"--editor-debug-overlay") == 0)
+                ui_->global<EditorState>().set_debug_overlay(true);
         }
         if (!open.empty())
             pendingJump_ = { open, line };
@@ -105,7 +108,8 @@ void EditorController::bindCallbacks()
         if (!editing)
             rehighlight();
     });
-    st.on_edited([this](slint::SharedString text) { onEdited(str(text)); });
+    st.on_edited([this](slint::SharedString text) { return onEdited(str(text)); });
+    st.on_fix_clipboard([this] { fixClipboard(); });
     st.on_save([this] { save(false); });
     st.on_save_anyway([this] {
         ui_->global<EditorState>().set_confirm_force(false);
@@ -318,8 +322,11 @@ void EditorController::showCurrent()
     if (current_ < 0) {
         st.set_current_label("");
         st.set_current_path("");
-        st.set_text("");
+        glyphs_ = {};
+        display_.clear();
+        setEditText(0);
         st.set_lines(std::make_shared<slint::VectorModel<CodeLine>>());
+        rehighlightEdit();
         return;
     }
     const auto &e = entries_[size_t(current_)];
@@ -330,9 +337,84 @@ void EditorController::showCurrent()
     st.set_read_only(ro);
     st.set_read_only_reason(ss(reason));
     auto *b = currentBuffer();
-    st.set_text(ss(b ? b->text : std::string{}));
+    glyphs_ = b ? hl::pickTabGlyphs(b->text) : hl::TabGlyphs{};
+    display_ = b ? hl::tabsToDisplay(b->text, glyphs_) : std::string{};
+    setEditText(0);
     updateDirty();
     rehighlight();
+    rehighlightEdit();
+}
+
+// The edit view's TextInput gets display_, with the cursor at `cursor`.
+void EditorController::setEditText(size_t cursor)
+{
+    const auto &st = ui_->global<EditorState>();
+    st.set_text(ss(display_));
+    st.set_caret_anchor(int(cursor));
+    st.set_caret_offset(int(cursor));
+    st.set_caret_serial(st.get_caret_serial() + 1);
+}
+
+std::map<int, int> EditorController::issueMarks(const editor::Buffer &b) const
+{
+    // Lines with problems in this file get a marker in the gutter.
+    std::map<int, int> marks;
+    auto key = nss::pathKey(b.path);
+    for (const auto &p : problems_)
+        if (p.line > 0 && nss::pathKey(p.file) == key)
+            marks[p.line] = std::max(marks[p.line], p.error ? 2 : 1);
+    return marks;
+}
+
+// The edit view's rows: the display text, highlighted. Only the rows that
+// changed are replaced, so typing doesn't rebuild the visible rows.
+void EditorController::rehighlightEdit()
+{
+    highlightTimer_.stop();
+    auto *b = currentBuffer();
+    std::vector<hl::Line> lines;
+    std::vector<int> marks;
+    if (b) {
+        lines = hl::highlight(b->text, 4, &glyphs_);
+        marks.assign(lines.size(), 0);
+        for (auto [line, mark] : issueMarks(*b))
+            if (line >= 1 && line <= int(marks.size()))
+                marks[size_t(line - 1)] = mark;
+    }
+    auto row = [&](size_t i) {
+        // Each span is drawn as the line up to its end, clipped to the span, so
+        // every glyph sits where the TextInput (one run per line) puts it.
+        auto spans = std::make_shared<slint::VectorModel<CodeSpan>>();
+        std::string prefix;
+        const auto &ls = lines[i].spans;
+        for (size_t k = 0; k < ls.size(); ++k) {
+            spans->push_back(CodeSpan{ ss(ls[k].text), ls[k].kind, ss(prefix), k + 1 == ls.size() });
+            prefix += ls[k].text;
+        }
+        return CodeLine{ 0, spans, marks[i] }; // the page numbers edit rows by index
+    };
+    if (!editModel_) {
+        editModel_ = std::make_shared<slint::VectorModel<CodeLine>>();
+        editLines_.clear();
+        editMarks_.clear();
+        ui_->global<EditorState>().set_edit_lines(editModel_);
+    }
+    const size_t o = editLines_.size(), n = lines.size();
+    size_t pre = 0, suf = 0;
+    while (pre < o && pre < n && lines[pre] == editLines_[pre] && marks[pre] == editMarks_[pre])
+        ++pre;
+    while (suf < o - pre && suf < n - pre && lines[n - 1 - suf] == editLines_[o - 1 - suf] &&
+           marks[n - 1 - suf] == editMarks_[o - 1 - suf])
+        ++suf;
+    const size_t oldMid = o - pre - suf, newMid = n - pre - suf, common = std::min(oldMid, newMid);
+    for (size_t k = 0; k < common; ++k)
+        editModel_->set_row_data(pre + k, row(pre + k));
+    for (size_t k = common; k < newMid; ++k)
+        editModel_->insert(pre + k, row(pre + k));
+    for (size_t k = oldMid; k > common; --k)
+        editModel_->erase(pre + k - 1);
+    editLines_ = std::move(lines);
+    editMarks_ = std::move(marks);
 }
 
 void EditorController::rehighlight()
@@ -344,12 +426,7 @@ void EditorController::rehighlight()
         st.set_lines(rows);
         return;
     }
-    // Lines with problems in this file get a marker in the gutter.
-    std::map<int, int> marks;
-    auto key = nss::pathKey(b->path);
-    for (const auto &p : problems_)
-        if (p.line > 0 && nss::pathKey(p.file) == key)
-            marks[p.line] = std::max(marks[p.line], p.error ? 2 : 1);
+    auto marks = issueMarks(*b);
 
     auto lines = hl::highlight(b->text);
     size_t maxColumns = 0;
@@ -433,24 +510,71 @@ void EditorController::pushProblems()
     pushFiles();
     if (!ui_->global<EditorState>().get_editing())
         rehighlight();
+    rehighlightEdit();
 }
 
 // ---------------------------------------------------------------------------
 // Editing and the live check
 
-void EditorController::onEdited(std::string text)
+// The TextInput changed. Returns the cursor to set when its text had to be
+// rewritten (a tab's glyphs re-padded or removed whole), else -1.
+int EditorController::onEdited(std::string display)
 {
     auto *b = currentBuffer();
     if (!b)
-        return;
+        return -1;
+    auto edit = hl::applyDisplayEdit(display_, display, glyphs_);
     bool wasDirty = b->dirty();
-    b->text = std::move(text);
+    b->text = std::move(edit.text);
+    display_ = std::move(edit.display);
+    int cursor = -1;
+    if (edit.changed) {
+        ui_->global<EditorState>().set_text(ss(display_));
+        cursor = int(edit.cursor);
+    }
     if (wasDirty != b->dirty())
         updateDirty();
     else
         ui_->global<EditorState>().set_dirty(b->dirty());
     ui_->global<EditorState>().set_highlight_line(0);
+    // Small files are highlighted on every keystroke (the glyphs on screen are
+    // the highlighted rows); big ones after a short pause.
+    if (b->text.size() < 256 * 1024)
+        rehighlightEdit();
+    else
+        highlightTimer_.start(slint::TimerMode::SingleShot, 80ms, [this] { rehighlightEdit(); });
     scheduleCheck(800);
+    return cursor;
+}
+
+// Copy and cut in the edit view put the display text on the clipboard: turn
+// the tab glyphs back into tabs there.
+void EditorController::fixClipboard()
+{
+    if (!glyphs_.valid() || !OpenClipboard(nullptr))
+        return;
+    std::string text;
+    if (HANDLE h = GetClipboardData(CF_UNICODETEXT))
+        if (auto *w = static_cast<const wchar_t *>(GlobalLock(h))) {
+            text = nss::narrow(w);
+            GlobalUnlock(h);
+        }
+    auto fixed = hl::tabsFromDisplay(text, glyphs_);
+    if (!text.empty() && fixed != text) {
+        auto wide = nss::widen(fixed);
+        if (HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t))) {
+            if (auto *dst = static_cast<wchar_t *>(GlobalLock(mem))) {
+                memcpy(dst, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
+                GlobalUnlock(mem);
+                EmptyClipboard();
+                if (!SetClipboardData(CF_UNICODETEXT, mem))
+                    GlobalFree(mem);
+            } else {
+                GlobalFree(mem);
+            }
+        }
+    }
+    CloseClipboard();
 }
 
 void EditorController::scheduleCheck(int delayMs)
@@ -699,12 +823,15 @@ void EditorController::jumpTo(const fs::path &file, int line)
     auto *b = currentBuffer();
     if (!b || line <= 0)
         return;
-    auto [begin, end] = editor::lineOffsets(b->text, line);
+    auto [begin, end] = editor::lineOffsets(display_, line); // offsets into the edit view's text
     const auto &st = ui_->global<EditorState>();
     st.set_highlight_line(line);
     st.set_jump_line(line);
     st.set_jump_start(int(begin));
     st.set_jump_end(int(end));
+    // Opening the file just bumped caret-serial too; whichever the page sees last selects the line.
+    st.set_caret_anchor(int(end));
+    st.set_caret_offset(int(begin));
     st.set_jump_serial(st.get_jump_serial() + 1);
     replayJump_ = ui_->global<AppState>().get_page() != ui_->global<Pages>().get_editor();
 }

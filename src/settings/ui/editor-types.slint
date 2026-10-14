@@ -4,9 +4,11 @@
 export struct CodeSpan {
     text: string,
     kind: int,
+    prefix: string,            // edit view only: the line's text before this span
+    last: bool,                // edit view only: the line's last span
 }
 
-// One line of the read view.
+// One line of the read or edit view.
 export struct CodeLine {
     number: int,
     spans: [CodeSpan],
@@ -54,8 +56,14 @@ export global EditorState {
     in property <int> highlight-line;      // 1-based; 0 none
     in property <string> mono-font: "Cascadia Mono";
 
-    // Edit view
+    // Edit view. `text` is the display text: each tab is a lead glyph and pads
+    // up to the next tab stop (see src/Highlight.h); C++ maps it back.
     in-out property <string> text;
+    in property <[CodeLine]> edit-lines;   // `text`, highlighted; numbered by index
+    in property <int> caret-serial;        // bumped: select caret-anchor..caret-offset (byte offsets into `text`)
+    in property <int> caret-anchor;
+    in property <int> caret-offset;
+    in property <bool> debug-overlay;      // --editor-debug-overlay: show the TextInput's glyphs in red
     in-out property <bool> editing;
     in property <bool> dirty;              // the current file
     in property <int> dirty-count;         // all files
@@ -85,7 +93,8 @@ export global EditorState {
     callback activated();
     callback select-file(index: int);
     callback set-editing(editing: bool);
-    callback edited(text: string);
+    callback edited(text: string) -> int;   // the cursor to set after C++ rewrote `text`, or -1
+    callback fix-clipboard();               // after copy/cut in the edit view: glyphs back to tabs
     callback save();
     callback save-anyway();
     callback cancel-force();

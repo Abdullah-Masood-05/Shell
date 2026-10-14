@@ -1,13 +1,16 @@
 #pragma once
 
 // The Config Editor page (ui/pages/editor.slint, EditorState): the import tree,
-// a highlighted read view and a TextEdit, a live `-config:check` of the
-// edited tree, saving through nss::ConfigStore, and external-change handling.
+// a highlighted read view, a highlighted edit view (a TextInput with invisible
+// glyphs over the highlighted rows; tabs shown as blank glyphs, see
+// Highlight.h), a live `-config:check` of the edited tree, saving through
+// nss::ConfigStore, and external-change handling.
 // Heavy work runs on its own Worker; results come back on the UI thread.
 
 #include "app.h"
 
 #include "EditorSession.h"
+#include "Highlight.h"
 #include "FileWatcher.h"
 #include "Worker.h"
 
@@ -48,10 +51,14 @@ private:
     void selectPath(const std::filesystem::path &path);
     void showCurrent();
     void rehighlight();
+    void rehighlightEdit();
+    std::map<int, int> issueMarks(const editor::Buffer &b) const;
+    void setEditText(size_t cursor);
+    void fixClipboard();
     void pushFiles();
     void pushProblems();
     void updateDirty();
-    void onEdited(std::string text);
+    int onEdited(std::string display);
     void scheduleCheck(int delayMs);
     void runCheck();
     void save(bool force);
@@ -87,6 +94,14 @@ private:
     std::optional<std::pair<std::filesystem::path, int>> pendingJump_;
     bool saving_ = false;
     bool lastDirty_ = false;
+
+    // Edit view: the current buffer as shown (tabs as glyphs) and its rows.
+    hl::TabGlyphs glyphs_;
+    std::string display_;
+    std::vector<hl::Line> editLines_;
+    std::vector<int> editMarks_;
+    std::shared_ptr<slint::VectorModel<CodeLine>> editModel_;
+    slint::Timer highlightTimer_;
 
     slint::Timer statusPoll_;
     slint::Timer checkTimer_;

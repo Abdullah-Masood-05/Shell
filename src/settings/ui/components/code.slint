@@ -1,3 +1,4 @@
+import { ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { CodeLine } from "../editor-types.slint";
 
@@ -66,5 +67,281 @@ export component CodeRow inherits Rectangle {
             font-size: CodeColors.font-size;
             color: CodeColors.color(span.kind);
         }
+    }
+}
+
+// One row of the edit view, drawn under the TextInput: the same font, size and
+// line height, so its glyphs land exactly where the TextInput's would be.
+component EditRow inherits Rectangle {
+    in property <CodeLine> line;
+    in property <string> font;
+    in property <length> gutter;
+
+    // A Text's preferred width is rounded up to a whole pixel, so spans laid
+    // side by side drift away from the TextInput's glyphs. Instead each span
+    // draws the line from its start (shaped like the TextInput's single run)
+    // and is clipped to its own columns; only the clip edges are rounded, and
+    // they fall between glyphs.
+    for span in root.line.spans: Rectangle {
+        property <length> start: span.prefix == "" ? 0 : before.preferred-width - 0.5px;
+        property <length> end: span.last ? draw.preferred-width + 4px : draw.preferred-width - 0.5px;
+        x: root.gutter + self.start;
+        y: 0;
+        width: max(0, self.end - self.start);
+        height: parent.height;
+        clip: true;
+        before := Text {
+            visible: false;
+            text: span.prefix;
+            font-family: root.font;
+            font-size: CodeColors.font-size;
+        }
+        draw := Text {
+            x: -parent.start;
+            y: 0;
+            width: self.preferred-width;
+            height: parent.height;
+            text: span.prefix + span.text;
+            vertical-alignment: top;
+            font-family: root.font;
+            font-size: CodeColors.font-size;
+            color: CodeColors.color(span.kind);
+        }
+    }
+}
+
+// The edit view's line number and problem marker; it stays put when the code
+// scrolls sideways.
+component GutterRow inherits Rectangle {
+    in property <CodeLine> line;
+    in property <int> number;
+    in property <string> font;
+    in property <length> gutter;
+    in property <bool> current;
+
+    if root.line.issue > 0: Rectangle {
+        x: 4px;
+        y: (parent.height - self.height) / 2;
+        width: 8px;
+        height: 8px;
+        border-radius: 4px;
+        background: root.line.issue == 2 ? Tokens.danger : Tokens.warning;
+    }
+    Text {
+        x: 0;
+        y: 0;
+        width: root.gutter - 16px;
+        height: parent.height;
+        text: root.number;
+        horizontal-alignment: right;
+        vertical-alignment: top;
+        font-family: root.font;
+        font-size: CodeColors.font-size;
+        color: root.current ? Tokens.text : Tokens.text-3;
+    }
+}
+
+// The edit view. A TextInput with transparent glyphs (it still draws the
+// selection; the caret is drawn here) sits exactly over EditRows showing the
+// same text highlighted. Both are children of one ScrollView, so they scroll
+// together; Slint gives every line the font's natural height, measured here
+// with a Text in the same font. Only the rows in view are instantiated.
+export component CodeEditor inherits Rectangle {
+    in property <[CodeLine]> lines;
+    in-out property <string> text <=> input.text;
+    in property <string> font;
+    in property <bool> read-only <=> input.read-only;
+    in property <bool> debug-overlay;
+    in property <length> gutter: 56px;
+    out property <bool> has-focus: input.has-focus;
+
+    background: Tokens.layer;
+
+    callback edited(text: string) -> int;     // returns a cursor to set, or -1
+    callback key-pressed(event: KeyEvent) -> EventResult;
+    callback copied();                        // after copy or cut
+
+    public function set-selection-offsets(anchor: int, focus: int) {
+        input.set-selection-offsets(anchor, focus);
+    }
+    public function focus-input() {
+        input.focus();
+    }
+
+    forward-focus: input;
+
+    // A Text's preferred height is rounded up to a whole pixel: measure 100
+    // lines, so the row pitch matches the TextInput's to 0.01 px.
+    measure := Text {
+        visible: false;
+        text: "X\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX\nX";
+        font-family: root.font;
+        font-size: CodeColors.font-size;
+    }
+    property <length> line-height: max(1px, measure.preferred-height / 100);
+    property <length> caret-x;
+    property <length> caret-y;
+    property <bool> blink: true;
+    property <bool> has-selection: input.cursor-position-byte-offset != input.anchor-position-byte-offset;
+    property <int> first-row: max(0, floor(-view.content-y / root.line-height) - 2);
+    property <int> last-row: root.first-row + ceil(view.visible-height / root.line-height) + 4;
+
+    function copy-selection() {
+        input.copy();
+        root.copied();
+    }
+    function cut-selection() {
+        input.cut();
+        root.copied();
+    }
+
+    ContextMenuArea {
+        width: 100%;
+        height: 100%;
+        Menu {
+            MenuItem {
+                title: "Cut";
+                enabled: !root.read-only && root.has-selection;
+                activated => { root.cut-selection(); }
+            }
+            MenuItem {
+                title: "Copy";
+                enabled: root.has-selection;
+                activated => { root.copy-selection(); }
+            }
+            MenuItem {
+                title: "Paste";
+                enabled: !root.read-only;
+                activated => { input.paste(); }
+            }
+            MenuItem {
+                title: "Select all";
+                enabled: root.text != "";
+                activated => { input.select-all(); }
+            }
+        }
+
+        view := ScrollView {
+            width: 100%;
+            height: 100%;
+            content-width: max(self.visible-width, root.gutter + input.preferred-width + Tokens.s6);
+            content-height: max(self.visible-height, input.preferred-height + Tokens.s2);
+
+            // The cursor's line
+            if input.has-focus && !root.has-selection: Rectangle {
+                x: 0;
+                y: root.caret-y;
+                width: view.content-width;
+                height: root.line-height;
+                background: Tokens.hover;
+            }
+
+            for line[i] in root.lines: Rectangle {
+                x: 0;
+                y: i * root.line-height;
+                width: view.content-width;
+                height: root.line-height;
+                if i >= root.first-row && i <= root.last-row: EditRow {
+                    width: parent.width;
+                    height: parent.height;
+                    line: line;
+                    font: root.font;
+                    gutter: root.gutter;
+                }
+            }
+
+            input := TextInput {
+                x: root.gutter;
+                y: 0;
+                width: view.content-width - root.gutter;
+                height: view.content-height;
+                single-line: false;
+                wrap: no-wrap;
+                font-family: root.font;
+                font-size: CodeColors.font-size;
+                // --editor-debug-overlay: the TextInput's own glyphs in red, to check the alignment.
+                color: root.debug-overlay ? #FF000099 : transparent;
+                selection-background-color: Tokens.accent.with-alpha(0.35);
+                selection-foreground-color: root.debug-overlay ? #FF000099 : transparent;
+                page-height: view.visible-height;
+
+                edited => {
+                    let cursor = root.edited(self.text);
+                    if (cursor >= 0) {
+                        self.set-selection-offsets(cursor, cursor);
+                    }
+                }
+                key-pressed(event) => {
+                    if (event.modifiers.control && !event.modifiers.alt && (event.text == "c" || event.text == "C" || event.text == Key.Insert)) {
+                        root.copy-selection();
+                        return accept;
+                    }
+                    if (event.modifiers.control && !event.modifiers.alt && (event.text == "x" || event.text == "X")) {
+                        if (!root.read-only) {
+                            root.cut-selection();
+                        }
+                        return accept;
+                    }
+                    root.key-pressed(event)
+                }
+                cursor-position-changed(pos) => {
+                    root.caret-x = pos.x;
+                    root.caret-y = pos.y;
+                    root.blink = true;
+                    blinker.restart();
+                    // Keep the cursor in view, with the gutter visible on the left.
+                    if (self.x + pos.x + view.content-x < root.gutter) {
+                        view.content-x = min(0px, root.gutter - self.x - pos.x);
+                    } else if (self.x + pos.x + view.content-x > view.visible-width - Tokens.s4) {
+                        view.content-x = max(view.visible-width - view.content-width, view.visible-width - Tokens.s4 - self.x - pos.x);
+                    }
+                    if (pos.y + view.content-y < 0px) {
+                        view.content-y = -pos.y;
+                    } else if (pos.y + root.line-height + view.content-y > view.visible-height) {
+                        view.content-y = min(0px, view.visible-height - pos.y - root.line-height);
+                    }
+                }
+            }
+
+            // The caret: the TextInput would draw it in its (transparent) text colour.
+            if input.has-focus && !root.read-only && !root.has-selection && root.blink: Rectangle {
+                x: input.x + root.caret-x;
+                y: root.caret-y;
+                width: 2px;
+                height: root.line-height;
+                background: Tokens.text;
+            }
+        }
+    }
+
+    // The gutter, over the scrolling code: it follows the vertical scroll only.
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: root.gutter - 4px;
+        height: view.visible-height;
+        background: root.background;
+        clip: true;
+        for line[i] in root.lines: Rectangle {
+            x: 0;
+            y: i * root.line-height + view.content-y;
+            width: parent.width;
+            height: root.line-height;
+            if i >= root.first-row && i <= root.last-row: GutterRow {
+                width: parent.width;
+                height: parent.height;
+                line: line;
+                number: i + 1;
+                font: root.font;
+                gutter: root.gutter;
+                current: input.has-focus && i == round(root.caret-y / root.line-height);
+            }
+        }
+    }
+
+    blinker := Timer {
+        interval: 530ms;
+        running: input.has-focus;
+        triggered => { root.blink = !root.blink; }
     }
 }
