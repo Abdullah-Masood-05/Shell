@@ -51,7 +51,6 @@ export component AppearancePage inherits Rectangle {
     property <length> preview-width: clamp((root.width - 72px) * 0.4, 310px, 520px);
     // The left column's inner width (page padding, gap, scroll gutter, card padding).
     property <length> body-width: root.width - 2 * (Tokens.s8 + Tokens.s1) - Tokens.s4 - root.preview-width - Tokens.s3 - 2 * Tokens.s5;
-    property <int> tab;
     property <int> swatch;   // the palette entry the row under the palette edits
     property <int> theme-index: f.length > K.name ? clamp(f[K.name].index, 0, 4) : 0;
 
@@ -240,12 +239,12 @@ export component AppearancePage inherits Rectangle {
                                     { label: "Effects", icon: Icons.effects },
                                     { label: "Advanced", icon: Icons.preferences },
                                 ];
-                                selected: root.tab;
-                                changed(i) => { root.tab = i; }
+                                selected: AppearanceState.tab;
+                                changed(i) => { AppearanceState.tab = i; }
                             }
 
                             // Colors
-                            if root.tab == 0: VerticalLayout {
+                            if AppearanceState.tab == 0: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Colour palette";
@@ -317,7 +316,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Typography
-                            if root.tab == 1: VerticalLayout {
+                            if AppearanceState.tab == 1: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Typography";
@@ -380,7 +379,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Effects
-                            if root.tab == 2: VerticalLayout {
+                            if AppearanceState.tab == 2: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Background";
@@ -519,7 +518,7 @@ export component AppearancePage inherits Rectangle {
                             }
 
                             // Advanced
-                            if root.tab == 3: VerticalLayout {
+                            if AppearanceState.tab == 3: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
                                     title: "Items";

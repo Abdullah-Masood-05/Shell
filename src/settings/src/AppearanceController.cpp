@@ -215,7 +215,7 @@ slint::Image toImage(const wallpaper::Pixels &px)
     return slint::Image(buf);
 }
 
-std::vector<std::pair<std::string, std::string>> devSets(bool &saveRequested)
+std::vector<std::pair<std::string, std::string>> devSets(bool &saveRequested, int &tab)
 {
     std::vector<std::pair<std::string, std::string>> out;
     int argc = 0;
@@ -229,6 +229,8 @@ std::vector<std::pair<std::string, std::string>> devSets(bool &saveRequested)
                 out.emplace_back(kv.substr(0, eq), kv.substr(eq + 1));
         } else if (_wcsicmp(argv[i], L"--save") == 0)
             saveRequested = true;
+        else if (_wcsicmp(argv[i], L"--appearance-tab") == 0 && i + 1 < argc)
+            tab = std::clamp(_wtoi(argv[++i]), 0, 3);
     }
     LocalFree(argv);
     return out;
@@ -654,10 +656,10 @@ void AppearanceController::rebuild()
             effectNote = "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger "
                          "look, raise the tint's alpha.";
         st.set_effect_note(ss(effectNote));
-        st.set_tint_note(ss(std::string("Its alpha is the strength: 40 is light, FF hides the blur. ") +
+        st.set_tint_note(ss(std::string("Alpha sets the strength: 40 light, FF hides the blur.") +
                             (arrayTint && !lit("theme.background.tintcolor")
-                                 ? "Now from effect = [n, tint, opacity]; a change here is saved as background.tintcolor, which wins."
-                                 : "Saved as background.tintcolor.")));
+                                 ? " From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
+                                 : "")));
         st.set_opacity_note(ss(r.effect == 0
                                    ? std::string("No effect: the menu is solid, so opacity doesn't apply.")
                                    : std::string("The background colour over the effect: 0 % shows only the effect "
@@ -689,7 +691,10 @@ void AppearanceController::applyDevArgs()
         return;
     devApplied_ = true;
     bool saveRequested = false;
-    auto sets = devSets(saveRequested);
+    int tab = -1;
+    auto sets = devSets(saveRequested, tab);
+    if (tab >= 0)
+        ui_->global<AppearanceState>().set_tab(tab);
     for (const auto &[key, value] : sets) {
         auto errors = save_.set(key, value, kPage);
         if (!errors.empty())
