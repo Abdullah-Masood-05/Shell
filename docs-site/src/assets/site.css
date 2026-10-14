@@ -252,6 +252,8 @@ td.syntax-keyword, td.kw { white-space: nowrap; }
 	font-size: 16px;
 }
 .notification.is-warning { background: var(--warn-weak); border-left-color: var(--warn); }
+.notification.is-danger { background: rgba(198, 40, 40, .10); background: color-mix(in srgb, var(--danger) 12%, transparent); border-left-color: var(--danger); }
+.notification.is-danger > i:first-child { color: var(--danger); }
 .notification > i:first-child { font-style: normal; font-weight: 650; }
 .notification .console { background: var(--bg); }
 

@@ -1,5 +1,14 @@
 ﻿<h4>Installation</h4>
 <br>
+<div class="notification is-danger mt-5" role="alert">
+	<i>Warning:</i> <strong>If the original Nilesoft Shell is installed, uninstall it first.</strong>
+	Nilesoft Shell Pro has its own name, so it does <em>not</em> replace the original (installed with its own installer,
+	winget, Scoop or Chocolatey, or extracted as a portable copy). Both would stay registered with Explorer and collide:
+	the context menu can stop appearing or show up twice. Open <i>Settings &rarr; Apps &rarr; Installed apps</i>, choose
+	<i>Nilesoft Shell</i> and <i>Uninstall</i>; for a portable copy, run <code>shell -unregister -restart</code> from its
+	folder and delete the folder. Back up your <code>shell.nss</code> and <code>imports</code> folder first if you want to
+	keep your configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
+</div>
 <div class="notification is-warning mt-5" role="alert">
 	<i>Info:</i> The installer (MSI) needs administrator rights once; the portable version can be set up per user without them.
 </div>
@@ -44,8 +53,8 @@
 		<p>Download <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi">setup-x64.msi</a> (or the ARM64/x86 one), run it and approve the
 			administrator prompt. It installs to <code>C:\Program Files\Nilesoft Shell\</code>, registers Shell for all users
 			with the Windows 11 classic menu, restarts File Explorer and adds <i>Nilesoft Shell Pro</i> to the Start menu.</p>
-		<p>Installing a newer version over an older one (including upstream Nilesoft Shell 1.9.x) upgrades it in place and
-			keeps your <code>shell.nss</code>.</p>
+		<p>Installing a newer version of Nilesoft Shell Pro over an older one upgrades it in place and
+			keeps your <code>shell.nss</code>. The original Nilesoft Shell must be uninstalled first (see the warning at the top).</p>
 	</div>
 	<hr>
 	<div id="installer-uninstall">
