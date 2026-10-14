@@ -52,6 +52,8 @@ private:
     // Other apps' items: what row `index` of the list is (openwith::otherRows()).
     std::vector<openwith::OtherRef> otherRows() const;
     void toggleOther(int index, bool shown);
+    // Switches off every leftover of an uninstalled program still shown.
+    void hideLeftovers();
     // Links each app to its own entries among others_ (App::natives, owners_).
     void relink();
     // The titles of an app's own entries, a submenu with " ›": "PowerShell 7 ›, Open Git Bash here".

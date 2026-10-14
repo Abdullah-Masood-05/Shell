@@ -859,6 +859,9 @@ std::vector<OtherRef> otherRows(const std::vector<otherapps::Item> &items, const
             continue;
         rows.push_back(r);
     }
+    // Leftovers of uninstalled programs first: they're the ones to hide.
+    std::stable_partition(rows.begin(), rows.end(),
+                          [&](const OtherRef &r) { return !items[size_t(r.item)].missing.empty(); });
     for (size_t h = 0; h < hidden.size(); ++h)
         if (!used[h])
             rows.push_back(OtherRef{ -1, int(h) });
@@ -1083,6 +1086,8 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
             meta += std::string(" scope=") + scopeWord(a.scope);
         if (!a.enabled)
             meta += " off";
+        if (!a.enabled && a.hideOwn)
+            meta += " hide-own"; // switched off on the page: its own entries go too
         if (a.keepOwn)
             meta += " keep-own";
         out += indent + meta + nl;
@@ -1180,6 +1185,7 @@ ParseResult parse(std::string_view text, const Env &env)
         Scope scope = Scope::All;
         bool off = false;
         bool keepOwn = false;
+        bool hideOwn = false;
     };
     std::optional<Meta> pending;
     bool sawHeader = false, sawOptions = false, sawPos = false, olderPos = false;
@@ -1188,6 +1194,7 @@ ParseResult parse(std::string_view text, const Env &env)
     {
         std::string ref; // "pwsh", "custom-2"
         Hidden hidden;
+        bool active = false; // its remove() is in force (not commented out)
     };
     std::vector<Own> owns;
     bool pendingOwn = false; // an "// own" line waiting for its remove()
@@ -1251,6 +1258,8 @@ ParseResult parse(std::string_view text, const Env &env)
                     m.off = true;
                 else if (word == "keep-own")
                     m.keepOwn = true;
+                else if (word == "hide-own")
+                    m.hideOwn = true;
                 else if (word == "scope=files")
                     m.scope = Scope::Files;
                 else if (word == "scope=folders")
@@ -1296,6 +1305,7 @@ ParseResult parse(std::string_view text, const Env &env)
                 const auto &v = lit.string;
                 if (lit.kind == nss::LiteralKind::String && v.size() > 2 && v.front() == '"' && v.back() == '"') {
                     owns.back().hidden.title = v.substr(1, v.size() - 2);
+                    owns.back().active = !body;
                     continue;
                 }
             }
@@ -1333,6 +1343,7 @@ ParseResult parse(std::string_view text, const Env &env)
                 a.id = pending->id.empty() ? "custom" : pending->id;
                 a.enabled = !pending->off;
                 a.keepOwn = pending->keepOwn;
+                a.hideOwn = pending->off && pending->hideOwn;
                 a.scope = pending->scope;
                 a.name = r.model.options.submenu
                              ? n.title
@@ -1368,9 +1379,13 @@ ParseResult parse(std::string_view text, const Env &env)
                 break;
             }
         }
-        if (owner)
+        if (owner) {
+            // A rule in force: switched off by the user (files from before
+            // "hide-own" have only this to tell).
+            if (o.active && !owner->enabled)
+                owner->hideOwn = true;
             owner->natives.push_back(std::move(o.hidden));
-        else
+        } else
             r.warnings.push_back("own app=" + o.ref + ": no such app in the file");
     }
     if (!sawHeader && !lines.empty())

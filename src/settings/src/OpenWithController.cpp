@@ -152,7 +152,7 @@ void OpenWithController::bindCallbacks()
     st.on_toggle([this](int index, bool on) {
         if (readOnly() || index < 0 || index >= int(model_.apps.size()))
             return;
-        model_.apps[size_t(index)].enabled = on;
+        openwith::setEnabled(model_.apps[size_t(index)], on);
         edited(false);
     });
     st.on_locate([this](int index) {
@@ -203,7 +203,7 @@ void OpenWithController::bindCallbacks()
             }
         }
         a.exe = picked;
-        a.enabled = true;
+        openwith::setEnabled(a, true);
         edited(true);
     });
     st.on_browse_icon([this] {
@@ -240,6 +240,7 @@ void OpenWithController::bindCallbacks()
     st.on_create_user_config([this] { ui_->global<AppState>().invoke_action("config-init"); });
     st.on_open_context_menus([this] { ui_->global<AppState>().set_page(kContextMenusPage); });
     st.on_other_toggle([this](int index, bool shown) { toggleOther(index, shown); });
+    st.on_hide_leftovers([this] { hideLeftovers(); });
     st.on_other_title([this](int index, slint::SharedString t) { setOtherTitle(index, str(t)); });
 }
 
@@ -264,6 +265,24 @@ void OpenWithController::toggleOther(int index, bool shown)
         return;
     }
     edited(false);
+}
+
+void OpenWithController::hideLeftovers()
+{
+    if (readOnly())
+        return;
+    bool any = false;
+    for (const auto &r : otherRows()) {
+        if (r.item < 0 || r.hidden >= 0)
+            continue;
+        const auto &item = others_[size_t(r.item)];
+        if (item.missing.empty())
+            continue;
+        model_.hidden.push_back(openwith::Hidden{ item.kind, item.name, item.title });
+        any = true;
+    }
+    if (any)
+        edited(false);
 }
 
 void OpenWithController::setOtherTitle(int index, const std::string &title)
@@ -373,7 +392,8 @@ void OpenWithController::load()
         };
         auto out = std::make_shared<Loaded>();
         out->env = openwith::Env::current();
-        out->others = otherapps::collect(otherapps::scan(), otherapps::resolveIndirect, otherapps::systemRoot());
+        out->others = otherapps::collect(otherapps::scan(), otherapps::resolveIndirect, otherapps::systemRoot(),
+                                        otherapps::realFiles());
         auto detected = openwith::detectAll(out->env);
         std::optional<openwith::Model> saved;
         std::error_code ec;
@@ -591,7 +611,8 @@ void OpenWithController::pushRows()
         if (auto own = nativesText(size_t(&a - model_.apps.data())); !own.empty())
             r.own = ss((openwith::hidesNatives(a) ? "Also hides: "
                         : a.enabled             ? "Switching it off also hides: "
-                                                : "Keeps its own: ") +
+                        : a.keepOwn             ? "Keeps its own: "
+                                                : "Off by default, its own still show: ") +
                        own);
         auto it = icons_.find(lowerKey(iconSource(a)));
         if (it != icons_.end() && it->second) {
@@ -612,7 +633,7 @@ void OpenWithController::pushOthers()
 {
     const auto &st = ui_->global<OpenWithState>();
     std::vector<OtherAppRow> rows;
-    int hidden = 0;
+    int hidden = 0, leftovers = 0;
     for (const auto &ref : otherRows()) {
         OtherAppRow r{};
         const otherapps::Item *item = ref.item >= 0 ? &others_[size_t(ref.item)] : nullptr;
@@ -632,6 +653,12 @@ void OpenWithController::pushOthers()
             else
                 r.detail = ss(where + (program.empty() ? "" : " · " + program));
             r.tag = item->shiftOnly ? "Shift only" : r.extension ? "Title shown by the app" : "";
+            if (!item->missing.empty()) {
+                // An uninstaller left it behind: the menu item does nothing.
+                r.leftover = true;
+                r.detail = ss("Program not found: " + item->missing);
+                leftovers += r.shown;
+            }
             auto it = icons_.find(lowerKey(item->program));
             if (!item->program.empty() && it != icons_.end() && it->second) {
                 r.icon = *it->second;
@@ -646,7 +673,17 @@ void OpenWithController::pushOthers()
                                                         : "A title with \" or | can't be matched exactly, so nothing is hidden.");
         rows.push_back(r);
     }
+    // Leftovers come first (otherRows()): a heading over them and over the rest.
+    if (!rows.empty() && rows.front().leftover) {
+        rows.front().section = "Leftovers from uninstalled programs";
+        for (auto &r : rows)
+            if (!r.leftover) {
+                r.section = "Other items";
+                break;
+            }
+    }
     st.set_others(std::make_shared<slint::VectorModel<OtherAppRow>>(rows));
+    st.set_others_leftovers(leftovers);
     st.set_others_hidden(hidden);
     st.set_others_loaded(othersLoaded_);
 }
