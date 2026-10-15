@@ -1,0 +1,255 @@
+<h4>Appearance</h4>
+<br>
+<p>The <strong>Appearance</strong> page of <a href="/docs/settings-app">Nilesoft Shell Pro</a> sets how Shell's menus look:
+	the theme, colours, font, background effect, corners, border and shadow. A live preview on the right shows the menu on
+	your own wallpaper as you change things, and nothing reaches your menus until you press <kbd>Save</kbd>.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/appearance-dark.png" width="1120" height="760"
+		alt="The Appearance page with the Themes gallery and the live preview">
+	<figcaption>Appearance: the Themes gallery on the left, each card a small menu on your wallpaper, and the live preview on the right.</figcaption>
+</figure>
+
+<h5 id="layout">What's on the page</h5>
+<p>From top to bottom on the left:</p>
+<ul>
+	<li><strong>Themes:</strong> ready-made looks, one card each (see <a href="#themes">the Themes gallery</a>).</li>
+	<li><strong>Base theme:</strong> the built-in style everything else sits on: <i>Auto</i> (like Windows' own menu),
+		<i>Modern</i> (rounded, roomy rows), <i>Classic</i> (compact rows, blue highlight), <i>White</i> (the Modern shape,
+		always light) and <i>Black</i> (the Modern shape, always dark).</li>
+	<li><strong>The theme in use:</strong> a small picture of your current look, its base theme, and a badge:
+		<i>In use</i> when it is saved, <i>Not saved yet</i> when you picked another one and haven't saved. Under it are four
+		tabs:
+		<ul>
+			<li><strong>Colors:</strong> six swatches (Background, Text, Highlight, Highlighted text, Disabled text,
+				Border) and <i>Dark mode</i> (Auto, On, Off). Auto follows the Windows app mode.</li>
+			<li><strong>Typography:</strong> font, size, weight and density (Auto, Compact, Small, Medium, Large, Wide).</li>
+			<li><strong>Effects:</strong> the background effect, tint and opacity; menu and item corners; border; shadow.</li>
+			<li><strong>Advanced:</strong> item padding and margin, image size and gap, the highlight of a disabled item,
+				and separators.</li>
+		</ul>
+	</li>
+</ul>
+<p>On the right are the <strong>Live preview</strong> and <strong>Want to go further?</strong>, which opens the Config
+	Editor for what this page doesn't cover: gradients, image colours and rules for single items.</p>
+
+<h5 id="where-from">Where each value comes from</h5>
+<p>Under every setting a short grey line says where its value comes from:</p>
+<table class="table">
+	<tr><td class="w-25"><i>Built-in default</i></td><td>Nothing in your files sets it; Shell uses its own default.</td></tr>
+	<tr><td><i>From theme.nss, line 12</i></td><td>Your own file sets it, at that line.</td></tr>
+	<tr><td><i>Set by this app</i></td><td>You changed it here and saved. If one of your files also has a value, the
+		line says so, for example <i>Set by this app · theme.nss, line 12 has 100</i>.</td></tr>
+	<tr><td><i>Changed here · not saved yet</i></td><td>You changed it and haven't saved.</td></tr>
+	<tr><td><i>Back to theme.nss, line 12 · not saved yet</i></td><td>You pressed Reset; after saving, the file's value
+		applies again.</td></tr>
+</table>
+<p>A filled dot next to a setting's name means this app sets it. A hollow dot means a reset is waiting for
+	<kbd>Save</kbd>.</p>
+<p>Some files set a value with an expression instead of a plain value, for example
+	<code>if(sys.is11, 2, 0)</code>. The app can't work out what an expression gives, so it says <i>Set by an expression
+	(theme.nss, line 12). Changing it here overrides it.</i> with a link, <i>Edit in Config Editor</i>. The control still
+	works: if you change it, the app writes its own value, which wins over the expression. Your file is not changed. The
+	preview can't evaluate an expression either, so it shows the built-in default for that setting until you change it.</p>
+
+<h5 id="themes">The Themes gallery</h5>
+<p>The Themes card has the example themes of the original Nilesoft Shell project. Each card is a small menu drawn in that
+	theme over your wallpaper, with its name and two tags. The theme you are using is marked <strong>Active</strong>.
+	When the window is too small for every card, <i>Show all 11 themes</i> under the cards shows the rest.</p>
+<table class="table">
+	<tr><td class="w-25">Default</td><td>The look Shell ships with, <code>imports/theme.nss</code>: modern, following
+		Windows.</td></tr>
+	<tr><td>Shell 1.8</td><td>The theme of the 1.8 <code>shell.nss</code>
+		(<a href="https://github.com/moudey/Shell/commit/26b7dfd">26b7dfd</a>): modern, without the blur effect.</td></tr>
+	<tr><td>Acrylic</td><td>Acrylic tinted with the accent colour, from the README screenshot, as the maintainer posted it in
+		<a href="https://github.com/moudey/Shell/discussions/174">discussion #174</a>.</td></tr>
+	<tr><td>Gradient</td><td>An accent gradient from dark to light and back, also from
+		<a href="https://github.com/moudey/Shell/discussions/174">discussion #174</a>.</td></tr>
+	<tr><td>Clear acrylic</td><td>Modern with plain acrylic and no background colour, from
+		<a href="https://github.com/moudey/Shell/issues/348">issue #348</a>.</td></tr>
+	<tr><td>Accent outline</td><td>A 1 px accent-coloured border and accent icons, from
+		<a href="https://github.com/moudey/Shell/issues/162">issue #162</a>.</td></tr>
+	<tr><td>Flat</td><td>No border, no shadow, square item highlights, from
+		<a href="https://github.com/moudey/Shell/issues/79">issue #79</a>.</td></tr>
+	<tr><td>Blue, Gray, Green, Yellow</td><td>The Shell 1.x colour templates in
+		<a href="https://github.com/moudey/Shell/tree/main/templates/themes">templates/themes</a>, ported value for value to
+		today's <code>theme</code> keys: white on deep blue, white on grey, black on green, white on olive.</td></tr>
+</table>
+<p>The <strong>&hellip;</strong> button on a card has <strong>Apply</strong> and <strong>Export to clipboard</strong>.
+	Export copies the theme's <code>theme{}</code> block with its credit, ready to paste into a <code>.nss</code> file of
+	your own. <strong>Export current look</strong>, at the top of the card, copies every theme setting in effect, saved or
+	not.</p>
+
+<h5 id="apply-theme">Apply a theme from the gallery</h5>
+<ol>
+	<li>Open <strong>Appearance</strong>. If the theme you want isn't shown, click <i>Show all 11 themes</i>.</li>
+	<li>Click the card (or open its <strong>&hellip;</strong> menu and choose <strong>Apply</strong>). With the keyboard,
+		use the arrow keys and press <kbd>Space</kbd> or <kbd>Enter</kbd>.</li>
+	<li>If you have already changed theme settings in this app, it asks first: <i>It replaces the N theme settings changed
+		in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save.</i> Click
+		<strong>Apply</strong> to go on, or cancel.</li>
+	<li>The preview shows the theme at once, and a message says <i>&lt;name&gt; is in the preview</i>.</li>
+	<li>Press <kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>) to use it in your menus, or <kbd>Discard</kbd> to go back.</li>
+</ol>
+<div class="notification is-info">
+	A theme sets only its own keys. Anything else in your own files, for example a font size in <code>theme.nss</code>,
+	still applies under it, and the card pictures already show it that way.
+</div>
+
+<h5 id="background-colour">Change the background colour</h5>
+<ol>
+	<li>Open the <strong>Colors</strong> tab and click the <strong>Background</strong> swatch.</li>
+	<li>Pick a colour, or type it in the box under the palette as <code>#RRGGBB</code> and press <kbd>Enter</kbd> (the
+		<code>#</code> is added if you leave it out).</li>
+	<li>Check the preview, then <kbd>Save</kbd>.</li>
+</ol>
+<p>The other swatches work the same way. Text, Highlight, Highlighted text, Disabled text and Border can also have an
+	alpha (see-through) value, <code>#RRGGBBAA</code>.</p>
+<div class="notification is-warning">
+	With <i>Blur</i> or <i>Acrylic</i>, the background colour is painted over the effect at the <strong>Opacity</strong>
+	you set on the Effects tab. On <i>Auto</i> that opacity is 0 %, so a new background colour doesn't show. Move the
+	Opacity slider up to see it; at 100 % the menu is solid and the effect is gone.
+</div>
+
+<h5 id="acrylic">Get a stronger acrylic</h5>
+<p>Acrylic is the blurred desktop with a <strong>tint</strong> (a colour) over it. How much of the blur you see depends on
+	the tint's alpha: around <code>40</code> is light, and <code>FF</code> hides the blur completely. Shell's dark Modern
+	theme uses <code>#2C2C2C40</code>, a light tint.</p>
+<ol>
+	<li>Make sure Windows <i>Transparency effects</i> is on: Windows Settings &gt; Personalization &gt; Colors.</li>
+	<li>Open the <strong>Effects</strong> tab. Under <strong>Effect</strong>, choose <strong>Acrylic</strong>.</li>
+	<li>In <strong>Tint</strong>, type a colour with a higher alpha, for example <code>#2C2C2CB0</code>, and press
+		<kbd>Enter</kbd>. Or click the swatch and raise its alpha.</li>
+	<li>Leave <strong>Opacity</strong> on <i>Auto</i> (or 0 %), so the background colour doesn't cover the effect.</li>
+	<li>Check the preview, then <kbd>Save</kbd>.</li>
+</ol>
+<p>The Effect choices, as Shell reads them:</p>
+<table class="table">
+	<tr><td class="w-25">Auto</td><td>Acrylic on Windows 11 and blur on Windows 10, <strong>even when Windows Transparency
+		effects is off</strong>.</td></tr>
+	<tr><td>None</td><td>A solid menu. Opacity doesn't apply.</td></tr>
+	<tr><td>Transparent</td><td>The background colour at its opacity, with no blur.</td></tr>
+	<tr><td>Blur</td><td>The blurred desktop behind the menu, with the tint over it.</td></tr>
+	<tr><td>Acrylic</td><td>The blurred desktop with the tint over it, as Auto gives on Windows 11.</td></tr>
+</table>
+<p>If no effect is set at all, Shell uses acrylic while Windows Transparency effects is on and no effect while it is off.
+	Blur and Acrylic need Transparency effects: with it off, Shell draws the menu solid, and the Effect line says so.
+	<i>Auto</i> is the one choice that works with it off.</p>
+<p>When you choose an effect and your files set the opacity to 100 (solid, which would hide the effect), the app sets the
+	opacity back to Auto for you. A tint written as <code>effect = [3, tint, opacity]</code> in your files is kept when you
+	switch between Blur and Acrylic; a tint you set here is written as <code>background.tintcolor</code>, which wins over
+	it.</p>
+
+<h5 id="corners">Round or square corners</h5>
+<ol>
+	<li>Open the <strong>Effects</strong> tab and find <strong>Shape</strong>.</li>
+	<li>Under <strong>Menu corners</strong>, click one of the five tiles: 0, 4, 8, 12 or 16 px. 0 px is square.</li>
+	<li>Under <strong>Item corners</strong>, do the same for the highlight of each item.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>Shell stores corners as a step from 0 to 4, so 8 px is written as <code>2</code>.</p>
+
+<h5 id="font-size">Change the font size</h5>
+<ol>
+	<li>Open the <strong>Typography</strong> tab.</li>
+	<li>Move the <strong>Size</strong> slider (6 to 32 px). It starts at the size in effect; Modern uses 14 px.</li>
+	<li>To use another typeface, click <strong>Font</strong> and search your installed fonts.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>A size other than the default scales the whole menu, as Shell does: rows, icons and spacing grow with the text.</p>
+
+<h5 id="preview">Light and dark preview</h5>
+<p>The live preview draws the menu over your own wallpaper, blurred for blur and acrylic.</p>
+<ul>
+	<li><strong>Desktop</strong> or <strong>File Explorer</strong> shows the menu you get on the desktop or on a file,
+		with a submenu open.</li>
+	<li><strong>Light</strong> or <strong>Dark</strong> shows the menu as it looks when Windows is in light or dark app
+		mode. It starts on your current Windows mode. If Dark mode on the Colors tab is On or Off, or the base theme is
+		White or Black, both look the same.</li>
+</ul>
+<p>The preview is close but not exact. To see the real menu, save and right-click the desktop.</p>
+
+<h5 id="reset">Reset one value</h5>
+<ol>
+	<li>Find the setting. If this app sets it, there is a <strong>Reset</strong> link next to its name.</li>
+	<li>Click <strong>Reset</strong>. The grey line changes to <i>Back to theme.nss, line N · not saved yet</i>, or
+		<i>Back to the built-in default · not saved yet</i>.</li>
+	<li><kbd>Save</kbd>. The app removes its value from <code>imports\settings-app.nss</code>, and your file's value (or the
+		default) applies again.</li>
+</ol>
+<p>A change you haven't saved yet can be reset the same way; it is simply dropped.</p>
+
+<h5 id="save">Save and Discard</h5>
+<p>Changes on Appearance, Behavior and Rules &amp; Filters wait in the footer at the bottom of the window, which shows how
+	many there are (<i>3 unsaved changes</i>).</p>
+<ul>
+	<li><kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>) writes them. When it is done the footer says <i>Saved · Shell
+		reloads on next right-click</i>. There is nothing to restart.</li>
+	<li><kbd>Discard</kbd> drops every unsaved change on these three pages and puts the controls back.</li>
+</ul>
+<p>Before anything is written, the app checks the whole configuration with
+	<a href="/docs/command-line#config"><code>shell -config:check</code></a> on a temporary copy. A configuration Shell would
+	reject is not written; the footer says <i>Shell rejected the config, nothing was written:</i> and the reason. If the
+	check passes, the app takes a snapshot of your files (listed on the Backups page), writes them, and then watches
+	Shell for a few seconds. If Shell fails to load the new files, the previous ones are put back and the footer says
+	<i>Shell rejected the config, rolled back</i>.</p>
+<p>If Shell is reading the shared configuration in its install folder, which the app never changes, Save asks
+	<i>Use a personal config?</i>. <i>Create and save</i> makes your own copy in <code>%APPDATA%\Nilesoft\Shell</code>
+	(<code>shell -config:init</code>) and saves there.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>Only the settings you change are written, to <code>imports\settings-app.nss</code> next to your <code>shell.nss</code>.
+	The app owns that file and rewrites it on every save, so don't edit it by hand. The first save also adds this line at
+	the end of <code>shell.nss</code>, so the file is read last and its values win over your own theme:</p>
+<pre><code class="lang-shell">import 'imports/settings-app.nss'</code></pre>
+<p>After choosing <i>Acrylic</i>, typing the tint <code>#2C2C2CB0</code> and picking 8 px menu corners,
+	<code>imports\settings-app.nss</code> contains:</p>
+<pre><code class="lang-shell">// generated by Nilesoft Shell Pro, do not edit
+
+theme
+{
+	background.effect = 3
+	background.tintcolor = #2C2C2CB0
+	border.radius = 2
+}</code></pre>
+<p>A colour picked with the swatch instead of typed is written in lower case (<code>#2c2c2cb0</code>), which Shell reads
+	the same way. Item corners are <code>item.radius</code>, the font size <code>font.size</code>, and the background
+	colour <code>background.color</code>. See <a href="/docs/configuration/themes">Themes</a> for every key.</p>
+
+<h5 id="limitations">Known limitations</h5>
+<ul>
+	<li><strong>The taskbar menu can't be acrylic on Windows 11.</strong> It stays opaque whatever the Effect is set to.</li>
+	<li><strong>The preview is approximate.</strong> It is drawn by the app, not by Shell: fonts, icons, the blur and
+		values set by expressions can differ a little from the real menu. Right-click the desktop after saving to check.</li>
+	<li>Gradients, image colours and rules for single items aren't on this page. Use the Config Editor for those.</li>
+</ul>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<p><strong>The change doesn't show in my menus.</strong></p>
+<ul>
+	<li>Check the footer: if it still counts unsaved changes, press <kbd>Save</kbd>. Shell reloads on the next
+		right-click after a save.</li>
+	<li>If the footer shows <i>Shell rejected the config</i>, the reason after it names the file and line. Fix it in the
+		Config Editor and save again.</li>
+	<li>You changed the background colour under Blur or Acrylic: raise <strong>Opacity</strong> (see
+		<a href="#background-colour">above</a>).</li>
+	<li>You are looking at the taskbar menu on Windows 11, which stays opaque.</li>
+</ul>
+<p><strong>Acrylic or blur looks solid.</strong></p>
+<ul>
+	<li>Windows <i>Transparency effects</i> is off. Turn it on in Windows Settings &gt; Personalization &gt; Colors, or
+		choose <strong>Auto</strong> as the Effect, which Shell applies even with it off.</li>
+	<li>The tint's alpha is <code>FF</code>, or the tint has no alpha at all (<code>#RRGGBB</code> counts as
+		<code>FF</code>). Lower it, for example to <code>B0</code> or <code>40</code>.</li>
+	<li>Opacity is at 100 %. Move it down, or reset it.</li>
+</ul>
+<p><strong>A value comes from an older theme.nss.</strong></p>
+<ul>
+	<li>The grey line under the setting says which file and line set it (<i>From theme.nss, line 12</i>). A
+		<code>theme.nss</code> from an older Shell version, or one you copied from somewhere, keeps applying under any theme
+		you pick here.</li>
+	<li>To change it for good, change it here and save: the app's value wins and your file is left alone. Or open the file
+		in the Config Editor and remove or edit the line.</li>
+	<li>Old themes often set <code>opacity = 100</code>, which hides blur and acrylic. Choosing Blur or Acrylic here sets
+		the opacity back to Auto for you.</li>
+</ul>
