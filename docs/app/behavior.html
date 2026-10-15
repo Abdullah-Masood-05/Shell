@@ -1,1 +1,140 @@
-<h4>Behavior</h4><p>PLACEHOLDER</p>
+<h4>Behavior</h4>
+<br>
+<p>The <strong>Behavior</strong> page of <a href="/docs/settings-app">Nilesoft Shell Pro</a> sets how Shell's menu
+	opens, its tooltips, menu screenshots, and what Shell does to the items Windows and other apps put in the menu. Like
+	Appearance, changes wait until you press <kbd>Save</kbd>.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/behavior-dark.png" width="1120" height="760"
+		alt="The Behavior page">
+	<figcaption>Behavior: the shipped configuration opens Shell's menu instead of the Windows 11 menu, with a 200 ms submenu delay and tooltips on.</figcaption>
+</figure>
+
+<h5 id="settings">What's on the page</h5>
+<p>Under each setting a grey line says where its value comes from: <i>From shell.nss, line 9</i>, <i>Built-in
+	default</i>, <i>Set by this app</i> or <i>Changed here · not saved yet</i>. A <strong>Reset</strong> link next to the
+	name removes the app's value, so your file's value (or the default) applies again after saving.</p>
+<table class="table">
+	<tr><th class="w-25">Setting</th><th>What it does</th><th>Default</th></tr>
+	<tr><td colspan="3"><strong>Opening the menu</strong></td></tr>
+	<tr><td>Open Shell's menu instead of the Windows 11 menu</td><td>On: right-clicking in File Explorer opens Shell's
+		menu straight away, and the Windows 11 compact menu is skipped. Off: Windows 11 shows its compact menu
+		first.</td><td>On</td></tr>
+	<tr><td>Custom submenu delay</td><td>How long you hover over an item before its submenu opens, from 0 to 4000 ms.
+		While a Shell menu is open, this replaces your Windows setting. Off: the Windows setting applies (the line shows
+		its value, for example <i>400 ms</i>).</td><td>On, 200 ms in the shipped <code>shell.nss</code></td></tr>
+	<tr><td colspan="3"><strong>Tooltips</strong></td></tr>
+	<tr><td>Show tooltips</td><td>Shows an item's tip when you hover over it.</td><td>On in the shipped
+		<code>shell.nss</code></td></tr>
+	<tr><td>Delay</td><td>How long to hover before the tip shows, 0 to 10 seconds.</td><td>1 s</td></tr>
+	<tr><td>Maximum width</td><td>The widest a tip gets before its text wraps, 200 to 2000 px.</td><td>640 px</td></tr>
+	<tr><td>Background, Text</td><td>The tip's colours.</td><td>The menu's own background and text colours</td></tr>
+	<tr><td colspan="3"><strong>Screenshots</strong></td></tr>
+	<tr><td>Print Screen saves the open menu</td><td>While a Shell menu is open, <kbd>Print Screen</kbd> saves a picture of
+		it.</td><td>Off</td></tr>
+	<tr><td>Folder</td><td>Where the pictures go. <strong>Choose&hellip;</strong> picks a folder.</td><td>Your Windows
+		Screenshots folder</td></tr>
+	<tr><td colspan="3"><strong>Windows' own items</strong></td></tr>
+	<tr><td>Remove duplicate items</td><td>Hides an item that appears twice.</td><td>On in the shipped
+		<code>shell.nss</code></td></tr>
+	<tr><td>Remove disabled items</td><td>Hides items that are greyed out.</td><td>Off</td></tr>
+	<tr><td>Remove their separators</td><td>Hides the separator lines Windows puts between its items.</td><td>Off</td></tr>
+	<tr><td>Icons on Windows' items</td><td><i>Off</i>, <i>On</i>, or <i>Auto</i>, which adds icons to known items that
+		have none.</td><td>On</td></tr>
+	<tr><td>Icons on Shell's own items</td><td>Shows the icons of the items Shell adds.</td><td>On</td></tr>
+</table>
+
+<h5 id="delay-off">Turn the submenu delay off</h5>
+<p>The shipped configuration opens submenus 200 ms after you hover. While a Shell menu is open, that replaces the delay
+	set in Windows. To use your Windows setting instead:</p>
+<ol>
+	<li>Open <strong>Behavior</strong>.</li>
+	<li>Under <strong>Opening the menu</strong>, turn <strong>Custom submenu delay</strong> off. The line under it now
+		says <i>Off: your Windows setting applies (… ms)</i>.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>Your <code>shell.nss</code> is not changed: the app writes <code>showdelay = auto</code> over it (see
+	<a href="#what-it-writes">What it writes</a>). Turning the switch on again and saving removes that line, so the
+	200 ms in <code>shell.nss</code> applies again. If your files set no delay, turning the switch on starts the slider at
+	your Windows value; move it to choose another.</p>
+
+<h5 id="delay-change">Make submenus open faster or slower</h5>
+<ol>
+	<li>Make sure <strong>Custom submenu delay</strong> is on.</li>
+	<li>Move the slider under it. It moves in steps of 50 ms; 0 ms opens submenus as soon as you hover.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+
+<h5 id="tooltips">Turn tooltips on or off</h5>
+<ol>
+	<li>Under <strong>Tooltips</strong>, turn <strong>Show tooltips</strong> on or off.</li>
+	<li>When it is on, set <strong>Delay</strong> and <strong>Maximum width</strong> with the sliders.</li>
+	<li>To change the colours, click the <strong>Background</strong> or <strong>Text</strong> swatch, or type a value
+		such as <code>#202020</code> in the box next to it and press <kbd>Enter</kbd>.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>Only items that have a tip show one. Tips come from the <code>tip</code> property of an item in your
+	<code>.nss</code> files; this page decides whether and how they show, not what they say.</p>
+
+<h5 id="screenshots">Save menu screenshots</h5>
+<ol>
+	<li>Under <strong>Screenshots</strong>, turn on <strong>Print Screen saves the open menu</strong>.</li>
+	<li>To use another folder than your Windows Screenshots folder, click <strong>Choose&hellip;</strong> next to
+		<strong>Folder</strong> and pick one.</li>
+	<li><kbd>Save</kbd>.</li>
+	<li>Right-click somewhere to open a Shell menu and press <kbd>Print Screen</kbd>.</li>
+</ol>
+<p>Each picture is a PNG file whose name is <code>screenshot_</code> followed by the date and time.</p>
+<p>To go back to the Screenshots folder, click <strong>Reset</strong> next to <strong>Folder</strong> and save.</p>
+
+<h5 id="windows-items">Tidy up Windows' own items</h5>
+<p>The switches under <strong>Windows' own items</strong> apply to every menu at once. To hide or rename one item, use
+	the Context Menus page instead.</p>
+<ol>
+	<li>Turn on what you want: remove duplicate items, disabled items, or Windows' separators.</li>
+	<li>Choose whether Windows' items get icons: <i>Off</i>, <i>On</i> or <i>Auto</i>.</li>
+	<li><kbd>Save</kbd>, then right-click to check.</li>
+</ol>
+
+<h5 id="save">Saving</h5>
+<p>Saving works as on the Appearance page: <kbd>Save</kbd> (or <kbd>Ctrl</kbd>+<kbd>S</kbd>) in the footer, and
+	<kbd>Discard</kbd> to drop every unsaved change. The new configuration is checked with
+	<a href="/docs/command-line#config"><code>shell -config:check</code></a> before anything is written, and a snapshot of
+	your files is taken first. Shell picks up the change on the next right-click.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>Behavior settings go to the <code>settings</code> block of <code>imports\settings-app.nss</code>, the file the app
+	owns. It is imported at the end of <code>shell.nss</code>, so its values win over yours, and only the settings you
+	change are in it. After turning <strong>Custom submenu delay</strong> off over the shipped
+	<code>showdelay = 200</code>:</p>
+<pre><code class="lang-shell">// generated by Nilesoft Shell Pro, do not edit
+
+settings
+{
+	showdelay = auto
+}</code></pre>
+<p>The other settings on this page are written with these keys:</p>
+<table class="table">
+	<tr><td class="w-25">Opening the menu</td><td><code>priority</code>, <code>showdelay</code> (in ms)</td></tr>
+	<tr><td>Tooltips</td><td><code>tip.enabled</code>, <code>tip.time</code> (in seconds, for example <code>1.5</code>),
+		<code>tip.width</code>, <code>tip.default = [#202020, #FFFFFF]</code> (background, then text)</td></tr>
+	<tr><td>Screenshots</td><td><code>screenshot.enabled</code>, <code>screenshot.directory</code></td></tr>
+	<tr><td>Windows' own items</td><td><code>modify.remove.duplicate</code>, <code>modify.remove.disabled</code>,
+		<code>modify.remove.separator</code>, <code>modify.image</code> (0 off, 1 on, 2 auto), <code>new.image</code></td></tr>
+</table>
+<p>See <a href="/docs/configuration/settings">Settings</a> for what each key does in Shell.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<p><strong>The change doesn't show.</strong></p>
+<ul>
+	<li>If the footer still counts unsaved changes, press <kbd>Save</kbd>. Shell reads the new settings on the next
+		right-click.</li>
+	<li>If the footer says <i>Shell rejected the config</i>, the reason names a file and line. Fix that line in the Config
+		Editor and save again.</li>
+	<li>Tooltips show only on items that have a tip.</li>
+</ul>
+<p><strong>Submenus still open at the old speed.</strong> With <strong>Custom submenu delay</strong> off, the Windows
+	setting applies. Turn the switch on and set the delay here.</p>
+<p><strong>A setting says it is set by an expression.</strong> One of your files sets it with an expression instead of a
+	plain value. The line under it names the file and line, with a link to the Config Editor. Changing it here writes the
+	app's own value, which wins; your file is not changed.</p>

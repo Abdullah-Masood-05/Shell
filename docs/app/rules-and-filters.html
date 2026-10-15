@@ -1,1 +1,116 @@
-<h4>Rules &amp; Filters</h4><p>PLACEHOLDER</p>
+<h4>Rules &amp; Filters</h4>
+<br>
+<p>The <strong>Rules &amp; Filters</strong> page of <a href="/docs/settings-app">Nilesoft Shell Pro</a> decides where
+	Shell's menu appears. Everywhere else, Windows shows its own menu. Use it to keep Shell out of a program, for example a
+	game or another file manager, or to keep Shell to File Explorer and the desktop.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/rules-dark.png" width="1120" height="760"
+		alt="The Rules &amp; Filters page">
+	<figcaption>Rules &amp; Filters with the shipped configuration: Shell's menu only in File Explorer and on the desktop, and no programs or windows excluded.</figcaption>
+</figure>
+
+<h5 id="layout">What's on the page</h5>
+<p><strong>Where the menu appears</strong></p>
+<ul>
+	<li><strong>Only in File Explorer and on the desktop:</strong> when on, other programs (for example the
+		<i>Open</i> and <i>Save</i> dialogs of other apps) keep Windows' menu. The shipped <code>shell.nss</code> has this
+		on.</li>
+	<li><strong>Custom condition:</strong> a one-line expression. Shell's menu is hidden wherever it is true. With the
+		switch above on, the box shows the condition it uses, <code>!process.is_explorer</code> ("the program is not
+		File Explorer").</li>
+</ul>
+<p><strong>Keep Windows' own menu</strong>: Shell's menu stays out of these.</p>
+<ul>
+	<li><strong>Programs:</strong> by program name, without <code>.exe</code>. You can also paste the full path of the
+		<code>.exe</code>; the app keeps only the name, so <code>C:\Games\MyGame\game.exe</code> becomes
+		<code>game</code>.</li>
+	<li><strong>Window classes:</strong> the class name of a program's main window, for example
+		<code>CabinetWClass</code> for File Explorer. This is for advanced use; most people only need Programs.</li>
+</ul>
+<p>As on the other pages, a grey line under each setting says where its value comes from (<i>shell.nss, line 4</i>,
+	<i>Built-in default</i>, <i>Set by this app</i>), and changes wait until you press <kbd>Save</kbd>.</p>
+
+<div class="notification is-info">
+	While <strong>Only in File Explorer and on the desktop</strong> is on, Shell's menu already stays out of every other
+	program. The Programs list matters when you turn that switch off and want Shell's menu in most programs, but not in a
+	few.
+</div>
+
+<h5 id="exclude-program">Keep Shell's menu out of a program</h5>
+<p>For example a game, or another file manager whose own menu you prefer.</p>
+<ol>
+	<li>Open <strong>Rules &amp; Filters</strong>.</li>
+	<li>Under <strong>Keep Windows' own menu</strong>, click the box under <strong>Programs</strong>.</li>
+	<li>Type the program's name without <code>.exe</code> (for example <code>notepad</code>), or paste the path of its
+		<code>.exe</code>.</li>
+	<li>Press <kbd>Enter</kbd> or click <strong>Add</strong>. The name appears in the list. A name that is already there
+		(in any capitals) isn't added twice.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>To take a program off the list, click the <strong>&times;</strong> at the end of its row and save.</p>
+<p>Not sure of the program's name? In Task Manager, the <i>Details</i> tab lists running programs by file name, such as
+	<code>notepad.exe</code>. You can type it with or without <code>.exe</code>; the app removes it.</p>
+
+<h5 id="explorer-only">Keep Shell's menu only in File Explorer</h5>
+<ol>
+	<li>Under <strong>Where the menu appears</strong>, turn on <strong>Only in File Explorer and on the desktop</strong>.</li>
+	<li><kbd>Save</kbd>.</li>
+</ol>
+<p>File Explorer and the desktop show Shell's menu; other programs' file dialogs show Windows' menu. To show Shell's menu
+	in other programs too, turn the switch off and save. If your <code>shell.nss</code> has the condition (the shipped
+	one does), the app writes <code>exclude.where = false</code> over it; your file is not changed.</p>
+<p>The switch is greyed out while a custom condition is set: the line under it says <i>A custom condition is set
+	below</i>.</p>
+
+<h5 id="condition">Use a custom condition</h5>
+<p>For cases the switch and the lists don't cover, type an expression in <strong>Custom condition</strong>. It uses the
+	same language as <code>.nss</code> files (see <a href="/docs/expressions">Expressions</a> and the
+	<a href="/docs/functions/process">process</a> functions). Shell's menu is hidden wherever it is true.</p>
+<ol>
+	<li>Type the condition on one line, for example
+		<code>!process.is_explorer || process.name == "notepad"</code>.</li>
+	<li>Press <kbd>Enter</kbd> or click <strong>Apply</strong>.</li>
+	<li><kbd>Save</kbd>. The app checks the condition with <a href="/docs/command-line#config"><code>shell -config:check</code></a>
+		first; if Shell can't read it, nothing is written and the footer says why.</li>
+</ol>
+<p>To remove your condition, clear the box and press <kbd>Enter</kbd>, or click <strong>Reset</strong>, then save. The
+	condition in your own files (if any) applies again. If your files set the condition, <i>Show it in the Config
+	Editor</i> under the box opens it there.</p>
+
+<h5 id="read-only">When a list can't be edited</h5>
+<p>If one of your files sets Programs or Window classes with an expression instead of plain names, for example
+	<code>if(sys.is11, 'a', 'b')</code>, the app can't tell which names it gives. The list is then shown as written, in a
+	grey box, without the <strong>Add</strong> box, and the line under it says <i>Set by an expression</i> with a link,
+	<i>Edit in Config Editor</i>. Change it there.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>Rules go to the <code>settings</code> block of <code>imports\settings-app.nss</code>, the file the app owns, imported
+	at the end of <code>shell.nss</code> so its values win over yours. One program is written as a single name, more than
+	one as a list. After turning <strong>Only in File Explorer and on the desktop</strong> off (over the shipped
+	condition) and adding <code>notepad</code> and <code>code</code> to Programs:</p>
+<pre><code class="lang-shell">// generated by Nilesoft Shell Pro, do not edit
+
+settings
+{
+	exclude.where = false
+	exclude.process = ["notepad", "code"]
+}</code></pre>
+<p>With one program the line is <code>exclude.process = "notepad"</code>. Window classes are written the same way as
+	<code>exclude.window</code>, and the switch on writes <code>exclude.where = !process.is_explorer</code>. When you
+	remove the last name and your own files have no list, the line is dropped. See
+	<a href="/docs/configuration/settings">Settings</a> for the <code>exclude</code> block.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<p><strong>Shell's menu still shows in the program.</strong></p>
+<ul>
+	<li>Press <kbd>Save</kbd> if the footer still counts unsaved changes. Shell reads the change on the next right-click.</li>
+	<li>Check the name: it must be the program's file name without <code>.exe</code>, not the name in its title bar.
+		Task Manager's <i>Details</i> tab shows it.</li>
+</ul>
+<p><strong>Shell's menu doesn't show in another program's file dialog.</strong> <strong>Only in File Explorer and on the
+	desktop</strong> is on, or a custom condition is true there. Turn the switch off, or change the condition.</p>
+<p><strong>Save says Shell rejected the config.</strong> The custom condition has a mistake. The reason after the message
+	names the line. Fix the condition, or clear it, and save again.</p>
+<p><strong>Shell's menu is gone everywhere.</strong> A custom condition that is always true (such as <code>true</code>)
+	hides it everywhere. Clear the box and save, or click <strong>Reset</strong>.</p>
