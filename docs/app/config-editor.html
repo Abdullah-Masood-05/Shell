@@ -1,0 +1,120 @@
+<h4>Config Editor</h4>
+<br>
+<p>The Config Editor shows <code>shell.nss</code> and every file it imports, and lets you change them as text. Use it
+	for what the other pages don't cover, or to fix an error Shell reported. Every save is checked by
+	<code>shell.exe</code> and takes a snapshot first, so a mistake can always be undone.</p>
+<div class="notification is-info mt-5">
+	<i>Tip:</i> New to the configuration language? Start with <a href="/docs/get-started">Get Started</a> and
+	<a href="/docs/configuration">Configuration</a>. Most everyday changes (colours, menus, Open with items) are easier on
+	their own pages.
+</div>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/editor-dark.png" width="1120" height="562"
+		alt="The Config Editor showing shell.nss in the read view">
+	<figcaption>Config Editor: the import tree on the left (the warning marks an import whose path is an expression), the read view, and the result of the last check.</figcaption>
+</figure>
+
+<h5 id="files">Files</h5>
+<p>The <strong>Files</strong> list on the left is <code>shell.nss</code> with the files it imports indented under it,
+	in the order of the import lines. The folder they are in is shown at the bottom. Click a file to open it.</p>
+<table class="table">
+	<tr><td class="w-25">Warning icon</td><td>An import that can't be found, or whose path is an expression (shown in
+		italics). Such an entry can't be opened.</td></tr>
+	<tr><td><i>app</i></td><td>A file the app writes itself (<code>settings-app.nss</code>,
+		<code>settings-app-menus.nss</code>). Change it on its page instead.</td></tr>
+	<tr><td>Red dot</td><td>The file has errors.</td></tr>
+	<tr><td>Blue dot</td><td>The file has unsaved changes.</td></tr>
+</table>
+<p>You can switch between files while you edit: unsaved changes are kept for each file until you save or discard
+	them.</p>
+
+<h5 id="read-edit">Read and Edit</h5>
+<p>The <kbd>Read</kbd> / <kbd>Edit</kbd> switch above the text picks the view:</p>
+<ul>
+	<li><strong>Read</strong> shows the file with colours and line numbers. Lines with a problem get a marker next to the
+		line number.</li>
+	<li><strong>Edit</strong> lets you type. The text stays highlighted while you edit: small files on every keystroke,
+		files over 256 KB after a short pause.</li>
+</ul>
+<p>A label next to the file name tells you when a file can't be changed here, and why:</p>
+<table class="table">
+	<tr><td class="w-25">Shared config: read-only</td><td>Explorer reads the shared configuration in the program folder,
+		which the app never writes to. See <a href="#shared">The shared configuration</a>.</td></tr>
+	<tr><td>Managed by the app</td><td>One of the app's own files. Change it on Appearance, Behavior, Rules &amp; Filters
+		or Menu Builder.</td></tr>
+	<tr><td>Outside your config folder</td><td>An import from somewhere else on the disk.</td></tr>
+	<tr><td>Read-only</td><td>A file under Program Files.</td></tr>
+	<tr><td>Not found</td><td>The file doesn't exist.</td></tr>
+</table>
+
+<h5 id="tabs">Tabs</h5>
+<p>Files that are indented with tab characters keep them. In the edit view each tab is drawn as blank space up to the
+	next tab stop (every 4 columns) and behaves as one character: <kbd>Backspace</kbd> or <kbd>Delete</kbd> removes the
+	whole tab. Text you copy or cut from the editor has real tabs again, so it pastes correctly into other editors.</p>
+
+<h5 id="live-check">Live check</h5>
+<p>While you type, the app checks your edits with <a href="/docs/command-line#config"><code>shell -config:check</code></a>
+	about a second after you stop. It checks a temporary copy of the whole configuration with your changes in it, so the
+	menu you are using is not affected. The result is shown above the Problems list:</p>
+<ul>
+	<li><i>Your edits pass the check</i> (or <i>The config passes the check</i> with nothing changed): Shell will load
+		it.</li>
+	<li><i>2 errors in your edits</i>: Shell would reject the configuration. See <a href="#problems">Problems</a>.</li>
+	<li><i>The check couldn't run</i>: <code>shell.exe</code> didn't answer; the message says why.</li>
+</ul>
+
+<h5 id="problems">Problems</h5>
+<p>The <strong>Problems</strong> list below the text shows each error and warning with its file and line. Click one to
+	jump there: in the edit view the line is selected, in the read view it scrolls into sight. The last column says where
+	the problem comes from:</p>
+<ul>
+	<li><strong>check</strong>: found by the live check of the files as they are now, including your unsaved edits.</li>
+	<li><strong>shell.log</strong>: an error Shell logged the last time Explorer loaded the configuration, with its time.
+		The log keeps old entries, so an error you already fixed can still be listed; compare its time with your last
+		save.</li>
+</ul>
+<p>Errors listed on <a href="/docs/app/home#diagnostics">Home</a> open here at their line too.</p>
+
+<h5 id="saving">Saving</h5>
+<ol>
+	<li>Press <kbd>Save</kbd> or <kbd>Ctrl</kbd>+<kbd>S</kbd>. With several changed files the button reads
+		<i>Save 3 files</i> and saves them together.</li>
+	<li>The configuration with your changes is checked again. If it passes, a snapshot of your current files is taken
+		and the files are written. You see <i>Saved shell.nss</i> and the name of the snapshot.</li>
+	<li>Shell picks up the change on the next right-click. No restart is needed.</li>
+</ol>
+<p>Saving keeps each file's encoding, byte order mark and line endings, so the file looks the same in other editors.
+	<kbd>Discard</kbd> throws away the unsaved changes in every file.</p>
+<p><strong>Saving with errors.</strong> If the check found errors, the app asks first: <i>Save with errors?</i> One
+	error turns the whole Shell menu off until it is fixed and saved again. Press <kbd>Cancel</kbd> to go back and fix
+	it, or <kbd>Save anyway</kbd> if you want to keep working on it in steps. A snapshot is taken either way, so you can
+	go back from <a href="/docs/app/backups">Backups</a>.</p>
+
+<h5 id="external-editor">Using another editor</h5>
+<p><kbd>Open in external editor</kbd> opens the current file in the program Windows uses to edit it, or in Notepad if
+	there is none. You can keep the app open while you work there:</p>
+<ul>
+	<li>When a file changes on disk and you have no unsaved edits in it, the app reloads it and checks it again.</li>
+	<li>When you do have unsaved edits, a banner says <i>Changed outside the app</i>. <kbd>Reload from disk</kbd> loads
+		the new version and drops your edits; closing the banner keeps your edits, and saving them overwrites the other
+		version.</li>
+</ul>
+
+<h5 id="shared">The shared configuration</h5>
+<p>If Explorer reads the configuration in the program folder, the editor shows it read-only with the banner <i>This is
+	the shared config in the install folder</i>. Press <kbd>Create personal config</kbd> to copy it to
+	<code>%APPDATA%\Nilesoft\Shell</code>. Shell and the editor switch to your copy, which you can then change.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<ul>
+	<li><strong><i>Nothing to save. These files are read-only here.</i></strong> Your changes are in a file the editor
+		can't write (see the label next to the file name). Copy the text into a file in your config folder, or make your
+		personal config first.</li>
+	<li><strong><i>That file isn't in the import tree</i>.</strong> A Problems or Home entry points at a file
+		<code>shell.nss</code> doesn't import. Open it with <i>Open shell.log</i> on Home or in another editor.</li>
+	<li><strong><i>shell.exe was not found, so the config can't be checked</i>.</strong> Keep
+		<code>NilesoftShellPro.exe</code> next to <code>shell.exe</code>, or reinstall.</li>
+	<li><strong>The menu is gone after a save.</strong> Look at Problems, fix the line and save again, or restore the
+		snapshot taken before the save from <a href="/docs/app/backups">Backups</a>.</li>
+</ul>

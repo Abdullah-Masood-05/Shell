@@ -3,8 +3,21 @@
 	{"title":"Installation", "link":"/docs/installation"},
 	{"title":"Command line", "link":"/docs/command-line"},
 	{"title":"Get Started", "link":"/docs/get-started"},
-	{"title":"Nilesoft Shell Pro app", "link":"/docs/settings-app"},
 	{
+		"title":"Nilesoft Shell Pro app", "link":"/docs/settings-app",
+		"items": [
+			{"title":"Home", "link":"/docs/app/home"},
+			{"title":"Appearance", "link":"/docs/app/appearance"},
+			{"title":"Behavior", "link":"/docs/app/behavior"},
+			{"title":"Rules & Filters", "link":"/docs/app/rules-and-filters"},
+			{"title":"Context Menus", "link":"/docs/app/context-menus"},
+			{"title":"Menu Builder", "link":"/docs/app/menu-builder"},
+			{"title":"Open with", "link":"/docs/app/open-with"},
+			{"title":"Config Editor", "link":"/docs/app/config-editor"},
+			{"title":"Backups", "link":"/docs/app/backups"},
+			{"title":"Preferences & Updates", "link":"/docs/app/preferences"}
+		]
+	},{
 		"title":"Configuration", "link":"/docs/configuration",
 		"items": [
 			{"title":"Settings", "link":"/docs/configuration/settings"},
