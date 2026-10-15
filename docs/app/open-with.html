@@ -1,0 +1,203 @@
+<h4 id="_top">Open with</h4>
+<br>
+<p>The Open with page adds <i>Open in &lt;app&gt;</i> items for your editors and terminals, so a file or folder opens in
+	Zed, Cursor or PyCharm as easily as in VS Code. It finds the apps installed on this PC, and you switch on the ones you
+	want. The same page can also hide items that other programs put in the menu, such as VLC or 7-Zip.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/openwith-dark.png" width="1120" height="760"
+		alt="The Open with page">
+	<figcaption>Open with: editors and terminals found on this PC; switch them on, or add your own.</figcaption>
+</figure>
+
+<h5 id="apps">The apps it knows</h5>
+<p>The page looks for these apps in their usual install folders, in JetBrains Toolbox scripts and on
+	<code>PATH</code>. It only reads; it never installs or changes anything.</p>
+<ul>
+	<li>Editors: VS Code, VS Code Insiders, Zed, Cursor, Windsurf, Sublime Text, Notepad++, IntelliJ IDEA, PyCharm,
+		WebStorm, Rider, CLion, GoLand, PhpStorm, RustRover, Neovim Qt, Neovim (in a Windows Terminal tab) and Visual
+		Studio.</li>
+	<li>Terminals and Notepad: Windows Terminal, PowerShell 7, Git Bash and Notepad.</li>
+</ul>
+<p>The caption above the list says how many were found, for example <i>Found 4 of 22 known apps on this PC</i>. Apps that
+	weren't found are folded away; click <i>Show … more apps that weren't found on this PC</i> to see them.</p>
+<p>The first time you open the page, the editors found on this PC are switched on. Terminals and Notepad are off,
+	because the Terminal and Develop menus have them already. Nothing is in your menu until you click
+	<kbd>Save</kbd>.</p>
+
+<h5 id="switch-on">Switch an app on or off</h5>
+<ol>
+	<li>Find the app in the <strong>Apps</strong> list. Each row shows its icon, its name and the program it found.</li>
+	<li>Turn its switch on. To change its settings, click the row: its settings open under it.</li>
+	<li>Click <kbd>Save</kbd>, then right-click a file or folder to see <i>Open in &lt;app&gt;</i>.</li>
+</ol>
+<p>If an app is installed but wasn't found (a portable copy, for example), its row is greyed out with a
+	<kbd>Locate…</kbd> button. Click it, pick the app's program (<code>.exe</code>, <code>.cmd</code>, <code>.bat</code>
+	or <code>.com</code>), and the app is switched on.</p>
+<p>Each app's settings:</p>
+<table class="table">
+	<tr><td class="w-25">Name</td><td>Shown as <i>Open in &lt;name&gt;</i>, or as the name alone inside a
+		submenu.</td></tr>
+	<tr><td>Program</td><td>The program the item starts. <kbd>Browse…</kbd> picks it.</td></tr>
+	<tr><td>Arguments</td><td>What is passed to the program; see <a href="#arguments">Arguments</a>.</td></tr>
+	<tr><td>Icon</td><td>Empty uses the program's own icon. <kbd>Browse…</kbd> picks an <code>.ico</code>,
+		<code>.exe</code> or <code>.dll</code> instead.</td></tr>
+	<tr><td>Shows for</td><td><i>Everything the menu shows on</i>, <i>Files only</i>, <i>Folders only</i> (folders, the
+		folder background and the desktop) or <i>Files with these extensions</i>, with a box for a list such as
+		<code>.py .js .md</code>.</td></tr>
+	<tr><td>Run as administrator</td><td>Windows asks for permission each time you click the item.</td></tr>
+</table>
+<p>Under the settings, <kbd>Test</kbd> shows the exact command line the item would run for a sample file and folder in
+	your Documents folder. It never starts the program. <kbd>Move up</kbd> and <kbd>Move down</kbd> change the order of the
+	items in the menu.</p>
+
+<h5 id="custom">Add an app that isn't listed</h5>
+<ol>
+	<li>Click <kbd>Add app</kbd> above the list. A row called <i>New app</i>, marked <i>Added by you</i>, is added at the
+		end and opened.</li>
+	<li>Type its <strong>Name</strong>.</li>
+	<li>Click <kbd>Browse…</kbd> next to <strong>Program</strong> and pick the program.</li>
+	<li>Check <strong>Arguments</strong>. It starts as <code>{path}</code>, which suits most editors.</li>
+	<li>Optionally pick an <strong>Icon</strong>, set <strong>Shows for</strong>, or tick <strong>Run as
+		administrator</strong>.</li>
+	<li>Click <kbd>Test</kbd> to check the command line, then <kbd>Save</kbd>.</li>
+</ol>
+<p>To delete an app you added, open its row and click <kbd>Remove</kbd>. The apps the page knows can't be removed, only
+	switched off.</p>
+<p>If something is missing, the row says what, and the app stays out of the menu until it's fixed: <i>Give it a name;
+	it's the item's title.</i>, <i>Pick the program it runs.</i>, <i>List at least one extension, like .py .js</i>, or
+	<i>Doesn't show: the menu isn't on the places it's for.</i> (for example, an app set to <i>Files only</i> while the
+	menu shows on folders only).</p>
+
+<h5 id="arguments">Arguments</h5>
+<p>Arguments use placeholders that are filled in when you click the item:</p>
+<table class="table">
+	<tr><td class="w-25"><code>{path}</code></td><td>The item you right-clicked, in quotes.</td></tr>
+	<tr><td><code>{paths}</code></td><td>Every selected item, each in quotes. An app that uses it also shows when
+		several items are selected.</td></tr>
+	<tr><td><code>{dir}</code></td><td>The folder the item is in, or the folder itself when you right-click a folder or
+		its background.</td></tr>
+	<tr><td><code>{name}</code></td><td>The item's name.</td></tr>
+</table>
+<p>Examples from the built-in apps: editors use <code>{path}</code>; Windows Terminal uses <code>-d {dir}</code>;
+	PowerShell 7 uses <code>-NoExit -WorkingDirectory {dir}</code>; Git Bash uses <code>--cd={dir}</code>. You can use
+	<code>'</code> or <code>`</code> quotes in the arguments, but not both.</p>
+
+<h5 id="also-hides">What switching an app off also hides</h5>
+<p>Some apps put their own items in the menu when you install them: PowerShell 7 adds a <i>PowerShell 7</i> submenu,
+	Git adds <i>Open Git Bash here</i> and <i>Open Git GUI here</i>, VS Code adds <i>Open with Code</i>. The page finds
+	these and ties them to the app's switch:</p>
+<ul>
+	<li>While the app is on, its row says <i>Switching it off also hides: …</i>.</li>
+	<li>When you switch it off, the row says <i>Also hides: …</i>, and after you save, those items are gone from Shell's
+		menu along with <i>Open in &lt;app&gt;</i>.</li>
+	<li>To hide only the item this page adds and keep the app's own items, open the row and tick <strong>Keep the app's
+		own menu items when it's off</strong>.</li>
+	<li>An app that is off only because it was never switched on (the default for terminals and Notepad) leaves its own
+		items alone. The row says <i>Off by default, its own still show: …</i>.</li>
+</ul>
+<p>The page matches an item to an app by its program: the item's command, icon or shell extension is the app's
+	program or lives in the app's install folder. Shared folders such as Program Files itself or WindowsApps don't count.
+	When that doesn't tell, it uses the names the app is known to use. If an app installed later adds new items, the page
+	hides them too the next time it opens, as long as you had switched the app off.</p>
+<p>Nothing in the registry changes: the items are hidden in Shell's menu only, and switching the app back on shows them
+	again.</p>
+
+<h5 id="other-apps">Other apps' menu items</h5>
+<p>The <strong>Other apps' menu items</strong> list shows what other programs add to the menu for files, folders, the
+	folder background and drives, such as VLC, File Pilot or 7-Zip. It is read from the registry. Windows' own items and
+	Shell's are left out, and so are the items of the apps in the list above, which go with their app's switch.</p>
+<ol>
+	<li>Find the item. Each row shows its title, where it appears and the program behind it. <i>Shift only</i> marks an
+		item Windows shows only while <kbd>Shift</kbd> is held.</li>
+	<li>Turn its switch off to hide it.</li>
+	<li>Click <kbd>Save</kbd>.</li>
+</ol>
+<p>A shell extension (marked <i>Title shown by the app</i>) sets its own title, so the page can only guess it from the
+	extension's name. When you switch one off, a <strong>Title to hide</strong> box appears: type the title exactly as
+	the menu shows it. A title that contains <code>"</code> or <code>|</code> can't be matched, so nothing is hidden;
+	the row says so.</p>
+<p><strong>Leftovers from uninstalled programs</strong> are listed first. Their program is gone (an uninstaller left
+	the menu entry behind), so the item does nothing when clicked. The row says <i>Program not found: …</i>. Click
+	<kbd>Hide</kbd> on one, or <kbd>Hide all …</kbd> above them, then <kbd>Save</kbd>.</p>
+<p>An item you hid that is no longer in the registry stays in the list with <i>No longer in the registry. The rule
+	stays until you switch it back on.</i></p>
+
+<h5 id="placement">Where the items appear</h5>
+<p>Under <strong>In the menu</strong>:</p>
+<ul>
+	<li>Each app that is switched on is its own <i>Open in &lt;name&gt;</i> item, in the order of the list. They go right
+		under <i>WinRAR</i>; without WinRAR, under Explorer's <i>Open in new window</i>; otherwise (a file's menu, or
+		Windows in another language) at the top of the menu.</li>
+	<li><strong>Group in an "Open in" submenu</strong> puts them all in one submenu in that same place instead.
+		<strong>Submenu title</strong> sets its name (<i>Open in</i> by default). Windows already has an <i>Open with</i>
+		item on files, so a different title tells them apart.</li>
+	<li><strong>Shows on</strong> picks where the items appear at all: <i>Files</i>, <i>Folders</i>, <i>Folder
+		background</i> and <i>Desktop</i>. The first three are on by default.</li>
+</ul>
+<p>The preview below draws the resulting menu for <i>A file</i>, <i>A folder</i> or <i>Background</i>, with Explorer's
+	own items greyed. It is approximate; right-click to see the real menu. <strong>Generated .nss</strong> shows the text
+	that is saved.</p>
+<p>A file saved by an earlier version of the page (an <i>Open in</i> submenu in the middle of the menu, or items at the
+	very top) is rewritten this way when the page opens. A snapshot keeps the old layout.</p>
+
+<h5 id="develop-editors">The Develop menu's editors</h5>
+<p>The bundled Develop menu has its own <i>Editors</i> submenu with VS Code and Notepad. It only shows while
+	<kbd>Shift</kbd> is held, so it is left alone by default. To keep your editors in one place, turn on <strong>Hide
+	Develop › Editors</strong>. The lines in <code>develop.nss</code> are commented out, not deleted.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>For the curious: each app becomes an <a href="/docs/configuration/new-items#item"><code>item</code></a> after a
+	comment line naming it. This is VS Code, as the app's tests write it:</p>
+<pre><code class="lang-shell">// generated by Nilesoft Shell Pro, do not edit by hand
+// Edit these items on the Open with page of Nilesoft Shell Pro.
+// options: layout=top pos=after-winrar show=file|dir|back title="Open in"
+
+// app=vscode
+item(title="Open in VS Code" image='@user.localappdata\Programs\Microsoft VS Code\Code.exe' type='file|dir|back' where=path.exists('@user.localappdata\Programs\Microsoft VS Code\Code.exe') cmd='@user.localappdata\Programs\Microsoft VS Code\Code.exe' args='@sel.path.quote' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code></pre>
+<ul>
+	<li><code>image</code> is the program's icon. <code>where=path.exists(...)</code> hides the item when the program is
+		uninstalled (see <a href="/docs/configuration/properties#where">where</a>).</li>
+	<li>The placeholders become Shell variables: <code>{path}</code> is <code>@sel.path.quote</code>,
+		<code>{paths}</code> is <code>@sel(true)</code>, <code>{dir}</code> is <code>"@sel.dir"</code> and
+		<code>{name}</code> is <code>@sel.name</code>.</li>
+	<li><code>pos=indexof('"WinRAR"|"Open in new window"', 1, 'top')</code> is the placement described above (see
+		<a href="/docs/functions/index#indexof">indexof</a>).</li>
+	<li>An app that is off stays in the file as a commented-out line, so its settings are kept.</li>
+	<li>Hidden items are <a href="/docs/configuration/modify-items"><code>remove</code></a> rules that match the whole
+		title, such as <code>remove(find="\"PowerShell 7\"")</code>. An app's own items follow an
+		<code>// own app=&lt;id&gt; verb=&lt;key&gt;</code> line and are commented out while the app is on; other apps'
+		items follow a <code>// hide …</code> line.</li>
+</ul>
+
+<h5 id="saved">Where your changes are saved</h5>
+<ul>
+	<li>Saving writes <code>imports\settings-app-openwith.nss</code> in your configuration folder
+		(<code>%APPDATA%\Nilesoft\Shell</code>). The file is generated: change it on this page, not by hand.</li>
+	<li>The first save adds <code>import 'imports/settings-app-openwith.nss'</code> at the end of <code>shell.nss</code>,
+		once.</li>
+	<li>Before writing, the configuration is checked with
+		<a href="/docs/command-line#config"><code>shell -config:check</code></a>; a configuration Shell would reject is
+		not written.</li>
+	<li>Each save first takes a snapshot in <a href="/docs/app/backups">Backups</a>, named for example
+		<i>Open with: VS Code, Zed as top-level items</i>. To undo a saved change, restore the snapshot from before it.
+		<kbd>Discard</kbd> throws away changes you haven't saved.</li>
+	<li>The registry is never changed. Hiding an item only adds a rule to this file.</li>
+</ul>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<table class="table">
+	<tr><td class="w-25">The items don't show</td><td>Close the menu and right-click again. If they still aren't there,
+		use <strong>Restart Explorer</strong> on the Home page. If the page shows <i>These items are turned off</i>, click
+		<kbd>Open Context Menus</kbd> and turn <i>Open with</i> back on.</td></tr>
+	<tr><td>One app's item is missing</td><td>The item hides while its program is missing, for example after the app
+		was uninstalled or moved. Use <kbd>Locate…</kbd> or <kbd>Browse…</kbd> to point at the program again. Also check
+		its <strong>Shows for</strong> and the <strong>Shows on</strong> boxes under <i>In the menu</i>.</td></tr>
+	<tr><td>The items are at the top of the menu, not under WinRAR</td><td>That is expected on a file's menu, when
+		WinRAR isn't installed and the menu has no <i>Open in new window</i>, and on Windows in another language, where
+		Explorer's item has a translated title.</td></tr>
+	<tr><td>A hidden item is still there</td><td>A shell extension's title is a guess. Correct <strong>Title to
+		hide</strong> to match the menu exactly, and save.</td></tr>
+	<tr><td>The item opens the program but not the file</td><td>Check <strong>Arguments</strong> with
+		<kbd>Test</kbd>. Most editors need <code>{path}</code>; terminals usually need <code>{dir}</code>.</td></tr>
+</table>

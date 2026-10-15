@@ -1,0 +1,232 @@
+<h4 id="_top">Menu Builder</h4>
+<br>
+<p>The Menu Builder adds your own items and submenus to the right-click menu without writing any code. You fill in a
+	form: the title, an icon, the program to run and where the item shows. The app writes the configuration for you and
+	checks it before saving.</p>
+<p>Everything you build here goes into its own file, so the rest of your configuration is never touched. When you open
+	the page again, the app reads that file back into the tree.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/menu-builder-dark.png" width="1120" height="760"
+		alt="The Menu Builder page: the tree on the left, the form on the right, the preview below">
+	<figcaption>Menu Builder: your menus and items on the left, the selected one's properties on the right, and a
+		preview of the menu below.</figcaption>
+</figure>
+
+<h5 id="layout">The page at a glance</h5>
+<ul>
+	<li><strong>The tree</strong> (left) lists your entries in menu order. Above it, <kbd>Item</kbd>, <kbd>Menu</kbd> and
+		<kbd>Separator</kbd> add entries, and a row of small buttons moves, indents, duplicates or deletes the selected
+		one. Hover a button to see its name.</li>
+	<li><strong>The form</strong> (right) edits the selected entry. It has four parts: the title and icon,
+		<i>Where it shows</i>, <i>What it runs</i> (items only) and <i>Look</i>.</li>
+	<li><strong>Preview</strong> (bottom) draws the menu roughly as Shell will show it, with the selected submenu open.
+		<strong>Generated .nss</strong> shows the exact text that <kbd>Save</kbd> will write.</li>
+	<li><kbd>Save</kbd> and <kbd>Discard</kbd> are at the top right. Nothing reaches your menu until you save.</li>
+</ul>
+
+<h5 id="add-item">Add an item</h5>
+<p>This example adds <i>Open in Notepad</i> to the menu of every file.</p>
+<ol>
+	<li>Click <kbd>Item</kbd>. A new entry called <i>New item</i> appears in the tree and is selected.</li>
+	<li>In <strong>Title</strong>, type <code>Open in Notepad</code>. To give the item an access key (the underlined
+		letter you can press while the menu is open), put <code>&amp;</code> before that letter, as in
+		<code>Open in &amp;Notepad</code>.</li>
+	<li>In <strong>Command</strong>, type <code>notepad.exe</code>. This is the program the item starts: a program name
+		such as <code>notepad.exe</code> or <code>code</code>, or the full path of a program or file.</li>
+	<li>In <strong>Arguments</strong>, type <code>"@sel.path"</code>. Shell replaces <code>@sel.path</code> with the
+		path of the file you right-clicked. Keep the double quotes, so paths with spaces still work.</li>
+	<li>Click <kbd>Save</kbd>, then right-click a file to see the new item.</li>
+</ol>
+<p>An item shows when <strong>one</strong> item is selected. To show it when several files are selected, set
+	<strong>Selection</strong> to <i>Any selection</i>. The other choices are <i>Several of one type</i>, <i>Several with
+	one extension</i> and <i>Nothing selected</i>; see <a href="/docs/configuration/properties#mode">mode</a> for what
+	each one means.</p>
+
+<h5 id="add-submenu">Add a submenu</h5>
+<p>A menu is an entry that opens a submenu. Whatever is inside it shows when you point at it. Where a new entry
+	goes depends on what is selected:</p>
+<ul>
+	<li>nothing selected: at the end of the tree;</li>
+	<li>a menu selected: inside that menu, at the end;</li>
+	<li>an item or separator selected: right after it, at the same level.</li>
+</ul>
+<p>To build a <i>Dev tools</i> submenu with two items and a line between them:</p>
+<ol>
+	<li>Select the last top-level entry (or nothing, if the tree is empty) and click <kbd>Menu</kbd>. Name it
+		<code>Dev tools</code>.</li>
+	<li>With <i>Dev tools</i> selected, click <kbd>Item</kbd>. The item goes inside the menu; the tree shows it indented.
+		Name it <code>Task Manager</code> and set <strong>Command</strong> to <code>taskmgr.exe</code>.</li>
+	<li>With <i>Task Manager</i> selected, click <kbd>Separator</kbd>. A line is added right after it, still inside the
+		menu. A separator has no settings.</li>
+	<li>With the separator selected, click <kbd>Item</kbd> again. Name it <code>Flush DNS</code>, set
+		<strong>Command</strong> to <code>cmd.exe</code> and <strong>Arguments</strong> to
+		<code>/c ipconfig /flushdns</code>.</li>
+	<li>Click <kbd>Save</kbd>.</li>
+</ol>
+<p>Instead of adding a separator as its own entry, you can also set <strong>Separator</strong> in the
+	<i>Look</i> part of the form to <i>Before</i>, <i>After</i> or <i>Before and after</i>. That draws a line next to that
+	one entry.</p>
+
+<h5 id="icon">Choose an icon</h5>
+<ol>
+	<li>Select the entry and click <kbd>Choose…</kbd> next to <strong>Icon</strong>.</li>
+	<li>The picker shows the glyphs of Shell's own icon font. Point at one to see its code at the bottom (for example
+		<code>image=</code>), and click it to use it.</li>
+	<li>To remove the icon, click <kbd>No icon</kbd>. <kbd>Esc</kbd> or a click outside the picker closes it without a
+		change.</li>
+</ol>
+<p>You can also type into the <strong>Icon</strong> box: one of Shell's named icons such as
+	<code>icon.task_manager</code>, a colour, or the path of an icon or program file. The small square next to the box
+	shows the glyph when it is one from the font, and <i>…</i> for anything else. See
+	<a href="/docs/configuration/properties#image">image</a> for every form the value can take.</p>
+
+<h5 id="where">Choose where it shows</h5>
+<p><strong>Shows on</strong>, under <i>Where it shows</i>, decides which right-clicks show the entry. On a menu, it
+	applies to the whole submenu.</p>
+<table class="table">
+	<tr><td class="w-25">Everywhere</td><td>Files, folders, backgrounds, the desktop and drives: every menu except the taskbar's.
+		This is the default.</td></tr>
+	<tr><td>Files</td><td>Any file.</td></tr>
+	<tr><td>Folders</td><td>A folder you right-click.</td></tr>
+	<tr><td>Folder background</td><td>An empty spot inside an open folder.</td></tr>
+	<tr><td>Desktop</td><td>An empty spot on the desktop.</td></tr>
+	<tr><td>Drives</td><td>A drive, such as <code>C:</code>.</td></tr>
+	<tr><td>Files with extensions</td><td>Only files of the types you list in <strong>Extensions</strong>, separated
+		by spaces, like <code>.txt .md .log</code>. A missing dot is added for you, and the list is saved in
+		lower case.</td></tr>
+	<tr><td>Custom</td><td>Three boxes for the raw values: <strong>Type</strong> (for example
+		<code>file|dir</code>), <strong>Find</strong> (name or extension patterns, like <code>*setup*</code>) and
+		<strong>Where</strong> (a condition, like <code>sel.count &gt; 1</code>). See
+		<a href="/docs/configuration/properties#type">type</a>, <a href="/docs/configuration/properties#find">find</a>
+		and <a href="/docs/configuration/properties#where">where</a>.</td></tr>
+</table>
+<p>For example, to show <i>Open in Notepad</i> only on text files, set <strong>Shows on</strong> to <i>Files with
+	extensions</i>. The <strong>Extensions</strong> box starts with <code>.txt</code>; add more types if you like.</p>
+
+<h5 id="admin">Run as administrator, and the window</h5>
+<ul>
+	<li>Tick <strong>Run as administrator</strong> for a command that needs it, such as <i>Flush DNS</i> above. Windows
+		asks for permission each time you click the item.</li>
+	<li><strong>Window</strong> sets how the program's window opens: <i>Normal</i>, <i>Hidden</i>, <i>Minimized</i> or
+		<i>Maximized</i>. <i>Hidden</i> suits a command such as <code>cmd.exe /c …</code> that would otherwise flash a
+		console window.</li>
+	<li><strong>Shortcut text</strong> is shown at the right of the item, like <code>Ctrl+E</code>. It is only a label:
+		it doesn't make the keys work.</li>
+	<li><strong>Tooltip</strong> is the text that appears when you rest the mouse on the entry.</li>
+</ul>
+
+<h5 id="reorder">Reorder and indent</h5>
+<p>Select an entry, then use the buttons above the tree:</p>
+<table class="table">
+	<tr><td class="w-25">Move up, Move down</td><td>Swap it with the entry above or below, within the same menu.</td></tr>
+	<tr><td>Indent</td><td>Move it into the menu right above it, as that menu's last entry. Only possible when the entry
+		above is a menu.</td></tr>
+	<tr><td>Outdent</td><td>Move it out of its menu, to just after that menu.</td></tr>
+	<tr><td>Duplicate</td><td>Add a copy right after it. A copied menu keeps its contents.</td></tr>
+	<tr><td>Delete</td><td>Remove it. Deleting a menu removes everything inside it.</td></tr>
+</table>
+<p>A button that can't be used for the selected entry is greyed out.</p>
+
+<h5 id="save">Save, discard and undo</h5>
+<ul>
+	<li><kbd>Save</kbd> checks your menus with Shell and writes them. If Shell would reject them, nothing is written and
+		a message says what is wrong and on which line.</li>
+	<li><kbd>Discard</kbd> throws away every change since the last save.</li>
+	<li>To undo a change you already saved, open <a href="/docs/app/backups">Backups</a>. Each save takes a
+		snapshot first, named for example <i>Menu Builder: 1 menu, 3 items</i>. Select the snapshot from before your
+		change and click <kbd>Restore…</kbd>.</li>
+	<li>To remove all your menus at once, turn off <i>Your menus</i> on the
+		<a href="/docs/app/context-menus">Context Menus</a> page. The file is kept, so you can turn it back on.</li>
+</ul>
+
+<h5 id="example">Example: from the form to the menu</h5>
+<p>Here are both tasks above together, with two extra settings: <i>Open in Notepad</i> only on <code>.txt</code>
+	files, and <i>Dev tools</i> only on the desktop, with an icon.</p>
+<ol>
+	<li>Click <kbd>Item</kbd>. Title <code>Open in Notepad</code>; <strong>Shows on</strong> <i>Files with
+		extensions</i>, <strong>Extensions</strong> <code>.txt</code>; <strong>Command</strong>
+		<code>notepad.exe</code>; <strong>Arguments</strong> <code>"@sel.path"</code>.</li>
+	<li>With <i>Open in Notepad</i> selected, click <kbd>Menu</kbd>. Title <code>Dev tools</code>;
+		<kbd>Choose…</kbd> an icon; <strong>Shows on</strong> <i>Desktop</i>.</li>
+	<li>With <i>Dev tools</i> selected, click <kbd>Item</kbd>. Title <code>Task Manager</code>;
+		<strong>Command</strong> <code>taskmgr.exe</code>.</li>
+	<li>With <i>Task Manager</i> selected, click <kbd>Separator</kbd>.</li>
+	<li>With the separator selected, click <kbd>Item</kbd>. Title <code>Flush DNS</code>; <strong>Command</strong>
+		<code>cmd.exe</code>; <strong>Arguments</strong> <code>/c ipconfig /flushdns</code>; <strong>Window</strong>
+		<i>Hidden</i>; tick <strong>Run as administrator</strong>.</li>
+	<li>Click <kbd>Save</kbd>.</li>
+</ol>
+<p>The tree now reads <i>Open in Notepad</i>, then <i>Dev tools</i> with <i>Task Manager</i>, a separator and
+	<i>Flush DNS</i> indented under it. <strong>Generated .nss</strong> shows what is written (the icon code is the one
+	you picked):</p>
+<pre><code class="lang-shell">// generated by Nilesoft Shell Pro, do not edit by hand
+// Edit these menus on the Menu Builder page of Nilesoft Shell Pro.
+
+item(title="Open in Notepad" type='file' find='.txt' cmd='notepad.exe' args='"@sel.path"')
+
+menu(title="Dev tools" image= type='desktop')
+{
+	item(title="Task Manager" cmd='taskmgr.exe')
+	separator
+	item(title="Flush DNS" cmd='cmd.exe' args='/c ipconfig /flushdns' admin window=hidden)
+}</code></pre>
+<p>In the menu:</p>
+<ul>
+	<li>Right-click a <code>.txt</code> file: the menu has <i>Open in Notepad</i>, which opens that file in Notepad.
+		Right-click any other file, or select two text files: the item isn't there.</li>
+	<li>Right-click an empty spot on the desktop: the menu has <i>Dev tools</i> with its icon and an arrow. Point at it to
+		open the submenu: <i>Task Manager</i>, a line, then <i>Flush DNS</i>. <i>Flush DNS</i> asks for administrator
+		permission, then runs with its window hidden.</li>
+	<li>Right-click a file or folder: <i>Dev tools</i> isn't there, because it shows only on the desktop.</li>
+</ul>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>For the curious: each entry becomes one line of Shell's menu language, in tree order.</p>
+<ul>
+	<li>An item becomes <a href="/docs/configuration/new-items#item"><code>item(...)</code></a>, a menu becomes
+		<a href="/docs/configuration/new-items#menu"><code>menu(...)</code></a> followed by its entries in
+		<code>{ }</code>, and a separator becomes <a href="/docs/configuration/new-items#separator"><code>separator</code></a>.</li>
+	<li>The form fields map to <a href="/docs/configuration/properties">properties</a>: Title to <code>title</code>,
+		Icon to <code>image</code>, Shows on to <code>type</code>, <code>find</code> and <code>where</code>, Selection to
+		<code>mode</code>, Command to <code>cmd</code>, Arguments to <code>args</code>, Run as administrator to
+		<code>admin</code>, and Window, Shortcut text, Tooltip and Separator to <code>window</code>, <code>keys</code>,
+		<code>tip</code> and <code>sep</code>. Empty fields are left out.</li>
+	<li>If the file has properties the form doesn't edit (because someone wrote them by hand), the entry shows them under
+		<strong>Kept as written</strong>, and they are saved unchanged. Lines that aren't menus, items or separators can't
+		be kept: a banner warns that they will be dropped on the next save.</li>
+</ul>
+
+<h5 id="saved">Where your changes are saved</h5>
+<ul>
+	<li>Your menus are written to <code>imports\settings-app-menus.nss</code> in your configuration folder
+		(<code>%APPDATA%\Nilesoft\Shell</code>). The file is generated: edit it on this page, not by hand.</li>
+	<li>The first save adds <code>import 'imports/settings-app-menus.nss'</code> at the end of <code>shell.nss</code>, so
+		it loads after the bundled menus. If that line is already there, even turned off, it is left alone.</li>
+	<li>Before writing, the new configuration is checked with
+		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. A configuration Shell would reject is
+		not written.</li>
+	<li>Each save first takes a snapshot in <a href="/docs/app/backups">Backups</a>.</li>
+	<li>Shell reloads the configuration by itself when the file changes; there is no restart step.</li>
+	<li>If Explorer uses the shared configuration in the program folder, the page is read-only and offers
+		<kbd>Create personal config</kbd>. Program Files is never written to.</li>
+</ul>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<table class="table">
+	<tr><td class="w-25">The new item doesn't show at all</td><td>Close the menu and right-click again. If it still
+		isn't there, use <strong>Restart Explorer</strong> on the Home page. If the page shows <i>Your menus are turned
+		off</i>, click <kbd>Open Context Menus</kbd> and turn <i>Your menus</i> back on.</td></tr>
+	<tr><td>It shows in some places but not where I expect</td><td>Check <strong>Shows on</strong>: an item set to
+		<i>Files</i> isn't on folders, and <i>Desktop</i> is only the empty desktop. Check <strong>Selection</strong>
+		too: with the default, the item hides when several items are selected. A submenu's <i>Shows on</i> also limits
+		every entry inside it.</td></tr>
+	<tr><td>Clicking the item does nothing</td><td>The command can't be found or doesn't accept the arguments. Use the
+		full path of the program, and put <code>"@sel.path"</code> in quotes.</td></tr>
+	<tr><td><i>Not saved: Shell would reject these menus</i></td><td>Usually a value typed in a Custom box, such as an
+		unfinished <strong>Where</strong> condition. The message names the line; fix it in the form and save
+		again.</td></tr>
+	<tr><td><i>Part of the file can't be shown here</i></td><td>The file has lines the page doesn't understand,
+		probably from an edit by hand. They will be dropped when you save. Copy them elsewhere first if you need
+		them.</td></tr>
+</table>
