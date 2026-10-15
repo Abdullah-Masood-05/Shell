@@ -149,11 +149,14 @@ Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs n
 **Updates.** The app checks this repository's GitHub releases once a day (Preferences, *Check for updates
 automatically*, on by default), downloads the MSI or portable zip that matches your install, verifies it against the
 release's `SHA256SUMS.txt` and installs it after you click *Download and install* (MSI installs show one administrator
-prompt). Details: [Updates](https://abdullah-masood-05.github.io/Shell/settings-app.html#updates).
+prompt). Details: [Preferences & Updates](https://abdullah-masood-05.github.io/Shell/app/preferences/#updates).
 
 Changes made on Appearance, Behavior and Rules & Filters are written to `imports/settings-app.nss`, imported last, so
 your own files stay as you wrote them. Every save is checked with `shell -config:check` first, and a configuration that
-Shell would reject is not written. Details: [The app](https://abdullah-masood-05.github.io/Shell/settings-app.html).
+Shell would reject is not written. Details: [The app](https://abdullah-masood-05.github.io/Shell/settings-app/); each page
+has its own guide, for example [Home](https://abdullah-masood-05.github.io/Shell/app/home/),
+[Config Editor](https://abdullah-masood-05.github.io/Shell/app/config-editor/) and
+[Backups](https://abdullah-masood-05.github.io/Shell/app/backups/).
 
 The app is built with [Slint](https://slint.dev) 1.18 (C++), used under the Slint Royalty-free License 2.0. It also
 uses [JSON for Modern C++](https://github.com/nlohmann/json) and

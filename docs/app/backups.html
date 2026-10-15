@@ -1,0 +1,76 @@
+<h4>Backups</h4>
+<br>
+<p>Every time the app saves your configuration, it first takes a <strong>snapshot</strong>: a copy of
+	<code>shell.nss</code> and every file it imports. The Backups page lists these snapshots, shows what changed since
+	each one, and puts one back if you want to undo a change.</p>
+<p>Snapshots are kept in <code>%APPDATA%\Nilesoft\Shell\backups</code>, one folder per snapshot.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/backups-dark.png" width="1120" height="760"
+		alt="The Backups page comparing a snapshot with the current files">
+	<figcaption>Backups: two snapshots, one pinned. The selected one is compared with the current files; restoring it would undo the green line.</figcaption>
+</figure>
+
+<h5 id="timeline">Timeline</h5>
+<p>The <strong>Timeline</strong> on the left lists the snapshots, newest first. Each one shows:</p>
+<ul>
+	<li>the date and time it was taken, and how long ago;</li>
+	<li>why it was taken, for example <i>Config Editor: shell.nss</i>, a list of the settings you changed,
+		<i>Manual snapshot</i>, or <i>before restore …</i>;</li>
+	<li>how many files it holds;</li>
+	<li><i>Current</i> on the newest snapshot that matches your files exactly, and <i>Pinned</i> on pinned ones.</li>
+</ul>
+<p>To take a snapshot yourself, for example before you edit files in another program, press <kbd>Create snapshot
+	now</kbd>.</p>
+
+<h5 id="compare">Compare</h5>
+<p>Click a snapshot to compare it with your files as they are now. The summary says how many files changed and how many
+	lines were added and removed, or <i>Identical to your files now</i>.</p>
+<ul>
+	<li>The changed files are listed with <i>modified</i>, <i>added</i> (new since the snapshot) or <i>removed</i> (gone
+		since the snapshot) and their line counts. Click a file to see its lines.</li>
+	<li><strong>Green lines</strong> (<code>+</code>) are in your files now. <strong>Red lines</strong> (<code>−</code>)
+		are in the snapshot; they come back if you restore it.</li>
+	<li>The two columns of numbers are the line numbers in the snapshot and in your file.</li>
+</ul>
+
+<h5 id="restore">Restore</h5>
+<ol>
+	<li>Select the snapshot you want to go back to.</li>
+	<li>Press <kbd>Restore…</kbd>. The app tells you the date, the number of files and the reason.</li>
+	<li>Press <kbd>Restore</kbd> to confirm.</li>
+</ol>
+<p>Before anything is put back, the app takes a snapshot of your current files (<i>before restore …</i>), so a restore
+	can be undone the same way. Files you added after the snapshot are left alone. Shell picks up the restored files on
+	the next right-click.</p>
+<p><kbd>Restore…</kbd> is greyed out on the snapshot marked <i>Current</i>, because your files already match it.</p>
+
+<h5 id="pin">Pin</h5>
+<p>Old snapshots are removed over time (see <a href="#retention">Retention</a>). To keep one for good, for example the
+	last version that worked well, select it and press <kbd>Pin</kbd>. A pinned snapshot is never removed automatically
+	and can't be deleted until you press <kbd>Unpin</kbd>.</p>
+
+<h5 id="delete">Delete</h5>
+<p>Select a snapshot, press <kbd>Delete…</kbd> and confirm. The snapshot's folder is removed from disk; this can't be
+	undone. Pinned snapshots can't be deleted; unpin them first.</p>
+
+<h5 id="retention">Retention</h5>
+<p>So the folder doesn't grow forever, the app keeps the newest 50 snapshots and removes those older than 60 days.
+	Pinned snapshots are always kept and don't count toward the 50. Old snapshots are removed each time a new one is
+	taken.</p>
+
+<h5 id="folder">The backups folder</h5>
+<p><kbd>Open folder</kbd> opens the selected snapshot's folder in File Explorer, or the backups folder if none is
+	selected. Each snapshot is a plain copy of your files, so you can also open or copy them from there.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<ul>
+	<li><strong><i>No personal config to back up</i>.</strong> Explorer reads the shared configuration in the program
+		folder, which the app never writes to, so there is nothing to snapshot. Press <kbd>Create personal config</kbd>.</li>
+	<li><strong><i>No snapshots yet</i>.</strong> One is taken before every save. Press <kbd>Create snapshot now</kbd> to
+		make the first one.</li>
+	<li><strong>The menu stopped working after a change.</strong> Restore the newest snapshot taken before that change.
+		Its reason tells you which page or file the change came from.</li>
+	<li><strong><i>Couldn't restore the snapshot</i>.</strong> A file may be open in another program that locks it. Close
+		that program and try again.</li>
+</ul>

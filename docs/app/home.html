@@ -1,0 +1,159 @@
+<h4>Home</h4>
+<br>
+<p>Home is the page the app opens on. It answers one question: is Shell working for you? It shows whether Shell is
+	registered, which configuration it reads, the latest errors from its log, and buttons for the common fixes.</p>
+<p>The app reads all of this through <a href="/docs/command-line#status"><code>shell -status</code></a>, so it shows the
+	same state the command line reports. Press <kbd>Refresh</kbd> at the top right to read it again, for example after
+	you changed something outside the app.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-dark.png" width="1120" height="562"
+		alt="The Home page in the dark theme">
+	<figcaption>Home: Shell registered for all users, with the classic Windows 11 menu, reading a personal <code>shell.nss</code>.</figcaption>
+</figure>
+
+<h5 id="status">Status</h5>
+<p>The left card sums up the state in one line, with a green, yellow or red icon:</p>
+<table class="table">
+	<tr><td class="w-25">Shell is active</td><td>Everything is in order. The line below says for whom: just you, or every
+		user on this PC.</td></tr>
+	<tr><td>Shell is not enabled</td><td>Shell isn't registered for you or for all users, so Explorer shows its normal
+		menu. See <a href="#warnings">Warnings and fixes</a>.</td></tr>
+	<tr><td>shell.dll is missing</td><td>Shell is registered, but the file it points to is gone (often a deleted or moved
+		portable folder).</td></tr>
+	<tr><td>The config file is missing</td><td>Shell can't build its menu without <code>shell.nss</code>.</td></tr>
+	<tr><td>Two copies of Shell are registered</td><td>Another Nilesoft Shell is registered as well. See
+		<a href="#conflict">Another copy is registered</a>.</td></tr>
+</table>
+<p>Under it:</p>
+<ul>
+	<li><strong>Registration:</strong> <i>Registered for you</i>, <i>Registered for all users</i>, both, or
+		<i>Not registered</i>.</li>
+	<li><strong>Windows 11 menu:</strong> <i>Classic menu (set by Shell)</i> means right-click opens Shell's menu
+		directly. <i>Windows 11 menu; Shell is under "Show more options"</i> means you first get the Windows 11 menu.
+		<i>Set by another app</i> means another program turned on the classic menu. On Windows 10 this line says it doesn't
+		apply.</li>
+	<li><strong>Shell DLL:</strong> the <code>shell.dll</code> Explorer loads. It is red when the file doesn't exist.</li>
+	<li><strong>Version:</strong> the version of <code>shell.exe</code>, and <i>(running as administrator)</i> if you
+		started the app that way.</li>
+</ul>
+
+<h5 id="registration">Registration</h5>
+<p>Shell works once it is registered with Explorer. There are two kinds, and you can have either or both:</p>
+<ul>
+	<li><strong>For you</strong> (per user): only your Windows account. No administrator rights needed. Use
+		<i>Register for me</i> on this page.</li>
+	<li><strong>For all users</strong> (machine-wide): everyone who signs in to this PC. This is what the MSI does, and it
+		needs administrator rights. Use <a href="/docs/app/preferences#all-users">Preferences</a>.</li>
+</ul>
+<p>When both exist, your own registration wins for your account. That's useful for testing a portable copy, but it also
+	means you stop getting the all-users copy and its updates until you unregister for yourself.</p>
+
+<h5 id="active-config">Active config</h5>
+<p>The right card shows which <code>shell.nss</code> Shell builds its menu from, and where it was found:</p>
+<ul>
+	<li><strong>Personal (%APPDATA%)</strong>: your own copy in <code>%APPDATA%\Nilesoft\Shell</code>. This is what you
+		want: it needs no administrator rights to change and it survives updates.</li>
+	<li><strong>Shared (install folder)</strong>: the default in the program folder. The app never writes there. Press
+		<kbd>Use per-user config</kbd> to make your personal copy
+		(<a href="/docs/command-line#config"><code>shell -config:init</code></a>); Shell switches to it right away.</li>
+	<li><strong>Custom path (registry)</strong>: a path set in the registry. The app treats it as your own config.</li>
+</ul>
+<p><kbd>Open folder</kbd> opens the folder in File Explorer with <code>shell.nss</code> selected.</p>
+
+<h5 id="warnings">Warnings and fixes</h5>
+<p>When something needs attention, a banner appears at the top of Home with a button that fixes it:</p>
+<table class="table">
+	<tr><td class="w-25">Shell isn't enabled</td><td><kbd>Enable for me</kbd> registers Shell for your account
+		(<code>shell -register -user</code>).</td></tr>
+	<tr><td>The registered shell.dll is missing</td><td><kbd>Register for me</kbd> registers Shell
+		again.</td></tr>
+	<tr><td>Shell is registered twice</td><td>Both a per-user and an all-users registration exist and point to different
+		files; yours is used. <kbd>Unregister for me</kbd> goes back to the all-users copy.</td></tr>
+	<tr><td>The config file is missing</td><td><kbd>Create personal config</kbd> brings back the default menu in
+		<code>%APPDATA%</code>.</td></tr>
+	<tr><td>You're using the shared config</td><td><kbd>Use per-user config</kbd> makes your personal copy.</td></tr>
+	<tr><td>Couldn't read the Shell status</td><td><kbd>Try again</kbd>. If it keeps failing, the message says what
+		<code>shell.exe</code> reported.</td></tr>
+</table>
+<p>After registering or unregistering, restart Explorer (see <a href="#quick-actions">Quick actions</a>) so every
+	window picks up the change.</p>
+
+<h5 id="conflict">Another copy is registered</h5>
+<p>If another Nilesoft Shell is registered on this PC, for example the original Nilesoft Shell or an old portable copy,
+	Home shows a red banner: <i>Another copy of Nilesoft Shell is registered:</i> followed by its path. Explorer may load
+	that copy instead, and then Shell's menu doesn't appear at all. If the other copy's files were already deleted, the
+	banner says that only its registration is left.</p>
+<p>To fix it:</p>
+<ol>
+	<li>Press <kbd>Fix (needs administrator)</kbd> on the banner.</li>
+	<li>Approve the Windows administrator prompt. The app registers this copy for all users again, which takes the
+		registration back from the other copy, and then restarts Explorer.</li>
+	<li>When it worked, you see <i>Only this copy is registered now</i>.</li>
+</ol>
+<p>If the banner says <i>Another copy is still registered</i>, the other program registered itself again. Uninstall it
+	from <i>Settings &rarr; Apps &rarr; Installed apps</i> (for a portable copy, run <code>shell -unregister</code> from its
+	folder), then press <kbd>Fix</kbd> again. See also <a href="/docs/installation">Installation</a>. If you cancel the
+	administrator prompt, nothing is changed.</p>
+
+<h5 id="quick-actions">Quick actions</h5>
+<table class="table">
+	<tr><td class="w-25">Restart Explorer</td><td>Closes and reopens Explorer for your session, so it loads Shell (or stops
+		loading it). Your files are not affected.</td></tr>
+	<tr><td>Register for me / Unregister for me</td><td>Turns Shell on or off for your account only. With an all-users
+		registration in place, it reads <i>Also register for me</i>, which overrides the all-users copy for you.</td></tr>
+	<tr><td>Open config folder</td><td>Shows <code>shell.nss</code> in File Explorer.</td></tr>
+	<tr><td>Refresh</td><td>Reads the status again.</td></tr>
+</table>
+<p>On Windows 11, <i>Register for me</i> also turns on the classic menu, so right-click opens Shell's menu directly,
+	unless you switched that off in the first-time setup.</p>
+
+<h5 id="diagnostics">Diagnostics</h5>
+<p>The Diagnostics list shows errors and warnings from <code>shell.log</code>, the log next to the active
+	<code>shell.dll</code>, newest first. Each entry has its time and, when Shell knows it, the line and column in your
+	configuration.</p>
+<ul>
+	<li>Click an entry to open that file at that line in the <a href="/docs/app/config-editor">Config Editor</a>.</li>
+	<li><i>Open shell.log</i> opens the whole log (in Notepad if no other program opens <code>.log</code> files).</li>
+	<li><i>No errors or warnings in shell.log</i> means the last load went fine.</li>
+</ul>
+<p>The log keeps old entries. If you already fixed an error, check its time before you go looking for it.</p>
+
+<h5 id="first-run-setup">First-time setup</h5>
+<p>The app opens a three-step setup when Shell isn't enabled yet or Explorer still reads the shared configuration. Use
+	<kbd>Next</kbd> and <kbd>Back</kbd> to move between the steps.</p>
+<ol>
+	<li><strong>Personal config.</strong> Press <kbd>Create personal config</kbd>. A green line then shows the path,
+		for example <code>%APPDATA%\Nilesoft\Shell\shell.nss</code>.</li>
+	<li><strong>Enable.</strong> Press <kbd>Enable for me</kbd>. On Windows 11, leave <i>Use the classic context menu on
+		Windows 11</i> on to get Shell's menu straight away, or turn it off to keep the Windows 11 menu and find Shell under
+		<i>Show more options</i>. If Shell is already enabled for all users, there is nothing to do; <i>Register it for my
+		account as well</i> is there only if you want your own registration.</li>
+	<li><strong>Look.</strong> Pick <i>Auto</i>, <i>Modern</i>, <i>Classic</i>, <i>White</i> or <i>Black</i>. Press
+		<kbd>Restart Explorer</kbd> once after enabling Shell, then <kbd>Finish</kbd>. Finish checks the configuration and
+		saves the theme. <i>More themes on the Appearance page</i> finishes and opens
+		<a href="/docs/app/appearance">Appearance</a>.</li>
+</ol>
+<p><kbd>Skip setup</kbd> (or <kbd>Esc</kbd>) closes it and drops a theme you picked but didn't save. Either way the setup
+	isn't shown again on its own. To go through it again, click <i>Run first-time setup again</i> at the bottom of Home.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/home-light.png" width="1120" height="562"
+		alt="The Home page in the light theme">
+	<figcaption>The same page in the light theme. The app follows the Windows app mode unless you pick a theme in
+		<a href="/docs/app/preferences#app-theme">Preferences</a>.</figcaption>
+</figure>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<ul>
+	<li><strong><i>shell.exe was not found</i>.</strong> The app looks for <code>shell.exe</code> next to itself. Keep
+		<code>NilesoftShellPro.exe</code> in the program folder, or reinstall.</li>
+	<li><strong>Home says Shell is active, but right-click shows the normal menu.</strong> Press <kbd>Restart
+		Explorer</kbd>. On Windows 11, check the <i>Windows 11 menu</i> line: if Shell is under <i>Show more options</i>,
+		register again for yourself with the classic menu on, or use <a href="/docs/app/behavior">Behavior</a>.</li>
+	<li><strong>The menu disappeared after you edited a file by hand.</strong> Look at Diagnostics: a parse error turns the
+		whole Shell menu off. Click the error to fix it in the Config Editor, or restore the last working version from
+		<a href="/docs/app/backups">Backups</a>.</li>
+	<li><strong><i>The administrator prompt was cancelled. Nothing was changed.</i></strong> Press the button again and
+		choose <i>Yes</i> in the Windows prompt.</li>
+</ul>
