@@ -1,1 +1,131 @@
-<h4>Context Menus</h4><p>PLACEHOLDER</p>
+<h4 id="_top">Context Menus</h4>
+<br>
+<p>The Context Menus page turns whole parts of Shell's menu on or off: the bundled menus such as Terminal or Go to,
+	and the rules that hide, move or rename Windows' own items. Each one has a switch, so you can try a change without
+	editing any file. Nothing is deleted: turning something off comments its line out, and turning it back on gives you
+	the original text.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/context-menus-dark.png" width="1120" height="760"
+		alt="The Context Menus page">
+	<figcaption>Context Menus: the bundled modules and the rules for Windows' own items, each with an on/off switch.</figcaption>
+</figure>
+
+<h5 id="modules">Turn a module on or off</h5>
+<p>A module is a file that <code>shell.nss</code> imports. Each one adds a menu or a group of settings. The
+	<strong>Modules</strong> list shows them in the order <code>shell.nss</code> imports them:</p>
+<table class="table">
+	<tr><td class="w-25">Theme</td><td>Colors, fonts, spacing and effects of the menu. Off: Shell's built-in
+		defaults.</td></tr>
+	<tr><td>Icons</td><td>The <code>icon.*</code> images the other files draw with. Always on: turning it off breaks
+		them.</td></tr>
+	<tr><td>Windows items</td><td>Hides, moves and groups Windows' own items. Each rule is listed under
+		<a href="#rules">Rules for Windows items</a>.</td></tr>
+	<tr><td>Terminal</td><td>Command Prompt, PowerShell and Windows Terminal, opened in the current folder.</td></tr>
+	<tr><td>File manage</td><td>Copy paths, change extension, select, take ownership, attributes, new folder and
+		file.</td></tr>
+	<tr><td>Develop</td><td>Open in an editor, dotnet commands. Shown while <kbd>Shift</kbd> is held.</td></tr>
+	<tr><td>Go to</td><td>Jump to common folders and Windows Settings pages.</td></tr>
+	<tr><td>Taskbar</td><td>Apps, window arrangement and Task Manager on the taskbar's menu.</td></tr>
+	<tr><td>My tools</td><td>Copy, New file and System menus from Abdullah Masood's config.</td></tr>
+	<tr><td>Your menus</td><td>The menus and items you built on the <a href="/docs/app/menu-builder">Menu Builder</a>
+		page. Listed once you have saved there.</td></tr>
+	<tr><td>Open with</td><td>Editors and terminals you picked on the <a href="/docs/app/open-with">Open with</a> page.
+		Listed once you have saved there.</td></tr>
+</table>
+<p>Any other file your <code>shell.nss</code> imports is listed too, by its file name, as <i>Imported from
+	&lt;path&gt;</i>. The settings written by the Appearance and Behavior pages are not a module and aren't listed.</p>
+<p>To turn a module off:</p>
+<ol>
+	<li>Turn off its switch. A small dot next to the name marks the change, and the top of the page shows how many files
+		changed.</li>
+	<li>Click <kbd>Save</kbd>. <kbd>Discard</kbd> undoes the changes you haven't saved.</li>
+	<li>Right-click again to see the menu without it.</li>
+</ol>
+<p>The file name at the right of each row (for example <code>imports/goto.nss</code>) opens that line in the Config
+	Editor.</p>
+
+<h5 id="rules">Turn a rule for Windows' own items on or off</h5>
+<p>Shell can't remove Windows' own items from your PC, but its configuration can hide, move or rename them in Shell's
+	menu. Those instructions are <a href="/docs/configuration/modify-items">modify and remove</a> rules. <strong>Rules
+	for Windows items</strong> lists every one in your configuration, grouped by file, in plain words:</p>
+<ul>
+	<li>what it does, such as <i>Hide</i>, <i>Move to “Pin/Unpin”, at the bottom</i> or <i>Rename to …</i>;</li>
+	<li>which items it applies to, such as <i>Restore previous versions, Cast to device</i>;</li>
+	<li>when it applies, such as <i>any selection</i> or <i>Recycle bin</i>.</li>
+</ul>
+<p>The bundled <code>imports/modify.nss</code> has eight rules. For example, one hides <i>Restore previous
+	versions</i> and <i>Cast to device</i>, and two others group the Pin and Unpin items into a <i>Pin/Unpin</i>
+	submenu.</p>
+<ol>
+	<li>Find the rule and turn its switch off to stop it. The Windows item it hid comes back, or the item it moved
+		returns to its usual place.</li>
+	<li>Click <kbd>Save</kbd>.</li>
+	<li>Right-click again to check the result.</li>
+</ol>
+<p><i>line 12</i> at the right of a rule opens the file at that line in the Config Editor.</p>
+<p>The <a href="/docs/app/open-with">Open with</a> page writes <code>remove</code> rules too, for the items it
+	hides, and they are listed here under <code>imports/settings-app-openwith.nss</code>. Change those on the Open with
+	page: it rewrites its file each time you save there.</p>
+
+<h5 id="read-only">Why some switches can't be used</h5>
+<p>A greyed-out switch means the page can't turn that line on or off safely. The reason is shown under the rule, or in
+	the module's description:</p>
+<table class="table">
+	<tr><td class="w-25">Icons is always on</td><td>The other modules draw their icons with it. Turning it off would
+		break them.</td></tr>
+	<tr><td><i>Read-only</i></td><td>The file is the shared configuration in the program folder, or it is outside your
+		configuration folder. Program Files is never written to. If Explorer uses the shared configuration, the page
+		offers <kbd>Create personal config</kbd>, a copy in <code>%APPDATA%\Nilesoft\Shell</code> you can
+		change.</td></tr>
+	<tr><td><i>Inside a menu</i></td><td>The rule is written inside a <code>menu</code> block. The page only switches
+		rules written at the top level of a file.</td></tr>
+	<tr><td><i>Shares a line with other code</i></td><td>Something else is on the same line, so commenting out the line
+		would turn that off too. The same goes for a module whose import shares its line, or spans several
+		lines.</td></tr>
+	<tr><td><i>Complex: edit it in the Config Editor</i></td><td>The rule uses a condition the page can't put into plain
+		words, such as <code>sel.count &gt; 2</code>. It shows the condition, and <i>Items matching an expression</i>
+		when it can't tell which items are affected.</td></tr>
+</table>
+<p>To change one of these, click its line link and edit it in the Config Editor.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>For the curious: turning something off puts <code>// </code> in front of its lines, which makes Shell skip them.
+	A module's import line in <code>shell.nss</code>:</p>
+<pre><code class="lang-shell">// import 'imports/goto.nss'</code></pre>
+<p>A rule that spans several lines gets <code>// </code> on each one:</p>
+<pre><code class="lang-shell">// modify(mode=mode.multiple
+// 	where=this.id(id.restore_previous_versions,id.cast_to_device)
+// 	vis=vis.remove)</code></pre>
+<p>Turning it back on removes exactly those characters, so the file is the same as before, byte for byte. Nothing else
+	in the file changes.</p>
+
+<h5 id="saved">Where your changes are saved</h5>
+<ul>
+	<li>Unlike the Menu Builder and Open with pages, this page has no file of its own. It changes the files the lines are
+		in: <code>shell.nss</code> for modules, and the file of each rule, such as <code>imports\modify.nss</code>. Only
+		files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are changed.</li>
+	<li>Before writing, the configuration is checked with
+		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. If it would fail to load, nothing is
+		written and a message says what is wrong and where.</li>
+	<li>Each save first takes a snapshot in <a href="/docs/settings-app#backups">Backups</a>, named after the changes,
+		for example <i>Context Menus: turn off Go to</i>. To undo a saved change, restore the snapshot from before it, or
+		simply turn the switch back on and save.</li>
+</ul>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<table class="table">
+	<tr><td class="w-25">The menu didn't change</td><td>Close the menu and right-click again. If it still looks the
+		same, use <strong>Restart Explorer</strong> on the Home page.</td></tr>
+	<tr><td>A Windows item is still there after turning a rule on</td><td>The rule may apply only in some places, such
+		as a multiple selection or the Recycle bin; the line under the rule says when. Windows can also show the item
+		under a different name than the rule looks for.</td></tr>
+	<tr><td>My Menu Builder items or Open with items disappeared</td><td><i>Your menus</i> or <i>Open with</i> is turned
+		off in Modules. Turn it back on and save.</td></tr>
+	<tr><td><i>Not saved: the config would fail to load</i></td><td>Another part of the configuration has an error that
+		the change brings out. The message names the file and line; fix it in the Config Editor, or click
+		<kbd>Discard</kbd>.</td></tr>
+	<tr><td>The page doesn't show a rule I added by hand</td><td>Only <code>modify</code> and <code>remove</code> rules
+		are listed. If you added it while the page was open, save or discard your changes here,
+		then switch to another page and back.</td></tr>
+</table>
