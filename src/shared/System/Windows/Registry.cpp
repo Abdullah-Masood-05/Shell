@@ -10,6 +10,29 @@
 #include "Registry.h"
 */
 
+namespace
+{
+	// RegSetValueEx: for REG_SZ / REG_EXPAND_SZ, cbData must include the
+	// terminating null; a null lpData must have cbData 0. So a null pointer is
+	// zero bytes and an empty string is one terminator. Writing L"" with
+	// cbData 0 stored a REG_SZ with no terminator at all.
+	// False if the byte count does not fit the DWORD the API takes.
+	// https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regsetvalueexw
+	bool string_value_bytes(const wchar_t *value, size_t length, DWORD &bytes)
+	{
+		bytes = 0;
+		if(!value)
+			return true;
+
+		constexpr size_t limit = (static_cast<size_t>(MAXDWORD) / sizeof(wchar_t)) - 1;
+		if(length > limit)
+			return false;
+
+		bytes = static_cast<DWORD>((length + 1) * sizeof(wchar_t));
+		return true;
+	}
+}
+
 namespace Nilesoft
 {
 	using namespace Text;
@@ -497,14 +520,12 @@ CString Registry::GetDataAsString(CRegKey& key, const RegistryItem& item) {
 
 	bool RegistryKey::SetString(const wchar_t* name, const wchar_t* value, size_t length, bool expand) const
 	{
-		if(value && *value && length > 0)
-		{
-			length++;
-			length *= sizeof(wchar_t);
-		}
+		DWORD bytes = 0;
+		if(!string_value_bytes(value, length, bytes))
+			return false;
 
 		uint32_t type = expand ? REG_EXPAND_SZ : REG_SZ;
-		return SetValue(name, type, (LPBYTE)value, length);
+		return SetValue(name, type, (LPBYTE)value, bytes);
 	}
 
 	bool RegistryKey::SetString(const wchar_t* name, const wchar_t* value, bool expand) const
@@ -659,9 +680,15 @@ CString Registry::GetDataAsString(CRegKey& key, const RegistryItem& item) {
 	bool Registry::SetKeyValue(HKEY hkey, const wchar_t* subKey, const wchar_t* name,
 							 const wchar_t* value, size_t length, bool expand)
 	{
+		// The terminator is part of the value (see string_value_bytes); reg.set()
+		// writes through here, and its strings used to arrive unterminated.
+		DWORD bytes = 0;
+		if(!string_value_bytes(value, length, bytes))
+			return false;
+
 		return SetKeyValue(hkey, subKey, name,
 								   expand ? REG_EXPAND_SZ : REG_SZ,
-									   (LPBYTE)value, length * sizeof(wchar_t));
+									   (LPBYTE)value, bytes);
 	}
 
 	bool Registry::SetKeyValue(HKEY hkey, const wchar_t* subKey, const wchar_t* name, const wchar_t* value, bool expand)
