@@ -17,13 +17,16 @@ menu(mode="multiple" title=loc.develop vis=key.shift() sep=sep.bottom image=\uE2
 		$vscode_user = user.localappdata + '\Programs\Microsoft VS Code\Code.exe'
 		$vscode_machine = sys.prog + '\Microsoft VS Code\Code.exe'
 		$vscode = if(path.exists(vscode_user), vscode_user, if(path.exists(vscode_machine), vscode_machine, ''))
-		item(where=length(vscode) > 0 title='Visual Studio Code' image=[\uE272, #22A7F2] cmd=vscode args='"@sel.path"')
+		item(where=length(vscode) > 0 and !(str.end(sel.raw, '.library-ms') or str.end(sel.path, '.library-ms')) title='Visual Studio Code' image=[\uE272, #22A7F2] cmd=vscode args='"@sel.path"')
 		separator
 		item(type='file' mode="single" title=loc.windows_notepad image cmd='@sys.bin\notepad.exe' args='"@sel.path"')
 	}
 
-	// Only when the .NET SDK/runtime is installed (machine-wide or per-user).
-	menu(where=path.exists(sys.prog + '\dotnet\dotnet.exe') || path.exists(user.localappdata + '\Microsoft\dotnet\dotnet.exe')
+	// Only when the .NET SDK/runtime is installed (machine-wide or per-user),
+	// and not on a library (Documents, Pictures, ... under Libraries): that is
+	// a .library-ms file, not a folder, so nothing can run in it. The same
+	// goes for Visual Studio Code above.
+	menu(where=!(str.end(sel.raw, '.library-ms') or str.end(sel.path, '.library-ms')) and (path.exists(sys.prog + '\dotnet\dotnet.exe') || path.exists(user.localappdata + '\Microsoft\dotnet\dotnet.exe'))
 		mode="multiple" title='dotnet' image=\uE143)
 	{
 		item(title='run' cmd-line='/K dotnet run' image=\uE149)

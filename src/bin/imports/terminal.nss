@@ -1,4 +1,7 @@
-menu(type='*' where=(sel.count or wnd.is_taskbar or wnd.is_edit) title=title.terminal sep=sep.top image=icon.run_with_powershell)
+// Not on a library (Documents, Pictures, ... under Libraries): it is a
+// .library-ms file, not a folder, so a terminal cannot start in it.
+menu(type='*' where=(sel.count or wnd.is_taskbar or wnd.is_edit) and !(str.end(sel.raw, '.library-ms') or str.end(sel.path, '.library-ms'))
+	title=title.terminal sep=sep.top image=icon.run_with_powershell)
 {
 	$tip_run_admin=["\xE1A7 Press [SHIFT key] or [RIGHT-CLICK] to run " + this.title + " as administrator", tip.warning, 1.0]
 	$has_admin=key.shift() or key.rbutton()
