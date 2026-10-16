@@ -23,8 +23,12 @@
 		item(title=loc.none image=icon.select_none cmd=command.select_none)
 	}
 
+	// Runs elevated, so takeown makes the administrator account the owner. With
+	// a standard account that is a different user: grant Administrators and the
+	// signed-in user full control, then hand ownership to the signed-in user.
+	// @user.name is filled in here, before elevation, so it names that user.
 	item(type='file|dir|back.dir|drive' title=loc.take_ownership image=[\uE194,#f00] admin
-		cmd args='/K takeown /f "@sel.path" @if(sel.type==1,null,"/r /d y") && icacls "@sel.path" /grant *S-1-5-32-544:F @if(sel.type==1,"/c /l","/t /c /l /q")')
+		cmd args='/K takeown /f "@sel.path" @if(sel.type==1,null,"/r /d y") && icacls "@sel.path" /grant *S-1-5-32-544:F "@user.name":F @if(sel.type==1,"/c /l","/t /c /l /q") && icacls "@sel.path" /setowner "@user.name" @if(sel.type==1,"/c /l","/t /c /l /q")')
 	separator
 	menu(title=loc.show_hide image=icon.show_hidden_files)
 	{
