@@ -133,7 +133,7 @@ TEST_CASE("config graph: the shipped configuration")
 
 	// The locale-specific lang import is an if(...) expression.
 	REQUIRE(g.unresolved().size() == 1);
-	CHECK(g.unresolved()[0].line == 27);
+	CHECK(g.unresolved()[0].line == 30);
 
 	CHECK(g.find("theme.name")->effective().value == "\"modern\"");
 	CHECK(g.find("theme.name")->effective().file.filename() == "theme.nss");

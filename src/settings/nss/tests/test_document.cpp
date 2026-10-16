@@ -93,7 +93,7 @@ TEST_CASE("the shipped shell.nss parses into the expected tree")
 		if(n.kind == NodeKind::Opaque && !n.path.empty() && n.path[0] == '$') vars++;
 	}
 	CHECK(menus == 2);
-	CHECK(vars == 3);
+	CHECK(vars == 4);	// $loc_path, $loc_lang, $loc_zh, $loc_base
 }
 
 TEST_CASE("menus, props and children are parsed")
