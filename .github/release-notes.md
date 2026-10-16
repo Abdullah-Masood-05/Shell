@@ -18,6 +18,7 @@ This release fixes bugs reported on the original Nilesoft Shell. Each item names
 - Long menu item titles are no longer cut at 259 characters.
 - Commands started from the menu get their own COM apartment and start synchronously, which fixes items that sometimes did nothing.
 - On Windows 11, menus with blur or acrylic get the system's smooth rounded corners. (#141)
+- Clicking an item no longer leaves a black block where the item was. Windows fades the clicked item out from a copy of it, which came out black; Shell switches that fade off for the one click again, as the original did.
 
 **Configuration language**
 - The documented `default` item property works: the item is drawn bold. (#188)
