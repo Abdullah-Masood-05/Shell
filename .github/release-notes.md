@@ -68,7 +68,7 @@ Documentation: https://abdullah-masood-05.github.io/Shell/ (see *About this fork
 
 **Setup**
 - Upgrading no longer deletes your `shell.nss`; all language files are installed and picked from your Windows locale.
-- New default menus (Develop, Copy, New file, System) from `imports/develop.nss` and `imports/my-tools.nss`.
+- New default menus (Develop, New file, System) from `imports/develop.nss` and `imports/my-tools.nss`.
 
 ## Install
 

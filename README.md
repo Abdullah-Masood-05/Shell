@@ -60,7 +60,7 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
   and Norwegian (`nb-NO`, `nn-NO`) loads `no.nss`.
 - **Setup.** Upgrading with the installer no longer deletes your `shell.nss`, and unregistering always removes the
   Windows 11 redirect.
-- **Default configuration.** The default `shell.nss` adds the *Develop*, *Copy*, *New file* and *System* menus from
+- **Default configuration.** The default `shell.nss` adds the *Develop*, *New file* and *System* menus from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config)
   (`imports/develop.nss`, `imports/my-tools.nss`). Items for programs that are not installed are hidden.
 - **The Nilesoft Shell Pro app.** A desktop app for checking the installation, editing the configuration and restoring

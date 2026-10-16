@@ -1,5 +1,5 @@
 /*
-	My Tools: Copy, New file and System menus
+	My Tools: New file and System menus
 
 	By Abdullah Masood (@Abdullah-Masood-05), from
 	https://github.com/Abdullah-Masood-05/nilesoft-shell-config
@@ -8,7 +8,7 @@
 
 	Changes from the original:
 	  - titles go through loc.* (English strings in imports/lang/en.nss)
-	  - Copy is mode="multiple", so "Copy N paths" shows for a multi-selection
+	  - the Copy menu is left out: File manage > Copy path covers it
 	  - empty entries (no extension, no parent) are hidden
 	  - New file no longer truncates an existing file of the same name
 	  - Restart Explorer uses the built-in command.restart_explorer
@@ -17,43 +17,6 @@
 	Icons: icon.<name> come from imports/images.nss; image.mdl(\uXXXX) is a
 	"Segoe MDL2 Assets" glyph; a #rrggbb value draws a colour chip.
 */
-
-
-//---------------------------- COPY ----------------------------
-menu(mode="multiple" type='file|dir|back' title=loc.tools_copy image=icon.copy)
-{
-	// Multi-select: every selected path, one per line
-	item(where=sel.count > 1 title=loc.tools_copy_paths
-		cmd=command.copy(sel(false, "\n")))
-
-	// Full path
-	item(mode="single" title=sel.path
-		cmd=command.copy(sel.path))
-
-	// Quoted path ("C:\...") ready to paste into a terminal
-	item(mode="single" title=sel.path.quote
-		cmd=command.copy(sel.path.quote))
-
-	separator
-
-	// Name with extension
-	item(mode="single" type='file|dir' title=sel.name
-		cmd=command.copy(sel.name))
-
-	// Name without extension
-	item(mode="single" type='file' where=sel.file.ext.len > 0 title=sel.title
-		cmd=command.copy(sel.title))
-
-	// Extension only
-	item(mode="single" type='file' where=sel.file.ext.len > 0 title=sel.file.ext
-		cmd=command.copy(sel.file.ext))
-
-	separator
-
-	// Parent folder path
-	item(mode="single" where=sel.parent.len > 0 title=sel.parent
-		cmd=command.copy(sel.parent))
-}
 
 
 //----------------------- NEW FILE -----------------------------
