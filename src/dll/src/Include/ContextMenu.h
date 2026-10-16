@@ -132,6 +132,8 @@ namespace Nilesoft
 				long height{};
 				bool visible{};
 				HBITMAP hbitmap{};
+				// Windows 11 DWM rounds this window's corners, no SetWindowRgn
+				bool dwm_corner{};
 
 				void destroy()
 				{
@@ -141,6 +143,7 @@ namespace Nilesoft
 						::DeleteObject(hbitmap);
 					handle = {};
 					hbitmap = {};
+					dwm_corner = false;
 				}
 
 				bool create(long x, long y, long width, long height, HWND hOwner, uint32_t ex_style = 0)

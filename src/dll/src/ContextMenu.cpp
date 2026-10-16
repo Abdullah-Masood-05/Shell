@@ -5690,7 +5690,7 @@ namespace Nilesoft
 					SetWindowPos(wnd->blurry.handle, nullptr, wnd->x, wnd->y, wnd->width, wnd->height, flags);
 				}
 
-				if(_theme.border.radius > 0)
+				if(_theme.border.radius > 0 && !wnd->blurry.dwm_corner)
 				{
 					auto border = _theme.border.size;
 					auto w = wnd->width - border - border;
@@ -5747,12 +5747,29 @@ namespace Nilesoft
 							_theme.background.effect = 2;
 					}
 
+					// Windows 11: let DWM round the blur/acrylic backdrop. Its corners are
+					// anti-aliased, unlike SetWindowRgn's (moudey/Shell#141). DWM has only two
+					// sizes, 4px (small) and 8px, so larger radii keep the region, which stays
+					// inside the rounded frame drawn on the layer window.
+					if(_theme.border.radius > 0 && _theme.border.radius <= dpi(8) && ver->IsWindows11OrGreater())
+					{
+						DWM corner(blurry->handle);
+						auto pref = _theme.border.radius <= dpi(4) ? DWM::Corner::RoundSmall : DWM::Corner::Round;
+						if(SUCCEEDED(corner.SetCorner(pref)))
+						{
+							// no system border: the frame is drawn on the layer window
+							const COLORREF color_none = 0xFFFFFFFE; // DWMWA_COLOR_NONE
+							corner.SetBorderColor(color_none);
+							blurry->dwm_corner = true;
+						}
+					}
+
 					uint32_t tintColor = _theme.background.tintcolor;
 
 					if(_theme.background.effect == 2) // blur effect 
 					{
 						accent.state = accent.BlurBehind;
-						if(_theme.border.radius > 0)
+						if(_theme.border.radius > 0 && !blurry->dwm_corner)
 							accent.flags = accent.AllowSetWindowRgn;
 					}
 					else if(_theme.background.effect >= 3) // acrylic effect 
@@ -5760,7 +5777,7 @@ namespace Nilesoft
 						// Windows 10 build 17134
 						accent.state = accent.AcrylicBlurBehind;
 						accent.flags = accent.Luminosity;
-						if(_theme.border.radius > 0)
+						if(_theme.border.radius > 0 && !blurry->dwm_corner)
 							accent.flags |=accent.AllowSetWindowRgn;
 
 						if(tintColor == 0)
