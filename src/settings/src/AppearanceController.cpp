@@ -75,7 +75,7 @@ const std::vector<std::vector<ItemSpec>> kDesktopSubs = {
       { "Auto arrange icons", "" }, { "Show desktop icons", "" } },
     { { "Name", "" }, { "Size", "" }, { "Item type", "" }, { "Date modified", "" } },
     { { "Command prompt", "" }, { "PowerShell", "" }, { "Windows Terminal", "" } },
-    { { "Copy path", "" }, { "Take ownership", "" }, { "Attributes", "", 6 }, kSep,
+    { { "Change extension", "" }, { "Take ownership", "" }, { "Attributes", "", 6 }, kSep,
       { "New folder", "" }, { "New file", "" } },
     { { "Visual Studio Code", "" }, { "Git Bash", "" }, { "Open in editor", "", -1, true } },
     { { "Folder", "" }, { "Text document", "" }, { "Shortcut", "" } },
@@ -94,7 +94,7 @@ const std::vector<ItemSpec> kExplorer = {
 };
 const std::vector<std::vector<ItemSpec>> kExplorerSubs = {
     { { "Notepad", "" }, { "Word", "" }, kSep, { "Choose another app", "" } },
-    { { "Copy path", "" }, { "Take ownership", "" }, { "Attributes", "" }, kSep,
+    { { "Change extension", "" }, { "Take ownership", "" }, { "Attributes", "" }, kSep,
       { "New folder", "" }, { "New file", "" } },
 };
 

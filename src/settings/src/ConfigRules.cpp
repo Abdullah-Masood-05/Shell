@@ -46,7 +46,7 @@ constexpr KnownModule kKnown[] = {
     { "modify", "Windows items", "Hides, moves and groups Windows' own items. Each rule is listed below.", nullptr },
     { "terminal", "Terminal", "Command Prompt, PowerShell and Windows Terminal, opened in the current folder.", nullptr },
     { "file-manage", "File manage",
-      "Copy paths, change extension, select, take ownership, attributes, new folder and file.", nullptr },
+      "Change extension, select, take ownership, attributes, new folder and file.", nullptr },
     { "develop", "Develop", "Open in an editor, dotnet commands. Shown while Shift is held.", nullptr },
     { "goto", "Go to", "Jump to common folders and Windows Settings pages.", nullptr },
     { "taskbar", "Taskbar", "Apps, window arrangement and Task Manager on the taskbar's menu.", nullptr },
