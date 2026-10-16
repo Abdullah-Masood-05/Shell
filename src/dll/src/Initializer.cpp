@@ -690,8 +690,12 @@ namespace Nilesoft
 
 			ldmenu2(user32, {
 				{
-					1, {{ IDENT_ID_INSERT_UNICODE_CONTROL_CHARACTER, 32787, {L'\uE14e'} }}
-				},
+					// the edit control menu (e.g. the File Explorer rename box)
+					1, {
+					{ IDENT_ID_INSERT_UNICODE_CONTROL_CHARACTER, 32787, {L'\uE14e'} },
+					{ IDENT_ID_RIGHT_TO_LEFT_READING_ORDER, 32768 },
+					{ IDENT_ID_SHOW_UNICODE_CONTROL_CHARACTERS, 32769 },
+				}},
 				{ 
 					16, {
 					{ IDENT_ID_MINIMIZE, 61472 },
@@ -712,6 +716,11 @@ namespace Nilesoft
 
 			ldstr(user32, {
 				{IDENT_ID_RECONVERSION, 705, {L'\uE096'}},
+				// added to the edit control menu when an IME is installed
+				{IDENT_ID_OPEN_IME, 700},
+				{IDENT_ID_CLOSE_IME, 701},
+				{IDENT_ID_OPEN_SOFT_KEYBOARD, 702},
+				{IDENT_ID_CLOSE_SOFT_KEYBOARD, 703},
 			});
 
 			//IDENT_ID_FILE_EXPLORER OPTIONS 22985
@@ -814,10 +823,12 @@ namespace Nilesoft
 				{IDENT_ID_SELECT, 49927} //shell32/menu/260/0
 			});
 
-			/*ldstr(L"unregmp2.exe", {
+			// the Enqueue/Play verbs' MUIVerb (SystemFileAssociations\audio\shell),
+			// "Add to Windows Media Player Legacy list" / "Play with ..." on Windows 11
+			ldstr(L"unregmp2.exe", {
 				{IDENT_ID_ADD_TO_WINDOWS_MEDIA_PLAYER_LIST, 9800},
 				{IDENT_ID_PLAY_WITH_WINDOWS_MEDIA_PLAYER, 9801},
-			});*/
+			});
 
 			ldstr(L"display.dll", { {IDENT_ID_DISPLAY_SETTINGS, 4} });
 			ldstr(L"themecpl.dll", { {IDENT_ID_PERSONALIZE, 10} });
