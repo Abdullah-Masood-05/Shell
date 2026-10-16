@@ -74,6 +74,7 @@ namespace nss
 				add("theme.font.name", ValueType::String);
 				add("theme.font.weight", ValueType::Number, 1, 9, true);
 				add("theme.font.italic", ValueType::Bool);
+				add("theme.font.quality", ValueType::Number, 0, 6, true);
 				add("theme.item.text", ValueType::Color);
 				addStates("theme.item.text", false);
 				add("theme.item.text.align", ValueType::Number);

@@ -244,6 +244,16 @@ namespace Nilesoft
 			//int view = -1;
 			int view2 = 0;
 			LOGFONTW font{};
+			// theme.font.quality as given (a LOGFONT lfQuality value), -1 when not set
+			int fontQuality = -1;
+
+			// ClearType (theme.font.quality = 5 or 6) needs an opaque background:
+			// effect = 0 forces the background color to full opacity.
+			bool cleartype() const
+			{
+				return (fontQuality == CLEARTYPE_QUALITY || fontQuality == CLEARTYPE_NATURAL_QUALITY)
+					&& background.effect == 0;
+			}
 
 			bool enableTransparency{};
 			bool systemUsesLightTheme = true;

@@ -1660,14 +1660,26 @@ namespace Nilesoft
 				hdcPaint = hdc;
 			if(hdcPaint)
 			{
-				bp.clear();
+				// ClearType (theme.font.quality 5/6) on an opaque background with
+				// opaque text: draw over a copy of what is already there, without
+				// DTT_COMPOSITED (which forces grayscale), then make the buffer
+				// opaque. Otherwise the old composited path. (moudey/Shell#776)
+				bool opaque = _theme.cleartype() && color.a == 0xFF;
+				if(opaque && hdcPaint != hdc)
+					::BitBlt(hdcPaint, rc->left, rc->top, rc->width(), rc->height(), hdc, rc->left, rc->top, SRCCOPY);
+				else
+					bp.clear();
 				//::SetTextColor(hdcPaint, color);
 				//::SetBkMode(hdcPaint, TRANSPARENT);
 				auto hFontOld = ::SelectObject(hdcPaint, hFont);
-				DTTOPTS dttOpts = { sizeof(DTTOPTS),  DTT_COMPOSITED | DTT_TEXTCOLOR, color.to_BGR() };
+				DTTOPTS dttOpts = { sizeof(DTTOPTS), DTT_TEXTCOLOR, color.to_BGR() };
+				if(!opaque)
+					dttOpts.dwFlags |= DTT_COMPOSITED;
 				//::SetTextAlign(hdcPaint, TA_BASELINE | TA_UPDATECP);
 				::DrawThemeTextEx(_hTheme, hdcPaint, 0, 0, text, length, format, const_cast<Rect *>(rc), &dttOpts);
 				::SelectObject(hdcPaint, hFontOld);
+				if(opaque && hdcPaint != hdc)
+					bp.set_alpha(0xFF);
 			}
 		}
 
@@ -1739,6 +1751,9 @@ namespace Nilesoft
 			_tip.hide(!draw_entire);
 
 			D2D d2d2;
+			// ClearType text in Direct2D needs an opaque DC render target.
+			if(_theme.cleartype())
+				d2d2.alphaMode = D2D1_ALPHA_MODE_IGNORE;
 			d2d2.init_res();
 			d2d2.begin(di->hDC, *rc);
 
@@ -1993,7 +2008,12 @@ namespace Nilesoft
 					auto tf = d2d2.createTextFormat(_theme.font.lfFaceName, std::abs(_theme.font.lfHeight));
 					if(tf)
 					{
-						d2d2.render->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE::D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
+						auto aa_mode = D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE;
+						if(_theme.cleartype())
+							aa_mode = D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE;
+						else if(_theme.fontQuality == NONANTIALIASED_QUALITY)
+							aa_mode = D2D1_TEXT_ANTIALIAS_MODE_ALIASED;
+						d2d2.render->SetTextAntialiasMode(aa_mode);
 						tf->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 						tf->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 						tf->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
@@ -3692,7 +3712,7 @@ namespace Nilesoft
 			long font_size = -1;
 
 			struct {
-				Object name, size, weight, italic;
+				Object name, size, weight, italic, quality;
 			}__font;
 
 			// font
@@ -3705,6 +3725,7 @@ namespace Nilesoft
 					obj.get(2, __font.name);
 					obj.get(3, __font.weight);
 					obj.get(4, __font.italic);
+					obj.get(5, __font.quality);
 				}
 				else if(obj.is_number())
 					__font.size = obj.move();
@@ -3719,6 +3740,7 @@ namespace Nilesoft
 
 			_context.eval_number(th->font.weight, __font.weight);
 			_context.eval_number(th->font.italic, __font.italic);
+			_context.eval_number(th->font.quality, __font.quality);
 
 			_theme.font = {};
 
@@ -3794,6 +3816,20 @@ namespace Nilesoft
 
 			if(__font.italic.not_default())
 				_theme.font.lfItalic = __font.italic.to_bool();
+
+			// theme.font.quality: a LOGFONT lfQuality value (0 default, 3 no
+			// antialiasing, 4 grayscale, 5 ClearType, 6 ClearType natural).
+			// Not set keeps the old grayscale text. (moudey/Shell#776)
+			_theme.fontQuality = -1;
+			if(__font.quality.not_default())
+			{
+				int quality = __font.quality.to_number<int>();
+				if(quality >= DEFAULT_QUALITY && quality <= CLEARTYPE_NATURAL_QUALITY)
+				{
+					_theme.fontQuality = quality;
+					_theme.font.lfQuality = static_cast<BYTE>(quality);
+				}
+			}
 
 			if(font_size >= 6)
 			{

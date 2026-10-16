@@ -317,6 +317,8 @@ namespace Nilesoft
 
 			HDC _hdc = nullptr;
 			RECT _rect{};
+			// D2D1_ALPHA_MODE_IGNORE for ClearType text on an opaque background
+			D2D1_ALPHA_MODE alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
 			
 			D2D()
 			{
@@ -351,7 +353,9 @@ namespace Nilesoft
 			{
 				if(init() && !render)
 				{
-					D2D1Factory->CreateDCRenderTarget(&props, &render);
+					auto p = props;
+					p.pixelFormat.alphaMode = alphaMode;
+					D2D1Factory->CreateDCRenderTarget(&p, &render);
 				}
 				return render;
 			}

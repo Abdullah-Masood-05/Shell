@@ -147,6 +147,7 @@ namespace Nilesoft
 					auto_expr size;
 					auto_expr weight;
 					auto_expr italic;
+					auto_expr quality;
 				} font;
 
 				struct

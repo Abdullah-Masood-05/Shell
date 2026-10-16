@@ -492,6 +492,7 @@ namespace Nilesoft
 
 		constexpr auto IDENT_FONT_WEIGHT = 0x24D3EA4DU;
 		constexpr auto IDENT_FONT_ITALIC = 0x0536D35BU;
+		constexpr auto IDENT_FONT_QUALITY = 0x1638500EU;
 
 		// Path
 		constexpr auto IDENT_REMOVE_ARGS = 0x5E446F9FU;
