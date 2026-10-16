@@ -3709,7 +3709,7 @@ namespace Nilesoft
 				switch(Id[1])
 				{
 					case IDENT_DELETE:
-						_result = Path::Delete(arg0);
+						_result = Path::Delete(arg0, argc > 1 && bool(eval_arg(1)));
 						break;
 					case IDENT_COPY:
 					{

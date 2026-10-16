@@ -925,14 +925,64 @@ namespace Nilesoft
 				return (attr != UINT32_MAX && (attr & FILE_ATTRIBUTE_DIRECTORY));
 			}
 
-			static bool Delete(const std::wstring_view &path)
+			// Deletes a file or an empty directory. With recursive, a directory is
+			// deleted with everything in it (moudey/Shell#788). Links (symlinks,
+			// junctions, mount points) are never followed: the link itself is
+			// removed and its target is left alone. Recursive needs a full path and
+			// never deletes a drive or share root.
+			static bool Delete(const std::wstring_view &path, bool recursive = false)
 			{
 				auto attr = ::GetFileAttributesW(path.data());
 				if(IsFile(attr))
 					return ::DeleteFileW(path.data()) != 0;
 				else if(IsDirectory(attr))
+				{
+					if(recursive && !(attr & FILE_ATTRIBUTE_REPARSE_POINT))
+					{
+						// only a full path, and never a drive or share root
+						if(::PathIsRelativeW(path.data()) || ::PathIsRootW(path.data()))
+							return false;
+						DeleteDirectoryContents(std::wstring(path));
+					}
 					return ::RemoveDirectoryW(path.data()) != 0;
+				}
 				return false;
+			}
+
+			// Removes everything inside dir, depth first. Reparse points are removed
+			// as links (RemoveDirectoryW / DeleteFileW on the link), not descended
+			// into. Failures are left for the final RemoveDirectoryW to report.
+			static void DeleteDirectoryContents(std::wstring dir)
+			{
+				if(dir.empty())
+					return;
+				if(dir.back() != L'\\' && dir.back() != L'/')
+					dir.push_back(L'\\');
+
+				WIN32_FIND_DATAW fd{};
+				HANDLE hFind = ::FindFirstFileExW((dir + L'*').c_str(), FindExInfoBasic, &fd,
+												  FindExSearchNameMatch, nullptr, FIND_FIRST_EX_LARGE_FETCH);
+				if(hFind == INVALID_HANDLE_VALUE)
+					return;
+				do
+				{
+					if((fd.cFileName[0] == L'.' && fd.cFileName[1] == 0) ||
+					   (fd.cFileName[0] == L'.' && fd.cFileName[1] == L'.' && fd.cFileName[2] == 0))
+						continue;
+
+					auto child = dir + fd.cFileName;
+					if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+					{
+						if(!(fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+							DeleteDirectoryContents(child);
+						::RemoveDirectoryW(child.c_str());
+					}
+					else
+					{
+						::DeleteFileW(child.c_str());
+					}
+				} while(::FindNextFileW(hFind, &fd));
+				::FindClose(hFind);
 			}
 
 			static bool SafeDeleteFile(const std::wstring_view &path)

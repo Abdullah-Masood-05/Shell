@@ -70,9 +70,15 @@ default = update_existing | recursive<br><br>
 
 <section id="io.delete" class="my-5">
 	<h5>io.delete</h5>
-	<p>Deletes an existing path.</p>
+	<p>Deletes a file or a folder. Returns true if the path was deleted.</p>
+	<p>By default a folder is deleted only when it is empty. Pass <code>true</code> (or <code>1</code>) as the second argument to delete the folder with everything in it. Items are deleted permanently, not moved to the Recycle Bin.</p>
+	<p>With the second argument, the path must be a full path, and a drive or network share root is never deleted. Links (symbolic links, junctions) are not followed: the link itself is deleted and the folder it points to is left alone.</p>
 	<p>Syntax</p>
-	<code>io.delete(path)</code>
+	<code>io.delete(path)</code><br>
+	<code>io.delete(path, recursive)</code>
+	<br><br>
+	Example:<br>
+	<code>io.delete('C:\Temp\old-logs', true)</code>
 </section>
 
 <section id="io.directory.create" class="my-5">

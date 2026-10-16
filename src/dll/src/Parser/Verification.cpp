@@ -819,7 +819,7 @@ namespace Nilesoft
 					switch(id[1])
 					{
 						case IDENT_DELETE:
-							return check(argc == 1, 1);
+							return check(argc == 1 || argc == 2, 1);
 						case IDENT_COPY:
 							return check(argc == 2 || argc == 3, 1);
 						case IDENT_MOVE:
