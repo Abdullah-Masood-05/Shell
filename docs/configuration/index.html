@@ -96,18 +96,18 @@ menu ( property-name = property-value   ... )
 	locations..</p>
 <h5 id="import-syntax">Syntax</h5>
 <p>The general syntax is as follows:</p>
-<pre><code class="lang-shell">import %path%</code></pre>
+<pre><code class="lang-shell">import %path%
+%section% import %path%
+import lang %path%</code></pre>
 <p>Where</p>
 <ul>
-	<li id="import-syntax-section"><code>%section%</code> is the name of a section. Optional. If given, it must be one
-		of
-		<ul>
-			<li>settings</li>
-			<li>themes</li>
-			<li>modify-items</li>
-			<li>new-items</li>
-		</ul>
-		The section name is written literally, without any quotes (or the percent signs).
+	<li id="import-syntax-section"><code>%section%</code> is the name of a section. Optional. If given, it must be
+		<code>settings</code> or <code>theme</code>. The section name is written literally, without any quotes (or the
+		percent signs), and it comes <strong>before</strong> <code>import</code>: <code>settings import %path%</code>, not
+		<code>import settings %path%</code>.
+	</li>
+	<li id="import-syntax-lang"><code>lang</code> (or <code>loc</code>), written right after <code>import</code>, imports a
+		language file: lines of <code>name="text"</code> that titles use as <code>loc.name</code>.
 	</li>
 	<li id="import-syntax-path"><code>%path%</code> is a <a href="/docs/expressions/string">string</a> literal, that returns the path to the
 		config file that shall be imported. This can be a relative path to the location of the file where the import tag is used, or it can be an absolute path. Expressions are
@@ -119,55 +119,40 @@ menu ( property-name = property-value   ... )
 	<code>%section%</code> is given:</p>
 <ul>
 	<li>Import an entire section</li>
-	<li>Import as a partial:</li>
+	<li>Import as a partial</li>
 </ul>
 
 <h5 id="import-section">Import an entire section</h5>
 <pre><code class="lang-shell">// import an entire section
-import %path%
+%section% import %path%
 </code></pre>
 In this case, the content of the file found at <code>%path%</code> will be imported into<strong> a newly
-	created</strong> <code>section{}</code>.
+	created</strong> <code>%section%{}</code>.
 The result would then look like so:
 <pre><code class="lang-shell">// import an entire section
-section {
+%section% {
 	/* content of the imported file goes here! Do not include
 	 *
-	 * section {
+	 * %section% {
 	 * }
 	 *
 	 * in your imported file!
 	 */
 }</code></pre>
-<p>This syntax may be used only in the following places: </p>
-<ul>
-	<li><s>root section shell{}: <code>shell import %path%</code></s>
-	</li>
-	<li>the global sections
-		<ul>
-			<li><s>settings{}: <code>import %path%</code></s></li>
-		</ul>
-	</li>
-	<li>
-		sub-sections of the settings{} section:
-		<ul>
-			<li><s>theme.background{}: <code>background import
-				%path%</code></s></li>
-			<li><s>theme.item{}: <code>item import
-				%path%</code></s></li>
-			<li><s>theme.border{}: <code>border import
-				%path%</code></s></li>
-			<li><s>...</s></li>
-			<li><s>settings.tip{}: <code>tip import %path%</code></s></li>
-			<li><s>settings.exclude{}: <code>exclude import
-				%path%</code></s></li>
-			<li><s>settings.modify{}: <code>static import %path%</code></s>
-			</li>
-			<li><s>settings.new{}: <code>dynamic import
-				%path%</code></s></li>
-		</ul>
-	</li>
-</ul>
+<p>For example, with this in <code>imports/my-settings.nss</code>:</p>
+<pre><code class="lang-shell">priority=1
+showdelay=200</code></pre>
+<p>this line in <code>shell.nss</code>:</p>
+<pre><code class="lang-shell">settings import 'imports/my-settings.nss'</code></pre>
+<p>is the same as writing:</p>
+<pre><code class="lang-shell">settings
+{
+	priority=1
+	showdelay=200
+}</code></pre>
+<p>This syntax may be used only at the top level of the configuration, with <code>settings</code> or
+	<code>theme</code>. Sub-sections such as <code>settings.tip</code> or <code>theme.background</code> cannot be
+	imported this way.</p>
 <h5 id="import-partial">Import as a partial</h5>
 <pre><code class="lang-shell">section {
 	// some code might go here. Optional.
