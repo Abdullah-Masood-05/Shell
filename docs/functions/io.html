@@ -134,10 +134,12 @@ default = update_existing | recursive<br><br>
 
 <section id="io.file.create" class="my-5">
 	<h5>io.file.create</h5>
-	<p>Create new file with content option.</p>
+	<p>Create new file with content option. If the file already exists, it is replaced.</p>
+	<p>The optional third argument, when <code>true</code>, selects the new file in the open Explorer window and starts renaming it, the same as Windows' New menu does. This only works when the menu was opened inside an Explorer folder, and the file must be in that folder, given by its name (for example <code>'new.txt'</code>, not a full path). Otherwise the file is still created but not renamed. Pass <code>""</code> as the content to create an empty file and rename it.</p>
 	<p>Syntax</p>
 	<code>io.file.create(path)</code><br>
-	<code>io.file.create(path, "Hello World!")</code>
+	<code>io.file.create(path, "Hello World!")</code><br>
+	<code>io.file.create(path, "", true)</code>
 </section>
 
 <section id="io.file.write" class="my-5">
