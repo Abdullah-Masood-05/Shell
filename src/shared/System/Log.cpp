@@ -105,35 +105,55 @@ namespace Nilesoft
 		hFile = INVALID_HANDLE_VALUE;
 	}
 
+	// Serialises open, write and close-after-write across threads. open() used
+	// to run before this was taken, so two threads could both CreateFileW and
+	// one handle leaked (upstream #715).
+	std::mutex mutex;
+
 	bool Logger::open(const wchar_t *path)
 	{
+		std::lock_guard<std::mutex> lock(mutex);
 		_path = path;
-		return open();
+		return open_locked(CREATE_NEW);
 	}
 
 	bool Logger::reset()
 	{
+		std::lock_guard<std::mutex> lock(mutex);
 		close();
-		return open(CREATE_NEW);
+		return open_locked(CREATE_NEW);
 	}
 
-	bool close_if_not_new = false;
 	bool Logger::open(uint32_t creation)
+	{
+		std::lock_guard<std::mutex> lock(mutex);
+		return open_locked(creation);
+	}
+
+	bool Logger::open_locked(uint32_t creation)
 	{
 		if(hFile != INVALID_HANDLE_VALUE)
 			return true;
 
-		hFile = ::CreateFileW(path().c_str(), GENERIC_WRITE, FILE_SHARE_WRITE,
+		// Every process Shell is loaded into appends to this one file.
+		// FILE_APPEND_DATA without FILE_WRITE_DATA makes each write go to the
+		// end atomically; seek-then-write from separate handles could overwrite
+		// another process's line. Shared for reading (and delete), so the log
+		// can be read while a process holds it open (upstream #715).
+		// https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+		hFile = ::CreateFileW(path().c_str(), FILE_APPEND_DATA | SYNCHRONIZE,
+							  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 							  nullptr, creation,
 							  FILE_ATTRIBUTE_NORMAL, nullptr);
 
 		if(hFile == INVALID_HANDLE_VALUE)
 		{
 			auto error = ::GetLastError();
-			if(error == ERROR_ALREADY_EXISTS ||
-			   error == ERROR_FILE_EXISTS)
+			if(creation != OPEN_EXISTING &&
+			   (error == ERROR_ALREADY_EXISTS ||
+			   error == ERROR_FILE_EXISTS))
 			{
-				return open(OPEN_EXISTING);
+				return open_locked(OPEN_EXISTING);
 			}
 
 			hFile = INVALID_HANDLE_VALUE;
@@ -144,8 +164,10 @@ namespace Nilesoft
 		{
 			Security::Permission::SetFile(path().c_str());
 
+			// An append handle on the new, empty file writes this at offset 0.
+			DWORD written = 0;
 			uint8_t smarker[2] = {0xFF, 0xFE};
-			::WriteFile(hFile, smarker, 2, nullptr, nullptr);
+			::WriteFile(hFile, smarker, 2, &written, nullptr);
 
 			string msg;
 			msg.append(APP_FULLNAME);
@@ -159,23 +181,21 @@ namespace Nilesoft
 			auto ver = &Windows::Version::Instance();
 			msg.append_format(L"\r\n%s, version %s\r\n", ver->Name.c_str(), ver->BuildNumber.c_str());
 			msg.append_format(L"%s\r\n", string(80, '-').c_str());
-			close_if_not_new = false;
-			_write(LogLevel::Write, msg.c_str());
+			::WriteFile(hFile, msg.c_str(), uint32_t(msg.length() * sizeof(wchar_t)), &written, nullptr);
 		}
-		close_if_not_new = true;
-		::SetFilePointer(hFile, 0, nullptr, FILE_END);
+		// No seek: an append handle always writes at the end.
+		_close_after_write = true;
 		return true;
 	}
-
-	std::mutex mutex;
 
 	bool Logger::_write(LogLevel logLevel, const wchar_t *message, ...)
 	{
 		auto result = false;
-		if(Muted || !message || !open()) return result;
+		if(Muted || !message) return result;
 
-		// Waiting for output access.
+		// Waiting for output access; the file is opened under the same lock.
 		std::lock_guard<std::mutex> lock(mutex);
+		if(!open_locked(CREATE_NEW)) return result;
 		string msg;
 
 		va_list argList;
@@ -201,11 +221,12 @@ namespace Nilesoft
 			else if(logLevel == LogLevel::Warning)
 				::MessageBeep(MB_ICONWARNING);
 #endif
+			DWORD written = 0;
 			result =::WriteFile(hFile, str.c_str(),
-							   uint32_t(str.length() * sizeof(wchar_t)), nullptr, nullptr);
+							   uint32_t(str.length() * sizeof(wchar_t)), &written, nullptr);
 		}
 
-		if(close_if_not_new)
+		if(_close_after_write)
 			this->close();
 
 		return result;

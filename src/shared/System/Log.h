@@ -149,7 +149,12 @@ public:
 		// every process the DLL is mapped into, most of which never log.
 		mutable string _path;
 		HANDLE hFile = INVALID_HANDLE_VALUE;
+		// Set once a handle is open: _write closes it again after each message.
+		bool _close_after_write = false;
 		//Logger() = default;
+
+		// open() without taking the write lock; the caller holds it.
+		bool open_locked(uint32_t creation);
 
 	public:
 		Logger() = default;
