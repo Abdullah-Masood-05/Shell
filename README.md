@@ -57,7 +57,8 @@ The full list, with credits, is on [About this fork](https://abdullah-masood-05.
 - **Auto-reload.** The configuration reloads when `shell.nss` or any file it imports changes. A configuration with an
   error is tried again once it has been saved again. No Explorer restart is needed after editing.
 - **Languages.** All language files are installed, the language follows your Windows locale with a fallback to English,
-  and Norwegian (`nb-NO`, `nn-NO`) loads `no.nss`.
+  Norwegian (`nb-NO`, `nn-NO`) loads `no.nss`, Chinese for Hong Kong and Macao (`zh-HK`,
+  `zh-MO`) loads `zh-TW.nss` and any other Chinese locale loads `zh-CN.nss`.
 - **Setup.** Upgrading with the installer no longer deletes your `shell.nss`, and unregistering always removes the
   Windows 11 redirect.
 - **Default configuration.** The default `shell.nss` adds the *Develop*, *New file* and *System* menus from

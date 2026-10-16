@@ -22,7 +22,10 @@
 $loc_path=app.dir + '\imports\lang\'
 $loc_lang=if(str.contains(sys.lang, '-'), str.left(sys.lang, str.find(sys.lang, '-')), sys.lang)
 // Norwegian: Windows reports nb-NO (Bokmal) or nn-NO (Nynorsk); the file is no.nss
-$loc_base=if(loc_lang == 'nb' || loc_lang == 'nn', 'no', loc_lang)
+// Chinese: Hong Kong, Macao and zh-Hant-* read Traditional (zh-TW.nss); every other
+// zh-* (zh-SG, zh-Hans-*, plain zh) reads Simplified (zh-CN.nss)
+$loc_zh=if(str.contains(sys.lang, 'Hant') || (!str.contains(sys.lang, 'Hans') && (str.contains(sys.lang, '-HK') || str.contains(sys.lang, '-MO'))), 'zh-TW', 'zh-CN')
+$loc_base=if(loc_lang == 'nb' || loc_lang == 'nn', 'no', if(loc_lang == 'zh', loc_zh, loc_lang))
 import lang loc_path + "en.nss"
 import lang if(path.exists(loc_path + sys.lang + ".nss"),
                loc_path + sys.lang + ".nss",
