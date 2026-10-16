@@ -741,21 +741,21 @@ namespace Nilesoft
 						case IDENT_LEN:
 						case IDENT_LENGTH:
 						{
-							_result = 0;
+							// is_empty is 1 unless the clipboard holds non-empty text (#515).
+							_result = Id[1] == IDENT_IS_EMPTY ? 1 : 0;
 							if(Text::Clipboard::IsFormatAvailable(CF_UNICODETEXT))
 							{
 								if(::OpenClipboard(nullptr))
 								{
 									if(auto hglb = ::GetClipboardData(CF_UNICODETEXT); hglb)
 									{
-										if(Id[1] == IDENT_IS_EMPTY)
+										if(auto lptstr = (const wchar_t *)::GlobalLock(hglb); lptstr)
 										{
-											_result = !hglb;
-										}
-										else if(auto lptstr = (const wchar_t *)::GlobalLock(hglb); lptstr)
-										{
-											_result = string::Length(lptstr);
-											//ReplaceSelection(hwndSelected, pbox, lptstr);
+											auto len = string::Length(lptstr);
+											if(Id[1] == IDENT_IS_EMPTY)
+												_result = len == 0;
+											else
+												_result = len;
 											::GlobalUnlock(hglb);
 										}
 									}
