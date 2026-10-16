@@ -779,7 +779,8 @@ in = "Sort By"</code></pre>
 			<td>st, ni</td>
 			<td>
 				<p>Specifies that the <a href="/docs/configuration/dynamic#item">item</a> is the default. A <a href="/docs/configuration/dynamic#menu">menu</a> can contain only one default
-					menuitem, which is <strong>displayed in bold</strong>.</p>
+					menuitem, which is <strong>displayed in bold</strong>. If more than one item in the same menu sets it, only the first one is used.</p>
+				<p>Accepts <code>true</code>/<code>false</code> or an expression, for example <code>default=sel.count==1</code>. Writing <code>default</code> on its own means <code>default=true</code>.</p>
 				Default = <span class="syntax-keyword">false</span>
 			</td>
 		</tr>

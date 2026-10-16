@@ -555,6 +555,7 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			struct {
 				HFONT handle{};
+				HFONT bold{};	// default (MFS_DEFAULT) items
 				LOGFONTW menu{};
 				Font icon;
 				Font icon10;

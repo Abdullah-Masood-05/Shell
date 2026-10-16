@@ -260,6 +260,7 @@ namespace Nilesoft
 					case MENU_WAIT:
 					case MENU_INVOKE:
 					case MENU_CHECKED:
+					case MENU_DEFAULT:
 						return check(1, auto_signer);
 
 					case MENU_ARG:

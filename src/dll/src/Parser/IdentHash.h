@@ -68,6 +68,7 @@ namespace Nilesoft
 		constexpr auto MENU_FIND = 0x7C96CB66U;
 		constexpr auto MENU_IN = 0x0059783CU;
 		constexpr auto MENU_CHECKED = 0xC279666CU;
+		constexpr auto MENU_DEFAULT = 0x0885548AU;
 		constexpr auto MENU_TEXT = 0x7C9E690AU;
 		constexpr auto MENU_TITLE = 0x106DAA27U;
 

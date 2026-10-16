@@ -516,6 +516,10 @@ namespace Nilesoft
 							}
 						}
 
+						// default=true: the menu's default item, drawn bold (moudey/Shell#188)
+						if(item->is_item() && item->is_default && _context.eval_number<int>(item->is_default, 0))
+							mii->fState |= MFS_DEFAULT;
+
 						mii->separator = (int)_context.parse_separator(item->separator);
 						mii->column = _context.eval_number<int>(item->column, 0);
 						mii->type = NativeMenuType::Item;
@@ -717,6 +721,10 @@ namespace Nilesoft
 						}
 					}
 				}
+
+				// default=true on a modify rule: the menu's default item, drawn bold (moudey/Shell#188)
+				if(item->type == 0 && si->is_default && _context.eval_number<int>(si->is_default, 0))
+					mii->fState |= MFS_DEFAULT;
 
 				bool image_disabled_by_checked = mii->is_checked() && _theme.image.display == 0;
 
@@ -1435,9 +1443,20 @@ namespace Nilesoft
 
 			// insert items to native menu
 			int i = 0, x = 0;
+			bool has_default = false;
 			for(auto item : items)
 			{
 				item->remove_bitmap();
+
+				// a menu has at most one default item: keep the first one
+				if(item->fState & MFS_DEFAULT)
+				{
+					if(has_default || item->is_separator())
+						item->fState &= ~MFS_DEFAULT;
+					else
+						has_default = true;
+				}
+
 				item->add_ownerdraw();
 				item->handle = hMenu;
 				item->size = {};
@@ -1475,7 +1494,15 @@ namespace Nilesoft
 							if(item->column == 1)
 								menu->draw.width = 0;
 
-							dc.measure(item->title, item->title.length(), &rc, DT_NOCLIP | _theme.text.prefix);
+							if((item->fState & MFS_DEFAULT) && font.bold)
+							{
+								// the default item is drawn bold, so measure it bold
+								auto old_font = ::SelectObject(dc, font.bold);
+								dc.measure(item->title, item->title.length(), &rc, DT_NOCLIP | _theme.text.prefix);
+								::SelectObject(dc, old_font);
+							}
+							else
+								dc.measure(item->title, item->title.length(), &rc, DT_NOCLIP | _theme.text.prefix);
 
 							if(!item->keys.empty())
 							{
@@ -2513,16 +2540,19 @@ namespace Nilesoft
 					rcText.top = rc->top - dpi(1);
 					rcText.bottom = rc->bottom;
 
+					// the menu's default item (MFS_DEFAULT) is drawn bold, like Windows does
+					auto text_font = ((mii->fState & MFS_DEFAULT) && font.bold) ? font.bold : font.handle;
+
 					if(mii->tab <= 0 && mii->keys.empty())
 					{
-						draw_string(dc, font.handle, &rcText, clrtext, mii->title, mii->title.length<int>(), (mii->tab < 0 ? DT_LEFT : DT_RIGHT) | txtfmt);
+						draw_string(dc, text_font, &rcText, clrtext, mii->title, mii->title.length<int>(), (mii->tab < 0 ? DT_LEFT : DT_RIGHT) | txtfmt);
 					}
 					else
 					{
 						auto ds = [&](const string &left, const string &right)
 						{
 							if(!left.empty())
-								draw_string(dc, font.handle, &rcText, clrtext, left, left.length<int>(), DT_LEFT | txtfmt);
+								draw_string(dc, text_font, &rcText, clrtext, left, left.length<int>(), DT_LEFT | txtfmt);
 
 							if(!right.empty())
 							{
@@ -3905,6 +3935,11 @@ namespace Nilesoft
 				_theme.font.lfHeight *= -1;
 
 			font.handle = ::CreateFontIndirectW(&_theme.font);
+			{
+				LOGFONTW lf_bold = _theme.font;
+				lf_bold.lfWeight = FW_BOLD;
+				font.bold = ::CreateFontIndirectW(&lf_bold);
+			}
 
 			font.icon10.Name = font.icon.Name;
 			font.icon10.Size =int( _theme.image.size * 0.70);
@@ -4794,6 +4829,11 @@ namespace Nilesoft
 				if(font.handle) {
 					::DeleteObject(font.handle);
 					font.handle = nullptr;
+				}
+
+				if(font.bold) {
+					::DeleteObject(font.bold);
+					font.bold = nullptr;
 				}
 
 				if(hCursor)

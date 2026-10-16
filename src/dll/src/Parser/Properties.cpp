@@ -734,6 +734,9 @@ namespace Nilesoft
 						case MENU_CHECKED:
 							menu->checked = id.signer ? expr.release() : new NumberExpression(1);
 							break;
+						case MENU_DEFAULT:
+							menu->is_default = id.signer ? expr.release() : new NumberExpression(1);
+							break;
 						case MENU_COLUMN:
 						case MENU_COL:
 							menu->column = id.signer ? expr.release() : new NumberExpression(1);
@@ -881,7 +884,7 @@ namespace Nilesoft
 				m_last_ident.expr = nullptr;
 				Ident id;
 				parse_property_ident(id);
-				id.signer = expect_assign(!id.equals(0, { MENU_SEP, MENU_SEPARATOR }));
+				id.signer = expect_assign(!id.equals(0, { MENU_SEP, MENU_SEPARATOR, MENU_DEFAULT }));
 
 				prevCol = l->column;
 
@@ -968,6 +971,15 @@ namespace Nilesoft
 						else if(action != IDENT_REMOVE)
 						{
 							item->checked = new NumberExpression(1);
+							item->properties++;
+						}
+						break;
+					case MENU_DEFAULT:
+						if(id.signer)
+							_parse_expression(item->is_default, action == IDENT_REMOVE);
+						else if(action != IDENT_REMOVE)
+						{
+							item->is_default = new NumberExpression(1);
 							item->properties++;
 						}
 						break;
