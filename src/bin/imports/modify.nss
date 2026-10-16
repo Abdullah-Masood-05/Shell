@@ -9,8 +9,7 @@ modify(type="recyclebin" where=window.is_desktop and this.id==id.empty_recycle_b
 modify(find="unpin*" pos="bottom" menu="Pin/Unpin")
 modify(find="pin*" pos="top" menu="Pin/Unpin")
 
-// Windows' "Copy as path" is hidden: My Tools > Copy does the same job
-modify(mode=mode.multiple where=this.id==id.copy_as_path vis=vis.remove)
+modify(where=this.id==id.copy_as_path menu="file manage")
 modify(type="dir.back|drive.back" where=this.id==id.customize_this_folder pos=1 sep="top" menu="file manage")
 
 modify(where=str.equals(this.name, ["open in terminal", "open linux shell here"]) || this.id==id.open_powershell_window_here
