@@ -351,12 +351,19 @@ struct taskbar_t
 				*/
 				if(elem.name && elem.type && elem.id)
 				{
-					if(!::lstrcmpiW(elem.id, L"TaskbarFrame"))
-						ret = !::lstrcmpiW(elem.name, L"") && !::lstrcmpiW(elem.type, L"Taskbar.TaskbarFrameAutomationPeer");
+					// UIA identifiers, not user text: compare ordinally, not with
+					// the locale-sensitive lstrcmpiW.
+					auto equals = [](const wchar_t *a, const wchar_t *b)
+					{
+						return ::CompareStringOrdinal(a, -1, b, -1, TRUE) == CSTR_EQUAL;
+					};
+
+					if(equals(elem.id, L"TaskbarFrame"))
+						ret = !*elem.name && equals(elem.type, L"Taskbar.TaskbarFrameAutomationPeer");
 					else if(is_secondary(hTaskbar))
 					{
-						if(!::lstrcmpiW(elem.id, L"SystemTrayIcon"))
-							ret = !::lstrcmpiW(elem.type, L"SystemTray.OmniButton");
+						if(equals(elem.id, L"SystemTrayIcon"))
+							ret = equals(elem.type, L"SystemTray.OmniButton");
 						//_log.info(L"id=[%s],\t[%s], [%s]", elem.id, elem.type, elem.name);
 					}
 				}
