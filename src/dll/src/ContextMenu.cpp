@@ -4198,6 +4198,18 @@ namespace Nilesoft
 							{
 								moveto.trim(L'/');
 
+								// Menu paths are built from normalized titles (no '&'
+								// accelerator, no trailing dots), so menu=loc.develop
+								// ("&Develop") or a translated title with an accelerator
+								// has to be normalized the same way to find its menu.
+								if(moveto.contains(L'&') || moveto.ends_with(L'.'))
+								{
+									string normalized;
+									MenuItemInfo::normalize(moveto, &normalized);
+									if(!normalized.empty())
+										moveto = normalized.trim(L'/').move();
+								}
+
 								if(!moveto.equals(item->path))
 								{
 									item->path = moveto.move();
