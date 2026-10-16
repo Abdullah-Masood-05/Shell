@@ -404,9 +404,9 @@ namespace Nilesoft
 							{
 								*uid = it;
 								MENUITEMINFOW mii{ sizeof(mii), MIIM_STRING };
-								mii.dwTypeData = uid->title.buffer(MAX_PATH);
-								mii.cch = MAX_PATH;
-								if(::GetMenuItemInfoW(hMenu, uid->res_id, false, &mii) && mii.cch > 0)
+								auto read = read_menu_text(hMenu, uid->res_id, FALSE, &mii,
+														   [uid](UINT count) { return uid->title.buffer(count + 1); });
+								if(read && mii.cch > 0)
 								{
 									uid->title.release(mii.cch);
 									uid->set_hash();

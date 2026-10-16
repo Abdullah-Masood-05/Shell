@@ -166,6 +166,47 @@ namespace Nilesoft
 		}; 
 		//IMEMENUITEMINFOW
 		constexpr auto MF_NOITEM = 0xFFFFFFFFU;
+
+		// Reads a menu item's string with the documented two-call pattern: size it
+		// with dwTypeData = nullptr, then fill a buffer of cch + 1. A fixed MAX_PATH
+		// buffer silently cut titles at 259 characters.
+		// `allocate(count)` must return a buffer of at least count + 1 characters.
+		// Other fMask bits the caller set are filled as usual. On failure cch is 0.
+		// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmenuiteminfow
+		template<typename Allocate>
+		inline bool read_menu_text(HMENU hMenu, UINT item, BOOL byPosition, MENUITEMINFOW *mii, Allocate allocate)
+		{
+			mii->fMask |= MIIM_STRING;
+			mii->dwTypeData = nullptr;
+			mii->cch = 0;
+
+			if(!::GetMenuItemInfoW(hMenu, item, byPosition, mii))
+			{
+				mii->cch = 0;
+				return false;
+			}
+
+			// Not a string item, or an empty string: nothing more to read.
+			if(mii->cch == 0)
+				return true;
+
+			auto buffer = allocate(mii->cch);
+			if(!buffer)
+			{
+				mii->cch = 0;
+				return false;
+			}
+
+			mii->dwTypeData = buffer;
+			mii->cch += 1;
+
+			if(!::GetMenuItemInfoW(hMenu, item, byPosition, mii))
+			{
+				mii->cch = 0;
+				return false;
+			}
+			return true;
+		}
 		
 		struct MenuItemInfo : public MENUITEMINFOW
 		{
@@ -388,12 +429,6 @@ namespace Nilesoft
 				dwItemData = reinterpret_cast<uintptr_t>(data);
 			}
 
-			void get_title()
-			{
-				dwTypeData = title.text.buffer(MAX_PATH);
-				cch = MAX_PATH;
-			}
-
 			void set_title(const string &title)
 			{
 				this->title = title;
@@ -550,23 +585,15 @@ namespace Nilesoft
 
 			bool get(HMENU hMenu, int item, bool byPosition = true, bool btitle = false, bool bname = false)
 			{
-				if(btitle)
-				{
-					if(!is_fmask(MIIM_STRING))
-						fMask |= MIIM_STRING;
+				if(!btitle)
+					return ::GetMenuItemInfoW(hMenu, item, byPosition, this) != FALSE;
 
-					dwTypeData = title.text.buffer(MAX_PATH);
-					cch = MAX_PATH;
-				}
+				auto ret = read_menu_text(hMenu, static_cast<UINT>(item), byPosition, this,
+										  [this](UINT count) { return title.text.buffer(count + 1); });
 
-				auto ret = ::GetMenuItemInfoW(hMenu, item, byPosition, this);
-
-				if(btitle)
-				{
-					title.text.release(cch);
-					if(bname && !title.text.empty())
-						normalize();
-				}
+				title.text.release(ret ? cch : 0u);
+				if(bname && !title.text.empty())
+					normalize();
 
 				return ret;
 			}
@@ -1110,9 +1137,8 @@ namespace Nilesoft
 				string title;
 				MenuItemInfo mii(MIIM_STRING);
 				mii.destroy = false;
-				mii.dwTypeData = title.buffer(MAX_PATH);
-				mii.cch = MAX_PATH;
-				if(::GetMenuItemInfoW(_handle, uitem, byPosition, reinterpret_cast<MENUITEMINFOW *>(&mii)))
+				if(read_menu_text(_handle, static_cast<UINT>(uitem), byPosition, reinterpret_cast<MENUITEMINFOW *>(&mii),
+								  [&title](UINT count) { return title.buffer(count + 1); }))
 					return title.release(mii.cch).move();
 				return nullptr;
 			}
@@ -1167,23 +1193,15 @@ namespace Nilesoft
 
 			static bool get(HMENU hMenu, MenuItemInfo *mii, int uitem, bool byPosition = true, bool btitle = false, bool bname = false)
 			{
-				if(btitle)
-				{
-					if((mii->fMask & MIIM_STRING) != MIIM_STRING)
-						mii->fMask |= MIIM_STRING;
+				if(!btitle)
+					return ::GetMenuItemInfoW(hMenu, uitem, byPosition, reinterpret_cast<MENUITEMINFOW *>(mii)) != FALSE;
 
-					mii->dwTypeData = mii->title.text.buffer(MAX_PATH);
-					mii->cch = MAX_PATH;
-				}
+				auto ret = read_menu_text(hMenu, static_cast<UINT>(uitem), byPosition, reinterpret_cast<MENUITEMINFOW *>(mii),
+										  [mii](UINT count) { return mii->title.text.buffer(count + 1); });
 
-				auto ret = ::GetMenuItemInfoW(hMenu, uitem, byPosition, reinterpret_cast<MENUITEMINFOW *>(mii));
-
-				if(btitle)
-				{
-					mii->title.text.release(mii->cch);
-					if(bname && mii->cch > 0)
-						mii->normalize();
-				}
+				mii->title.text.release(ret ? mii->cch : 0u);
+				if(bname && mii->cch > 0)
+					mii->normalize();
 
 				return ret;
 			}
