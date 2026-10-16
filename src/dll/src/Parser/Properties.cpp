@@ -115,6 +115,8 @@ namespace Nilesoft
 
 		bool Parser::parse_property(FileSystemObjects &fso)
 		{
+			// allow spaces between "=" and the quote, e.g. type = 'file' (moudey/Shell#708)
+			skip();
 			error_if(!l->is_quote(), TokenError::OpenQuoteExpected, prevCol);
 
 			auto start_column = l->column, first_col = l->column;// skip the end single quote;
@@ -810,6 +812,8 @@ namespace Nilesoft
 
 		bool Parser::parse_clsid(NativeMenu *item)
 		{
+			// allow spaces between "=" and the quote, e.g. type = 'file' (moudey/Shell#708)
+			skip();
 			error_if(!l->is_quote(), TokenError::OpenQuoteExpected, prevCol);
 
 			auto start_column = l->column, first_col = l->column;// skip the end single quote;
