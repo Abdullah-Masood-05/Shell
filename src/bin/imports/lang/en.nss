@@ -39,6 +39,23 @@ new_file="New File"
 datetime="DateTime"
 guid="Guid"
 
+// goto.nss: Go to > Folder
+goto_windows="Windows"
+goto_system="System"
+goto_program_files="Program Files"
+goto_program_files_x86="Program Files x86"
+goto_programdata="ProgramData"
+goto_applications="Applications"
+goto_users="Users"
+goto_desktop="Desktop"
+goto_downloads="Downloads"
+goto_pictures="Pictures"
+goto_documents="Documents"
+goto_startmenu="Start menu"
+goto_profile="Profile"
+goto_appdata="AppData"
+goto_temp="Temp"
+
 // goto.nss
 folder="Folder"
 all_control_panel_items="All Control Panel Items"
