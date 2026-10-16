@@ -4350,8 +4350,28 @@ namespace Nilesoft
 					_result = Path::GetKnownFolder(FOLDERID_ProgramFilesX86).trim_end(trim).move();
 					break;
 				case IDENT_TEMP:
-					_result = Path::TempDirectory().trim_end(trim).move();
+				{
+					// The machine TEMP, not the user's (that is user.temp) (upstream #508).
+					constexpr auto sub_key = LR"(SYSTEM\CurrentControlSet\Control\Session Manager\Environment)";
+					constexpr DWORD flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND;
+					string temp;
+					DWORD cb = 0;
+					if(ERROR_SUCCESS == ::RegGetValueW(HKEY_LOCAL_MACHINE, sub_key, L"TEMP", flags, nullptr, nullptr, &cb) && cb > sizeof(wchar_t))
+					{
+						string value;
+						auto buf = value.buffer(cb / sizeof(wchar_t) + 1);
+						if(ERROR_SUCCESS == ::RegGetValueW(HKEY_LOCAL_MACHINE, sub_key, L"TEMP", flags, nullptr, buf, &cb))
+						{
+							value.release(string::Length(buf));
+							if(!value.empty())
+								temp = Environment::Expand(value).move();
+						}
+					}
+					if(temp.empty() || temp.contains(L'%'))
+						temp = Environment::Expand(LR"(%SystemRoot%\Temp)").move();
+					_result = temp.trim_end(trim).move();
 					break;
+				}
 				case IDENT_EXTENDED:
 					_result = (::GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 					break;
