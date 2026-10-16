@@ -205,7 +205,7 @@ TEST_CASE("integration: no title is blank with the shipped shell.nss")
 	// (title.<name> strings come from Windows in its display language, so only
 	// loc.* and literal titles are named here.)
 	for(auto title : { "File manage", "&Develop", "Apps", "Windows", "Paint", "Task Manager", "Taskbar Settings",
-					   "Copy", "New file", "System" })
+					   "New file", "System" })
 		CHECK_MESSAGE(t->has(title), title);
 }
 
@@ -288,7 +288,7 @@ TEST_CASE("integration: no title is blank with an older shell.nss that imports n
 	CHECK_MESSAGE(t->count("empty") == 0, t->blanks());
 	// The loc.* titles fall back to imports\lang\en.nss, and the check says so.
 	for(auto title : { "File manage", "&Develop", "Apps", "Windows", "Paint", "Calculator", "Task Manager",
-					   "Taskbar Settings", "Folder", "Copy", "New file" })
+					   "Taskbar Settings", "Folder", "New file" })
 		CHECK_MESSAGE(t->has(title), title);
 	CHECK(t->warns("no imported language file defines"));
 }

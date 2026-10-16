@@ -50,7 +50,7 @@ constexpr KnownModule kKnown[] = {
     { "develop", "Develop", "Open in an editor, dotnet commands. Shown while Shift is held.", nullptr },
     { "goto", "Go to", "Jump to common folders and Windows Settings pages.", nullptr },
     { "taskbar", "Taskbar", "Apps, window arrangement and Task Manager on the taskbar's menu.", nullptr },
-    { "my-tools", "My tools", "Copy, New file and System menus from Abdullah Masood's config.", nullptr },
+    { "my-tools", "My tools", "New file and System menus from Abdullah Masood's config.", nullptr },
     { "settings-app-menus", "Your menus", "The menus and items you built on the Menu Builder page.", nullptr },
     { "settings-app-openwith", "Open with", "Editors and terminals you picked on the Open with page.", nullptr },
 };
