@@ -4962,6 +4962,13 @@ namespace Nilesoft
 		{
 			if(!cm) return;
 
+			// Commands run on this detached worker, which had no COM apartment.
+			// ShellExecuteEx can hand verbs to COM shell extensions, some of which
+			// need an STA, so COM must be initialised first (documented form:
+			// STA | COINIT_DISABLE_OLE1DDE). Balanced in __finally only if it worked.
+			// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexw
+			const auto com_hr = ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
 			__try
 			{
 				auto ctx = &cm->_context;
@@ -5020,6 +5027,8 @@ namespace Nilesoft
 			__finally
 			{
 				delete cm;
+				if(SUCCEEDED(com_hr))
+					::CoUninitialize();
 				//thread::end();
 			}
 		}

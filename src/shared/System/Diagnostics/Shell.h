@@ -112,22 +112,25 @@ namespace Nilesoft
 
 				SHELLEXECUTEINFOW sei = { };
 				sei.cbSize = sizeof(SHELLEXECUTEINFOW);
-				sei.fMask = SEE_MASK_ASYNCOK;
+				// Menu commands run on a worker thread that has no message loop and
+				// ends soon after this returns, so SEE_MASK_NOASYNC is required, or a
+				// DDE launch can be cut off and the item seems to do nothing. The
+				// flags are combined; they used to overwrite each other.
+				// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfow
+				sei.fMask = SEE_MASK_NOASYNC | SEE_MASK_FLAG_NO_UI;
 
 				if(!string::IsNullOrWhiteSpace(verb))
 				{
 					sei.lpVerb = verb;
 					if(string::Equals(verb, m_open_as))
 					{
-						sei.fMask = SEE_MASK_FLAG_DDEWAIT | SEE_MASK_INVOKEIDLIST;
+						sei.fMask |= SEE_MASK_INVOKEIDLIST;
 						openas = true;
 					}
 				}
 
 				if(!openas)
-					sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-
-				sei.fMask |= SEE_MASK_FLAG_NO_UI;
+					sei.fMask |= SEE_MASK_NOCLOSEPROCESS;
 
 				sei.lpFile = f;
 				if(!string::IsNullOrWhiteSpace(parameters))
