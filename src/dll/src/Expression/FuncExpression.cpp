@@ -3706,6 +3706,19 @@ namespace Nilesoft
 				Object obj0 = eval_arg(0).move();
 				string arg0 = obj0.to_string();
 
+				// Relative paths are resolved against the folder the menu was opened in.
+				// That used to come from the process working directory, which Shell no
+				// longer changes (it is shared by every thread in Explorer).
+				auto full = [this](string path) -> string {
+					auto sel = context->Selections;
+					if(!path.empty() && sel && !sel->Directory.empty() && ::PathIsRelativeW(path.c_str()))
+						return Path::Combine(sel->Directory, path).move();
+					return path.move();
+				};
+
+				string name0 = arg0;
+				arg0 = full(arg0);
+
 				switch(Id[1])
 				{
 					case IDENT_DELETE:
@@ -3718,17 +3731,17 @@ namespace Nilesoft
 							co = eval_arg(2).to_number();
 						
 						std::error_code err;
-						std::filesystem::copy(arg0.c_str(), eval_arg(1).to_string().c_str(),
+						std::filesystem::copy(arg0.c_str(), full(eval_arg(1).to_string()).c_str(),
 											  (std::filesystem::copy_options)co, err);
 						_result = err.value() == 0;
-						//_result = ::CopyFileW(arg0.c_str(), eval_arg(1).to_string().c_str(), true);
+						//_result = ::CopyFileW(arg0.c_str(), full(eval_arg(1).to_string()).c_str(), true);
 						break;
 					}
 					case IDENT_MOVE:
-						_result = ::MoveFileW(arg0.c_str(), eval_arg(1).to_string().c_str());
+						_result = ::MoveFileW(arg0.c_str(), full(eval_arg(1).to_string()).c_str());
 						break;
 					case IDENT_RENAME:
-						_result = ::_wrename(arg0.c_str(), eval_arg(1).to_string().c_str()) == 0;
+						_result = ::_wrename(arg0.c_str(), full(eval_arg(1).to_string()).c_str()) == 0;
 						break;
 					case IDENT_FILE:
 					{
@@ -3743,7 +3756,7 @@ namespace Nilesoft
 								if(exists == 0)
 								{
 									for(size_t i = 1; i < argc; i++)
-										exists += (uint32_t)Path::IsFileExists(eval_arg(i).to_string());
+										exists += (uint32_t)Path::IsFileExists(full(eval_arg(i).to_string()));
 								}
 								_result = exists != 0;
 								break;
@@ -3797,7 +3810,7 @@ namespace Nilesoft
 														LPITEMIDLIST pidlFolder = nullptr;
 														if(S_OK == ppf2->GetCurFolder(&pidlFolder))
 														{
-															if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, arg0.data()); pidlCreatedItem)
+															if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
 															{
 																auto dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
 																sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
@@ -3843,7 +3856,7 @@ namespace Nilesoft
 								{
 									creates = ::CreateDirectoryW(arg0.c_str(), nullptr);
 									for(size_t i = 1; i < argc; i++)
-										creates += ::CreateDirectoryW(eval_arg(i).to_string(), nullptr);
+										creates += ::CreateDirectoryW(full(eval_arg(i).to_string()), nullptr);
 
 									auto sel = context->Selections;
 									if(creates == 1 && sel && sel->ShellBrowser)
@@ -3861,7 +3874,7 @@ namespace Nilesoft
 													LPITEMIDLIST pidlFolder = nullptr;
 													if(S_OK == ppf2->GetCurFolder(&pidlFolder))
 													{
-														if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, arg0.data()); pidlCreatedItem)
+														if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
 														{
 															DWORD dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
 															sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
@@ -3891,7 +3904,7 @@ namespace Nilesoft
 							{
 								auto empties = (uint32_t)Path::IsDirectoryEmpty(arg0);
 								for(size_t i = 1; i < argc; i++)
-									empties += (uint32_t)Path::IsDirectoryEmpty(eval_arg(i).to_string());
+									empties += (uint32_t)Path::IsDirectoryEmpty(full(eval_arg(i).to_string()));
 								_result = empties != 0;
 								break;
 							}
@@ -3901,7 +3914,7 @@ namespace Nilesoft
 								if(exists == 0)
 								{
 									for(size_t i = 1; i < argc; i++)
-										exists += (uint32_t)Path::IsDirectoryExists(eval_arg(i).to_string());
+										exists += (uint32_t)Path::IsDirectoryExists(full(eval_arg(i).to_string()));
 								}
 								_result = exists != 0;
 								break;
