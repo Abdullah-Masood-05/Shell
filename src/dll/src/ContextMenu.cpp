@@ -4293,6 +4293,20 @@ namespace Nilesoft
 			menu->source_count = itmes_count;
 			menu->items.reserve(itmes_count);
 
+			// Duplicates are items with the same title that different shell
+			// extensions add to one context menu. A notification-area icon's menu
+			// is built by one program and can repeat a title on purpose: the
+			// Safely Remove Hardware icon (owned by SystemTray_Main) lists one
+			// "Eject <device>" per drive, and two drives can share a name
+			// (upstream #583, #494). Leave those menus as they are.
+			bool remove_duplicate = _settings.modify_items.remove.duplicate;
+			if(remove_duplicate)
+			{
+				auto owner = ::GetAncestor(hwnd.owner, GA_ROOTOWNER);
+				if(Window::class_name(owner ? owner : hwnd.owner).equals(L"SystemTray_Main"))
+					remove_duplicate = false;
+			}
+
 			for(int i = 0; i < itmes_count; i++)
 			{
 				int found_duplicate = 0;
@@ -4357,7 +4371,7 @@ namespace Nilesoft
 								}
 							}
 
-							if(_settings.modify_items.remove.duplicate)
+							if(remove_duplicate)
 							{
 								// indexof has to advance with the scan; it used to be
 								// incremented after the loop, so it was always 0 and a
