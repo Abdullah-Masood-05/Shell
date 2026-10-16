@@ -291,6 +291,11 @@
 	<p>These keys are used when you press <kbd>right-click</kbd> or press <kbd>Shift</kbd>+<kbd>F10</kbd> keys</p>
 	<kbd>CTRL</kbd> To enable and reload the configuration file <code>shell.nss</code><br/>
 	<kbd>WIN</kbd> To make priority to the modern context menu for Windows 11<br>
-	<kbd>CTRL</kbd>+<kbd>WIN</kbd> To disable Shell and Enable Classic Context Menu<br>
+	<kbd>CTRL</kbd>+<kbd>WIN</kbd> To turn Shell off in File Explorer until Explorer restarts<br>
 	<kbd>RIGHT-CLICK</kbd>+<kbd>LEFT-CLICK</kbd> To reload the configuration file <code>shell.nss</code><br/>
+	<p class="mt-3">The right-click made with <kbd>CTRL</kbd>+<kbd>WIN</kbd> shows the plain Windows classic menu. After
+		that, File Explorer shows the Windows menus: the Windows 11 menu on Windows 11, the classic menu on Windows 10.
+		On Windows 10, right-click with <kbd>CTRL</kbd> held to turn Shell back on. On Windows 11 that does not work,
+		because the Windows 11 menu never reaches Shell while it is off. Restart File Explorer instead, for example with
+		<code>shell -restart</code>, or sign out and back in.</p>
 </div>
