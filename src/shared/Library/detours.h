@@ -135,15 +135,18 @@ public:
 		return *this;
 	}
 	*/
+	// A failed attach never takes, so it is not recorded as installed (or a
+	// later unhook() would detach something that was never attached).
 	Detours &hook()
 	{
-		if(!_installed)
-		{
-			DetourAttach(&_original, _detour);
-			_installed = true;
-		}
+		if(!_installed && _original && _detour)
+			_installed = DetourAttach(&_original, _detour) == NO_ERROR;
 		return *this;
 	}
+
+	// The transaction did not commit, so nothing was patched. Detours' abort
+	// has already put _original back to the target.
+	void forget() { _installed = false; }
 
 	Detours &unhook()
 	{
@@ -190,11 +193,24 @@ public:
 	static void Batch() {}
 	*/
 
+	/*
+		Other threads are deliberately not enlisted (DetourUpdateThread). The
+		old DetourUpdateThread(GetCurrentThread()) here is documented as a no-op,
+		so none ever were. Enlisting them was tried (opj161/Shell@cb80ef5) and is
+		not safe here: this runs in DllMain inside explorer.exe, and Detours
+		allocates on the process heap (DetourUpdateThread, the commit) while the
+		enlisted threads are suspended. A thread suspended inside the heap's
+		low-fragmentation allocator makes that allocation spin forever, under
+		the loader lock. A stress test reproduced the hang within a few hundred
+		commits, with and without HeapLock held; a missed thread only risks a
+		crash if it is inside the first bytes of CoCreateInstance at the moment
+		of the one patch.
+		https://github.com/microsoft/Detours/wiki/DetourUpdateThread
+	*/
 	static long Begin()
 	{
 		DetourSetIgnoreTooSmall(TRUE);
-		DetourTransactionBegin();
-		return DetourUpdateThread(::GetCurrentThread());
+		return DetourTransactionBegin();
 	}
 
 	static long Commit()

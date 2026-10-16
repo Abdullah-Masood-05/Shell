@@ -1208,13 +1208,16 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 				{
 					//_log.info(_loader.path);
 
-					_CoCreateInstance.Begin();
-					//_DllGetClassObject.init(hModule, "DllGetClassObject", DllGetClassObjectHook).hook();
-					_CoCreateInstance.init(::CoCreateInstance, CoCreateInstanceHook).hook();
-					//auto m = &_detours_ci[hModule];
-					//if(!m->installed())
-					//m->init(hModule, "api-ms-win-core-com-l1-1-0.dll", ::CoCreateInstance, CoCreateInstanceProc).install();
-					_CoCreateInstance.Commit();
+					if(_CoCreateInstance.Begin() == NO_ERROR)
+					{
+						//_DllGetClassObject.init(hModule, "DllGetClassObject", DllGetClassObjectHook).hook();
+						_CoCreateInstance.init(::CoCreateInstance, CoCreateInstanceHook).hook();
+						//auto m = &_detours_ci[hModule];
+						//if(!m->installed())
+						//m->init(hModule, "api-ms-win-core-com-l1-1-0.dll", ::CoCreateInstance, CoCreateInstanceProc).install();
+						if(_CoCreateInstance.Commit() != NO_ERROR)
+							_CoCreateInstance.forget();
+					}
 
 					if(!iathook_NtUserTrackPopupMenuEx.installed())
 					{
@@ -1281,10 +1284,12 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 
 					if(ver->IsWindows11OrGreater())
 					{
-						_CoCreateInstance.Begin();
-						//_DllGetClassObject.unhook();
-						_CoCreateInstance.unhook();
-						_CoCreateInstance.Commit();
+						if(_CoCreateInstance.Begin() == NO_ERROR)
+						{
+							//_DllGetClassObject.unhook();
+							_CoCreateInstance.unhook();
+							_CoCreateInstance.Commit();
+						}
 					}
 				}
 
