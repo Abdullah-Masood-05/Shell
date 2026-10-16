@@ -6432,13 +6432,22 @@ namespace Nilesoft
 						}
 					}
 
-					// This used to turn SPI_SETSELECTIONFADE off around
-					// defSubclassProc and back on afterwards, to suppress the system
-					// fade-out "and begin a re-implemented one". That replacement was
-					// never written, so all it did was override the user's setting
-					// session-wide on every click, and anything that stopped the
-					// thread between the two calls left fade disabled. Users whose
-					// fade was already off took the early break, now the only path.
+					// Windows fades the clicked item out with a copy of its pixels.
+					// Our owner-drawn (and often translucent) items come out as a
+					// black block in that copy, so the fade is switched off for this
+					// one click and switched back on straight after. fWinIni is 0:
+					// nothing is written to the profile or broadcast, and the guard
+					// restores the setting even if the default proc throws.
+					BOOL fade = FALSE;
+					if(!::SystemParametersInfoW(SPI_GETSELECTIONFADE, 0, &fade, 0) || !fade)
+						break;
+
+					struct fade_guard
+					{
+						fade_guard() { ::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, (PVOID)FALSE, 0); }
+						~fade_guard() { ::SystemParametersInfoW(SPI_SETSELECTIONFADE, 0, (PVOID)TRUE, 0); }
+					} guard;
+					return defSubclassProc();
 				}
 				break;
 				case MN_DBLCLK:
