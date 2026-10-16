@@ -200,26 +200,33 @@ Shell supports the following properties classes:
 				<table class="table">
 					<tr>
 						<td class="syntax-keyword">none</td>
-						<td>Display menuitem when there is no selection.</td>
+						<td>Does not filter by selection. The menuitem is displayed for any selection, like <span class="syntax-keyword">multiple</span>.</td>
 					</tr>
 					<tr>
 						<td class="syntax-keyword">single</td>
-						<td>Display menuitem when there is a single object selected.</td>
+						<td>Display menuitem when there is a single object selected, or for the background of a folder or the desktop.</td>
 					</tr>
 					<tr>
 						<td class="syntax-keyword">multi_unique</td>
-						<td>Display menuitem when multiple objects of the same <a href="#type">type</a> are selected.
+						<td>Display menuitem when the selected objects are all of the same <a href="#type">type</a>
+							and, for files, all have the same file extension. Also displayed for a single object.
 						</td>
 					</tr>
 					<tr>
 						<td class="syntax-keyword">multi_single</td>
-						<td>Display menuitem when multiple files with a single file extension are selected.</td>
+						<td>Display menuitem when the selected objects are all of the same <a href="#type">type</a>.
+							Files may have different extensions. Also displayed for a single object.</td>
 					</tr>
 					<tr>
 						<td class="syntax-keyword">multiple</td>
-						<td>Display any type of selection, unless there is none.</td>
+						<td>Display menuitem for any selection.</td>
 					</tr>
 				</table>
+				Each mode is an upper limit, not an exact match: a single object and the background pass every mode,
+				and an empty selection passes every mode except <span class="syntax-keyword">single</span>.
+				To limit a menuitem to the background or to some kinds of objects, use <a href="#type">type</a>,
+				for example <code>type = 'file|dir'</code>.
+				The taskbar menu ignores mode.<br/>
 				Default = <span class="syntax-keyword">single</span>
 			</td>
 		</tr>
