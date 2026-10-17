@@ -74,6 +74,9 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 # The theme presets (presets/themes/*.nss), embedded as ThemePresetsData.inc.
 include(cmake/ThemePresets.cmake)
 
+# The UI translations (translations/*/LC_MESSAGES/*.po), for Slint and for src/Tr.cpp.
+include(cmake/Translations.cmake)
+
 add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
@@ -107,6 +110,7 @@ add_executable(settings WIN32
     src/Status.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
+    src/Tr.cpp
     src/UpdateController.cpp
     src/Updater.cpp
     src/Wallpaper.cpp
@@ -114,8 +118,15 @@ add_executable(settings WIN32
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
 )
 slint_target_sources(settings ui/app.slint)
+# @tr() strings get no default context (the component name), so a string that several
+# components and the C++ side share is translated once.
+set_target_properties(settings PROPERTIES
+    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_TRANSLATIONS_DIR}"
+    SLINT_TRANSLATION_DOMAIN "${SETTINGS_TRANSLATION_DOMAIN}"
+    SLINT_NO_DEFAULT_TRANSLATION_CONTEXT ON)
+add_dependencies(settings translations_data)
 
-target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}")
+target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
     SETTINGS_VERSION="${SETTINGS_FULL_VERSION}")
@@ -158,6 +169,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_indexof.cpp
         tests/test_presets.cpp
         tests/test_updater.cpp
+        tests/test_tr.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/Diff.cpp
@@ -169,13 +181,15 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/Status.cpp
         src/ThemeModel.cpp
         src/ThemePresets.cpp
+        src/Tr.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
         src/OtherApps.cpp
         src/Updater.cpp
     )
-    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}")
+    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
+    add_dependencies(settings_tests translations_data)
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
