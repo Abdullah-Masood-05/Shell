@@ -140,10 +140,12 @@ std::string displayTime(const nss::SnapshotInfo &snapshot)
     static const char *const months[] = { nsp::mark("Jan"), nsp::mark("Feb"), nsp::mark("Mar"), nsp::mark("Apr"),
                                           nsp::mark("May"), nsp::mark("Jun"), nsp::mark("Jul"), nsp::mark("Aug"),
                                           nsp::mark("Sep"), nsp::mark("Oct"), nsp::mark("Nov"), nsp::mark("Dec") };
-    char buf[64];
-    std::snprintf(buf, sizeof buf, "%s %d, %d, %02d:%02d:%02d", nsp::tr(months[std::clamp(tm.tm_mon, 0, 11)]), tm.tm_mday,
-                  tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
-    return buf;
+    char clock[16];
+    std::snprintf(clock, sizeof clock, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+    const std::string args[] = { nsp::tr(months[std::clamp(tm.tm_mon, 0, 11)]), std::to_string(tm.tm_mday),
+                                 std::to_string(tm.tm_year + 1900), clock };
+    // The order is the language's: "Oct 16, 2026, 17:17:27" or "2026年10月16日 17:17:27".
+    return nsp::format(nsp::trc("date and time: short month, day, year, time", "{0} {1}, {2}, {3}"), args);
 }
 
 std::string relativeTime(const nss::SnapshotInfo &snapshot)

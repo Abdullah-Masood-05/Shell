@@ -2722,25 +2722,30 @@ msgstr ""
 msgid "Dec"
 msgstr ""
 
-#: src/BackupsModel.cpp:159
-msgid "just now"
+#: src/BackupsModel.cpp:148
+msgctxt "date and time: short month, day, year, time"
+msgid "{0} {1}, {2}, {3}"
 msgstr ""
 
 #: src/BackupsModel.cpp:161
+msgid "just now"
+msgstr ""
+
+#: src/BackupsModel.cpp:163
 msgid "{n} minute ago"
 msgid_plural "{n} minutes ago"
 msgstr[0] ""
 
-#: src/BackupsModel.cpp:163
+#: src/BackupsModel.cpp:165
 msgid "{n} hour ago"
 msgid_plural "{n} hours ago"
 msgstr[0] ""
 
-#: src/BackupsModel.cpp:165
+#: src/BackupsModel.cpp:167
 msgid "yesterday"
 msgstr ""
 
-#: src/BackupsModel.cpp:166
+#: src/BackupsModel.cpp:168
 msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] ""

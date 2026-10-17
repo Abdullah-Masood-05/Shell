@@ -2721,25 +2721,30 @@ msgstr "11月"
 msgid "Dec"
 msgstr "12月"
 
-#: src/BackupsModel.cpp:159
+#: src/BackupsModel.cpp:148
+msgctxt "date and time: short month, day, year, time"
+msgid "{0} {1}, {2}, {3}"
+msgstr "{2}年{0}{1}日 {3}"
+
+#: src/BackupsModel.cpp:161
 msgid "just now"
 msgstr "刚刚"
 
-#: src/BackupsModel.cpp:161
+#: src/BackupsModel.cpp:163
 msgid "{n} minute ago"
 msgid_plural "{n} minutes ago"
 msgstr[0] "{n} 分钟前"
 
-#: src/BackupsModel.cpp:163
+#: src/BackupsModel.cpp:165
 msgid "{n} hour ago"
 msgid_plural "{n} hours ago"
 msgstr[0] "{n} 小时前"
 
-#: src/BackupsModel.cpp:165
+#: src/BackupsModel.cpp:167
 msgid "yesterday"
 msgstr "昨天"
 
-#: src/BackupsModel.cpp:166
+#: src/BackupsModel.cpp:168
 msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] "{n} 天前"
