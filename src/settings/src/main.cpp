@@ -18,6 +18,7 @@
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
+//   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
@@ -40,6 +41,7 @@
 #include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
+#include "Text.h"
 #include "UpdateController.h"
 
 #include <windows.h>
@@ -116,6 +118,8 @@ AppOptions parseArgs()
             o.onboardingStep = std::clamp(_wtoi(argv[++i]), 1, 3) - 1;
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--lang") == 0 && i + 1 < argc) {
+            o.language = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
         } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {

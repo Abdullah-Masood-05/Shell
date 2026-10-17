@@ -21,6 +21,7 @@ struct AppOptions
     int startPage = 0;         // --page <name>  (development)
     int onboardingStep = -1;   // --onboarding <1|2|3>: show the dialog at that step (development)
     std::wstring statusFile;   // --status-json <file>: Home reads it instead of -status (development)
+    std::string language;      // --lang <auto|en|zh-CN|...>: this run only, not saved (development)
 };
 
 class AppController
@@ -52,6 +53,11 @@ private:
     void runAction(const std::string &id);
     void applyTheme();
     void setTheme(int mode);
+    // The Language setting: "" (Windows), "en" or a bundled code. Switches Slint's and the
+    // C++ catalogs; nsp::onLanguageChanged callbacks push their text again.
+    void applyLanguage(const std::string &setting);
+    void setLanguage(int index);
+    void pushLanguageOptions();
     void setBusy(bool busy, const std::string &label = {});
     void showToast(const std::string &kind, const std::string &title, const std::string &text = {});
     void applySnapshot(Snapshot snap, bool quiet);
@@ -67,6 +73,7 @@ private:
     bool firstStatus_ = true;
     bool busy_ = false;
     bool lastDark_ = true;
+    std::string languageSetting_; // "" follows Windows
     std::vector<std::function<void()>> configChanged_;
     slint::Timer toastTimer_;
     slint::Timer themePoll_;
