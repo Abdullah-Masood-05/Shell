@@ -1,0 +1,4132 @@
+# Nilesoft Shell Pro: 简体中文 translation.
+msgid ""
+msgstr ""
+"Project-Id-Version: Nilesoft Shell Pro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh-CN\n"
+"X-Language-Name: 简体中文\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
+#: ui/app.slint:44
+msgctxt "UI font family"
+msgid "Segoe UI Variable Text"
+msgstr "Microsoft YaHei UI"
+
+#: ui/components/banner.slint:14
+msgid "Close"
+msgstr "关闭"
+
+#: ui/components/code.slint:203 src/AppearanceController.cpp:88 src/OpenWithController.cpp:823
+msgid "Cut"
+msgstr "剪切"
+
+#: ui/components/code.slint:208 src/AppearanceController.cpp:88 src/OpenWithController.cpp:824 src/OpenWithController.cpp:830
+msgid "Copy"
+msgstr "复制"
+
+#: ui/components/code.slint:213 src/AppearanceController.cpp:66 src/AppearanceController.cpp:88 src/OpenWithController.cpp:836
+msgid "Paste"
+msgstr "粘贴"
+
+#: ui/components/code.slint:218
+msgid "Select all"
+msgstr "全选"
+
+#. warning | error | info
+#: ui/components/dialog.slint:11
+msgid "OK"
+msgstr "确定"
+
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:149 ui/components/dialog.slint:12 ui/components/save-footer.slint:149 ui/pages/preferences.slint:209
+msgid "Cancel"
+msgstr "取消"
+
+#: ui/components/preset-gallery.slint:77
+msgid "{}, active"
+msgstr "{}，正在使用"
+
+#: ui/components/preset-gallery.slint:143
+msgid "Active"
+msgstr "正在使用"
+
+#: ui/components/preset-gallery.slint:167
+msgid "More for {}"
+msgstr "{} 的更多选项"
+
+#: ui/components/preset-gallery.slint:210 src/SaveService.cpp:219
+msgid "From {}"
+msgstr "来自 {}"
+
+#: ui/components/preset-gallery.slint:222
+msgid "Applied"
+msgstr "已应用"
+
+#: ui/components/preset-gallery.slint:222 ui/components/preset-gallery.slint:222 ui/pages/rules.slint:189
+msgid "Apply"
+msgstr "应用"
+
+#: ui/components/preset-gallery.slint:231
+msgid "Export to clipboard"
+msgstr "导出到剪贴板"
+
+#: ui/components/preset-gallery.slint:280 ui/components/preset-gallery.slint:280
+msgid "Themes"
+msgstr "主题"
+
+#: ui/components/preset-gallery.slint:287
+msgid "Export current look"
+msgstr "导出当前外观"
+
+#: ui/components/preset-gallery.slint:293
+msgid "The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it."
+msgstr "原版 Nilesoft Shell 项目中的示例。选择一个即可在预览中查看；保存后即可保留。"
+
+#: ui/components/preset-gallery.slint:363
+msgid "Show fewer"
+msgstr "收起"
+
+#: ui/components/preset-gallery.slint:363
+msgid "Show all {} themes"
+msgstr "显示全部 {} 个主题"
+
+#: ui/components/preset-gallery.slint:375
+msgid "Apply {}?"
+msgstr "要应用 {} 吗？"
+
+#: ui/components/preset-gallery.slint:375
+msgid "this theme"
+msgstr "此主题"
+
+#: ui/components/preset-gallery.slint:376
+msgid "It replaces the theme setting changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
+msgid_plural "It replaces the {n} theme settings changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
+msgstr[0] "这会替换你在此应用中更改过的 {n} 项主题设置，无论是否已保存。你自己的 .nss 文件保持不变，在你保存之前不会写入任何内容。"
+
+#: ui/components/save-footer.slint:54
+msgid "{n} unsaved change"
+msgid_plural "{n} unsaved changes"
+msgstr[0] "{n} 项未保存的更改"
+
+#: ui/components/save-footer.slint:89 ui/pages/context-menus.slint:224 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:224 ui/pages/menu-builder.slint:403 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:224 ui/pages/menu-builder.slint:403
+msgid "Discard"
+msgstr "放弃"
+
+#: ui/components/save-footer.slint:97
+msgid "Save  (Ctrl+S)"
+msgstr "保存  (Ctrl+S)"
+
+#: ui/components/save-footer.slint:128
+msgid "Use a personal config"
+msgstr "使用个人配置"
+
+#: ui/components/save-footer.slint:134
+msgid "Use a personal config?"
+msgstr "要使用个人配置吗？"
+
+#: ui/components/save-footer.slint:140
+msgid "Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates."
+msgstr "Shell 当前读取的是安装文件夹中的共享配置，此应用不会更改它。请在 %APPDATA%\\Nilesoft\\Shell 中创建一份个人副本 (shell.exe -config:init)，之后你的更改将保存在那里。个人配置按用户单独保存，更新后也会保留。"
+
+#: ui/components/save-footer.slint:153
+msgid "Create and save"
+msgstr "创建并保存"
+
+#: ui/components/sidebar.slint:13 ui/pages/home.slint:86 ui/components/sidebar.slint:13 ui/pages/home.slint:86
+msgid "Home"
+msgstr "主页"
+
+#: ui/components/sidebar.slint:14 ui/pages/appearance.slint:84 src/AppearanceController.cpp:24
+msgid "Appearance"
+msgstr "外观"
+
+#: ui/components/sidebar.slint:14
+msgid "Customize"
+msgstr "自定义"
+
+#: ui/components/sidebar.slint:15 ui/pages/behavior.slint:37 src/BehaviorController.cpp:23
+msgid "Behavior"
+msgstr "行为"
+
+#: ui/components/sidebar.slint:16 ui/pages/rules.slint:134
+msgid "Rules & Filters"
+msgstr "规则与筛选"
+
+#: ui/components/sidebar.slint:17 ui/pages/context-menus.slint:213
+msgid "Context Menus"
+msgstr "右键菜单"
+
+#: ui/components/sidebar.slint:17
+msgid "Menus"
+msgstr "菜单"
+
+#: ui/components/sidebar.slint:18 ui/pages/menu-builder.slint:398
+msgid "Menu Builder"
+msgstr "菜单构建器"
+
+#: ui/components/sidebar.slint:19 ui/pages/openwith.slint:616 src/AppearanceController.cpp:86 src/ConfigRules.cpp:56 src/OpenWithController.cpp:821
+msgid "Open with"
+msgstr "打开方式"
+
+#: ui/components/sidebar.slint:20 ui/pages/appearance.slint:746 ui/components/sidebar.slint:20 ui/pages/appearance.slint:746
+msgid "Config Editor"
+msgstr "配置编辑器"
+
+#: ui/components/sidebar.slint:20 ui/pages/appearance.slint:240
+msgid "Advanced"
+msgstr "高级"
+
+#: ui/components/sidebar.slint:21 ui/pages/backups.slint:232
+msgid "Backups"
+msgstr "备份"
+
+#: ui/components/sidebar.slint:99 ui/pages/preferences.slint:247
+msgid "Version {}"
+msgstr "版本 {}"
+
+#: ui/components/sidebar.slint:163 ui/pages/home.slint:154 src/AppController.cpp:406
+msgid "Checking status…"
+msgstr "正在检查状态…"
+
+#: ui/components/sidebar.slint:172 ui/pages/preferences.slint:46
+msgid "Preferences"
+msgstr "首选项"
+
+#: ui/components/theme-controls.slint:58 src/SaveService.cpp:217
+msgid "Set by this app"
+msgstr "由此应用设置"
+
+#: ui/components/theme-controls.slint:58
+msgid "Reset pending"
+msgstr "待重置"
+
+#: ui/components/theme-controls.slint:66
+msgid "Reset {} to the file's value"
+msgstr "将 {} 重置为文件中的值"
+
+#: ui/components/theme-controls.slint:80 ui/pages/appearance.slint:227
+msgid "Reset"
+msgstr "重置"
+
+#: ui/components/theme-controls.slint:93 ui/pages/appearance.slint:220
+msgid "Set by an expression ({}). Changing it here overrides it."
+msgstr "由表达式设置 ({})。在此处更改将覆盖它。"
+
+#: ui/components/theme-controls.slint:101
+msgid "Edit in Config Editor"
+msgstr "在配置编辑器中编辑"
+
+#: ui/components/theme-controls.slint:233
+msgid "{} pixels"
+msgstr "{} 像素"
+
+#: ui/components/theme-controls.slint:405
+msgid "Auto (≈{}{})"
+msgstr "自动 (≈{}{})"
+
+#: ui/components/theme-controls.slint:634 ui/components/theme-controls.slint:634
+msgid "Pick a colour"
+msgstr "选择颜色"
+
+#: ui/components/theme-controls.slint:683
+msgid "Segoe UI (menu default)"
+msgstr "Segoe UI（菜单默认）"
+
+#: ui/components/theme-controls.slint:696
+msgid "Font family"
+msgstr "字体"
+
+#: ui/components/theme-controls.slint:743
+msgid "Search installed fonts"
+msgstr "搜索已安装的字体"
+
+#: ui/components/theme-controls.slint:796
+msgid "Set by an expression"
+msgstr "由表达式设置"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:112
+msgctxt "Theme name"
+msgid "Auto"
+msgstr "自动"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:112
+msgctxt "Theme name"
+msgid "Modern"
+msgstr "现代"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:112
+msgctxt "Theme name"
+msgid "Classic"
+msgstr "经典"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:112
+msgctxt "Theme name"
+msgid "White"
+msgstr "白色"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:112
+msgctxt "Theme name"
+msgid "Black"
+msgstr "黑色"
+
+#: ui/components/theme-picker.slint:16
+msgid "Like Windows' own menu"
+msgstr "与 Windows 自带菜单一致"
+
+#: ui/components/theme-picker.slint:17
+msgid "Rounded · roomy"
+msgstr "圆角 · 宽松"
+
+#: ui/components/theme-picker.slint:18
+msgid "Compact · blue highlight"
+msgstr "紧凑 · 蓝色高亮"
+
+#: ui/components/theme-picker.slint:19
+msgid "Always light"
+msgstr "始终浅色"
+
+#: ui/components/theme-picker.slint:20
+msgid "Always dark"
+msgstr "始终深色"
+
+#: ui/components/theme-picker.slint:23
+msgid "Copies Windows' own menu, light or dark as Dark mode says."
+msgstr "仿照 Windows 自带菜单，按“深色模式”设置显示浅色或深色。"
+
+#: ui/components/theme-picker.slint:24
+msgid "Rounded menu and items with roomy rows, light or dark as Dark mode says."
+msgstr "菜单和菜单项为圆角，行距宽松，按“深色模式”设置显示浅色或深色。"
+
+#: ui/components/theme-picker.slint:25
+msgid "Compact rows with a blue highlight, light or dark as Dark mode says."
+msgstr "行距紧凑，蓝色高亮，按“深色模式”设置显示浅色或深色。"
+
+#: ui/components/theme-picker.slint:26
+msgid "The Modern shape, always light."
+msgstr "“现代”样式，始终浅色。"
+
+#: ui/components/theme-picker.slint:27
+msgid "The Modern shape, always dark."
+msgstr "“现代”样式，始终深色。"
+
+#: ui/components/theme-picker.slint:121 src/ConfigRules.cpp:44
+msgid "Theme"
+msgstr "主题"
+
+#: ui/components/update-banner.slint:59
+msgid "Downloading Nilesoft Shell Pro {}…"
+msgstr "正在下载 Nilesoft Shell Pro {}…"
+
+#: ui/components/update-banner.slint:60
+msgid "Update ready: Nilesoft Shell Pro {}"
+msgstr "更新已就绪：Nilesoft Shell Pro {}"
+
+#: ui/components/update-banner.slint:61
+msgid "Installing Nilesoft Shell Pro {}…"
+msgstr "正在安装 Nilesoft Shell Pro {}…"
+
+#: ui/components/update-banner.slint:62
+msgid "Nilesoft Shell Pro {} is available"
+msgstr "Nilesoft Shell Pro {} 现已推出"
+
+#: ui/components/update-banner.slint:69
+msgid "You have {}."
+msgstr "你当前的版本为 {}。"
+
+#: ui/components/update-banner.slint:70
+msgid "Released {}."
+msgstr "发布于 {}。"
+
+#: ui/components/update-banner.slint:78
+msgid "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
+msgstr "已下载并验证。应用将关闭，Windows 会请求一次管理员批准，然后应用将重新打开。"
+
+#: ui/components/update-banner.slint:79
+msgid "Downloaded and verified. The app closes for a moment and opens again."
+msgstr "已下载并验证。应用将短暂关闭，然后重新打开。"
+
+#: ui/components/update-banner.slint:91
+msgid "{} · checked against SHA256SUMS.txt when done"
+msgstr "{} · 完成后将根据 SHA256SUMS.txt 进行校验"
+
+#: ui/components/update-banner.slint:112
+msgid "Release notes"
+msgstr "发行说明"
+
+#: ui/components/update-banner.slint:117
+msgid "Skip this version"
+msgstr "跳过此版本"
+
+#: ui/components/update-banner.slint:121 ui/pages/preferences.slint:202
+msgid "Restart to update"
+msgstr "重启以更新"
+
+#: ui/components/update-banner.slint:121 ui/pages/preferences.slint:202
+msgid "Download and install"
+msgstr "下载并安装"
+
+#: ui/components/update-banner.slint:164
+msgid "Downloading update… {}%"
+msgstr "正在下载更新… {}%"
+
+#: ui/components/update-banner.slint:165
+msgid "Update ready: restart to update"
+msgstr "更新已就绪：重启以完成更新"
+
+#: ui/components/update-banner.slint:166
+msgid "Installing update…"
+msgstr "正在安装更新…"
+
+#: ui/components/update-banner.slint:167
+msgid "Update available: {}"
+msgstr "有可用更新：{}"
+
+#: ui/pages/appearance.slint:60 ui/pages/appearance.slint:385 ui/pages/appearance.slint:60 ui/pages/appearance.slint:385 src/ConfigRules.cpp:518
+msgid "Background"
+msgstr "背景"
+
+#: ui/pages/appearance.slint:61 ui/pages/behavior.slint:138
+msgid "Text"
+msgstr "文本"
+
+#: ui/pages/appearance.slint:62
+msgid "Highlight"
+msgstr "高亮"
+
+#: ui/pages/appearance.slint:63
+msgid "Highlighted text"
+msgstr "高亮文本"
+
+#: ui/pages/appearance.slint:64
+msgid "Disabled text"
+msgstr "禁用文本"
+
+#: ui/pages/appearance.slint:65 ui/pages/appearance.slint:454 src/ThemePresets.cpp:55
+msgid "Border"
+msgstr "边框"
+
+#: ui/pages/appearance.slint:85
+msgid "The theme, colours, font and effects of Shell's menus. The preview updates as you change them."
+msgstr "Shell 菜单的主题、颜色、字体和效果。更改时预览会随之更新。"
+
+#: ui/pages/appearance.slint:92 ui/pages/behavior.slint:45 ui/pages/appearance.slint:92 ui/pages/behavior.slint:45
+msgid "Couldn't read your config"
+msgstr "无法读取你的配置"
+
+#: ui/pages/appearance.slint:94 ui/pages/behavior.slint:47 ui/pages/appearance.slint:94 ui/pages/behavior.slint:47 ui/pages/rules.slint:144 src/AppController.cpp:420
+msgid "Try again"
+msgstr "重试"
+
+#: ui/pages/appearance.slint:120
+msgid "Base theme"
+msgstr "基础主题"
+
+#: ui/pages/appearance.slint:121
+msgid "The built-in style under every preset: colours, corners and effects. What you change below applies on top of it."
+msgstr "所有预设所基于的内置样式，包括颜色、圆角和效果。你在下方所做的更改会叠加在它之上。"
+
+#: ui/pages/appearance.slint:200
+msgid "Not saved yet"
+msgstr "尚未保存"
+
+#: ui/pages/appearance.slint:200
+msgid "In use"
+msgstr "正在使用"
+
+#: ui/pages/appearance.slint:237
+msgid "Colors"
+msgstr "颜色"
+
+#: ui/pages/appearance.slint:238 ui/pages/appearance.slint:322
+msgid "Typography"
+msgstr "文字排版"
+
+#: ui/pages/appearance.slint:239
+msgid "Effects"
+msgstr "效果"
+
+#: ui/pages/appearance.slint:250
+msgid "Colour palette"
+msgstr "调色板"
+
+#: ui/pages/appearance.slint:251
+msgid "The main colours of the menu. Pick one to change it; the row under the palette has its hex value and where it's set."
+msgstr "菜单的主要颜色。选择一种颜色即可更改；调色板下方一行显示其十六进制值及设置位置。"
+
+#: ui/pages/appearance.slint:304
+msgid "Dark mode"
+msgstr "深色模式"
+
+#: ui/pages/appearance.slint:306
+msgid "Auto follows the Windows app mode · {}"
+msgstr "“自动”跟随 Windows 应用模式 · {}"
+
+#: ui/pages/appearance.slint:310 ui/pages/appearance.slint:373 ui/pages/appearance.slint:310 ui/pages/appearance.slint:373 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "Auto"
+msgstr "自动"
+
+#: ui/pages/appearance.slint:310 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "On"
+msgstr "开"
+
+#: ui/pages/appearance.slint:310 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "Off"
+msgstr "关"
+
+#: ui/pages/appearance.slint:323
+msgid "A size other than the default scales the whole menu, like the core does."
+msgstr "使用非默认字号时，整个菜单会随之缩放，与核心程序的行为一致。"
+
+#: ui/pages/appearance.slint:326
+msgid "Font"
+msgstr "字体"
+
+#: ui/pages/appearance.slint:339 src/AppearanceController.cpp:77
+msgid "Size"
+msgstr "大小"
+
+#: ui/pages/appearance.slint:354
+msgid "Weight"
+msgstr "粗细"
+
+#: ui/pages/appearance.slint:369
+msgid "Density"
+msgstr "密度"
+
+#: ui/pages/appearance.slint:373
+msgctxt "Menu density"
+msgid "Compact"
+msgstr "紧凑"
+
+#: ui/pages/appearance.slint:373
+msgctxt "Menu density"
+msgid "Small"
+msgstr "小"
+
+#: ui/pages/appearance.slint:373
+msgctxt "Menu density"
+msgid "Medium"
+msgstr "中"
+
+#: ui/pages/appearance.slint:373
+msgctxt "Menu density"
+msgid "Large"
+msgstr "大"
+
+#: ui/pages/appearance.slint:373
+msgctxt "Menu density"
+msgid "Wide"
+msgstr "宽"
+
+#: ui/pages/appearance.slint:386
+msgid "What shows behind the menu, and how much."
+msgstr "菜单背后显示的内容及其程度。"
+
+#: ui/pages/appearance.slint:389
+msgid "Effect"
+msgstr "效果"
+
+#: ui/pages/appearance.slint:394
+msgid "None"
+msgstr "无"
+
+#: ui/pages/appearance.slint:394
+msgid "Transparent"
+msgstr "透明"
+
+#: ui/pages/appearance.slint:394
+msgid "Blur"
+msgstr "模糊"
+
+#: ui/pages/appearance.slint:394 src/ThemePresets.cpp:30
+msgid "Acrylic"
+msgstr "亚克力"
+
+#: ui/pages/appearance.slint:401
+msgid "Tint"
+msgstr "着色"
+
+#: ui/pages/appearance.slint:415
+msgid "Opacity"
+msgstr "不透明度"
+
+#: ui/pages/appearance.slint:430
+msgid "Shape"
+msgstr "形状"
+
+#: ui/pages/appearance.slint:431
+msgid "Corners and border. The border's colour is in Colors."
+msgstr "圆角和边框。边框颜色在“颜色”中设置。"
+
+#: ui/pages/appearance.slint:434
+msgid "Menu corners"
+msgstr "菜单圆角"
+
+#: ui/pages/appearance.slint:444
+msgid "Item corners"
+msgstr "菜单项圆角"
+
+#: ui/pages/appearance.slint:468 ui/pages/appearance.slint:474
+msgid "Shadow"
+msgstr "阴影"
+
+#: ui/pages/appearance.slint:480
+msgid "Shadow size"
+msgstr "阴影大小"
+
+#: ui/pages/appearance.slint:493
+msgid "Shadow offset"
+msgstr "阴影偏移"
+
+#: ui/pages/appearance.slint:506
+msgid "Shadow opacity"
+msgstr "阴影不透明度"
+
+#: ui/pages/appearance.slint:524
+msgid "Items"
+msgstr "菜单项"
+
+#: ui/pages/appearance.slint:525
+msgid "Spacing inside and around each item, and its icon."
+msgstr "每个菜单项的内外间距及其图标。"
+
+#: ui/pages/appearance.slint:528
+msgid "Item padding"
+msgstr "菜单项内边距"
+
+#: ui/pages/appearance.slint:540
+msgid "Item margin"
+msgstr "菜单项外边距"
+
+#: ui/pages/appearance.slint:552
+msgid "Image size"
+msgstr "图像大小"
+
+#: ui/pages/appearance.slint:566
+msgid "Image gap"
+msgstr "图像间距"
+
+#: ui/pages/appearance.slint:579
+msgid "Highlight, disabled item"
+msgstr "已禁用项的高亮"
+
+#: ui/pages/appearance.slint:593
+msgid "Separators"
+msgstr "分隔线"
+
+#: ui/pages/appearance.slint:596
+msgid "Separator size"
+msgstr "分隔线粗细"
+
+#: ui/pages/appearance.slint:609
+msgid "Separator colour"
+msgstr "分隔线颜色"
+
+#: ui/pages/appearance.slint:622
+msgid "Separator margin"
+msgstr "分隔线外边距"
+
+#: ui/pages/appearance.slint:666
+msgid "Live preview"
+msgstr "实时预览"
+
+#: ui/pages/appearance.slint:678 ui/pages/menu-builder.slint:665 ui/pages/appearance.slint:678 ui/pages/menu-builder.slint:665 src/MenuModel.cpp:165
+msgid "Desktop"
+msgstr "桌面"
+
+#: ui/pages/appearance.slint:678
+msgid "File Explorer"
+msgstr "文件资源管理器"
+
+#: ui/pages/appearance.slint:686 ui/pages/preferences.slint:60
+msgid "Light"
+msgstr "浅色"
+
+#: ui/pages/appearance.slint:686 ui/pages/preferences.slint:60
+msgid "Dark"
+msgstr "深色"
+
+#: ui/pages/appearance.slint:704
+msgid "This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu."
+msgstr "这是主题在菜单中的大致效果。右键单击桌面可查看实际菜单。"
+
+#: ui/pages/appearance.slint:732
+msgid "Want to go further?"
+msgstr "想要更多自定义？"
+
+#: ui/pages/appearance.slint:737
+msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
+msgstr "渐变、图像颜色和针对单个菜单项的规则位于 shell.nss 及其导入的文件中。"
+
+#: ui/pages/backups.slint:77
+msgctxt "Snapshot"
+msgid "Current"
+msgstr "当前"
+
+#: ui/pages/backups.slint:84
+msgid "Pinned"
+msgstr "已固定"
+
+#: ui/pages/backups.slint:96 src/ContextMenusController.cpp:222
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} 个文件"
+
+#. status is an id from C++ (modified | added | removed | same); this is its
+#. label.
+#: ui/pages/backups.slint:118
+msgctxt "File status"
+msgid "modified"
+msgstr "已修改"
+
+#: ui/pages/backups.slint:119
+msgctxt "File status"
+msgid "added"
+msgstr "已添加"
+
+#: ui/pages/backups.slint:120
+msgctxt "File status"
+msgid "removed"
+msgstr "已移除"
+
+#: ui/pages/backups.slint:121
+msgctxt "File status"
+msgid "same"
+msgstr "相同"
+
+#: ui/pages/backups.slint:233
+msgid "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it."
+msgstr "每次保存前都会先为你的配置创建快照。你可以将快照与当前文件进行比较，或还原到该快照。"
+
+#: ui/pages/backups.slint:235
+msgid "Working…"
+msgstr "正在处理…"
+
+#: ui/pages/backups.slint:237 ui/pages/home.slint:241
+msgid "Open folder"
+msgstr "打开文件夹"
+
+#: ui/pages/backups.slint:245
+msgid "Create snapshot now"
+msgstr "立即创建快照"
+
+#: ui/pages/backups.slint:254
+msgid "No personal config to back up"
+msgstr "没有可备份的个人配置"
+
+#: ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/openwith.slint:638 src/Status.cpp:189
+msgid "Create personal config"
+msgstr "创建个人配置"
+
+#: ui/pages/backups.slint:280
+msgid "Timeline"
+msgstr "时间线"
+
+#: ui/pages/backups.slint:292
+msgid "No snapshots yet.\nOne is taken before every save."
+msgstr "还没有快照。\n每次保存前都会自动创建一个。"
+
+#: ui/pages/backups.slint:328
+msgid "Select a snapshot to see what changed since."
+msgstr "选择一个快照，查看此后的更改。"
+
+#: ui/pages/backups.slint:357
+msgid "Unpin"
+msgstr "取消固定"
+
+#: ui/pages/backups.slint:357
+msgid "Pin"
+msgstr "固定"
+
+#: ui/pages/backups.slint:365
+msgid "Delete…"
+msgstr "删除…"
+
+#: ui/pages/backups.slint:373
+msgid "Restore…"
+msgstr "还原…"
+
+#: ui/pages/backups.slint:415
+msgid "Comparing…"
+msgstr "正在比较…"
+
+#: ui/pages/backups.slint:415
+msgid "No differences."
+msgstr "没有差异。"
+
+#: ui/pages/backups.slint:415
+msgid "No line changes in this file."
+msgstr "此文件中没有行更改。"
+
+#: ui/pages/backups.slint:439
+msgid "Delete this snapshot?"
+msgstr "删除此快照？"
+
+#: ui/pages/backups.slint:439
+msgid "Restore this snapshot?"
+msgstr "还原此快照？"
+
+#: ui/pages/backups.slint:441 ui/pages/menu-builder.slint:510 src/AppearanceController.cpp:90
+msgid "Delete"
+msgstr "删除"
+
+#: ui/pages/backups.slint:441
+msgid "Restore"
+msgstr "还原"
+
+#: ui/pages/behavior.slint:38
+msgid "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items."
+msgstr "菜单的打开方式、工具提示和截图，以及如何处理 Windows 自带的菜单项。"
+
+#: ui/pages/behavior.slint:53
+msgid "Opening the menu"
+msgstr "打开菜单"
+
+#: ui/pages/behavior.slint:55
+msgid "Open Shell's menu instead of the Windows 11 menu"
+msgstr "打开 Shell 菜单，而不是 Windows 11 菜单"
+
+#: ui/pages/behavior.slint:57
+msgid "File Explorer's compact menu is skipped · {}"
+msgstr "跳过文件资源管理器的精简菜单 · {}"
+
+#: ui/pages/behavior.slint:58
+msgid "Windows 11 shows its compact menu first · {}"
+msgstr "Windows 11 先显示其精简菜单 · {}"
+
+#: ui/pages/behavior.slint:64
+msgid "Custom submenu delay"
+msgstr "自定义子菜单延迟"
+
+#: ui/pages/behavior.slint:67
+msgid "Off: your Windows setting applies ({} ms) · {}"
+msgstr "关：使用你的 Windows 设置（{} ms） · {}"
+
+#: ui/pages/behavior.slint:68
+msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
+msgstr "Shell 菜单打开时替代你的 Windows 设置（{} ms） · {}"
+
+#: ui/pages/behavior.slint:90
+msgid "Tooltips"
+msgstr "工具提示"
+
+#: ui/pages/behavior.slint:92
+msgid "Show tooltips"
+msgstr "显示工具提示"
+
+#: ui/pages/behavior.slint:98
+msgid "Delay"
+msgstr "延迟"
+
+#: ui/pages/behavior.slint:111
+msgid "Maximum width"
+msgstr "最大宽度"
+
+#: ui/pages/behavior.slint:127
+msgid "The menu's background · {}"
+msgstr "与菜单背景相同 · {}"
+
+#: ui/pages/behavior.slint:139
+msgid "The colour of the tooltip text"
+msgstr "工具提示文字的颜色"
+
+#: ui/pages/behavior.slint:152
+msgid "Screenshots"
+msgstr "截图"
+
+#: ui/pages/behavior.slint:154
+msgid "Print Screen saves the open menu"
+msgstr "按 Print Screen 保存当前打开的菜单"
+
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:503
+msgid "Folder"
+msgstr "文件夹"
+
+#: ui/pages/behavior.slint:162
+msgid "Screenshots folder · {}"
+msgstr "截图文件夹 · {}"
+
+#: ui/pages/behavior.slint:166 ui/pages/menu-builder.slint:649
+msgid "Choose…"
+msgstr "选择…"
+
+#: ui/pages/behavior.slint:175
+msgid "Windows' own items"
+msgstr "Windows 自带的菜单项"
+
+#: ui/pages/behavior.slint:176
+msgid "What Shell does to the items Windows and other apps put in the menu."
+msgstr "Shell 如何处理 Windows 和其他应用添加到菜单中的菜单项。"
+
+#: ui/pages/behavior.slint:178
+msgid "Remove duplicate items"
+msgstr "移除重复项"
+
+#: ui/pages/behavior.slint:184
+msgid "Remove disabled items"
+msgstr "移除已禁用的项"
+
+#: ui/pages/behavior.slint:190
+msgid "Remove their separators"
+msgstr "移除其分隔线"
+
+#: ui/pages/behavior.slint:196
+msgid "Icons on Windows' items"
+msgstr "Windows 菜单项的图标"
+
+#: ui/pages/behavior.slint:198
+msgid "Auto adds icons to known items that have none · {}"
+msgstr "“自动”会为没有图标的已知菜单项添加图标 · {}"
+
+#: ui/pages/behavior.slint:210
+msgid "Icons on Shell's own items"
+msgstr "Shell 菜单项的图标"
+
+#: ui/pages/context-menus.slint:63
+msgid "Open {} in the Config Editor"
+msgstr "在配置编辑器中打开 {}"
+
+#: ui/pages/context-menus.slint:177
+msgid "where {}"
+msgstr "where {}"
+
+#: ui/pages/context-menus.slint:194 src/SaveService.cpp:72
+msgid "line {}"
+msgstr "第 {} 行"
+
+#: ui/pages/context-menus.slint:214
+msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
+
+#: ui/pages/context-menus.slint:216 ui/pages/menu-builder.slint:401 ui/pages/context-menus.slint:216 ui/pages/menu-builder.slint:401
+msgid "Checking and saving…"
+msgstr "正在检查并保存…"
+
+#: ui/pages/context-menus.slint:219
+msgid "{n} file changed"
+msgid_plural "{n} files changed"
+msgstr[0] "已更改 {n} 个文件"
+
+#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:311 ui/pages/context-menus.slint:229 ui/pages/editor.slint:311 ui/pages/openwith.slint:626
+msgid "Save"
+msgstr "保存"
+
+#: ui/pages/context-menus.slint:238 ui/pages/editor.slint:202 ui/pages/context-menus.slint:238 ui/pages/editor.slint:202 ui/pages/openwith.slint:636
+msgid "This is the shared config in the install folder"
+msgstr "这是安装文件夹中的共享配置"
+
+#: ui/pages/context-menus.slint:239
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
+msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本，以开启或关闭菜单和规则。"
+
+#: ui/pages/context-menus.slint:246
+msgid "Couldn't read the config"
+msgstr "无法读取配置"
+
+#: ui/pages/context-menus.slint:251
+msgid "Modules"
+msgstr "模块"
+
+#: ui/pages/context-menus.slint:252
+msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+
+#: ui/pages/context-menus.slint:255
+msgid "shell.nss doesn't import any files."
+msgstr "shell.nss 未导入任何文件。"
+
+#: ui/pages/context-menus.slint:271
+msgid "Rules for Windows items"
+msgstr "Windows 菜单项规则"
+
+#: ui/pages/editor.slint:70
+msgctxt "Managed by the app"
+msgid "app"
+msgstr "应用"
+
+#: ui/pages/editor.slint:138
+msgctxt "Problem source"
+msgid "check"
+msgstr "检查"
+
+#: ui/pages/editor.slint:187
+msgid "Edit shell.nss and its imports. Every save is checked and snapshotted first."
+msgstr "编辑 shell.nss 及其导入的文件。每次保存前都会先检查并创建快照。"
+
+#: ui/pages/editor.slint:189 ui/pages/onboarding.slint:384
+msgid "Saving…"
+msgstr "正在保存…"
+
+#: ui/pages/editor.slint:191
+msgid "Open in external editor"
+msgstr "在外部编辑器中打开"
+
+#: ui/pages/editor.slint:203
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to edit it."
+msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本以进行编辑。"
+
+#: ui/pages/editor.slint:210
+msgid "Changed outside the app"
+msgstr "已在应用外部更改"
+
+#: ui/pages/editor.slint:212
+msgid "Reload from disk"
+msgstr "从磁盘重新加载"
+
+#: ui/pages/editor.slint:219
+msgid "Couldn't open the config"
+msgstr "无法打开配置"
+
+#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:665 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:665 src/ConfigRules.cpp:520 src/MenuModel.cpp:162 src/OtherApps.cpp:268
+msgid "Files"
+msgstr "文件"
+
+#: ui/pages/editor.slint:288
+msgid "Unsaved"
+msgstr "未保存"
+
+#: ui/pages/editor.slint:301
+msgctxt "Editor mode"
+msgid "Read"
+msgstr "只读"
+
+#: ui/pages/editor.slint:301
+msgctxt "Editor mode"
+msgid "Edit"
+msgstr "编辑"
+
+#: ui/pages/editor.slint:311
+msgid "Save {} files"
+msgstr "保存 {} 个文件"
+
+#: ui/pages/editor.slint:381
+msgid "Problems"
+msgstr "问题"
+
+#: ui/pages/editor.slint:407 src/EditorController.cpp:652
+msgid "Checking…"
+msgstr "正在检查…"
+
+#: ui/pages/editor.slint:407
+msgid "No problems found."
+msgstr "未发现问题。"
+
+#: ui/pages/editor.slint:428
+msgid "Save with errors?"
+msgstr "存在错误，仍要保存？"
+
+#: ui/pages/editor.slint:430
+msgid "Save anyway"
+msgstr "仍然保存"
+
+#: ui/pages/home.slint:74
+msgid "line {}, column {}"
+msgstr "第 {} 行，第 {} 列"
+
+#: ui/pages/home.slint:87
+msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
+msgstr "Nilesoft Shell 概览：注册状态、当前使用的配置和最近的诊断信息。"
+
+#: ui/pages/home.slint:91 ui/pages/home.slint:284 ui/pages/home.slint:91 ui/pages/home.slint:284 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
+msgid "Refresh"
+msgstr "刷新"
+
+#: ui/pages/home.slint:105 ui/pages/home.slint:259 ui/pages/home.slint:105 ui/pages/home.slint:259
+msgid "Restart Explorer"
+msgstr "重启资源管理器"
+
+#: ui/pages/home.slint:173
+msgid "Registration"
+msgstr "注册"
+
+#: ui/pages/home.slint:177
+msgid "Windows 11 menu"
+msgstr "Windows 11 菜单"
+
+#: ui/pages/home.slint:181
+msgid "Shell DLL"
+msgstr "Shell DLL"
+
+#: ui/pages/home.slint:187 ui/pages/preferences.slint:113
+msgid "Version"
+msgstr "版本"
+
+#: ui/pages/home.slint:188
+msgid "{}  (running as administrator)"
+msgstr "{}（以管理员身份运行）"
+
+#: ui/pages/home.slint:199
+msgid "Active config"
+msgstr "当前配置"
+
+#: ui/pages/home.slint:200
+msgid "The shell.nss Shell builds its menu from, and the files it imports."
+msgstr "Shell 用来构建菜单的 shell.nss，以及它导入的文件。"
+
+#: ui/pages/home.slint:225
+msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
+msgstr "这是安装文件夹中的共享配置。%APPDATA% 中的个人副本按用户单独保存，更新后也会保留。"
+
+#: ui/pages/home.slint:235 src/Status.cpp:193
+msgid "Use per-user config"
+msgstr "使用个人配置"
+
+#: ui/pages/home.slint:252
+msgid "Quick actions"
+msgstr "快速操作"
+
+#: ui/pages/home.slint:260
+msgid "Reload the shell and the menu"
+msgstr "重新加载 Windows 外壳和菜单"
+
+#: ui/pages/home.slint:267 src/Status.cpp:185
+msgid "Unregister for me"
+msgstr "为我取消注册"
+
+#: ui/pages/home.slint:267
+msgid "Also register for me"
+msgstr "也为我注册"
+
+#: ui/pages/home.slint:267 src/Status.cpp:180
+msgid "Register for me"
+msgstr "为我注册"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:269
+msgid "Remove it from your account"
+msgstr "从你的帐户中移除"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:269
+msgid "Overrides the all-users copy"
+msgstr "优先于所有用户的注册"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:269
+msgid "No administrator rights needed"
+msgstr "无需管理员权限"
+
+#: ui/pages/home.slint:276
+msgid "Open config folder"
+msgstr "打开配置文件夹"
+
+#: ui/pages/home.slint:277
+msgid "Show shell.nss in Explorer"
+msgstr "在资源管理器中显示 shell.nss"
+
+#: ui/pages/home.slint:285
+msgid "Check the status again"
+msgstr "重新检查状态"
+
+#: ui/pages/home.slint:294
+msgid "Diagnostics"
+msgstr "诊断"
+
+#: ui/pages/home.slint:298
+msgid "· newest first, from shell.log"
+msgstr "· 最新的在前，来自 shell.log"
+
+#: ui/pages/home.slint:305
+msgid "Open shell.log"
+msgstr "打开 shell.log"
+
+#: ui/pages/home.slint:322
+msgid "No shell.log found next to the active shell.dll."
+msgstr "在当前 shell.dll 所在位置未找到 shell.log。"
+
+#: ui/pages/home.slint:322
+msgid "No errors or warnings in shell.log."
+msgstr "shell.log 中没有错误或警告。"
+
+#: ui/pages/home.slint:345
+msgid "Run first-time setup again"
+msgstr "重新运行首次设置"
+
+#: ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:464 ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:464
+msgctxt "Entry kind"
+msgid "Menu"
+msgstr "菜单"
+
+#: ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:470 ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:470
+msgctxt "Entry kind"
+msgid "Separator"
+msgstr "分隔线"
+
+#: ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:458 ui/pages/menu-builder.slint:64 ui/pages/menu-builder.slint:458
+msgctxt "Entry kind"
+msgid "Item"
+msgstr "菜单项"
+
+#: ui/pages/menu-builder.slint:122
+msgctxt "Tree badge"
+msgid "menu"
+msgstr "菜单"
+
+#: ui/pages/menu-builder.slint:313 src/OpenWithController.cpp:241
+msgid "Choose an icon"
+msgstr "选择图标"
+
+#: ui/pages/menu-builder.slint:319
+msgid "No icon"
+msgstr "无图标"
+
+#: ui/pages/menu-builder.slint:330
+msgid "Glyphs from Shell's own icon font, written as image=\\uXXXX. For icon.* names, colors or files, type the value in the Icon box instead."
+msgstr "Shell 自带图标字体中的字形，写作 image=\\uXXXX。如需使用 icon.* 名称、颜色或文件，请直接在“图标”框中输入值。"
+
+#: ui/pages/menu-builder.slint:368
+msgid "{n} glyph"
+msgid_plural "{n} glyphs"
+msgstr[0] "{n} 个字形"
+
+#: ui/pages/menu-builder.slint:399
+msgid "Your own menus and items, kept in their own file. Shell checks them before every save."
+msgstr "你自己的菜单和菜单项，保存在单独的文件中。每次保存前，Shell 都会检查它们。"
+
+#: ui/pages/menu-builder.slint:418
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to build menus."
+msgstr "此处为只读，且不会写入 Program Files。请在 %APPDATA% 中创建个人副本以构建菜单。"
+
+#: ui/pages/menu-builder.slint:425
+msgid "Your menus are turned off"
+msgstr "你的菜单已关闭"
+
+#: ui/pages/menu-builder.slint:426
+msgid "shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them."
+msgstr "shell.nss 导入了此文件，但该行已被注释掉。请在“右键菜单”中重新打开“你的菜单”以显示它们。"
+
+#: ui/pages/menu-builder.slint:427 ui/pages/openwith.slint:647
+msgid "Open Context Menus"
+msgstr "打开右键菜单"
+
+#: ui/pages/menu-builder.slint:432 ui/pages/openwith.slint:659
+msgid "Part of the file can't be shown here"
+msgstr "文件的部分内容无法在此显示"
+
+#: ui/pages/menu-builder.slint:437
+msgid "Couldn't read your menus"
+msgstr "无法读取你的菜单"
+
+#: ui/pages/menu-builder.slint:480 ui/pages/openwith.slint:376
+msgid "Move up"
+msgstr "上移"
+
+#: ui/pages/menu-builder.slint:486 ui/pages/openwith.slint:381
+msgid "Move down"
+msgstr "下移"
+
+#: ui/pages/menu-builder.slint:492
+msgid "Outdent: move out of its menu"
+msgstr "减少缩进：移出所在菜单"
+
+#: ui/pages/menu-builder.slint:498
+msgid "Indent: move into the menu above"
+msgstr "增加缩进：移入上方菜单"
+
+#: ui/pages/menu-builder.slint:504
+msgid "Duplicate"
+msgstr "创建副本"
+
+#: ui/pages/menu-builder.slint:519
+msgid "Outdent"
+msgstr "减少缩进"
+
+#: ui/pages/menu-builder.slint:519
+msgid "Indent"
+msgstr "增加缩进"
+
+#: ui/pages/menu-builder.slint:533
+msgid "No menus yet"
+msgstr "还没有菜单"
+
+#: ui/pages/menu-builder.slint:539
+msgid "Add an item or a menu. It's saved to its own file, so the rest of your config is never touched."
+msgstr "添加菜单项或菜单。它们保存在单独的文件中，配置的其他部分不会被改动。"
+
+#: ui/pages/menu-builder.slint:572
+msgid "Entries you add show their properties here."
+msgstr "你添加的条目会在此显示其属性。"
+
+#: ui/pages/menu-builder.slint:572
+msgid "Select an entry to edit it."
+msgstr "选择一个条目进行编辑。"
+
+#: ui/pages/menu-builder.slint:586
+msgid "A line between the entries above and below it. It has no properties."
+msgstr "位于上下条目之间的一条线。它没有属性。"
+
+#: ui/pages/menu-builder.slint:607
+msgid "Title"
+msgstr "标题"
+
+#: ui/pages/menu-builder.slint:608
+msgid "& before a letter makes it the access key."
+msgstr "在字母前加 & 可将其设为访问键。"
+
+#: ui/pages/menu-builder.slint:614
+msgid "Shown in the menu"
+msgstr "显示在菜单中"
+
+#: ui/pages/menu-builder.slint:618 ui/pages/openwith.slint:305
+msgid "Icon"
+msgstr "图标"
+
+#: ui/pages/menu-builder.slint:635
+msgctxt "No icon"
+msgid "none"
+msgstr "无"
+
+#: ui/pages/menu-builder.slint:646
+msgctxt "Icon"
+msgid "None"
+msgstr "无"
+
+#: ui/pages/menu-builder.slint:657
+msgid "WHERE IT SHOWS"
+msgstr "显示位置"
+
+#: ui/pages/menu-builder.slint:659 ui/pages/openwith.slint:752
+msgid "Shows on"
+msgstr "显示于"
+
+#: ui/pages/menu-builder.slint:665 src/MenuModel.cpp:161
+msgid "Everywhere"
+msgstr "所有位置"
+
+#: ui/pages/menu-builder.slint:665 ui/pages/openwith.slint:763 src/ConfigRules.cpp:516 src/MenuModel.cpp:163 src/OtherApps.cpp:269
+msgid "Folders"
+msgstr "文件夹"
+
+#: ui/pages/menu-builder.slint:665 ui/pages/openwith.slint:770 src/MenuModel.cpp:164 src/OtherApps.cpp:270
+msgid "Folder background"
+msgstr "文件夹背景"
+
+#: ui/pages/menu-builder.slint:665 src/MenuModel.cpp:166 src/OtherApps.cpp:271
+msgid "Drives"
+msgstr "驱动器"
+
+#: ui/pages/menu-builder.slint:665 src/MenuModel.cpp:167
+msgid "Files with extensions"
+msgstr "特定扩展名的文件"
+
+#: ui/pages/menu-builder.slint:665 src/MenuModel.cpp:168
+msgid "Custom"
+msgstr "自定义"
+
+#: ui/pages/menu-builder.slint:669
+msgid "Extensions"
+msgstr "扩展名"
+
+#: ui/pages/menu-builder.slint:670
+msgid "Separated by spaces, like .txt .md .log"
+msgstr "用空格分隔，例如 .txt .md .log"
+
+#: ui/pages/menu-builder.slint:680
+msgctxt "Shell item type"
+msgid "Type"
+msgstr "类型"
+
+#: ui/pages/menu-builder.slint:681
+msgid "file, dir, drive, back, desktop, taskbar…, joined with |"
+msgstr "file、dir、drive、back、desktop、taskbar…，用 | 连接"
+
+#: ui/pages/menu-builder.slint:687
+msgid "Any type except the taskbar"
+msgstr "除任务栏外的任意类型"
+
+#: ui/pages/menu-builder.slint:691
+msgid "Find"
+msgstr "查找"
+
+#: ui/pages/menu-builder.slint:692
+msgid "Name or extension patterns, like .exe|.dll or *setup*"
+msgstr "名称或扩展名模式，例如 .exe|.dll 或 *setup*"
+
+#: ui/pages/menu-builder.slint:701
+msgctxt "Condition field"
+msgid "Where"
+msgstr "条件"
+
+#: ui/pages/menu-builder.slint:702
+msgid "An expression, written as is. Example: sel.count > 1"
+msgstr "表达式，按原样写入。例如：sel.count > 1"
+
+#: ui/pages/menu-builder.slint:711
+msgid "Selection"
+msgstr "选择内容"
+
+#: ui/pages/menu-builder.slint:717
+msgid "One item (default)"
+msgstr "单个项目（默认）"
+
+#: ui/pages/menu-builder.slint:717
+msgid "One item"
+msgstr "单个项目"
+
+#: ui/pages/menu-builder.slint:717 src/ConfigRules.cpp:435
+msgid "Any selection"
+msgstr "任意选择"
+
+#: ui/pages/menu-builder.slint:717
+msgid "Several of one type"
+msgstr "多个同类型项目"
+
+#: ui/pages/menu-builder.slint:717
+msgid "Several with one extension"
+msgstr "多个同扩展名的文件"
+
+#: ui/pages/menu-builder.slint:717
+msgid "Nothing selected"
+msgstr "未选择任何项目"
+
+#: ui/pages/menu-builder.slint:722
+msgid "WHAT IT RUNS"
+msgstr "运行内容"
+
+#: ui/pages/menu-builder.slint:724
+msgid "Command"
+msgstr "命令"
+
+#: ui/pages/menu-builder.slint:725
+msgid "A program or file, like notepad.exe or code"
+msgstr "程序或文件，例如 notepad.exe 或 code"
+
+#: ui/pages/menu-builder.slint:734 ui/pages/openwith.slint:294
+msgid "Arguments"
+msgstr "参数"
+
+#: ui/pages/menu-builder.slint:735
+msgid "@sel.path is the selected path; quote it: \"@sel.path\""
+msgstr "@sel.path 是所选路径；请用引号括起来：\"@sel.path\""
+
+#: ui/pages/menu-builder.slint:744
+msgid "Window"
+msgstr "窗口"
+
+#: ui/pages/menu-builder.slint:753
+msgctxt "Window state"
+msgid "Normal"
+msgstr "常规"
+
+#: ui/pages/menu-builder.slint:753
+msgctxt "Window state"
+msgid "Hidden"
+msgstr "隐藏"
+
+#: ui/pages/menu-builder.slint:753
+msgctxt "Window state"
+msgid "Minimized"
+msgstr "最小化"
+
+#: ui/pages/menu-builder.slint:753
+msgctxt "Window state"
+msgid "Maximized"
+msgstr "最大化"
+
+#: ui/pages/menu-builder.slint:756 ui/pages/openwith.slint:359
+msgid "Run as administrator"
+msgstr "以管理员身份运行"
+
+#: ui/pages/menu-builder.slint:766
+msgid "LOOK"
+msgstr "外观"
+
+#: ui/pages/menu-builder.slint:768 src/MenuBuilderController.cpp:348
+msgid "Separator"
+msgstr "分隔线"
+
+#: ui/pages/menu-builder.slint:774
+msgctxt "Separator position"
+msgid "None"
+msgstr "无"
+
+#: ui/pages/menu-builder.slint:774
+msgctxt "Separator position"
+msgid "Before"
+msgstr "上方"
+
+#: ui/pages/menu-builder.slint:774
+msgctxt "Separator position"
+msgid "After"
+msgstr "下方"
+
+#: ui/pages/menu-builder.slint:774
+msgctxt "Separator position"
+msgid "Before and after"
+msgstr "上方和下方"
+
+#: ui/pages/menu-builder.slint:778
+msgid "Shortcut text"
+msgstr "快捷键文本"
+
+#: ui/pages/menu-builder.slint:779
+msgid "Shown on the right, like Ctrl+E. It doesn't bind the keys."
+msgstr "显示在右侧，例如 Ctrl+E。不会实际绑定按键。"
+
+#: ui/pages/menu-builder.slint:788
+msgid "Tooltip"
+msgstr "工具提示"
+
+#: ui/pages/menu-builder.slint:797
+msgid "Kept as written"
+msgstr "原样保留"
+
+#: ui/pages/menu-builder.slint:798
+msgid "Properties this page doesn't edit. They're saved unchanged."
+msgstr "此页面不编辑的属性。保存时保持不变。"
+
+#: ui/pages/menu-builder.slint:827 ui/pages/openwith.slint:795
+msgid "Preview"
+msgstr "预览"
+
+#: ui/pages/menu-builder.slint:827 ui/pages/openwith.slint:795
+msgid "Generated .nss"
+msgstr "生成的 .nss"
+
+#: ui/pages/menu-builder.slint:834
+msgid "Approximate; right-click to see the real menu."
+msgstr "仅供参考；右键单击可查看实际菜单。"
+
+#: ui/pages/menu-builder.slint:834
+msgid "Read-only. Save writes this to {}."
+msgstr "只读。保存时将写入 {}。"
+
+#: ui/pages/menu-builder.slint:846
+msgid "Nothing to preview yet."
+msgstr "暂无可预览的内容。"
+
+#: ui/pages/onboarding.slint:147
+msgid "Set up Nilesoft Shell Pro"
+msgstr "设置 Nilesoft Shell Pro"
+
+#: ui/pages/onboarding.slint:163
+msgid "Welcome to Nilesoft Shell Pro"
+msgstr "欢迎使用 Nilesoft Shell Pro"
+
+#: ui/pages/onboarding.slint:169
+msgid "Three steps to set up your context menu."
+msgstr "只需三步即可设置你的右键菜单。"
+
+#: ui/pages/onboarding.slint:178
+msgid "Personal config"
+msgstr "个人配置"
+
+#: ui/pages/onboarding.slint:179
+msgctxt "Setup step"
+msgid "Enable"
+msgstr "启用"
+
+#: ui/pages/onboarding.slint:180
+msgctxt "Setup step"
+msgid "Look"
+msgstr "外观"
+
+#: ui/pages/onboarding.slint:190
+msgid "shell.exe wasn't found next to this app, so setup can't run. Reinstall Nilesoft Shell."
+msgstr "未在此应用所在位置找到 shell.exe，因此无法运行设置。请重新安装 Nilesoft Shell。"
+
+#: ui/pages/onboarding.slint:196
+msgid "Create your personal config"
+msgstr "创建你的个人配置"
+
+#: ui/pages/onboarding.slint:198
+msgid "Shell builds its menu from shell.nss. A personal copy in %APPDATA%\\Nilesoft\\Shell is yours to change, needs no administrator rights, and is kept when Shell is updated."
+msgstr "Shell 根据 shell.nss 构建菜单。%APPDATA%\\Nilesoft\\Shell 中的个人副本可由你随意修改，无需管理员权限，且在 Shell 更新时会保留。"
+
+#: ui/pages/onboarding.slint:202
+msgid "Using the config at {}"
+msgstr "正在使用位于 {} 的配置"
+
+#: ui/pages/onboarding.slint:202
+msgid "Using your personal config: {}"
+msgstr "正在使用你的个人配置：{}"
+
+#: ui/pages/onboarding.slint:210
+msgid "Couldn't create it: {}"
+msgstr "无法创建：{}"
+
+#: ui/pages/onboarding.slint:226
+msgid "Enable Shell for you"
+msgstr "为你启用 Shell"
+
+#: ui/pages/onboarding.slint:229
+msgid "Shell is already enabled for all users on this PC, which includes your account. There's nothing to do here."
+msgstr "此电脑上已为所有用户启用 Shell，其中包括你的帐户。此步骤无需任何操作。"
+
+#: ui/pages/onboarding.slint:230
+msgid "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences."
+msgstr "为你的 Windows 帐户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“首选项”。"
+
+#: ui/pages/onboarding.slint:238
+msgid "Enabled for all users"
+msgstr "已为所有用户启用"
+
+#: ui/pages/onboarding.slint:243
+msgid "Register it for my account as well"
+msgstr "同时为我的帐户注册"
+
+#: ui/pages/onboarding.slint:249
+msgid "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home."
+msgstr "你自己的注册优先于所有用户的注册。因此在你于“主页”中取消注册之前，此帐户将不再使用所有用户的副本及其更新。"
+
+#: ui/pages/onboarding.slint:265
+msgid "Use the classic context menu on Windows 11"
+msgstr "在 Windows 11 上使用经典右键菜单"
+
+#: ui/pages/onboarding.slint:276
+msgid "Couldn't enable it: {}"
+msgstr "无法启用：{}"
+
+#: ui/pages/onboarding.slint:281
+msgid "Enable for my account too"
+msgstr "也为我的帐户启用"
+
+#: ui/pages/onboarding.slint:281 src/Status.cpp:177
+msgid "Enable for me"
+msgstr "为我启用"
+
+#: ui/pages/onboarding.slint:290
+msgid "Windows 11 menu: {}"
+msgstr "Windows 11 菜单：{}"
+
+#: ui/pages/onboarding.slint:298
+msgid "Pick a look"
+msgstr "选择外观"
+
+#: ui/pages/onboarding.slint:300
+msgid "Auto follows the Windows menu style. Colours, fonts and corners are on the Appearance page."
+msgstr "“自动”会跟随 Windows 菜单样式。颜色、字体和圆角可在“外观”页面中设置。"
+
+#: ui/pages/onboarding.slint:319
+msgid "Create your personal config in step 1 to choose a theme."
+msgstr "请先在第 1 步中创建个人配置，然后再选择主题。"
+
+#: ui/pages/onboarding.slint:319
+msgid "Reading your config…"
+msgstr "正在读取配置…"
+
+#: ui/pages/onboarding.slint:321
+msgid "Your config sets the theme with an expression, so it can't be changed here. Edit it in the Config Editor."
+msgstr "你的配置使用表达式设置主题，因此无法在此处更改。请在配置编辑器中编辑。"
+
+#: ui/pages/onboarding.slint:324
+msgid "{} is saved when you press Finish, after shell.exe checks the config."
+msgstr "按“完成”后，shell.exe 会先检查配置，然后保存 {}。"
+
+#: ui/pages/onboarding.slint:325
+msgid "Finish creates your personal config, then saves {} there."
+msgstr "“完成”会创建你的个人配置，然后将 {} 保存到其中。"
+
+#: ui/pages/onboarding.slint:326
+msgid "In use: {0} · {1}"
+msgstr "当前使用：{0} · {1}"
+
+#: ui/pages/onboarding.slint:331
+msgid "More themes on the Appearance page"
+msgstr "在“外观”页面中查看更多主题"
+
+#: ui/pages/onboarding.slint:356
+msgid "Explorer didn't restart: {}"
+msgstr "资源管理器未重启：{}"
+
+#: ui/pages/onboarding.slint:357
+msgid "Do this once after enabling Shell. Theme changes show on the next right-click."
+msgstr "启用 Shell 后执行一次即可。主题更改会在下次右键单击时生效。"
+
+#: ui/pages/onboarding.slint:367
+msgid "Skip setup"
+msgstr "跳过设置"
+
+#: ui/pages/onboarding.slint:373
+msgid "Back"
+msgstr "上一步"
+
+#: ui/pages/onboarding.slint:378
+msgid "Next"
+msgstr "下一步"
+
+#: ui/pages/onboarding.slint:384
+msgid "Finish"
+msgstr "完成"
+
+#: ui/pages/openwith.slint:204
+msgid "Added by you"
+msgstr "由你添加"
+
+#: ui/pages/openwith.slint:234
+msgid "Locate…"
+msgstr "定位…"
+
+#: ui/pages/openwith.slint:244 ui/pages/openwith.slint:499
+msgid "Show {} in the menu"
+msgstr "在菜单中显示 {}"
+
+#: ui/pages/openwith.slint:264 src/AppearanceController.cpp:77
+msgid "Name"
+msgstr "名称"
+
+#: ui/pages/openwith.slint:265
+msgid "Shown in the submenu as is."
+msgstr "按原样显示在子菜单中。"
+
+#: ui/pages/openwith.slint:265
+msgid "Shown as \"Open in {}\"."
+msgstr "显示为“在 {} 中打开”。"
+
+#: ui/pages/openwith.slint:275
+msgid "Program"
+msgstr "程序"
+
+#: ui/pages/openwith.slint:287 ui/pages/openwith.slint:317
+msgid "Browse…"
+msgstr "浏览…"
+
+#: ui/pages/openwith.slint:295
+msgid "{{path}} the selected item, quoted · {{paths}} every selected item · {{dir}} its folder · {{name}} its name"
+msgstr "{{path}} 所选项（带引号）· {{paths}} 所有选中项 · {{dir}} 其所在文件夹 · {{name}} 其名称"
+
+#: ui/pages/openwith.slint:314
+msgid "The program's own icon"
+msgstr "程序自带的图标"
+
+#: ui/pages/openwith.slint:324
+msgid "Shows for"
+msgstr "显示位置"
+
+#: ui/pages/openwith.slint:330
+msgid "Everything the menu shows on"
+msgstr "菜单出现的所有位置"
+
+#: ui/pages/openwith.slint:330
+msgid "Files only"
+msgstr "仅文件"
+
+#: ui/pages/openwith.slint:330
+msgid "Folders only"
+msgstr "仅文件夹"
+
+#: ui/pages/openwith.slint:330
+msgid "Files with these extensions"
+msgstr "具有以下扩展名的文件"
+
+#: ui/pages/openwith.slint:346
+msgid "Its own items"
+msgstr "应用自带的项"
+
+#: ui/pages/openwith.slint:347
+msgid "Switched off, the app also hides {}. Tick this to hide only the item this page adds."
+msgstr "关闭后，该应用的 {} 也会被隐藏。勾选此项则只隐藏此页面添加的项。"
+
+#: ui/pages/openwith.slint:349
+msgid "Keep the app's own menu items when it's off"
+msgstr "关闭时保留该应用自带的菜单项"
+
+#: ui/pages/openwith.slint:372
+msgctxt "Button"
+msgid "Test"
+msgstr "测试"
+
+#: ui/pages/openwith.slint:386 src/ConfigRules.cpp:323 src/ConfigRules.cpp:378
+msgid "Remove"
+msgstr "移除"
+
+#: ui/pages/openwith.slint:401
+msgid "Clicking the item would run (nothing was started):"
+msgstr "单击该项将运行（未启动任何程序）："
+
+#: ui/pages/openwith.slint:489 src/ConfigRules.cpp:327
+msgid "Hide"
+msgstr "隐藏"
+
+#: ui/pages/openwith.slint:509
+msgid "Title to hide"
+msgstr "要隐藏的标题"
+
+#: ui/pages/openwith.slint:515
+msgid "Exactly as the menu shows it"
+msgstr "与菜单中显示的完全一致"
+
+#: ui/pages/openwith.slint:617
+msgid "Open the selected file or folder in your editor or terminal from the right-click menu."
+msgstr "从右键菜单在编辑器或终端中打开所选文件或文件夹。"
+
+#: ui/pages/openwith.slint:637
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to add apps to the menu."
+msgstr "此处为只读，且绝不会写入 Program Files。请在 %APPDATA% 中创建个人副本，以便向菜单添加应用。"
+
+#: ui/pages/openwith.slint:645
+msgid "These items are turned off"
+msgstr "这些项已关闭"
+
+#: ui/pages/openwith.slint:646
+msgid "shell.nss imports this file, but the line is commented out. Turn \"Open with\" back on in Context Menus to see them."
+msgstr "shell.nss 导入了此文件，但该行已被注释掉。请在“右键菜单”中重新开启“打开方式”以显示它们。"
+
+#: ui/pages/openwith.slint:653
+msgid "Not in your menu yet"
+msgstr "尚未添加到菜单"
+
+#: ui/pages/openwith.slint:654
+msgid "None of the listed apps were found on this PC. Use Locate… or Add app, then Save."
+msgstr "在这台电脑上未找到列出的任何应用。请使用“定位…”或“添加应用”，然后保存。"
+
+#: ui/pages/openwith.slint:654
+msgid "The editors found on this PC are switched on below; terminals and Notepad are off because the Terminal and Develop menus have them. Save to add them to the menu."
+msgstr "已开启在这台电脑上找到的编辑器；终端和记事本默认关闭，因为“终端”和“开发”菜单中已有它们。保存后即可将其添加到菜单。"
+
+#: ui/pages/openwith.slint:665
+msgid "Couldn't read the Open with items"
+msgstr "无法读取“打开方式”项"
+
+#: ui/pages/openwith.slint:670
+msgid "Apps"
+msgstr "应用"
+
+#: ui/pages/openwith.slint:671 ui/pages/openwith.slint:683
+msgid "Looking for installed apps…"
+msgstr "正在查找已安装的应用…"
+
+#: ui/pages/openwith.slint:671
+msgid "Found {0} of {1} known apps on this PC. An item stays hidden while its program is missing."
+msgstr "在这台电脑上找到了 {1} 个已知应用中的 {0} 个。程序缺失时，对应的项会保持隐藏。"
+
+#: ui/pages/openwith.slint:673
+msgid "Add app"
+msgstr "添加应用"
+
+#: ui/pages/openwith.slint:683
+msgid "No apps."
+msgstr "没有应用。"
+
+#: ui/pages/openwith.slint:710
+msgid "Hide the apps that weren't found"
+msgstr "隐藏未找到的应用"
+
+#: ui/pages/openwith.slint:710
+msgid "Show {n} more app that wasn't found on this PC"
+msgid_plural "Show {n} more apps that weren't found on this PC"
+msgstr[0] "再显示 {n} 个在这台电脑上未找到的应用"
+
+#: ui/pages/openwith.slint:719
+msgid "In the menu"
+msgstr "菜单中"
+
+#: ui/pages/openwith.slint:720
+msgid "Where the items show, and whether they're grouped in a submenu."
+msgstr "这些项显示的位置，以及是否归入一个子菜单。"
+
+#: ui/pages/openwith.slint:730
+msgid "Layout"
+msgstr "布局"
+
+#: ui/pages/openwith.slint:731
+msgid "One submenu with each app inside it, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
+msgstr "一个子菜单，每个应用都在其中，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
+
+#: ui/pages/openwith.slint:731
+msgid "Each app is its own \"Open in …\" item, in this order, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
+msgstr "每个应用各自作为一个“在 … 中打开”项，按此顺序排列，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
+
+#: ui/pages/openwith.slint:733
+msgid "Group in an \"Open in\" submenu"
+msgstr "归入“在…中打开”子菜单"
+
+#: ui/pages/openwith.slint:741
+msgid "Submenu title"
+msgstr "子菜单标题"
+
+#: ui/pages/openwith.slint:742
+msgid "Windows already has an \"Open with\" item on files, so a different title tells them apart."
+msgstr "Windows 已在文件上提供“打开方式”项，使用不同的标题便于区分。"
+
+#: ui/pages/openwith.slint:801 src/OpenWithController.cpp:912
+msgid "A file"
+msgstr "文件"
+
+#: ui/pages/openwith.slint:801 src/OpenWithController.cpp:918
+msgid "A folder"
+msgstr "文件夹"
+
+#: ui/pages/openwith.slint:801
+msgctxt "Right-click target"
+msgid "Background"
+msgstr "背景"
+
+#: ui/pages/openwith.slint:809
+msgid "Approximate"
+msgstr "近似效果"
+
+#: ui/pages/openwith.slint:809
+msgid "Save writes {}"
+msgstr "保存时写入 {}"
+
+#: ui/pages/openwith.slint:860
+msgid "Other apps' menu items"
+msgstr "其他应用的菜单项"
+
+#: ui/pages/openwith.slint:861
+msgid "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed."
+msgstr "其他程序自行添加到菜单中的项，例如 VLC 或 7-Zip。关闭某项即可在 Shell 的菜单中隐藏它；程序和注册表保持不变。上方列表中应用的项随其应用开关一起控制，Windows 自带的项不在此列出。"
+
+#: ui/pages/openwith.slint:868
+msgid "No other program adds items to the menu for files, folders or drives."
+msgstr "没有其他程序为文件、文件夹或驱动器的菜单添加项。"
+
+#: ui/pages/openwith.slint:868
+msgid "Reading the registry…"
+msgstr "正在读取注册表…"
+
+#: ui/pages/openwith.slint:890
+msgid "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is."
+msgstr "这些项的程序已不存在，因此它们不起任何作用。隐藏某项会添加一条 remove() 规则；注册表保持不变。"
+
+#: ui/pages/openwith.slint:899
+msgid "Hide all {}"
+msgstr "全部隐藏（{} 项）"
+
+#: ui/pages/openwith.slint:919
+msgid "Switched off: {0}. Each is a remove() rule in {1}, after the Open in items."
+msgstr "已关闭：{0}。每项都是 {1} 中的一条 remove() 规则，位于“在…中打开”项之后。"
+
+#: ui/pages/openwith.slint:929
+msgid "Develop menu"
+msgstr "“开发”菜单"
+
+#: ui/pages/openwith.slint:943 ui/pages/openwith.slint:959
+msgid "Hide Develop › Editors"
+msgstr "隐藏“开发 › 编辑器”"
+
+#: ui/pages/openwith.slint:948
+msgid "develop.nss has its own VS Code and Notepad items, shown while Shift is held. It's read-only here."
+msgstr "develop.nss 自带 VS Code 和记事本项，按住 Shift 时显示。此处为只读。"
+
+#: ui/pages/openwith.slint:948
+msgid "develop.nss has its own VS Code and Notepad items. They only show while Shift is held, so they're left alone by default. Turn this on to keep your editors in one place; the lines are commented out, not deleted."
+msgstr "develop.nss 自带 VS Code 和记事本项。它们只在按住 Shift 时显示，因此默认保持不变。开启此项可将编辑器集中在一处；相关行会被注释掉，而不是删除。"
+
+#: ui/pages/preferences.slint:47
+msgid "How this app looks, updates, machine-wide registration, and about."
+msgstr "此应用的外观、更新、全机注册以及关于信息。"
+
+#: ui/pages/preferences.slint:54
+msgid "App theme"
+msgstr "应用主题"
+
+#: ui/pages/preferences.slint:55
+msgid "System follows the Windows app mode and changes with it."
+msgstr "“跟随系统”会跟随 Windows 应用模式并随之变化。"
+
+#: ui/pages/preferences.slint:60
+msgid "System"
+msgstr "跟随系统"
+
+#: ui/pages/preferences.slint:69
+msgid "Language"
+msgstr "语言"
+
+#: ui/pages/preferences.slint:70
+msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
+msgstr "“自动”跟随 Windows 显示语言（当前为 {}）。更改后立即生效。"
+
+#: ui/pages/preferences.slint:85
+msgid "All users on this PC"
+msgstr "这台电脑上的所有用户"
+
+#: ui/pages/preferences.slint:86
+msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
+msgstr "为这台电脑上的所有人注册 Shell 需要管理员权限。此应用中的其他功能无需管理员权限即可使用。"
+
+#: ui/pages/preferences.slint:88
+msgid "All users"
+msgstr "所有用户"
+
+#: ui/pages/preferences.slint:89 ui/pages/preferences.slint:93
+msgid "Registered"
+msgstr "已注册"
+
+#: ui/pages/preferences.slint:89 ui/pages/preferences.slint:93 src/AppController.cpp:123
+msgid "Not registered"
+msgstr "未注册"
+
+#: ui/pages/preferences.slint:92
+msgid "Just you"
+msgstr "仅限你"
+
+#: ui/pages/preferences.slint:99
+msgid "Unregister for all users"
+msgstr "为所有用户取消注册"
+
+#: ui/pages/preferences.slint:99
+msgid "Register for all users"
+msgstr "为所有用户注册"
+
+#: ui/pages/preferences.slint:110
+msgid "Updates"
+msgstr "更新"
+
+#: ui/pages/preferences.slint:111
+msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
+msgstr "新版本来自此项目的 GitHub 发布版本，安装前会先核对其 SHA-256 校验和。"
+
+#: ui/pages/preferences.slint:114
+msgid "{}  ·  installed for all users (MSI)"
+msgstr "{}  ·  已为所有用户安装 (MSI)"
+
+#: ui/pages/preferences.slint:115
+msgid "{}  ·  portable copy"
+msgstr "{}  ·  便携版"
+
+#: ui/pages/preferences.slint:121
+msgid "Channel"
+msgstr "通道"
+
+#: ui/pages/preferences.slint:130
+msgid "Stable"
+msgstr "稳定版"
+
+#: ui/pages/preferences.slint:130
+msgid "Beta"
+msgstr "测试版"
+
+#: ui/pages/preferences.slint:136
+msgid "Pre-releases too"
+msgstr "包括预发布版本"
+
+#: ui/pages/preferences.slint:136
+msgid "Releases only"
+msgstr "仅发布版本"
+
+#: ui/pages/preferences.slint:144
+msgid "Check for updates automatically"
+msgstr "自动检查更新"
+
+#: ui/pages/preferences.slint:145
+msgid "When the app starts, at most once a day."
+msgstr "在应用启动时检查，每天最多一次。"
+
+#: ui/pages/preferences.slint:150
+msgid "Download and install updates automatically"
+msgstr "自动下载并安装更新"
+
+#: ui/pages/preferences.slint:151
+msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+
+#: ui/pages/preferences.slint:174 src/UpdateController.cpp:529
+msgid "Checking for updates…"
+msgstr "正在检查更新…"
+
+#: ui/pages/preferences.slint:175
+msgid "Version {} is available"
+msgstr "版本 {} 可用"
+
+#: ui/pages/preferences.slint:176
+msgid "Downloading {}…  {}"
+msgstr "正在下载 {}…  {}"
+
+#: ui/pages/preferences.slint:177
+msgid "Version {} is downloaded and verified"
+msgstr "版本 {} 已下载并验证"
+
+#: ui/pages/preferences.slint:178
+msgid "Installing {}…"
+msgstr "正在安装 {}…"
+
+#: ui/pages/preferences.slint:180
+msgid "Not checked yet"
+msgstr "尚未检查"
+
+#: ui/pages/preferences.slint:192
+msgid "Last checked: {}"
+msgstr "上次检查时间：{}"
+
+#: ui/pages/preferences.slint:213
+msgid "Check now"
+msgstr "立即检查"
+
+#: ui/pages/preferences.slint:229
+msgid "About"
+msgstr "关于"
+
+#: ui/pages/preferences.slint:251
+msgid "© Nilesoft Ltd. and contributors. MIT License."
+msgstr "© Nilesoft Ltd. 及贡献者。MIT 许可证。"
+
+#: ui/pages/preferences.slint:265
+msgid "Documentation"
+msgstr "文档"
+
+#: ui/pages/preferences.slint:270
+msgid "Source code"
+msgstr "源代码"
+
+#: ui/pages/preferences.slint:274
+msgid "Report an issue"
+msgstr "报告问题"
+
+#: ui/pages/preferences.slint:283
+msgid "Third-party software"
+msgstr "第三方软件"
+
+#: ui/pages/preferences.slint:288
+msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
+msgstr "使用 Slint 构建（Royalty-free license 2.0）。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
+
+#: ui/pages/rules.slint:43
+msgid "Remove {}"
+msgstr "移除 {}"
+
+#: ui/pages/rules.slint:112
+msgid "Add"
+msgstr "添加"
+
+#: ui/pages/rules.slint:135
+msgid "Where Shell's menu appears. Everywhere else, Windows shows its own menu."
+msgstr "Shell 菜单出现的位置。在其他位置，Windows 会显示其自带的菜单。"
+
+#: ui/pages/rules.slint:150
+msgid "Where the menu appears"
+msgstr "菜单显示位置"
+
+#: ui/pages/rules.slint:152
+msgid "Only in File Explorer and on the desktop"
+msgstr "仅在文件资源管理器和桌面中"
+
+#: ui/pages/rules.slint:155
+msgid "A custom condition is set below · {}"
+msgstr "已在下方设置自定义条件 · {}"
+
+#: ui/pages/rules.slint:156
+msgid "Other programs' file dialogs keep Windows' menu · {}"
+msgstr "其他程序的文件对话框保留 Windows 菜单 · {}"
+
+#: ui/pages/rules.slint:169
+msgid "Custom condition"
+msgstr "自定义条件"
+
+#: ui/pages/rules.slint:173
+msgid "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save."
+msgstr "一个 NSS 表达式；只要其结果为真，就隐藏 Shell 的菜单。保存时 shell.exe 会检查它。"
+
+#: ui/pages/rules.slint:184
+msgid "e.g. process.name == \"notepad\""
+msgstr "例如 process.name == \"notepad\""
+
+#: ui/pages/rules.slint:203
+msgid "Show it in the Config Editor"
+msgstr "在配置编辑器中显示"
+
+#: ui/pages/rules.slint:213
+msgid "Keep Windows' own menu"
+msgstr "保留 Windows 自带菜单"
+
+#: ui/pages/rules.slint:214
+msgid "Shell's menu stays out of these programs and windows."
+msgstr "Shell 的菜单不会出现在这些程序和窗口中。"
+
+#: ui/pages/rules.slint:217 src/OpenWithController.cpp:218
+msgid "Programs"
+msgstr "程序"
+
+#: ui/pages/rules.slint:218
+msgid "By name, without .exe"
+msgstr "按名称，不含 .exe"
+
+#: ui/pages/rules.slint:219
+msgid "notepad, or a path to an .exe"
+msgstr "notepad，或 .exe 的路径"
+
+#: ui/pages/rules.slint:220
+msgid "No programs."
+msgstr "没有程序。"
+
+#: ui/pages/rules.slint:227
+msgid "Window classes"
+msgstr "窗口类"
+
+#: ui/pages/rules.slint:228
+msgid "The class of the top-level window, e.g. CabinetWClass for File Explorer"
+msgstr "顶层窗口的类名，例如文件资源管理器的 CabinetWClass"
+
+#: ui/pages/rules.slint:229
+msgid "Window class name"
+msgstr "窗口类名"
+
+#: ui/pages/rules.slint:230
+msgid "No window classes."
+msgstr "没有窗口类。"
+
+#. because Slint's fallback for Chinese text in Segoe UI misses characters.
+#: ui/preview/menu-preview.slint:26 ui/preview/menu-preview.slint:171
+msgctxt "Menu font family"
+msgid "Segoe UI"
+msgstr "Microsoft YaHei UI"
+
+#: ui/preview/menu-preview.slint:172
+msgctxt "Explorer menu"
+msgid "View"
+msgstr "查看"
+
+#: ui/preview/menu-preview.slint:172 src/AppearanceController.cpp:64 src/OpenWithController.cpp:833
+msgid "Sort by"
+msgstr "排序方式"
+
+#: ui/preview/menu-preview.slint:256 ui/preview/menu-preview.slint:287
+msgid "Documents"
+msgstr "文档"
+
+#: ui/preview/menu-preview.slint:256
+msgid "Pictures"
+msgstr "图片"
+
+#: ui/preview/menu-preview.slint:256
+msgid "Projects"
+msgstr "项目"
+
+#: ui/preview/menu-preview.slint:287
+msgid "This PC"
+msgstr "此电脑"
+
+#: src/AppController.cpp:79
+msgid "shell.exe did not finish in time and was stopped."
+msgstr "shell.exe 未能及时完成，已被停止。"
+
+#: src/AppController.cpp:93 src/SaveService.cpp:497
+msgid "shell.exe exited with code {}."
+msgstr "shell.exe 已退出，退出代码为 {}。"
+
+#: src/AppController.cpp:117
+msgid "Registered for you"
+msgstr "已为你注册"
+
+#: src/AppController.cpp:119 src/AppController.cpp:511
+msgid "Registered for all users"
+msgstr "已为所有用户注册"
+
+#: src/AppController.cpp:121
+msgid "Registered for you and for all users"
+msgstr "已为你和所有用户注册"
+
+#: src/AppController.cpp:127
+msgid "Not applicable on this Windows version"
+msgstr "不适用于此 Windows 版本"
+
+#: src/AppController.cpp:129
+msgid "Classic menu (set by another app)"
+msgstr "经典菜单（由其他应用设置）"
+
+#: src/AppController.cpp:129
+msgid "Classic menu (set by Shell)"
+msgstr "经典菜单（由 Shell 设置）"
+
+#: src/AppController.cpp:131
+msgid "Windows 11 menu; Shell is under \"Show more options\""
+msgstr "Windows 11 菜单；Shell 位于“显示更多选项”中"
+
+#: src/AppController.cpp:134
+msgid "Personal (%APPDATA%)"
+msgstr "个人 (%APPDATA%)"
+
+#: src/AppController.cpp:136
+msgid "Custom path (registry)"
+msgstr "自定义路径（注册表）"
+
+#: src/AppController.cpp:138
+msgid "Shared (install folder)"
+msgstr "共享（安装文件夹）"
+
+#: src/AppController.cpp:140
+msgid "Unknown"
+msgstr "未知"
+
+#: src/AppController.cpp:144
+msgid "Two copies of Shell are registered"
+msgstr "已注册两份 Shell"
+
+#: src/AppController.cpp:145
+msgid "Explorer can load the other copy, and then Shell's menu doesn't appear."
+msgstr "资源管理器可能会加载另一份，这时 Shell 的菜单就不会出现。"
+
+#: src/AppController.cpp:146 src/AppController.cpp:156 src/AppController.cpp:161
+msgid "Needs attention"
+msgstr "需要注意"
+
+#: src/AppController.cpp:149
+msgid "Shell is not enabled"
+msgstr "Shell 未启用"
+
+#: src/AppController.cpp:150
+msgid "The context menu isn't registered for you or for all users."
+msgstr "右键菜单既未为你注册，也未为所有用户注册。"
+
+#: src/AppController.cpp:151
+msgid "Not enabled"
+msgstr "未启用"
+
+#: src/AppController.cpp:154
+msgid "shell.dll is missing"
+msgstr "缺少 shell.dll"
+
+#: src/AppController.cpp:155
+msgid "The registered DLL file can't be found. Register again to fix it."
+msgstr "找不到已注册的 DLL 文件。重新注册即可修复。"
+
+#: src/AppController.cpp:159 src/Status.cpp:188
+msgid "The config file is missing"
+msgstr "缺少配置文件"
+
+#: src/AppController.cpp:160
+msgid "Shell can't build its menu without shell.nss."
+msgstr "没有 shell.nss，Shell 无法生成菜单。"
+
+#: src/AppController.cpp:164 src/AppController.cpp:166 src/AppController.cpp:169 src/AppController.cpp:173
+msgid "Shell is active"
+msgstr "Shell 已启用"
+
+#: src/AppController.cpp:165
+msgid "Another app set the Windows 11 classic-menu switch."
+msgstr "另一个应用设置了 Windows 11 的经典菜单开关。"
+
+#: src/AppController.cpp:170
+msgid "Your context menu is powered by Nilesoft Shell."
+msgstr "你的右键菜单由 Nilesoft Shell 提供支持。"
+
+#: src/AppController.cpp:171
+msgid "Active for you and for every user on this PC."
+msgstr "已为你和这台电脑上的所有用户启用。"
+
+#: src/AppController.cpp:172
+msgid "Active for every user on this PC."
+msgstr "已为这台电脑上的所有用户启用。"
+
+#: src/AppController.cpp:259
+msgctxt "Language"
+msgid "Auto"
+msgstr "自动"
+
+#: src/AppController.cpp:394
+msgid "shell.exe was not found"
+msgstr "找不到 shell.exe"
+
+#: src/AppController.cpp:395
+msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
+msgstr "请安装 Nilesoft Shell，或将 NilesoftShellPro.exe 放到 shell.exe 所在的文件夹中。"
+
+#: src/AppController.cpp:399
+msgid "Nilesoft Shell was not found"
+msgstr "找不到 Nilesoft Shell"
+
+#: src/AppController.cpp:400
+msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
+msgstr "NilesoftShellPro.exe 会在自身所在的文件夹和已注册的 shell.dll 所在的文件夹中查找 shell.exe。"
+
+#: src/AppController.cpp:401 src/EditorController.cpp:303
+msgid "Not found"
+msgstr "未找到"
+
+#: src/AppController.cpp:420 src/AppController.cpp:423
+msgid "Couldn't read the Shell status"
+msgstr "无法读取 Shell 状态"
+
+#: src/AppController.cpp:497 src/AppController.cpp:539
+msgid "Restarting Explorer…"
+msgstr "正在重启资源管理器…"
+
+#: src/AppController.cpp:497
+msgid "Explorer restarted"
+msgstr "资源管理器已重启"
+
+#: src/AppController.cpp:499
+msgid "Registering for you…"
+msgstr "正在为你注册…"
+
+#: src/AppController.cpp:499
+msgid "Shell is enabled for you"
+msgstr "已为你启用 Shell"
+
+#: src/AppController.cpp:500
+msgid "Restart Explorer to load it everywhere."
+msgstr "重启资源管理器，使其在所有位置生效。"
+
+#: src/AppController.cpp:504
+msgid "Unregistering…"
+msgstr "正在取消注册…"
+
+#: src/AppController.cpp:504
+msgid "Shell is disabled for you"
+msgstr "已为你禁用 Shell"
+
+#: src/AppController.cpp:505 src/AppController.cpp:516
+msgid "Restart Explorer to unload it."
+msgstr "重启资源管理器以将其卸载。"
+
+#: src/AppController.cpp:507
+msgid "Creating your config…"
+msgstr "正在创建你的配置…"
+
+#: src/AppController.cpp:507
+msgid "Personal config created"
+msgstr "已创建个人配置"
+
+#: src/AppController.cpp:508
+msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
+msgstr "Shell 现在从 %APPDATA%\\Nilesoft\\Shell 读取配置。"
+
+#: src/AppController.cpp:510 src/AppController.cpp:515 src/AppController.cpp:520 src/UpdateController.cpp:723
+msgid "Waiting for administrator approval…"
+msgstr "正在等待管理员批准…"
+
+#: src/AppController.cpp:511
+msgid "Restart Explorer to load it."
+msgstr "重启资源管理器以加载它。"
+
+#: src/AppController.cpp:516
+msgid "Unregistered for all users"
+msgstr "已为所有用户取消注册"
+
+#: src/AppController.cpp:521
+msgid "Only this copy is registered now"
+msgstr "现在只注册了这一份"
+
+#: src/AppController.cpp:521
+msgid "Explorer was restarted."
+msgstr "资源管理器已重启。"
+
+#: src/AppController.cpp:542
+msgid "Registered, but Explorer didn't restart: {}"
+msgstr "已注册，但资源管理器未能重启：{}"
+
+#: src/AppController.cpp:549
+msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
+msgstr "另一份仍处于注册状态：{}。请在“设置 > 应用”中将其卸载，然后重试。"
+
+#: src/AppController.cpp:556 src/UpdateController.cpp:750
+msgid "The administrator prompt was cancelled. Nothing was changed."
+msgstr "管理员提示已取消。未进行任何更改。"
+
+#: src/AppController.cpp:557
+msgid "Cancelled"
+msgstr "已取消"
+
+#: src/AppController.cpp:562
+msgid "That didn't work"
+msgstr "操作未成功"
+
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:832
+msgid "View"
+msgstr "查看"
+
+#: src/AppearanceController.cpp:66
+msgid "Undo Rename"
+msgstr "撤销重命名"
+
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:48
+msgid "Terminal"
+msgstr "终端"
+
+#: src/AppearanceController.cpp:68 src/AppearanceController.cpp:92 src/ConfigRules.cpp:49
+msgid "File manage"
+msgstr "文件管理"
+
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:51
+msgid "Develop"
+msgstr "开发"
+
+#: src/AppearanceController.cpp:70
+msgid "New"
+msgstr "新建"
+
+#: src/AppearanceController.cpp:72
+msgid "Display settings"
+msgstr "显示设置"
+
+#: src/AppearanceController.cpp:72
+msgid "Personalize"
+msgstr "个性化"
+
+#: src/AppearanceController.cpp:75
+msgid "Large icons"
+msgstr "大图标"
+
+#: src/AppearanceController.cpp:75
+msgid "Medium icons"
+msgstr "中等图标"
+
+#: src/AppearanceController.cpp:75
+msgid "Small icons"
+msgstr "小图标"
+
+#: src/AppearanceController.cpp:76
+msgid "Auto arrange icons"
+msgstr "自动排列图标"
+
+#: src/AppearanceController.cpp:76
+msgid "Show desktop icons"
+msgstr "显示桌面图标"
+
+#: src/AppearanceController.cpp:77
+msgid "Item type"
+msgstr "项目类型"
+
+#: src/AppearanceController.cpp:77
+msgid "Date modified"
+msgstr "修改日期"
+
+#: src/AppearanceController.cpp:78
+msgid "Command prompt"
+msgstr "命令提示符"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:90 src/AppearanceController.cpp:98
+msgid "Copy path"
+msgstr "复制路径"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:98
+msgid "Take ownership"
+msgstr "获取所有权"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:98
+msgid "Attributes"
+msgstr "文件属性"
+
+#: src/AppearanceController.cpp:80 src/AppearanceController.cpp:99
+msgid "New folder"
+msgstr "新建文件夹"
+
+#: src/AppearanceController.cpp:80 src/AppearanceController.cpp:99
+msgid "New file"
+msgstr "新建文件"
+
+#: src/AppearanceController.cpp:81
+msgid "Open in editor"
+msgstr "在编辑器中打开"
+
+#: src/AppearanceController.cpp:82
+msgid "Text document"
+msgstr "文本文档"
+
+#: src/AppearanceController.cpp:82
+msgid "Shortcut"
+msgstr "快捷方式"
+
+#: src/AppearanceController.cpp:83
+msgid "Hidden"
+msgstr "隐藏"
+
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:182 src/ContextMenusController.cpp:205 src/EditorController.cpp:307
+msgid "Read-only"
+msgstr "只读"
+
+#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:820 src/OpenWithController.cpp:826
+msgid "Open"
+msgstr "打开"
+
+#: src/AppearanceController.cpp:90
+msgid "Rename"
+msgstr "重命名"
+
+#: src/AppearanceController.cpp:92
+msgid "Pin to Start"
+msgstr "固定到“开始”屏幕"
+
+#: src/AppearanceController.cpp:94
+msgid "Properties"
+msgstr "属性"
+
+#: src/AppearanceController.cpp:97
+msgid "Choose another app"
+msgstr "选择其他应用"
+
+#: src/AppearanceController.cpp:650
+msgid "Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in Personalization > Colors, or choose Auto, which Shell applies even with it off."
+msgstr "Windows 的“透明效果”已关闭，因此 Shell 会将此菜单绘制为不透明。请在“个性化 > 颜色”中将其打开，或选择“自动”，即使透明效果已关闭，Shell 也会应用它。"
+
+#: src/AppearanceController.cpp:652
+msgid "Auto is acrylic on Windows 11, even with Windows Transparency effects off."
+msgstr "在 Windows 11 上，“自动”为亚克力效果，即使 Windows 的“透明效果”已关闭也是如此。"
+
+#: src/AppearanceController.cpp:653
+msgid "Auto is blur on Windows 10, even with Windows Transparency effects off."
+msgstr "在 Windows 10 上，“自动”为模糊效果，即使 Windows 的“透明效果”已关闭也是如此。"
+
+#: src/AppearanceController.cpp:655
+msgid "Not set: acrylic while Windows Transparency effects is on, none while it is off."
+msgstr "未设置：Windows 的“透明效果”开启时为亚克力效果，关闭时无效果。"
+
+#: src/AppearanceController.cpp:657
+msgid "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger look, raise the tint's alpha."
+msgstr "模糊的桌面上叠加一层色调，与 Windows 11 上“自动”的效果相同。如需更明显的效果，请提高色调的 Alpha 值。"
+
+#: src/AppearanceController.cpp:659
+msgid "Alpha sets the strength: 40 light, FF hides the blur."
+msgstr "Alpha 决定强度：40 较淡，FF 会完全遮住模糊效果。"
+
+#: src/AppearanceController.cpp:661
+msgid "From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
+msgstr "来自 effect = [n, tint, opacity]；在此处所做的更改会写入 background.tintcolor，并以其为准。"
+
+#: src/AppearanceController.cpp:664
+msgid "No effect: the menu is solid, so opacity doesn't apply."
+msgstr "无效果：菜单不透明，因此不透明度不起作用。"
+
+#: src/AppearanceController.cpp:665
+msgid "The background colour over the effect: 0 % shows only the effect and its tint, 100 % is solid and turns the effect off."
+msgstr "覆盖在效果上的背景颜色：0 % 只显示效果及其色调，100 % 为不透明并关闭效果。"
+
+#: src/BackupsController.cpp:50
+msgid "Keeps the newest {} snapshots, none older than {} days. Pinned snapshots are always kept."
+msgstr "保留最新的 {} 个快照，且均不超过 {} 天。已固定的快照始终保留。"
+
+#: src/BackupsController.cpp:83
+msgid "Your config files are put back as they were on {0} ({n} file, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone."
+msgid_plural "Your config files are put back as they were on {0} ({n} files, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone."
+msgstr[0] "你的配置文件将还原为 {0} 时的状态（{n} 个文件，“{1}”）。\n\n还原前会先为当前文件创建快照，因此你可以撤销此操作。之后新增的文件不受影响。"
+
+#: src/BackupsController.cpp:94
+msgid "The snapshot from {} (\"{}\") is deleted from disk. This can't be undone."
+msgstr "将从磁盘删除 {} 的快照（“{}”）。此操作无法撤销。"
+
+#: src/BackupsController.cpp:131
+msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
+msgstr "当前使用的是安装文件夹中的共享配置，本应用从不写入该配置。请创建个人配置以获取快照。"
+
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:45 src/ContextMenusController.cpp:93 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:387
+msgid "The config file doesn't exist: {}"
+msgstr "配置文件不存在：{}"
+
+#: src/BackupsController.cpp:196
+msgid "Comparing with your files now…"
+msgstr "正在与你当前的文件进行比较…"
+
+#: src/BackupsController.cpp:220
+msgid "Identical to your files now ({n} file)."
+msgid_plural "Identical to your files now ({n} files)."
+msgstr[0] "与你当前的文件相同（{n} 个文件）。"
+
+#: src/BackupsController.cpp:223
+msgid "Since this snapshot: {n} file changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
+msgid_plural "Since this snapshot: {n} files changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
+msgstr[0] "自此快照以来：{n} 个文件有更改（+{0} −{1} 行），{2} 个未更改。绿色行是你文件中现在的内容；红色行会在还原后恢复。"
+
+#: src/BackupsController.cpp:263
+msgid "Manual snapshot"
+msgstr "手动快照"
+
+#: src/BackupsController.cpp:269
+msgid "Couldn't create a snapshot"
+msgstr "无法创建快照"
+
+#: src/BackupsController.cpp:272
+msgid "Snapshot created"
+msgstr "已创建快照"
+
+#: src/BackupsController.cpp:273
+msgid "{n} file saved as {0}."
+msgid_plural "{n} files saved as {0}."
+msgstr[0] "已将 {n} 个文件保存为 {0}。"
+
+#: src/BackupsController.cpp:289
+msgid "Couldn't pin the snapshot"
+msgstr "无法固定快照"
+
+#: src/BackupsController.cpp:289
+msgid "Couldn't unpin the snapshot"
+msgstr "无法取消固定快照"
+
+#: src/BackupsController.cpp:314
+msgid "Restored the snapshot from {}"
+msgstr "已还原 {} 的快照"
+
+#: src/BackupsController.cpp:315
+msgid "Your previous files were snapshotted first."
+msgstr "已先为你之前的文件创建快照。"
+
+#: src/BackupsController.cpp:317
+msgid "Couldn't restore the snapshot"
+msgstr "无法还原快照"
+
+#: src/BackupsController.cpp:328
+msgid "Snapshot deleted"
+msgstr "已删除快照"
+
+#: src/BackupsController.cpp:330
+msgid "Couldn't delete the snapshot"
+msgstr "无法删除快照"
+
+#: src/BackupsModel.cpp:60
+msgid "cannot read {} from the snapshot"
+msgstr "无法从快照中读取 {}"
+
+#: src/BackupsModel.cpp:105
+msgid "snapshot '{}' not found"
+msgstr "找不到快照“{}”"
+
+#: src/BackupsModel.cpp:110
+msgid "pinned snapshots can't be deleted; unpin it first"
+msgstr "无法删除已固定的快照；请先取消固定"
+
+#: src/BackupsModel.cpp:117
+msgid "cannot delete {}: {}"
+msgstr "无法删除 {}：{}"
+
+#: src/BackupsModel.cpp:140
+msgid "Jan"
+msgstr "1月"
+
+#: src/BackupsModel.cpp:140
+msgid "Feb"
+msgstr "2月"
+
+#: src/BackupsModel.cpp:140
+msgid "Mar"
+msgstr "3月"
+
+#: src/BackupsModel.cpp:140
+msgid "Apr"
+msgstr "4月"
+
+#: src/BackupsModel.cpp:141 src/UpdateController.cpp:149
+msgid "May"
+msgstr "5月"
+
+#: src/BackupsModel.cpp:141
+msgid "Jun"
+msgstr "6月"
+
+#: src/BackupsModel.cpp:141
+msgid "Jul"
+msgstr "7月"
+
+#: src/BackupsModel.cpp:141
+msgid "Aug"
+msgstr "8月"
+
+#: src/BackupsModel.cpp:142
+msgid "Sep"
+msgstr "9月"
+
+#: src/BackupsModel.cpp:142
+msgid "Oct"
+msgstr "10月"
+
+#: src/BackupsModel.cpp:142
+msgid "Nov"
+msgstr "11月"
+
+#: src/BackupsModel.cpp:142
+msgid "Dec"
+msgstr "12月"
+
+#: src/BackupsModel.cpp:159
+msgid "just now"
+msgstr "刚刚"
+
+#: src/BackupsModel.cpp:161
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n} 分钟前"
+
+#: src/BackupsModel.cpp:163
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n} 小时前"
+
+#: src/BackupsModel.cpp:165
+msgid "yesterday"
+msgstr "昨天"
+
+#: src/BackupsModel.cpp:166
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} 天前"
+
+#: src/BehaviorController.cpp:24
+msgid "Rules"
+msgstr "规则"
+
+#: src/BehaviorController.cpp:267
+msgid "Folder for menu screenshots"
+msgstr "菜单截图文件夹"
+
+#: src/ConfigRules.cpp:44
+msgid "Colors, fonts, spacing and effects of the menu. Off: Shell's built-in defaults."
+msgstr "菜单的颜色、字体、间距和效果。关闭则使用 Shell 内置的默认值。"
+
+#: src/ConfigRules.cpp:45
+msgid "Icons"
+msgstr "图标"
+
+#: src/ConfigRules.cpp:45
+msgid "The icon.* images the other files draw with. Always on: turning it off breaks them."
+msgstr "其他文件所用的 icon.* 图像。始终开启：关闭会导致其他文件出错。"
+
+#: src/ConfigRules.cpp:46
+msgid "Other files use its icons; turning it off breaks them"
+msgstr "其他文件使用其中的图标；关闭会导致它们出错"
+
+#: src/ConfigRules.cpp:47
+msgid "Windows items"
+msgstr "Windows 菜单项"
+
+#: src/ConfigRules.cpp:47
+msgid "Hides, moves and groups Windows' own items. Each rule is listed below."
+msgstr "隐藏、移动和分组 Windows 自带的菜单项。各条规则列在下方。"
+
+#: src/ConfigRules.cpp:48
+msgid "Command Prompt, PowerShell and Windows Terminal, opened in the current folder."
+msgstr "在当前文件夹中打开的命令提示符、PowerShell 和 Windows Terminal。"
+
+#: src/ConfigRules.cpp:50
+msgid "Copy paths, change extension, select, take ownership, attributes, new folder and file."
+msgstr "复制路径、更改扩展名、选择、获取所有权、属性、新建文件夹和文件。"
+
+#: src/ConfigRules.cpp:51
+msgid "Open in an editor, dotnet commands. Shown while Shift is held."
+msgstr "在编辑器中打开、dotnet 命令。按住 Shift 时显示。"
+
+#: src/ConfigRules.cpp:52
+msgid "Go to"
+msgstr "转到"
+
+#: src/ConfigRules.cpp:52
+msgid "Jump to common folders and Windows Settings pages."
+msgstr "跳转到常用文件夹和 Windows 设置页面。"
+
+#: src/ConfigRules.cpp:53
+msgid "Taskbar"
+msgstr "任务栏"
+
+#: src/ConfigRules.cpp:53
+msgid "Apps, window arrangement and Task Manager on the taskbar's menu."
+msgstr "任务栏菜单中的应用、窗口排列和任务管理器。"
+
+#: src/ConfigRules.cpp:54
+msgid "My tools"
+msgstr "我的工具"
+
+#: src/ConfigRules.cpp:54
+msgid "New file and System menus from Abdullah Masood's config."
+msgstr "来自 Abdullah Masood 配置的“新建文件”和“系统”菜单。"
+
+#: src/ConfigRules.cpp:55
+msgid "Your menus"
+msgstr "你的菜单"
+
+#: src/ConfigRules.cpp:55
+msgid "The menus and items you built on the Menu Builder page."
+msgstr "你在“菜单构建器”页面中创建的菜单和菜单项。"
+
+#: src/ConfigRules.cpp:56
+msgid "Editors and terminals you picked on the Open with page."
+msgstr "你在“打开方式”页面中选择的编辑器和终端。"
+
+#: src/ConfigRules.cpp:264
+msgid "in File Explorer"
+msgstr "在文件资源管理器中"
+
+#: src/ConfigRules.cpp:265
+msgid "on the desktop"
+msgstr "在桌面上"
+
+#: src/ConfigRules.cpp:266
+msgid "on the taskbar"
+msgstr "在任务栏上"
+
+#: src/ConfigRules.cpp:267
+msgid "on the edit"
+msgstr "在编辑框中"
+
+#: src/ConfigRules.cpp:268
+msgid "on the start"
+msgstr "在“开始”菜单中"
+
+#: src/ConfigRules.cpp:287
+msgid "{0} and {n} more"
+msgid_plural "{0} and {n} more"
+msgstr[0] "{0} 及另外 {n} 项"
+
+#: src/ConfigRules.cpp:329
+msgid "Disable"
+msgstr "禁用"
+
+#: src/ConfigRules.cpp:331
+msgid "Change visibility"
+msgstr "更改可见性"
+
+#: src/ConfigRules.cpp:338
+msgid "Move to {}"
+msgstr "移到 {}"
+
+#: src/ConfigRules.cpp:338
+msgid "Move"
+msgstr "移动"
+
+#: src/ConfigRules.cpp:342
+msgid "Move to {}, at the top"
+msgstr "移到 {} 顶部"
+
+#: src/ConfigRules.cpp:342
+msgid "Move to the top"
+msgstr "移到顶部"
+
+#: src/ConfigRules.cpp:344
+msgid "Move to {}, at the bottom"
+msgstr "移到 {} 底部"
+
+#: src/ConfigRules.cpp:344
+msgid "Move to the bottom"
+msgstr "移到底部"
+
+#: src/ConfigRules.cpp:346
+msgid "Move to {}, at the middle"
+msgstr "移到 {} 中间"
+
+#: src/ConfigRules.cpp:346
+msgid "Move to the middle"
+msgstr "移到中间"
+
+#: src/ConfigRules.cpp:348
+msgid "Move to {}, position {}"
+msgstr "移到 {} 的第 {} 个位置"
+
+#: src/ConfigRules.cpp:348
+msgid "Move to position {}"
+msgstr "移到第 {} 个位置"
+
+#: src/ConfigRules.cpp:355
+msgid "Rename to {}"
+msgstr "重命名为 {}"
+
+#: src/ConfigRules.cpp:357
+msgid "Change icon"
+msgstr "更改图标"
+
+#: src/ConfigRules.cpp:364
+msgid "Add separators"
+msgstr "添加分隔线"
+
+#: src/ConfigRules.cpp:365
+msgid "Add a separator before"
+msgstr "在前面添加分隔线"
+
+#: src/ConfigRules.cpp:366
+msgid "Add a separator after"
+msgstr "在后面添加分隔线"
+
+#: src/ConfigRules.cpp:367
+msgid "Add a separator {}"
+msgstr "添加分隔线（{}）"
+
+#: src/ConfigRules.cpp:370
+msgid "Show a shortcut"
+msgstr "显示快捷键"
+
+#: src/ConfigRules.cpp:372
+msgid "Add a tip"
+msgstr "添加提示"
+
+#: src/ConfigRules.cpp:374
+msgid "Change state"
+msgstr "更改状态"
+
+#: src/ConfigRules.cpp:376
+msgid "Change command"
+msgstr "更改命令"
+
+#: src/ConfigRules.cpp:378
+msgid "No visible change"
+msgstr "无可见更改"
+
+#: src/ConfigRules.cpp:412
+msgid "Items matching an expression"
+msgstr "与表达式匹配的项"
+
+#: src/ConfigRules.cpp:414
+msgid "Every item"
+msgstr "所有项"
+
+#: src/ConfigRules.cpp:427
+msgid "{} or {}"
+msgstr "{}或{}"
+
+#: src/ConfigRules.cpp:437
+msgid "multiple selection"
+msgstr "多选"
+
+#: src/ConfigRules.cpp:439
+msgid "no selection"
+msgstr "未选择"
+
+#: src/ConfigRules.cpp:444
+msgid "in {}"
+msgstr "位于 {}"
+
+#: src/ConfigRules.cpp:505
+msgid "File"
+msgstr "文件"
+
+#: src/ConfigRules.cpp:512
+msgid "{} background"
+msgstr "{}背景"
+
+#: src/ConfigRules.cpp:522
+msgid "Recycle bin"
+msgstr "回收站"
+
+#: src/ConfigRules.cpp:524
+msgid "Anything"
+msgstr "任意类型"
+
+#: src/ConfigRules.cpp:553
+msgid "Imported from {}."
+msgstr "从 {} 导入。"
+
+#: src/ConfigRules.cpp:565
+msgid "The import spans several lines"
+msgstr "该导入跨越多行"
+
+#: src/ConfigRules.cpp:566
+msgid "Locked: the import spans several lines."
+msgstr "已锁定：该导入跨越多行。"
+
+#: src/ConfigRules.cpp:570
+msgid "Something else shares its line"
+msgstr "其所在行还有其他内容"
+
+#: src/ConfigRules.cpp:571
+msgid "Locked: something else shares its line."
+msgstr "已锁定：其所在行还有其他内容。"
+
+#: src/ConfigRules.cpp:606
+msgid "Inside a menu"
+msgstr "位于菜单内"
+
+#: src/ConfigRules.cpp:609
+msgid "Shares a line with other code"
+msgstr "与其他代码共用一行"
+
+#: src/ContextMenusController.cpp:124
+msgid "The config couldn't be read."
+msgstr "无法读取配置。"
+
+#: src/ContextMenusController.cpp:207
+msgid "Complex: edit it in the Config Editor"
+msgstr "较复杂：请在配置编辑器中编辑"
+
+#: src/ContextMenusController.cpp:209
+msgid "{} (outside your config)"
+msgstr "{}（不在你的配置中）"
+
+#: src/ContextMenusController.cpp:219
+msgid "No modify or remove rules in your config."
+msgstr "你的配置中没有 modify 或 remove 规则。"
+
+#: src/ContextMenusController.cpp:220
+msgid "{n} rule in {0}. Turning one off comments it out; turning it back on restores it."
+msgid_plural "{n} rules in {0}. Turning one off comments it out; turning it back on restores it."
+msgstr[0] "{0} 中有 {n} 条规则。关闭某条规则会将其注释掉；重新开启即可恢复。"
+
+#: src/ContextMenusController.cpp:234
+msgid "Couldn't change {}"
+msgstr "无法更改 {}"
+
+#: src/ContextMenusController.cpp:234
+msgid "Edit the import line in the Config Editor instead."
+msgstr "请改为在配置编辑器中编辑该 import 行。"
+
+#: src/ContextMenusController.cpp:247
+msgid "Couldn't change this rule"
+msgstr "无法更改此规则"
+
+#: src/ContextMenusController.cpp:247
+msgid "Edit it in the Config Editor instead."
+msgstr "请改为在配置编辑器中编辑。"
+
+#: src/ContextMenusController.cpp:263 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079
+msgid "Can't check the config"
+msgstr "无法检查配置"
+
+#: src/ContextMenusController.cpp:263 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079
+msgid "shell.exe was not found, so nothing was saved."
+msgstr "找不到 shell.exe，因此未保存任何内容。"
+
+#: src/ContextMenusController.cpp:296 src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1084
+msgid "Not saved"
+msgstr "未保存"
+
+#: src/ContextMenusController.cpp:296
+msgid "{} is read-only here."
+msgstr "{} 在此处为只读。"
+
+#: src/ContextMenusController.cpp:314
+msgid "Saved"
+msgstr "已保存"
+
+#: src/ContextMenusController.cpp:314 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/OpenWithController.cpp:1187
+msgid "No changes were needed."
+msgstr "无需更改。"
+
+#: src/ContextMenusController.cpp:315 src/EditorController.cpp:749
+msgid "Snapshot {} was taken first."
+msgstr "已先创建快照 {}。"
+
+#: src/ContextMenusController.cpp:329
+msgid "Not saved: the config would fail to load"
+msgstr "未保存：配置将无法加载"
+
+#: src/ContextMenusController.cpp:332 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/OpenWithController.cpp:1202
+msgid "Couldn't save"
+msgstr "无法保存"
+
+#: src/EditorController.cpp:275
+msgid "Nothing to show."
+msgstr "没有可显示的内容。"
+
+#: src/EditorController.cpp:299
+msgid "Shared config: read-only"
+msgstr "共享配置：只读"
+
+#: src/EditorController.cpp:301
+msgid "Managed by the app"
+msgstr "由本应用管理"
+
+#: src/EditorController.cpp:305
+msgid "Outside your config folder"
+msgstr "不在你的配置文件夹中"
+
+#: src/EditorController.cpp:347
+msgid "Couldn't open {}"
+msgstr "无法打开 {}"
+
+#: src/EditorController.cpp:645
+msgid "shell.exe was not found, so the config can't be checked"
+msgstr "找不到 shell.exe，因此无法检查配置"
+
+#: src/EditorController.cpp:652
+msgid "Checking your edits…"
+msgstr "正在检查你的编辑…"
+
+#: src/EditorController.cpp:668
+msgid "The check couldn't run: {}"
+msgstr "无法运行检查：{}"
+
+#: src/EditorController.cpp:673 src/EditorController.cpp:765
+msgid "{n} error in your edits"
+msgid_plural "{n} errors in your edits"
+msgstr[0] "你的编辑中有 {n} 个错误"
+
+#: src/EditorController.cpp:674
+msgid "{n} error"
+msgid_plural "{n} errors"
+msgstr[0] "{n} 个错误"
+
+#: src/EditorController.cpp:679
+msgid "Your edits pass the check"
+msgstr "你的编辑已通过检查"
+
+#: src/EditorController.cpp:679
+msgid "The config passes the check"
+msgstr "配置已通过检查"
+
+#: src/EditorController.cpp:698
+msgid "Nothing to save"
+msgstr "没有需要保存的内容"
+
+#: src/EditorController.cpp:698
+msgid "These files are read-only here."
+msgstr "这些文件在此处为只读。"
+
+#: src/EditorController.cpp:702 src/ShellCli.cpp:203
+msgid "shell.exe was not found."
+msgstr "未找到 shell.exe。"
+
+#: src/EditorController.cpp:716
+msgid "The check found {n} error: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
+msgid_plural "The check found {n} errors: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
+msgstr[0] "检查发现 {n} 个错误：{0}。\n\n配置存在错误时，Shell 会关闭整个右键菜单，直到错误修复并重新保存。无论如何，都会先创建快照。"
+
+#: src/EditorController.cpp:719
+msgid "see Problems"
+msgstr "见“问题”"
+
+#: src/EditorController.cpp:746
+msgid "Saved {}"
+msgstr "已保存 {}"
+
+#: src/EditorController.cpp:747
+msgid "Saved {n} file"
+msgid_plural "Saved {n} files"
+msgstr[0] "已保存 {n} 个文件"
+
+#: src/EditorController.cpp:751
+msgid "The config has errors; Shell's menu stays off until they're fixed."
+msgstr "配置存在错误；在修复之前，Shell 的菜单将保持关闭。"
+
+#: src/EditorController.cpp:825
+msgid "{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours."
+msgstr "{} 已在磁盘上被更改，而你还有未保存的编辑。重新加载可查看新版本（你的编辑将被丢弃），或关闭此提示继续编辑你的版本。"
+
+#: src/EditorController.cpp:864
+msgid "That file isn't in the import tree"
+msgstr "该文件不在导入树中"
+
+#: src/EditorSession.cpp:221
+msgid "shell.exe -config:check gave no result"
+msgstr "shell.exe -config:check 未返回结果"
+
+#: src/EditorSession.cpp:253
+msgid "The configuration does not load."
+msgstr "无法加载配置。"
+
+#: src/EditorSession.cpp:311
+msgid "refusing to write under Program Files: {}"
+msgstr "拒绝写入 Program Files 下的位置：{}"
+
+#: src/MenuBuilderController.cpp:77
+msgid "(no title)"
+msgstr "（无标题）"
+
+#: src/MenuBuilderController.cpp:77
+msgid "(title from an expression)"
+msgstr "（标题来自表达式）"
+
+#: src/MenuBuilderController.cpp:288
+msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
+
+#: src/MenuBuilderController.cpp:291
+msgid "The file has a syntax problem at line {}: {}"
+msgstr "文件第 {} 行存在语法问题：{}"
+
+#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:539 src/OpenWithController.cpp:1144 src/PendingChanges.cpp:137 src/PendingChanges.cpp:148
+msgid "Couldn't read {}: {}"
+msgstr "无法读取 {}：{}"
+
+#: src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1084
+msgid "Program Files is never written to."
+msgstr "绝不会写入 Program Files。"
+
+#: src/MenuBuilderController.cpp:553
+msgid "Saved your menus"
+msgstr "已保存你的菜单"
+
+#: src/MenuBuilderController.cpp:556
+msgid "Snapshot {} was taken first. Right-click to see them."
+msgstr "已先创建快照 {}。右键单击即可查看。"
+
+#: src/MenuBuilderController.cpp:564 src/OpenWithController.cpp:1196
+msgid "{} (line {})"
+msgstr "{}（第 {} 行）"
+
+#: src/MenuBuilderController.cpp:567
+msgid "Not saved: Shell would reject these menus"
+msgstr "未保存：Shell 会拒绝这些菜单"
+
+#: src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
+msgid "line {}: {}"
+msgstr "第 {} 行：{}"
+
+#: src/OpenWithController.cpp:131 src/OtherApps.cpp:282
+msgid "{} and {}"
+msgstr "{} 和 {}"
+
+#: src/OpenWithController.cpp:133 src/OtherApps.cpp:284
+msgid "{}, {}"
+msgstr "{}、{}"
+
+#: src/OpenWithController.cpp:218
+msgid "Choose the program"
+msgstr "选择程序"
+
+#: src/OpenWithController.cpp:241
+msgid "Icons and programs"
+msgstr "图标和程序"
+
+#: src/OpenWithController.cpp:531
+msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
+
+#: src/OpenWithController.cpp:534
+msgid "This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}"
+msgstr "此文件使用旧版布局；保存时会将这些项移到 WinRAR 或“在新窗口中打开”下方。{}"
+
+#: src/OpenWithController.cpp:647
+msgid "(no name)"
+msgstr "（无名称）"
+
+#: src/OpenWithController.cpp:652
+msgid "No program chosen"
+msgstr "未选择程序"
+
+#: src/OpenWithController.cpp:652
+msgid "Not found on this PC"
+msgstr "在此电脑上未找到"
+
+#: src/OpenWithController.cpp:654
+msgid "Not found: {}"
+msgstr "未找到：{}"
+
+#: src/OpenWithController.cpp:657
+msgid "Doesn't show: the menu isn't on the places it's for."
+msgstr "不会显示：所在菜单未在其适用的位置启用。"
+
+#: src/OpenWithController.cpp:660
+msgid "Also hides: {}"
+msgstr "同时隐藏：{}"
+
+#: src/OpenWithController.cpp:661
+msgid "Switching it off also hides: {}"
+msgstr "关闭后还会隐藏：{}"
+
+#: src/OpenWithController.cpp:662
+msgid "Keeps its own: {}"
+msgstr "保留其自带项：{}"
+
+#: src/OpenWithController.cpp:663
+msgid "Off by default, its own still show: {}"
+msgstr "默认关闭，其自带项仍会显示：{}"
+
+#: src/OpenWithController.cpp:698
+msgid "Shell extension \"{}\""
+msgstr "Shell 扩展“{}”"
+
+#: src/OpenWithController.cpp:699
+msgid "Shell extension \"{}\" ({})"
+msgstr "Shell 扩展“{}”（{}）"
+
+#: src/OpenWithController.cpp:703
+msgid "Shift only"
+msgstr "仅限 Shift"
+
+#: src/OpenWithController.cpp:703
+msgid "Title shown by the app"
+msgstr "标题由应用提供"
+
+#: src/OpenWithController.cpp:707
+msgid "Program not found: {}"
+msgstr "未找到程序：{}"
+
+#: src/OpenWithController.cpp:717
+msgid "No longer in the registry. The rule stays until you switch it back on."
+msgstr "已不在注册表中。在你重新打开它之前，该规则会一直保留。"
+
+#: src/OpenWithController.cpp:721
+msgid "Type the title the menu shows, or nothing is hidden."
+msgstr "请输入菜单中显示的标题，否则不会隐藏任何内容。"
+
+#: src/OpenWithController.cpp:722
+msgid "A title with \" or | can't be matched exactly, so nothing is hidden."
+msgstr "包含 \" 或 | 的标题无法精确匹配，因此不会隐藏任何内容。"
+
+#: src/OpenWithController.cpp:727
+msgid "Leftovers from uninstalled programs"
+msgstr "已卸载程序的残留项"
+
+#: src/OpenWithController.cpp:730
+msgid "Other items"
+msgstr "其他项"
+
+#: src/OpenWithController.cpp:774
+msgid "Pick at least one place, or nothing shows."
+msgstr "请至少选择一个位置，否则不会显示任何内容。"
+
+#: src/OpenWithController.cpp:776
+msgid "Give the submenu a title."
+msgstr "请为子菜单输入标题。"
+
+#: src/OpenWithController.cpp:827
+msgid "Open in new window"
+msgstr "在新窗口中打开"
+
+#: src/OpenWithController.cpp:828
+msgid "Pin to Quick access"
+msgstr "固定到快速访问"
+
+#: src/OpenWithController.cpp:855
+msgid "Nothing of yours shows for a .txt file."
+msgstr "对 .txt 文件不会显示你的任何项。"
+
+#: src/OpenWithController.cpp:856
+msgid "Nothing of yours shows for a folder."
+msgstr "对文件夹不会显示你的任何项。"
+
+#: src/OpenWithController.cpp:857
+msgid "Nothing of yours shows for a folder's background."
+msgstr "在文件夹背景上不会显示你的任何项。"
+
+#: src/OpenWithController.cpp:903
+msgid "Pick the program first."
+msgstr "请先选择程序。"
+
+#: src/OpenWithController.cpp:912
+msgid "Two files"
+msgstr "两个文件"
+
+#: src/OpenWithController.cpp:923
+msgid "A folder's background"
+msgstr "文件夹背景"
+
+#: src/OpenWithController.cpp:926
+msgid "It doesn't show anywhere with the current settings, so there's nothing to run."
+msgstr "在当前设置下它不会在任何位置显示，因此没有可运行的内容。"
+
+#: src/OpenWithController.cpp:928
+msgid "The program isn't there, so Shell hides the item."
+msgstr "该程序不存在，因此 Shell 会隐藏此项。"
+
+#: src/OpenWithController.cpp:930
+msgid "Parts starting with @ are filled in by Shell when the menu opens."
+msgstr "以 @ 开头的部分由 Shell 在菜单打开时填入。"
+
+#: src/OpenWithController.cpp:932
+msgid "It runs as administrator; Windows asks first."
+msgstr "它以管理员身份运行；Windows 会先进行询问。"
+
+#: src/OpenWithController.cpp:1041
+msgid "All files"
+msgstr "所有文件"
+
+#: src/OpenWithController.cpp:1153
+msgid "Couldn't change the Editors submenu in {}."
+msgstr "无法更改 {} 中的 Editors 子菜单。"
+
+#: src/OpenWithController.cpp:1175
+msgid "Updated the switched-off apps' own items"
+msgstr "已更新已关闭应用的自带项"
+
+#: src/OpenWithController.cpp:1176
+msgid "{} Snapshot {} has the file before."
+msgstr "{}快照 {} 保存了更改前的文件。"
+
+#: src/OpenWithController.cpp:1177
+msgid "Their menu entries changed in the registry."
+msgstr "它们的菜单项已在注册表中更改。"
+
+#: src/OpenWithController.cpp:1178
+msgid "The menu no longer shows {}'s own entries."
+msgstr "菜单中不再显示 {} 的自带项。"
+
+#: src/OpenWithController.cpp:1181
+msgid "Moved the Open with items"
+msgstr "已移动“打开方式”项"
+
+#: src/OpenWithController.cpp:1182
+msgid "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot {} has the old layout."
+msgstr "它们现在位于 WinRAR 正下方（或“在新窗口中打开”下方；如都没有则位于顶部）。快照 {} 保存了旧布局。"
+
+#: src/OpenWithController.cpp:1185
+msgid "Saved the Open with items"
+msgstr "已保存“打开方式”项"
+
+#: src/OpenWithController.cpp:1188
+msgid "Snapshot {} was taken first. Right-click a file to see them."
+msgstr "已先创建快照 {}。右键单击文件即可查看。"
+
+#: src/OpenWithController.cpp:1199
+msgid "Not saved: Shell would reject these items"
+msgstr "未保存：Shell 会拒绝这些项"
+
+#: src/OpenWithModel.cpp:1004
+msgid "Give it a name; it's the item's title."
+msgstr "请输入名称；它将作为菜单项的标题。"
+
+#: src/OpenWithModel.cpp:1006
+msgid "Pick the program it runs."
+msgstr "请选择要运行的程序。"
+
+#: src/OpenWithModel.cpp:1008
+msgid "The program path contains @, which Shell reads as an expression."
+msgstr "程序路径包含 @，Shell 会将其视为表达式。"
+
+#: src/OpenWithModel.cpp:1010
+msgid "The arguments can use ' or ` quotes, but not both."
+msgstr "参数可以使用 ' 或 ` 引号，但不能同时使用两者。"
+
+#: src/OpenWithModel.cpp:1012
+msgid "List at least one extension, like .py .js"
+msgstr "请至少列出一个扩展名，例如 .py .js"
+
+#: src/OpenWithModel.cpp:1390
+msgid "own app={}: no such app in the file"
+msgstr "own app={}：文件中没有此应用"
+
+#: src/OpenWithModel.cpp:1393
+msgid "The file doesn't start with the generated header."
+msgstr "文件开头不是自动生成的文件头。"
+
+#: src/PendingChanges.cpp:20
+msgid "{}: unknown key"
+msgstr "{}：未知的键"
+
+#: src/PendingChanges.cpp:22
+msgid "{}: a value is needed"
+msgstr "{}：需要一个值"
+
+#: src/PendingChanges.cpp:24
+msgid "{}: the value must fit on one line"
+msgstr "{}：值必须在一行之内"
+
+#: src/PendingChanges.cpp:26
+msgid "{}: only plain values can be set here"
+msgstr "{}：此处只能设置普通值"
+
+#: src/PendingChanges.cpp:157
+msgid "The generated settings-app.nss doesn't parse: {}"
+msgstr "生成的 settings-app.nss 无法解析：{}"
+
+#: src/PresetsController.cpp:139
+msgid "Saving"
+msgstr "正在保存"
+
+#: src/PresetsController.cpp:139
+msgid "Apply {} again once the save is done."
+msgstr "保存完成后，请再次应用 {}。"
+
+#: src/PresetsController.cpp:154
+msgid "Couldn't apply {}"
+msgstr "无法应用 {}"
+
+#: src/PresetsController.cpp:160
+msgid "{} is in the preview"
+msgstr "{} 已应用到预览"
+
+#: src/PresetsController.cpp:161
+msgid "Save (Ctrl+S) to use it in your menus, or Discard to go back."
+msgstr "保存 (Ctrl+S) 即可在菜单中使用，或选择“放弃”以撤回。"
+
+#: src/PresetsController.cpp:161
+msgid "It is your saved look already."
+msgstr "这已是你保存的外观。"
+
+#: src/PresetsController.cpp:171
+msgid "Copied {}"
+msgstr "已复制 {}"
+
+#: src/PresetsController.cpp:171
+msgid "Paste the theme{} block into a .nss file of your own."
+msgstr "将 theme{} 块粘贴到你自己的 .nss 文件中。"
+
+#: src/PresetsController.cpp:173 src/PresetsController.cpp:189
+msgid "Couldn't copy"
+msgstr "无法复制"
+
+#: src/PresetsController.cpp:173 src/PresetsController.cpp:189
+msgid "Another app is holding the clipboard. Try again."
+msgstr "另一个应用正在占用剪贴板。请重试。"
+
+#: src/PresetsController.cpp:183
+msgid "Nothing to copy"
+msgstr "没有可复制的内容"
+
+#: src/PresetsController.cpp:183
+msgid "Every theme setting has its built-in default."
+msgstr "所有主题设置均为内置默认值。"
+
+#: src/PresetsController.cpp:187
+msgid "Copied your current look"
+msgstr "已复制你当前的外观"
+
+#: src/PresetsController.cpp:187
+msgid "A theme{} block with every theme setting in effect, saved or not."
+msgstr "一个 theme{} 块，包含当前生效的所有主题设置（无论是否已保存）。"
+
+#: src/SaveService.cpp:64 src/SaveService.cpp:79
+msgid "the check failed"
+msgstr "检查失败"
+
+#: src/SaveService.cpp:203
+msgid "{}, line {}"
+msgstr "{}，第 {} 行"
+
+#: src/SaveService.cpp:211
+msgid "Changed here · not saved yet"
+msgstr "已在此处更改 · 尚未保存"
+
+#: src/SaveService.cpp:213
+msgid "Back to {} · not saved yet"
+msgstr "恢复为 {} · 尚未保存"
+
+#: src/SaveService.cpp:214
+msgid "Back to the built-in default · not saved yet"
+msgstr "恢复为内置默认值 · 尚未保存"
+
+#: src/SaveService.cpp:216
+msgid "Set by this app · {} has {}"
+msgstr "由此应用设置 · {} 中为 {}"
+
+#: src/SaveService.cpp:220
+msgid "Built-in default"
+msgstr "内置默认值"
+
+#: src/SaveService.cpp:300
+msgid "shell.exe -status did not finish in time."
+msgstr "shell.exe -status 未能及时完成。"
+
+#: src/SaveService.cpp:319
+msgid "The config file was not found. Create a personal config from Home."
+msgstr "未找到配置文件。请在“主页”中创建个人配置。"
+
+#: src/SaveService.cpp:343
+msgid "shell.exe was not found, so the config can't be checked before saving."
+msgstr "未找到 shell.exe，因此无法在保存前检查配置。"
+
+#: src/SaveService.cpp:349
+msgid "Checking with shell.exe…"
+msgstr "正在使用 shell.exe 检查…"
+
+#: src/SaveService.cpp:445
+msgid "Nothing to save · the files already match"
+msgstr "没有需要保存的内容 · 文件已一致"
+
+#: src/SaveService.cpp:446
+msgid "Saved · Shell reloads on next right-click"
+msgstr "已保存 · Shell 将在下次右键单击时重新加载"
+
+#: src/SaveService.cpp:448
+msgid "Shell rejected the config, rolled back: {}"
+msgstr "Shell 拒绝了该配置，已回滚：{}"
+
+#: src/SaveService.cpp:450
+msgid "Shell rejected the config, nothing was written: {}"
+msgstr "Shell 拒绝了该配置，未写入任何内容：{}"
+
+#: src/SaveService.cpp:452
+msgid "Not saved: {}"
+msgstr "未保存：{}"
+
+#: src/SaveService.cpp:481
+msgid "Creating your personal config…"
+msgstr "正在创建你的个人配置…"
+
+#: src/SaveService.cpp:495
+msgid "shell.exe did not finish in time."
+msgstr "shell.exe 未能及时完成。"
+
+#: src/SaveService.cpp:503
+msgid "Couldn't create the personal config: {}"
+msgstr "无法创建个人配置：{}"
+
+#: src/ShellCli.cpp:118
+msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
+msgstr "在 NilesoftShellPro.exe 或已注册的 shell.dll 所在位置未找到 shell.exe。"
+
+#: src/ShellCli.cpp:125
+msgid "CreatePipe failed."
+msgstr "CreatePipe 失败。"
+
+#: src/ShellCli.cpp:164
+msgid "Could not start shell.exe (error {})."
+msgstr "无法启动 shell.exe（错误 {}）。"
+
+#: src/ShellCli.cpp:219
+msgid "The administrator prompt was cancelled."
+msgstr "管理员权限提示已取消。"
+
+#: src/ShellCli.cpp:220
+msgid "Could not start shell.exe as administrator (error {})."
+msgstr "无法以管理员身份启动 shell.exe（错误 {}）。"
+
+#: src/Status.cpp:97
+msgid "shell.exe printed nothing."
+msgstr "shell.exe 没有输出任何内容。"
+
+#: src/Status.cpp:97
+msgid "shell.exe printed invalid JSON."
+msgstr "shell.exe 输出了无效的 JSON。"
+
+#: src/Status.cpp:159
+msgid "Two copies stop the menu from appearing."
+msgstr "存在两个副本会导致菜单无法显示。"
+
+#: src/Status.cpp:164
+msgid "Its file no longer exists; only the registration is left."
+msgstr "其文件已不存在，只剩下注册信息。"
+
+#: src/Status.cpp:169
+msgid "Also registered: {}"
+msgstr "另外还注册了：{}"
+
+#: src/Status.cpp:171
+msgid "Another copy of Nilesoft Shell is registered: {}"
+msgstr "已注册另一个 Nilesoft Shell 副本：{}"
+
+#: src/Status.cpp:172
+msgid "Fix (needs administrator)"
+msgstr "修复（需要管理员权限）"
+
+#: src/Status.cpp:176
+msgid "Shell isn't enabled"
+msgstr "Shell 未启用"
+
+#: src/Status.cpp:176
+msgid "Enable it for your account; no administrator rights are needed."
+msgstr "为你的账户启用，无需管理员权限。"
+
+#: src/Status.cpp:179
+msgid "The registered shell.dll is missing"
+msgstr "找不到已注册的 shell.dll"
+
+#: src/Status.cpp:180
+msgid "Register again from the install folder to repair it."
+msgstr "从安装文件夹重新注册即可修复。"
+
+#: src/Status.cpp:182
+msgid "Shell is registered twice"
+msgstr "Shell 注册了两次"
+
+#: src/Status.cpp:183
+msgid "Your own registration ({}) takes priority, so the all-users copy ({}) isn't used for you."
+msgstr "你自己的注册（{}）优先，因此你不会用到所有用户共用的副本（{}）。"
+
+#: src/Status.cpp:188
+msgid "Create a personal config to get the default menu back."
+msgstr "创建个人配置以恢复默认菜单。"
+
+#: src/Status.cpp:191
+msgid "You're using the shared config"
+msgstr "你正在使用共享配置"
+
+#: src/Status.cpp:192
+msgid "A personal copy in %APPDATA% is kept per user and survives updates."
+msgstr "%APPDATA% 中的个人副本按用户单独保存，更新后也会保留。"
+
+#: src/ThemePresets.cpp:26
+msgid "Default"
+msgstr "默认"
+
+#: src/ThemePresets.cpp:27
+msgid "The look Shell ships with: modern, following Windows."
+msgstr "Shell 自带的外观：现代风格，跟随 Windows。"
+
+#: src/ThemePresets.cpp:28
+msgid "Shell 1.8"
+msgstr "Shell 1.8"
+
+#: src/ThemePresets.cpp:29
+msgid "The 2023 default: modern, without the blur effect."
+msgstr "2023 年的默认外观：现代风格，无模糊效果。"
+
+#: src/ThemePresets.cpp:31
+msgid "Acrylic tinted with the accent colour (README screenshot)."
+msgstr "以强调色着色的亚克力效果（README 截图）。"
+
+#: src/ThemePresets.cpp:32
+msgid "Gradient"
+msgstr "渐变"
+
+#: src/ThemePresets.cpp:33
+msgid "An accent gradient from dark to light and back (README screenshot)."
+msgstr "强调色渐变，由深到浅再回到深（README 截图）。"
+
+#: src/ThemePresets.cpp:34
+msgid "Clear acrylic"
+msgstr "透明亚克力"
+
+#: src/ThemePresets.cpp:35
+msgid "Modern with plain acrylic and no background colour."
+msgstr "现代风格，纯亚克力效果，无背景色。"
+
+#: src/ThemePresets.cpp:36
+msgid "Accent outline"
+msgstr "强调色边框"
+
+#: src/ThemePresets.cpp:37
+msgid "A 1 px accent-coloured border and accent icons."
+msgstr "1 px 强调色边框和强调色图标。"
+
+#: src/ThemePresets.cpp:38
+msgid "Flat"
+msgstr "扁平"
+
+#: src/ThemePresets.cpp:39
+msgid "No border, no shadow, square item highlights."
+msgstr "无边框、无阴影，菜单项高亮为直角。"
+
+#: src/ThemePresets.cpp:40
+msgid "Blue"
+msgstr "蓝色"
+
+#: src/ThemePresets.cpp:41
+msgid "Shell 1.x colours: white on deep blue, square corners."
+msgstr "Shell 1.x 配色：深蓝底白字，直角。"
+
+#: src/ThemePresets.cpp:42
+msgid "Gray"
+msgstr "灰色"
+
+#: src/ThemePresets.cpp:43
+msgid "Shell 1.x colours: white on grey, light highlight."
+msgstr "Shell 1.x 配色：灰底白字，浅色高亮。"
+
+#: src/ThemePresets.cpp:44
+msgid "Green"
+msgstr "绿色"
+
+#: src/ThemePresets.cpp:45
+msgid "Shell 1.x colours: black on green, square corners."
+msgstr "Shell 1.x 配色：绿底黑字，直角。"
+
+#: src/ThemePresets.cpp:46
+msgid "Yellow"
+msgstr "黄色"
+
+#: src/ThemePresets.cpp:47
+msgid "Shell 1.x colours: white on olive, yellow highlight."
+msgstr "Shell 1.x 配色：橄榄色底白字，黄色高亮。"
+
+#: src/ThemePresets.cpp:49
+msgid "Modern"
+msgstr "现代"
+
+#: src/ThemePresets.cpp:50
+msgid "Auto"
+msgstr "自动"
+
+#: src/ThemePresets.cpp:51
+msgid "Opaque"
+msgstr "不透明"
+
+#: src/ThemePresets.cpp:52
+msgid "Accent tint"
+msgstr "强调色着色"
+
+#: src/ThemePresets.cpp:53
+msgid "Accent"
+msgstr "强调色"
+
+#: src/ThemePresets.cpp:54
+msgid "No tint"
+msgstr "无着色"
+
+#: src/ThemePresets.cpp:56
+msgid "Square"
+msgstr "直角"
+
+#: src/ThemePresets.cpp:57
+msgid "No shadow"
+msgstr "无阴影"
+
+#: src/ThemePresets.cpp:58
+msgid "Shell 1.x"
+msgstr "Shell 1.x"
+
+#: src/UpdateController.cpp:86
+msgid "Couldn't find this app's own file or the temporary folder."
+msgstr "找不到此应用自身的文件或临时文件夹。"
+
+#: src/UpdateController.cpp:91
+msgid "Couldn't copy the app to the temporary folder."
+msgstr "无法将应用复制到临时文件夹。"
+
+#: src/UpdateController.cpp:142
+msgid "{} MB"
+msgstr "{} MB"
+
+#: src/UpdateController.cpp:145
+msgid "{} KB"
+msgstr "{} KB"
+
+#: src/UpdateController.cpp:148
+msgid "January"
+msgstr "1月"
+
+#: src/UpdateController.cpp:148
+msgid "February"
+msgstr "2月"
+
+#: src/UpdateController.cpp:148
+msgid "March"
+msgstr "3月"
+
+#: src/UpdateController.cpp:149
+msgid "April"
+msgstr "4月"
+
+#: src/UpdateController.cpp:149
+msgid "June"
+msgstr "6月"
+
+#: src/UpdateController.cpp:150
+msgid "July"
+msgstr "7月"
+
+#: src/UpdateController.cpp:150
+msgid "August"
+msgstr "8月"
+
+#: src/UpdateController.cpp:150
+msgid "September"
+msgstr "9月"
+
+#: src/UpdateController.cpp:151
+msgid "October"
+msgstr "10月"
+
+#: src/UpdateController.cpp:151
+msgid "November"
+msgstr "11月"
+
+#: src/UpdateController.cpp:151
+msgid "December"
+msgstr "12月"
+
+#: src/UpdateController.cpp:157
+msgctxt "date: day, month name, year"
+msgid "{0} {1} {2}"
+msgstr "{2}年{1}{0}日"
+
+#: src/UpdateController.cpp:172
+msgid "Never"
+msgstr "从不"
+
+#: src/UpdateController.cpp:183
+msgid "Today at {}"
+msgstr "今天 {}"
+
+#: src/UpdateController.cpp:185
+msgid "Yesterday at {}"
+msgstr "昨天 {}"
+
+#: src/UpdateController.cpp:351
+msgid "msiexec.exe couldn't be started."
+msgstr "无法启动 msiexec.exe。"
+
+#: src/UpdateController.cpp:354
+msgid "Another installation is in progress. Try again when it has finished."
+msgstr "另一个安装正在进行中。请在其完成后重试。"
+
+#: src/UpdateController.cpp:356
+msgid "The installer stopped with code {}. Its log is {}.log."
+msgstr "安装程序已停止（代码 {}）。日志文件：{}.log。"
+
+#: src/UpdateController.cpp:439 src/UpdateController.cpp:443
+msgid "Updated to {}"
+msgstr "已更新到 {}"
+
+#: src/UpdateController.cpp:440
+msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
+msgstr "重启资源管理器以加载新的 shell.dll；在此之前仍会使用旧版本。"
+
+#: src/UpdateController.cpp:444
+msgid "Nilesoft Shell Pro {} is installed."
+msgstr "Nilesoft Shell Pro {} 已安装。"
+
+#: src/UpdateController.cpp:446
+msgid "The update wasn't installed"
+msgstr "未安装更新"
+
+#: src/UpdateController.cpp:448
+msgid "The update was cancelled"
+msgstr "更新已取消"
+
+#: src/UpdateController.cpp:448
+msgid "Nothing was changed."
+msgstr "未做任何更改。"
+
+#: src/UpdateController.cpp:551
+msgid "You seem to be offline, so updates couldn't be checked."
+msgstr "你似乎处于离线状态，因此无法检查更新。"
+
+#: src/UpdateController.cpp:552 src/Updater.cpp:261
+msgid "GitHub's limit for update checks was reached. Try again in an hour."
+msgstr "已达到 GitHub 的更新检查次数限制。请一小时后重试。"
+
+#: src/UpdateController.cpp:553
+msgid "Couldn't check for updates: {}"
+msgstr "无法检查更新：{}"
+
+#: src/UpdateController.cpp:578
+msgid "You have the latest version."
+msgstr "你使用的已是最新版本。"
+
+#: src/UpdateController.cpp:583 src/UpdateController.cpp:598
+msgid "This release has no download for this kind of install. Get it from the release page."
+msgstr "此发布版本没有适用于此安装类型的下载。请从发布页面获取。"
+
+#: src/UpdateController.cpp:604
+msgid "Couldn't find %LOCALAPPDATA%."
+msgstr "找不到 %LOCALAPPDATA%。"
+
+#: src/UpdateController.cpp:611 src/UpdateController.cpp:627
+msgid "{} of {}"
+msgstr "{} / {}"
+
+#: src/UpdateController.cpp:612
+msgid "Starting…"
+msgstr "正在开始…"
+
+#: src/UpdateController.cpp:653
+msgid "Download cancelled."
+msgstr "下载已取消。"
+
+#: src/UpdateController.cpp:659
+msgid "The update couldn't be downloaded in the background: {}"
+msgstr "无法在后台下载更新：{}"
+
+#: src/UpdateController.cpp:678 src/UpdateController.cpp:690
+msgid "Save or discard your changes first: the app closes to install the update."
+msgstr "请先保存或放弃你的更改：应用将关闭以安装更新。"
+
+#: src/UpdateController.cpp:710
+msgid "Couldn't start the update helper."
+msgstr "无法启动更新辅助程序。"
+
+#: src/UpdateController.cpp:716 src/UpdateController.cpp:747
+msgid "Installing the update…"
+msgstr "正在安装更新…"
+
+#: src/UpdateController.cpp:752
+msgid "Couldn't start the installer (error {})."
+msgstr "无法启动安装程序（错误 {}）。"
+
+#: src/UpdateController.cpp:770
+msgid "Version {} is skipped. Newer versions will still show up."
+msgstr "已跳过版本 {}。更高版本仍会显示。"
+
+#: src/Updater.cpp:114
+msgid "error {}"
+msgstr "错误 {}"
+
+#: src/Updater.cpp:215
+msgid "Only https addresses are used for updates."
+msgstr "更新仅使用 https 地址。"
+
+#: src/Updater.cpp:249
+msgid "The download was redirected to an unexpected address."
+msgstr "下载被重定向到意外的地址。"
+
+#: src/Updater.cpp:250
+msgid "The download was redirected to an unexpected address: {}"
+msgstr "下载被重定向到意外的地址：{}"
+
+#: src/Updater.cpp:262
+msgid "The server answered HTTP {}."
+msgstr "服务器返回 HTTP {}。"
+
+#: src/Updater.cpp:285
+msgid "Writing the download failed."
+msgstr "写入下载内容失败。"
+
+#: src/Updater.cpp:295
+msgid "The download was cut off."
+msgstr "下载被中断。"
+
+#: src/Updater.cpp:302
+msgid "Too many redirects."
+msgstr "重定向次数过多。"
+
+#: src/Updater.cpp:407
+msgid "GitHub: {}"
+msgstr "GitHub：{}"
+
+#: src/Updater.cpp:408
+msgid "The list of releases couldn't be read."
+msgstr "无法读取发布版本列表。"
+
+#: src/Updater.cpp:643
+msgid "The download address is not a release of Nilesoft Shell Pro: {}"
+msgstr "下载地址不是 Nilesoft Shell Pro 的发布版本：{}"
+
+#: src/Updater.cpp:650 src/Updater.cpp:663
+msgid "Couldn't write {}."
+msgstr "无法写入 {}。"
+
+#: src/Updater.cpp:671
+msgid "Couldn't save {}."
+msgstr "无法保存 {}。"
+
+#: src/Updater.cpp:702
+msgid "NSP_UPDATE_FEED: couldn't read {}."
+msgstr "NSP_UPDATE_FEED：无法读取 {}。"
+
+#: src/Updater.cpp:731
+msgid "The release lists an asset with an unusable name."
+msgstr "该发布版本中有一个文件的名称不可用。"
+
+#: src/Updater.cpp:736
+msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
+msgstr "此发布版本没有 SHA256SUMS.txt，因此无法验证下载内容。"
+
+#: src/Updater.cpp:742
+msgid "Couldn't create {}."
+msgstr "无法创建 {}。"
+
+#: src/Updater.cpp:751
+msgid "Couldn't read {}."
+msgstr "无法读取 {}。"
+
+#: src/Updater.cpp:756
+msgid "SHA256SUMS.txt is not served from this project's releases."
+msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
+
+#: src/Updater.cpp:761
+msgid "Couldn't download SHA256SUMS.txt: {}"
+msgstr "无法下载 SHA256SUMS.txt：{}"
+
+#: src/Updater.cpp:769
+msgid "SHA256SUMS.txt has no entry for {}."
+msgstr "SHA256SUMS.txt 中没有 {} 的条目。"
+
+#: src/Updater.cpp:782
+msgid "Couldn't copy {}."
+msgstr "无法复制 {}。"
+
+#: src/Updater.cpp:791
+msgid "The download failed: {}"
+msgstr "下载失败：{}"
+
+#: src/Updater.cpp:799
+msgid "nothing"
+msgstr "空"
+
+#: src/Updater.cpp:800
+msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
+msgstr "下载内容与 SHA256SUMS.txt 不符，已被删除。应为 {}…，实际为 {}。"
+
+#: src/Updater.cpp:815
+msgid "The staging folder is not empty."
+msgstr "暂存文件夹不是空的。"
+
+#: src/Updater.cpp:822
+msgid "tar.exe (part of Windows 10 and later) was not found."
+msgstr "找不到 tar.exe（Windows 10 及更高版本自带）。"
+
+#: src/Updater.cpp:830
+msgid "Couldn't start tar.exe: {}."
+msgstr "无法启动 tar.exe：{}。"
+
+#: src/Updater.cpp:842
+msgid "The zip couldn't be extracted (tar.exe exit code {})."
+msgstr "无法解压 zip 文件（tar.exe 退出代码 {}）。"
+
+#: src/Updater.cpp:850
+msgid "The zip contains a link, which an update never does."
+msgstr "zip 文件中包含链接，而正常的更新不会包含链接。"
+
+#: src/Updater.cpp:855
+msgid "The zip contains a file outside its folder."
+msgstr "zip 文件中包含位于其文件夹之外的文件。"
+
+#: src/Updater.cpp:900
+msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
+msgstr "更新中不包含 NilesoftShellPro.exe 和 shell.dll。"
+
+#: src/Updater.cpp:904
+msgid "The install folder {} doesn't exist."
+msgstr "安装文件夹 {} 不存在。"
+
+#: src/Updater.cpp:914
+msgid "Couldn't read the update's files."
+msgstr "无法读取更新文件。"
+
+#: src/Updater.cpp:956
+msgid "Couldn't replace {}: {}."
+msgstr "无法替换 {}：{}。"
+
+#: src/Updater.cpp:966
+msgid "Couldn't write {}: {}."
+msgstr "无法写入 {}：{}。"

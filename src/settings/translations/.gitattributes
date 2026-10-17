@@ -1,0 +1,3 @@
+# The .po/.pot files keep LF on every checkout (gettext tools and Slint read them).
+*.po text eol=lf
+*.pot text eol=lf
