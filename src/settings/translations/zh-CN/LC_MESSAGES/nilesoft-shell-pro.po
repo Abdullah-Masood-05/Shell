@@ -164,7 +164,7 @@ msgstr "菜单"
 
 #: ui/components/sidebar.slint:18 ui/pages/menu-builder.slint:398
 msgid "Menu Builder"
-msgstr "菜单构建器"
+msgstr "自定义菜单"
 
 #: ui/components/sidebar.slint:19 ui/pages/openwith.slint:616 src/AppearanceController.cpp:86 src/ConfigRules.cpp:56 src/OpenWithController.cpp:821
 msgid "Open with"
@@ -192,7 +192,7 @@ msgstr "正在检查状态…"
 
 #: ui/components/sidebar.slint:172 ui/pages/preferences.slint:46
 msgid "Preferences"
-msgstr "首选项"
+msgstr "偏好设置"
 
 #: ui/components/theme-controls.slint:58 src/SaveService.cpp:217
 msgid "Set by this app"
@@ -1560,7 +1560,7 @@ msgstr "此电脑上已为所有用户启用 Shell，其中包括你的帐户。
 
 #: ui/pages/onboarding.slint:230
 msgid "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences."
-msgstr "为你的 Windows 帐户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“首选项”。"
+msgstr "为你的 Windows 帐户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“偏好设置”。"
 
 #: ui/pages/onboarding.slint:238
 msgid "Enabled for all users"
@@ -2823,7 +2823,7 @@ msgstr "你的菜单"
 
 #: src/ConfigRules.cpp:55
 msgid "The menus and items you built on the Menu Builder page."
-msgstr "你在“菜单构建器”页面中创建的菜单和菜单项。"
+msgstr "你在“自定义菜单”页面中创建的菜单和菜单项。"
 
 #: src/ConfigRules.cpp:56
 msgid "Editors and terminals you picked on the Open with page."
