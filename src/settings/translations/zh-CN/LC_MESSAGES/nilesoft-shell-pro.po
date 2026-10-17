@@ -333,7 +333,7 @@ msgstr "Nilesoft Shell Pro {} 现已推出"
 
 #: ui/components/update-banner.slint:69
 msgid "You have {}."
-msgstr "你当前的版本为 {}。"
+msgstr "当前版本：{}。"
 
 #: ui/components/update-banner.slint:70
 msgid "Released {}."
@@ -401,7 +401,7 @@ msgstr "高亮文本"
 
 #: ui/pages/appearance.slint:64
 msgid "Disabled text"
-msgstr "禁用文本"
+msgstr "已禁用文本"
 
 #: ui/pages/appearance.slint:65 ui/pages/appearance.slint:454 src/ThemePresets.cpp:55
 msgid "Border"
@@ -425,7 +425,7 @@ msgstr "基础主题"
 
 #: ui/pages/appearance.slint:121
 msgid "The built-in style under every preset: colours, corners and effects. What you change below applies on top of it."
-msgstr "所有预设所基于的内置样式，包括颜色、圆角和效果。你在下方所做的更改会叠加在它之上。"
+msgstr "所有预设共用的内置样式，包括颜色、圆角和效果。下方的更改会在此基础上生效。"
 
 #: ui/pages/appearance.slint:200
 msgid "Not saved yet"
@@ -453,7 +453,7 @@ msgstr "调色板"
 
 #: ui/pages/appearance.slint:251
 msgid "The main colours of the menu. Pick one to change it; the row under the palette has its hex value and where it's set."
-msgstr "菜单的主要颜色。选择一种颜色即可更改；调色板下方一行显示其十六进制值及设置位置。"
+msgstr "菜单的主要颜色。选择一种颜色即可更改；调色板下方会显示该颜色的十六进制值及设置位置。"
 
 #: ui/pages/appearance.slint:304
 msgid "Dark mode"
@@ -525,7 +525,7 @@ msgstr "宽"
 
 #: ui/pages/appearance.slint:386
 msgid "What shows behind the menu, and how much."
-msgstr "菜单背后显示的内容及其程度。"
+msgstr "菜单背后透出的内容和透出程度。"
 
 #: ui/pages/appearance.slint:389
 msgid "Effect"
@@ -593,7 +593,7 @@ msgstr "菜单项"
 
 #: ui/pages/appearance.slint:525
 msgid "Spacing inside and around each item, and its icon."
-msgstr "每个菜单项的内外间距及其图标。"
+msgstr "每个菜单项的内外间距和图标。"
 
 #: ui/pages/appearance.slint:528
 msgid "Item padding"
@@ -605,15 +605,15 @@ msgstr "菜单项外边距"
 
 #: ui/pages/appearance.slint:552
 msgid "Image size"
-msgstr "图像大小"
+msgstr "图标大小"
 
 #: ui/pages/appearance.slint:566
 msgid "Image gap"
-msgstr "图像间距"
+msgstr "图标间距"
 
 #: ui/pages/appearance.slint:579
 msgid "Highlight, disabled item"
-msgstr "已禁用项的高亮"
+msgstr "已禁用项高亮"
 
 #: ui/pages/appearance.slint:593
 msgid "Separators"
@@ -797,7 +797,7 @@ msgstr "跳过文件资源管理器的精简菜单 · {}"
 
 #: ui/pages/behavior.slint:58
 msgid "Windows 11 shows its compact menu first · {}"
-msgstr "Windows 11 先显示其精简菜单 · {}"
+msgstr "Windows 11 会先显示精简菜单 · {}"
 
 #: ui/pages/behavior.slint:64
 msgid "Custom submenu delay"
@@ -805,7 +805,7 @@ msgstr "自定义子菜单延迟"
 
 #: ui/pages/behavior.slint:67
 msgid "Off: your Windows setting applies ({} ms) · {}"
-msgstr "关：使用你的 Windows 设置（{} ms） · {}"
+msgstr "关：使用 Windows 默认设置（{} ms） · {}"
 
 #: ui/pages/behavior.slint:68
 msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
@@ -833,7 +833,7 @@ msgstr "与菜单背景相同 · {}"
 
 #: ui/pages/behavior.slint:139
 msgid "The colour of the tooltip text"
-msgstr "工具提示文字的颜色"
+msgstr "工具提示文字颜色"
 
 #: ui/pages/behavior.slint:152
 msgid "Screenshots"
@@ -857,7 +857,7 @@ msgstr "选择…"
 
 #: ui/pages/behavior.slint:175
 msgid "Windows' own items"
-msgstr "Windows 自带的菜单项"
+msgstr "Windows 自带菜单项"
 
 #: ui/pages/behavior.slint:176
 msgid "What Shell does to the items Windows and other apps put in the menu."
@@ -869,7 +869,7 @@ msgstr "移除重复项"
 
 #: ui/pages/behavior.slint:184
 msgid "Remove disabled items"
-msgstr "移除已禁用的项"
+msgstr "移除已禁用项"
 
 #: ui/pages/behavior.slint:190
 msgid "Remove their separators"
@@ -1086,7 +1086,7 @@ msgstr "重新加载资源管理器与菜单"
 
 #: ui/pages/home.slint:267 src/Status.cpp:185
 msgid "Unregister for me"
-msgstr "为我取消注册"
+msgstr "为当前用户取消注册"
 
 #: ui/pages/home.slint:267
 msgid "Also register for me"
@@ -1094,7 +1094,7 @@ msgstr "为当前用户注册"
 
 #: ui/pages/home.slint:267 src/Status.cpp:180
 msgid "Register for me"
-msgstr "为我注册"
+msgstr "为当前用户注册"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
 #: ui/pages/home.slint:269
@@ -1129,7 +1129,7 @@ msgstr "诊断"
 
 #: ui/pages/home.slint:298
 msgid "· newest first, from shell.log"
-msgstr "· 最新的在前，来自 shell.log"
+msgstr "· 最新在前，来自 shell.log"
 
 #: ui/pages/home.slint:305
 msgid "Open shell.log"
@@ -1137,7 +1137,7 @@ msgstr "打开 shell.log"
 
 #: ui/pages/home.slint:322
 msgid "No shell.log found next to the active shell.dll."
-msgstr "在当前 shell.dll 所在位置未找到 shell.log。"
+msgstr "当前 shell.dll 所在文件夹中未找到 shell.log。"
 
 #: ui/pages/home.slint:322
 msgid "No errors or warnings in shell.log."
@@ -1198,11 +1198,11 @@ msgstr "你的菜单已关闭"
 
 #: ui/pages/menu-builder.slint:426
 msgid "shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them."
-msgstr "shell.nss 导入了此文件，但该行已被注释掉。请在“右键菜单”中重新打开“你的菜单”以显示它们。"
+msgstr "shell.nss 导入了此文件，但该行已被注释掉。请在“右键菜单”中重新开启“你的菜单”以显示它们。"
 
 #: ui/pages/menu-builder.slint:427 ui/pages/openwith.slint:647
 msgid "Open Context Menus"
-msgstr "打开右键菜单"
+msgstr "转到“右键菜单”"
 
 #: ui/pages/menu-builder.slint:432 ui/pages/openwith.slint:659
 msgid "Part of the file can't be shown here"
@@ -1250,7 +1250,7 @@ msgstr "添加菜单项或菜单。它们保存在单独的文件中，配置的
 
 #: ui/pages/menu-builder.slint:572
 msgid "Entries you add show their properties here."
-msgstr "你添加的条目会在此显示其属性。"
+msgstr "添加条目后，属性会显示在这里。"
 
 #: ui/pages/menu-builder.slint:572
 msgid "Select an entry to edit it."
@@ -1258,7 +1258,7 @@ msgstr "选择一个条目进行编辑。"
 
 #: ui/pages/menu-builder.slint:586
 msgid "A line between the entries above and below it. It has no properties."
-msgstr "位于上下条目之间的一条线。它没有属性。"
+msgstr "上下条目之间的分隔线，没有可设置的属性。"
 
 #: ui/pages/menu-builder.slint:607
 msgid "Title"
@@ -1528,7 +1528,7 @@ msgstr "外观"
 
 #: ui/pages/onboarding.slint:190
 msgid "shell.exe wasn't found next to this app, so setup can't run. Reinstall Nilesoft Shell."
-msgstr "未在此应用所在位置找到 shell.exe，因此无法运行设置。请重新安装 Nilesoft Shell。"
+msgstr "此应用所在文件夹中未找到 shell.exe，因此无法运行设置。请重新安装 Nilesoft Shell。"
 
 #: ui/pages/onboarding.slint:196
 msgid "Create your personal config"
@@ -1560,7 +1560,7 @@ msgstr "此电脑上已为所有用户启用 Shell，其中包括你的账户。
 
 #: ui/pages/onboarding.slint:230
 msgid "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences."
-msgstr "为你的 Windows 账户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“偏好设置”。"
+msgstr "为你的 Windows 账户在文件资源管理器中添加 Shell 菜单。无需管理员权限。如需为此电脑上的所有用户启用，请前往“偏好设置”。"
 
 #: ui/pages/onboarding.slint:238
 msgid "Enabled for all users"
@@ -1568,11 +1568,11 @@ msgstr "已为所有用户启用"
 
 #: ui/pages/onboarding.slint:243
 msgid "Register it for my account as well"
-msgstr "同时为我的账户注册"
+msgstr "同时为当前用户注册"
 
 #: ui/pages/onboarding.slint:249
 msgid "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home."
-msgstr "你自己的注册优先于所有用户的注册。因此在你于“主页”中取消注册之前，此账户将不再使用所有用户的副本及其更新。"
+msgstr "当前用户的注册优先于所有用户的注册，因此在“主页”中取消注册之前，此账户将不再使用为所有用户安装的副本及其更新。"
 
 #: ui/pages/onboarding.slint:265
 msgid "Use the classic context menu on Windows 11"
@@ -1588,7 +1588,7 @@ msgstr "为当前用户启用"
 
 #: ui/pages/onboarding.slint:281 src/Status.cpp:177
 msgid "Enable for me"
-msgstr "为我启用"
+msgstr "为当前用户启用"
 
 #: ui/pages/onboarding.slint:290
 msgid "Windows 11 menu: {}"
@@ -1620,7 +1620,7 @@ msgstr "按“完成”后，shell.exe 会先检查配置，然后保存 {}。"
 
 #: ui/pages/onboarding.slint:325
 msgid "Finish creates your personal config, then saves {} there."
-msgstr "“完成”会创建你的个人配置，然后将 {} 保存到其中。"
+msgstr "点击“完成”将创建个人配置，并将 {} 保存到该配置中。"
 
 #: ui/pages/onboarding.slint:326
 msgid "In use: {0} · {1}"
@@ -1688,11 +1688,11 @@ msgstr "浏览…"
 
 #: ui/pages/openwith.slint:295
 msgid "{{path}} the selected item, quoted · {{paths}} every selected item · {{dir}} its folder · {{name}} its name"
-msgstr "{{path}} 所选项（带引号）· {{paths}} 所有选中项 · {{dir}} 其所在文件夹 · {{name}} 其名称"
+msgstr "{{path}} 所选项（带引号）· {{paths}} 所有选中项 · {{dir}} 所在文件夹 · {{name}} 名称"
 
 #: ui/pages/openwith.slint:314
 msgid "The program's own icon"
-msgstr "程序自带的图标"
+msgstr "程序自带图标"
 
 #: ui/pages/openwith.slint:324
 msgid "Shows for"
@@ -1716,7 +1716,7 @@ msgstr "具有以下扩展名的文件"
 
 #: ui/pages/openwith.slint:346
 msgid "Its own items"
-msgstr "应用自带的项"
+msgstr "应用自带菜单项"
 
 #: ui/pages/openwith.slint:347
 msgid "Switched off, the app also hides {}. Tick this to hide only the item this page adds."
@@ -1724,7 +1724,7 @@ msgstr "关闭后，该应用的 {} 也会被隐藏。勾选此项则只隐藏�
 
 #: ui/pages/openwith.slint:349
 msgid "Keep the app's own menu items when it's off"
-msgstr "关闭时保留该应用自带的菜单项"
+msgstr "关闭时保留应用自带菜单项"
 
 #: ui/pages/openwith.slint:372
 msgctxt "Button"
@@ -1753,7 +1753,7 @@ msgstr "与菜单中显示的完全一致"
 
 #: ui/pages/openwith.slint:617
 msgid "Open the selected file or folder in your editor or terminal from the right-click menu."
-msgstr "从右键菜单在编辑器或终端中打开所选文件或文件夹。"
+msgstr "通过右键菜单，在编辑器或终端中打开所选文件或文件夹。"
 
 #: ui/pages/openwith.slint:637
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to add apps to the menu."
@@ -1818,7 +1818,7 @@ msgstr "菜单中"
 
 #: ui/pages/openwith.slint:720
 msgid "Where the items show, and whether they're grouped in a submenu."
-msgstr "这些项显示的位置，以及是否归入一个子菜单。"
+msgstr "这些项的显示位置，以及是否归入子菜单。"
 
 #: ui/pages/openwith.slint:730
 msgid "Layout"
@@ -1826,11 +1826,11 @@ msgstr "布局"
 
 #: ui/pages/openwith.slint:731
 msgid "One submenu with each app inside it, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
-msgstr "一个子菜单，每个应用都在其中，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
+msgstr "所有应用归入一个子菜单，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
 
 #: ui/pages/openwith.slint:731
 msgid "Each app is its own \"Open in …\" item, in this order, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
-msgstr "每个应用各自作为一个“在 … 中打开”项，按此顺序排列，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
+msgstr "每个应用单独显示为“在 … 中打开”项，按此顺序排列，位于 WinRAR 下方；没有 WinRAR 时，位于“在新窗口中打开”下方；否则位于菜单顶部。"
 
 #: ui/pages/openwith.slint:733
 msgid "Group in an \"Open in\" submenu"
@@ -1871,7 +1871,7 @@ msgstr "其他应用的菜单项"
 
 #: ui/pages/openwith.slint:861
 msgid "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed."
-msgstr "其他程序自行添加到菜单中的项，例如 VLC 或 7-Zip。关闭某项即可在 Shell 的菜单中隐藏它；程序和注册表保持不变。上方列表中应用的项随其应用开关一起控制，Windows 自带的项不在此列出。"
+msgstr "其他程序自行添加到菜单中的项，例如 VLC 或 7-Zip。关闭某项即可在 Shell 菜单中隐藏它；程序和注册表保持不变。上方列表中应用的菜单项由对应应用的开关控制；Windows 自带菜单项不在此列出。"
 
 #: ui/pages/openwith.slint:868
 msgid "No other program adds items to the menu for files, folders or drives."
@@ -1883,7 +1883,7 @@ msgstr "正在读取注册表…"
 
 #: ui/pages/openwith.slint:890
 msgid "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is."
-msgstr "这些项的程序已不存在，因此它们不起任何作用。隐藏某项会添加一条 remove() 规则；注册表保持不变。"
+msgstr "这些项对应的程序已不存在，因此点击后不会有任何反应。隐藏某项会添加一条 remove() 规则；注册表保持不变。"
 
 #: ui/pages/openwith.slint:899
 msgid "Hide all {}"
@@ -1911,7 +1911,7 @@ msgstr "develop.nss 自带 VS Code 和记事本项。它们只在按住 Shift �
 
 #: ui/pages/preferences.slint:47
 msgid "How this app looks, updates, machine-wide registration, and about."
-msgstr "此应用的外观、更新、全机注册以及关于信息。"
+msgstr "此应用的外观、更新、为所有用户注册以及关于信息。"
 
 #: ui/pages/preferences.slint:54
 msgid "App theme"
@@ -1919,7 +1919,7 @@ msgstr "应用主题"
 
 #: ui/pages/preferences.slint:55
 msgid "System follows the Windows app mode and changes with it."
-msgstr "“跟随系统”会跟随 Windows 应用模式并随之变化。"
+msgstr "“跟随系统”会随 Windows 应用模式自动切换。"
 
 #: ui/pages/preferences.slint:60
 msgid "System"
@@ -1955,7 +1955,7 @@ msgstr "未注册"
 
 #: ui/pages/preferences.slint:92
 msgid "Just you"
-msgstr "仅限你"
+msgstr "仅当前用户"
 
 #: ui/pages/preferences.slint:99
 msgid "Unregister for all users"
@@ -1971,7 +1971,7 @@ msgstr "更新"
 
 #: ui/pages/preferences.slint:111
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
-msgstr "新版本来自此项目的 GitHub 发布版本，安装前会先核对其 SHA-256 校验和。"
+msgstr "新版本来自此项目在 GitHub 上的发布，安装前会先核对 SHA-256 校验和。"
 
 #: ui/pages/preferences.slint:114
 msgid "{}  ·  installed for all users (MSI)"
@@ -1983,7 +1983,7 @@ msgstr "{}  ·  便携版"
 
 #: ui/pages/preferences.slint:121
 msgid "Channel"
-msgstr "通道"
+msgstr "频道"
 
 #: ui/pages/preferences.slint:130
 msgid "Stable"
@@ -2075,7 +2075,7 @@ msgstr "第三方软件"
 
 #: ui/pages/preferences.slint:288
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
-msgstr "使用 Slint 构建（Royalty-free license 2.0）。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
+msgstr "使用 Slint 构建 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
 
 #: ui/pages/rules.slint:43
 msgid "Remove {}"
@@ -2087,7 +2087,7 @@ msgstr "添加"
 
 #: ui/pages/rules.slint:135
 msgid "Where Shell's menu appears. Everywhere else, Windows shows its own menu."
-msgstr "Shell 菜单出现的位置。在其他位置，Windows 会显示其自带的菜单。"
+msgstr "Shell 菜单出现的位置。在其他位置，Windows 会显示自带菜单。"
 
 #: ui/pages/rules.slint:150
 msgid "Where the menu appears"
@@ -2111,7 +2111,7 @@ msgstr "自定义条件"
 
 #: ui/pages/rules.slint:173
 msgid "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save."
-msgstr "一个 NSS 表达式；只要其结果为真，就隐藏 Shell 的菜单。保存时 shell.exe 会检查它。"
+msgstr "一个 NSS 表达式；结果为真时隐藏 Shell 菜单。保存时 shell.exe 会检查它。"
 
 #: ui/pages/rules.slint:184
 msgid "e.g. process.name == \"notepad\""
@@ -2363,7 +2363,7 @@ msgstr "已为你禁用 Shell"
 
 #: src/AppController.cpp:505 src/AppController.cpp:516
 msgid "Restart Explorer to unload it."
-msgstr "重启资源管理器以将其卸载。"
+msgstr "重启资源管理器后生效。"
 
 #: src/AppController.cpp:507
 msgid "Creating your config…"
@@ -2543,7 +2543,7 @@ msgstr "选择其他应用"
 
 #: src/AppearanceController.cpp:650
 msgid "Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in Personalization > Colors, or choose Auto, which Shell applies even with it off."
-msgstr "Windows 的“透明效果”已关闭，因此 Shell 会将此菜单绘制为不透明。请在“个性化 > 颜色”中将其打开，或选择“自动”，即使透明效果已关闭，Shell 也会应用它。"
+msgstr "Windows 的“透明效果”已关闭，因此 Shell 会将此菜单绘制为不透明。请在“个性化 > 颜色”中开启，或选择“自动”（即使透明效果已关闭，“自动”也会生效）。"
 
 #: src/AppearanceController.cpp:652
 msgid "Auto is acrylic on Windows 11, even with Windows Transparency effects off."
@@ -2567,7 +2567,7 @@ msgstr "Alpha 决定强度：40 较淡，FF 会完全遮住模糊效果。"
 
 #: src/AppearanceController.cpp:661
 msgid "From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
-msgstr "来自 effect = [n, tint, opacity]；在此处所做的更改会写入 background.tintcolor，并以其为准。"
+msgstr "来自 effect = [n, tint, opacity]；在此处的更改会写入 background.tintcolor，并优先生效。"
 
 #: src/AppearanceController.cpp:664
 msgid "No effect: the menu is solid, so opacity doesn't apply."
@@ -2610,7 +2610,7 @@ msgstr[0] "与你当前的文件相同（{n} 个文件）。"
 #: src/BackupsController.cpp:223
 msgid "Since this snapshot: {n} file changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
 msgid_plural "Since this snapshot: {n} files changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
-msgstr[0] "自此快照以来：{n} 个文件有更改（+{0} −{1} 行），{2} 个未更改。绿色行是你文件中现在的内容；红色行会在还原后恢复。"
+msgstr[0] "自此快照以来：{n} 个文件有更改（+{0} −{1} 行），{2} 个未更改。绿色行为当前文件中的内容；红色行会在还原后恢复。"
 
 #: src/BackupsController.cpp:263
 msgid "Manual snapshot"
@@ -2643,7 +2643,7 @@ msgstr "已还原 {} 的快照"
 
 #: src/BackupsController.cpp:315
 msgid "Your previous files were snapshotted first."
-msgstr "已先为你之前的文件创建快照。"
+msgstr "还原前已为原有文件创建快照。"
 
 #: src/BackupsController.cpp:317
 msgid "Couldn't restore the snapshot"
@@ -3000,11 +3000,11 @@ msgstr "已锁定：该导入跨越多行。"
 
 #: src/ConfigRules.cpp:570
 msgid "Something else shares its line"
-msgstr "其所在行还有其他内容"
+msgstr "所在行还有其他内容"
 
 #: src/ConfigRules.cpp:571
 msgid "Locked: something else shares its line."
-msgstr "已锁定：其所在行还有其他内容。"
+msgstr "已锁定：所在行还有其他内容。"
 
 #: src/ConfigRules.cpp:606
 msgid "Inside a menu"
@@ -3113,7 +3113,7 @@ msgstr "找不到 shell.exe，因此无法检查配置"
 
 #: src/EditorController.cpp:652
 msgid "Checking your edits…"
-msgstr "正在检查你的编辑…"
+msgstr "正在检查你的修改…"
 
 #: src/EditorController.cpp:668
 msgid "The check couldn't run: {}"
@@ -3122,7 +3122,7 @@ msgstr "无法运行检查：{}"
 #: src/EditorController.cpp:673 src/EditorController.cpp:765
 msgid "{n} error in your edits"
 msgid_plural "{n} errors in your edits"
-msgstr[0] "你的编辑中有 {n} 个错误"
+msgstr[0] "你的修改中有 {n} 个错误"
 
 #: src/EditorController.cpp:674
 msgid "{n} error"
@@ -3131,7 +3131,7 @@ msgstr[0] "{n} 个错误"
 
 #: src/EditorController.cpp:679
 msgid "Your edits pass the check"
-msgstr "你的编辑已通过检查"
+msgstr "你的修改已通过检查"
 
 #: src/EditorController.cpp:679
 msgid "The config passes the check"
@@ -3173,7 +3173,7 @@ msgstr "配置存在错误；在修复之前，Shell 的菜单将保持关闭。
 
 #: src/EditorController.cpp:825
 msgid "{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours."
-msgstr "{} 已在磁盘上被更改，而你还有未保存的编辑。重新加载可查看新版本（你的编辑将被丢弃），或关闭此提示继续编辑你的版本。"
+msgstr "{} 已在磁盘上被更改，而你还有未保存的修改。重新加载可查看新版本（你的修改将被丢弃），或关闭此提示继续编辑你的版本。"
 
 #: src/EditorController.cpp:864
 msgid "That file isn't in the import tree"
@@ -3289,11 +3289,11 @@ msgstr "关闭后还会隐藏：{}"
 
 #: src/OpenWithController.cpp:662
 msgid "Keeps its own: {}"
-msgstr "保留其自带项：{}"
+msgstr "保留自带项：{}"
 
 #: src/OpenWithController.cpp:663
 msgid "Off by default, its own still show: {}"
-msgstr "默认关闭，其自带项仍会显示：{}"
+msgstr "默认关闭，自带项仍会显示：{}"
 
 #: src/OpenWithController.cpp:698
 msgid "Shell extension \"{}\""
@@ -3317,7 +3317,7 @@ msgstr "未找到程序：{}"
 
 #: src/OpenWithController.cpp:717
 msgid "No longer in the registry. The rule stays until you switch it back on."
-msgstr "已不在注册表中。在你重新打开它之前，该规则会一直保留。"
+msgstr "已不在注册表中。在你重新开启之前，该规则会一直保留。"
 
 #: src/OpenWithController.cpp:721
 msgid "Type the title the menu shows, or nothing is hidden."
@@ -3353,15 +3353,15 @@ msgstr "固定到快速访问"
 
 #: src/OpenWithController.cpp:855
 msgid "Nothing of yours shows for a .txt file."
-msgstr "对 .txt 文件不会显示你的任何项。"
+msgstr ".txt 文件上不会显示你添加的任何项。"
 
 #: src/OpenWithController.cpp:856
 msgid "Nothing of yours shows for a folder."
-msgstr "对文件夹不会显示你的任何项。"
+msgstr "文件夹上不会显示你添加的任何项。"
 
 #: src/OpenWithController.cpp:857
 msgid "Nothing of yours shows for a folder's background."
-msgstr "在文件夹背景上不会显示你的任何项。"
+msgstr "文件夹背景上不会显示你添加的任何项。"
 
 #: src/OpenWithController.cpp:903
 msgid "Pick the program first."
@@ -3389,7 +3389,7 @@ msgstr "以 @ 开头的部分由 Shell 在菜单打开时填入。"
 
 #: src/OpenWithController.cpp:932
 msgid "It runs as administrator; Windows asks first."
-msgstr "它以管理员身份运行；Windows 会先进行询问。"
+msgstr "将以管理员身份运行；Windows 会先请求确认。"
 
 #: src/OpenWithController.cpp:1041
 msgid "All files"
@@ -3617,7 +3617,7 @@ msgstr "无法创建个人配置：{}"
 
 #: src/ShellCli.cpp:118
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
-msgstr "在 NilesoftShellPro.exe 或已注册的 shell.dll 所在位置未找到 shell.exe。"
+msgstr "NilesoftShellPro.exe 和已注册的 shell.dll 所在文件夹中均未找到 shell.exe。"
 
 #: src/ShellCli.cpp:125
 msgid "CreatePipe failed."
@@ -3649,7 +3649,7 @@ msgstr "存在两个副本会导致菜单无法显示。"
 
 #: src/Status.cpp:164
 msgid "Its file no longer exists; only the registration is left."
-msgstr "其文件已不存在，只剩下注册信息。"
+msgstr "对应文件已不存在，只剩下注册信息。"
 
 #: src/Status.cpp:169
 msgid "Also registered: {}"
@@ -3685,7 +3685,7 @@ msgstr "Shell 注册了两次"
 
 #: src/Status.cpp:183
 msgid "Your own registration ({}) takes priority, so the all-users copy ({}) isn't used for you."
-msgstr "你自己的注册（{}）优先，因此你不会用到所有用户共用的副本（{}）。"
+msgstr "当前用户的注册（{}）优先，因此不会使用为所有用户注册的副本（{}）。"
 
 #: src/Status.cpp:188
 msgid "Create a personal config to get the default menu back."
@@ -3886,7 +3886,7 @@ msgstr "{2}年{1}{0}日"
 
 #: src/UpdateController.cpp:172
 msgid "Never"
-msgstr "从不"
+msgstr "从未"
 
 #: src/UpdateController.cpp:183
 msgid "Today at {}"
@@ -3902,7 +3902,7 @@ msgstr "无法启动 msiexec.exe。"
 
 #: src/UpdateController.cpp:354
 msgid "Another installation is in progress. Try again when it has finished."
-msgstr "另一个安装正在进行中。请在其完成后重试。"
+msgstr "另一项安装正在进行。请等待完成后重试。"
 
 #: src/UpdateController.cpp:356
 msgid "The installer stopped with code {}. Its log is {}.log."
@@ -3950,7 +3950,7 @@ msgstr "你使用的已是最新版本。"
 
 #: src/UpdateController.cpp:583 src/UpdateController.cpp:598
 msgid "This release has no download for this kind of install. Get it from the release page."
-msgstr "此发布版本没有适用于此安装类型的下载。请从发布页面获取。"
+msgstr "此版本没有适用于当前安装类型的下载文件。请从发布页面下载。"
 
 #: src/UpdateController.cpp:604
 msgid "Couldn't find %LOCALAPPDATA%."
@@ -4114,7 +4114,7 @@ msgstr "zip 文件中包含链接，而正常的更新不会包含链接。"
 
 #: src/Updater.cpp:855
 msgid "The zip contains a file outside its folder."
-msgstr "zip 文件中包含位于其文件夹之外的文件。"
+msgstr "zip 文件中有文件位于解压文件夹之外。"
 
 #: src/Updater.cpp:900
 msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
