@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <set>
@@ -68,6 +69,11 @@ private:
     void reloadBuffers(const std::vector<std::string> &keys);
     void jumpTo(const std::filesystem::path &file, int line);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
+    // Text that stays on screen is kept as a function, so a language change can push it again.
+    using TextFn = std::function<std::string()>;
+    void setCheckText(TextFn make);
+    void setLoadError(TextFn make);
+    void setExternalText(TextFn make);
 
     editor::Buffer *currentBuffer();
     bool readOnly(const editor::FileEntry &e, std::string *reason = nullptr) const;
@@ -94,6 +100,7 @@ private:
     std::optional<std::pair<std::filesystem::path, int>> pendingJump_;
     bool saving_ = false;
     bool lastDirty_ = false;
+    TextFn checkText_, loadError_, externalText_;
 
     // Edit view: the current buffer as shown (tabs as glyphs) and its rows.
     hl::TabGlyphs glyphs_;

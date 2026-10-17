@@ -1,6 +1,7 @@
 #include "ConfigRules.h"
 
 #include "MenuModel.h"
+#include "Tr.h"
 
 #include "nss/ConfigGraph.h"
 #include "nss/NssLexer.h"
@@ -34,25 +35,25 @@ std::string stemOf(std::string_view path)
 struct KnownModule
 {
     const char *stem;
-    const char *title;
-    const char *description;
-    const char *lock; // non-null: can't be turned off here
+    const char *title;       // English (it goes into snapshot reasons); shown with nsp::tr
+    const char *description; // nsp::mark()ed, translated by listModules
+    const char *lock;        // non-null: can't be turned off here
 };
 
 constexpr KnownModule kKnown[] = {
-    { "theme", "Theme", "Colors, fonts, spacing and effects of the menu. Off: Shell's built-in defaults.", nullptr },
-    { "images", "Icons", "The icon.* images the other files draw with. Always on: turning it off breaks them.",
-      "Other files use its icons; turning it off breaks them" },
-    { "modify", "Windows items", "Hides, moves and groups Windows' own items. Each rule is listed below.", nullptr },
-    { "terminal", "Terminal", "Command Prompt, PowerShell and Windows Terminal, opened in the current folder.", nullptr },
-    { "file-manage", "File manage",
-      "Copy paths, change extension, select, take ownership, attributes, new folder and file.", nullptr },
-    { "develop", "Develop", "Open in an editor, dotnet commands. Shown while Shift is held.", nullptr },
-    { "goto", "Go to", "Jump to common folders and Windows Settings pages.", nullptr },
-    { "taskbar", "Taskbar", "Apps, window arrangement and Task Manager on the taskbar's menu.", nullptr },
-    { "my-tools", "My tools", "New file and System menus from Abdullah Masood's config.", nullptr },
-    { "settings-app-menus", "Your menus", "The menus and items you built on the Menu Builder page.", nullptr },
-    { "settings-app-openwith", "Open with", "Editors and terminals you picked on the Open with page.", nullptr },
+    { "theme", nsp::mark("Theme"), nsp::mark("Colors, fonts, spacing and effects of the menu. Off: Shell's built-in defaults."), nullptr },
+    { "images", nsp::mark("Icons"), nsp::mark("The icon.* images the other files draw with. Always on: turning it off breaks them."),
+      nsp::mark("Other files use its icons; turning it off breaks them") },
+    { "modify", nsp::mark("Windows items"), nsp::mark("Hides, moves and groups Windows' own items. Each rule is listed below."), nullptr },
+    { "terminal", nsp::mark("Terminal"), nsp::mark("Command Prompt, PowerShell and Windows Terminal, opened in the current folder."), nullptr },
+    { "file-manage", nsp::mark("File manage"),
+      nsp::mark("Copy paths, change extension, select, take ownership, attributes, new folder and file."), nullptr },
+    { "develop", nsp::mark("Develop"), nsp::mark("Open in an editor, dotnet commands. Shown while Shift is held."), nullptr },
+    { "goto", nsp::mark("Go to"), nsp::mark("Jump to common folders and Windows Settings pages."), nullptr },
+    { "taskbar", nsp::mark("Taskbar"), nsp::mark("Apps, window arrangement and Task Manager on the taskbar's menu."), nullptr },
+    { "my-tools", nsp::mark("My tools"), nsp::mark("New file and System menus from Abdullah Masood's config."), nullptr },
+    { "settings-app-menus", nsp::mark("Your menus"), nsp::mark("The menus and items you built on the Menu Builder page."), nullptr },
+    { "settings-app-openwith", nsp::mark("Open with"), nsp::mark("Editors and terminals you picked on the Open with page."), nullptr },
 };
 
 std::string lineText(std::string_view text, size_t begin)
@@ -260,7 +261,11 @@ bool summarizeWhere(std::string_view where, std::vector<std::string> &names, std
                 any = true;
             } else if (std::regex_match(c, m, windowIs)) {
                 auto w = nss::toLower(m[2].str());
-                auto q = w == "explorer" ? std::string("in File Explorer") : "on the " + w;
+                std::string q = w == "explorer"  ? nsp::tr("in File Explorer")
+                              : w == "desktop" ? nsp::tr("on the desktop")
+                              : w == "taskbar" ? nsp::tr("on the taskbar")
+                              : w == "edit"    ? nsp::tr("on the edit")
+                                               : nsp::tr("on the start");
                 if (std::find(qualifiers.begin(), qualifiers.end(), q) == qualifiers.end())
                     qualifiers.push_back(q);
             } else {
@@ -279,7 +284,7 @@ std::string joinNames(const std::vector<std::string> &names, size_t max = 4)
     for (size_t i = 0; i < names.size() && i < max; ++i)
         out += (i ? ", " : "") + names[i];
     if (names.size() > max)
-        out += " and " + std::to_string(names.size() - max) + " more";
+        out = nsp::trn("{0} and {n} more", "{0} and {n} more", (long long)(names.size() - max), out);
     return out;
 }
 
@@ -315,55 +320,62 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r)
     // What it does
     std::vector<std::string> actions;
     if (r.kind == RuleKind::Remove)
-        actions.push_back("Remove");
+        actions.push_back(nsp::tr("Remove"));
     if (has("vis")) {
         auto v = word("vis", "vis");
         if (v == "remove" || v == "hidden" || v == "hide")
-            actions.push_back("Hide");
+            actions.push_back(nsp::tr("Hide"));
         else if (v == "disable" || v == "disabled")
-            actions.push_back("Disable");
+            actions.push_back(nsp::tr("Disable"));
         else if (v != "normal" && v != "enable") {
-            actions.push_back("Change visibility");
+            actions.push_back(nsp::tr("Change visibility"));
             r.complex = true;
         }
     }
     if (has("menu") || has("pos")) {
-        std::string move = "Move";
-        if (has("menu"))
-            move += " to " + curly(displayValue(props["menu"]));
+        const bool toMenu = has("menu");
+        const std::string menu = toMenu ? curly(displayValue(props["menu"])) : std::string{};
+        std::string move = toMenu ? nsp::trf("Move to {}", menu) : std::string(nsp::tr("Move"));
         if (has("pos")) {
             auto v = word("pos", "pos");
-            if (v == "top" || v == "bottom" || v == "middle")
-                move += has("menu") ? ", at the " + v : " to the " + v;
+            if (v == "top")
+                move = toMenu ? nsp::trf("Move to {}, at the top", menu) : std::string(nsp::tr("Move to the top"));
+            else if (v == "bottom")
+                move = toMenu ? nsp::trf("Move to {}, at the bottom", menu) : std::string(nsp::tr("Move to the bottom"));
+            else if (v == "middle")
+                move = toMenu ? nsp::trf("Move to {}, at the middle", menu) : std::string(nsp::tr("Move to the middle"));
             else if (!v.empty() && std::all_of(v.begin(), v.end(), [](char c) { return std::isdigit(static_cast<unsigned char>(c)) != 0; }))
-                move += has("menu") ? ", position " + v : " to position " + v;
+                move = toMenu ? nsp::trf("Move to {}, position {}", menu, v) : nsp::trf("Move to position {}", v);
             else if (v != "auto")
                 r.complex = true;
         }
         actions.push_back(move);
     }
     if (has("title"))
-        actions.push_back("Rename to " + curly(displayValue(props["title"])));
+        actions.push_back(nsp::trf("Rename to {}", curly(displayValue(props["title"]))));
     if (has("image"))
-        actions.push_back("Change icon");
+        actions.push_back(nsp::tr("Change icon"));
     if (has("sep")) {
         auto v = props["sep"].empty() ? std::string("before") : word("sep", "sep");
         if (v == "top")
             v = "before";
         if (v == "bottom")
             v = "after";
-        actions.push_back(v == "both" ? "Add separators" : "Add a separator " + v);
+        actions.push_back(v == "both"     ? std::string(nsp::tr("Add separators"))
+                          : v == "before" ? std::string(nsp::tr("Add a separator before"))
+                          : v == "after"  ? std::string(nsp::tr("Add a separator after"))
+                                          : nsp::trf("Add a separator {}", v));
     }
     if (has("keys"))
-        actions.push_back("Show a shortcut");
+        actions.push_back(nsp::tr("Show a shortcut"));
     if (has("tip"))
-        actions.push_back("Add a tip");
+        actions.push_back(nsp::tr("Add a tip"));
     if (has("checked") || has("default"))
-        actions.push_back("Change state");
+        actions.push_back(nsp::tr("Change state"));
     if (has("cmd") || has("command") || has("args") || has("arg"))
-        actions.push_back("Change command");
+        actions.push_back(nsp::tr("Change command"));
     if (actions.empty())
-        actions.push_back(r.kind == RuleKind::Remove ? "Remove" : "No visible change");
+        actions.push_back(r.kind == RuleKind::Remove ? nsp::tr("Remove") : nsp::tr("No visible change"));
     std::string action;
     for (size_t i = 0; i < actions.size(); ++i) {
         auto a = actions[i];
@@ -397,9 +409,9 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r)
         }
     }
     if (r.complex && names.empty())
-        r.target = "Items matching an expression";
+        r.target = nsp::tr("Items matching an expression");
     else if (names.empty())
-        r.target = "Every item";
+        r.target = nsp::tr("Every item");
     else
         r.target = joinNames(names);
 
@@ -412,7 +424,7 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r)
             if (k == v.size() || v[k] == '|') {
                 auto part = humanize(v.substr(start, k - start));
                 if (!part.empty())
-                    t += (t.empty() ? "" : " or ") + part;
+                    t = t.empty() ? part : nsp::trf("{} or {}", t, part);
                 start = k + 1;
             }
         scope.push_back(t);
@@ -420,16 +432,16 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r)
     if (has("mode")) {
         auto v = word("mode", "mode");
         if (v == "multiple")
-            scope.push_back("any selection");
+            scope.push_back(nsp::tr("any selection"));
         else if (v == "multi_unique" || v == "multi_single")
-            scope.push_back("multiple selection");
+            scope.push_back(nsp::tr("multiple selection"));
         else if (v == "none")
-            scope.push_back("no selection");
+            scope.push_back(nsp::tr("no selection"));
         else if (v != "single")
             r.complex = true;
     }
     if (has("in"))
-        scope.push_back("in " + curly(displayValue(props["in"])));
+        scope.push_back(nsp::trf("in {}", curly(displayValue(props["in"]))));
     for (auto &q : qualifiers)
         scope.push_back(q);
     for (size_t i = 0; i < scope.size(); ++i)
@@ -486,22 +498,30 @@ std::string humanize(std::string_view name)
         auto at = low.find(sfx);
         if (at != std::string::npos && low.size() > sfx.size()) {
             auto other = sfx == ".back" ? low.substr(0, at) : low.substr(at + sfx.size());
-            auto h = humanize(other == "dir" || other == "directory" ? std::string("folder") : other);
-            if (h.size() > 1 && h.back() == 's' && h != "Folders")
-                h.pop_back();
-            return (h == "Folders" ? std::string("Folder") : h) + " background";
+            std::string h;
+            if (other == "dir" || other == "directory" || other == "folder")
+                h = nsp::tr("Folder");
+            else if (other == "file" || other == "files")
+                h = nsp::tr("File");
+            else {
+                h = humanize(other);
+                const bool word = other != "back" && other != "recyclebin" && other != "*";
+                if (word && h.size() > 1 && h.back() == 's')
+                    h.pop_back();
+            }
+            return nsp::trf("{} background", h);
         }
     }
     if (low == "dir" || low == "directory")
-        return "Folders";
+        return nsp::tr("Folders");
     if (low == "back")
-        return "Background";
+        return nsp::tr("Background");
     if (low == "file")
-        return "Files";
+        return nsp::tr("Files");
     if (low == "recyclebin")
-        return "Recycle bin";
+        return nsp::tr("Recycle bin");
     if (low == "*")
-        return "Anything";
+        return nsp::tr("Anything");
     std::replace(s.begin(), s.end(), '_', ' ');
     std::replace(s.begin(), s.end(), '-', ' ');
     for (auto &c : s)
@@ -530,25 +550,25 @@ std::vector<Module> listModules(const nss::NssDocument &root)
             continue; // the Appearance page's file
         m.name = stemOf(m.path);
         m.title = humanize(m.name);
-        m.description = "Imported from " + m.path + ".";
+        m.description = nsp::trf("Imported from {}.", m.path);
         for (const auto &k : kKnown)
             if (m.name == k.stem) {
                 m.title = k.title;
-                m.description = k.description;
+                m.description = nsp::tr(k.description);
                 if (k.lock) {
                     m.locked = true;
-                    m.lockReason = k.lock;
+                    m.lockReason = nsp::tr(k.lock);
                 }
             }
         if (!m.locked && m.enabled && root.slice(n->span).find_first_of("\r\n") != std::string_view::npos) {
             m.locked = true;
-            m.lockReason = "The import spans several lines";
-            m.description += " Locked: the import spans several lines.";
+            m.lockReason = nsp::tr("The import spans several lines");
+            m.description += std::string(" ") + nsp::tr("Locked: the import spans several lines.");
         }
         if (!m.locked && m.enabled && !ownsLines(root.text(), n->span)) {
             m.locked = true;
-            m.lockReason = "Something else shares its line";
-            m.description += " Locked: something else shares its line.";
+            m.lockReason = nsp::tr("Something else shares its line");
+            m.description += std::string(" ") + nsp::tr("Locked: something else shares its line.");
         }
         out.push_back(std::move(m));
     }
@@ -583,10 +603,10 @@ std::vector<Rule> listRules(const nss::NssDocument &doc)
         bool topLevel = std::find(top.begin(), top.end(), &n) != top.end();
         if (!topLevel) {
             r.toggleable = false;
-            r.note = "Inside a menu";
+            r.note = nsp::tr("Inside a menu");
         } else if (!ownsLines(text, n.span)) {
             r.toggleable = false;
-            r.note = "Shares a line with other code";
+            r.note = nsp::tr("Shares a line with other code");
         }
         out.push_back(std::move(r));
         return true;

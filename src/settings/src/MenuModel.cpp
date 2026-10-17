@@ -1,5 +1,7 @@
 #include "MenuModel.h"
 
+#include "Tr.h"
+
 #include "nss/Literal.h"
 #include "nss/Text.h"
 
@@ -156,14 +158,14 @@ void setLocation(Node &n, Location loc, std::string_view extensions)
 const char *locationLabel(Location loc)
 {
     switch (loc) {
-    case Location::Everywhere: return "Everywhere";
-    case Location::Files: return "Files";
-    case Location::Folders: return "Folders";
-    case Location::Background: return "Folder background";
-    case Location::Desktop: return "Desktop";
-    case Location::Drives: return "Drives";
-    case Location::Extensions: return "Files with extensions";
-    case Location::Custom: return "Custom";
+    case Location::Everywhere: return nsp::tr("Everywhere");
+    case Location::Files: return nsp::tr("Files");
+    case Location::Folders: return nsp::tr("Folders");
+    case Location::Background: return nsp::tr("Folder background");
+    case Location::Desktop: return nsp::tr("Desktop");
+    case Location::Drives: return nsp::tr("Drives");
+    case Location::Extensions: return nsp::tr("Files with extensions");
+    case Location::Custom: return nsp::tr("Custom");
     }
     return "";
 }
@@ -455,7 +457,7 @@ static void readLevel(const nss::NssDocument &doc, const std::vector<nss::Node> 
             auto text = std::string(doc.slice(d.span));
             if (text.size() > 60)
                 text = text.substr(0, 57) + "...";
-            warnings.push_back("line " + std::to_string(d.line) + ": " + text);
+            warnings.push_back(nsp::trf("line {}: {}", d.line, text));
             continue;
         }
         Node n;

@@ -36,6 +36,9 @@ struct UpdateOptions
 class UpdateController
 {
 public:
+    // A message for the UI, built again in the new language when the language changes.
+    using Text = std::function<std::string()>;
+
     // `quit` saves the window placement and ends the event loop (the helper waits for it).
     UpdateController(slint::ComponentHandle<AppWindow> ui, UpdateOptions options, std::function<void()> quit);
     ~UpdateController();
@@ -52,10 +55,11 @@ private:
     void install();
     void handOver();
     void skip();
-    void setState(const std::string &state, const std::string &message = {}, const std::string &kind = {});
+    void setState(const std::string &state, Text message = {}, const std::string &kind = {});
     void showRelease();
     void showLastChecked();
-    void notice(const std::string &kind, const std::string &title, const std::string &text, const std::string &action);
+    void notice(const std::string &kind, Text title, Text text, const std::string &action);
+    void retranslate();
     updater::Channel channel() const { return channel_; }
 
     slint::ComponentHandle<AppWindow> ui_;
@@ -78,6 +82,10 @@ private:
     std::filesystem::path installDir_;
     std::filesystem::path ready_;   // the verified MSI, or the extracted portable folder
     std::string readyVersion_;
+
+    Text message_;     // UpdateState.message
+    Text noticeTitle_; // UpdateState.notice-title
+    Text noticeText_;  // UpdateState.notice-text
 
     std::atomic<bool> cancel_{ false };
     slint::Timer startTimer_;

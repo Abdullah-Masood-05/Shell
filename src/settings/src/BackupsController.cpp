@@ -1,6 +1,7 @@
 #include "BackupsController.h"
 
 #include "EditorSession.h"
+#include "Tr.h"
 
 #include "nss/Text.h"
 
@@ -35,14 +36,19 @@ BackupsController::BackupsController(slint::ComponentHandle<AppWindow> ui) : ui_
     ui_->global<BackupsState>().set_retention_text(ss(retentionText()));
     bindCallbacks();
     statusPoll_.start(slint::TimerMode::Repeated, 500ms, [this] { pollStatus(); });
+    nsp::onLanguageChanged([this] {
+        ui_->global<BackupsState>().set_retention_text(ss(retentionText()));
+        statusPath_.clear(); // pollStatus() pushes its text again and reloads the list and the diff summary
+        pollStatus();
+    });
 }
 
 BackupsController::~BackupsController() = default;
 
 std::string BackupsController::retentionText() const
 {
-    return "Keeps the newest " + std::to_string(retention_.maxCount) + " snapshots, none older than " +
-           std::to_string(retention_.maxAgeDays) + " days. Pinned snapshots are always kept.";
+    return nsp::trf("Keeps the newest {} snapshots, none older than {} days. Pinned snapshots are always kept.",
+                    retention_.maxCount, retention_.maxAgeDays);
 }
 
 void BackupsController::toast(const std::string &kind, const std::string &title, const std::string &text)
@@ -74,10 +80,9 @@ void BackupsController::bindCallbacks()
         const auto &s = snapshots_[size_t(i)];
         confirmIndex_ = i;
         const auto &st = ui_->global<BackupsState>();
-        st.set_confirm_text(ss("Your config files are put back as they were on " + backups::displayTime(s) + " (" +
-                               std::to_string(s.files.size()) + " files, \"" + s.reason +
-                               "\").\n\nA snapshot of your current files is taken first, so you can undo this. "
-                               "Files added since then are left alone."));
+        st.set_confirm_text(ss(nsp::trn("Your config files are put back as they were on {0} ({n} file, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone.",
+                                        "Your config files are put back as they were on {0} ({n} files, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone.",
+                                        (long long)s.files.size(), backups::displayTime(s), nsp::tr(s.reason.c_str()))));
         st.set_confirm_kind("restore");
     });
     st.on_ask_delete([this](int i) {
@@ -86,8 +91,8 @@ void BackupsController::bindCallbacks()
         const auto &s = snapshots_[size_t(i)];
         confirmIndex_ = i;
         const auto &st = ui_->global<BackupsState>();
-        st.set_confirm_text(ss("The snapshot from " + backups::displayTime(s) + " (\"" + s.reason +
-                               "\") is deleted from disk. This can't be undone."));
+        st.set_confirm_text(ss(nsp::trf("The snapshot from {} (\"{}\") is deleted from disk. This can't be undone.",
+                                        backups::displayTime(s), nsp::tr(s.reason.c_str()))));
         st.set_confirm_kind("delete");
     });
     st.on_confirm([this] { confirm(); });
@@ -123,9 +128,8 @@ void BackupsController::pollStatus()
     available_ = status.config_exists && !shared;
     const auto &st = ui_->global<BackupsState>();
     st.set_available(available_);
-    st.set_unavailable_text(ss(shared ? std::string("The active config is the shared one in the install folder, which "
-                                                    "this app never writes to. Create a personal config to get snapshots.")
-                                      : "The config file doesn't exist: " + path));
+    st.set_unavailable_text(ss(shared ? std::string(nsp::tr("The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."))
+                                      : nsp::trf("The config file doesn't exist: {}", path)));
     st.set_folder(ss(nss::narrow(nss::ConfigStore(root_).backupsDir().wstring())));
     refresh();
 }
@@ -159,7 +163,8 @@ void BackupsController::refresh(const std::string &selectId)
             for (size_t i = 0; i < snapshots_.size(); ++i) {
                 const auto &s = snapshots_[i];
                 rows.push_back(SnapshotRow{ ss(s.id), ss(backups::displayTime(s)), ss(backups::relativeTime(s)),
-                                            ss(s.reason), int(s.files.size()), s.pinned, bool(current[i]) });
+                                            ss(nsp::tr(s.reason.c_str())), int(s.files.size()), s.pinned,
+                                            bool(current[i]) });
             }
             const auto &st = ui_->global<BackupsState>();
             st.set_snapshots(std::make_shared<slint::VectorModel<SnapshotRow>>(rows));
@@ -188,7 +193,7 @@ void BackupsController::select(int index)
     auto gen = ++diffGen_;
     auto snap = snapshots_[size_t(index)];
     st.set_diff_loading(true);
-    st.set_diff_summary("Comparing with your files now…");
+    st.set_diff_summary(nsp::tr("Comparing with your files now…"));
     worker_.post([this, gen, snap, root = root_] {
         nss::ConfigStore store(root);
         auto d = backups::diffSnapshot(store, snap);
@@ -212,12 +217,12 @@ void BackupsController::select(int index)
             if (!d.error.empty())
                 summary = d.error;
             else if (d.changed == 0)
-                summary = "Identical to your files now (" + std::to_string(d.files.size()) + " files).";
+                summary = nsp::trn("Identical to your files now ({n} file).", "Identical to your files now ({n} files).",
+                                   (long long)d.files.size());
             else
-                summary = "Since this snapshot: " + std::to_string(d.changed) +
-                          (d.changed == 1 ? " file changed" : " files changed") + " (+" + std::to_string(added) +
-                          " −" + std::to_string(removed) + " lines), " + std::to_string(unchanged) +
-                          " unchanged. Green lines are in your files now; red lines come back if you restore.";
+                summary = nsp::trn("Since this snapshot: {n} file changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore.",
+                                   "Since this snapshot: {n} files changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore.",
+                                   d.changed, added, removed, unchanged);
             st.set_diff_summary(ss(summary));
             st.set_diff_files(std::make_shared<slint::VectorModel<DiffFileRow>>(rows));
             diff_ = std::move(d);
@@ -255,16 +260,17 @@ void BackupsController::create()
     worker_.post([this, root = root_, retention = retention_] {
         nss::ConfigStore store(root);
         std::string error;
-        auto snap = store.snapshot("Manual snapshot", &error);
+        auto snap = store.snapshot(nsp::mark("Manual snapshot"), &error); // stored in English, shown with nsp::tr
         if (snap)
             store.applyRetention(retention);
         slint::invoke_from_event_loop([this, snap, error] {
             ui_->global<BackupsState>().set_working(false);
             if (!snap) {
-                toast("error", "Couldn't create a snapshot", error);
+                toast("error", nsp::tr("Couldn't create a snapshot"), error);
                 return;
             }
-            toast("ok", "Snapshot created", std::to_string(snap->files.size()) + " files saved as " + snap->id + ".");
+            toast("ok", nsp::tr("Snapshot created"),
+                  nsp::trn("{n} file saved as {0}.", "{n} files saved as {0}.", (long long)snap->files.size(), snap->id));
             refresh(snap->id);
         });
     });
@@ -280,7 +286,7 @@ void BackupsController::togglePin(int index)
         bool ok = nss::ConfigStore(root).pin(id, pin);
         slint::invoke_from_event_loop([this, ok, id, pin] {
             if (!ok)
-                toast("error", pin ? "Couldn't pin the snapshot" : "Couldn't unpin the snapshot");
+                toast("error", pin ? nsp::tr("Couldn't pin the snapshot") : nsp::tr("Couldn't unpin the snapshot"));
             refresh(id);
         });
     });
@@ -305,10 +311,10 @@ void BackupsController::confirm()
             slint::invoke_from_event_loop([this, ok, error, snap] {
                 ui_->global<BackupsState>().set_working(false);
                 if (ok)
-                    toast("ok", "Restored the snapshot from " + backups::displayTime(snap),
-                          "Your previous files were snapshotted first.");
+                    toast("ok", nsp::trf("Restored the snapshot from {}", backups::displayTime(snap)),
+                          nsp::tr("Your previous files were snapshotted first."));
                 else
-                    toast("error", "Couldn't restore the snapshot", error);
+                    toast("error", nsp::tr("Couldn't restore the snapshot"), error);
                 refresh(snap.id);
             });
         });
@@ -319,9 +325,9 @@ void BackupsController::confirm()
             slint::invoke_from_event_loop([this, ok, error] {
                 ui_->global<BackupsState>().set_working(false);
                 if (ok)
-                    toast("ok", "Snapshot deleted");
+                    toast("ok", nsp::tr("Snapshot deleted"));
                 else
-                    toast("error", "Couldn't delete the snapshot", error);
+                    toast("error", nsp::tr("Couldn't delete the snapshot"), error);
                 refresh();
             });
         });

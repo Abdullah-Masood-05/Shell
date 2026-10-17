@@ -1,6 +1,7 @@
 #include "Status.h"
 
 #include "Text.h"
+#include "Tr.h"
 
 #include <nlohmann/json.hpp>
 
@@ -93,7 +94,7 @@ std::optional<ShellStatus> parseStatus(const std::string &text, std::string &err
 {
     auto j = json::parse(text, nullptr, false);
     if (j.is_discarded() || !j.is_object()) {
-        error = text.empty() ? "shell.exe printed nothing." : "shell.exe printed invalid JSON.";
+        error = text.empty() ? nsp::tr("shell.exe printed nothing.") : nsp::tr("shell.exe printed invalid JSON.");
         return std::nullopt;
     }
     ShellStatus s;
@@ -155,35 +156,40 @@ std::vector<StatusIssue> statusIssues(const ShellStatus &s, bool dllExists)
     // Two registered copies: Explorer may load the other one, and the menu doesn't appear.
     auto others = s.conflictDlls();
     if (!others.empty()) {
-        std::string msg = "Two copies stop the menu from appearing.";
+        std::string msg = nsp::tr("Two copies stop the menu from appearing.");
         bool gone = false;
         for (const auto &c : s.conflicts)
             gone = gone || (samePath(c.dll, others[0]) && !c.exists);
         if (gone)
-            msg += " Its file no longer exists; only the registration is left.";
-        for (size_t i = 1; i < others.size(); ++i)
-            msg += (i == 1 ? " Also registered: " : ", ") + others[i];
-        add("error", "Another copy of Nilesoft Shell is registered: " + others[0], msg, "fix-conflicts",
-            "Fix (needs administrator)");
+            msg += std::string(" ") + nsp::tr("Its file no longer exists; only the registration is left.");
+        if (others.size() > 1) {
+            std::string list;
+            for (size_t i = 1; i < others.size(); ++i)
+                list += (i == 1 ? "" : ", ") + others[i];
+            msg += " " + nsp::trf("Also registered: {}", list);
+        }
+        add("error", nsp::trf("Another copy of Nilesoft Shell is registered: {}", others[0]), msg, "fix-conflicts",
+            nsp::tr("Fix (needs administrator)"));
     }
 
     if (s.regMode == "none")
-        add("error", "Shell isn't enabled", "Enable it for your account; no administrator rights are needed.",
-            "register-user", "Enable for me");
+        add("error", nsp::tr("Shell isn't enabled"), nsp::tr("Enable it for your account; no administrator rights are needed."),
+            "register-user", nsp::tr("Enable for me"));
     else if (!dllExists)
-        add("error", "The registered shell.dll is missing", "Register again from the install folder to repair it.",
-            "register-user", "Register for me");
+        add("error", nsp::tr("The registered shell.dll is missing"),
+            nsp::tr("Register again from the install folder to repair it."), "register-user", nsp::tr("Register for me"));
     else if (others.empty() && s.regMode == "both" && !samePath(s.userDll, s.machineDll))
-        add("warning", "Shell is registered twice",
-            "Your own registration (" + s.userDll + ") takes priority, so the all-users copy (" + s.machineDll +
-                ") isn't used for you.",
-            "unregister-user", "Unregister for me");
+        add("warning", nsp::tr("Shell is registered twice"),
+            nsp::trf("Your own registration ({}) takes priority, so the all-users copy ({}) isn't used for you.",
+                     s.userDll, s.machineDll),
+            "unregister-user", nsp::tr("Unregister for me"));
 
     if (!s.configExists)
-        add("error", "The config file is missing", "Create a personal config to get the default menu back.",
-            "config-init", "Create personal config");
+        add("error", nsp::tr("The config file is missing"), nsp::tr("Create a personal config to get the default menu back."),
+            "config-init", nsp::tr("Create personal config"));
     else if (s.configSource == "install")
-        add("info", "You're using the shared config", "A personal copy in %APPDATA% is kept per user and survives updates.",
-            "config-init", "Use per-user config");
+        add("info", nsp::tr("You're using the shared config"),
+            nsp::tr("A personal copy in %APPDATA% is kept per user and survives updates."), "config-init",
+            nsp::tr("Use per-user config"));
     return out;
 }

@@ -4,6 +4,7 @@
 #include "Highlight.h"
 #include "MenuWriter.h"
 #include "ShellCli.h"
+#include "Tr.h"
 
 #include "nss/ConfigStore.h"
 #include "nss/Text.h"
@@ -73,7 +74,7 @@ const char *kindName(menus::Kind k)
 std::string displayTitle(const menus::Node &n)
 {
     if (n.title.empty())
-        return n.extra.empty() ? "(no title)" : "(title from an expression)";
+        return n.extra.empty() ? nsp::tr("(no title)") : nsp::tr("(title from an expression)");
     std::string out;
     for (size_t i = 0; i < n.title.size(); ++i) {
         if (n.title[i] == '&') {
@@ -119,6 +120,12 @@ MenuBuilderController::MenuBuilderController(slint::ComponentHandle<AppWindow> u
     bindCallbacks();
     statusPoll_.start(slint::TimerMode::Repeated, 500ms, [this] { pollStatus(); });
     edited(true);
+    nsp::onLanguageChanged([this] {
+        pushRows();
+        pushPreview();
+        if (loadText_)
+            loadText_();
+    });
 }
 
 MenuBuilderController::~MenuBuilderController() = default;
@@ -206,13 +213,17 @@ void MenuBuilderController::pollStatus()
     const auto &st = ui_->global<BuilderState>();
     if (!status.config_exists || path.empty()) {
         root_.clear();
-        st.set_load_error(ss("The config file doesn't exist: " + path));
+        loadText_ = [this, path] {
+            ui_->global<BuilderState>().set_load_error(ss(nsp::trf("The config file doesn't exist: {}", path)));
+        };
+        loadText_();
         return;
     }
     root_ = fs::path(nss::widen(path)).lexically_normal();
     shared_ = str(status.config_source) == "install" || editor::isProtectedPath(root_);
     st.set_shared_config(shared_);
     st.set_load_error("");
+    loadText_ = nullptr;
     load();
 }
 
@@ -226,8 +237,13 @@ void MenuBuilderController::load()
         {
             menus::Tree tree;
             nss::TextFormat format = nss::defaultFormat();
-            std::string notice;
-            std::string error;
+            size_t warnings = 0;      // statements that aren't menus or items
+            std::string firstWarning;
+            bool syntax = false;      // a syntax problem, when there are no warnings
+            size_t syntaxLine = 0;
+            std::string syntaxMessage;
+            bool readFailed = false;
+            std::string error;        // why the file couldn't be read
             bool importOff = false;
         };
         auto out = std::make_shared<Loaded>();
@@ -238,15 +254,17 @@ void MenuBuilderController::load()
                 auto parsed = menus::parse(*doc);
                 out->tree = std::move(parsed.tree);
                 out->format = doc->format();
-                if (!parsed.warnings.empty())
-                    out->notice = std::to_string(parsed.warnings.size()) +
-                                  " statement(s) in the file aren't menus or items and will be dropped on save. First: " +
-                                  parsed.warnings[0];
-                else if (!doc->diagnostics().empty())
-                    out->notice = "The file has a syntax problem at line " +
-                                  std::to_string(doc->diagnostics()[0].line) + ": " + doc->diagnostics()[0].message;
+                if (!parsed.warnings.empty()) {
+                    out->warnings = parsed.warnings.size();
+                    out->firstWarning = parsed.warnings[0];
+                } else if (!doc->diagnostics().empty()) {
+                    out->syntax = true;
+                    out->syntaxLine = doc->diagnostics()[0].line;
+                    out->syntaxMessage = doc->diagnostics()[0].message;
+                }
             } else {
-                out->error = "Couldn't read " + nss::narrow(file.wstring()) + ": " + error;
+                out->readFailed = true;
+                out->error = error;
             }
         }
         if (auto rootDoc = nss::NssDocument::load(root)) {
@@ -263,8 +281,20 @@ void MenuBuilderController::load()
             if (!menus::nodeAt(tree_, selected_))
                 selected_ = tree_.empty() ? menus::Path{} : menus::Path{ 0 };
             st.set_loaded(true);
-            st.set_notice(ss(out->notice));
-            st.set_load_error(ss(out->error));
+            loadText_ = [this, out, file] {
+                const auto &bs = ui_->global<BuilderState>();
+                std::string notice;
+                if (out->warnings)
+                    notice = nsp::trf("{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}",
+                                      out->warnings, out->firstWarning);
+                else if (out->syntax)
+                    notice = nsp::trf("The file has a syntax problem at line {}: {}", out->syntaxLine, out->syntaxMessage);
+                bs.set_notice(ss(notice));
+                bs.set_load_error(ss(!out->readFailed
+                                         ? std::string{}
+                                         : nsp::trf("Couldn't read {}: {}", nss::narrow(file.wstring()), out->error)));
+            };
+            loadText_();
             st.set_import_off(out->importOff);
             st.set_file_label(ss(nss::narrow(file.lexically_relative(root.parent_path()).generic_wstring())));
             edited(true);
@@ -315,7 +345,7 @@ void MenuBuilderController::pushRows()
         if (rows[i].path == selected_)
             selectedRow = int(i);
         out.push_back(BuilderRow{ rows[i].depth, kindName(n.kind),
-                                  ss(n.kind == menus::Kind::Separator ? std::string("Separator") : displayTitle(n)),
+                                  ss(n.kind == menus::Kind::Separator ? std::string(nsp::tr("Separator")) : displayTitle(n)),
                                   ss(glyphOf(n.image)), ss(menus::summary(n)) });
     }
     st.set_rows(std::make_shared<slint::VectorModel<BuilderRow>>(out));
@@ -483,12 +513,12 @@ void MenuBuilderController::save()
     if (saving_ || readOnly())
         return;
     if (shellExe_.empty()) {
-        toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
+        toast("error", nsp::tr("Can't check the config"), nsp::tr("shell.exe was not found, so nothing was saved."));
         return;
     }
     auto file = menusFile();
     if (editor::isProtectedPath(file) || editor::isProtectedPath(root_)) {
-        toast("error", "Not saved", "Program Files is never written to.");
+        toast("error", nsp::tr("Not saved"), nsp::tr("Program Files is never written to."));
         return;
     }
     auto tree = tree_;
@@ -502,7 +532,7 @@ void MenuBuilderController::save()
         std::string error;
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
         if (!rootDoc) {
-            result.error = "Couldn't read " + nss::narrow(root.wstring()) + ": " + error;
+            result.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         } else {
             std::vector<nss::FileWrite> writes;
             writes.push_back(nss::FileWrite{ file, menus::MenuWriter::generate(tree, format.eol), format });
@@ -520,10 +550,10 @@ void MenuBuilderController::save()
             if (result.ok) {
                 saved_ = tree;
                 edited(false);
-                toast("ok", "Saved your menus",
-                      result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                : "Snapshot " + result.snapshotId +
-                                                      " was taken first. Right-click to see them.");
+                toast("ok", nsp::tr("Saved your menus"),
+                      result.snapshotId.empty()
+                          ? std::string(nsp::tr("No changes were needed."))
+                          : nsp::trf("Snapshot {} was taken first. Right-click to see them.", result.snapshotId));
                 return;
             }
             std::string detail = result.error;
@@ -531,13 +561,13 @@ void MenuBuilderController::save()
                 auto outcome = editor::parseCheck(result.check.message, {}, root.parent_path());
                 for (const auto &i : outcome.issues)
                     if (i.error) {
-                        detail = i.message + (i.line > 0 ? " (line " + std::to_string(i.line) + ")" : std::string{});
+                        detail = i.line > 0 ? nsp::trf("{} (line {})", i.message, i.line) : i.message;
                         break;
                     }
-                toast("error", "Not saved: Shell would reject these menus", detail);
+                toast("error", nsp::tr("Not saved: Shell would reject these menus"), detail);
                 return;
             }
-            toast("error", "Couldn't save", detail);
+            toast("error", nsp::tr("Couldn't save"), detail);
         });
     });
 }

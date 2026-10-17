@@ -2,6 +2,7 @@
 
 #include "Registry.h"
 #include "Text.h"
+#include "Tr.h"
 
 #include <shellapi.h>
 
@@ -114,14 +115,14 @@ CliResult ShellCli::run(const std::vector<std::wstring> &args, DWORD timeoutMs) 
 {
     CliResult r;
     if (!available()) {
-        r.error = L"shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll.";
+        r.error = text::widen(nsp::tr("shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."));
         return r;
     }
 
     SECURITY_ATTRIBUTES sa{ sizeof sa, nullptr, TRUE };
     HANDLE readRaw = nullptr, writeRaw = nullptr;
     if (!CreatePipe(&readRaw, &writeRaw, &sa, 0)) {
-        r.error = L"CreatePipe failed.";
+        r.error = text::widen(nsp::tr("CreatePipe failed."));
         return r;
     }
     Handle readEnd(readRaw), writeEnd(writeRaw);
@@ -160,7 +161,7 @@ CliResult ShellCli::run(const std::vector<std::wstring> &args, DWORD timeoutMs) 
         DeleteProcThreadAttributeList(attrs);
     writeEnd.reset(); // the child holds the only write end now
     if (!ok) {
-        r.error = L"Could not start shell.exe (error " + std::to_wstring(GetLastError()) + L").";
+        r.error = text::widen(nsp::trf("Could not start shell.exe (error {}).", GetLastError()));
         return r;
     }
     r.started = true;
@@ -199,7 +200,7 @@ CliResult ShellCli::runElevated(const std::vector<std::wstring> &args, HWND owne
 {
     CliResult r;
     if (!available()) {
-        r.error = L"shell.exe was not found.";
+        r.error = text::widen(nsp::tr("shell.exe was not found."));
         return r;
     }
     auto params = commandLine(args, false);
@@ -215,9 +216,8 @@ CliResult ShellCli::runElevated(const std::vector<std::wstring> &args, HWND owne
     if (!ShellExecuteExW(&sei)) {
         DWORD err = GetLastError();
         r.cancelled = err == ERROR_CANCELLED;
-        r.error = r.cancelled ? L"The administrator prompt was cancelled."
-                              : L"Could not start shell.exe as administrator (error " +
-                                    std::to_wstring(err) + L").";
+        r.error = text::widen(r.cancelled ? std::string(nsp::tr("The administrator prompt was cancelled."))
+                                          : nsp::trf("Could not start shell.exe as administrator (error {}).", err));
         return r;
     }
     r.started = true;

@@ -2,6 +2,7 @@
 
 #include "Highlight.h"
 #include "ShellCli.h"
+#include "Tr.h"
 
 #include "nss/Text.h"
 
@@ -79,6 +80,20 @@ EditorController::EditorController(slint::ComponentHandle<AppWindow> ui)
     // The active config comes from AppState.status (shell.exe -status, run by
     // AppController); follow it, so "Create personal config" switches over.
     statusPoll_.start(slint::TimerMode::Repeated, 500ms, [this] { pollStatus(); });
+    nsp::onLanguageChanged([this] {
+        const auto &st = ui_->global<EditorState>();
+        if (checkText_)
+            st.set_check_text(ss(checkText_()));
+        if (loadError_)
+            st.set_load_error(ss(loadError_()));
+        if (externalText_)
+            st.set_external_text(ss(externalText_()));
+        if (current_ >= 0 && current_ < int(entries_.size())) {
+            std::string reason;
+            readOnly(entries_[size_t(current_)], &reason);
+            st.set_read_only_reason(ss(reason));
+        }
+    });
 }
 
 EditorController::~EditorController() { watcher_.stop(); }
@@ -153,6 +168,24 @@ void EditorController::toast(const std::string &kind, const std::string &title, 
                       [this] { ui_->global<AppState>().set_toast_shown(false); });
 }
 
+void EditorController::setCheckText(TextFn make)
+{
+    checkText_ = std::move(make);
+    ui_->global<EditorState>().set_check_text(ss(checkText_ ? checkText_() : std::string{}));
+}
+
+void EditorController::setLoadError(TextFn make)
+{
+    loadError_ = std::move(make);
+    ui_->global<EditorState>().set_load_error(ss(loadError_ ? loadError_() : std::string{}));
+}
+
+void EditorController::setExternalText(TextFn make)
+{
+    externalText_ = std::move(make);
+    ui_->global<EditorState>().set_external_text(ss(externalText_ ? externalText_() : std::string{}));
+}
+
 // ---------------------------------------------------------------------------
 // Loading
 
@@ -168,7 +201,7 @@ void EditorController::pollStatus()
         loadRoot(fs::path(nss::widen(path)), str(status.config_source) == "install");
     } else if (path != statusPath_ && !status.config_exists) {
         statusPath_ = path;
-        ui_->global<EditorState>().set_load_error(ss("The config file doesn't exist: " + path));
+        setLoadError([path] { return nsp::trf("The config file doesn't exist: {}", path); });
     }
 
     // shell.log errors (AppState.diagnostics) join the problems list.
@@ -196,7 +229,7 @@ void EditorController::loadRoot(const fs::path &root, bool shared)
     const auto &st = ui_->global<EditorState>();
     st.set_shared_config(shared_);
     st.set_external_change(false);
-    st.set_load_error("");
+    setLoadError(nullptr);
     st.set_root_label(ss(nss::narrow(root_.parent_path().wstring())));
     updateDirty();
 
@@ -238,7 +271,10 @@ void EditorController::applyTree(std::vector<editor::FileEntry> entries)
     const auto &st = ui_->global<EditorState>();
     st.set_loaded(true);
     if (entries_.empty() || entries_[0].missing) {
-        st.set_load_error(ss(entries_.empty() ? "Nothing to show." : entries_[0].note));
+        if (entries_.empty())
+            setLoadError([] { return std::string(nsp::tr("Nothing to show.")); });
+        else
+            setLoadError([note = entries_[0].note] { return note; });
     }
     current_ = -1;
     selectPath(keep);
@@ -260,15 +296,15 @@ bool EditorController::readOnly(const editor::FileEntry &e, std::string *reason)
         return true;
     };
     if (shared_)
-        return set("Shared config: read-only");
+        return set(nsp::tr("Shared config: read-only"));
     if (e.managed)
-        return set("Managed by the app");
+        return set(nsp::tr("Managed by the app"));
     if (e.missing || e.unresolved)
-        return set("Not found");
+        return set(nsp::tr("Not found"));
     if (!isUnder(e.path, root_.parent_path()))
-        return set("Outside your config folder");
+        return set(nsp::tr("Outside your config folder"));
     if (editor::isProtectedPath(e.path))
-        return set("Read-only");
+        return set(nsp::tr("Read-only"));
     return false;
 }
 
@@ -308,7 +344,7 @@ void EditorController::selectFile(int index)
         if (auto b = editor::loadBuffer(e.path, &error))
             buffers_.emplace(key, std::move(*b));
         else
-            toast("error", "Couldn't open " + e.name, error);
+            toast("error", nsp::trf("Couldn't open {}", e.name), error);
     }
     current_ = index;
     showCurrent();
@@ -606,13 +642,15 @@ void EditorController::runCheck()
         return;
     if (shellExe_.empty()) {
         st.set_check_state("failed");
-        st.set_check_text("shell.exe was not found, so the config can't be checked");
+        setCheckText([] { return std::string(nsp::tr("shell.exe was not found, so the config can't be checked")); });
         return;
     }
     auto gen = ++checkGen_;
     auto overlays = dirtyRequests(false);
     st.set_check_state("checking");
-    st.set_check_text(overlays.empty() ? "Checking…" : "Checking your edits…");
+    setCheckText([edited = !overlays.empty()] {
+        return std::string(edited ? nsp::tr("Checking your edits…") : nsp::tr("Checking…"));
+    });
     worker_.post([this, gen, overlays, root = root_, exe = shellExe_] {
         auto outcome = editor::checkTree(exe, root, overlays);
         slint::invoke_from_event_loop([this, gen, outcome = std::move(outcome), edited = !overlays.empty()] {
@@ -626,14 +664,20 @@ void EditorController::runCheck()
             st.set_error_count(errors);
             if (!outcome.ran) {
                 st.set_check_state("failed");
-                st.set_check_text(ss("The check couldn't run: " + outcome.failure.substr(0, 200)));
+                setCheckText([failure = outcome.failure.substr(0, 200)] {
+                    return nsp::trf("The check couldn't run: {}", failure);
+                });
             } else if (errors > 0) {
                 st.set_check_state("errors");
-                st.set_check_text(ss(std::to_string(errors) + (errors == 1 ? " error" : " errors") +
-                                     (edited ? " in your edits" : "")));
+                setCheckText([errors, edited] {
+                    return edited ? nsp::trn("{n} error in your edits", "{n} errors in your edits", errors)
+                                  : nsp::trn("{n} error", "{n} errors", errors);
+                });
             } else {
                 st.set_check_state("ok");
-                st.set_check_text(edited ? "Your edits pass the check" : "The config passes the check");
+                setCheckText([edited] {
+                    return std::string(edited ? nsp::tr("Your edits pass the check") : nsp::tr("The config passes the check"));
+                });
             }
             pushProblems();
         });
@@ -651,11 +695,11 @@ void EditorController::save(bool force)
     auto requests = dirtyRequests(true);
     if (requests.empty()) {
         if (!dirtyRequests(false).empty())
-            toast("info", "Nothing to save", "These files are read-only here.");
+            toast("info", nsp::tr("Nothing to save"), nsp::tr("These files are read-only here."));
         return;
     }
     if (shellExe_.empty() && !force) {
-        toast("error", "Can't check the config", "shell.exe was not found.");
+        toast("error", nsp::tr("Can't check the config"), nsp::tr("shell.exe was not found."));
         return;
     }
     // Errors from the live check: ask before writing a config that turns the menu off.
@@ -669,11 +713,10 @@ void EditorController::save(bool force)
         std::string where = first && !first->file.empty()
                                 ? " (" + labelOf(first->file) + ":" + std::to_string(first->line) + ")"
                                 : std::string{};
-        st.set_confirm_text(ss("The check found " + std::to_string(st.get_error_count()) + " error" +
-                               (st.get_error_count() == 1 ? "" : "s") + ": " +
-                               (first ? first->message + where : std::string("see Problems")) +
-                               ".\n\nShell turns the whole context menu off while the config has an error, "
-                               "until it's fixed and saved again. A snapshot is taken first either way."));
+        st.set_confirm_text(ss(nsp::trn("The check found {n} error: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way.",
+                                        "The check found {n} errors: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way.",
+                                        st.get_error_count(),
+                                        first ? first->message + where : std::string(nsp::tr("see Problems")))));
         st.set_confirm_force(true);
         return;
     }
@@ -699,12 +742,14 @@ void EditorController::save(bool force)
                     }
                 }
                 updateDirty();
-                std::string files = requests.size() == 1 ? labelOf(requests[0].path)
-                                                         : std::to_string(requests.size()) + " files";
-                toast(force ? "warning" : "ok", "Saved " + files,
-                      result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                : "Snapshot " + result.snapshotId + " was taken first." +
-                                                      (force ? " The config has errors; Shell's menu stays off until they're fixed." : ""));
+                std::string title = requests.size() == 1
+                                        ? nsp::trf("Saved {}", labelOf(requests[0].path))
+                                        : nsp::trn("Saved {n} file", "Saved {n} files", (long long)requests.size());
+                std::string body = result.snapshotId.empty() ? std::string(nsp::tr("No changes were needed."))
+                                                             : nsp::trf("Snapshot {} was taken first.", result.snapshotId);
+                if (force && !result.snapshotId.empty())
+                    body += std::string(" ") + nsp::tr("The config has errors; Shell's menu stays off until they're fixed.");
+                toast(force ? "warning" : "ok", title, body);
                 reloadTree(); // imports may have changed
                 return;
             }
@@ -717,14 +762,13 @@ void EditorController::save(bool force)
                                                    [](const editor::Issue &i) { return i.error; }));
                     st.set_error_count(errors);
                     st.set_check_state("errors");
-                    st.set_check_text(ss(std::to_string(errors) + (errors == 1 ? " error" : " errors") +
-                                         " in your edits"));
+                    setCheckText([errors] { return nsp::trn("{n} error in your edits", "{n} errors in your edits", errors); });
                     pushProblems();
                     save(false); // shows the "save anyway" dialog
                     return;
                 }
             }
-            toast("error", "Couldn't save", result.error);
+            toast("error", nsp::tr("Couldn't save"), result.error);
         });
     });
 }
@@ -777,10 +821,11 @@ void EditorController::onExternalChange(const std::vector<fs::path> &paths)
         std::string names;
         for (const auto &n : conflicts)
             names += (names.empty() ? "" : ", ") + n;
-        const auto &st = ui_->global<EditorState>();
-        st.set_external_text(ss(names + " changed on disk while you have unsaved edits. Reload to see the new "
-                                        "version (your edits are dropped), or close this to keep editing yours."));
-        st.set_external_change(true);
+        setExternalText([names] {
+            return nsp::trf("{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours.",
+                            names);
+        });
+        ui_->global<EditorState>().set_external_change(true);
     }
     reloadTree();
 }
@@ -816,7 +861,7 @@ void EditorController::jumpTo(const fs::path &file, int line)
         if (current_ < 0 || nss::pathKey(entries_[size_t(current_)].path) != nss::pathKey(file)) {
             if (before != current_)
                 showCurrent();
-            toast("info", "That file isn't in the import tree", nss::narrow(file.wstring()));
+            toast("info", nsp::tr("That file isn't in the import tree"), nss::narrow(file.wstring()));
             return;
         }
     }

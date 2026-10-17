@@ -2,6 +2,7 @@
 
 #include "MenuModel.h"
 #include "MenuWriter.h"
+#include "Tr.h"
 
 #include "nss/Literal.h"
 
@@ -1000,15 +1001,15 @@ std::string commandLine(const App &app, const Sample &sample)
 std::string validate(const App &app)
 {
     if (nss::trim(app.name).empty())
-        return "Give it a name; it's the item's title.";
+        return nsp::tr("Give it a name; it's the item's title.");
     if (app.exe.empty())
-        return "Pick the program it runs.";
+        return nsp::tr("Pick the program it runs.");
     if (app.exe.find('@') != std::string::npos)
-        return "The program path contains @, which Shell reads as an expression.";
+        return nsp::tr("The program path contains @, which Shell reads as an expression.");
     if (app.args.find('\'') != std::string::npos && app.args.find('`') != std::string::npos)
-        return "The arguments can use ' or ` quotes, but not both.";
+        return nsp::tr("The arguments can use ' or ` quotes, but not both.");
     if (app.scope == Scope::Extensions && extensionsToFind(app.extensions).empty())
-        return "List at least one extension, like .py .js";
+        return nsp::tr("List at least one extension, like .py .js");
     return {};
 }
 
@@ -1364,7 +1365,7 @@ ParseResult parse(std::string_view text, const Env &env)
         }
         if (!body && line.substr(0, 5) == "menu(")
             continue; // the submenu: its title and type come from the options line
-        r.warnings.push_back("line " + std::to_string(i + 1) + ": " + std::string(line.substr(0, 60)));
+        r.warnings.push_back(nsp::trf("line {}: {}", i + 1, line.substr(0, 60)));
         pending.reset();
     }
     // The apps' own entries, to their apps ("custom-2": the second custom app).
@@ -1386,10 +1387,10 @@ ParseResult parse(std::string_view text, const Env &env)
                 owner->hideOwn = true;
             owner->natives.push_back(std::move(o.hidden));
         } else
-            r.warnings.push_back("own app=" + o.ref + ": no such app in the file");
+            r.warnings.push_back(nsp::trf("own app={}: no such app in the file", o.ref));
     }
     if (!sawHeader && !lines.empty())
-        r.warnings.insert(r.warnings.begin(), "The file doesn't start with the generated header.");
+        r.warnings.insert(r.warnings.begin(), nsp::tr("The file doesn't start with the generated header."));
     // An older page wrote no pos=: its "Open in" submenu (then the default)
     // landed in the middle of the menu. It reads as today's default layout,
     // top-level items, and is rewritten on the next save. One that wrote

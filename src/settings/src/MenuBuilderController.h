@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <optional>
 #include <filesystem>
+#include <functional>
 #include <string>
 
 class MenuBuilderController
@@ -46,6 +47,7 @@ private:
     std::filesystem::path shellExe_;
     std::filesystem::path root_;
     std::string statusPath_;
+    std::function<void()> loadText_; // sets notice and load_error in the current language
     bool shared_ = false;
     menus::Tree tree_;
     menus::Tree saved_;

@@ -1,5 +1,7 @@
 #include "EditorSession.h"
 
+#include "Tr.h"
+
 #include "nss/ConfigGraph.h"
 
 #include <nlohmann/json.hpp>
@@ -216,7 +218,7 @@ CheckOutcome parseCheck(std::string_view text, const fs::path &tempDir, const fs
     if (!j.is_object()) {
         out.failure = std::string(text);
         if (out.failure.empty())
-            out.failure = "shell.exe -config:check gave no result";
+            out.failure = nsp::tr("shell.exe -config:check gave no result");
         return out;
     }
     out.ran = true;
@@ -248,7 +250,7 @@ CheckOutcome parseCheck(std::string_view text, const fs::path &tempDir, const fs
         }
     }
     if (!out.ok && std::none_of(out.issues.begin(), out.issues.end(), [](const Issue &i) { return i.error; }))
-        out.issues.insert(out.issues.begin(), Issue{ true, {}, 0, 0, "The configuration does not load." });
+        out.issues.insert(out.issues.begin(), Issue{ true, {}, 0, 0, nsp::tr("The configuration does not load.") });
     return out;
 }
 
@@ -306,7 +308,7 @@ nss::SaveResult save(const fs::path &shellExe, const fs::path &root, const std::
     for (const auto &f : files) {
         if (isProtectedPath(f.path)) {
             nss::SaveResult r;
-            r.error = "refusing to write under Program Files: " + nss::narrow(f.path.wstring());
+            r.error = nsp::trf("refusing to write under Program Files: {}", nss::narrow(f.path.wstring()));
             return r;
         }
         writes.push_back(nss::FileWrite{ f.path, fromEditorText(f.text, f.format.eol), f.format });

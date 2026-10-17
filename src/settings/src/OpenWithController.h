@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -87,6 +88,7 @@ private:
     std::filesystem::path shellExe_;
     std::filesystem::path root_;
     std::string statusPath_;
+    std::function<void()> loadText_; // sets notice and load_error in the current language
     bool shared_ = false;
     bool loaded_ = false;
     openwith::Env env_;

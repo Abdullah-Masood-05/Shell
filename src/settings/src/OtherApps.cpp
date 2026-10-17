@@ -1,5 +1,7 @@
 #include "OtherApps.h"
 
+#include "Tr.h"
+
 #include "nss/Text.h"
 
 #include <windows.h>
@@ -255,20 +257,32 @@ bool isWindowsFile(std::string_view path, std::string_view systemRoot)
 
 std::string describeWhere(unsigned where)
 {
-    std::vector<std::string> parts;
-    if (where & Files)
-        parts.push_back("files");
-    if (where & Folders)
-        parts.push_back("folders");
-    if (where & Background)
-        parts.push_back("folder background");
-    if (where & Drives)
-        parts.push_back("drives");
+    // The first part starts the sentence, the others follow in lower case.
+    struct Part
+    {
+        unsigned bit;
+        const char *first;
+        const char *later;
+    };
+    static constexpr Part kParts[] = {
+        { Files, nsp::mark("Files"), nsp::mark("files") },
+        { Folders, nsp::mark("Folders"), nsp::mark("folders") },
+        { Background, nsp::mark("Folder background"), nsp::mark("folder background") },
+        { Drives, nsp::mark("Drives"), nsp::mark("drives") },
+    };
+    std::vector<const Part *> parts;
+    for (const auto &p : kParts)
+        if (where & p.bit)
+            parts.push_back(&p);
     std::string out;
-    for (size_t i = 0; i < parts.size(); ++i)
-        out += (i == 0 ? "" : i + 1 == parts.size() ? " and " : ", ") + parts[i];
-    if (!out.empty())
-        out[0] = char(std::toupper(static_cast<unsigned char>(out[0])));
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (i == 0)
+            out = nsp::tr(parts[i]->first);
+        else if (i + 1 == parts.size())
+            out = nsp::trf("{} and {}", out, nsp::tr(parts[i]->later));
+        else
+            out = nsp::trf("{}, {}", out, nsp::tr(parts[i]->later));
+    }
     return out;
 }
 

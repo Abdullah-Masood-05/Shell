@@ -4,6 +4,7 @@
 #include "Registry.h"
 #include "Text.h"
 #include "ThemeModel.h"
+#include "Tr.h"
 
 #include "nss/Literal.h"
 #include "nss/Text.h"
@@ -19,8 +20,8 @@ using nss::LiteralKind;
 
 namespace {
 
-constexpr const char *kBehavior = "Behavior";
-constexpr const char *kRules = "Rules";
+constexpr const char *kBehavior = nsp::mark("Behavior");
+constexpr const char *kRules = nsp::mark("Rules");
 
 slint::SharedString ss(std::string_view s) { return slint::SharedString(s); }
 std::string str(const slint::SharedString &s) { return std::string(s.data(), s.size()); }
@@ -87,6 +88,7 @@ BehaviorController::BehaviorController(slint::ComponentHandle<AppWindow> ui, Sav
     save_.onChanged([this] { rebuild(); });
     save_.onConfig([this] { configLoaded(); });
     rebuild();
+    nsp::onLanguageChanged([this] { rebuild(); }); // the origin text of each field
 }
 
 void BehaviorController::bindCallbacks()
@@ -262,7 +264,7 @@ void BehaviorController::pickFolder(int index)
     DWORD flags = 0;
     dlg->GetOptions(&flags);
     dlg->SetOptions(flags | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST);
-    dlg->SetTitle(L"Folder for menu screenshots");
+    dlg->SetTitle(text::widen(nsp::tr("Folder for menu screenshots")).c_str());
     // Start in the folder in effect.
     std::string start = knownFolder(FOLDERID_Screenshots);
     if (auto text = save_.current(fieldDefs()[size_t(index)].key)) {

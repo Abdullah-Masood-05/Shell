@@ -28,7 +28,8 @@ private:
     struct File
     {
         std::filesystem::path path;
-        std::string label;        // relative to the config folder
+        std::string label;        // relative to the config folder, or the file name when outside it
+        bool outside = false;     // not under the config folder
         nss::NssDocument original;
         nss::NssDocument current;
         bool writable = false;

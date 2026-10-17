@@ -5,6 +5,8 @@
 #include "nss/Text.h"
 #include "nss/ThemeSchema.h"
 
+#include "Tr.h"
+
 #include <algorithm>
 #include <set>
 
@@ -16,6 +18,45 @@
 namespace presets {
 
 namespace {
+
+// The bundled presets' names, about lines and tags (presets/themes/*.nss headers),
+// marked for translation; displayName() and friends look them up. Keep in step with
+// the files: a header line missing here is shown in English.
+[[maybe_unused]] constexpr const char *kPresetText[] = {
+    nsp::mark("Default"),
+    nsp::mark("The look Shell ships with: modern, following Windows."),
+    nsp::mark("Shell 1.8"),
+    nsp::mark("The 2023 default: modern, without the blur effect."),
+    nsp::mark("Acrylic"),
+    nsp::mark("Acrylic tinted with the accent colour (README screenshot)."),
+    nsp::mark("Gradient"),
+    nsp::mark("An accent gradient from dark to light and back (README screenshot)."),
+    nsp::mark("Clear acrylic"),
+    nsp::mark("Modern with plain acrylic and no background colour."),
+    nsp::mark("Accent outline"),
+    nsp::mark("A 1 px accent-coloured border and accent icons."),
+    nsp::mark("Flat"),
+    nsp::mark("No border, no shadow, square item highlights."),
+    nsp::mark("Blue"),
+    nsp::mark("Shell 1.x colours: white on deep blue, square corners."),
+    nsp::mark("Gray"),
+    nsp::mark("Shell 1.x colours: white on grey, light highlight."),
+    nsp::mark("Green"),
+    nsp::mark("Shell 1.x colours: black on green, square corners."),
+    nsp::mark("Yellow"),
+    nsp::mark("Shell 1.x colours: white on olive, yellow highlight."),
+    // Tags
+    nsp::mark("Modern"),
+    nsp::mark("Auto"),
+    nsp::mark("Opaque"),
+    nsp::mark("Accent tint"),
+    nsp::mark("Accent"),
+    nsp::mark("No tint"),
+    nsp::mark("Border"),
+    nsp::mark("Square"),
+    nsp::mark("No shadow"),
+    nsp::mark("Shell 1.x"),
+};
 
 // "// Preset: Dark acrylic" -> {"preset", "Dark acrylic"}; only the comment lines
 // before the first statement are read.
@@ -256,6 +297,25 @@ std::string exportText(const Preset &preset, std::string_view eol)
         else
             out += c;
     }
+    return out;
+}
+
+std::string displayName(const Preset &preset)
+{
+    return preset.name.empty() ? std::string{} : std::string(nsp::tr(preset.name.c_str()));
+}
+
+std::string displayAbout(const Preset &preset)
+{
+    return preset.about.empty() ? std::string{} : std::string(nsp::tr(preset.about.c_str()));
+}
+
+std::vector<std::string> displayTags(const Preset &preset)
+{
+    std::vector<std::string> out;
+    out.reserve(preset.tags.size());
+    for (const auto &tag : preset.tags)
+        out.emplace_back(nsp::tr(tag.c_str()));
     return out;
 }
 

@@ -5,6 +5,7 @@
 #include "Highlight.h"
 #include "MenuWriter.h"
 #include "ShellCli.h"
+#include "Tr.h"
 
 #include "nss/ConfigStore.h"
 #include "nss/Text.h"
@@ -119,6 +120,21 @@ bool reachable(const openwith::Options &o, const openwith::App &a)
 
 std::string lowerKey(const std::string &s) { return nss::toLower(s); }
 
+// "A, B and C", for the page.
+std::string joinNames(const std::vector<std::string> &names)
+{
+    std::string out;
+    for (size_t i = 0; i < names.size(); ++i) {
+        if (i == 0)
+            out = names[i];
+        else if (i + 1 == names.size())
+            out = nsp::trf("{} and {}", out, names[i]);
+        else
+            out = nsp::trf("{}, {}", out, names[i]);
+    }
+    return out;
+}
+
 } // namespace
 
 OpenWithController::OpenWithController(slint::ComponentHandle<AppWindow> ui)
@@ -136,6 +152,17 @@ OpenWithController::OpenWithController(slint::ComponentHandle<AppWindow> ui)
     }
     bindCallbacks();
     statusPoll_.start(slint::TimerMode::Repeated, 500ms, [this] { pollStatus(); });
+    nsp::onLanguageChanged([this] {
+        if (loadText_)
+            loadText_();
+        if (!loaded_)
+            return;
+        pushRows();
+        pushOthers();
+        pushOptions();
+        pushPreview();
+        pushTest();
+    });
 }
 
 OpenWithController::~OpenWithController() = default;
@@ -188,7 +215,8 @@ void OpenWithController::bindCallbacks()
         if (readOnly() || selected_ < 0 || selected_ >= int(model_.apps.size()))
             return;
         auto &a = model_.apps[size_t(selected_)];
-        auto picked = pickFile(L"Choose the program", L"Programs", L"*.exe;*.cmd;*.bat;*.com", a.exe);
+        auto picked = pickFile(nss::widen(nsp::tr("Choose the program")).c_str(), nss::widen(nsp::tr("Programs")).c_str(),
+                               L"*.exe;*.cmd;*.bat;*.com", a.exe);
         if (picked.empty())
             return;
         if (a.id == "nvim") {
@@ -210,7 +238,8 @@ void OpenWithController::bindCallbacks()
         if (readOnly() || selected_ < 0 || selected_ >= int(model_.apps.size()))
             return;
         auto &a = model_.apps[size_t(selected_)];
-        auto picked = pickFile(L"Choose an icon", L"Icons and programs", L"*.ico;*.exe;*.dll", a.icon.empty() ? a.exe : a.icon);
+        auto picked = pickFile(nss::widen(nsp::tr("Choose an icon")).c_str(), nss::widen(nsp::tr("Icons and programs")).c_str(),
+                               L"*.ico;*.exe;*.dll", a.icon.empty() ? a.exe : a.icon);
         if (picked.empty())
             return;
         a.icon = picked;
@@ -354,13 +383,17 @@ void OpenWithController::pollStatus()
     const auto &st = ui_->global<OpenWithState>();
     if (!status.config_exists || path.empty()) {
         root_.clear();
-        st.set_load_error(ss("The config file doesn't exist: " + path));
+        loadText_ = [this, path] {
+            ui_->global<OpenWithState>().set_load_error(ss(nsp::trf("The config file doesn't exist: {}", path)));
+        };
+        loadText_();
         return;
     }
     root_ = fs::path(nss::widen(path)).lexically_normal();
     shared_ = str(status.config_source) == "install" || editor::isProtectedPath(root_);
     st.set_shared_config(shared_);
     st.set_load_error("");
+    loadText_ = nullptr;
     load();
 }
 
@@ -380,8 +413,10 @@ void OpenWithController::load()
             bool legacy = false;     // an older page's layout
             bool customised = false; // lines the page didn't write
             nss::TextFormat format = nss::defaultFormat();
-            std::string notice;
-            std::string error;
+            size_t warnings = 0; // lines the page didn't write
+            std::string firstWarning;
+            bool readFailed = false;
+            std::string error;   // why the file couldn't be read
             bool importOff = false;
             fs::path developPath;
             bool developFound = false;
@@ -406,12 +441,13 @@ void OpenWithController::load()
                 out->format = doc->format();
                 out->legacy = parsed.legacy;
                 out->customised = !parsed.warnings.empty();
-                if (!parsed.warnings.empty())
-                    out->notice = std::to_string(parsed.warnings.size()) +
-                                  " line(s) of the file weren't written by this page and will be replaced on save. First: " +
-                                  parsed.warnings[0];
+                if (!parsed.warnings.empty()) {
+                    out->warnings = parsed.warnings.size();
+                    out->firstWarning = parsed.warnings[0];
+                }
             } else {
-                out->error = "Couldn't read " + nss::narrow(file.wstring()) + ": " + error;
+                out->readFailed = true;
+                out->error = error;
             }
         }
         out->model = openwith::merge(saved, detected);
@@ -486,8 +522,23 @@ void OpenWithController::load()
                 found += a.id != "custom" && exists(a.exe);
             st.set_found_count(found);
             st.set_loaded(true);
-            st.set_notice(ss(out->notice));
-            st.set_load_error(ss(out->error));
+            // The older-layout note shows unless the file is rewritten right away (below).
+            const bool legacyNote = out->legacy && (out->customised || readOnly());
+            loadText_ = [this, out, file, legacyNote] {
+                const auto &ows = ui_->global<OpenWithState>();
+                std::string notice;
+                if (out->warnings)
+                    notice = nsp::trf("{} line(s) of the file weren't written by this page and will be replaced on save. First: {}",
+                                      out->warnings, out->firstWarning);
+                if (legacyNote)
+                    notice = nsp::trf("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}",
+                                      notice);
+                ows.set_notice(ss(notice));
+                ows.set_load_error(ss(!out->readFailed
+                                          ? std::string{}
+                                          : nsp::trf("Couldn't read {}: {}", nss::narrow(file.wstring()), out->error)));
+            };
+            loadText_();
             st.set_import_off(out->importOff);
             st.set_file_label(ss(nss::narrow(file.lexically_relative(root.parent_path()).generic_wstring())));
             ++optionsSerial_;
@@ -498,9 +549,6 @@ void OpenWithController::load()
             // lines of the user's own: then it waits for Save, with the notice.
             if ((out->legacy || out->ownChanged) && !out->customised && !readOnly())
                 save(out->legacy ? Migrate::Layout : Migrate::Own);
-            else if (out->legacy)
-                st.set_notice(ss("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". " +
-                                 out->notice));
         });
     });
 }
@@ -596,24 +644,23 @@ void OpenWithController::pushRows()
     int missing = 0;
     for (const auto &a : model_.apps) {
         OpenWithRow r{};
-        r.name = ss(a.name.empty() ? std::string("(no name)") : a.name);
+        r.name = ss(a.name.empty() ? std::string(nsp::tr("(no name)")) : a.name);
         r.found = exists(a.exe);
         r.enabled = a.enabled;
         r.custom = a.id == "custom";
         missing += !r.found && !r.custom;
-        r.detail = ss(a.exe.empty() ? std::string(r.custom ? "No program chosen" : "Not found on this PC")
+        r.detail = ss(a.exe.empty() ? std::string(r.custom ? nsp::tr("No program chosen") : nsp::tr("Not found on this PC"))
                       : r.found   ? a.exe
-                                  : "Not found: " + a.exe);
+                                  : nsp::trf("Not found: {}", a.exe));
         std::string problem = openwith::validate(a);
         if (problem.empty() && a.enabled && !reachable(model_.options, a))
-            problem = "Doesn't show: the menu isn't on the places it's for.";
+            problem = nsp::tr("Doesn't show: the menu isn't on the places it's for.");
         r.problem = ss(problem);
         if (auto own = nativesText(size_t(&a - model_.apps.data())); !own.empty())
-            r.own = ss((openwith::hidesNatives(a) ? "Also hides: "
-                        : a.enabled             ? "Switching it off also hides: "
-                        : a.keepOwn             ? "Keeps its own: "
-                                                : "Off by default, its own still show: ") +
-                       own);
+            r.own = ss(openwith::hidesNatives(a) ? nsp::trf("Also hides: {}", own)
+                       : a.enabled             ? nsp::trf("Switching it off also hides: {}", own)
+                       : a.keepOwn             ? nsp::trf("Keeps its own: {}", own)
+                                               : nsp::trf("Off by default, its own still show: {}", own));
         auto it = icons_.find(lowerKey(iconSource(a)));
         if (it != icons_.end() && it->second) {
             r.icon = *it->second;
@@ -648,15 +695,16 @@ void OpenWithController::pushOthers()
             std::string where = otherapps::describeWhere(item->where);
             std::string program = item->program.empty() ? std::string{} : nss::narrow(fs::path(nss::widen(item->program)).filename().wstring());
             if (r.extension)
-                r.detail = ss("Shell extension \"" + item->name + "\"" + (program.empty() ? "" : " (" + program + ")") +
+                r.detail = ss((program.empty() ? nsp::trf("Shell extension \"{}\"", item->name)
+                                               : nsp::trf("Shell extension \"{}\" ({})", item->name, program)) +
                               (where.empty() ? "" : " · " + where));
             else
                 r.detail = ss(where + (program.empty() ? "" : " · " + program));
-            r.tag = item->shiftOnly ? "Shift only" : r.extension ? "Title shown by the app" : "";
+            r.tag = item->shiftOnly ? nsp::tr("Shift only") : r.extension ? nsp::tr("Title shown by the app") : "";
             if (!item->missing.empty()) {
                 // An uninstaller left it behind: the menu item does nothing.
                 r.leftover = true;
-                r.detail = ss("Program not found: " + item->missing);
+                r.detail = ss(nsp::trf("Program not found: {}", item->missing));
                 leftovers += r.shown;
             }
             auto it = icons_.find(lowerKey(item->program));
@@ -666,19 +714,20 @@ void OpenWithController::pushOthers()
             }
         } else {
             r.title = ss(h->title.empty() ? h->name : h->title);
-            r.detail = "No longer in the registry. The rule stays until you switch it back on.";
+            r.detail = nsp::tr("No longer in the registry. The rule stays until you switch it back on.");
         }
         if (h && openwith::exactFind(h->title).empty())
-            r.problem = ss(nss::trim(h->title).empty() ? "Type the title the menu shows, or nothing is hidden."
-                                                        : "A title with \" or | can't be matched exactly, so nothing is hidden.");
+            r.problem = ss(nss::trim(h->title).empty()
+                               ? nsp::tr("Type the title the menu shows, or nothing is hidden.")
+                               : nsp::tr("A title with \" or | can't be matched exactly, so nothing is hidden."));
         rows.push_back(r);
     }
     // Leftovers come first (otherRows()): a heading over them and over the rest.
     if (!rows.empty() && rows.front().leftover) {
-        rows.front().section = "Leftovers from uninstalled programs";
+        rows.front().section = nsp::tr("Leftovers from uninstalled programs");
         for (auto &r : rows)
             if (!r.leftover) {
-                r.section = "Other items";
+                r.section = nsp::tr("Other items");
                 break;
             }
     }
@@ -722,9 +771,9 @@ void OpenWithController::pushOptions()
     st.set_options_serial(optionsSerial_);
     std::string problem;
     if (!o.files && !o.folders && !o.background && !o.desktop)
-        problem = "Pick at least one place, or nothing shows.";
+        problem = nsp::tr("Pick at least one place, or nothing shows.");
     else if (o.submenu && nss::trim(o.title).empty())
-        problem = "Give the submenu a title.";
+        problem = nsp::tr("Give the submenu a title.");
     st.set_options_problem(ss(problem));
 }
 
@@ -766,24 +815,25 @@ void OpenWithController::pushPreview()
         r.title = title;
         root.push_back(r);
     };
+    // Explorer's own items, in English until the anchor is found (kAnchors), then translated.
     if (kind == "file") {
-        native("native", "Open");
-        native("native-menu", "Open with");
+        native("native", nsp::mark("Open"));
+        native("native-menu", nsp::mark("Open with"));
         native("sep", "");
-        native("native", "Cut");
-        native("native", "Copy");
+        native("native", nsp::mark("Cut"));
+        native("native", nsp::mark("Copy"));
     } else if (kind == "dir") {
-        native("native", "Open");
-        native("native", "Open in new window");
-        native("native", "Pin to Quick access");
+        native("native", nsp::mark("Open"));
+        native("native", nsp::mark("Open in new window"));
+        native("native", nsp::mark("Pin to Quick access"));
         native("sep", "");
-        native("native", "Copy");
+        native("native", nsp::mark("Copy"));
     } else {
-        native("native-menu", "View");
-        native("native-menu", "Sort by");
-        native("native", "Refresh");
+        native("native-menu", nsp::mark("View"));
+        native("native-menu", nsp::mark("Sort by"));
+        native("native", nsp::mark("Refresh"));
         native("sep", "");
-        native("native", "Paste");
+        native("native", nsp::mark("Paste"));
     }
     size_t at = 0;
     bool anchored = false;
@@ -796,12 +846,16 @@ void OpenWithController::pushPreview()
         if (anchored)
             break;
     }
+    for (auto &r : root)
+        if (auto k = str(r.kind); k == "native" || k == "native-menu")
+            r.title = nsp::tr(str(r.title).c_str());
     root.insert(root.begin() + ptrdiff_t(at), ours.begin(), ours.end());
     st.set_preview(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(root));
     st.set_flyout(std::make_shared<slint::VectorModel<OpenWithPreviewRow>>(flyout));
-    const char *what = previewKind_ == 0 ? "a .txt file" : previewKind_ == 1 ? "a folder" : "a folder's background";
-    st.set_preview_empty(items.empty() ? ss(std::string("Nothing of yours shows for ") + what + ".")
-                                       : slint::SharedString());
+    const char *empty = previewKind_ == 0   ? nsp::tr("Nothing of yours shows for a .txt file.")
+                        : previewKind_ == 1 ? nsp::tr("Nothing of yours shows for a folder.")
+                                            : nsp::tr("Nothing of yours shows for a folder's background.");
+    st.set_preview_empty(items.empty() ? ss(empty) : slint::SharedString());
 }
 
 void OpenWithController::pushCode()
@@ -846,7 +900,7 @@ void OpenWithController::pushTest()
     }
     std::string note;
     if (a.exe.empty()) {
-        note = "Pick the program first.";
+        note = nsp::tr("Pick the program first.");
     } else {
         bool multiple = openwith::usesAllSelected(a.args);
         if (openwith::showsFor(o, a, "file", ext)) {
@@ -855,27 +909,27 @@ void OpenWithController::pushTest()
             if (multiple)
                 s.paths.push_back(docs + "\\todo" + ext);
             s.dir = docs;
-            lines.push_back(OpenWithTestLine{ ss(multiple ? "Two files" : "A file"), ss(openwith::commandLine(a, s)) });
+            lines.push_back(OpenWithTestLine{ ss(multiple ? nsp::tr("Two files") : nsp::tr("A file")), ss(openwith::commandLine(a, s)) });
         }
         if (openwith::showsFor(o, a, "dir")) {
             openwith::Sample s;
             s.paths = { docs + "\\Projects" };
             s.dir = docs + "\\Projects";
-            lines.push_back(OpenWithTestLine{ "A folder", ss(openwith::commandLine(a, s)) });
+            lines.push_back(OpenWithTestLine{ nsp::tr("A folder"), ss(openwith::commandLine(a, s)) });
         } else if (openwith::showsFor(o, a, "back")) {
             openwith::Sample s;
             s.paths = { docs };
             s.dir = docs;
-            lines.push_back(OpenWithTestLine{ "A folder's background", ss(openwith::commandLine(a, s)) });
+            lines.push_back(OpenWithTestLine{ nsp::tr("A folder's background"), ss(openwith::commandLine(a, s)) });
         }
         if (lines.empty())
-            note = "It doesn't show anywhere with the current settings, so there's nothing to run.";
+            note = nsp::tr("It doesn't show anywhere with the current settings, so there's nothing to run.");
         if (!exists(a.exe))
-            note += (note.empty() ? "" : " ") + std::string("The program isn't there, so Shell hides the item.");
+            note += (note.empty() ? "" : " ") + std::string(nsp::tr("The program isn't there, so Shell hides the item."));
         if (a.args.find('@') != std::string::npos)
-            note += (note.empty() ? "" : " ") + std::string("Parts starting with @ are filled in by Shell when the menu opens.");
+            note += (note.empty() ? "" : " ") + std::string(nsp::tr("Parts starting with @ are filled in by Shell when the menu opens."));
         if (a.admin)
-            note += (note.empty() ? "" : " ") + std::string("It runs as administrator; Windows asks first.");
+            note += (note.empty() ? "" : " ") + std::string(nsp::tr("It runs as administrator; Windows asks first."));
     }
     st.set_test_lines(std::make_shared<slint::VectorModel<OpenWithTestLine>>(lines));
     st.set_test_note(ss(note));
@@ -984,7 +1038,8 @@ std::string OpenWithController::pickFile(const wchar_t *title, const wchar_t *fi
     dlg->GetOptions(&flags);
     dlg->SetOptions(flags | FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST);
     dlg->SetTitle(title);
-    COMDLG_FILTERSPEC filters[] = { { filterName, filterSpec }, { L"All files", L"*.*" } };
+    const std::wstring allFiles = nss::widen(nsp::tr("All files"));
+    COMDLG_FILTERSPEC filters[] = { { filterName, filterSpec }, { allFiles.c_str(), L"*.*" } };
     dlg->SetFileTypes(UINT(std::size(filters)), filters);
     // Start next to the current program, else in Program Files.
     std::wstring folder;
@@ -1021,12 +1076,12 @@ void OpenWithController::save(Migrate migrate)
     if (migrate != Migrate::None && shellExe_.empty())
         return; // waits for a Save, which says why it can't
     if (shellExe_.empty()) {
-        toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
+        toast("error", nsp::tr("Can't check the config"), nsp::tr("shell.exe was not found, so nothing was saved."));
         return;
     }
     auto file = openWithFile();
     if (editor::isProtectedPath(file) || editor::isProtectedPath(root_)) {
-        toast("error", "Not saved", "Program Files is never written to.");
+        toast("error", nsp::tr("Not saved"), nsp::tr("Program Files is never written to."));
         return;
     }
 
@@ -1081,12 +1136,12 @@ void OpenWithController::save(Migrate migrate)
     saving_ = true;
     ui_->global<OpenWithState>().set_saving(true);
     worker_.post([this, model, reason, file, root = root_, exe = shellExe_, format = format_, env = env_,
-                  developChange, hideDevelop, migrate, hidingText, developPath = developPath_] {
+                  developChange, hideDevelop, migrate, hiding, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
         if (!rootDoc) {
-            result.error = "Couldn't read " + nss::narrow(root.wstring()) + ": " + error;
+            result.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         } else {
             std::vector<nss::FileWrite> writes;
             writes.push_back(nss::FileWrite{ file, openwith::generate(model, env, format.eol), format });
@@ -1095,7 +1150,7 @@ void OpenWithController::save(Migrate migrate)
             if (developChange) {
                 auto dev = nss::NssDocument::load(developPath, {}, &error);
                 if (!dev || !openwith::setEditorsMenuEnabled(*dev, !hideDevelop))
-                    result.error = "Couldn't change the Editors submenu in " + nss::narrow(developPath.wstring()) + ".";
+                    result.error = nsp::trf("Couldn't change the Editors submenu in {}.", nss::narrow(developPath.wstring()));
                 else
                     writes.push_back(nss::FileWrite{ developPath, dev->text(), dev->format() });
             }
@@ -1107,7 +1162,7 @@ void OpenWithController::save(Migrate migrate)
                 result = store.save(std::move(writes), options);
             }
         }
-        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, hidingText, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, model, hideDevelop, migrate, hiding, result = std::move(result), root] {
             saving_ = false;
             ui_->global<OpenWithState>().set_saving(false);
             if (result.ok) {
@@ -1117,19 +1172,20 @@ void OpenWithController::save(Migrate migrate)
                 developSavedHidden_ = hideDevelop;
                 edited(false);
                 if (migrate == Migrate::Own)
-                    toast("ok", "Updated the switched-off apps' own items",
-                          (hidingText.empty() ? std::string("Their menu entries changed in the registry.")
-                                              : "The menu no longer shows " + hidingText + "'s own entries.") +
-                              " Snapshot " + result.snapshotId + " has the file before.");
+                    toast("ok", nsp::tr("Updated the switched-off apps' own items"),
+                          nsp::trf("{} Snapshot {} has the file before.",
+                                   hiding.empty() ? std::string(nsp::tr("Their menu entries changed in the registry."))
+                                                  : nsp::trf("The menu no longer shows {}'s own entries.", joinNames(hiding)),
+                                   result.snapshotId));
                 else if (migrate == Migrate::Layout)
-                    toast("ok", "Moved the Open with items",
-                          "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot " +
-                              result.snapshotId + " has the old layout.");
+                    toast("ok", nsp::tr("Moved the Open with items"),
+                          nsp::trf("They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot {} has the old layout.",
+                                   result.snapshotId));
                 else
-                    toast("ok", "Saved the Open with items",
-                          result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                    : "Snapshot " + result.snapshotId +
-                                                          " was taken first. Right-click a file to see them.");
+                    toast("ok", nsp::tr("Saved the Open with items"),
+                          result.snapshotId.empty()
+                              ? std::string(nsp::tr("No changes were needed."))
+                              : nsp::trf("Snapshot {} was taken first. Right-click a file to see them.", result.snapshotId));
                 return;
             }
             std::string detail = result.error;
@@ -1137,13 +1193,13 @@ void OpenWithController::save(Migrate migrate)
                 auto outcome = editor::parseCheck(result.check.message, {}, root.parent_path());
                 for (const auto &i : outcome.issues)
                     if (i.error) {
-                        detail = i.message + (i.line > 0 ? " (line " + std::to_string(i.line) + ")" : std::string{});
+                        detail = i.line > 0 ? nsp::trf("{} (line {})", i.message, i.line) : i.message;
                         break;
                     }
-                toast("error", "Not saved: Shell would reject these items", detail);
+                toast("error", nsp::tr("Not saved: Shell would reject these items"), detail);
                 return;
             }
-            toast("error", "Couldn't save", detail);
+            toast("error", nsp::tr("Couldn't save"), detail);
         });
     });
 }

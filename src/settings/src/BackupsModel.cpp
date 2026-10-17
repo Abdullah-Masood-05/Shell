@@ -1,5 +1,7 @@
 #include "BackupsModel.h"
 
+#include "Tr.h"
+
 #include "nss/Text.h"
 
 #include <algorithm>
@@ -55,7 +57,7 @@ SnapshotDiff diffSnapshot(const nss::ConfigStore &store, const nss::SnapshotInfo
         seen.insert(key);
         std::string oldBytes, newBytes;
         if (!nss::readFile(snapshot.dir / fs::path(nss::widen(sf.path)), oldBytes)) {
-            out.error = "cannot read " + sf.path + " from the snapshot";
+            out.error = nsp::trf("cannot read {} from the snapshot", sf.path);
             continue;
         }
         auto it = current.find(key);
@@ -100,19 +102,19 @@ bool deleteSnapshot(const nss::ConfigStore &store, const std::string &id, std::s
     auto s = store.findSnapshot(id);
     if (!s) {
         if (error)
-            *error = "snapshot '" + id + "' not found";
+            *error = nsp::trf("snapshot '{}' not found", id);
         return false;
     }
     if (s->pinned) {
         if (error)
-            *error = "pinned snapshots can't be deleted; unpin it first";
+            *error = nsp::tr("pinned snapshots can't be deleted; unpin it first");
         return false;
     }
     std::error_code ec;
     fs::remove_all(s->dir, ec);
     if (ec) {
         if (error)
-            *error = "cannot delete " + nss::narrow(s->dir.wstring()) + ": " + ec.message();
+            *error = nsp::trf("cannot delete {}: {}", nss::narrow(s->dir.wstring()), ec.message());
         return false;
     }
     return true;
@@ -135,10 +137,11 @@ std::string displayTime(const nss::SnapshotInfo &snapshot)
     std::tm tm;
     if (!parseCreated(snapshot.created, tm))
         return snapshot.id;
-    static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    static const char *const months[] = { nsp::mark("Jan"), nsp::mark("Feb"), nsp::mark("Mar"), nsp::mark("Apr"),
+                                          nsp::mark("May"), nsp::mark("Jun"), nsp::mark("Jul"), nsp::mark("Aug"),
+                                          nsp::mark("Sep"), nsp::mark("Oct"), nsp::mark("Nov"), nsp::mark("Dec") };
     char buf[64];
-    std::snprintf(buf, sizeof buf, "%s %d, %d, %02d:%02d:%02d", months[std::clamp(tm.tm_mon, 0, 11)], tm.tm_mday,
+    std::snprintf(buf, sizeof buf, "%s %d, %d, %02d:%02d:%02d", nsp::tr(months[std::clamp(tm.tm_mon, 0, 11)]), tm.tm_mday,
                   tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
     return buf;
 }
@@ -152,18 +155,15 @@ std::string relativeTime(const nss::SnapshotInfo &snapshot)
     if (t == -1)
         return {};
     auto secs = static_cast<long long>(std::difftime(std::time(nullptr), t));
-    auto plural = [](long long n, const char *unit) {
-        return std::to_string(n) + " " + unit + (n == 1 ? "" : "s") + " ago";
-    };
     if (secs < 60)
-        return "just now";
+        return nsp::tr("just now");
     if (secs < 3600)
-        return plural(secs / 60, "minute");
+        return nsp::trn("{n} minute ago", "{n} minutes ago", secs / 60);
     if (secs < 86400)
-        return plural(secs / 3600, "hour");
+        return nsp::trn("{n} hour ago", "{n} hours ago", secs / 3600);
     if (secs < 2 * 86400)
-        return "yesterday";
-    return plural(secs / 86400, "day");
+        return nsp::tr("yesterday");
+    return nsp::trn("{n} day ago", "{n} days ago", secs / 86400);
 }
 
 } // namespace backups
