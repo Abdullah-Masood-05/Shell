@@ -441,7 +441,7 @@ msgstr "颜色"
 
 #: ui/pages/appearance.slint:238 ui/pages/appearance.slint:322
 msgid "Typography"
-msgstr "文字排版"
+msgstr "字体"
 
 #: ui/pages/appearance.slint:239
 msgid "Effects"
@@ -661,7 +661,7 @@ msgstr "想要更多自定义？"
 
 #: ui/pages/appearance.slint:737
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
-msgstr "渐变、图像颜色和针对单个菜单项的规则位于 shell.nss 及其导入的文件中。"
+msgstr "渐变、图标颜色和针对单个菜单项的规则位于 shell.nss 及其导入的文件中。"
 
 #: ui/pages/backups.slint:77
 msgctxt "Snapshot"
@@ -1082,7 +1082,7 @@ msgstr "快速操作"
 
 #: ui/pages/home.slint:260
 msgid "Reload the shell and the menu"
-msgstr "重新加载 Windows 外壳和菜单"
+msgstr "重新加载资源管理器与菜单"
 
 #: ui/pages/home.slint:267 src/Status.cpp:185
 msgid "Unregister for me"
@@ -1090,7 +1090,7 @@ msgstr "为我取消注册"
 
 #: ui/pages/home.slint:267
 msgid "Also register for me"
-msgstr "也为我注册"
+msgstr "为当前用户注册"
 
 #: ui/pages/home.slint:267 src/Status.cpp:180
 msgid "Register for me"
@@ -1099,12 +1099,12 @@ msgstr "为我注册"
 #. On top of the all-users registration, a per-user one takes priority over it.
 #: ui/pages/home.slint:269
 msgid "Remove it from your account"
-msgstr "从你的帐户中移除"
+msgstr "从你的账户中移除"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
 #: ui/pages/home.slint:269
 msgid "Overrides the all-users copy"
-msgstr "优先于所有用户的注册"
+msgstr "优先于所有用户配置"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
 #: ui/pages/home.slint:269
@@ -1556,11 +1556,11 @@ msgstr "为你启用 Shell"
 
 #: ui/pages/onboarding.slint:229
 msgid "Shell is already enabled for all users on this PC, which includes your account. There's nothing to do here."
-msgstr "此电脑上已为所有用户启用 Shell，其中包括你的帐户。此步骤无需任何操作。"
+msgstr "此电脑上已为所有用户启用 Shell，其中包括你的账户。此步骤无需任何操作。"
 
 #: ui/pages/onboarding.slint:230
 msgid "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences."
-msgstr "为你的 Windows 帐户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“偏好设置”。"
+msgstr "为你的 Windows 账户将 Shell 菜单添加到文件资源管理器。无需管理员权限。如需为此电脑上的所有用户启用，请使用“偏好设置”。"
 
 #: ui/pages/onboarding.slint:238
 msgid "Enabled for all users"
@@ -1568,11 +1568,11 @@ msgstr "已为所有用户启用"
 
 #: ui/pages/onboarding.slint:243
 msgid "Register it for my account as well"
-msgstr "同时为我的帐户注册"
+msgstr "同时为我的账户注册"
 
 #: ui/pages/onboarding.slint:249
 msgid "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home."
-msgstr "你自己的注册优先于所有用户的注册。因此在你于“主页”中取消注册之前，此帐户将不再使用所有用户的副本及其更新。"
+msgstr "你自己的注册优先于所有用户的注册。因此在你于“主页”中取消注册之前，此账户将不再使用所有用户的副本及其更新。"
 
 #: ui/pages/onboarding.slint:265
 msgid "Use the classic context menu on Windows 11"
@@ -1584,7 +1584,7 @@ msgstr "无法启用：{}"
 
 #: ui/pages/onboarding.slint:281
 msgid "Enable for my account too"
-msgstr "也为我的帐户启用"
+msgstr "为当前用户启用"
 
 #: ui/pages/onboarding.slint:281 src/Status.cpp:177
 msgid "Enable for me"
@@ -3717,7 +3717,7 @@ msgstr "2023 年的默认外观：现代风格，无模糊效果。"
 
 #: src/ThemePresets.cpp:31
 msgid "Acrylic tinted with the accent colour (README screenshot)."
-msgstr "以强调色着色的亚克力效果（README 截图）。"
+msgstr "以主题色着色的亚克力效果（README 截图）。"
 
 #: src/ThemePresets.cpp:32
 msgid "Gradient"
@@ -3725,7 +3725,7 @@ msgstr "渐变"
 
 #: src/ThemePresets.cpp:33
 msgid "An accent gradient from dark to light and back (README screenshot)."
-msgstr "强调色渐变，由深到浅再回到深（README 截图）。"
+msgstr "主题色渐变，由深到浅再回到深（README 截图）。"
 
 #: src/ThemePresets.cpp:34
 msgid "Clear acrylic"
@@ -3737,11 +3737,11 @@ msgstr "现代风格，纯亚克力效果，无背景色。"
 
 #: src/ThemePresets.cpp:36
 msgid "Accent outline"
-msgstr "强调色边框"
+msgstr "主题色边框"
 
 #: src/ThemePresets.cpp:37
 msgid "A 1 px accent-coloured border and accent icons."
-msgstr "1 px 强调色边框和强调色图标。"
+msgstr "1 px 主题色边框和主题色图标。"
 
 #: src/ThemePresets.cpp:38
 msgid "Flat"
@@ -3797,15 +3797,15 @@ msgstr "不透明"
 
 #: src/ThemePresets.cpp:52
 msgid "Accent tint"
-msgstr "强调色着色"
+msgstr "主题色"
 
 #: src/ThemePresets.cpp:53
 msgid "Accent"
-msgstr "强调色"
+msgstr "主题色"
 
 #: src/ThemePresets.cpp:54
 msgid "No tint"
-msgstr "无着色"
+msgstr "无主题色"
 
 #: src/ThemePresets.cpp:56
 msgid "Square"
