@@ -117,7 +117,13 @@ jobs:
           sha256sum setup-*.msi NilesoftShellPro-*.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
           cd ..
-          sed -e "s/{{VERSION}}/$VERSION/g" -e "s/{{TAG}}/$TAG/g" .github/release-notes.md > dist/release-notes.md
+          # Each release lists only its own changes: .github/changes/<X.Y.Z>.md (betas of a
+          # version share its file) goes where the template says {{CHANGES}}.
+          changes=".github/changes/${VERSION%%-*}.md"
+          [[ -f "$changes" ]] || { echo "::error::$changes is missing"; exit 1; }
+          awk -v f="$changes" '/^\{\{CHANGES\}\}/ { while ((getline line < f) > 0) print line; next } { print }' .github/release-notes.md | tr -d '\r' \
+            | sed -e "s/{{VERSION}}/$VERSION/g" -e "s/{{TAG}}/$TAG/g" > dist/release-notes.md
+          grep -q '{{' dist/release-notes.md && { echo "::error::unfilled placeholder in the release notes"; exit 1; } || true
 
       - name: Create the GitHub release
         uses: softprops/action-gh-release@v3
