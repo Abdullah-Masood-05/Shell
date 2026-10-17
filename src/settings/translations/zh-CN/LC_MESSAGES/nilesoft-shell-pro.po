@@ -809,7 +809,7 @@ msgstr "关：使用你的 Windows 设置（{} ms） · {}"
 
 #: ui/pages/behavior.slint:68
 msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
-msgstr "Shell 菜单打开时替代你的 Windows 设置（{} ms） · {}"
+msgstr "在 Shell 菜单打开时覆盖 Windows 默认设置（{} ms） · {}"
 
 #: ui/pages/behavior.slint:90
 msgid "Tooltips"
@@ -841,7 +841,7 @@ msgstr "截图"
 
 #: ui/pages/behavior.slint:154
 msgid "Print Screen saves the open menu"
-msgstr "按 Print Screen 保存当前打开的菜单"
+msgstr "按 Print Screen 截取打开的菜单"
 
 #: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:503
 msgid "Folder"
@@ -873,11 +873,11 @@ msgstr "移除已禁用的项"
 
 #: ui/pages/behavior.slint:190
 msgid "Remove their separators"
-msgstr "移除其分隔线"
+msgstr "移除自带分隔线"
 
 #: ui/pages/behavior.slint:196
 msgid "Icons on Windows' items"
-msgstr "Windows 菜单项的图标"
+msgstr "Windows 菜单项图标"
 
 #: ui/pages/behavior.slint:198
 msgid "Auto adds icons to known items that have none · {}"
@@ -885,7 +885,7 @@ msgstr "“自动”会为没有图标的已知菜单项添加图标 · {}"
 
 #: ui/pages/behavior.slint:210
 msgid "Icons on Shell's own items"
-msgstr "Shell 菜单项的图标"
+msgstr "Shell 菜单项图标"
 
 #: ui/pages/context-menus.slint:63
 msgid "Open {} in the Config Editor"
