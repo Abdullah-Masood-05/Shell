@@ -14,6 +14,31 @@
 	(<i>Settings &rarr; Personalization &rarr; Colors</i>) and changes with it while the app is open. This only changes the
 	app's own window; the look of Shell's menu is set on <a href="/docs/app/appearance">Appearance</a>.</p>
 
+<h5 id="language">Language</h5>
+<p>The app is available in English, Simplified Chinese (简体中文) and Traditional Chinese (繁體中文). Choose
+	<kbd>Auto</kbd>, <kbd>English</kbd>, <kbd>简体中文</kbd> or <kbd>繁體中文</kbd>. The change applies right away, with no
+	restart.</p>
+<ul>
+	<li><strong>Auto</strong> (the default) follows the Windows display language (<i>Settings &rarr; Time &amp; language
+		&rarr; Language &amp; region</i>). Chinese for Taiwan, Hong Kong or Macao, or any Traditional Chinese, picks
+		繁體中文; any other Chinese picks 简体中文; every other language picks English. The card says which language
+		<i>Auto</i> uses right now.</li>
+	<li>The setting only changes the app's own window. The text of Shell's menus comes from your configuration; the
+		default configuration has its own language files in <code>imports\lang</code>.</li>
+	<li>Config keywords, file names and code samples stay in English in every language, because that is how you type
+		them in <code>shell.nss</code>.</li>
+</ul>
+<p>The choice is stored as <code>Language</code> under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>
+	(empty for Auto, <code>en</code>, <code>zh-CN</code> or <code>zh-TW</code>).</p>
+
+<h5 id="translate">Translating the app</h5>
+<p>The translations are plain gettext <code>.po</code> files in the source tree, under
+	<code>src/settings/translations/&lt;language&gt;/LC_MESSAGES/nilesoft-shell-pro.po</code>, and are built into
+	<code>NilesoftShellPro.exe</code>, so the app needs no extra files. To fix a translation, edit the
+	<code>msgstr</code> of the entry in that file (any text editor or Poedit works) and send a pull request. To add a
+	language, see <i>Translations</i> in <code>src/settings/README.md</code>: one command creates the file, and the new
+	language then shows up in this setting by itself.</p>
+
 <h5 id="all-users">All users on this PC</h5>
 <p>This card shows whether Shell is registered for <i>All users</i> and for <i>Just you</i>, and has the one button in
 	the app that needs administrator rights.</p>
