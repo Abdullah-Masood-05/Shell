@@ -675,7 +675,7 @@ export component AppearancePage inherits Rectangle {
                             Segmented {
                                 horizontal-stretch: 1;
                                 min-option-width: 88px;
-                                options: [@tr("Desktop"), @tr("File Explorer")];
+                                options: [@tr("Desktop"), @tr("Preview tab" => "File Explorer")];
                                 selected: AppearanceState.preview-context;
                                 changed(i) => { AppearanceState.preview-context = i; }
                             }

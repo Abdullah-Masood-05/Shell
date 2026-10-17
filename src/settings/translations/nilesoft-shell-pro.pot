@@ -4136,3 +4136,13 @@ msgstr ""
 #: src/Updater.cpp:966
 msgid "Couldn't write {}: {}."
 msgstr ""
+
+#. The preview tab next to Desktop: keep it short, it shares a small button with "Desktop".
+#: ui/pages/appearance.slint:678
+msgctxt "Preview tab"
+msgid "File Explorer"
+msgstr ""
+
+#: src/ConfigRules.cpp:435
+msgid "any selection"
+msgstr ""

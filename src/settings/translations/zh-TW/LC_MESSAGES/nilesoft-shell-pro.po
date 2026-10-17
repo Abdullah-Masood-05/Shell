@@ -4135,3 +4135,13 @@ msgstr "無法取代 {}：{}。"
 #: src/Updater.cpp:966
 msgid "Couldn't write {}: {}."
 msgstr "無法寫入 {}：{}。"
+
+#. The preview tab next to Desktop: keep it short, it shares a small button with "Desktop".
+#: ui/pages/appearance.slint:678
+msgctxt "Preview tab"
+msgid "File Explorer"
+msgstr "檔案總管"
+
+#: src/ConfigRules.cpp:435
+msgid "any selection"
+msgstr "任何選取項目"
