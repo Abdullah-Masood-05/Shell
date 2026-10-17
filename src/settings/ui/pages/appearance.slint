@@ -57,12 +57,12 @@ export component AppearancePage inherits Rectangle {
     // Background, text, highlight, highlighted text, disabled text and border: the
     // keys that decide most of how a menu looks (see DESIGN.md, Appearance).
     property <[PaletteEntry]> palette: [
-        { label: "Background", index: K.bg-color, alpha: false },
-        { label: "Text", index: K.text-normal, alpha: true },
-        { label: "Highlight", index: K.back-select, alpha: true },
-        { label: "Highlighted text", index: K.text-select, alpha: true },
-        { label: "Disabled text", index: K.text-disabled, alpha: true },
-        { label: "Border", index: K.border-color, alpha: true },
+        { label: @tr("Background"), index: K.bg-color, alpha: false },
+        { label: @tr("Text"), index: K.text-normal, alpha: true },
+        { label: @tr("Highlight"), index: K.back-select, alpha: true },
+        { label: @tr("Highlighted text"), index: K.text-select, alpha: true },
+        { label: @tr("Disabled text"), index: K.text-disabled, alpha: true },
+        { label: @tr("Border"), index: K.border-color, alpha: true },
     ];
     property <int> palette-columns: root.body-width >= 720px ? 6 : 3;
 
@@ -81,17 +81,17 @@ export component AppearancePage inherits Rectangle {
         spacing: Tokens.s5;
 
         PageHeader {
-            title: "Appearance";
-            description: "The theme, colours, font and effects of Shell's menus. The preview updates as you change them.";
+            title: @tr("Appearance");
+            description: @tr("The theme, colours, font and effects of Shell's menus. The preview updates as you change them.");
             busy: AppState.busy;
             busy-label: AppState.busy-label;
         }
 
         if AppearanceState.load-error != "": Banner {
             kind: "error";
-            title: "Couldn't read your config";
+            title: @tr("Couldn't read your config");
             text: AppearanceState.load-error;
-            action-label: "Try again";
+            action-label: @tr("Try again");
             action => { AppearanceState.reload(); }
         }
 
@@ -117,8 +117,8 @@ export component AppearancePage inherits Rectangle {
                     // The base theme the keys below apply on top of.
                     Card {
                         icon: Icons.palette;
-                        heading: "Base theme";
-                        description: "The built-in style under every preset: colours, corners and effects. What you change below applies on top of it.";
+                        heading: @tr("Base theme");
+                        description: @tr("The built-in style under every preset: colours, corners and effects. What you change below applies on top of it.");
                         ThemePicker {
                             selected: root.f[K.name].index;
                             enabled: root.ready;
@@ -197,7 +197,7 @@ export component AppearancePage inherits Rectangle {
                                                         }
                                                     }
                                                     Text {
-                                                        text: root.f[K.name].pending ? "Not saved yet" : "In use";
+                                                        text: root.f[K.name].pending ? @tr("Not saved yet") : @tr("In use");
                                                         font-size: 11px;
                                                         color: Tokens.text;
                                                         vertical-alignment: center;
@@ -217,14 +217,14 @@ export component AppearancePage inherits Rectangle {
                                         spacing: Tokens.s3;
                                         alignment: start;
                                         Text {
-                                            text: root.f[K.name].locked ? "Set by an expression (" + root.f[K.name].origin + "). Changing it here overrides it." : root.f[K.name].origin;
+                                            text: root.f[K.name].locked ? @tr("Set by an expression ({}). Changing it here overrides it.", root.f[K.name].origin) : root.f[K.name].origin;
                                             font-size: Tokens.caption;
                                             color: Tokens.text-3;
                                             vertical-alignment: center;
                                             overflow: elide;
                                         }
                                         if (root.f[K.name].overridden || root.f[K.name].pending) && !root.f[K.name].locked: Link {
-                                            text: "Reset";
+                                            text: @tr("Reset");
                                             font-size: Tokens.caption;
                                             activated => { AppearanceState.reset(K.name); }
                                         }
@@ -234,10 +234,10 @@ export component AppearancePage inherits Rectangle {
 
                             Tabs {
                                 tabs: [
-                                    { label: "Colors", icon: Icons.palette },
-                                    { label: "Typography", icon: Icons.typography },
-                                    { label: "Effects", icon: Icons.effects },
-                                    { label: "Advanced", icon: Icons.preferences },
+                                    { label: @tr("Colors"), icon: Icons.palette },
+                                    { label: @tr("Typography"), icon: Icons.typography },
+                                    { label: @tr("Effects"), icon: Icons.effects },
+                                    { label: @tr("Advanced"), icon: Icons.preferences },
                                 ];
                                 selected: AppearanceState.tab;
                                 changed(i) => { AppearanceState.tab = i; }
@@ -247,8 +247,8 @@ export component AppearancePage inherits Rectangle {
                             if AppearanceState.tab == 0: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
-                                    title: "Colour palette";
-                                    description: "The main colours of the menu. Pick one to change it; the row under the palette has its hex value and where it's set.";
+                                    title: @tr("Colour palette");
+                                    description: @tr("The main colours of the menu. Pick one to change it; the row under the palette has its hex value and where it's set.");
                                 }
                                 HorizontalLayout {
                                     spacing: Tokens.s1;
@@ -301,13 +301,13 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 SettingRow {
-                                    label: "Dark mode";
+                                    label: @tr("Dark mode");
                                     field: root.f[K.dark];
-                                    hint: root.f[K.dark].index == 0 ? "Auto follows the Windows app mode · " + root.f[K.dark].origin : root.f[K.dark].origin;
+                                    hint: root.f[K.dark].index == 0 ? @tr("Auto follows the Windows app mode · {}", root.f[K.dark].origin) : root.f[K.dark].origin;
                                     control-width: 168px;
                                     reset => { AppearanceState.reset(K.dark); }
                                     ChipGroup {
-                                        options: ["Auto", "On", "Off"];
+                                        options: [@tr("Setting value" => "Auto"), @tr("Setting value" => "On"), @tr("Setting value" => "Off")];
                                         selected: root.f[K.dark].index;
                                         enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.dark, i); }
@@ -319,11 +319,11 @@ export component AppearancePage inherits Rectangle {
                             if AppearanceState.tab == 1: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
-                                    title: "Typography";
-                                    description: "A size other than the default scales the whole menu, like the core does.";
+                                    title: @tr("Typography");
+                                    description: @tr("A size other than the default scales the whole menu, like the core does.");
                                 }
                                 SettingBlock {
-                                    label: "Font";
+                                    label: @tr("Font");
                                     field: root.f[K.font-name];
                                     reset => { AppearanceState.reset(K.font-name); }
                                     FontPicker {
@@ -336,7 +336,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 SettingBlock {
-                                    label: "Size";
+                                    label: @tr("Size");
                                     field: root.f[K.font-size];
                                     reset => { AppearanceState.reset(K.font-size); }
                                     ValueSlider {
@@ -351,7 +351,7 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 SettingBlock {
-                                    label: "Weight";
+                                    label: @tr("Weight");
                                     field: root.f[K.font-weight];
                                     reset => { AppearanceState.reset(K.font-weight); }
                                     ValueSlider {
@@ -366,11 +366,11 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 SettingBlock {
-                                    label: "Density";
+                                    label: @tr("Density");
                                     field: root.f[K.view];
                                     reset => { AppearanceState.reset(K.view); }
                                     ChipGroup {
-                                        options: ["Auto", "Compact", "Small", "Medium", "Large", "Wide"];
+                                        options: [@tr("Setting value" => "Auto"), @tr("Menu density" => "Compact"), @tr("Menu density" => "Small"), @tr("Menu density" => "Medium"), @tr("Menu density" => "Large"), @tr("Menu density" => "Wide")];
                                         selected: root.f[K.view].index;
                                         enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.view, i); }
@@ -382,23 +382,23 @@ export component AppearancePage inherits Rectangle {
                             if AppearanceState.tab == 2: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
-                                    title: "Background";
-                                    description: "What shows behind the menu, and how much.";
+                                    title: @tr("Background");
+                                    description: @tr("What shows behind the menu, and how much.");
                                 }
                                 SettingBlock {
-                                    label: "Effect";
+                                    label: @tr("Effect");
                                     hint: AppearanceState.effect-note == "" ? root.f[K.effect].origin : AppearanceState.effect-note + " · " + root.f[K.effect].origin;
                                     field: root.f[K.effect];
                                     reset => { AppearanceState.reset(K.effect); }
                                     ChipGroup {
-                                        options: ["Auto", "None", "Transparent", "Blur", "Acrylic"];
+                                        options: [@tr("Setting value" => "Auto"), @tr("None"), @tr("Transparent"), @tr("Blur"), @tr("Acrylic")];
                                         selected: root.f[K.effect].index;
                                         enabled: root.ready;
                                         changed(i) => { AppearanceState.set-index(K.effect, i); }
                                     }
                                 }
                                 if root.f[K.effect].index == 0 || root.f[K.effect].index >= 3: SettingRow {
-                                    label: "Tint";
+                                    label: @tr("Tint");
                                     hint: AppearanceState.tint-note + " · " + root.f[K.tint].origin;
                                     field: root.f[K.tint];
                                     reset => { AppearanceState.reset(K.tint); }
@@ -412,7 +412,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingBlock {
-                                    label: "Opacity";
+                                    label: @tr("Opacity");
                                     hint: AppearanceState.opacity-note + " · " + root.f[K.bg-opacity].origin;
                                     field: root.f[K.bg-opacity];
                                     reset => { AppearanceState.reset(K.bg-opacity); }
@@ -427,11 +427,11 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 TabSection {
-                                    title: "Shape";
-                                    description: "Corners and border. The border's colour is in Colors.";
+                                    title: @tr("Shape");
+                                    description: @tr("Corners and border. The border's colour is in Colors.");
                                 }
                                 SettingBlock {
-                                    label: "Menu corners";
+                                    label: @tr("Menu corners");
                                     field: root.f[K.menu-radius];
                                     reset => { AppearanceState.reset(K.menu-radius); }
                                     RadiusSteps {
@@ -441,7 +441,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingBlock {
-                                    label: "Item corners";
+                                    label: @tr("Item corners");
                                     field: root.f[K.item-radius];
                                     reset => { AppearanceState.reset(K.item-radius); }
                                     RadiusSteps {
@@ -451,7 +451,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingBlock {
-                                    label: "Border";
+                                    label: @tr("Border");
                                     field: root.f[K.border-size];
                                     reset => { AppearanceState.reset(K.border-size); }
                                     ValueSlider {
@@ -465,19 +465,19 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 SettingRow {
-                                    label: "Shadow";
+                                    label: @tr("Shadow");
                                     field: root.f[K.shadow];
                                     reset => { AppearanceState.reset(K.shadow); }
                                     control-width: 80px;
                                     ToggleSwitch {
                                         on: root.f[K.shadow].number > 0.5;
-                                        label: "Shadow";
+                                        label: @tr("Shadow");
                                         enabled: root.ready;
                                         toggled(on) => { AppearanceState.set-number(K.shadow, on ? 1 : 0); }
                                     }
                                 }
                                 if root.f[K.shadow].number > 0.5: SettingBlock {
-                                    label: "Shadow size";
+                                    label: @tr("Shadow size");
                                     field: root.f[K.shadow-size];
                                     reset => { AppearanceState.reset(K.shadow-size); }
                                     ValueSlider {
@@ -490,7 +490,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 if root.f[K.shadow].number > 0.5: SettingBlock {
-                                    label: "Shadow offset";
+                                    label: @tr("Shadow offset");
                                     field: root.f[K.shadow-offset];
                                     reset => { AppearanceState.reset(K.shadow-offset); }
                                     ValueSlider {
@@ -503,7 +503,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 if root.f[K.shadow].number > 0.5: SettingBlock {
-                                    label: "Shadow opacity";
+                                    label: @tr("Shadow opacity");
                                     field: root.f[K.shadow-opacity];
                                     reset => { AppearanceState.reset(K.shadow-opacity); }
                                     ValueSlider {
@@ -521,11 +521,11 @@ export component AppearancePage inherits Rectangle {
                             if AppearanceState.tab == 3: VerticalLayout {
                                 spacing: Tokens.s3;
                                 TabSection {
-                                    title: "Items";
-                                    description: "Spacing inside and around each item, and its icon.";
+                                    title: @tr("Items");
+                                    description: @tr("Spacing inside and around each item, and its icon.");
                                 }
                                 SettingRow {
-                                    label: "Item padding";
+                                    label: @tr("Item padding");
                                     field: root.f[K.item-padding];
                                     reset => { AppearanceState.reset(K.item-padding); }
                                     control-width: 250px;
@@ -537,7 +537,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingRow {
-                                    label: "Item margin";
+                                    label: @tr("Item margin");
                                     field: root.f[K.item-margin];
                                     reset => { AppearanceState.reset(K.item-margin); }
                                     control-width: 250px;
@@ -549,7 +549,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingBlock {
-                                    label: "Image size";
+                                    label: @tr("Image size");
                                     field: root.f[K.image-size];
                                     reset => { AppearanceState.reset(K.image-size); }
                                     ValueSlider {
@@ -563,7 +563,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingBlock {
-                                    label: "Image gap";
+                                    label: @tr("Image gap");
                                     field: root.f[K.image-gap];
                                     reset => { AppearanceState.reset(K.image-gap); }
                                     ValueSlider {
@@ -576,7 +576,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingRow {
-                                    label: "Highlight, disabled item";
+                                    label: @tr("Highlight, disabled item");
                                     field: root.f[K.back-disabled];
                                     reset => { AppearanceState.reset(K.back-disabled); }
                                     ColorField {
@@ -590,10 +590,10 @@ export component AppearancePage inherits Rectangle {
                                 }
                                 RowDivider { }
                                 TabSection {
-                                    title: "Separators";
+                                    title: @tr("Separators");
                                 }
                                 SettingBlock {
-                                    label: "Separator size";
+                                    label: @tr("Separator size");
                                     field: root.f[K.sep-size];
                                     reset => { AppearanceState.reset(K.sep-size); }
                                     ValueSlider {
@@ -606,7 +606,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingRow {
-                                    label: "Separator colour";
+                                    label: @tr("Separator colour");
                                     field: root.f[K.sep-color];
                                     reset => { AppearanceState.reset(K.sep-color); }
                                     ColorField {
@@ -619,7 +619,7 @@ export component AppearancePage inherits Rectangle {
                                     }
                                 }
                                 SettingRow {
-                                    label: "Separator margin";
+                                    label: @tr("Separator margin");
                                     field: root.f[K.sep-margin];
                                     reset => { AppearanceState.reset(K.sep-margin); }
                                     control-width: 250px;
@@ -663,7 +663,7 @@ export component AppearancePage inherits Rectangle {
                             }
                             Text {
                                 horizontal-stretch: 1;
-                                text: "Live preview";
+                                text: @tr("Live preview");
                                 font-size: Tokens.heading;
                                 font-weight: 600;
                                 color: Tokens.text;
@@ -675,7 +675,7 @@ export component AppearancePage inherits Rectangle {
                             Segmented {
                                 horizontal-stretch: 1;
                                 min-option-width: 88px;
-                                options: ["Desktop", "File Explorer"];
+                                options: [@tr("Desktop"), @tr("File Explorer")];
                                 selected: AppearanceState.preview-context;
                                 changed(i) => { AppearanceState.preview-context = i; }
                             }
@@ -683,7 +683,7 @@ export component AppearancePage inherits Rectangle {
                                 horizontal-stretch: 0;
                                 width: 116px;
                                 min-option-width: 52px;
-                                options: ["Light", "Dark"];
+                                options: [@tr("Light"), @tr("Dark")];
                                 selected: AppearanceState.preview-dark ? 1 : 0;
                                 changed(i) => { AppearanceState.set-preview-dark(i == 1); }
                             }
@@ -701,7 +701,7 @@ export component AppearancePage inherits Rectangle {
                             dark: AppearanceState.preview-dark;
                         }
                         Text {
-                            text: "This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu.";
+                            text: @tr("This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu.");
                             font-size: Tokens.caption;
                             color: Tokens.text-2;
                             wrap: word-wrap;
@@ -729,12 +729,12 @@ export component AppearancePage inherits Rectangle {
                             horizontal-stretch: 1;
                             spacing: 2px;
                             Text {
-                                text: "Want to go further?";
+                                text: @tr("Want to go further?");
                                 font-weight: 600;
                                 color: Tokens.text;
                             }
                             Text {
-                                text: "Gradients, image colours and per-item rules are in shell.nss and its imports.";
+                                text: @tr("Gradients, image colours and per-item rules are in shell.nss and its imports.");
                                 font-size: Tokens.caption;
                                 color: Tokens.text-2;
                                 wrap: word-wrap;
@@ -743,7 +743,7 @@ export component AppearancePage inherits Rectangle {
                         VerticalLayout {
                             alignment: center;
                             AppButton {
-                                text: "Config Editor";
+                                text: @tr("Config Editor");
                                 icon: Icons.arrow-right;
                                 icon-after: true;
                                 colorize-icon: true;

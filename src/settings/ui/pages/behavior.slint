@@ -34,38 +34,38 @@ export component BehaviorPage inherits PageFrame {
     init => { SettingsState.reload(); }
 
     PageHeader {
-        title: "Behavior";
-        description: "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items.";
+        title: @tr("Behavior");
+        description: @tr("How the menu opens, its tooltips and screenshots, and what it does to Windows' own items.");
         busy: AppState.busy;
         busy-label: AppState.busy-label;
     }
 
     if SettingsState.load-error != "": Banner {
         kind: "error";
-        title: "Couldn't read your config";
+        title: @tr("Couldn't read your config");
         text: SettingsState.load-error;
-        action-label: "Try again";
+        action-label: @tr("Try again");
         action => { SettingsState.reload(); }
     }
 
     Card {
         icon: Icons.window;
-        heading: "Opening the menu";
+        heading: @tr("Opening the menu");
         SwitchRow {
-            label: "Open Shell's menu instead of the Windows 11 menu";
+            label: @tr("Open Shell's menu instead of the Windows 11 menu");
             hint: root.f[SK.priority].number > 0.5
-                ? "File Explorer's compact menu is skipped · " + root.f[SK.priority].origin
-                : "Windows 11 shows its compact menu first · " + root.f[SK.priority].origin;
+                ? @tr("File Explorer's compact menu is skipped · {}", root.f[SK.priority].origin)
+                : @tr("Windows 11 shows its compact menu first · {}", root.f[SK.priority].origin);
             index: SK.priority;
             ready: root.ready;
         }
         RowDivider { }
         SettingRow {
-            label: "Custom submenu delay";
+            label: @tr("Custom submenu delay");
             field: root.f[SK.showdelay];
             hint: root.f[SK.showdelay].index == 0
-                ? "Off: your Windows setting applies (" + SettingsState.windows-showdelay + " ms) · " + root.f[SK.showdelay].origin
-                : "Replaces your Windows setting (" + SettingsState.windows-showdelay + " ms) while a Shell menu is open · " + root.f[SK.showdelay].origin;
+                ? @tr("Off: your Windows setting applies ({} ms) · {}", SettingsState.windows-showdelay, root.f[SK.showdelay].origin)
+                : @tr("Replaces your Windows setting ({} ms) while a Shell menu is open · {}", SettingsState.windows-showdelay, root.f[SK.showdelay].origin);
             control-width: 80px;
             reset => { SettingsState.reset(SK.showdelay); }
             ToggleSwitch {
@@ -87,15 +87,15 @@ export component BehaviorPage inherits PageFrame {
 
     Card {
         icon: Icons.info;
-        heading: "Tooltips";
+        heading: @tr("Tooltips");
         SwitchRow {
-            label: "Show tooltips";
+            label: @tr("Show tooltips");
             index: SK.tip;
             ready: root.ready;
         }
         if root.f[SK.tip].number > 0.5: RowDivider { }
         if root.f[SK.tip].number > 0.5: SettingBlock {
-            label: "Delay";
+            label: @tr("Delay");
             field: root.f[SK.tip-time];
             reset => { SettingsState.reset(SK.tip-time); }
             ValueSlider {
@@ -108,7 +108,7 @@ export component BehaviorPage inherits PageFrame {
             }
         }
         if root.f[SK.tip].number > 0.5: SettingBlock {
-            label: "Maximum width";
+            label: @tr("Maximum width");
             field: root.f[SK.tip-width];
             reset => { SettingsState.reset(SK.tip-width); }
             ValueSlider {
@@ -122,9 +122,9 @@ export component BehaviorPage inherits PageFrame {
             }
         }
         if root.f[SK.tip].number > 0.5: SettingRow {
-            label: "Background";
+            label: @tr("Background");
             field: root.f[SK.tip-colors];
-            hint: root.f[SK.tip-colors].overridden || root.f[SK.tip-colors].source-file != "" ? root.f[SK.tip-colors].origin : "The menu's background · " + root.f[SK.tip-colors].origin;
+            hint: root.f[SK.tip-colors].overridden || root.f[SK.tip-colors].source-file != "" ? root.f[SK.tip-colors].origin : @tr("The menu's background · {}", root.f[SK.tip-colors].origin);
             reset => { SettingsState.reset(SK.tip-colors); }
             ColorField {
                 value: root.f[SK.tip-colors].color;
@@ -135,8 +135,8 @@ export component BehaviorPage inherits PageFrame {
             }
         }
         if root.f[SK.tip].number > 0.5: SettingRow {
-            label: "Text";
-            field: { origin: "The colour of the tooltip text", locked: root.f[SK.tip-colors].locked };
+            label: @tr("Text");
+            field: { origin: @tr("The colour of the tooltip text"), locked: root.f[SK.tip-colors].locked };
             ColorField {
                 value: root.f[SK.tip-colors].color2;
                 hex: root.f[SK.tip-colors].display2;
@@ -149,21 +149,21 @@ export component BehaviorPage inherits PageFrame {
 
     Card {
         icon: Icons.desktop;
-        heading: "Screenshots";
+        heading: @tr("Screenshots");
         SwitchRow {
-            label: "Print Screen saves the open menu";
+            label: @tr("Print Screen saves the open menu");
             index: SK.screenshot;
             ready: root.ready;
         }
         if root.f[SK.screenshot].number > 0.5: RowDivider { }
         if root.f[SK.screenshot].number > 0.5: SettingRow {
-            label: "Folder";
+            label: @tr("Folder");
             field: root.f[SK.screenshot-dir];
-            hint: (root.f[SK.screenshot-dir].display != "" ? root.f[SK.screenshot-dir].display : "Screenshots folder · " + SettingsState.default-screenshot-dir) + " · " + root.f[SK.screenshot-dir].origin;
+            hint: (root.f[SK.screenshot-dir].display != "" ? root.f[SK.screenshot-dir].display : @tr("Screenshots folder · {}", SettingsState.default-screenshot-dir)) + " · " + root.f[SK.screenshot-dir].origin;
             control-width: 110px;
             reset => { SettingsState.reset(SK.screenshot-dir); }
             AppButton {
-                text: "Choose…";
+                text: @tr("Choose…");
                 enabled: root.ready;
                 clicked => { SettingsState.pick-folder(SK.screenshot-dir); }
             }
@@ -172,34 +172,34 @@ export component BehaviorPage inherits PageFrame {
 
     Card {
         icon: Icons.menus;
-        heading: "Windows' own items";
-        description: "What Shell does to the items Windows and other apps put in the menu.";
+        heading: @tr("Windows' own items");
+        description: @tr("What Shell does to the items Windows and other apps put in the menu.");
         SwitchRow {
-            label: "Remove duplicate items";
+            label: @tr("Remove duplicate items");
             index: SK.remove-duplicate;
             ready: root.ready;
         }
         RowDivider { }
         SwitchRow {
-            label: "Remove disabled items";
+            label: @tr("Remove disabled items");
             index: SK.remove-disabled;
             ready: root.ready;
         }
         RowDivider { }
         SwitchRow {
-            label: "Remove their separators";
+            label: @tr("Remove their separators");
             index: SK.remove-separator;
             ready: root.ready;
         }
         RowDivider { }
         SettingRow {
-            label: "Icons on Windows' items";
+            label: @tr("Icons on Windows' items");
             field: root.f[SK.modify-image];
-            hint: root.f[SK.modify-image].index == 2 ? "Auto adds icons to known items that have none · " + root.f[SK.modify-image].origin : root.f[SK.modify-image].origin;
+            hint: root.f[SK.modify-image].index == 2 ? @tr("Auto adds icons to known items that have none · {}", root.f[SK.modify-image].origin) : root.f[SK.modify-image].origin;
             control-width: 220px;
             reset => { SettingsState.reset(SK.modify-image); }
             ChipGroup {
-                options: ["Off", "On", "Auto"];
+                options: [@tr("Setting value" => "Off"), @tr("Setting value" => "On"), @tr("Setting value" => "Auto")];
                 selected: root.f[SK.modify-image].index;
                 enabled: root.ready;
                 changed(i) => { SettingsState.set-index(SK.modify-image, i); }
@@ -207,7 +207,7 @@ export component BehaviorPage inherits PageFrame {
         }
         RowDivider { }
         SwitchRow {
-            label: "Icons on Shell's own items";
+            label: @tr("Icons on Shell's own items");
             index: SK.new-image;
             ready: root.ready;
         }

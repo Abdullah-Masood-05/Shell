@@ -21,7 +21,10 @@ export component MenuSurface inherits Rectangle {
     in property <color> flat-color;
     in-out property <int> hovered: -1;
 
-    property <string> family: t.font-family != "" ? t.font-family : "Segoe UI";
+    // The menu's default font, Segoe UI; each language can name another one in its .po file,
+    // because Slint's fallback for Chinese text in Segoe UI misses characters.
+    property <string> default-family: @tr("Menu font family" => "Segoe UI");
+    property <string> family: t.font-family != "" ? t.font-family : root.default-family;
     property <length> label-x: t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px);
 
     width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + root.label-x + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
@@ -165,7 +168,8 @@ export component MiniMenu inherits Rectangle {
     in property <string> icon-font;
     in property <image> blurred;
 
-    property <[string]> labels: ["View", "Sort by", "Refresh"];
+    property <string> family: t.font-family != "" ? t.font-family : @tr("Menu font family" => "Segoe UI");
+    property <[string]> labels: [@tr("Explorer menu" => "View"), @tr("Sort by"), @tr("Refresh")];
     property <[string]> glyphs: ["\u{E8A9}", "\u{E8CB}", "\u{E72C}"];
 
     width: 104px;
@@ -220,7 +224,7 @@ export component MiniMenu inherits Rectangle {
             Text {
                 x: 24px;
                 text: label;
-                font-family: t.font-family != "" ? t.font-family : "Segoe UI";
+                font-family: root.family;
                 font-size: 10px;
                 color: i == 1 ? t.text-sel : t.text;
             }
@@ -249,7 +253,7 @@ component ExplorerWindow inherits Rectangle {
     property <color> ink-2: dark ? #FFFFFF99 : #00000099;
     property <color> line: dark ? #FFFFFF14 : #0000000F;
     property <color> sel: dark ? #FFFFFF1A : #CCE8FF;
-    property <[string]> files: ["Documents", "Pictures", "Projects", "report.docx", "budget.xlsx", "notes.txt", "photo.jpg"];
+    property <[string]> files: [@tr("Documents"), @tr("Pictures"), @tr("Projects"), "report.docx", "budget.xlsx", "notes.txt", "photo.jpg"];
 
     background: body;
     border-radius: 8px;
@@ -267,7 +271,7 @@ component ExplorerWindow inherits Rectangle {
         Text {
             x: 14px;
             y: 10px;
-            text: "Home";
+            text: @tr("Home");
             font-size: 12px;
             color: ink;
         }
@@ -280,7 +284,7 @@ component ExplorerWindow inherits Rectangle {
             background: body;
             Text {
                 x: 10px;
-                text: "This PC  ›  Documents";
+                text: @tr("This PC") + "  ›  " + @tr("Documents");
                 font-size: 11px;
                 color: ink-2;
             }

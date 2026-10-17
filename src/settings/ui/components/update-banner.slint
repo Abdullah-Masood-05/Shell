@@ -56,18 +56,18 @@ export component UpdateBanner inherits Rectangle {
             alignment: center;
             spacing: 2px;
             Text {
-                text: root.st == "downloading" ? "Downloading Nilesoft Shell Pro " + root.version + "…"
-                    : root.st == "ready" ? "Update ready: Nilesoft Shell Pro " + root.version
-                    : root.st == "installing" ? "Installing Nilesoft Shell Pro " + root.version + "…"
-                    : "Nilesoft Shell Pro " + root.version + " is available";
+                text: root.st == "downloading" ? @tr("Downloading Nilesoft Shell Pro {}…", root.version)
+                    : root.st == "ready" ? @tr("Update ready: Nilesoft Shell Pro {}", root.version)
+                    : root.st == "installing" ? @tr("Installing Nilesoft Shell Pro {}…", root.version)
+                    : @tr("Nilesoft Shell Pro {} is available", root.version);
                 font-weight: 600;
                 font-size: Tokens.body;
                 color: Tokens.text;
                 wrap: word-wrap;
             }
             if root.st == "available": Text {
-                text: "You have " + UpdateState.current-version + "."
-                    + (UpdateState.released != "" ? " Released " + UpdateState.released + "." : "")
+                text: @tr("You have {}.", UpdateState.current-version)
+                    + (UpdateState.released != "" ? " " + @tr("Released {}.", UpdateState.released) : "")
                     + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "");
                 font-size: Tokens.body;
                 color: Tokens.text-2;
@@ -75,8 +75,8 @@ export component UpdateBanner inherits Rectangle {
             }
             if root.st == "ready": Text {
                 text: UpdateState.needs-admin
-                    ? "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
-                    : "Downloaded and verified. The app closes for a moment and opens again.";
+                    ? @tr("Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again.")
+                    : @tr("Downloaded and verified. The app closes for a moment and opens again.");
                 font-size: Tokens.body;
                 color: Tokens.text-2;
                 wrap: word-wrap;
@@ -88,7 +88,7 @@ export component UpdateBanner inherits Rectangle {
                     value: UpdateState.progress;
                 }
                 Text {
-                    text: UpdateState.progress-text + " · checked against SHA256SUMS.txt when done";
+                    text: @tr("{} · checked against SHA256SUMS.txt when done", UpdateState.progress-text);
                     font-size: Tokens.caption;
                     color: Tokens.text-2;
                 }
@@ -109,23 +109,23 @@ export component UpdateBanner inherits Rectangle {
                     alignment: center;
                     padding-right: Tokens.s2;
                     Link {
-                        text: "Release notes";
+                        text: @tr("Release notes");
                         activated => { UpdateState.open-notes(); }
                     }
                 }
                 if root.st == "available": AppButton {
-                    text: "Skip this version";
+                    text: @tr("Skip this version");
                     clicked => { UpdateState.skip(); }
                 }
                 if root.st == "available" || root.st == "ready": AppButton {
-                    text: root.st == "ready" ? "Restart to update" : "Download and install";
+                    text: root.st == "ready" ? @tr("Restart to update") : @tr("Download and install");
                     primary: true;
                     icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
                     colorize-icon: !UpdateState.needs-admin;
                     clicked => { UpdateState.install(); }
                 }
                 if root.st == "downloading": AppButton {
-                    text: "Cancel";
+                    text: @tr("Cancel");
                     clicked => { UpdateState.cancel(); }
                 }
             }
@@ -161,10 +161,10 @@ export component UpdateNavHint inherits Rectangle {
         }
         label := Text {
             horizontal-stretch: 1;
-            text: root.st == "downloading" ? "Downloading update… " + round(UpdateState.progress * 100) + "%"
-                : root.st == "ready" ? "Update ready: restart to update"
-                : root.st == "installing" ? "Installing update…"
-                : "Update available: " + UpdateState.latest-version;
+            text: root.st == "downloading" ? @tr("Downloading update… {}%", round(UpdateState.progress * 100))
+                : root.st == "ready" ? @tr("Update ready: restart to update")
+                : root.st == "installing" ? @tr("Installing update…")
+                : @tr("Update available: {}", UpdateState.latest-version);
             font-size: Tokens.caption + 1px;
             color: Tokens.accent;
             vertical-alignment: center;

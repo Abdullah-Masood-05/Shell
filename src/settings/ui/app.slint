@@ -37,7 +37,11 @@ export component AppWindow inherits Window {
     min-width: 880px;
     min-height: 600px;
     background: Tokens.bg;
-    default-font-family: "Segoe UI Variable Text";
+    // Each language names its UI font in its .po file (not a translation of the text):
+    // Slint's font fallback has no locale, so Chinese would otherwise get whichever CJK
+    // font Windows offers first, often a Japanese one. zh-CN: Microsoft YaHei UI,
+    // zh-TW: Microsoft JhengHei UI; both have Latin letters too.
+    default-font-family: @tr("UI font family" => "Segoe UI Variable Text");
     default-font-size: 14px;
     animate background { duration: Tokens.normal; }
 

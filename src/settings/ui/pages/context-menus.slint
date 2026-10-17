@@ -60,7 +60,7 @@ component FileLink inherits Rectangle {
     width: label.preferred-width;
     height: label.preferred-height;
     accessible-role: button;
-    accessible-label: "Open " + root.text + " in the Config Editor";
+    accessible-label: @tr("Open {} in the Config Editor", root.text);
     accessible-action-default => { root.activated(); }
     label := Text {
         text: root.text;
@@ -174,7 +174,7 @@ component RuleItem inherits HorizontalLayout {
             }
             if root.entry.complex && root.entry.where != "": Text {
                 horizontal-stretch: 1;
-                text: "where " + root.entry.where;
+                text: @tr("where {}", root.entry.where);
                 font-family: EditorState.mono-font;
                 font-size: Tokens.caption;
                 color: Tokens.text-3;
@@ -191,7 +191,7 @@ component RuleItem inherits HorizontalLayout {
     VerticalLayout {
         alignment: center;
         FileLink {
-            text: "line " + root.entry.line;
+            text: @tr("line {}", root.entry.line);
             activated => { root.open(); }
         }
     }
@@ -210,23 +210,23 @@ export component ContextMenusPage inherits PageFrame {
     init => { MenusState.activated(); }
 
     PageHeader {
-        title: "Context Menus";
-        description: "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items.";
+        title: @tr("Context Menus");
+        description: @tr("Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items.");
         busy: MenusState.saving;
-        busy-label: "Checking and saving…";
+        busy-label: @tr("Checking and saving…");
         if MenusState.dirty-count > 0: Text {
             vertical-alignment: center;
-            text: MenusState.dirty-count == 1 ? "1 file changed" : MenusState.dirty-count + " files changed";
+            text: @tr("{n} file changed" | "{n} files changed" % MenusState.dirty-count);
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
         }
         AppButton {
-            text: "Discard";
+            text: @tr("Discard");
             enabled: MenusState.dirty-count > 0 && !MenusState.saving;
             clicked => { MenusState.discard(); }
         }
         AppButton {
-            text: "Save";
+            text: @tr("Save");
             primary: true;
             enabled: MenusState.dirty-count > 0 && !MenusState.saving;
             clicked => { MenusState.save(); }
@@ -235,24 +235,24 @@ export component ContextMenusPage inherits PageFrame {
 
     if MenusState.shared-config: Banner {
         kind: "info";
-        title: "This is the shared config in the install folder";
-        text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off.";
-        action-label: "Create personal config";
+        title: @tr("This is the shared config in the install folder");
+        text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off.");
+        action-label: @tr("Create personal config");
         action-enabled: !AppState.busy && AppState.cli-available;
         action => { MenusState.create-user-config(); }
     }
     if MenusState.load-error != "": Banner {
         kind: "error";
-        title: "Couldn't read the config";
+        title: @tr("Couldn't read the config");
         text: MenusState.load-error;
     }
 
     SectionHead {
-        title: "Modules";
-        caption: "Each module is an import line in shell.nss. Turning one off comments the line out.";
+        title: @tr("Modules");
+        caption: @tr("Each module is an import line in shell.nss. Turning one off comments the line out.");
     }
     if MenusState.modules.length == 0 && MenusState.loaded: Text {
-        text: "shell.nss doesn't import any files.";
+        text: @tr("shell.nss doesn't import any files.");
         color: Tokens.text-3;
     }
     if MenusState.modules.length > 0: ListSurface {
@@ -268,7 +268,7 @@ export component ContextMenusPage inherits PageFrame {
     }
 
     SectionHead {
-        title: "Rules for Windows items";
+        title: @tr("Rules for Windows items");
         caption: MenusState.rules-caption;
     }
     if MenusState.rules.length > 0: ListSurface {

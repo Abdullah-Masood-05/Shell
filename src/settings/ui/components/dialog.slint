@@ -8,8 +8,8 @@ export component ConfirmDialog inherits Rectangle {
     in property <string> title;
     in property <string> text;
     in property <string> kind: "warning";      // warning | error | info
-    in property <string> confirm-label: "OK";
-    in property <string> cancel-label: "Cancel";
+    in property <string> confirm-label: @tr("OK");
+    in property <string> cancel-label: @tr("Cancel");
     callback confirmed();
     callback cancelled();
 

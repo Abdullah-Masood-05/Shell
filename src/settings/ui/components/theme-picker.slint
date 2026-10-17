@@ -11,20 +11,20 @@ import { AppearanceState } from "../pages/appearance-state.slint";
 
 // Names and one-line descriptions of the five themes (ThemeModel.cpp has the values).
 export global ThemeInfo {
-    out property <[string]> names: ["Auto", "Modern", "Classic", "White", "Black"];
+    out property <[string]> names: [@tr("Theme name" => "Auto"), @tr("Theme name" => "Modern"), @tr("Theme name" => "Classic"), @tr("Theme name" => "White"), @tr("Theme name" => "Black")];
     out property <[string]> tags: [
-        "Like Windows' own menu",
-        "Rounded · roomy",
-        "Compact · blue highlight",
-        "Always light",
-        "Always dark",
+        @tr("Like Windows' own menu"),
+        @tr("Rounded · roomy"),
+        @tr("Compact · blue highlight"),
+        @tr("Always light"),
+        @tr("Always dark"),
     ];
     out property <[string]> about: [
-        "Copies Windows' own menu, light or dark as Dark mode says.",
-        "Rounded menu and items with roomy rows, light or dark as Dark mode says.",
-        "Compact rows with a blue highlight, light or dark as Dark mode says.",
-        "The Modern shape, always light.",
-        "The Modern shape, always dark.",
+        @tr("Copies Windows' own menu, light or dark as Dark mode says."),
+        @tr("Rounded menu and items with roomy rows, light or dark as Dark mode says."),
+        @tr("Compact rows with a blue highlight, light or dark as Dark mode says."),
+        @tr("The Modern shape, always light."),
+        @tr("The Modern shape, always dark."),
     ];
 }
 
@@ -118,7 +118,7 @@ export component ThemePicker inherits FocusScope {
     property <int> cursor: root.selected >= 0 && root.selected < 5 ? root.selected : 0;
 
     accessible-role: groupbox;
-    accessible-label: "Theme";
+    accessible-label: @tr("Theme");
 
     function pick(i: int) {
         if (root.enabled && i >= 0 && i < 5) {

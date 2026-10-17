@@ -61,7 +61,7 @@ component TreeRow inherits Rectangle {
     border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: list-item;
-    accessible-label: root.entry.kind + ": " + root.entry.title;
+    accessible-label: (root.entry.kind == "menu" ? @tr("Entry kind" => "Menu") : root.entry.kind == "separator" ? @tr("Entry kind" => "Separator") : @tr("Entry kind" => "Item")) + ": " + root.entry.title;
     accessible-item-selected: root.selected;
 
     if root.selected: Rectangle {
@@ -119,7 +119,7 @@ component TreeRow inherits Rectangle {
         }
         if root.entry.kind == "menu": Text {
             vertical-alignment: center;
-            text: "menu";
+            text: @tr("Tree badge" => "menu");
             font-size: Tokens.caption;
             color: Tokens.text-3;
         }
@@ -310,13 +310,13 @@ component GlyphPicker inherits Rectangle {
                 Text {
                     horizontal-stretch: 1;
                     vertical-alignment: center;
-                    text: "Choose an icon";
+                    text: @tr("Choose an icon");
                     font-size: Tokens.subtitle;
                     font-weight: 600;
                     color: Tokens.text;
                 }
                 AppButton {
-                    text: "No icon";
+                    text: @tr("No icon");
                     clicked => {
                         BuilderState.pick-glyph(-1);
                         root.closed();
@@ -327,7 +327,7 @@ component GlyphPicker inherits Rectangle {
                 }
             }
             Text {
-                text: "Glyphs from Shell's own icon font, written as image=\\uXXXX. For icon.* names, colors or files, type the value in the Icon box instead.";
+                text: @tr("Glyphs from Shell's own icon font, written as image=\\uXXXX. For icon.* names, colors or files, type the value in the Icon box instead.");
                 font-size: Tokens.caption + 1px;
                 color: Tokens.text-2;
                 wrap: word-wrap;
@@ -365,7 +365,7 @@ component GlyphPicker inherits Rectangle {
                 }
             }
             Text {
-                text: root.hovered >= 0 ? "image=" + BuilderState.glyph-code(root.hovered) : BuilderState.glyphs.length + " glyphs";
+                text: root.hovered >= 0 ? "image=" + BuilderState.glyph-code(root.hovered) : @tr("{n} glyph" | "{n} glyphs" % BuilderState.glyphs.length);
                 font-family: EditorState.mono-font;
                 font-size: Tokens.caption;
                 color: Tokens.text-2;
@@ -395,17 +395,17 @@ export component MenuBuilderPage inherits Rectangle {
         spacing: Tokens.s4;
 
         PageHeader {
-            title: "Menu Builder";
-            description: "Your own menus and items, kept in their own file. Shell checks them before every save.";
+            title: @tr("Menu Builder");
+            description: @tr("Your own menus and items, kept in their own file. Shell checks them before every save.");
             busy: BuilderState.saving;
-            busy-label: "Checking and saving…";
+            busy-label: @tr("Checking and saving…");
             AppButton {
-                text: "Discard";
+                text: @tr("Discard");
                 enabled: BuilderState.dirty && !BuilderState.saving;
                 clicked => { BuilderState.discard(); }
             }
             AppButton {
-                text: "Save";
+                text: @tr("Save");
                 primary: true;
                 enabled: BuilderState.dirty && !BuilderState.saving && !root.locked;
                 clicked => { BuilderState.save(); }
@@ -414,27 +414,27 @@ export component MenuBuilderPage inherits Rectangle {
 
         if BuilderState.shared-config: Banner {
             kind: "info";
-            title: "This is the shared config in the install folder";
-            text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to build menus.";
-            action-label: "Create personal config";
+            title: @tr("This is the shared config in the install folder");
+            text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to build menus.");
+            action-label: @tr("Create personal config");
             action-enabled: !AppState.busy && AppState.cli-available;
             action => { BuilderState.create-user-config(); }
         }
         if BuilderState.import-off: Banner {
             kind: "warning";
-            title: "Your menus are turned off";
-            text: "shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them.";
-            action-label: "Open Context Menus";
+            title: @tr("Your menus are turned off");
+            text: @tr("shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them.");
+            action-label: @tr("Open Context Menus");
             action => { BuilderState.open-context-menus(); }
         }
         if BuilderState.notice != "": Banner {
             kind: "warning";
-            title: "Part of the file can't be shown here";
+            title: @tr("Part of the file can't be shown here");
             text: BuilderState.notice;
         }
         if BuilderState.load-error != "": Banner {
             kind: "error";
-            title: "Couldn't read your menus";
+            title: @tr("Couldn't read your menus");
             text: BuilderState.load-error;
         }
 
@@ -455,19 +455,19 @@ export component MenuBuilderPage inherits Rectangle {
                     HorizontalLayout {
                         spacing: Tokens.s1;
                         AppButton {
-                            text: "Item";
+                            text: @tr("Entry kind" => "Item");
                             enabled: !root.locked;
                             horizontal-stretch: 1;
                             clicked => { BuilderState.add("item"); }
                         }
                         AppButton {
-                            text: "Menu";
+                            text: @tr("Entry kind" => "Menu");
                             enabled: !root.locked;
                             horizontal-stretch: 1;
                             clicked => { BuilderState.add("menu"); }
                         }
                         AppButton {
-                            text: "Separator";
+                            text: @tr("Entry kind" => "Separator");
                             enabled: !root.locked;
                             horizontal-stretch: 1;
                             clicked => { BuilderState.add("separator"); }
@@ -477,37 +477,37 @@ export component MenuBuilderPage inherits Rectangle {
                         spacing: 0;
                         up := ToolButton {
                             symbol: "\u{E74A}";
-                            label: "Move up";
+                            label: @tr("Move up");
                             enabled: BuilderState.can-up;
                             clicked => { BuilderState.move-up(); }
                         }
                         down := ToolButton {
                             symbol: "\u{E74B}";
-                            label: "Move down";
+                            label: @tr("Move down");
                             enabled: BuilderState.can-down;
                             clicked => { BuilderState.move-down(); }
                         }
                         outd := ToolButton {
                             symbol: "\u{E72B}";
-                            label: "Outdent: move out of its menu";
+                            label: @tr("Outdent: move out of its menu");
                             enabled: BuilderState.can-outdent;
                             clicked => { BuilderState.outdent(); }
                         }
                         ind := ToolButton {
                             symbol: "\u{E72A}";
-                            label: "Indent: move into the menu above";
+                            label: @tr("Indent: move into the menu above");
                             enabled: BuilderState.can-indent;
                             clicked => { BuilderState.indent(); }
                         }
                         dup := ToolButton {
                             symbol: "\u{E8C8}";
-                            label: "Duplicate";
+                            label: @tr("Duplicate");
                             enabled: BuilderState.selected >= 0 && !root.locked;
                             clicked => { BuilderState.duplicate(); }
                         }
                         del := ToolButton {
                             symbol: "\u{E74D}";
-                            label: "Delete";
+                            label: @tr("Delete");
                             enabled: BuilderState.selected >= 0 && !root.locked;
                             clicked => { BuilderState.remove(); }
                         }
@@ -516,7 +516,7 @@ export component MenuBuilderPage inherits Rectangle {
                             horizontal-alignment: right;
                             vertical-alignment: center;
                             overflow: elide;
-                            text: up.hovered ? up.label : down.hovered ? down.label : outd.hovered ? "Outdent" : ind.hovered ? "Indent" : dup.hovered ? dup.label : del.hovered ? del.label : "";
+                            text: up.hovered ? up.label : down.hovered ? down.label : outd.hovered ? @tr("Outdent") : ind.hovered ? @tr("Indent") : dup.hovered ? dup.label : del.hovered ? del.label : "";
                             font-size: Tokens.caption;
                             color: Tokens.text-2;
                         }
@@ -530,13 +530,13 @@ export component MenuBuilderPage inherits Rectangle {
                         alignment: center;
                         padding: Tokens.s4;
                         Text {
-                            text: "No menus yet";
+                            text: @tr("No menus yet");
                             font-weight: 600;
                             color: Tokens.text;
                             horizontal-alignment: center;
                         }
                         Text {
-                            text: "Add an item or a menu. It's saved to its own file, so the rest of your config is never touched.";
+                            text: @tr("Add an item or a menu. It's saved to its own file, so the rest of your config is never touched.");
                             color: Tokens.text-2;
                             font-size: Tokens.caption + 1px;
                             wrap: word-wrap;
@@ -569,7 +569,7 @@ export component MenuBuilderPage inherits Rectangle {
                     clip: true;
 
                     if BuilderState.node.kind == "": Text {
-                        text: BuilderState.rows.length == 0 ? "Entries you add show their properties here." : "Select an entry to edit it.";
+                        text: BuilderState.rows.length == 0 ? @tr("Entries you add show their properties here.") : @tr("Select an entry to edit it.");
                         color: Tokens.text-3;
                     }
                     if BuilderState.node.kind == "separator": VerticalLayout {
@@ -577,13 +577,13 @@ export component MenuBuilderPage inherits Rectangle {
                         spacing: Tokens.s1;
                         alignment: start;
                         Text {
-                            text: "Separator";
+                            text: @tr("Entry kind" => "Separator");
                             font-size: Tokens.body-large;
                             font-weight: 600;
                             color: Tokens.text;
                         }
                         Text {
-                            text: "A line between the entries above and below it. It has no properties.";
+                            text: @tr("A line between the entries above and below it. It has no properties.");
                             color: Tokens.text-2;
                             wrap: word-wrap;
                         }
@@ -598,24 +598,24 @@ export component MenuBuilderPage inherits Rectangle {
                             alignment: start;
 
                             Text {
-                                text: BuilderState.node.kind == "menu" ? "Menu" : "Item";
+                                text: BuilderState.node.kind == "menu" ? @tr("Entry kind" => "Menu") : @tr("Entry kind" => "Item");
                                 font-size: Tokens.body-large;
                                 font-weight: 600;
                                 color: Tokens.text;
                             }
                             FormRow {
-                                label: "Title";
-                                hint: "& before a letter makes it the access key.";
+                                label: @tr("Title");
+                                hint: @tr("& before a letter makes it the access key.");
                                 TextField {
                                     field: "title";
                                     value: BuilderState.node.title;
                                     serial: BuilderState.node-serial;
                                     enabled: !root.locked;
-                                    placeholder-text: "Shown in the menu";
+                                    placeholder-text: @tr("Shown in the menu");
                                 }
                             }
                             FormRow {
-                                label: "Icon";
+                                label: @tr("Icon");
                                 HorizontalLayout {
                                     spacing: Tokens.s2;
                                     Rectangle {
@@ -632,7 +632,7 @@ export component MenuBuilderPage inherits Rectangle {
                                             color: Tokens.text;
                                         }
                                         if BuilderState.node.glyph == "": Text {
-                                            text: BuilderState.node.image == "" ? "none" : "…";
+                                            text: BuilderState.node.image == "" ? @tr("No icon" => "none") : "…";
                                             font-size: Tokens.caption - 1px;
                                             color: Tokens.text-3;
                                         }
@@ -643,10 +643,10 @@ export component MenuBuilderPage inherits Rectangle {
                                         value: BuilderState.node.image;
                                         serial: BuilderState.node-serial;
                                         enabled: !root.locked;
-                                        placeholder-text: "None";
+                                        placeholder-text: @tr("Icon" => "None");
                                     }
                                     AppButton {
-                                        text: "Choose…";
+                                        text: @tr("Choose…");
                                         enabled: !root.locked;
                                         clicked => { root.picker-open = true; }
                                     }
@@ -654,20 +654,20 @@ export component MenuBuilderPage inherits Rectangle {
                             }
 
                             Rectangle { height: Tokens.s1; }
-                            FormSection { text: "WHERE IT SHOWS"; }
+                            FormSection { text: @tr("WHERE IT SHOWS"); }
                             FormRow {
-                                label: "Shows on";
+                                label: @tr("Shows on");
                                 ChoiceField {
                                     field: "location";
                                     value: BuilderState.node.location;
                                     serial: BuilderState.node-serial;
                                     enabled: !root.locked;
-                                    model: ["Everywhere", "Files", "Folders", "Folder background", "Desktop", "Drives", "Files with extensions", "Custom"];
+                                    model: [@tr("Everywhere"), @tr("Files"), @tr("Folders"), @tr("Folder background"), @tr("Desktop"), @tr("Drives"), @tr("Files with extensions"), @tr("Custom")];
                                 }
                             }
                             if BuilderState.node.location == 6: FormRow {
-                                label: "Extensions";
-                                hint: "Separated by spaces, like .txt .md .log";
+                                label: @tr("Extensions");
+                                hint: @tr("Separated by spaces, like .txt .md .log");
                                 TextField {
                                     field: "extensions";
                                     value: BuilderState.node.extensions;
@@ -677,19 +677,19 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             if BuilderState.node.location == 7: FormRow {
-                                label: "Type";
-                                hint: "file, dir, drive, back, desktop, taskbar…, joined with |";
+                                label: @tr("Shell item type" => "Type");
+                                hint: @tr("file, dir, drive, back, desktop, taskbar…, joined with |");
                                 TextField {
                                     field: "type";
                                     value: BuilderState.node.type;
                                     serial: BuilderState.node-serial;
                                     enabled: !root.locked;
-                                    placeholder-text: "Any type except the taskbar";
+                                    placeholder-text: @tr("Any type except the taskbar");
                                 }
                             }
                             if BuilderState.node.location == 7: FormRow {
-                                label: "Find";
-                                hint: "Name or extension patterns, like .exe|.dll or *setup*";
+                                label: @tr("Find");
+                                hint: @tr("Name or extension patterns, like .exe|.dll or *setup*");
                                 TextField {
                                     field: "find";
                                     value: BuilderState.node.find;
@@ -698,8 +698,8 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             if BuilderState.node.location == 7: FormRow {
-                                label: "Where";
-                                hint: "An expression, written as is. Example: sel.count > 1";
+                                label: @tr("Condition field" => "Where");
+                                hint: @tr("An expression, written as is. Example: sel.count > 1");
                                 TextField {
                                     field: "where";
                                     value: BuilderState.node.where;
@@ -708,21 +708,21 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             FormRow {
-                                label: "Selection";
+                                label: @tr("Selection");
                                 ChoiceField {
                                     field: "mode";
                                     value: BuilderState.node.mode;
                                     serial: BuilderState.node-serial;
                                     enabled: !root.locked;
-                                    model: ["One item (default)", "One item", "Any selection", "Several of one type", "Several with one extension", "Nothing selected"];
+                                    model: [@tr("One item (default)"), @tr("One item"), @tr("Any selection"), @tr("Several of one type"), @tr("Several with one extension"), @tr("Nothing selected")];
                                 }
                             }
 
                             if BuilderState.node.kind == "item": Rectangle { height: Tokens.s1; }
-                            if BuilderState.node.kind == "item": FormSection { text: "WHAT IT RUNS"; }
+                            if BuilderState.node.kind == "item": FormSection { text: @tr("WHAT IT RUNS"); }
                             if BuilderState.node.kind == "item": FormRow {
-                                label: "Command";
-                                hint: "A program or file, like notepad.exe or code";
+                                label: @tr("Command");
+                                hint: @tr("A program or file, like notepad.exe or code");
                                 TextField {
                                     field: "cmd";
                                     value: BuilderState.node.cmd;
@@ -731,8 +731,8 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             if BuilderState.node.kind == "item": FormRow {
-                                label: "Arguments";
-                                hint: "@sel.path is the selected path; quote it: \"@sel.path\"";
+                                label: @tr("Arguments");
+                                hint: @tr("@sel.path is the selected path; quote it: \"@sel.path\"");
                                 TextField {
                                     field: "args";
                                     value: BuilderState.node.args;
@@ -741,7 +741,7 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             if BuilderState.node.kind == "item": FormRow {
-                                label: "Window";
+                                label: @tr("Window");
                                 HorizontalLayout {
                                     spacing: Tokens.s4;
                                     ChoiceField {
@@ -750,10 +750,10 @@ export component MenuBuilderPage inherits Rectangle {
                                         value: BuilderState.node.window;
                                         serial: BuilderState.node-serial;
                                         enabled: !root.locked;
-                                        model: ["Normal", "Hidden", "Minimized", "Maximized"];
+                                        model: [@tr("Window state" => "Normal"), @tr("Window state" => "Hidden"), @tr("Window state" => "Minimized"), @tr("Window state" => "Maximized")];
                                     }
                                     FlagField {
-                                        text: "Run as administrator";
+                                        text: @tr("Run as administrator");
                                         field: "admin";
                                         value: BuilderState.node.admin;
                                         serial: BuilderState.node-serial;
@@ -763,20 +763,20 @@ export component MenuBuilderPage inherits Rectangle {
                             }
 
                             Rectangle { height: Tokens.s1; }
-                            FormSection { text: "LOOK"; }
+                            FormSection { text: @tr("LOOK"); }
                             FormRow {
-                                label: "Separator";
+                                label: @tr("Separator");
                                 ChoiceField {
                                     field: "sep";
                                     value: BuilderState.node.sep;
                                     serial: BuilderState.node-serial;
                                     enabled: !root.locked;
-                                    model: ["None", "Before", "After", "Before and after"];
+                                    model: [@tr("Separator position" => "None"), @tr("Separator position" => "Before"), @tr("Separator position" => "After"), @tr("Separator position" => "Before and after")];
                                 }
                             }
                             if BuilderState.node.kind == "item": FormRow {
-                                label: "Shortcut text";
-                                hint: "Shown on the right, like Ctrl+E. It doesn't bind the keys.";
+                                label: @tr("Shortcut text");
+                                hint: @tr("Shown on the right, like Ctrl+E. It doesn't bind the keys.");
                                 TextField {
                                     field: "keys";
                                     value: BuilderState.node.keys;
@@ -785,7 +785,7 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             FormRow {
-                                label: "Tooltip";
+                                label: @tr("Tooltip");
                                 TextField {
                                     field: "tip";
                                     value: BuilderState.node.tip;
@@ -794,8 +794,8 @@ export component MenuBuilderPage inherits Rectangle {
                                 }
                             }
                             if BuilderState.node.extra != "": FormRow {
-                                label: "Kept as written";
-                                hint: "Properties this page doesn't edit. They're saved unchanged.";
+                                label: @tr("Kept as written");
+                                hint: @tr("Properties this page doesn't edit. They're saved unchanged.");
                                 Text {
                                     text: BuilderState.node.extra;
                                     font-family: EditorState.mono-font;
@@ -824,14 +824,14 @@ export component MenuBuilderPage inherits Rectangle {
                             spacing: Tokens.s3;
                             Segmented {
                                 width: 240px;
-                                options: ["Preview", "Generated .nss"];
+                                options: [@tr("Preview"), @tr("Generated .nss")];
                                 selected: root.bottom-tab;
                                 changed(i) => { root.bottom-tab = i; }
                             }
                             Text {
                                 horizontal-stretch: 1;
                                 vertical-alignment: center;
-                                text: root.bottom-tab == 0 ? "Approximate; right-click to see the real menu." : "Read-only. Save writes this to " + (BuilderState.file-label != "" ? BuilderState.file-label : "imports/settings-app-menus.nss") + ".";
+                                text: root.bottom-tab == 0 ? @tr("Approximate; right-click to see the real menu.") : @tr("Read-only. Save writes this to {}.", BuilderState.file-label != "" ? BuilderState.file-label : "imports/settings-app-menus.nss");
                                 font-size: Tokens.caption;
                                 color: Tokens.text-3;
                                 overflow: elide;
@@ -843,7 +843,7 @@ export component MenuBuilderPage inherits Rectangle {
                             background: Tokens.sidebar;
                             clip: true;
                             if BuilderState.preview.length == 0: Text {
-                                text: "Nothing to preview yet.";
+                                text: @tr("Nothing to preview yet.");
                                 color: Tokens.text-3;
                             }
                             main := PreviewMenu {

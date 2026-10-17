@@ -71,7 +71,7 @@ component DiagnosticRow inherits Rectangle {
                     border-radius: Tokens.radius-xs;
                     background: Tokens.selected;
                     pos := Text {
-                        text: "line " + root.line + ", column " + root.column;
+                        text: @tr("line {}, column {}", root.line, root.column);
                         font-size: 11px;
                         color: Tokens.text-2;
                     }
@@ -83,12 +83,12 @@ component DiagnosticRow inherits Rectangle {
 
 export component HomePage inherits PageFrame {
     PageHeader {
-        title: "Home";
-        description: "Nilesoft Shell at a glance: registration, the active config and recent diagnostics.";
+        title: @tr("Home");
+        description: @tr("Nilesoft Shell at a glance: registration, the active config and recent diagnostics.");
         busy: AppState.busy;
         busy-label: AppState.busy-label;
         AppButton {
-            text: "Refresh";
+            text: @tr("Refresh");
             icon: Icons.refresh;
             colorize-icon: true;
             enabled: !AppState.busy;
@@ -102,7 +102,7 @@ export component HomePage inherits PageFrame {
         kind: UpdateState.notice-kind;
         title: UpdateState.notice-title;
         text: UpdateState.notice-text;
-        action-label: UpdateState.notice-action == "restart" ? "Restart Explorer" : "";
+        action-label: UpdateState.notice-action == "restart" ? @tr("Restart Explorer") : "";
         action-enabled: !AppState.busy && AppState.cli-available;
         closable: true;
         action => {
@@ -151,7 +151,7 @@ export component HomePage inherits PageFrame {
                     horizontal-stretch: 1;
                     spacing: 2px;
                     Text {
-                        text: AppState.status.loaded ? AppState.status.health-title : "Checking status…";
+                        text: AppState.status.loaded ? AppState.status.health-title : @tr("Checking status…");
                         font-size: Tokens.body-large;
                         font-weight: 600;
                         color: Tokens.text;
@@ -170,22 +170,22 @@ export component HomePage inherits PageFrame {
                 background: Tokens.stroke;
             }
             KeyValue {
-                key: "Registration";
+                key: @tr("Registration");
                 value: AppState.status.reg-text;
             }
             KeyValue {
-                key: "Windows 11 menu";
+                key: @tr("Windows 11 menu");
                 value: AppState.status.win11-text;
             }
             KeyValue {
-                key: "Shell DLL";
+                key: @tr("Shell DLL");
                 value: AppState.status.active-dll;
                 mono: true;
                 value-color: AppState.status.active-dll-exists ? Tokens.text : Tokens.danger;
             }
             KeyValue {
-                key: "Version";
-                value: AppState.status.version == "" ? "—" : AppState.status.version + (AppState.status.elevated ? "  (running as administrator)" : "");
+                key: @tr("Version");
+                value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", AppState.status.version) : AppState.status.version;
             }
             Rectangle { vertical-stretch: 1; }
         }
@@ -196,8 +196,8 @@ export component HomePage inherits PageFrame {
             min-width: 280px;
             preferred-width: 320px;
             icon: Icons.document;
-            heading: "Active config";
-            description: "The shell.nss Shell builds its menu from, and the files it imports.";
+            heading: @tr("Active config");
+            description: @tr("The shell.nss Shell builds its menu from, and the files it imports.");
             HorizontalLayout {
                 alignment: start;
                 StatusPill {
@@ -222,7 +222,7 @@ export component HomePage inherits PageFrame {
                 }
             }
             if AppState.status.loaded && AppState.status.config-source != "appdata": Text {
-                text: "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates.";
+                text: @tr("This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates.");
                 font-size: Tokens.caption + 1px;
                 color: Tokens.text-2;
                 wrap: word-wrap;
@@ -232,13 +232,13 @@ export component HomePage inherits PageFrame {
                 spacing: Tokens.s2;
                 alignment: start;
                 if AppState.status.loaded && AppState.status.config-source != "appdata": AppButton {
-                    text: "Use per-user config";
+                    text: @tr("Use per-user config");
                     primary: true;
                     enabled: !AppState.busy;
                     clicked => { AppState.action("config-init"); }
                 }
                 AppButton {
-                    text: "Open folder";
+                    text: @tr("Open folder");
                     icon: Icons.folder;
                     colorize-icon: true;
                     enabled: !AppState.busy && AppState.status.config-path != "";
@@ -249,40 +249,40 @@ export component HomePage inherits PageFrame {
     }
 
     SectionTitle {
-        text: "Quick actions";
+        text: @tr("Quick actions");
     }
     HorizontalLayout {
         spacing: Tokens.s3;
         ActionTile {
             horizontal-stretch: 1;
             icon: Icons.restart;
-            title: "Restart Explorer";
-            caption: "Reload the shell and the menu";
+            title: @tr("Restart Explorer");
+            caption: @tr("Reload the shell and the menu");
             enabled: !AppState.busy && AppState.cli-available;
             clicked => { AppState.action("restart"); }
         }
         ActionTile {
             horizontal-stretch: 1;
             icon: AppState.status.user-registered ? Icons.person-remove : Icons.person-add;
-            title: AppState.status.user-registered ? "Unregister for me" : AppState.status.machine-registered ? "Also register for me" : "Register for me";
+            title: AppState.status.user-registered ? @tr("Unregister for me") : AppState.status.machine-registered ? @tr("Also register for me") : @tr("Register for me");
             // On top of the all-users registration, a per-user one takes priority over it.
-            caption: AppState.status.user-registered ? "Remove it from your account" : AppState.status.machine-registered ? "Overrides the all-users copy" : "No administrator rights needed";
+            caption: AppState.status.user-registered ? @tr("Remove it from your account") : AppState.status.machine-registered ? @tr("Overrides the all-users copy") : @tr("No administrator rights needed");
             enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
             clicked => { AppState.action(AppState.status.user-registered ? "unregister-user" : "register-user"); }
         }
         ActionTile {
             horizontal-stretch: 1;
             icon: Icons.folder;
-            title: "Open config folder";
-            caption: "Show shell.nss in Explorer";
+            title: @tr("Open config folder");
+            caption: @tr("Show shell.nss in Explorer");
             enabled: !AppState.busy && AppState.status.config-path != "";
             clicked => { AppState.action("open-config-folder"); }
         }
         ActionTile {
             horizontal-stretch: 1;
             icon: Icons.refresh;
-            title: "Refresh";
-            caption: "Check the status again";
+            title: @tr("Refresh");
+            caption: @tr("Check the status again");
             enabled: !AppState.busy;
             clicked => { AppState.refresh(); }
         }
@@ -291,18 +291,18 @@ export component HomePage inherits PageFrame {
     HorizontalLayout {
         spacing: Tokens.s2;
         SectionTitle {
-            text: "Diagnostics";
+            text: @tr("Diagnostics");
             vertical-alignment: center;
         }
         Text {
-            text: "· newest first, from shell.log";
+            text: @tr("· newest first, from shell.log");
             font-size: Tokens.caption + 1px;
             color: Tokens.text-3;
             vertical-alignment: center;
             horizontal-stretch: 1;
         }
         if AppState.log-path != "": Link {
-            text: "Open shell.log";
+            text: @tr("Open shell.log");
             activated => { AppState.open-path(AppState.log-path); }
         }
     }
@@ -319,7 +319,7 @@ export component HomePage inherits PageFrame {
                 colorize: Tokens.success;
             }
             Text {
-                text: AppState.log-path == "" ? "No shell.log found next to the active shell.dll." : "No errors or warnings in shell.log.";
+                text: AppState.log-path == "" ? @tr("No shell.log found next to the active shell.dll.") : @tr("No errors or warnings in shell.log.");
                 color: Tokens.text-2;
                 vertical-alignment: center;
             }
@@ -342,7 +342,7 @@ export component HomePage inherits PageFrame {
     HorizontalLayout {
         alignment: start;
         Link {
-            text: "Run first-time setup again";
+            text: @tr("Run first-time setup again");
             activated => {
                 AppState.onboarding-step = 0;
                 AppState.onboarding-shown = true;

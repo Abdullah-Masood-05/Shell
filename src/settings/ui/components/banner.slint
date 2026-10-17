@@ -11,7 +11,7 @@ export component CloseGlyph inherits Rectangle {
     background: ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: button;
-    accessible-label: "Close";
+    accessible-label: @tr("Close");
     accessible-action-default => { root.clicked(); }
 
     Image {

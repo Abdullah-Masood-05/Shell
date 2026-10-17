@@ -51,7 +51,7 @@ export component SaveFooter inherits Rectangle {
                 }
             }
             Text {
-                text: SaveState.saving ? SaveState.saving-label : SaveState.unsaved == 1 ? "1 unsaved change" : SaveState.unsaved + " unsaved changes";
+                text: SaveState.saving ? SaveState.saving-label : @tr("{n} unsaved change" | "{n} unsaved changes" % SaveState.unsaved);
                 font-weight: 600;
                 color: Tokens.text;
                 vertical-alignment: center;
@@ -86,7 +86,7 @@ export component SaveFooter inherits Rectangle {
         if root.has-changes: VerticalLayout {
             alignment: center;
             AppButton {
-                text: "Discard";
+                text: @tr("Discard");
                 enabled: !SaveState.saving;
                 clicked => { SaveState.discard(); }
             }
@@ -94,7 +94,7 @@ export component SaveFooter inherits Rectangle {
         if root.has-changes: VerticalLayout {
             alignment: center;
             AppButton {
-                text: "Save  (Ctrl+S)";
+                text: @tr("Save  (Ctrl+S)");
                 primary: true;
                 enabled: !SaveState.saving;
                 clicked => { SaveState.save(); }
@@ -125,19 +125,19 @@ export component UserConfigPrompt inherits Rectangle {
         drop-shadow-offset-y: 8px;
         drop-shadow-color: Tokens.shadow;
         accessible-role: groupbox;
-        accessible-label: "Use a personal config";
+        accessible-label: @tr("Use a personal config");
 
         body := VerticalLayout {
             padding: Tokens.s6;
             spacing: Tokens.s3;
             Text {
-                text: "Use a personal config?";
+                text: @tr("Use a personal config?");
                 font-size: Tokens.subtitle;
                 font-weight: 600;
                 color: Tokens.text;
             }
             Text {
-                text: "Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates.";
+                text: @tr("Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates.");
                 color: Tokens.text-2;
                 wrap: word-wrap;
             }
@@ -146,11 +146,11 @@ export component UserConfigPrompt inherits Rectangle {
                 spacing: Tokens.s2;
                 padding-top: Tokens.s2;
                 AppButton {
-                    text: "Cancel";
+                    text: @tr("Cancel");
                     clicked => { SaveState.cancel-user-config(); }
                 }
                 AppButton {
-                    text: "Create and save";
+                    text: @tr("Create and save");
                     primary: true;
                     clicked => { SaveState.create-user-config(); }
                 }
