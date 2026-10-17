@@ -38,7 +38,7 @@
 
 ## What's different in Pro
 
-The full list, with credits, is on [About this fork](https://abdullah-masood-05.github.io/Shell/fork).
+The complete list of credits and acknowledgments can be found on the [About This Fork](<https://abdullah-masood-05.github.io/Shell/fork>) page.
 
 - **Security.** Registration no longer gives the Users group full control of the Windows 11 context-menu CLSID key
   (the TreatAs ACL), and no longer widens the access rights on the program folder.
