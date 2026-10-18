@@ -97,6 +97,7 @@ add_executable(settings WIN32
     src/EditorController.cpp
     src/EditorSession.cpp
     src/ExcludeRules.cpp
+    src/FileIcon.cpp
     src/FileWatcher.cpp
     src/FontEnum.cpp
     src/Highlight.cpp
@@ -116,6 +117,7 @@ add_executable(settings WIN32
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
+    src/SnippetPreview.cpp
     src/Snippets.cpp
     src/SnippetsController.cpp
     src/Status.cpp
@@ -185,6 +187,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_config_upgrade.cpp
         tests/test_menumap.cpp
         tests/test_snippets.cpp
+        tests/test_snippet_preview.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/ConfigUpdate.cpp
@@ -194,6 +197,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/SnippetPreview.cpp
         src/Snippets.cpp
         src/Status.cpp
         src/ThemeModel.cpp

@@ -9,10 +9,18 @@
 // snippet Shell would reject changes nothing. Once the config is known, copies the user
 // never edited are brought up to the bundled version (unless `allowWrites` is false: the
 // --snapshot tour writes nothing).
+//
+// The preview (SnippetPreview.h): clicking a row selects it (the first one is selected at
+// first); after a short pause its menu is read with `shell.exe -config:tree` on a scratch
+// root for every context, on a worker of its own, and kept for the session. A remote
+// snippet is downloaded (and checked) first, as for "Show code". The menu is drawn with
+// the Appearance page's theme (setTheme()), so Light/Dark there and here is the same switch.
 
 #include "app.h"
 
+#include "SnippetPreview.h"
 #include "Snippets.h"
+#include "ThemeModel.h"
 #include "Worker.h"
 
 #include <filesystem>
@@ -30,8 +38,33 @@ public:
 
     // Expands a snippet's code (the --snippets-code development switch).
     void showCode(const std::string &id);
+    // Selects a snippet for the preview, and the context it shows ("file", "back", ...;
+    // "" for the first): the --snippets-select and --snippets-context switches.
+    void selectForPreview(const std::string &id, const std::string &context = {});
+    // The theme the preview is drawn with (AppearanceController::onPreview).
+    void setTheme(const theme::Resolved &resolved);
 
 private:
+    // One snippet's preview, as the worker made it.
+    struct Preview
+    {
+        struct Items
+        {
+            snippetpreview::Context context;
+            std::vector<snippetpreview::Item> items;
+        };
+        struct Pixels
+        {
+            std::vector<uint8_t> rgba;
+            uint32_t width = 0, height = 0;
+        };
+        std::string error;                    // shell.exe couldn't read the menu: why
+        std::vector<Items> contexts;          // the ones where it adds items, in order
+        snippetpreview::Sample sample;
+        snippetpreview::ImageDefs defs;
+        std::map<std::string, Pixels> files;  // file icons, by Icon::path + "," + index
+    };
+
     struct Loaded
     {
         snippets::ConfigFiles files;
@@ -51,6 +84,12 @@ private:
     void apply(snippets::Plan plan, const std::string &reason, bool quiet);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
     std::shared_ptr<slint::VectorModel<CodeLine>> code(const snippets::Snippet &s, int &columns);
+    void select(const std::string &id);
+    void startPreview();
+    void pushPreview();
+    static std::shared_ptr<const Preview> makePreview(const std::string &id, const std::string &text,
+                                                      const std::filesystem::path &exe, const std::filesystem::path &root);
+    slint::Image iconImage(const snippetpreview::Icon &icon, const Preview &p);
 
     slint::ComponentHandle<AppWindow> ui_;
     bool allowWrites_ = true;
@@ -72,7 +111,17 @@ private:
     std::string busyId_;
     uint64_t gen_ = 0;
 
+    std::string selected_;              // the snippet the preview shows
+    std::string wantedContext_;         // --snippets-context
+    int previewContext_ = 0;            // index into the selected preview's contexts
+    std::map<std::string, std::shared_ptr<const Preview>> previews_; // by id, for the session
+    std::set<std::string> previewing_;  // ids whose preview is being made
+    theme::Resolved theme_;
+    std::map<std::string, slint::Image> svgImages_; // by the filled-in SVG
+
     slint::Timer statusPoll_;
     slint::Timer toastTimer_;
+    slint::Timer previewDelay_;
+    Worker previewWorker_;
     Worker worker_; // last: joined first
 };

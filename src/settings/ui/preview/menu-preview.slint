@@ -4,6 +4,9 @@
 import { PreviewTheme, PreviewItem, PreviewMenu } from "preview-types.slint";
 import { Tokens } from "../theme/tokens.slint";
 
+// The glyph font of `image=\uXXXX` (src/shared/Resource/Shell.ttf), for the Snippets preview.
+import "../../res/nilesoft-shell.ttf";
+
 // One menu: background (with blur/acrylic over what is behind it), rows,
 // separators, chevrons, and a border on top.
 export component MenuSurface inherits Rectangle {
@@ -100,6 +103,21 @@ export component MenuSurface inherits Rectangle {
                 height: t.sep-size;
                 background: t.sep-color;
             }
+            // The Snippets preview marks the snippet's own rows: a faint accent wash
+            // behind them and a short accent bar at the menu's edge.
+            if it.own && !it.separator: Rectangle {
+                x: -t.pad-left + 1px;
+                width: parent.width + t.pad-left + t.pad-right - 2px;
+                background: Tokens.accent.with-alpha(0.13);
+            }
+            if it.own && !it.separator: Rectangle {
+                x: -t.pad-left + 2px;
+                y: (parent.height - self.height) / 2;
+                width: 3px;
+                height: min(parent.height - 6px, 16px);
+                border-radius: 1.5px;
+                background: Tokens.accent;
+            }
             if !it.separator: Rectangle {
                 x: t.item-mar-left;
                 y: t.item-mar-top;
@@ -110,12 +128,21 @@ export component MenuSurface inherits Rectangle {
                 accessible-role: list-item;
                 accessible-label: it.label;
 
-                if t.show-images && it.glyph != "": Text {
+                if t.show-images && it.has-icon: Image {
+                    x: t.item-pad-left;
+                    y: (parent.height - self.height) / 2;
+                    width: t.image-size;
+                    height: t.image-size;
+                    source: it.icon;
+                    image-fit: contain;
+                    opacity: it.disabled ? 0.45 : 1;
+                }
+                if t.show-images && !it.has-icon && it.glyph != "": Text {
                     x: t.item-pad-left;
                     width: t.image-size;
                     height: parent.height;
                     text: it.glyph;
-                    font-family: root.icon-font;
+                    font-family: it.glyph-font != "" ? it.glyph-font : root.icon-font;
                     font-size: t.image-size * 0.94;
                     horizontal-alignment: center;
                     vertical-alignment: center;
@@ -129,10 +156,10 @@ export component MenuSurface inherits Rectangle {
                     font-family: root.family;
                     font-size: t.font-size;
                     font-weight: t.font-weight;
-                    font-italic: t.italic;
+                    font-italic: t.italic || it.placeholder;
                     vertical-alignment: center;
                     overflow: elide;
-                    color: it.disabled ? t.text-dis : selected ? t.text-sel : t.text;
+                    color: it.disabled || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
                 }
                 if it.sub >= 0: Text {
                     x: parent.width - t.item-pad-right - self.width;
@@ -367,9 +394,9 @@ export component PreviewPane inherits Rectangle {
 
     if root.open-sub >= 0 && root.open-sub < root.subs.length: sub := MenuSurface {
         // Opens to the right like the real menu; in a narrow preview it cascades
-        // over the parent's right edge rather than covering it.
+        // over the parent's right edge, as far left as it takes to show it whole.
         property <length> right-x: main.x + main.width - 4px;
-        x: self.right-x + self.width <= root.width - 4px ? self.right-x : max(main.x + main.width * 0.55, root.width - self.width - 4px);
+        x: self.right-x + self.width <= root.width - 4px ? self.right-x : max(4px, root.width - self.width - 4px);
         y: min(main.y + root.menu.items[root.hovered].y - root.t.pad-top, max(0px, root.height - self.height - 8px));
         t: root.t;
         menu: root.subs[root.open-sub];

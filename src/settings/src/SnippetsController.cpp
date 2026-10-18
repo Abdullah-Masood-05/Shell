@@ -1,6 +1,7 @@
 #include "SnippetsController.h"
 
 #include "EditorSession.h"
+#include "FileIcon.h"
 #include "Highlight.h"
 #include "ShellCli.h"
 #include "Tr.h"
@@ -8,8 +9,12 @@
 #include "nss/ConfigStore.h"
 #include "nss/Text.h"
 
+#include <windows.h>
+
 #include <algorithm>
 #include <chrono>
+#include <fstream>
+#include <future>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -37,6 +42,91 @@ std::string trimmed(std::string s)
     return s.substr(b);
 }
 
+namespace sp = snippetpreview;
+
+// %TEMP%\NilesoftShellPro\snippet-preview\<id>: the scratch root, the snippet and the samples.
+fs::path previewDir(const std::string &id)
+{
+    wchar_t buf[MAX_PATH + 1]{};
+    DWORD n = GetTempPathW(MAX_PATH, buf);
+    fs::path dir = n ? fs::path(std::wstring(buf, n)) : fs::temp_directory_path();
+    return dir / L"NilesoftShellPro" / L"snippet-preview" / nss::widen(id);
+}
+
+std::wstring env(const wchar_t *name)
+{
+    wchar_t buf[MAX_PATH + 1]{};
+    DWORD n = GetEnvironmentVariableW(name, buf, MAX_PATH);
+    return n && n < MAX_PATH ? std::wstring(buf, n) : std::wstring();
+}
+
+// What @sys.prog and the like stand for in an image path.
+std::map<std::string, std::string> pathVariables(const fs::path &exe)
+{
+    std::map<std::string, std::string> v;
+    auto put = [&](const char *name, const std::wstring &value) {
+        if (!value.empty())
+            v[name] = nss::narrow(value);
+    };
+    const auto windir = env(L"SystemRoot");
+    put("sys.prog", env(L"ProgramFiles"));
+    put("sys.prog32", env(L"ProgramFiles(x86)"));
+    put("sys.programdata", env(L"ProgramData"));
+    put("sys.dir", windir);
+    put("sys.bin", windir.empty() ? std::wstring() : windir + L"\\System32");
+    put("sys.root", env(L"SystemDrive"));
+    put("user.appdata", env(L"APPDATA"));
+    put("user.localappdata", env(L"LOCALAPPDATA"));
+    put("user.dir", env(L"USERPROFILE"));
+    put("user.home", env(L"USERPROFILE"));
+    put("app.dir", exe.parent_path().wstring());
+    return v;
+}
+
+// The sample a context's menu is read for: an empty file with the snippet's extension,
+// a folder, or the system drive; nothing for the desktop and the taskbar.
+fs::path prepareSample(sp::Context c, const fs::path &dir, const sp::Sample &sample)
+{
+    std::error_code ec;
+    switch (c) {
+    case sp::Context::File: {
+        auto file = dir / (L"Sample" + nss::widen(sample.extension));
+        if (!fs::exists(file, ec)) {
+            std::ofstream out(file, std::ios::binary);
+            if (sample.extension == ".zip") {
+                // An empty archive (end of central directory only), so it opens as one.
+                const char eocd[22] = { 'P', 'K', 5, 6 };
+                out.write(eocd, sizeof eocd);
+            }
+        }
+        return file;
+    }
+    case sp::Context::Folder:
+    case sp::Context::Back: {
+        auto folder = dir / L"Sample folder";
+        fs::create_directories(folder, ec);
+        return folder;
+    }
+    case sp::Context::Drive: {
+        auto drive = env(L"SystemDrive");
+        return fs::path((drive.empty() ? std::wstring(L"C:") : drive) + L"\\");
+    }
+    default:
+        return {};
+    }
+}
+
+void collectIcons(const std::vector<sp::Item> &items, std::vector<sp::Icon> &out)
+{
+    for (const auto &it : items) {
+        if (it.icon.kind == sp::IconKind::File)
+            out.push_back(it.icon);
+        collectIcons(it.children, out);
+    }
+}
+
+std::string iconKey(const sp::Icon &icon) { return icon.path + "," + std::to_string(icon.index); }
+
 } // namespace
 
 SnippetsController::SnippetsController(slint::ComponentHandle<AppWindow> ui, bool allowWrites)
@@ -57,6 +147,321 @@ void SnippetsController::showCode(const std::string &id)
 {
     expanded_.insert(id);
     push();
+}
+
+void SnippetsController::selectForPreview(const std::string &id, const std::string &context)
+{
+    wantedContext_ = context;
+    select(id);
+}
+
+void SnippetsController::setTheme(const theme::Resolved &resolved)
+{
+    theme_ = resolved;
+    if (!selected_.empty())
+        pushPreview();
+}
+
+void SnippetsController::select(const std::string &id)
+{
+    if (id == selected_)
+        return;
+    selected_ = id;
+    previewContext_ = 0;
+    codeErrors_.erase(id); // a download that failed is tried again
+    push();
+    // Clicking through the list quickly reads only the one it stops on.
+    previewDelay_.start(slint::TimerMode::SingleShot, 150ms, [this] { startPreview(); });
+}
+
+void SnippetsController::startPreview()
+{
+    const auto *s = catalog_ ? catalog_->find(selected_) : nullptr;
+    if (!s || previews_.count(s->id) || previewing_.count(s->id))
+        return;
+    if (s->text.empty()) {
+        // A remote snippet is downloaded and checked first, as for "Show code"; this
+        // runs again once it's in.
+        fetchCode(s->id);
+        pushPreview();
+        return;
+    }
+    if (shellExe_.empty()) {
+        auto p = std::make_shared<Preview>();
+        p->error = nsp::tr("shell.exe was not found");
+        previews_[s->id] = p;
+        pushPreview();
+        return;
+    }
+    previewing_.insert(s->id);
+    pushPreview();
+    previewWorker_.post([this, id = s->id, text = s->text, exe = shellExe_, root = root_] {
+        auto p = makePreview(id, text, exe, root);
+        slint::invoke_from_event_loop([this, id, p] {
+            previewing_.erase(id);
+            previews_[id] = p;
+            if (id == selected_)
+                pushPreview();
+        });
+    });
+}
+
+std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePreview(const std::string &id,
+                                                                                   const std::string &text,
+                                                                                   const fs::path &exe,
+                                                                                   const fs::path &root)
+{
+    auto out = std::make_shared<Preview>();
+    std::error_code ec;
+    auto dir = previewDir(id);
+    fs::create_directories(dir, ec);
+    // The long form (no ABDULL~1): shell.exe names the snippet's file that way in the tree.
+    if (wchar_t buf[MAX_PATH * 2]; DWORD n = GetLongPathNameW(dir.c_str(), buf, DWORD(std::size(buf))))
+        if (n < std::size(buf))
+            dir = fs::path(std::wstring(buf, n));
+    auto write = [](const fs::path &file, const std::string &bytes) {
+        std::ofstream f(file, std::ios::binary | std::ios::trunc);
+        f.write(bytes.data(), std::streamsize(bytes.size()));
+        return bool(f);
+    };
+    const auto snippetFile = dir / L"snippet.nss";
+    if (!write(snippetFile, snippets::toCrlf(text))) {
+        out->error = nsp::trf("Couldn't write {}", nss::narrow(snippetFile.wstring()));
+        return out;
+    }
+
+    // The user's theme, images and language; their image definitions, then the snippet's.
+    sp::ThemeSource source;
+    auto read = [](const fs::path &p) -> std::optional<std::string> {
+        std::string bytes;
+        if (!nss::readFile(p, bytes))
+            return std::nullopt;
+        return bytes;
+    };
+    if (!root.empty())
+        if (auto doc = nss::NssDocument::load(root)) {
+            source = sp::themeSource(*doc, root.parent_path(), read);
+            sp::collectImageDefs(doc->text(), out->defs);
+            for (const auto &p : source.imports)
+                if (auto bytes = read(p))
+                    sp::collectImageDefs(*bytes, out->defs);
+        }
+    sp::collectImageDefs(text, out->defs);
+    out->sample = sp::sampleFor(text);
+    const auto snippetDoc = nss::NssDocument::fromText(snippets::normalize(text));
+
+    struct Run
+    {
+        std::optional<menumap::Tree> tree;
+        std::string error;
+    };
+    // Every context at once: each is a shell.exe of its own.
+    auto runAll = [&](const sp::ThemeSource &src) {
+        const auto rootFile = dir / L"root.nss";
+        write(rootFile, sp::scratchRoot(src, "snippet.nss"));
+        std::vector<std::future<Run>> jobs;
+        for (auto c : sp::kContexts) {
+            auto sample = prepareSample(c, dir, out->sample);
+            jobs.push_back(std::async(std::launch::async, [exe, rootFile, c, sample] {
+                std::vector<std::wstring> args{ L"-config:tree", rootFile.wstring(),
+                                                L"-context:" + nss::widen(sp::contextName(c)) };
+                if (!sample.empty())
+                    args.push_back(L"-sample:" + sample.wstring());
+                auto r = ShellCli(exe).run(args, 30000);
+                Run run;
+                if (!r.started)
+                    run.error = nss::narrow(r.error);
+                else if (r.timedOut)
+                    run.error = nsp::tr("shell.exe took too long to read the menu and was stopped.");
+                else {
+                    std::string why;
+                    run.tree = menumap::parseTree(r.output, &why);
+                    if (!run.tree)
+                        run.error = nsp::trf("shell.exe gave no menu ({}). It may be older than this app.", why);
+                    else if (!run.tree->ok && !run.tree->errors.empty())
+                        run.error = run.tree->errors.front();
+                }
+                return run;
+            }));
+        }
+        std::vector<Run> runs;
+        for (auto &j : jobs)
+            runs.push_back(j.get());
+        return runs;
+    };
+    auto anyOk = [](const std::vector<Run> &runs) {
+        return std::any_of(runs.begin(), runs.end(), [](const Run &r) { return r.tree && r.tree->ok; });
+    };
+
+    auto runs = runAll(source);
+    // The user's theme files shouldn't keep the snippet from showing: again without them.
+    if (!anyOk(runs) && (!source.imports.empty() || !source.inlineTheme.empty() || source.lang))
+        runs = runAll({});
+    if (!anyOk(runs)) {
+        for (const auto &r : runs)
+            if (!r.error.empty()) {
+                out->error = r.error;
+                break;
+            }
+        if (out->error.empty())
+            out->error = nsp::tr("shell.exe couldn't load the snippet");
+        return out;
+    }
+    for (size_t i = 0; i < runs.size(); ++i) {
+        if (!runs[i].tree || !runs[i].tree->ok)
+            continue;
+        auto items = sp::itemsOf(runs[i].tree->shell, snippetFile, snippetDoc, out->defs);
+        if (!items.empty())
+            out->contexts.push_back({ sp::kContexts[i], std::move(items) });
+    }
+
+    // Programs' icons are read here, so the UI thread only turns them into images.
+    std::vector<sp::Icon> icons;
+    for (const auto &c : out->contexts)
+        collectIcons(c.items, icons);
+    const auto vars = pathVariables(exe);
+    for (const auto &icon : icons) {
+        const auto key = iconKey(icon);
+        if (out->files.count(key))
+            continue;
+        Preview::Pixels px;
+        if (auto rgba = fileicon::extract(nss::widen(sp::expandPath(icon.path, vars)), icon.index, 32, px.width, px.height)) {
+            px.rgba = std::move(*rgba);
+            out->files[key] = std::move(px);
+        }
+    }
+    return out;
+}
+
+slint::Image SnippetsController::iconImage(const sp::Icon &icon, const Preview &p)
+{
+    if (icon.kind == sp::IconKind::File) {
+        auto it = p.files.find(iconKey(icon));
+        if (it == p.files.end() || it->second.rgba.empty())
+            return {};
+        slint::SharedPixelBuffer<slint::Rgba8Pixel> buf(
+            it->second.width, it->second.height, reinterpret_cast<const slint::Rgba8Pixel *>(it->second.rgba.data()));
+        return slint::Image(buf);
+    }
+    if (icon.kind != sp::IconKind::Svg)
+        return {};
+    const auto svg = sp::svgFor(icon.svg, p.defs, theme_.imageColor, !theme_.dark);
+    if (auto it = svgImages_.find(svg); it != svgImages_.end())
+        return it->second;
+    auto image = slint::Image::load_from_data(
+        std::span<const uint8_t>(reinterpret_cast<const uint8_t *>(svg.data()), svg.size()), "svg");
+    svgImages_[svg] = image;
+    return image;
+}
+
+void SnippetsController::pushPreview()
+{
+    const auto &st = ui_->global<SnippetsState>();
+    const auto *s = catalog_ ? catalog_->find(selected_) : nullptr;
+    st.set_selected(ss(s ? selected_ : std::string()));
+    if (!s) {
+        st.set_preview_state("");
+        return;
+    }
+    st.set_preview_title(ss(s->titleIn(nsp::currentLanguage())));
+    st.set_preview_note("");
+    auto setState = [&](const char *state, const std::string &message) {
+        st.set_preview_state(state);
+        st.set_preview_message(ss(message));
+    };
+    auto showCode = [&](const std::string &message) {
+        int columns = 0;
+        st.set_preview_code(code(*s, columns));
+        st.set_preview_code_columns(columns);
+        setState("code", message);
+    };
+
+    // Selected before the catalog was in (--snippets-select), or after an error was
+    // cleared: start it now.
+    const bool waiting = s->text.empty() ? !fetching_.count(s->id) && !codeErrors_.count(s->id)
+                                         : !previews_.count(s->id) && !previewing_.count(s->id);
+    if (waiting && !previewDelay_.running())
+        previewDelay_.start(slint::TimerMode::SingleShot, 150ms, [this] { startPreview(); });
+
+    if (s->text.empty()) {
+        if (auto e = codeErrors_.find(s->id); e != codeErrors_.end())
+            setState("message", nsp::trf("No preview: the snippet couldn't be downloaded. {}", e->second));
+        else
+            setState("loading", nsp::tr("Downloading the snippet…"));
+        return;
+    }
+    auto found = previews_.find(s->id);
+    if (found == previews_.end()) {
+        setState("loading", nsp::tr("Loading preview…"));
+        return;
+    }
+    const auto &p = *found->second;
+    if (!p.error.empty()) {
+        showCode(nsp::trf("No preview ({}). This is the snippet's code.", p.error));
+        return;
+    }
+    if (p.contexts.empty()) {
+        showCode(nsp::tr("This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."));
+        return;
+    }
+
+    // --snippets-context: the first time this preview shows.
+    if (!wantedContext_.empty()) {
+        for (size_t i = 0; i < p.contexts.size(); ++i)
+            if (wantedContext_ == sp::contextName(p.contexts[i].context))
+                previewContext_ = int(i);
+        wantedContext_.clear();
+    }
+    previewContext_ = std::clamp(previewContext_, 0, int(p.contexts.size()) - 1);
+    const auto &ctx = p.contexts[size_t(previewContext_)];
+
+    std::vector<slint::SharedString> labels;
+    for (const auto &c : p.contexts)
+        labels.push_back(ss(nsp::tr(sp::contextLabel(c.context))));
+    st.set_preview_contexts(std::make_shared<slint::VectorModel<slint::SharedString>>(labels));
+    st.set_preview_context(previewContext_);
+    st.set_preview_pane(ctx.context == sp::Context::Desktop || ctx.context == sp::Context::Taskbar ? 0 : 1);
+    if (ctx.context == sp::Context::File && p.sample.fromSnippet)
+        st.set_preview_note(ss(nsp::trf("Shown for a {} file.", p.sample.extension)));
+
+    const auto composed = sp::compose(ctx.context, ctx.items, [](const char *msgid) { return std::string(nsp::tr(msgid)); });
+    const auto m = theme::rowMetrics(theme_);
+    const std::string iconFont = str(ui_->global<AppearanceState>().get_icon_font());
+    auto build = [&](const sp::Menu &menu, int open) {
+        auto items = std::make_shared<slint::VectorModel<PreviewItem>>();
+        float y = m.top;
+        for (const auto &r : menu.rows) {
+            PreviewItem it{};
+            it.separator = r.separator;
+            it.label = ss(r.label);
+            it.disabled = r.disabled;
+            it.sub = r.sub;
+            it.own = r.own;
+            it.placeholder = r.placeholder;
+            if (r.icon.kind == sp::IconKind::Glyph) {
+                it.glyph = ss(r.icon.glyph);
+                it.glyph_font = ss(r.icon.font == sp::GlyphFont::Shell ? std::string("Nilesoft.Shell") : iconFont);
+            } else if (r.icon.kind != sp::IconKind::None) {
+                it.icon = iconImage(r.icon, p);
+                it.has_icon = it.icon.size().width > 0;
+            }
+            it.y = y;
+            it.h = r.separator ? m.sep : m.row;
+            y += it.h;
+            items->push_back(it);
+        }
+        PreviewMenu out{};
+        out.items = items;
+        out.height = y + m.bottom;
+        out.open = open;
+        return out;
+    };
+    st.set_preview_menu(build(composed.main, composed.open));
+    auto subs = std::make_shared<slint::VectorModel<PreviewMenu>>();
+    for (const auto &sub : composed.subs)
+        subs->push_back(build(sub, -1));
+    st.set_preview_subs(subs);
+    setState("menu", "");
 }
 
 void SnippetsController::addTexts(const std::map<std::string, std::string> &texts)
@@ -86,6 +491,8 @@ void SnippetsController::fetchCode(const std::string &id)
             else
                 codeErrors_[id] = f.error;
             push();
+            if (f.ok && id == selected_)
+                startPreview();
         });
     });
 }
@@ -119,6 +526,11 @@ void SnippetsController::bindCallbacks()
     });
 
     st.on_create_user_config([this] { ui_->global<AppState>().invoke_action("config-init"); });
+    st.on_select([this](slint::SharedString id) { select(str(id)); });
+    st.on_set_preview_context([this](int index) {
+        previewContext_ = index;
+        pushPreview();
+    });
 }
 
 void SnippetsController::toast(const std::string &kind, const std::string &title, const std::string &text)
@@ -150,6 +562,7 @@ void SnippetsController::pollStatus()
         return;
     }
     root_ = fs::path(nss::widen(path)).lexically_normal();
+    previews_.clear(); // made with the previous config's theme
     shared_ = str(status.config_source) == "install" || editor::isProtectedPath(root_);
     st.set_load_error("");
     load(true);
@@ -337,8 +750,14 @@ void SnippetsController::push()
                 // A snippet that is on can always be turned off.
                 needs.empty() || enabled, ss(needs),
                 ss(s.risk == snippets::Risk::Admin ? "admin" : s.risk == snippets::Risk::Network ? "network" : ""),
-                ss(note), expanded, lines, columns, ss(codeStatus) });
+                ss(note), expanded, lines, columns, ss(codeStatus), s.id == selected_ });
         }
+    }
+    // The first one shows in the preview until another is clicked.
+    if (selected_.empty() && !rows.empty()) {
+        selected_ = str(rows.front().id);
+        rows.front().selected = true;
+        previewDelay_.start(slint::TimerMode::SingleShot, 150ms, [this] { startPreview(); });
     }
     st.set_rows(std::make_shared<slint::VectorModel<SnippetRow>>(rows));
     st.set_summary(ss(catalog_ ? nsp::trn("{n} of {0} on", "{n} of {0} on", on, total) : std::string()));
@@ -347,6 +766,7 @@ void SnippetsController::push()
                                                       : std::string(nsp::tr("No snippet matches the search."))));
     st.set_busy(busy_);
     st.set_busy_id(ss(busyId_));
+    pushPreview();
 }
 
 void SnippetsController::toggle(const std::string &id, bool on)

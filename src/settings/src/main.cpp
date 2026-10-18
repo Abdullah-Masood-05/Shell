@@ -9,6 +9,8 @@
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
+//   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
+//                          the Snippets page previews that snippet (in that context)
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
@@ -77,6 +79,8 @@ int g_snapshotWidth = 0;
 bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
 std::string g_snippetsCode;
+std::string g_snippetsSelect;
+std::string g_snippetsContext;
 MenuMapController::DevOptions g_map;
 bool g_mapSet = false;
 
@@ -146,6 +150,10 @@ AppOptions parseArgs()
             g_update.updateCancelled = true;
         } else if (_wcsicmp(argv[i], L"--snippets-code") == 0 && i + 1 < argc) {
             g_snippetsCode = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-select") == 0 && i + 1 < argc) {
+            g_snippetsSelect = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-context") == 0 && i + 1 < argc) {
+            g_snippetsContext = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--map-context") == 0 && i + 1 < argc) {
             static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"taskbar" };
             ++i;
@@ -255,6 +263,10 @@ int main()
     auto snippetsPage = std::make_unique<SnippetsController>(ui, !snapshot);
     if (!g_snippetsCode.empty())
         snippetsPage->showCode(g_snippetsCode);
+    if (!g_snippetsSelect.empty())
+        snippetsPage->selectForPreview(g_snippetsSelect, g_snippetsContext);
+    // The Snippets preview draws with the Appearance page's theme and Light/Dark.
+    appearance->onPreview([&](const theme::Resolved &r) { snippetsPage->setTheme(r); });
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
     // After an update (a new version, or the helper's --updated): the personal config's
     // menu files the user never changed are brought up to this version.
