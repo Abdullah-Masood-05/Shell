@@ -52,6 +52,7 @@ private:
     void openInEditor(const std::string &path, int line);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
     int dirtyCount() const;
+    const rules::Names &names();
 
     slint::ComponentHandle<AppWindow> ui_;
     std::filesystem::path shellExe_;
@@ -61,6 +62,8 @@ private:
     std::vector<File> files_;           // [0] is the root
     std::vector<rules::Module> modules_;
     std::vector<RuleRef> rules_;
+    rules::Names names_;                // how rule summaries name menus and items
+    std::string namesKey_;              // the language and folders names_ was built for
     std::vector<std::string> changes_;  // for the snapshot reason
     bool saving_ = false;
     uint64_t gen_ = 0;

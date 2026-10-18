@@ -3,6 +3,7 @@
 #include "EditorSession.h"
 #include "ShellCli.h"
 #include "Tr.h"
+#include "WindowsTitles.h"
 
 #include "nss/ConfigGraph.h"
 #include "nss/ConfigStore.h"
@@ -163,6 +164,26 @@ int ContextMenusController::dirtyCount() const
     return n;
 }
 
+// loc.* titles from the language files next to the config (or the install's), in the
+// app's language, and Windows' own titles for id.* and title.*.
+const rules::Names &ContextMenusController::names()
+{
+    std::vector<fs::path> dirs;
+    if (!root_.empty())
+        dirs.push_back(root_.parent_path() / L"imports" / L"lang");
+    if (!shellExe_.empty())
+        dirs.push_back(shellExe_.parent_path() / L"imports" / L"lang");
+    auto key = nsp::currentLanguage();
+    for (const auto &d : dirs)
+        key += "|" + nss::narrow(d.wstring());
+    if (key != namesKey_ || !names_.windows) {
+        names_ = rules::langNames(dirs, nsp::currentLanguage());
+        names_.windows = [](std::string_view name) { return wintitles::displayTitle(name); };
+        namesKey_ = key;
+    }
+    return names_;
+}
+
 void ContextMenusController::push()
 {
     const auto &st = ui_->global<MenusState>();
@@ -192,7 +213,7 @@ void ContextMenusController::push()
     size_t fileCount = 0;
     for (size_t fi = 0; fi < files_.size(); ++fi) {
         const auto &f = files_[fi];
-        auto list = rules::listRules(f.current);
+        auto list = rules::listRules(f.current, names());
         if (list.empty())
             continue;
         ++fileCount;
@@ -207,7 +228,7 @@ void ContextMenusController::push()
                              : r.complex     ? std::string(nsp::tr("Complex: edit it in the Config Editor"))
                                              : std::string{};
             std::string label = f.outside ? nsp::trf("{} (outside your config)", f.label) : f.label;
-            ruleRows.push_back(RuleRow{ ss(first ? label : std::string{}), ss(r.action), ss(r.target), ss(r.scope),
+            ruleRows.push_back(RuleRow{ ss(first ? label : std::string{}), ss(r.summary),
                                         ss(r.where), r.enabled, changed, toggleable, r.complex, ss(note),
                                         ss(nss::narrow(f.path.wstring())), int(r.line) });
             rules_.push_back(RuleRef{ fi, std::move(r) });

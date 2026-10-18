@@ -8,6 +8,8 @@
 #include "ConfigRules.h"
 #include "MenuModel.h"
 #include "MenuWriter.h"
+#include "Tr.h"
+#include "WindowsTitles.h"
 
 #include "nss/ConfigStore.h"
 #include "nss/NssDocument.h"
@@ -17,6 +19,8 @@
 
 #include <atomic>
 #include <fstream>
+#include <map>
+#include <optional>
 
 namespace fs = std::filesystem;
 
@@ -324,15 +328,13 @@ TEST_CASE("context menus: rule toggles give exact text")
     auto list = rules::listRules(doc);
     REQUIRE(list.size() == 4);
 
-    CHECK(list[0].action == "Hide");
-    CHECK(list[0].target == "Restore previous versions, Cast to device");
-    CHECK(list[0].scope == "any selection");
+    CHECK(list[0].summary == "Hides \xE2\x80\x9CRestore previous versions\xE2\x80\x9D and \xE2\x80\x9C" "Cast to device\xE2\x80\x9D "
+                             "when one or more items are selected");
     CHECK(list[0].lineCount == 3);
     CHECK(list[0].toggleable);
     CHECK(!list[0].complex);
 
-    CHECK(list[1].action == "Move to \xE2\x80\x9CPin/Unpin\xE2\x80\x9D, at the bottom");
-    CHECK(list[1].target == "\xE2\x80\x9Cunpin*\xE2\x80\x9D");
+    CHECK(list[1].summary == "Moves items whose name matches \xE2\x80\x9Cunpin*\xE2\x80\x9D to the bottom of \xE2\x80\x9CPin/Unpin\xE2\x80\x9D");
 
     CHECK(list[2].complex);          // sel.count > 2 isn't an item test
     CHECK(!list[2].toggleable);      // shares its line
@@ -353,7 +355,7 @@ TEST_CASE("context menus: rule toggles give exact text")
     auto offList = rules::listRules(doc);
     REQUIRE(offList.size() == 4);
     CHECK(!offList[0].enabled);
-    CHECK(offList[0].action == "Hide");
+    CHECK(offList[0].summary == list[0].summary);
     CHECK(offList[0].lineCount == 3);
     CHECK(!offList[1].enabled);
     CHECK(!rules::setRuleEnabled(doc, offList[2], false)); // not toggleable
@@ -380,8 +382,7 @@ TEST_CASE("context menus: the shipped modify.nss")
         CHECK(r.enabled);
         CHECK(r.toggleable);
         CHECK(!r.complex);
-        CHECK(!r.action.empty());
-        CHECK(!r.target.empty());
+        CHECK(!r.summary.empty());
     }
     // Every rule off, then on again, gives back the original text.
     for (size_t i = 0; i < list.size(); ++i)
@@ -392,6 +393,185 @@ TEST_CASE("context menus: the shipped modify.nss")
     for (size_t i = 0; i < list.size(); ++i)
         CHECK(rules::setRuleEnabled(*doc, rules::listRules(*doc)[i], true));
     CHECK(doc->text() == original);
+}
+
+namespace {
+
+std::vector<std::string> summaries(std::string_view text, const rules::Names &names = {})
+{
+    auto doc = nss::NssDocument::fromText(std::string(text));
+    std::vector<std::string> out;
+    for (const auto &r : rules::listRules(doc, names))
+        out.push_back(r.summary);
+    return out;
+}
+
+std::string q(std::string_view s) { return "\xE2\x80\x9C" + std::string(s) + "\xE2\x80\x9D"; }
+
+// Titles as a Chinese Windows would give them; pin_to_start_menu is Windows 7 only.
+rules::Names chineseNames()
+{
+    rules::Names n;
+    n.locEnglish = { { "file_manage", "File manage" }, { "pin_unpin", "Pin/Unpin" }, { "develop", "&Develop" } };
+    n.loc = { { "file_manage", "文件管理" }, { "pin_unpin", "固定/取消固定" }, { "develop", "开发" } };
+    n.windows = [](std::string_view name) -> std::optional<std::string> {
+        static const std::map<std::string, std::string, std::less<>> titles = {
+            { "copy_as_path", "复制为路径" }, { "more_options", "更多选项" }, { "terminal", "终端" },
+            { "pin_to_start", "固定到开始屏幕" }, { "pin_to_start_menu", "" },
+        };
+        auto it = titles.find(name);
+        if (it == titles.end())
+            return std::nullopt;
+        return it->second;
+    };
+    return n;
+}
+
+struct EnglishAfter
+{
+    ~EnglishAfter() { nsp::setLanguage(""); }
+};
+
+} // namespace
+
+TEST_CASE("context menus: rule summaries are sentences")
+{
+    auto s = summaries(
+        "modify(type=\"recyclebin\" where=window.is_desktop and this.id==id.empty_recycle_bin pos=1 sep)\r\n"
+        "modify(type=\"dir.back|drive.back\" where=this.id==id.customize_this_folder pos=1 sep=\"top\" menu=loc.file_manage)\r\n"
+        "remove(find=\"x|y\")\r\n"
+        "modify(where=this.id==id.copy title=\"Copy it\" image=icon.copy)\r\n"
+        "modify(where=this.id(id.cut,id.copy) vis=disable sep=\"both\" keys=\"Ctrl+X\")\r\n"
+        "modify(where=this.id(id.a,id.b,id.c,id.d,id.e,id.f,id.g) pos=pos.top menu=title.more_options)\r\n"
+        "modify(type=\"file|drive|back\" mode=\"none\" vis=hidden)\r\n"
+        "remove(find='\"Open Git Bash here\"')\r\n");
+    REQUIRE(s.size() == 8);
+    CHECK(s[0] == "Moves " + q("Empty recycle bin") + " to position 2 in the menu and adds a separator above it, "
+                  "for the Recycle Bin on the desktop");
+    CHECK(s[1] == "Moves " + q("Customize this folder") + " into " + q("File manage") +
+                      " at position 2 and adds a separator above it, for folder backgrounds or drive backgrounds");
+    CHECK(s[2] == "Removes items whose name matches " + q("x") + " or " + q("y"));
+    CHECK(s[3] == "Renames " + q("Copy") + " to " + q("Copy it") + " and changes its icon");
+    CHECK(s[4] == "Disables " + q("Cut") + " and " + q("Copy") + ", adds separators above and below them and shows shortcut keys");
+    CHECK(s[5] == "Moves " + q("A") + ", " + q("B") + ", " + q("C") + ", " + q("D") + " and 3 more to the top of " +
+                      q("More options"));
+    CHECK(s[6] == "Hides every item when nothing is selected, for files or drives or backgrounds");
+    CHECK(s[7] == "Removes " + q("Open Git Bash here")); // an exact title, as the Open with page writes it
+}
+
+TEST_CASE("context menus: menu and item names from language files and Windows")
+{
+    auto n = chineseNames();
+    auto s = summaries("modify(where=this.id==id.copy_as_path menu=loc.file_manage)\r\n"
+                       "modify(find=\"copy\" menu=\"file manage\")\r\n"
+                       "modify(find=\"dev\" menu='Develop')\r\n"
+                       "modify(find=\"x\" menu=title.more_options)\r\n"
+                       "modify(find=\"x\" menu=\"More options\")\r\n"
+                       "modify(find=\"x\" menu=\"Terminal\")\r\n"
+                       "modify(find=\"x\" menu=\"Something else\")\r\n"
+                       "modify(find=\"x\" menu=loc.unknown_key)\r\n"
+                       "modify(where=this.id(id.pin_to_start,id.pin_to_start_menu,id.open_with) pos=\"top\" menu=loc.pin_unpin)\r\n",
+                       n);
+    REQUIRE(s.size() == 9);
+    auto into = [](std::string_view what, std::string_view menu) { return "Moves " + std::string(what) + " into " + q(menu); };
+    CHECK(s[0] == into(q("复制为路径"), "文件管理"));
+    CHECK(s[1] == into("items whose name matches " + q("copy"), "文件管理")); // a literal, through en.nss
+    CHECK(s[2] == into("items whose name matches " + q("dev"), "开发"));       // "&Develop" in en.nss
+    CHECK(s[3] == into("items whose name matches " + q("x"), "更多选项"));
+    CHECK(s[4] == into("items whose name matches " + q("x"), "更多选项"));    // a literal of a Windows title
+    CHECK(s[5] == into("items whose name matches " + q("x"), "终端"));
+    CHECK(s[6] == into("items whose name matches " + q("x"), "Something else"));
+    CHECK(s[7] == into("items whose name matches " + q("x"), "Unknown key"));
+    // Windows 7's item is left out; an id Windows' table doesn't have reads as English.
+    CHECK(s[8] == "Moves " + q("固定到开始屏幕") + " and " + q("Open with") + " to the top of " + q("固定/取消固定"));
+
+    // Without names: readable English from the config itself.
+    auto plain = summaries("modify(where=this.id==id.copy_as_path menu=loc.file_manage)\r\n");
+    CHECK(plain[0] == into(q("Copy as path"), "File manage"));
+}
+
+TEST_CASE("context menus: language files")
+{
+    auto dir = binDir() / L"imports" / L"lang";
+    if (!fs::exists(dir / L"zh-CN.nss")) {
+        MESSAGE("src/bin/imports/lang not found; skipped");
+        return;
+    }
+    auto en = rules::langNames({ dir }, "");
+    CHECK(en.loc["file_manage"] == "File manage");
+    CHECK(en.locEnglish["develop"] == "&Develop");
+    auto cn = rules::langNames({ fs::path(L"Z:\\nowhere"), dir }, "zh-CN");
+    CHECK(cn.loc["file_manage"] == "文件管理");
+    CHECK(cn.loc["pin_unpin"] == "固定/取消固定");
+    CHECK(cn.locEnglish["file_manage"] == "File manage");
+    auto tw = rules::langNames({ dir }, "zh-TW");
+    CHECK(tw.loc["file_manage"] == "檔案管理");
+    auto none = rules::langNames({ dir }, "xx-YY"); // no such file: English
+    CHECK(none.loc["file_manage"] == "File manage");
+}
+
+TEST_CASE("context menus: the shipped modify.nss in Chinese")
+{
+    auto bytes = readAll(binDir() / L"imports" / L"modify.nss");
+    auto dir = binDir() / L"imports" / L"lang";
+    if (bytes.empty() || !fs::exists(dir / L"zh-CN.nss")) {
+        MESSAGE("src/bin/imports not found; skipped");
+        return;
+    }
+    EnglishAfter english;
+    REQUIRE(nsp::setLanguage("zh-CN"));
+    auto n = rules::langNames({ dir }, "zh-CN");
+    n.windows = [](std::string_view name) -> std::optional<std::string> {
+        if (name == "pin_to_start_menu" || name == "unpin_from_start_menu")
+            return std::string();
+        if (auto e = wintitles::englishTitle(name))
+            return std::string(nsp::tr(e));
+        return std::nullopt;
+    };
+    auto doc = nss::NssDocument::fromBytes(bytes);
+    REQUIRE(doc);
+    auto list = rules::listRules(*doc, n);
+    REQUIRE(list.size() == 8);
+    CHECK(list[0].summary == "选中一个或多个项目时，隐藏“还原以前的版本”和“播放到设备”");
+    CHECK(list[1].summary == "在桌面上右键单击回收站时，将“清空回收站”移到菜单的第 2 项，并在上方添加分隔线");
+    CHECK(list[2].summary == "将“从“开始”屏幕取消固定”、“从任务栏取消固定”和“从快速访问取消固定”移到“固定/取消固定”菜单底部");
+    CHECK(list[4].summary == "将“复制为路径”移到“文件管理”菜单");
+    CHECK(list[5].summary == "右键单击文件夹背景或驱动器背景时，将“自定义此文件夹”移到“文件管理”菜单的第 2 项，并在上方添加分隔线");
+    CHECK(list[6].summary == "将“open in terminal”、“open linux shell here”和“在此处打开 PowerShell 窗口”移到“终端”菜单底部");
+    CHECK(list[7].summary == "选中一个或多个项目时，将“发送到”、“共享”、“创建快捷方式”、“设置为桌面背景”及另外 9 项移到“更多选项”菜单的第 2 项");
+    for (const auto &r : list)
+        for (const char *word : { "Drive", "Move", "file manage", "Terminal", "More options", "Pin/Unpin" })
+            CHECK_MESSAGE(r.summary.find(word) == std::string::npos, r.summary);
+}
+
+TEST_CASE("context menus: Windows item titles")
+{
+    CHECK(wintitles::stripAccelerators("Copy &as path") == "Copy as path");
+    CHECK(wintitles::stripAccelerators("复制为路径(&A)") == "复制为路径");
+    CHECK(wintitles::stripAccelerators("格式化(&A)...") == "格式化");
+    CHECK(wintitles::stripAccelerators("Fo&rmat...") == "Format");
+    CHECK(wintitles::stripAccelerators("Tom && Jerry") == "Tom & Jerry");
+    CHECK(wintitles::stripAccelerators("Properties\tAlt+Enter") == "Properties");
+    CHECK(std::string(wintitles::englishTitle("Copy_As_Path")) == "Copy as path");
+    CHECK(wintitles::englishTitle("no_such_item") == nullptr);
+    CHECK(!wintitles::systemTitle("no_such_item"));
+    CHECK(wintitles::systemTitle("pin_to_start_menu") == std::string()); // Windows 7 only
+    // Read from shell32.dll as shell.dll does: some title, without accelerators.
+    auto copy = wintitles::systemTitle("copy_as_path");
+    REQUIRE(copy);
+    CHECK(!copy->empty());
+    CHECK(copy->find('&') == std::string::npos);
+    auto more = wintitles::systemTitle("more_options");
+    CHECK((more && !more->empty()));
+
+    // An English app on an English Windows names items as Windows does.
+    auto langs = nsp::windowsLanguages();
+    if (!langs.empty() && langs[0].rfind("en", 0) == 0) {
+        CHECK(wintitles::displayTitle("copy_as_path") == copy);
+        EnglishAfter english;
+        REQUIRE(nsp::setLanguage("zh-TW"));
+        CHECK(wintitles::displayTitle("copy_as_path") == std::string("複製為路徑"));
+    }
 }
 
 TEST_CASE("menus: generated file and toggles pass shell.exe -config:check (real shell.exe)")

@@ -127,8 +127,8 @@ component ModuleItem inherits HorizontalLayout {
     }
 }
 
-// One modify/remove rule: what it does to which items, where, the line
-// (opens it), the switch.
+// One modify/remove rule: a sentence saying what it does to which items and
+// when, the line (opens it), the switch.
 component RuleItem inherits HorizontalLayout {
     in property <RuleRow> entry;
     in property <bool> read-only;
@@ -148,30 +148,19 @@ component RuleItem inherits HorizontalLayout {
         HorizontalLayout {
             spacing: Tokens.s2;
             Text {
-                text: root.entry.action;
-                font-weight: 600;
+                horizontal-stretch: 1;
+                text: root.entry.summary;
                 color: root.entry.enabled ? Tokens.text : Tokens.text-2;
                 vertical-alignment: center;
+                wrap: word-wrap;
             }
             if root.entry.changed: VerticalLayout {
                 alignment: center;
                 ChangedDot { }
             }
-            Text {
-                horizontal-stretch: 1;
-                text: root.entry.target;
-                color: root.entry.enabled ? Tokens.text-2 : Tokens.text-3;
-                vertical-alignment: center;
-                overflow: elide;
-            }
         }
-        if root.entry.scope != "" || root.entry.complex || (root.entry.note != "" && !root.read-only): HorizontalLayout {
+        if root.entry.complex || (root.entry.note != "" && !root.read-only): HorizontalLayout {
             spacing: Tokens.s2;
-            if root.entry.scope != "": Text {
-                text: root.entry.scope;
-                font-size: Tokens.caption;
-                color: Tokens.text-3;
-            }
             if root.entry.complex && root.entry.where != "": Text {
                 horizontal-stretch: 1;
                 text: @tr("where {}", root.entry.where);
@@ -200,7 +189,7 @@ component RuleItem inherits HorizontalLayout {
         Toggle {
             on: root.entry.enabled;
             enabled: root.entry.toggleable && !MenusState.saving;
-            label: root.entry.action + " " + root.entry.target;
+            label: root.entry.summary;
             toggled(on) => { root.toggled(on); }
         }
     }

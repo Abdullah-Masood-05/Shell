@@ -19,9 +19,7 @@ export struct ModuleRow {
 // One modify(...)/remove(...) rule. `group` starts a new file section.
 export struct RuleRow {
     group: string,             // the file label on the first rule of a file, else ""
-    action: string,
-    target: string,
-    scope: string,
+    summary: string,           // one sentence: what it does to which items, and when
     where: string,
     enabled: bool,
     changed: bool,

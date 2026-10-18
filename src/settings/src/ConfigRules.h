@@ -10,6 +10,8 @@
 #include "nss/NssDocument.h"
 
 #include <filesystem>
+#include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -48,16 +50,32 @@ struct Rule
     size_t line = 0;          // 1-based first line
     size_t lineCount = 1;
     std::string text;         // the declaration as written (enabled form)
-    std::string action;       // "Hide", "Move to “File manage”", "Rename to …"
-    std::string target;       // what it applies to
-    std::string scope;        // "multiple selection · recycle bin", ...
+    std::string summary;      // one sentence: "Moves “Copy as path” into “File manage”"
     std::string where;        // the raw where expression, when there is one
     bool complex = false;     // the summary can't say exactly what it does
     bool toggleable = true;   // can be turned on/off with a line comment
     std::string note;         // why it can't be toggled
 };
 
-std::vector<Rule> listRules(const nss::NssDocument &doc);
+// How summaries name menus and Windows items. Left empty, they use readable English
+// made from the names in the config (id.copy_as_path -> "Copy as path").
+struct Names
+{
+    std::map<std::string, std::string> loc;        // loc.<key> -> title in the UI language
+    std::map<std::string, std::string> locEnglish; // loc.<key> -> title in en.nss
+    // id.<name> / title.<name> (lower case) -> the item's title; nullopt: not known,
+    // "": no such item on this Windows (left out of the summary).
+    std::function<std::optional<std::string>(std::string_view)> windows;
+};
+
+// The name = value lines of an `import lang` file.
+std::map<std::string, std::string> readLangFile(const std::filesystem::path &path);
+
+// loc.* titles from the first folder that has the file: en.nss, then <language>.nss
+// (or its base language) on top. `language` is a code like "zh-CN"; "" is English.
+Names langNames(const std::vector<std::filesystem::path> &langDirs, std::string_view language);
+
+std::vector<Rule> listRules(const nss::NssDocument &doc, const Names &names = {});
 // Finds the rule again by line and text (the document may have been edited).
 bool setRuleEnabled(nss::NssDocument &doc, const Rule &rule, bool enabled);
 
