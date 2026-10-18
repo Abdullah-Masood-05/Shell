@@ -95,6 +95,11 @@ std::string sha256File(const std::filesystem::path &file);
 // the hosts GitHub redirects them to. https only.
 bool isAllowedDownloadUrl(std::string_view url);
 
+// The Snippets page's downloads (src/Snippets.h): files of
+// raw.githubusercontent.com/Abdullah-Masood-05/Nilesoft-Shell-Snippets at a full commit
+// SHA, never a branch. https only, no query.
+bool isAllowedSnippetUrl(std::string_view url);
+
 // --- network -------------------------------------------------------------------------
 
 struct HttpResult

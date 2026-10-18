@@ -588,7 +588,12 @@ std::string sha256File(const fs::path &file)
     return result;
 }
 
-bool isAllowedDownloadUrl(std::string_view url)
+namespace {
+
+// An https URL split into its lower-case host and its path without query or fragment.
+// False for anything else, a user name, a port other than 443, or a path with "." or
+// ".." segments (also percent-encoded).
+bool splitHttpsUrl(std::string_view url, std::string &host, std::string_view &pathOnly)
 {
     if (!startsWithI(url, "https://") || url.find('\\') != std::string_view::npos)
         return false;
@@ -596,7 +601,7 @@ bool isAllowedDownloadUrl(std::string_view url)
     auto slash = rest.find('/');
     if (slash == std::string_view::npos)
         return false;
-    auto host = lower(std::string(rest.substr(0, slash)));
+    host = lower(std::string(rest.substr(0, slash)));
     auto path = rest.substr(slash);
     if (host.find('@') != std::string::npos)
         return false;
@@ -606,9 +611,40 @@ bool isAllowedDownloadUrl(std::string_view url)
         host.resize(colon);
     }
     auto query = path.find_first_of("?#");
-    auto pathOnly = path.substr(0, query);
+    pathOnly = path.substr(0, query);
     if (pathOnly.find("/../") != std::string_view::npos || pathOnly.find("/./") != std::string_view::npos ||
         pathOnly.find("%2e") != std::string_view::npos || pathOnly.find("%2E") != std::string_view::npos)
+        return false;
+    return true;
+}
+
+} // namespace
+
+bool isAllowedSnippetUrl(std::string_view url)
+{
+    std::string host;
+    std::string_view pathOnly;
+    if (!splitHttpsUrl(url, host, pathOnly) || host != "raw.githubusercontent.com" ||
+        url.find_first_of("?#") != std::string_view::npos)
+        return false;
+    constexpr std::string_view prefix = "/Abdullah-Masood-05/Nilesoft-Shell-Snippets/";
+    if (!startsWithI(pathOnly, prefix))
+        return false;
+    // A full commit SHA, never a branch, then a file.
+    auto rest = pathOnly.substr(prefix.size());
+    if (rest.size() < 42 || rest[40] != '/')
+        return false;
+    for (size_t i = 0; i < 40; ++i)
+        if (!std::isxdigit(static_cast<unsigned char>(rest[i])))
+            return false;
+    return rest.size() > 41 && rest.find("//") == std::string_view::npos && rest.back() != '/';
+}
+
+bool isAllowedDownloadUrl(std::string_view url)
+{
+    std::string host;
+    std::string_view pathOnly;
+    if (!splitHttpsUrl(url, host, pathOnly))
         return false;
     if (host == "github.com")
         return startsWithI(pathOnly, "/Abdullah-Masood-05/Shell/releases/download/") &&
