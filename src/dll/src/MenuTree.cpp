@@ -1283,6 +1283,11 @@ namespace Nilesoft
 									item.moved = ri.menu;
 								if(!ri.title.empty() && item.renamed.empty())
 									item.renamed = ri.title;
+								// Hidden or moved: the item leaves this menu, so the rules
+								// after this one don't see it here (as in ContextMenu.cpp).
+								if(ri.vis == L"hidden" ||
+								   (!ri.menu.empty() && ::_wcsicmp(ri.menu.c_str(), item.path.c_str()) != 0))
+									break;
 							}
 							else
 							{
