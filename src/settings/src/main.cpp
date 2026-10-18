@@ -1,13 +1,14 @@
 // Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
 // Development switches:
-//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith>
+//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith|snippets>
 //   --no-onboarding    don't show the first-run dialog this time
 //   --onboarding <1|2|3>   show the first-run dialog at that step, whatever the status;
 //                          with --snapshot, the tour starts with that step and the ones after it
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
+//   --snippets-code <id>   the Snippets page shows that snippet's code
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
@@ -45,6 +46,7 @@
 #include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
+#include "SnippetsController.h"
 #include "Text.h"
 #include "UpdateController.h"
 
@@ -71,6 +73,7 @@ int g_snapshotHeight = 0;
 int g_snapshotWidth = 0;
 bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
+std::string g_snippetsCode;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -109,7 +112,7 @@ AppOptions parseArgs()
         return o;
     static constexpr const wchar_t *pages[] = { L"home",  L"appearance", L"behavior", L"rules",      L"menus",
                                                 L"builder", L"editor",   L"backups",  L"preferences",
-                                                L"openwith" };
+                                                L"openwith", L"snippets" };
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;
@@ -136,6 +139,8 @@ AppOptions parseArgs()
             g_update.updateFailed = argv[++i];
         } else if (_wcsicmp(argv[i], L"--update-cancelled") == 0) {
             g_update.updateCancelled = true;
+        } else if (_wcsicmp(argv[i], L"--snippets-code") == 0 && i + 1 < argc) {
+            g_snippetsCode = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
@@ -222,6 +227,10 @@ int main()
     auto contextMenus = std::make_unique<ContextMenusController>(ui);
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
     auto openWith = std::make_unique<OpenWithController>(ui);
+    // The --snapshot tour writes nothing: no refresh of the snippet copies.
+    auto snippetsPage = std::make_unique<SnippetsController>(ui, !snapshot);
+    if (!g_snippetsCode.empty())
+        snippetsPage->showCode(g_snippetsCode);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
     // After an update (a new version, or the helper's --updated): the personal config's
     // menu files the user never changed are brought up to this version.
@@ -331,6 +340,7 @@ int main()
     behavior.reset();
     appearance.reset();
     saveService.reset();
+    snippetsPage.reset();
     openWith.reset();
     menuBuilder.reset();
     contextMenus.reset();

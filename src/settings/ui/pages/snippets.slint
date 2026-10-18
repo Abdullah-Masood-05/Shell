@@ -1,0 +1,234 @@
+import { LineEdit, ListView } from "std-widgets.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { AppState } from "../types.slint";
+import { EditorState } from "../editor-types.slint";
+import { SnippetsState, SnippetRow } from "../snippets-types.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Toggle } from "../components/toggle.slint";
+import { Link, Segmented } from "../components/controls.slint";
+import { CodeColors, CodeRow } from "../components/code.slint";
+import { PageFrame } from "page-frame.slint";
+
+// The list surface: one bordered layer, rows separated by hairlines.
+component ListSurface inherits Rectangle {
+    background: Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    VerticalLayout {
+        padding-top: Tokens.s1;
+        padding-bottom: Tokens.s1;
+        @children
+    }
+}
+
+component Hairline inherits Rectangle {
+    height: 1px;
+    background: Tokens.stroke;
+}
+
+// A small flat label after the title: what a snippet needs or does.
+component Badge inherits Rectangle {
+    in property <string> text;
+    in property <bool> warn;    // runs as administrator
+    height: 20px;
+    width: label.preferred-width + 12px;
+    border-radius: Tokens.radius-xs;
+    background: root.warn ? Tokens.warning-bg : Tokens.layer-2;
+    border-width: 1px;
+    border-color: root.warn ? Tokens.warning.with-alpha(0.35) : Tokens.stroke;
+    label := Text {
+        text: root.text;
+        font-size: Tokens.caption;
+        color: root.warn ? Tokens.warning : Tokens.text-2;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+// One snippet: title and badges, a line saying what it does, the author and "Show code",
+// the switch on the right; the code under it when expanded.
+component SnippetItem inherits VerticalLayout {
+    in property <SnippetRow> entry;
+    in property <bool> locked;   // shared config, or a save in progress
+
+    padding-left: Tokens.s4;
+    padding-right: Tokens.s4;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    spacing: Tokens.s2;
+
+    HorizontalLayout {
+        spacing: Tokens.s4;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 3px;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                Text {
+                    text: root.entry.title;
+                    font-weight: 600;
+                    color: root.entry.available ? Tokens.text : Tokens.text-2;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                if root.entry.needs != "": VerticalLayout {
+                    alignment: center;
+                    Badge { text: root.entry.needs; }
+                }
+                if root.entry.risk == "admin": VerticalLayout {
+                    alignment: center;
+                    Badge { text: @tr("Runs as administrator"); warn: true; }
+                }
+                if root.entry.risk == "network": VerticalLayout {
+                    alignment: center;
+                    Badge { text: @tr("Uses the internet"); }
+                }
+                Rectangle { horizontal-stretch: 1; }
+            }
+            Text {
+                text: root.entry.description;
+                font-size: Tokens.caption + 1px;
+                color: root.entry.available ? Tokens.text-2 : Tokens.text-3;
+                wrap: word-wrap;
+            }
+            HorizontalLayout {
+                spacing: Tokens.s3;
+                padding-top: 1px;
+                Text {
+                    text: @tr("by {}", root.entry.author);
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                    vertical-alignment: center;
+                }
+                Link {
+                    text: root.entry.expanded ? @tr("Hide code") : @tr("Show code");
+                    font-size: Tokens.caption;
+                    activated => { SnippetsState.toggle-code(root.entry.id); }
+                }
+                if root.entry.note != "": Text {
+                    horizontal-stretch: 1;
+                    text: root.entry.note;
+                    font-size: Tokens.caption;
+                    color: Tokens.warning;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                Rectangle { horizontal-stretch: 1; }
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            Toggle {
+                on: root.entry.enabled;
+                enabled: root.entry.available && !root.locked;
+                label: root.entry.title;
+                toggled(on) => { SnippetsState.toggle(root.entry.id, on); }
+            }
+        }
+    }
+
+    if root.entry.expanded: Rectangle {
+        height: min(300px, root.entry.code.length * CodeColors.row-height + 16px);
+        border-radius: Tokens.radius-sm;
+        background: Tokens.layer-2;
+        code := ListView {
+            width: 100%;
+            height: 100%;
+            content-width: max(self.visible-width, 56px + root.entry.code-columns * CodeColors.column-width + Tokens.s6);
+            for line in root.entry.code: CodeRow {
+                width: code.content-width;
+                line: line;
+                font: EditorState.mono-font;
+            }
+        }
+    }
+}
+
+export component SnippetsPage inherits PageFrame {
+    init => { SnippetsState.activated(); }
+
+    PageHeader {
+        title: @tr("Snippets");
+        description: @tr("Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved.");
+        busy: SnippetsState.busy;
+        busy-label: @tr("Checking and saving…");
+    }
+
+    if SnippetsState.shared-config: Banner {
+        kind: "info";
+        title: @tr("This is the shared config in the install folder");
+        text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on.");
+        action-label: @tr("Create personal config");
+        action-enabled: !AppState.busy && AppState.cli-available;
+        action => { SnippetsState.create-user-config(); }
+    }
+    if SnippetsState.load-error != "": Banner {
+        kind: "error";
+        title: @tr("Couldn't read the config");
+        text: SnippetsState.load-error;
+    }
+
+    // Search, the count, then the categories.
+    HorizontalLayout {
+        spacing: Tokens.s3;
+        LineEdit {
+            width: 280px;
+            placeholder-text: @tr("Search snippets");
+            edited(text) => { SnippetsState.search(text); }
+        }
+        Rectangle { horizontal-stretch: 1; }
+        Text {
+            text: SnippetsState.summary;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            vertical-alignment: center;
+        }
+    }
+    HorizontalLayout {
+        alignment: start;
+        Segmented {
+            options: SnippetsState.categories;
+            selected: SnippetsState.category;
+            min-option-width: 72px;
+            changed(index) => { SnippetsState.set-category(index); }
+        }
+    }
+
+    ListSurface {
+        if SnippetsState.rows.length == 0: Text {
+            height: 52px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: SnippetsState.empty-text;
+            color: Tokens.text-3;
+        }
+        for r[i] in SnippetsState.rows: VerticalLayout {
+            if i > 0: Hairline { }
+            SnippetItem {
+                entry: r;
+                locked: SnippetsState.shared-config || SnippetsState.busy;
+            }
+        }
+    }
+
+    // RubicBG's collection: a link only (it has no license, so nothing of it is bundled).
+    VerticalLayout {
+        spacing: 2px;
+        padding-top: Tokens.s1;
+        HorizontalLayout {
+            alignment: start;
+            Link {
+                text: @tr("More snippets by RubicBG");
+                activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
+            }
+        }
+        Text {
+            text: @tr("A large community collection on GitHub. It isn't part of this app: read a snippet before you add it to your config in the Config Editor.");
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-3;
+            wrap: word-wrap;
+        }
+    }
+}

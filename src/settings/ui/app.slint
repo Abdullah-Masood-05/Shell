@@ -19,6 +19,7 @@ import { SettingsState, SK } from "pages/settings-state.slint";
 import { ContextMenusPage } from "pages/context-menus.slint";
 import { MenuBuilderPage } from "pages/menu-builder.slint";
 import { OpenWithPage } from "pages/openwith.slint";
+import { SnippetsPage } from "pages/snippets.slint";
 import { UpdateState } from "update-state.slint";
 import { ConfigUpdateState } from "config-update-state.slint";
 import { CompareDialog } from "components/config-update.slint";
@@ -30,6 +31,7 @@ export { SaveState, AppearanceState, K, Pages, SettingsState, SK }
 export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
 export { OpenWithState, OpenWithRow, OpenWithForm, OpenWithTestLine, OpenWithPreviewRow, OtherAppRow } from "openwith-types.slint";
 export { PresetsState, PresetCard } from "pages/presets-state.slint";
+export { SnippetsState, SnippetRow } from "snippets-types.slint";
 export { UpdateState, ConfigUpdateState }
 
 export component AppWindow inherits Window {
@@ -92,6 +94,10 @@ export component AppWindow inherits Window {
                 height: 100%;
             }
             if AppState.page == Pages.openwith: OpenWithPage {
+                width: 100%;
+                height: 100%;
+            }
+            if AppState.page == Pages.snippets: SnippetsPage {
                 width: 100%;
                 height: 100%;
             }

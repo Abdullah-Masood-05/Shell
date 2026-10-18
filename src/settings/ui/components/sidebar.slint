@@ -17,6 +17,7 @@ export component Sidebar inherits Rectangle {
         { page: Pages.menus, label: @tr("Context Menus"), icon: Icons.menus, header: @tr("Menus") },
         { page: Pages.builder, label: @tr("Menu Builder"), icon: Icons.builder, header: "" },
         { page: Pages.openwith, label: @tr("Open with"), icon: Icons.open-with, header: "" },
+        { page: Pages.snippets, label: @tr("Snippets"), icon: Icons.snippets, header: "" },
         { page: Pages.editor, label: @tr("Config Editor"), icon: Icons.editor, header: @tr("Advanced") },
         { page: Pages.backups, label: @tr("Backups"), icon: Icons.backups, header: "" },
     ];
@@ -36,14 +37,16 @@ export component Sidebar inherits Rectangle {
     function go(page: int) {
         AppState.page = page;
     }
-    // Open with (page 9) sits between Menu Builder and Config Editor.
+    // Open with (page 9) and Snippets (page 10) sit between Menu Builder and Config Editor.
     function next(page: int) -> int {
         if (page == Pages.builder) { return Pages.openwith; }
-        if (page == Pages.openwith) { return Pages.editor; }
+        if (page == Pages.openwith) { return Pages.snippets; }
+        if (page == Pages.snippets) { return Pages.editor; }
         return min(root.last-page, page + 1);
     }
     function previous(page: int) -> int {
-        if (page == Pages.editor) { return Pages.openwith; }
+        if (page == Pages.editor) { return Pages.snippets; }
+        if (page == Pages.snippets) { return Pages.openwith; }
         if (page == Pages.openwith) { return Pages.builder; }
         return max(0, page - 1);
     }
