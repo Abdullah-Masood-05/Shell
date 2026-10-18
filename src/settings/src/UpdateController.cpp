@@ -310,12 +310,19 @@ int runUpdateHelper()
     const DWORD pid = wcstoul(argv[4], nullptr, 10);
     const fs::path app = installDir / L"NilesoftShellPro.exe";
 
-    // The messages passed back with --update-failed are shown as they are: write them in
-    // the app's language.
-    std::string language = narrow(registry::app::getString(L"Language").value_or(L""));
-    if (language == "auto")
-        language.clear();
-    nsp::setLanguage(nsp::resolveSetting(language));
+    // The language the app was showing (argument 5, "en" for English), passed back with
+    // --ui-lang so the app comes back in it. The messages passed back with --update-failed
+    // are shown as they are: they are written in it too. Without it (an older app), the
+    // saved setting, which an elevated helper may read from another account.
+    std::string shown = argc > 5 ? narrow(argv[5]) : std::string();
+    if (shown.empty() || shown.find_first_of(" \"") != std::string::npos) {
+        std::string setting = narrow(registry::app::getString(L"Language").value_or(L""));
+        if (setting == "auto")
+            setting.clear();
+        shown = nsp::resolveSetting(setting);
+    }
+    nsp::setLanguage(shown);
+    const std::wstring lang = L" --ui-lang " + widen(shown.empty() ? std::string("en") : shown);
 
     waitForExit(pid);
 
@@ -323,7 +330,7 @@ int runUpdateHelper()
         auto r = updater::applyPortable(source, installDir);
         std::error_code ec;
         fs::remove_all(source, ec);
-        relaunch(app, r.ok ? L"--updated portable" : L"--update-failed " + ShellCli::quote(widen(r.error)));
+        relaunch(app, (r.ok ? L"--updated portable" : L"--update-failed " + ShellCli::quote(widen(r.error))) + lang);
         return r.ok ? 0 : 1;
     }
 
@@ -355,7 +362,7 @@ int runUpdateHelper()
     else
         args = L"--update-failed " + ShellCli::quote(widen(nsp::trf("The installer stopped with code {}. Its log is {}.log.",
                                                                     code, narrow(source.wstring()))));
-    relaunch(app, args);
+    relaunch(app, args + lang);
     return code == ERROR_SUCCESS ? 0 : 1;
 }
 
@@ -697,8 +704,9 @@ void UpdateController::handOver()
         setState("ready", as(error), "error");
         return;
     }
+    const std::string shown = nsp::currentLanguage();
     const std::wstring args = ShellCli::quote(ready_.wstring()) + L" " + ShellCli::quote(installDir_.wstring()) + L" " +
-                              std::to_wstring(GetCurrentProcessId());
+                              std::to_wstring(GetCurrentProcessId()) + L" " + widen(shown.empty() ? std::string("en") : shown);
 
     if (installType_ == updater::InstallType::Portable) {
         STARTUPINFOW si{ sizeof si };

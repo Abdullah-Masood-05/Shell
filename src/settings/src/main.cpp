@@ -28,7 +28,8 @@
 // Update helper (UpdateController.h; started from a copy in %TEMP%, never by hand):
 //   --apply-update <staging> <installdir> <pid>, --apply-msi <msi> <installdir> <pid>
 // and what it passes back when it starts the app again:
-//   --updated <msi|portable>, --update-failed <message>, --update-cancelled
+//   --updated <msi|portable>, --update-failed <message>, --update-cancelled,
+//   and --ui-lang <en|zh-CN|...>: the language the app was showing
 
 #include "app.h"
 
@@ -127,6 +128,8 @@ AppOptions parseArgs()
             o.language = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
+        } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {
+            o.shownLanguage = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {
             g_update.updated = argv[++i];
         } else if (_wcsicmp(argv[i], L"--update-failed") == 0 && i + 1 < argc) {

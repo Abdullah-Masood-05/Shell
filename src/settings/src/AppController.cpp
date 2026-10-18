@@ -212,7 +212,12 @@ AppController::AppController(slint::ComponentHandle<AppWindow> ui, AppOptions op
                                                   : narrow(registry::app::getString(L"Language").value_or(L""));
     if (languageSetting_ == "auto")
         languageSetting_.clear();
-    applyLanguage(languageSetting_);
+    // Started again by the update helper: the language the app was showing when it
+    // closed for the update, so it comes back in it. Auto is resolved again from
+    // Windows otherwise, and the elevated helper's way back (Explorer just restarted
+    // by the installer, or another account's elevation) may not see the same settings.
+    // The saved setting is unchanged; Preferences still shows it.
+    applyLanguage(languageSetting_, options_.language.empty() ? options_.shownLanguage : std::string());
     nsp::onLanguageChanged([this] {
         // Push the text computed here again; a toast in the old language just goes.
         const auto &st = ui_->global<AppState>();
@@ -229,9 +234,15 @@ AppController::AppController(slint::ComponentHandle<AppWindow> ui, AppOptions op
     applyTheme();
 }
 
-void AppController::applyLanguage(const std::string &setting)
+void AppController::applyLanguage(const std::string &setting, const std::string &shown)
 {
-    const std::string code = nsp::resolveSetting(setting);
+    std::string code = nsp::resolveSetting(setting);
+    if (_stricmp(shown.c_str(), "en") == 0)
+        code.clear();
+    else
+        for (const auto &l : nsp::languages())
+            if (_stricmp(shown.c_str(), l.code) == 0)
+                code = l.code;
     // Always: Slint picks a language from the system locale on its own when the window
     // is created, and "" brings it back to English.
     slint::select_bundled_translation(code);

@@ -22,6 +22,7 @@ struct AppOptions
     int onboardingStep = -1;   // --onboarding <1|2|3>: show the dialog at that step (development)
     std::wstring statusFile;   // --status-json <file>: Home reads it instead of -status (development)
     std::string language;      // --lang <auto|en|zh-CN|...>: this run only, not saved (development)
+    std::string shownLanguage; // --ui-lang <en|zh-CN|...>: from the update helper, see AppController.cpp
 };
 
 class AppController
@@ -55,7 +56,7 @@ private:
     void setTheme(int mode);
     // The Language setting: "" (Windows), "en" or a bundled code. Switches Slint's and the
     // C++ catalogs; nsp::onLanguageChanged callbacks push their text again.
-    void applyLanguage(const std::string &setting);
+    void applyLanguage(const std::string &setting, const std::string &shown = {});
     void setLanguage(int index);
     void pushLanguageOptions();
     void setBusy(bool busy, const std::string &label = {});
