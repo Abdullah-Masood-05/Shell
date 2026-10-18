@@ -62,12 +62,14 @@ export component Toast inherits Rectangle {
                 font-weight: 600;
                 color: Tokens.text;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.text != "": Text {
                 text: root.text;
                 color: Tokens.text-2;
                 font-size: Tokens.caption + 1px;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
         }
         VerticalLayout {

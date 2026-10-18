@@ -57,6 +57,7 @@ export component ConfirmDialog inherits Rectangle {
                     font-weight: 600;
                     color: Tokens.text;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                     horizontal-stretch: 1;
                 }
             }
@@ -64,6 +65,7 @@ export component ConfirmDialog inherits Rectangle {
                 text: root.text;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             Rectangle { height: Tokens.s2; }
             HorizontalLayout {

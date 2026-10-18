@@ -1,4 +1,4 @@
-import { CheckBox, ComboBox, LineEdit, ListView, ScrollView } from "std-widgets.slint";
+import { CheckBox, ComboBox, LineEdit, ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
@@ -7,6 +7,7 @@ import { Banner, CloseGlyph } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Segmented } from "../components/controls.slint";
 import { CodeColors, CodeRow } from "../components/code.slint";
+import { ScrollColumn } from "../components/scroll-column.slint";
 
 // The glyph font the core draws `image=\uXXXX` with (src/shared/Resource/Shell.ttf).
 import "../../res/nilesoft-shell.ttf";
@@ -143,6 +144,7 @@ component FormRow inherits HorizontalLayout {
             text: root.label;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     VerticalLayout {
@@ -154,6 +156,7 @@ component FormRow inherits HorizontalLayout {
             font-size: Tokens.caption;
             color: Tokens.text-3;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 }
@@ -331,6 +334,7 @@ component GlyphPicker inherits Rectangle {
                 font-size: Tokens.caption + 1px;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             Flickable {
                 vertical-stretch: 1;
@@ -540,6 +544,7 @@ export component MenuBuilderPage inherits Rectangle {
                             color: Tokens.text-2;
                             font-size: Tokens.caption + 1px;
                             wrap: word-wrap;
+                            min-height: self.preferred-height;
                             horizontal-alignment: center;
                         }
                     }
@@ -586,223 +591,224 @@ export component MenuBuilderPage inherits Rectangle {
                             text: @tr("A line between the entries above and below it. It has no properties.");
                             color: Tokens.text-2;
                             wrap: word-wrap;
+                            min-height: self.preferred-height;
                         }
                     }
-                    if BuilderState.node.kind == "item" || BuilderState.node.kind == "menu": ScrollView {
+                    if BuilderState.node.kind == "item" || BuilderState.node.kind == "menu": ScrollColumn {
                         width: 100%;
                         height: 100%;
-                        VerticalLayout {
-                            padding: Tokens.s5;
-                            padding-right: Tokens.s6;
-                            spacing: Tokens.s3;
-                            alignment: start;
+                        inset-left: Tokens.s5;
+                        inset-right: Tokens.s6;
+                        inset-top: Tokens.s5;
+                        inset-bottom: Tokens.s5;
+                        spacing: Tokens.s3;
 
+                        Text {
+                            text: BuilderState.node.kind == "menu" ? @tr("Entry kind" => "Menu") : @tr("Entry kind" => "Item");
+                            font-size: Tokens.body-large;
+                            font-weight: 600;
+                            color: Tokens.text;
+                        }
+                        FormRow {
+                            label: @tr("Title");
+                            hint: @tr("& before a letter makes it the access key.");
+                            TextField {
+                                field: "title";
+                                value: BuilderState.node.title;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                placeholder-text: @tr("Shown in the menu");
+                            }
+                        }
+                        FormRow {
+                            label: @tr("Icon");
+                            HorizontalLayout {
+                                spacing: Tokens.s2;
+                                Rectangle {
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: Tokens.radius-sm;
+                                    background: Tokens.layer-2;
+                                    border-width: 1px;
+                                    border-color: Tokens.stroke-strong;
+                                    Text {
+                                        text: BuilderState.node.glyph;
+                                        font-family: Glyphs.family;
+                                        font-size: 18px;
+                                        color: Tokens.text;
+                                    }
+                                    if BuilderState.node.glyph == "": Text {
+                                        text: BuilderState.node.image == "" ? @tr("No icon" => "none") : "…";
+                                        font-size: Tokens.caption - 1px;
+                                        color: Tokens.text-3;
+                                    }
+                                }
+                                TextField {
+                                    horizontal-stretch: 1;
+                                    field: "image";
+                                    value: BuilderState.node.image;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    placeholder-text: @tr("Icon" => "None");
+                                }
+                                AppButton {
+                                    text: @tr("Choose…");
+                                    enabled: !root.locked;
+                                    clicked => { root.picker-open = true; }
+                                }
+                            }
+                        }
+
+                        Rectangle { height: Tokens.s1; }
+                        FormSection { text: @tr("WHERE IT SHOWS"); }
+                        FormRow {
+                            label: @tr("Shows on");
+                            ChoiceField {
+                                field: "location";
+                                value: BuilderState.node.location;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                model: [@tr("Everywhere"), @tr("Files"), @tr("Folders"), @tr("Folder background"), @tr("Desktop"), @tr("Drives"), @tr("Files with extensions"), @tr("Custom")];
+                            }
+                        }
+                        if BuilderState.node.location == 6: FormRow {
+                            label: @tr("Extensions");
+                            hint: @tr("Separated by spaces, like .txt .md .log");
+                            TextField {
+                                field: "extensions";
+                                value: BuilderState.node.extensions;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                placeholder-text: ".txt .md";
+                            }
+                        }
+                        if BuilderState.node.location == 7: FormRow {
+                            label: @tr("Shell item type" => "Type");
+                            hint: @tr("file, dir, drive, back, desktop, taskbar…, joined with |");
+                            TextField {
+                                field: "type";
+                                value: BuilderState.node.type;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                placeholder-text: @tr("Any type except the taskbar");
+                            }
+                        }
+                        if BuilderState.node.location == 7: FormRow {
+                            label: @tr("Find");
+                            hint: @tr("Name or extension patterns, like .exe|.dll or *setup*");
+                            TextField {
+                                field: "find";
+                                value: BuilderState.node.find;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        if BuilderState.node.location == 7: FormRow {
+                            label: @tr("Condition field" => "Where");
+                            hint: @tr("An expression, written as is. Example: sel.count > 1");
+                            TextField {
+                                field: "where";
+                                value: BuilderState.node.where;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        FormRow {
+                            label: @tr("Selection");
+                            ChoiceField {
+                                field: "mode";
+                                value: BuilderState.node.mode;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                model: [@tr("One item (default)"), @tr("One item"), @tr("Any selection"), @tr("Several of one type"), @tr("Several with one extension"), @tr("Nothing selected")];
+                            }
+                        }
+
+                        if BuilderState.node.kind == "item": Rectangle { height: Tokens.s1; }
+                        if BuilderState.node.kind == "item": FormSection { text: @tr("WHAT IT RUNS"); }
+                        if BuilderState.node.kind == "item": FormRow {
+                            label: @tr("Command");
+                            hint: @tr("A program or file, like notepad.exe or code");
+                            TextField {
+                                field: "cmd";
+                                value: BuilderState.node.cmd;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        if BuilderState.node.kind == "item": FormRow {
+                            label: @tr("Arguments");
+                            hint: @tr("@sel.path is the selected path; quote it: \"@sel.path\"");
+                            TextField {
+                                field: "args";
+                                value: BuilderState.node.args;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        if BuilderState.node.kind == "item": FormRow {
+                            label: @tr("Window");
+                            HorizontalLayout {
+                                spacing: Tokens.s4;
+                                ChoiceField {
+                                    width: 160px;
+                                    field: "window";
+                                    value: BuilderState.node.window;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                    model: [@tr("Window state" => "Normal"), @tr("Window state" => "Hidden"), @tr("Window state" => "Minimized"), @tr("Window state" => "Maximized")];
+                                }
+                                FlagField {
+                                    text: @tr("Run as administrator");
+                                    field: "admin";
+                                    value: BuilderState.node.admin;
+                                    serial: BuilderState.node-serial;
+                                    enabled: !root.locked;
+                                }
+                            }
+                        }
+
+                        Rectangle { height: Tokens.s1; }
+                        FormSection { text: @tr("LOOK"); }
+                        FormRow {
+                            label: @tr("Separator");
+                            ChoiceField {
+                                field: "sep";
+                                value: BuilderState.node.sep;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                                model: [@tr("Separator position" => "None"), @tr("Separator position" => "Before"), @tr("Separator position" => "After"), @tr("Separator position" => "Before and after")];
+                            }
+                        }
+                        if BuilderState.node.kind == "item": FormRow {
+                            label: @tr("Shortcut text");
+                            hint: @tr("Shown on the right, like Ctrl+E. It doesn't bind the keys.");
+                            TextField {
+                                field: "keys";
+                                value: BuilderState.node.keys;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        FormRow {
+                            label: @tr("Tooltip");
+                            TextField {
+                                field: "tip";
+                                value: BuilderState.node.tip;
+                                serial: BuilderState.node-serial;
+                                enabled: !root.locked;
+                            }
+                        }
+                        if BuilderState.node.extra != "": FormRow {
+                            label: @tr("Kept as written");
+                            hint: @tr("Properties this page doesn't edit. They're saved unchanged.");
                             Text {
-                                text: BuilderState.node.kind == "menu" ? @tr("Entry kind" => "Menu") : @tr("Entry kind" => "Item");
-                                font-size: Tokens.body-large;
-                                font-weight: 600;
-                                color: Tokens.text;
-                            }
-                            FormRow {
-                                label: @tr("Title");
-                                hint: @tr("& before a letter makes it the access key.");
-                                TextField {
-                                    field: "title";
-                                    value: BuilderState.node.title;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    placeholder-text: @tr("Shown in the menu");
-                                }
-                            }
-                            FormRow {
-                                label: @tr("Icon");
-                                HorizontalLayout {
-                                    spacing: Tokens.s2;
-                                    Rectangle {
-                                        width: 32px;
-                                        height: 32px;
-                                        border-radius: Tokens.radius-sm;
-                                        background: Tokens.layer-2;
-                                        border-width: 1px;
-                                        border-color: Tokens.stroke-strong;
-                                        Text {
-                                            text: BuilderState.node.glyph;
-                                            font-family: Glyphs.family;
-                                            font-size: 18px;
-                                            color: Tokens.text;
-                                        }
-                                        if BuilderState.node.glyph == "": Text {
-                                            text: BuilderState.node.image == "" ? @tr("No icon" => "none") : "…";
-                                            font-size: Tokens.caption - 1px;
-                                            color: Tokens.text-3;
-                                        }
-                                    }
-                                    TextField {
-                                        horizontal-stretch: 1;
-                                        field: "image";
-                                        value: BuilderState.node.image;
-                                        serial: BuilderState.node-serial;
-                                        enabled: !root.locked;
-                                        placeholder-text: @tr("Icon" => "None");
-                                    }
-                                    AppButton {
-                                        text: @tr("Choose…");
-                                        enabled: !root.locked;
-                                        clicked => { root.picker-open = true; }
-                                    }
-                                }
-                            }
-
-                            Rectangle { height: Tokens.s1; }
-                            FormSection { text: @tr("WHERE IT SHOWS"); }
-                            FormRow {
-                                label: @tr("Shows on");
-                                ChoiceField {
-                                    field: "location";
-                                    value: BuilderState.node.location;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    model: [@tr("Everywhere"), @tr("Files"), @tr("Folders"), @tr("Folder background"), @tr("Desktop"), @tr("Drives"), @tr("Files with extensions"), @tr("Custom")];
-                                }
-                            }
-                            if BuilderState.node.location == 6: FormRow {
-                                label: @tr("Extensions");
-                                hint: @tr("Separated by spaces, like .txt .md .log");
-                                TextField {
-                                    field: "extensions";
-                                    value: BuilderState.node.extensions;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    placeholder-text: ".txt .md";
-                                }
-                            }
-                            if BuilderState.node.location == 7: FormRow {
-                                label: @tr("Shell item type" => "Type");
-                                hint: @tr("file, dir, drive, back, desktop, taskbar…, joined with |");
-                                TextField {
-                                    field: "type";
-                                    value: BuilderState.node.type;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    placeholder-text: @tr("Any type except the taskbar");
-                                }
-                            }
-                            if BuilderState.node.location == 7: FormRow {
-                                label: @tr("Find");
-                                hint: @tr("Name or extension patterns, like .exe|.dll or *setup*");
-                                TextField {
-                                    field: "find";
-                                    value: BuilderState.node.find;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            if BuilderState.node.location == 7: FormRow {
-                                label: @tr("Condition field" => "Where");
-                                hint: @tr("An expression, written as is. Example: sel.count > 1");
-                                TextField {
-                                    field: "where";
-                                    value: BuilderState.node.where;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            FormRow {
-                                label: @tr("Selection");
-                                ChoiceField {
-                                    field: "mode";
-                                    value: BuilderState.node.mode;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    model: [@tr("One item (default)"), @tr("One item"), @tr("Any selection"), @tr("Several of one type"), @tr("Several with one extension"), @tr("Nothing selected")];
-                                }
-                            }
-
-                            if BuilderState.node.kind == "item": Rectangle { height: Tokens.s1; }
-                            if BuilderState.node.kind == "item": FormSection { text: @tr("WHAT IT RUNS"); }
-                            if BuilderState.node.kind == "item": FormRow {
-                                label: @tr("Command");
-                                hint: @tr("A program or file, like notepad.exe or code");
-                                TextField {
-                                    field: "cmd";
-                                    value: BuilderState.node.cmd;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            if BuilderState.node.kind == "item": FormRow {
-                                label: @tr("Arguments");
-                                hint: @tr("@sel.path is the selected path; quote it: \"@sel.path\"");
-                                TextField {
-                                    field: "args";
-                                    value: BuilderState.node.args;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            if BuilderState.node.kind == "item": FormRow {
-                                label: @tr("Window");
-                                HorizontalLayout {
-                                    spacing: Tokens.s4;
-                                    ChoiceField {
-                                        width: 160px;
-                                        field: "window";
-                                        value: BuilderState.node.window;
-                                        serial: BuilderState.node-serial;
-                                        enabled: !root.locked;
-                                        model: [@tr("Window state" => "Normal"), @tr("Window state" => "Hidden"), @tr("Window state" => "Minimized"), @tr("Window state" => "Maximized")];
-                                    }
-                                    FlagField {
-                                        text: @tr("Run as administrator");
-                                        field: "admin";
-                                        value: BuilderState.node.admin;
-                                        serial: BuilderState.node-serial;
-                                        enabled: !root.locked;
-                                    }
-                                }
-                            }
-
-                            Rectangle { height: Tokens.s1; }
-                            FormSection { text: @tr("LOOK"); }
-                            FormRow {
-                                label: @tr("Separator");
-                                ChoiceField {
-                                    field: "sep";
-                                    value: BuilderState.node.sep;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                    model: [@tr("Separator position" => "None"), @tr("Separator position" => "Before"), @tr("Separator position" => "After"), @tr("Separator position" => "Before and after")];
-                                }
-                            }
-                            if BuilderState.node.kind == "item": FormRow {
-                                label: @tr("Shortcut text");
-                                hint: @tr("Shown on the right, like Ctrl+E. It doesn't bind the keys.");
-                                TextField {
-                                    field: "keys";
-                                    value: BuilderState.node.keys;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            FormRow {
-                                label: @tr("Tooltip");
-                                TextField {
-                                    field: "tip";
-                                    value: BuilderState.node.tip;
-                                    serial: BuilderState.node-serial;
-                                    enabled: !root.locked;
-                                }
-                            }
-                            if BuilderState.node.extra != "": FormRow {
-                                label: @tr("Kept as written");
-                                hint: @tr("Properties this page doesn't edit. They're saved unchanged.");
-                                Text {
-                                    text: BuilderState.node.extra;
-                                    font-family: EditorState.mono-font;
-                                    font-size: Tokens.caption + 1px;
-                                    color: Tokens.text-2;
-                                    wrap: word-wrap;
-                                }
+                                text: BuilderState.node.extra;
+                                font-family: EditorState.mono-font;
+                                font-size: Tokens.caption + 1px;
+                                color: Tokens.text-2;
+                                wrap: word-wrap;
+                                min-height: self.preferred-height;
                             }
                         }
                     }

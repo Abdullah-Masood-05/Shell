@@ -205,12 +205,14 @@ component PresetTile inherits Rectangle {
                         font-size: Tokens.caption;
                         color: Tokens.text-2;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                     Text {
                         text: @tr("From {}", root.card.source);
                         font-size: 11px;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 Rectangle {
@@ -294,6 +296,7 @@ export component PresetGallery inherits VerticalLayout {
             font-size: Tokens.caption;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 

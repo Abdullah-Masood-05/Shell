@@ -140,6 +140,7 @@ export component UserConfigPrompt inherits Rectangle {
                 text: @tr("Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates.");
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             HorizontalLayout {
                 alignment: end;

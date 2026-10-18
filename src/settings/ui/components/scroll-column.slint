@@ -1,0 +1,52 @@
+import { ScrollView } from "std-widgets.slint";
+import { AppState } from "../types.slint";
+
+// A column of content that scrolls vertically, always to its true end.
+//
+// Why not a plain ScrollView over a VerticalLayout: Slint (1.18) works out the
+// layout's height, which the scroll height comes from, by measuring each `if` or
+// `for` part at its widest, so wrapping text in one counts as a single line. It
+// lays the parts out at their real width, though, so a page with wrapped text
+// (long hints, rule sentences, Chinese text) ended below the scroll range and its
+// last rows could not be reached. Here the layout is given more height than any
+// page needs (with `alignment: start`, every part still gets just its own height)
+// and the scroll height is where the content really ends: the `end` marker.
+//
+// The same measuring makes a card around such a part too short, so every wrapping
+// Text in this app also has `min-height: self.preferred-height` (its height at its
+// real width). Give new ones that too.
+export component ScrollColumn inherits ScrollView {
+    in property <length> inset-left;
+    in property <length> inset-right;
+    in property <length> inset-top;
+    in property <length> inset-bottom;
+    in property <length> spacing;
+    // The column is as wide as the view (vertical scrolling only); otherwise at least that.
+    in property <bool> fit-width;
+
+    content-height: max(self.visible-height, end.y - root.spacing + root.inset-bottom);
+
+    VerticalLayout {
+        // A fixed size would center the column in the scrolled area: keep it at the top left.
+        x: 0px;
+        y: 0px;
+        width: root.fit-width ? root.visible-width : max(root.visible-width, self.min-width);
+        height: 1000000px;
+        padding-left: root.inset-left;
+        padding-right: root.inset-right;
+        padding-top: root.inset-top;
+        spacing: root.spacing;
+        alignment: start;
+        @children
+        end := Rectangle {
+            height: 0px;
+        }
+    }
+
+    // --snapshot-scroll-end (src/main.cpp): show the end, for screenshots.
+    Timer {
+        interval: 300ms;
+        running: AppState.scroll-to-end;
+        triggered => { root.content-y = min(0px, root.visible-height - root.content-height); }
+    }
+}

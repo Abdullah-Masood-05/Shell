@@ -81,6 +81,7 @@ component NameList inherits VerticalLayout {
             font-size: 13px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     if !root.field.locked: VerticalLayout {
@@ -174,6 +175,7 @@ export component RulesPage inherits PageFrame {
                 font-size: Tokens.caption;
                 color: Tokens.text-3;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             HorizontalLayout {
                 spacing: Tokens.s2;
@@ -196,6 +198,7 @@ export component RulesPage inherits PageFrame {
                 font-size: Tokens.caption;
                 color: Tokens.danger;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.where.source-file != "" && !root.where.overridden: HorizontalLayout {
                 alignment: start;

@@ -72,6 +72,8 @@ export global Pages {
 export global AppState {
     in-out property <int> page: 0;
     in property <string> app-version;
+    // --snapshot-scroll-end (src/main.cpp): every page scrolls to its end, for screenshots.
+    in property <bool> scroll-to-end;
 
     in property <StatusInfo> status;
     in property <[Issue]> issues;

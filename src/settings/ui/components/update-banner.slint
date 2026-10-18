@@ -64,6 +64,7 @@ export component UpdateBanner inherits Rectangle {
                 font-size: Tokens.body;
                 color: Tokens.text;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.st == "available": Text {
                 text: @tr("You have {}.", UpdateState.current-version)
@@ -72,6 +73,7 @@ export component UpdateBanner inherits Rectangle {
                 font-size: Tokens.body;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.st == "ready": Text {
                 text: UpdateState.needs-admin
@@ -80,6 +82,7 @@ export component UpdateBanner inherits Rectangle {
                 font-size: Tokens.body;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.st == "downloading": VerticalLayout {
                 spacing: 6px;
@@ -98,6 +101,7 @@ export component UpdateBanner inherits Rectangle {
                 font-size: Tokens.body;
                 color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
         }
         VerticalLayout {

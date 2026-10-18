@@ -47,12 +47,14 @@ export component KeptFilesNotice inherits Rectangle {
                     font-size: Tokens.body;
                     color: Tokens.text;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 Text {
                     text: ConfigUpdateState.kept-text;
                     font-size: Tokens.body;
                     color: Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
             for path in ConfigUpdateState.kept-files: HorizontalLayout {
@@ -125,11 +127,13 @@ export component CompareDialog inherits Rectangle {
                 font-weight: 600;
                 color: Tokens.text;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             Text {
                 text: ConfigUpdateState.compare-summary;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             Rectangle {
                 vertical-stretch: 1;

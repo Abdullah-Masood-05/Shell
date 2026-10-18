@@ -1,5 +1,5 @@
-import { ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
+import { ScrollColumn } from "../components/scroll-column.slint";
 
 // Scrollable page body that fades in when the page is created.
 export component PageFrame inherits Rectangle {
@@ -8,17 +8,14 @@ export component PageFrame inherits Rectangle {
     animate appear { duration: 180ms; easing: ease-out; }
     opacity: root.appear;
 
-    ScrollView {
+    ScrollColumn {
         width: 100%;
         height: 100%;
-        VerticalLayout {
-            padding-left: Tokens.s8 + Tokens.s1;
-            padding-right: Tokens.s8 + Tokens.s1;
-            padding-top: Tokens.s6 + Tokens.s1;
-            padding-bottom: Tokens.s8;
-            spacing: Tokens.s4;
-            alignment: start;
-            @children
-        }
+        inset-left: Tokens.s8 + Tokens.s1;
+        inset-right: Tokens.s8 + Tokens.s1;
+        inset-top: Tokens.s6 + Tokens.s1;
+        inset-bottom: Tokens.s8;
+        spacing: Tokens.s4;
+        @children
     }
 }

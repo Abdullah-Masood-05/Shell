@@ -17,6 +17,8 @@
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
+//   --snapshot-width <px>     a narrower or wider window for the tour
+//   --snapshot-scroll-end     every page of the tour scrolled to its end
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
@@ -65,6 +67,8 @@ std::wstring g_snapshotPath;
 std::vector<int> g_snapshotPages;
 bool g_snapshotDark = false;
 int g_snapshotHeight = 0;
+int g_snapshotWidth = 0;
+bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
@@ -133,6 +137,10 @@ AppOptions parseArgs()
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
             g_snapshotHeight = std::clamp(_wtoi(argv[++i]), 0, 4000);
+        } else if (_wcsicmp(argv[i], L"--snapshot-width") == 0 && i + 1 < argc) {
+            g_snapshotWidth = std::clamp(_wtoi(argv[++i]), 0, 4000);
+        } else if (_wcsicmp(argv[i], L"--snapshot-scroll-end") == 0) {
+            g_snapshotScrollEnd = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-pages") == 0 && i + 1 < argc) {
             std::wstring list = argv[++i];
             size_t start = 0;
@@ -235,8 +243,10 @@ int main()
     } else if (snapshot) {
         ui->window().set_position(slint::PhysicalPosition(
             { GetSystemMetrics(SM_XVIRTUALSCREEN) + GetSystemMetrics(SM_CXVIRTUALSCREEN) + 64, 0 }));
-        if (g_snapshotHeight > 0)
-            ui->window().set_size(slint::LogicalSize({ 1120.f, float(g_snapshotHeight) }));
+        if (g_snapshotHeight > 0 || g_snapshotWidth > 0)
+            ui->window().set_size(slint::LogicalSize({ g_snapshotWidth > 0 ? float(g_snapshotWidth) : 1120.f,
+                                                       g_snapshotHeight > 0 ? float(g_snapshotHeight) : 760.f }));
+        ui->global<AppState>().set_scroll_to_end(g_snapshotScrollEnd);
     }
 
     ui->window().on_close_requested([&] {

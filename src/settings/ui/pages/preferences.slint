@@ -26,12 +26,14 @@ component PrefSwitch inherits HorizontalLayout {
             font-size: Tokens.body;
             color: Tokens.text;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
         Text {
             text: root.hint;
             font-size: Tokens.caption;
             color: Tokens.text-3;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     ToggleSwitch {
@@ -181,12 +183,14 @@ export component PreferencesPage inherits PageFrame {
                     font-size: Tokens.body;
                     color: UpdateState.state == "error" ? Tokens.danger : Tokens.text;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 if UpdateState.offered && UpdateState.message != "": Text {
                     text: UpdateState.message;
                     font-size: Tokens.caption;
                     color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 Text {
                     text: @tr("Last checked: {}", UpdateState.last-checked);
@@ -289,6 +293,7 @@ export component PreferencesPage inherits PageFrame {
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
         HorizontalLayout {
             alignment: start;

@@ -275,6 +275,7 @@ export component BackupsPage inherits Rectangle {
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
             }
@@ -346,6 +347,7 @@ export component BackupsPage inherits Rectangle {
                         font-size: Tokens.caption + 1px;
                         color: Tokens.text-2;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
 
                     // Changed files (at most four rows tall), then the diff of the selected one.

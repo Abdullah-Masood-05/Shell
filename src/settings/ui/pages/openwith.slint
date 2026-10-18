@@ -38,6 +38,7 @@ component SectionHead inherits HorizontalLayout {
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     VerticalLayout {
@@ -98,6 +99,7 @@ component FormRow inherits HorizontalLayout {
             text: root.label;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     VerticalLayout {
@@ -109,6 +111,7 @@ component FormRow inherits HorizontalLayout {
             font-size: Tokens.caption;
             color: root.hint-warning ? Tokens.warning : Tokens.text-3;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 }
@@ -414,6 +417,7 @@ component AppEditor inherits Rectangle {
                         text: line.command;
                         color: Tokens.text;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 if OpenWithState.test-note != "": Text {
@@ -421,6 +425,7 @@ component AppEditor inherits Rectangle {
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
         }
@@ -524,6 +529,7 @@ component OtherItem inherits Rectangle {
                 font-size: Tokens.caption;
                 color: Tokens.warning;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
         }
     }
@@ -825,6 +831,7 @@ export component OpenWithPage inherits PageFrame {
                     text: OpenWithState.preview-empty;
                     color: Tokens.text-3;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 main := PreviewMenu {
                     x: Tokens.s4;
@@ -891,6 +898,7 @@ export component OpenWithPage inherits PageFrame {
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 if o.leftover && OpenWithState.others-leftovers > 1: VerticalLayout {
@@ -949,6 +957,7 @@ export component OpenWithPage inherits PageFrame {
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
             VerticalLayout {

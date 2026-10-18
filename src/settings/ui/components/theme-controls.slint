@@ -94,6 +94,7 @@ export component FieldLabel inherits VerticalLayout {
         font-size: Tokens.caption;
         color: Tokens.text-3;
         wrap: word-wrap;
+        min-height: self.preferred-height;
     }
     if root.field.locked && root.field.source-file != "": HorizontalLayout {
         alignment: start;
@@ -108,6 +109,7 @@ export component FieldLabel inherits VerticalLayout {
         font-size: Tokens.caption;
         color: Tokens.danger;
         wrap: word-wrap;
+        min-height: self.preferred-height;
     }
 }
 

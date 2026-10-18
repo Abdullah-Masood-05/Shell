@@ -80,6 +80,7 @@ component StateRow inherits Rectangle {
             horizontal-stretch: 1;
             color: Tokens.text;
             wrap: word-wrap;
+            min-height: self.preferred-height;
             vertical-alignment: center;
         }
     }
@@ -94,6 +95,7 @@ component StepTitle inherits Text {
 component StepText inherits Text {
     color: Tokens.text-2;
     wrap: word-wrap;
+    min-height: self.preferred-height;
 }
 
 // First-run setup: personal config, enable for this user, pick a look.

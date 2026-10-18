@@ -58,6 +58,7 @@ component DiagnosticRow inherits Rectangle {
                 color: Tokens.text;
                 font-size: Tokens.body;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             HorizontalLayout {
                 spacing: Tokens.s2;
@@ -172,12 +173,14 @@ export component HomePage inherits PageFrame {
                         font-weight: 600;
                         color: Tokens.text;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                     Text {
                         text: AppState.status.health-detail;
                         font-size: Tokens.body;
                         color: Tokens.text-2;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
             }
@@ -235,6 +238,7 @@ export component HomePage inherits PageFrame {
                     font-size: Tokens.caption + 1px;
                     color: AppState.status.config-exists ? Tokens.text : Tokens.danger;
                     wrap: char-wrap;
+                    min-height: self.preferred-height;
                 }
             }
             if AppState.status.loaded && AppState.status.config-source != "appdata": Text {
@@ -242,6 +246,7 @@ export component HomePage inherits PageFrame {
                 font-size: Tokens.caption + 1px;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             Rectangle { vertical-stretch: 1; }
             HorizontalLayout {

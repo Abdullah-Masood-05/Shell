@@ -32,6 +32,7 @@ component SectionHead inherits VerticalLayout {
         font-size: Tokens.caption + 1px;
         color: Tokens.text-2;
         wrap: word-wrap;
+        min-height: self.preferred-height;
     }
 }
 
@@ -153,6 +154,7 @@ component RuleItem inherits HorizontalLayout {
                 color: root.entry.enabled ? Tokens.text : Tokens.text-2;
                 vertical-alignment: center;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.entry.changed: VerticalLayout {
                 alignment: center;
