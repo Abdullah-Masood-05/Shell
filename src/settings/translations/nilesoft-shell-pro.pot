@@ -11,12 +11,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:44
+#: ui/app.slint:46
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr ""
 
-#: ui/components/banner.slint:14
+#: ui/components/banner.slint:14 ui/components/config-update.slint:160
 msgid "Close"
 msgstr ""
 
@@ -34,6 +34,22 @@ msgstr ""
 
 #: ui/components/code.slint:218
 msgid "Select all"
+msgstr ""
+
+#: ui/components/config-update.slint:70
+msgid "Compare"
+msgstr ""
+
+#: ui/components/config-update.slint:75 ui/components/config-update.slint:164
+msgid "Use the new version"
+msgstr ""
+
+#: ui/components/config-update.slint:141 ui/pages/backups.slint:378
+msgid "Comparing…"
+msgstr ""
+
+#: ui/components/config-update.slint:141 ui/pages/backups.slint:378
+msgid "No differences."
 msgstr ""
 
 #. warning | error | info
@@ -135,7 +151,7 @@ msgstr ""
 msgid "Create and save"
 msgstr ""
 
-#: ui/components/sidebar.slint:13 ui/pages/home.slint:86 ui/components/sidebar.slint:13 ui/pages/home.slint:86
+#: ui/components/sidebar.slint:13 ui/pages/home.slint:88 ui/components/sidebar.slint:13 ui/pages/home.slint:88
 msgid "Home"
 msgstr ""
 
@@ -179,7 +195,7 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: ui/components/sidebar.slint:21 ui/pages/backups.slint:232
+#: ui/components/sidebar.slint:21 ui/pages/backups.slint:195
 msgid "Backups"
 msgstr ""
 
@@ -187,7 +203,7 @@ msgstr ""
 msgid "Version {}"
 msgstr ""
 
-#: ui/components/sidebar.slint:163 ui/pages/home.slint:154 src/AppController.cpp:406
+#: ui/components/sidebar.slint:163 ui/pages/home.slint:170 src/AppController.cpp:406
 msgid "Checking status…"
 msgstr ""
 
@@ -641,6 +657,7 @@ msgid "Desktop"
 msgstr ""
 
 #: ui/pages/appearance.slint:678
+msgctxt "Preview tab"
 msgid "File Explorer"
 msgstr ""
 
@@ -664,119 +681,111 @@ msgstr ""
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr ""
 
-#: ui/pages/backups.slint:77
+#: ui/pages/backups.slint:78
 msgctxt "Snapshot"
 msgid "Current"
 msgstr ""
 
-#: ui/pages/backups.slint:84
+#: ui/pages/backups.slint:85
 msgid "Pinned"
 msgstr ""
 
-#: ui/pages/backups.slint:96 src/ContextMenusController.cpp:222
+#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:222
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] ""
 
 #. status is an id from C++ (modified | added | removed | same); this is its
 #. label.
-#: ui/pages/backups.slint:118
+#: ui/pages/backups.slint:119
 msgctxt "File status"
 msgid "modified"
 msgstr ""
 
-#: ui/pages/backups.slint:119
+#: ui/pages/backups.slint:120
 msgctxt "File status"
 msgid "added"
 msgstr ""
 
-#: ui/pages/backups.slint:120
+#: ui/pages/backups.slint:121
 msgctxt "File status"
 msgid "removed"
 msgstr ""
 
-#: ui/pages/backups.slint:121
+#: ui/pages/backups.slint:122
 msgctxt "File status"
 msgid "same"
 msgstr ""
 
-#: ui/pages/backups.slint:233
+#: ui/pages/backups.slint:196
 msgid "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it."
 msgstr ""
 
-#: ui/pages/backups.slint:235
+#: ui/pages/backups.slint:198
 msgid "Working…"
 msgstr ""
 
-#: ui/pages/backups.slint:237 ui/pages/home.slint:241
+#: ui/pages/backups.slint:200 ui/pages/home.slint:257
 msgid "Open folder"
 msgstr ""
 
-#: ui/pages/backups.slint:245
+#: ui/pages/backups.slint:208
 msgid "Create snapshot now"
 msgstr ""
 
-#: ui/pages/backups.slint:254
+#: ui/pages/backups.slint:217
 msgid "No personal config to back up"
 msgstr ""
 
-#: ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/openwith.slint:638 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/openwith.slint:638 src/Status.cpp:189
 msgid "Create personal config"
 msgstr ""
 
-#: ui/pages/backups.slint:280
+#: ui/pages/backups.slint:243
 msgid "Timeline"
 msgstr ""
 
-#: ui/pages/backups.slint:292
+#: ui/pages/backups.slint:255
 msgid "No snapshots yet.\nOne is taken before every save."
 msgstr ""
 
-#: ui/pages/backups.slint:328
+#: ui/pages/backups.slint:291
 msgid "Select a snapshot to see what changed since."
 msgstr ""
 
-#: ui/pages/backups.slint:357
+#: ui/pages/backups.slint:320
 msgid "Unpin"
 msgstr ""
 
-#: ui/pages/backups.slint:357
+#: ui/pages/backups.slint:320
 msgid "Pin"
 msgstr ""
 
-#: ui/pages/backups.slint:365
+#: ui/pages/backups.slint:328
 msgid "Delete…"
 msgstr ""
 
-#: ui/pages/backups.slint:373
+#: ui/pages/backups.slint:336
 msgid "Restore…"
 msgstr ""
 
-#: ui/pages/backups.slint:415
-msgid "Comparing…"
-msgstr ""
-
-#: ui/pages/backups.slint:415
-msgid "No differences."
-msgstr ""
-
-#: ui/pages/backups.slint:415
+#: ui/pages/backups.slint:378
 msgid "No line changes in this file."
 msgstr ""
 
-#: ui/pages/backups.slint:439
+#: ui/pages/backups.slint:402
 msgid "Delete this snapshot?"
 msgstr ""
 
-#: ui/pages/backups.slint:439
+#: ui/pages/backups.slint:402
 msgid "Restore this snapshot?"
 msgstr ""
 
-#: ui/pages/backups.slint:441 ui/pages/menu-builder.slint:510 src/AppearanceController.cpp:90
+#: ui/pages/backups.slint:404 ui/pages/menu-builder.slint:510 src/AppearanceController.cpp:90
 msgid "Delete"
 msgstr ""
 
-#: ui/pages/backups.slint:441
+#: ui/pages/backups.slint:404
 msgid "Restore"
 msgstr ""
 
@@ -1025,126 +1034,130 @@ msgstr ""
 msgid "Save anyway"
 msgstr ""
 
-#: ui/pages/home.slint:74
+#: ui/pages/home.slint:76
 msgid "line {}, column {}"
 msgstr ""
 
-#: ui/pages/home.slint:87
+#: ui/pages/home.slint:89
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr ""
 
-#: ui/pages/home.slint:91 ui/pages/home.slint:284 ui/pages/home.slint:91 ui/pages/home.slint:284 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
+#: ui/pages/home.slint:93 ui/pages/home.slint:300 ui/pages/home.slint:93 ui/pages/home.slint:300 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
 msgid "Refresh"
 msgstr ""
 
-#: ui/pages/home.slint:105 ui/pages/home.slint:259 ui/pages/home.slint:105 ui/pages/home.slint:259
+#: ui/pages/home.slint:107 ui/pages/home.slint:275 ui/pages/home.slint:107 ui/pages/home.slint:275
 msgid "Restart Explorer"
 msgstr ""
 
-#: ui/pages/home.slint:173
+#: ui/pages/home.slint:125
+msgid "Open Backups"
+msgstr ""
+
+#: ui/pages/home.slint:189
 msgid "Registration"
 msgstr ""
 
-#: ui/pages/home.slint:177
+#: ui/pages/home.slint:193
 msgid "Windows 11 menu"
 msgstr ""
 
-#: ui/pages/home.slint:181
+#: ui/pages/home.slint:197
 msgid "Shell DLL"
 msgstr ""
 
-#: ui/pages/home.slint:187 ui/pages/preferences.slint:113
+#: ui/pages/home.slint:203 ui/pages/preferences.slint:113
 msgid "Version"
 msgstr ""
 
-#: ui/pages/home.slint:188
+#: ui/pages/home.slint:204
 msgid "{}  (running as administrator)"
 msgstr ""
 
-#: ui/pages/home.slint:199
+#: ui/pages/home.slint:215
 msgid "Active config"
 msgstr ""
 
-#: ui/pages/home.slint:200
+#: ui/pages/home.slint:216
 msgid "The shell.nss Shell builds its menu from, and the files it imports."
 msgstr ""
 
-#: ui/pages/home.slint:225
+#: ui/pages/home.slint:241
 msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
 msgstr ""
 
-#: ui/pages/home.slint:235 src/Status.cpp:193
+#: ui/pages/home.slint:251 src/Status.cpp:193
 msgid "Use per-user config"
 msgstr ""
 
-#: ui/pages/home.slint:252
+#: ui/pages/home.slint:268
 msgid "Quick actions"
 msgstr ""
 
-#: ui/pages/home.slint:260
+#: ui/pages/home.slint:276
 msgid "Reload the shell and the menu"
 msgstr ""
 
-#: ui/pages/home.slint:267 src/Status.cpp:185
+#: ui/pages/home.slint:283 src/Status.cpp:185
 msgid "Unregister for me"
 msgstr ""
 
-#: ui/pages/home.slint:267
+#: ui/pages/home.slint:283
 msgid "Also register for me"
 msgstr ""
 
-#: ui/pages/home.slint:267 src/Status.cpp:180
+#: ui/pages/home.slint:283 src/Status.cpp:180
 msgid "Register for me"
 msgstr ""
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "Remove it from your account"
 msgstr ""
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "Overrides the all-users copy"
 msgstr ""
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "No administrator rights needed"
 msgstr ""
 
-#: ui/pages/home.slint:276
+#: ui/pages/home.slint:292
 msgid "Open config folder"
 msgstr ""
 
-#: ui/pages/home.slint:277
+#: ui/pages/home.slint:293
 msgid "Show shell.nss in Explorer"
 msgstr ""
 
-#: ui/pages/home.slint:285
+#: ui/pages/home.slint:301
 msgid "Check the status again"
 msgstr ""
 
-#: ui/pages/home.slint:294
+#: ui/pages/home.slint:310
 msgid "Diagnostics"
 msgstr ""
 
-#: ui/pages/home.slint:298
+#: ui/pages/home.slint:314
 msgid "· newest first, from shell.log"
 msgstr ""
 
-#: ui/pages/home.slint:305
+#: ui/pages/home.slint:321
 msgid "Open shell.log"
 msgstr ""
 
-#: ui/pages/home.slint:322
+#: ui/pages/home.slint:338
 msgid "No shell.log found next to the active shell.dll."
 msgstr ""
 
-#: ui/pages/home.slint:322
+#: ui/pages/home.slint:338
 msgid "No errors or warnings in shell.log."
 msgstr ""
 
-#: ui/pages/home.slint:345
+#: ui/pages/home.slint:361
 msgid "Run first-time setup again"
 msgstr ""
 
@@ -2193,11 +2206,11 @@ msgstr ""
 msgid "This PC"
 msgstr ""
 
-#: src/AppController.cpp:79
+#: src/AppController.cpp:79 src/ConfigUpdateController.cpp:42
 msgid "shell.exe did not finish in time and was stopped."
 msgstr ""
 
-#: src/AppController.cpp:93 src/SaveService.cpp:497
+#: src/AppController.cpp:93 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:497
 msgid "shell.exe exited with code {}."
 msgstr ""
 
@@ -3559,6 +3572,56 @@ msgstr ""
 msgid "Shares a line with other code"
 msgstr ""
 
+#: src/ConfigUpdateController.cpp:25
+msgid "Before updating the menu files"
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:26
+msgid "Before using the new version of a menu file"
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:132
+msgid "Updated {n} configuration file to this version"
+msgid_plural "Updated {n} configuration files to this version"
+msgstr[0] ""
+
+#: src/ConfigUpdateController.cpp:134
+msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:135
+msgid "{n} configuration file wasn't updated because you changed it"
+msgid_plural "{n} configuration files weren't updated because you changed them"
+msgstr[0] ""
+
+#: src/ConfigUpdateController.cpp:138
+msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:144
+msgid "{}: your copy and the new version"
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:145
+msgid "Red lines are only in your copy. Green lines are in the new version."
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:751
+msgid "Couldn't read {}."
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:210
+msgid "Couldn't use the new version"
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:223
+msgid "Now using the new version of {}"
+msgstr ""
+
+#: src/ConfigUpdateController.cpp:223
+msgid "Your copy is saved in Backups."
+msgstr ""
+
 #: src/ContextMenusController.cpp:124
 msgid "The config couldn't be read."
 msgstr ""
@@ -4605,10 +4668,6 @@ msgstr ""
 msgid "Couldn't create {}."
 msgstr ""
 
-#: src/Updater.cpp:751
-msgid "Couldn't read {}."
-msgstr ""
-
 #: src/Updater.cpp:756
 msgid "SHA256SUMS.txt is not served from this project's releases."
 msgstr ""
@@ -4679,14 +4738,4 @@ msgstr ""
 
 #: src/Updater.cpp:966
 msgid "Couldn't write {}: {}."
-msgstr ""
-
-#. The preview tab next to Desktop: keep it short, it shares a small button with "Desktop".
-#: ui/pages/appearance.slint:678
-msgctxt "Preview tab"
-msgid "File Explorer"
-msgstr ""
-
-#: src/ConfigRules.cpp:435
-msgid "any selection"
 msgstr ""

@@ -10,12 +10,12 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:44
+#: ui/app.slint:46
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Microsoft YaHei UI"
 
-#: ui/components/banner.slint:14
+#: ui/components/banner.slint:14 ui/components/config-update.slint:160
 msgid "Close"
 msgstr "关闭"
 
@@ -34,6 +34,22 @@ msgstr "粘贴"
 #: ui/components/code.slint:218
 msgid "Select all"
 msgstr "全选"
+
+#: ui/components/config-update.slint:70
+msgid "Compare"
+msgstr "比较"
+
+#: ui/components/config-update.slint:75 ui/components/config-update.slint:164
+msgid "Use the new version"
+msgstr "使用新版本"
+
+#: ui/components/config-update.slint:141 ui/pages/backups.slint:378
+msgid "Comparing…"
+msgstr "正在比较…"
+
+#: ui/components/config-update.slint:141 ui/pages/backups.slint:378
+msgid "No differences."
+msgstr "没有差异。"
 
 #. warning | error | info
 #: ui/components/dialog.slint:11
@@ -134,7 +150,7 @@ msgstr "Shell 当前读取的是安装文件夹中的共享配置，此应用不
 msgid "Create and save"
 msgstr "创建并保存"
 
-#: ui/components/sidebar.slint:13 ui/pages/home.slint:86 ui/components/sidebar.slint:13 ui/pages/home.slint:86
+#: ui/components/sidebar.slint:13 ui/pages/home.slint:88 ui/components/sidebar.slint:13 ui/pages/home.slint:88
 msgid "Home"
 msgstr "主页"
 
@@ -178,7 +194,7 @@ msgstr "配置编辑器"
 msgid "Advanced"
 msgstr "高级"
 
-#: ui/components/sidebar.slint:21 ui/pages/backups.slint:232
+#: ui/components/sidebar.slint:21 ui/pages/backups.slint:195
 msgid "Backups"
 msgstr "备份"
 
@@ -186,7 +202,7 @@ msgstr "备份"
 msgid "Version {}"
 msgstr "版本 {}"
 
-#: ui/components/sidebar.slint:163 ui/pages/home.slint:154 src/AppController.cpp:406
+#: ui/components/sidebar.slint:163 ui/pages/home.slint:170 src/AppController.cpp:406
 msgid "Checking status…"
 msgstr "正在检查状态…"
 
@@ -640,8 +656,9 @@ msgid "Desktop"
 msgstr "桌面"
 
 #: ui/pages/appearance.slint:678
+msgctxt "Preview tab"
 msgid "File Explorer"
-msgstr "文件资源管理器"
+msgstr "资源管理器"
 
 #: ui/pages/appearance.slint:686 ui/pages/preferences.slint:60
 msgid "Light"
@@ -663,119 +680,111 @@ msgstr "想要更多自定义？"
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr "渐变、图标颜色和针对单个菜单项的规则位于 shell.nss 及其导入的文件中。"
 
-#: ui/pages/backups.slint:77
+#: ui/pages/backups.slint:78
 msgctxt "Snapshot"
 msgid "Current"
 msgstr "当前"
 
-#: ui/pages/backups.slint:84
+#: ui/pages/backups.slint:85
 msgid "Pinned"
 msgstr "已固定"
 
-#: ui/pages/backups.slint:96 src/ContextMenusController.cpp:222
+#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:222
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} 个文件"
 
 #. status is an id from C++ (modified | added | removed | same); this is its
 #. label.
-#: ui/pages/backups.slint:118
+#: ui/pages/backups.slint:119
 msgctxt "File status"
 msgid "modified"
 msgstr "已修改"
 
-#: ui/pages/backups.slint:119
+#: ui/pages/backups.slint:120
 msgctxt "File status"
 msgid "added"
 msgstr "已添加"
 
-#: ui/pages/backups.slint:120
+#: ui/pages/backups.slint:121
 msgctxt "File status"
 msgid "removed"
 msgstr "已移除"
 
-#: ui/pages/backups.slint:121
+#: ui/pages/backups.slint:122
 msgctxt "File status"
 msgid "same"
 msgstr "相同"
 
-#: ui/pages/backups.slint:233
+#: ui/pages/backups.slint:196
 msgid "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it."
 msgstr "每次保存前都会先为你的配置创建快照。你可以将快照与当前文件进行比较，或还原到该快照。"
 
-#: ui/pages/backups.slint:235
+#: ui/pages/backups.slint:198
 msgid "Working…"
 msgstr "正在处理…"
 
-#: ui/pages/backups.slint:237 ui/pages/home.slint:241
+#: ui/pages/backups.slint:200 ui/pages/home.slint:257
 msgid "Open folder"
 msgstr "打开文件夹"
 
-#: ui/pages/backups.slint:245
+#: ui/pages/backups.slint:208
 msgid "Create snapshot now"
 msgstr "立即创建快照"
 
-#: ui/pages/backups.slint:254
+#: ui/pages/backups.slint:217
 msgid "No personal config to back up"
 msgstr "没有可备份的个人配置"
 
-#: ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/backups.slint:256 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/openwith.slint:638 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/backups.slint:219 ui/pages/context-menus.slint:240 ui/pages/menu-builder.slint:419 ui/pages/openwith.slint:638 src/Status.cpp:189
 msgid "Create personal config"
 msgstr "创建个人配置"
 
-#: ui/pages/backups.slint:280
+#: ui/pages/backups.slint:243
 msgid "Timeline"
 msgstr "时间线"
 
-#: ui/pages/backups.slint:292
+#: ui/pages/backups.slint:255
 msgid "No snapshots yet.\nOne is taken before every save."
 msgstr "还没有快照。\n每次保存前都会自动创建一个。"
 
-#: ui/pages/backups.slint:328
+#: ui/pages/backups.slint:291
 msgid "Select a snapshot to see what changed since."
 msgstr "选择一个快照，查看此后的更改。"
 
-#: ui/pages/backups.slint:357
+#: ui/pages/backups.slint:320
 msgid "Unpin"
 msgstr "取消固定"
 
-#: ui/pages/backups.slint:357
+#: ui/pages/backups.slint:320
 msgid "Pin"
 msgstr "固定"
 
-#: ui/pages/backups.slint:365
+#: ui/pages/backups.slint:328
 msgid "Delete…"
 msgstr "删除…"
 
-#: ui/pages/backups.slint:373
+#: ui/pages/backups.slint:336
 msgid "Restore…"
 msgstr "还原…"
 
-#: ui/pages/backups.slint:415
-msgid "Comparing…"
-msgstr "正在比较…"
-
-#: ui/pages/backups.slint:415
-msgid "No differences."
-msgstr "没有差异。"
-
-#: ui/pages/backups.slint:415
+#: ui/pages/backups.slint:378
 msgid "No line changes in this file."
 msgstr "此文件中没有行更改。"
 
-#: ui/pages/backups.slint:439
+#: ui/pages/backups.slint:402
 msgid "Delete this snapshot?"
 msgstr "删除此快照？"
 
-#: ui/pages/backups.slint:439
+#: ui/pages/backups.slint:402
 msgid "Restore this snapshot?"
 msgstr "还原此快照？"
 
-#: ui/pages/backups.slint:441 ui/pages/menu-builder.slint:510 src/AppearanceController.cpp:90
+#: ui/pages/backups.slint:404 ui/pages/menu-builder.slint:510 src/AppearanceController.cpp:90
 msgid "Delete"
 msgstr "删除"
 
-#: ui/pages/backups.slint:441
+#: ui/pages/backups.slint:404
 msgid "Restore"
 msgstr "还原"
 
@@ -1024,126 +1033,130 @@ msgstr "存在错误，仍要保存？"
 msgid "Save anyway"
 msgstr "仍然保存"
 
-#: ui/pages/home.slint:74
+#: ui/pages/home.slint:76
 msgid "line {}, column {}"
 msgstr "第 {} 行，第 {} 列"
 
-#: ui/pages/home.slint:87
+#: ui/pages/home.slint:89
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr "Nilesoft Shell 概览：注册状态、当前使用的配置和最近的诊断信息。"
 
-#: ui/pages/home.slint:91 ui/pages/home.slint:284 ui/pages/home.slint:91 ui/pages/home.slint:284 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
+#: ui/pages/home.slint:93 ui/pages/home.slint:300 ui/pages/home.slint:93 ui/pages/home.slint:300 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
 msgid "Refresh"
 msgstr "刷新"
 
-#: ui/pages/home.slint:105 ui/pages/home.slint:259 ui/pages/home.slint:105 ui/pages/home.slint:259
+#: ui/pages/home.slint:107 ui/pages/home.slint:275 ui/pages/home.slint:107 ui/pages/home.slint:275
 msgid "Restart Explorer"
 msgstr "重启资源管理器"
 
-#: ui/pages/home.slint:173
+#: ui/pages/home.slint:125
+msgid "Open Backups"
+msgstr "打开备份"
+
+#: ui/pages/home.slint:189
 msgid "Registration"
 msgstr "注册"
 
-#: ui/pages/home.slint:177
+#: ui/pages/home.slint:193
 msgid "Windows 11 menu"
 msgstr "Windows 11 菜单"
 
-#: ui/pages/home.slint:181
+#: ui/pages/home.slint:197
 msgid "Shell DLL"
 msgstr "Shell DLL"
 
-#: ui/pages/home.slint:187 ui/pages/preferences.slint:113
+#: ui/pages/home.slint:203 ui/pages/preferences.slint:113
 msgid "Version"
 msgstr "版本"
 
-#: ui/pages/home.slint:188
+#: ui/pages/home.slint:204
 msgid "{}  (running as administrator)"
 msgstr "{}（以管理员身份运行）"
 
-#: ui/pages/home.slint:199
+#: ui/pages/home.slint:215
 msgid "Active config"
 msgstr "当前配置"
 
-#: ui/pages/home.slint:200
+#: ui/pages/home.slint:216
 msgid "The shell.nss Shell builds its menu from, and the files it imports."
 msgstr "Shell 用来构建菜单的 shell.nss，以及它导入的文件。"
 
-#: ui/pages/home.slint:225
+#: ui/pages/home.slint:241
 msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
 msgstr "这是安装文件夹中的共享配置。%APPDATA% 中的个人副本按用户单独保存，更新后也会保留。"
 
-#: ui/pages/home.slint:235 src/Status.cpp:193
+#: ui/pages/home.slint:251 src/Status.cpp:193
 msgid "Use per-user config"
 msgstr "使用个人配置"
 
-#: ui/pages/home.slint:252
+#: ui/pages/home.slint:268
 msgid "Quick actions"
 msgstr "快速操作"
 
-#: ui/pages/home.slint:260
+#: ui/pages/home.slint:276
 msgid "Reload the shell and the menu"
 msgstr "重新加载资源管理器与菜单"
 
-#: ui/pages/home.slint:267 src/Status.cpp:185
+#: ui/pages/home.slint:283 src/Status.cpp:185
 msgid "Unregister for me"
 msgstr "为当前用户取消注册"
 
-#: ui/pages/home.slint:267
+#: ui/pages/home.slint:283
 msgid "Also register for me"
 msgstr "为当前用户注册"
 
-#: ui/pages/home.slint:267 src/Status.cpp:180
+#: ui/pages/home.slint:283 src/Status.cpp:180
 msgid "Register for me"
 msgstr "为当前用户注册"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "Remove it from your account"
 msgstr "从你的账户中移除"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "Overrides the all-users copy"
 msgstr "优先于所有用户配置"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:269
+#: ui/pages/home.slint:285
 msgid "No administrator rights needed"
 msgstr "无需管理员权限"
 
-#: ui/pages/home.slint:276
+#: ui/pages/home.slint:292
 msgid "Open config folder"
 msgstr "打开配置文件夹"
 
-#: ui/pages/home.slint:277
+#: ui/pages/home.slint:293
 msgid "Show shell.nss in Explorer"
 msgstr "在资源管理器中显示 shell.nss"
 
-#: ui/pages/home.slint:285
+#: ui/pages/home.slint:301
 msgid "Check the status again"
 msgstr "重新检查状态"
 
-#: ui/pages/home.slint:294
+#: ui/pages/home.slint:310
 msgid "Diagnostics"
 msgstr "诊断"
 
-#: ui/pages/home.slint:298
+#: ui/pages/home.slint:314
 msgid "· newest first, from shell.log"
 msgstr "· 最新在前，来自 shell.log"
 
-#: ui/pages/home.slint:305
+#: ui/pages/home.slint:321
 msgid "Open shell.log"
 msgstr "打开 shell.log"
 
-#: ui/pages/home.slint:322
+#: ui/pages/home.slint:338
 msgid "No shell.log found next to the active shell.dll."
 msgstr "当前 shell.dll 所在文件夹中未找到 shell.log。"
 
-#: ui/pages/home.slint:322
+#: ui/pages/home.slint:338
 msgid "No errors or warnings in shell.log."
 msgstr "shell.log 中没有错误或警告。"
 
-#: ui/pages/home.slint:345
+#: ui/pages/home.slint:361
 msgid "Run first-time setup again"
 msgstr "重新运行首次设置"
 
@@ -1370,7 +1383,7 @@ msgstr "单个项目"
 
 #: ui/pages/menu-builder.slint:717 src/ConfigRules.cpp:435
 msgid "Any selection"
-msgstr "任意选择"
+msgstr "任何选中项"
 
 #: ui/pages/menu-builder.slint:717
 msgid "Several of one type"
@@ -2192,11 +2205,11 @@ msgstr "项目"
 msgid "This PC"
 msgstr "此电脑"
 
-#: src/AppController.cpp:79
+#: src/AppController.cpp:79 src/ConfigUpdateController.cpp:42
 msgid "shell.exe did not finish in time and was stopped."
 msgstr "shell.exe 未能及时完成，已被停止。"
 
-#: src/AppController.cpp:93 src/SaveService.cpp:497
+#: src/AppController.cpp:93 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:497
 msgid "shell.exe exited with code {}."
 msgstr "shell.exe 已退出，退出代码为 {}。"
 
@@ -3558,6 +3571,56 @@ msgstr "位于菜单内"
 msgid "Shares a line with other code"
 msgstr "与其他代码共用一行"
 
+#: src/ConfigUpdateController.cpp:25
+msgid "Before updating the menu files"
+msgstr "更新菜单文件前"
+
+#: src/ConfigUpdateController.cpp:26
+msgid "Before using the new version of a menu file"
+msgstr "改用菜单文件的新版本前"
+
+#: src/ConfigUpdateController.cpp:132
+msgid "Updated {n} configuration file to this version"
+msgid_plural "Updated {n} configuration files to this version"
+msgstr[0] "已将 {n} 个配置文件更新到此版本"
+
+#: src/ConfigUpdateController.cpp:134
+msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
+msgstr "这些文件随 Nilesoft Shell 一起提供，你没有改动过。旧的副本已保存在“备份”中。"
+
+#: src/ConfigUpdateController.cpp:135
+msgid "{n} configuration file wasn't updated because you changed it"
+msgid_plural "{n} configuration files weren't updated because you changed them"
+msgstr[0] "{n} 个配置文件你改动过，因此没有更新"
+
+#: src/ConfigUpdateController.cpp:138
+msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+msgstr "你的改动已保留。你可以将文件与新版本比较，或改用新版本。改用前会先把你的副本保存到“备份”中。"
+
+#: src/ConfigUpdateController.cpp:144
+msgid "{}: your copy and the new version"
+msgstr "{}：你的副本与新版本"
+
+#: src/ConfigUpdateController.cpp:145
+msgid "Red lines are only in your copy. Green lines are in the new version."
+msgstr "红色行只在你的副本中，绿色行是新版本中的内容。"
+
+#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:751
+msgid "Couldn't read {}."
+msgstr "无法读取 {}。"
+
+#: src/ConfigUpdateController.cpp:210
+msgid "Couldn't use the new version"
+msgstr "无法改用新版本"
+
+#: src/ConfigUpdateController.cpp:223
+msgid "Now using the new version of {}"
+msgstr "已改用 {} 的新版本"
+
+#: src/ConfigUpdateController.cpp:223
+msgid "Your copy is saved in Backups."
+msgstr "你的副本已保存在“备份”中。"
+
 #: src/ContextMenusController.cpp:124
 msgid "The config couldn't be read."
 msgstr "无法读取配置。"
@@ -4604,10 +4667,6 @@ msgstr "此发布版本没有 SHA256SUMS.txt，因此无法验证下载内容。
 msgid "Couldn't create {}."
 msgstr "无法创建 {}。"
 
-#: src/Updater.cpp:751
-msgid "Couldn't read {}."
-msgstr "无法读取 {}。"
-
 #: src/Updater.cpp:756
 msgid "SHA256SUMS.txt is not served from this project's releases."
 msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
@@ -4680,12 +4739,5 @@ msgstr "无法替换 {}：{}。"
 msgid "Couldn't write {}: {}."
 msgstr "无法写入 {}：{}。"
 
-#. The preview tab next to Desktop: keep it short, it shares a small button with "Desktop".
-#: ui/pages/appearance.slint:678
-msgctxt "Preview tab"
-msgid "File Explorer"
-msgstr "资源管理器"
-
-#: src/ConfigRules.cpp:435
-msgid "any selection"
-msgstr "任何选中项"
+#~ msgid "File Explorer"
+#~ msgstr "文件资源管理器"
