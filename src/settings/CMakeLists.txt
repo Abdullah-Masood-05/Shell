@@ -75,6 +75,9 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 # The theme presets (presets/themes/*.nss), embedded as ThemePresetsData.inc.
 include(cmake/ThemePresets.cmake)
 
+# The bundled snippets (../bin/snippets: catalog.json and *.nss), embedded as SnippetsData.inc.
+include(cmake/Snippets.cmake)
+
 # The UI translations (translations/*/LC_MESSAGES/*.po), for Slint and for src/Tr.cpp.
 include(cmake/Translations.cmake)
 
@@ -110,6 +113,8 @@ add_executable(settings WIN32
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
+    src/Snippets.cpp
+    src/SnippetsController.cpp
     src/Status.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
@@ -175,6 +180,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_updater.cpp
         tests/test_tr.cpp
         tests/test_config_upgrade.cpp
+        tests/test_snippets.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
         src/ConfigUpdate.cpp
@@ -184,6 +190,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/Snippets.cpp
         src/Status.cpp
         src/ThemeModel.cpp
         src/ThemePresets.cpp

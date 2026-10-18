@@ -22,8 +22,8 @@
 	count, nor the app's own `import 'imports/settings-app*.nss'` lines or the
 	localization block -config:init adds to an old shell.nss. A replaced shell.nss keeps
 	the app's import lines (at its end, as the app writes them). Files the app owns
-	(imports\settings-app*.nss) and files the install folder doesn't have are never
-	touched.
+	(imports\settings-app*.nss, and the snippet copies in imports\snippets\) and files the
+	install folder doesn't have are never touched.
 
 	Before anything is written, the whole config tree is snapshotted into
 	<config folder>\backups\<YYYYMMDD-HHMMSS>\ with a manifest.json, the format of the
@@ -247,13 +247,14 @@ namespace config_upgrade
 		return true;
 	}
 
-	// imports/settings-app*.nss: the app's own files.
+	// imports/settings-app*.nss and the snippet copies in imports/snippets/ (the app's
+	// Snippets page): the app's own files.
 	inline bool is_app_owned(std::string_view path)
 	{
 		auto key = to_lower(path);
 		for(auto &c : key)
 			if(c == '\\') c = '/';
-		return starts_with(key, "imports/settings-app");
+		return starts_with(key, "imports/settings-app") || starts_with(key, "imports/snippets/");
 	}
 
 	// Whether the user's config refers to `path` (see the top of the file). `texts` are

@@ -147,7 +147,8 @@ bool isManaged(const fs::path &rootDir, const fs::path &file)
 {
     auto key = nss::pathKey(file);
     return key == nss::pathKey(rootDir / L"imports" / L"settings-app.nss") ||
-           key == nss::pathKey(rootDir / L"imports" / L"settings-app-menus.nss");
+           key == nss::pathKey(rootDir / L"imports" / L"settings-app-menus.nss") ||
+           key == nss::pathKey(rootDir / L"imports" / L"settings-app-snippets.nss");
 }
 
 bool isProtectedPath(const fs::path &file)

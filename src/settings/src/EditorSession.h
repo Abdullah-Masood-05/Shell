@@ -35,7 +35,8 @@ struct FileEntry
 // unresolved imports listed under the importing file.
 std::vector<FileEntry> loadTree(const fs::path &root, const fs::path &appDir = {});  // appDir: app.dir (the install folder)
 
-// imports/settings-app.nss and imports/settings-app-menus.nss under the root's folder.
+// imports/settings-app.nss, imports/settings-app-menus.nss and imports/settings-app-snippets.nss
+// under the root's folder.
 bool isManaged(const fs::path &rootDir, const fs::path &file);
 
 // A path the app must never write: under Program Files.

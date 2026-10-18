@@ -187,7 +187,9 @@ TEST_CASE("config upgrade: known versions, paths and references")
 
     CHECK(cu::is_app_owned("imports/settings-app.nss"));
     CHECK(cu::is_app_owned("Imports\\Settings-App-Menus.nss"));
+    CHECK(cu::is_app_owned("imports\\snippets\\copy-file-hash.nss"));
     CHECK_FALSE(cu::is_app_owned("imports/theme.nss"));
+    CHECK_FALSE(cu::is_app_owned("imports/snippets.nss"));
     CHECK(cu::same_rel("imports/lang/zh-CN.nss", "Imports\\Lang\\zh-cn.nss"));
     CHECK_FALSE(cu::same_rel("imports/lang/zh-CN.nss", "imports/lang/zh-TW.nss"));
 
