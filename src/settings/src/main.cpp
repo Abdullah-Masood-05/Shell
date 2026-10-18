@@ -1,7 +1,7 @@
 // Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
 // Development switches:
-//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith>
+//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith|menumap>
 //   --no-onboarding    don't show the first-run dialog this time
 //   --onboarding <1|2|3>   show the first-run dialog at that step, whatever the status;
 //                          with --snapshot, the tour starts with that step and the ones after it
@@ -19,6 +19,8 @@
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --snapshot-width <px>     a narrower or wider window for the tour
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
+//   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
+//   --map-expand, --map-select <title>   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
@@ -41,6 +43,7 @@
 #include "ContextMenusController.h"
 #include "EditorController.h"
 #include "MenuBuilderController.h"
+#include "MenuMapController.h"
 #include "OnboardingController.h"
 #include "OpenWithController.h"
 #include "Registry.h"
@@ -71,6 +74,8 @@ int g_snapshotHeight = 0;
 int g_snapshotWidth = 0;
 bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
+MenuMapController::DevOptions g_map;
+bool g_mapSet = false;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -109,7 +114,7 @@ AppOptions parseArgs()
         return o;
     static constexpr const wchar_t *pages[] = { L"home",  L"appearance", L"behavior", L"rules",      L"menus",
                                                 L"builder", L"editor",   L"backups",  L"preferences",
-                                                L"openwith" };
+                                                L"openwith", L"menumap" };
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;
@@ -136,6 +141,22 @@ AppOptions parseArgs()
             g_update.updateFailed = argv[++i];
         } else if (_wcsicmp(argv[i], L"--update-cancelled") == 0) {
             g_update.updateCancelled = true;
+        } else if (_wcsicmp(argv[i], L"--map-context") == 0 && i + 1 < argc) {
+            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"taskbar" };
+            ++i;
+            for (int c = 0; c < int(std::size(contexts)); ++c)
+                if (_wcsicmp(argv[i], contexts[c]) == 0)
+                    g_map.context = c;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-view") == 0 && i + 1 < argc) {
+            g_map.view = _wcsicmp(argv[++i], L"nodes") == 0 ? 1 : 0;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-expand") == 0) {
+            g_map.expandAll = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-select") == 0 && i + 1 < argc) {
+            g_map.select = text::narrow(argv[++i]);
+            g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
@@ -221,6 +242,9 @@ int main()
     auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
     auto contextMenus = std::make_unique<ContextMenusController>(ui);
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
+    auto menuMap = std::make_unique<MenuMapController>(ui, *saveService);
+    if (g_mapSet)
+        menuMap->setDevOptions(g_map);
     auto openWith = std::make_unique<OpenWithController>(ui);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
     // After an update (a new version, or the helper's --updated): the personal config's
@@ -330,6 +354,7 @@ int main()
     onboarding.reset();
     behavior.reset();
     appearance.reset();
+    menuMap.reset();
     saveService.reset();
     openWith.reset();
     menuBuilder.reset();
