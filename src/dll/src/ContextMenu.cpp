@@ -4067,10 +4067,15 @@ namespace Nilesoft
 
 		bool ContextMenu::is_excluded() 
 		{
-			auto initializer = Initializer::instance;
-			auto sets = &_cache->settings;
+			return is_excluded(_context, _cache, hwnd.owner);
+		}
 
-			if(_context.eval_bool(sets->exclude.value))
+		bool ContextMenu::is_excluded(Context &context, CACHE *cache, HWND hOwner)
+		{
+			auto initializer = Initializer::instance;
+			auto sets = &cache->settings;
+
+			if(context.eval_bool(sets->exclude.value))
 				return true;
 
 			Object obj;
@@ -4096,15 +4101,15 @@ namespace Nilesoft
 				return false;
 			};
 
-			if(_context.Eval(sets->exclude.process, obj))
+			if(context.Eval(sets->exclude.process, obj))
 			{
 				if(is_exc(obj, initializer->process.name))
 					return true;
 			}
 
-			if(_context.Eval(sets->exclude.window, obj))
+			if(context.Eval(sets->exclude.window, obj))
 			{
-				auto hWnd = hwnd.owner;
+				auto hWnd = hOwner;
 				auto hWnd_owner = ::GetAncestor(hWnd, GA_ROOTOWNER);
 				string name;
 				if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
@@ -4115,6 +4120,100 @@ namespace Nilesoft
 			}
 
 			return false;
+		}
+
+		// A dry run of the part of Initialize() that can decline a taskbar menu,
+		// for the Windows 11 taskbar's WM_RBUTTONDOWN (see Main.cpp). Mirrors
+		// what the ContextMenu constructor and Initialize() put in the context
+		// before is_excluded(), so the same expressions see the same values:
+		// window.is_taskbar, window.name, process.is_explorer, key.*, and so on.
+		bool ContextMenu::TaskbarDeclined(HWND hTaskbar, bool explorer) noexcept
+		{
+			try
+			{
+				auto initializer = Initializer::instance;
+				if(!initializer || !hTaskbar || Initializer::Status.Disabled)
+					return true;
+
+				// Loads the config if it is not loaded yet, and reloads it after an
+				// edit, as Initialize() would; the menu built afterwards then sees
+				// the same cache this decision was made with.
+				if(!initializer->query() || !initializer->cache)
+					return true;
+
+				auto cache = initializer->cache;
+
+				Window window = hTaskbar;
+				Keyboard keyboard;
+				keyboard.get_keys_state(true);
+
+				DPI dpi;
+				auto pt = Point::CursorPos();
+				dpi.val = Theme::GetDpi(pt, hTaskbar);
+				dpi.org = dpi.val;
+
+				Selections selected;
+				selected.Window.handle = hTaskbar;
+				selected.Window.hInstance = window.instance();
+				selected.loader.explorer = explorer;
+
+				if(!selected.QueryShellWindow())
+					return true;
+
+				// Only ever asked about a taskbar. Anything else is not declined
+				// here, and goes through the usual path.
+				if(selected.Window.parent != WINDOW_TASKBAR)
+					return false;
+
+				if(selected.Window.id == WINDOW_TASKBAR)
+				{
+					selected.Types[FSO_TASKBAR] = TRUE;
+					selected.front = FSO_TASKBAR;
+					selected.Directory = Path::GetKnownFolder(FOLDERID_Desktop).move();
+				}
+
+				if(selected.Directory.empty())
+					selected.Directory = Path::CurrentDirectory().move();
+
+				Context context;
+				context.Selections = &selected;
+				context.Application = &initializer->application;
+				context.Cache = cache;
+				context.Keyboard = &keyboard;
+				context.dpi = &dpi;
+				context.variables.global = &cache->variables.global;
+				context.variables.runtime = &cache->variables.runtime;
+				context.variables.local = nullptr;
+				context.wnd.owner = hTaskbar;
+
+				DWORD process_id = 0;
+				GUITHREADINFO gti = { sizeof(GUITHREADINFO) };
+				if(::GetGUIThreadInfo(window.get_threadId(&process_id), &gti))
+				{
+					context.wnd.active = gti.hwndActive;
+					context.wnd.focus = gti.hwndFocus;
+				}
+
+				Monitor monitor(pt);
+				if(monitor.info())
+					context.helper.is_primary_monitor = monitor.is_primary();
+
+				if(context.parse_visibility(cache->dynamic.visibility) == Visibility::Hidden)
+					return true;
+
+				if(!selected.Preparing())
+					return true;
+
+				return is_excluded(context, cache, hTaskbar);
+			}
+			catch(...)
+			{
+#ifdef _DEBUG
+				Logger::Exception(__func__);
+#endif
+			}
+			// Initialize() fails the same way, and its menu would be empty.
+			return true;
 		}
 
 		HMENU ContextMenu::MenuHandle() const { return _hMenu; }
