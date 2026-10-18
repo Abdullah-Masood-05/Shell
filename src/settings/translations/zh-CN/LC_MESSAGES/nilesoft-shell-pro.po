@@ -2852,7 +2852,7 @@ msgstr "在“开始”菜单中"
 #: src/ConfigRules.cpp:287
 msgid "{0} and {n} more"
 msgid_plural "{0} and {n} more"
-msgstr[0] "{0} 及另外 {n} 项"
+msgstr[0] "{0}及另外 {n} 项"
 
 #: src/ConfigRules.cpp:329
 msgid "Disable"
@@ -2985,6 +2985,550 @@ msgstr "回收站"
 #: src/ConfigRules.cpp:524
 msgid "Anything"
 msgstr "任意类型"
+
+#. Quotes a menu or item name in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "quote"
+msgid "“{}”"
+msgstr "“{}”"
+
+#. Joins item names in a rule summary: “A”, “B”
+#: src/ConfigRules.cpp
+msgctxt "names"
+msgid "{0}, {1}"
+msgstr "{0}、{1}"
+
+#. Joins the last two item names in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "names"
+msgid "{0} and {1}"
+msgstr "{0}和{1}"
+
+#. {} is a quoted pattern such as “pin*”, or several joined with “or”
+#: src/ConfigRules.cpp
+msgid "items whose name matches {}"
+msgstr "名称匹配{}的菜单项"
+
+#: src/ConfigRules.cpp
+msgid "the items an expression picks"
+msgstr "表达式选中的菜单项"
+
+#: src/ConfigRules.cpp
+msgid "every item"
+msgstr "所有菜单项"
+
+#. Starts a rule summary. {0} is the quoted item names; {1} a quoted menu title; position counts from 1
+#: src/ConfigRules.cpp
+msgid "Removes {0}"
+msgstr "移除{0}"
+
+#: src/ConfigRules.cpp
+msgid "Hides {0}"
+msgstr "隐藏{0}"
+
+#: src/ConfigRules.cpp
+msgid "Disables {0}"
+msgstr "禁用{0}"
+
+#: src/ConfigRules.cpp
+msgid "Changes when {0} is shown"
+msgstr "更改{0}的显示条件"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the top of {1}"
+msgstr "将{0}移到{1}菜单顶部"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the bottom of {1}"
+msgstr "将{0}移到{1}菜单底部"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the middle of {1}"
+msgstr "将{0}移到{1}菜单中间"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} into {1} at position {2}"
+msgstr "将{0}移到{1}菜单的第 {2} 项"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} into {1}"
+msgstr "将{0}移到{1}菜单"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the top of the menu"
+msgstr "将{0}移到菜单顶部"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the bottom of the menu"
+msgstr "将{0}移到菜单底部"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the middle of the menu"
+msgstr "将{0}移到菜单中间"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to position {1} in the menu"
+msgstr "将{0}移到菜单的第 {1} 项"
+
+#: src/ConfigRules.cpp
+msgid "Moves {0}"
+msgstr "移动{0}"
+
+#: src/ConfigRules.cpp
+msgid "Renames {0} to {1}"
+msgstr "将{0}重命名为{1}"
+
+#: src/ConfigRules.cpp
+msgid "Adds a separator above {0}"
+msgstr "在{0}上方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "Adds a separator below {0}"
+msgstr "在{0}下方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "Adds separators above and below {0}"
+msgstr "在{0}上方和下方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "Changes the separators around {0}"
+msgstr "更改{0}周围的分隔线"
+
+#: src/ConfigRules.cpp
+msgid "Changes the icon of {0}"
+msgstr "更改{0}的图标"
+
+#: src/ConfigRules.cpp
+msgid "Shows a shortcut key on {0}"
+msgstr "为{0}显示快捷键"
+
+#: src/ConfigRules.cpp
+msgid "Adds a tip to {0}"
+msgstr "为{0}添加提示"
+
+#: src/ConfigRules.cpp
+msgid "Changes the state of {0}"
+msgstr "更改{0}的状态"
+
+#: src/ConfigRules.cpp
+msgid "Changes the command of {0}"
+msgstr "更改{0}的命令"
+
+#: src/ConfigRules.cpp
+msgid "Matches {0} but changes nothing"
+msgstr "匹配{0}，但不做任何更改"
+
+#. Follows another action in a rule summary, about the same items (“Moves … and adds a separator above it”)
+#: src/ConfigRules.cpp
+msgid "removes it"
+msgid_plural "removes them"
+msgstr[0] "将其移除"
+
+#: src/ConfigRules.cpp
+msgid "hides it"
+msgid_plural "hides them"
+msgstr[0] "将其隐藏"
+
+#: src/ConfigRules.cpp
+msgid "disables it"
+msgid_plural "disables them"
+msgstr[0] "将其禁用"
+
+#: src/ConfigRules.cpp
+msgid "changes when it is shown"
+msgid_plural "changes when they are shown"
+msgstr[0] "更改其显示条件"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the top of {0}"
+msgid_plural "moves them to the top of {0}"
+msgstr[0] "将其移到{0}菜单顶部"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the bottom of {0}"
+msgid_plural "moves them to the bottom of {0}"
+msgstr[0] "将其移到{0}菜单底部"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the middle of {0}"
+msgid_plural "moves them to the middle of {0}"
+msgstr[0] "将其移到{0}菜单中间"
+
+#: src/ConfigRules.cpp
+msgid "moves it into {0} at position {1}"
+msgid_plural "moves them into {0} at position {1}"
+msgstr[0] "将其移到{0}菜单的第 {1} 项"
+
+#: src/ConfigRules.cpp
+msgid "moves it into {0}"
+msgid_plural "moves them into {0}"
+msgstr[0] "将其移到{0}菜单"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the top of the menu"
+msgid_plural "moves them to the top of the menu"
+msgstr[0] "将其移到菜单顶部"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the bottom of the menu"
+msgid_plural "moves them to the bottom of the menu"
+msgstr[0] "将其移到菜单底部"
+
+#: src/ConfigRules.cpp
+msgid "moves it to the middle of the menu"
+msgid_plural "moves them to the middle of the menu"
+msgstr[0] "将其移到菜单中间"
+
+#: src/ConfigRules.cpp
+msgid "moves it to position {0} in the menu"
+msgid_plural "moves them to position {0} in the menu"
+msgstr[0] "将其移到菜单的第 {0} 项"
+
+#: src/ConfigRules.cpp
+msgid "moves it"
+msgid_plural "moves them"
+msgstr[0] "将其移动"
+
+#: src/ConfigRules.cpp
+msgid "renames it to {0}"
+msgid_plural "renames them to {0}"
+msgstr[0] "将其重命名为{0}"
+
+#: src/ConfigRules.cpp
+msgid "adds a separator above it"
+msgid_plural "adds a separator above them"
+msgstr[0] "在上方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "adds a separator below it"
+msgid_plural "adds a separator below them"
+msgstr[0] "在下方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "adds separators above and below it"
+msgid_plural "adds separators above and below them"
+msgstr[0] "在上方和下方添加分隔线"
+
+#: src/ConfigRules.cpp
+msgid "changes the separators around it"
+msgid_plural "changes the separators around them"
+msgstr[0] "更改其周围的分隔线"
+
+#: src/ConfigRules.cpp
+msgid "changes its icon"
+msgid_plural "changes their icons"
+msgstr[0] "更改其图标"
+
+#: src/ConfigRules.cpp
+msgid "shows a shortcut key"
+msgid_plural "shows shortcut keys"
+msgstr[0] "显示快捷键"
+
+#: src/ConfigRules.cpp
+msgid "adds a tip"
+msgid_plural "adds tips"
+msgstr[0] "添加提示"
+
+#: src/ConfigRules.cpp
+msgid "changes its state"
+msgid_plural "changes their state"
+msgstr[0] "更改其状态"
+
+#: src/ConfigRules.cpp
+msgid "changes its command"
+msgid_plural "changes their commands"
+msgstr[0] "更改其命令"
+
+#. Joins actions in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "actions"
+msgid "{0}, {1}"
+msgstr "{0}，{1}"
+
+#. Joins the last action in a rule summary: “Moves … and adds a separator above it”
+#: src/ConfigRules.cpp
+msgctxt "actions"
+msgid "{0} and {1}"
+msgstr "{0}，并{1}"
+
+#: src/ConfigRules.cpp
+msgid "when one or more items are selected"
+msgstr "选中一个或多个项目时"
+
+#: src/ConfigRules.cpp
+msgid "when several items are selected"
+msgstr "选中多个项目时"
+
+#: src/ConfigRules.cpp
+msgid "when nothing is selected"
+msgstr "未选中任何项目时"
+
+#. A rule summary {0} and when it applies {1}: “Hides … when one or more items are selected”
+#: src/ConfigRules.cpp
+msgctxt "when"
+msgid "{0} {1}"
+msgstr "{1}，{0}"
+
+#. Where a rule applies: {0} is what was right-clicked, e.g. “folder backgrounds”
+#: src/ConfigRules.cpp
+msgid "for {0}"
+msgstr "右键单击{0}时"
+
+#: src/ConfigRules.cpp
+msgid "in a text box"
+msgstr "在文本框中"
+
+#: src/ConfigRules.cpp
+msgid "on the Start menu"
+msgstr "在“开始”菜单中"
+
+#. “for the Recycle Bin” {0} plus “on the desktop” {1}
+#: src/ConfigRules.cpp
+msgctxt "where"
+msgid "{0} {1}"
+msgstr "{1}{0}"
+
+#. A rule summary {0} and where it applies {1}
+#: src/ConfigRules.cpp
+msgctxt "where"
+msgid "{0}, {1}"
+msgstr "{1}，{0}"
+
+#: src/ConfigRules.cpp
+msgid "{} backgrounds"
+msgstr "{}背景"
+
+#. What a rule applies to (type=), as in “for folder backgrounds”
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "folder backgrounds"
+msgstr "文件夹背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "drive backgrounds"
+msgstr "驱动器背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual folder backgrounds"
+msgstr "虚拟文件夹背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the This PC background"
+msgstr "此电脑背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Recycle Bin background"
+msgstr "回收站背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "library backgrounds"
+msgstr "库背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "files"
+msgstr "文件"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "folders"
+msgstr "文件夹"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "drives"
+msgstr "驱动器"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "USB drives"
+msgstr "USB 驱动器"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "DVD drives"
+msgstr "DVD 驱动器"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "fixed drives"
+msgstr "本地磁盘"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual hard disks"
+msgstr "虚拟硬盘"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "removable drives"
+msgstr "可移动驱动器"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "network drives"
+msgstr "网络驱动器"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "backgrounds"
+msgstr "背景"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the desktop"
+msgstr "桌面"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Recycle Bin"
+msgstr "回收站"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "This PC"
+msgstr "此电脑"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual folders"
+msgstr "虚拟文件夹"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the taskbar"
+msgstr "任务栏"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "text boxes"
+msgstr "文本框"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Start button"
+msgstr "“开始”按钮"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "title bars"
+msgstr "标题栏"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "compressed folders"
+msgstr "压缩文件夹"
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "libraries"
+msgstr "库"
+
+#. A Windows menu item, named in rule summaries when Windows shows its menus in another language; use the title Windows uses
+#: src/WindowsTitles.cpp
+msgid "Give access to"
+msgstr "授予访问权限"
+
+#: src/WindowsTitles.cpp
+msgid "Share"
+msgstr "共享"
+
+#: src/WindowsTitles.cpp
+msgid "Create shortcut"
+msgstr "创建快捷方式"
+
+#: src/WindowsTitles.cpp
+msgid "Customize this folder"
+msgstr "自定义此文件夹"
+
+#: src/WindowsTitles.cpp
+msgid "Send to"
+msgstr "发送到"
+
+#: src/WindowsTitles.cpp
+msgid "Map network drive"
+msgstr "映射网络驱动器"
+
+#: src/WindowsTitles.cpp
+msgid "Disconnect network drive"
+msgstr "断开网络驱动器的连接"
+
+#: src/WindowsTitles.cpp
+msgid "Format"
+msgstr "格式化"
+
+#: src/WindowsTitles.cpp
+msgid "Eject"
+msgstr "弹出"
+
+#: src/WindowsTitles.cpp
+msgid "Include in library"
+msgstr "包含到库中"
+
+#: src/WindowsTitles.cpp
+msgid "Cast to device"
+msgstr "播放到设备"
+
+#: src/WindowsTitles.cpp
+msgid "Copy as path"
+msgstr "复制为路径"
+
+#: src/WindowsTitles.cpp
+msgid "Empty Recycle Bin"
+msgstr "清空回收站"
+
+#: src/WindowsTitles.cpp
+msgid "Open PowerShell window here"
+msgstr "在此处打开 PowerShell 窗口"
+
+#: src/WindowsTitles.cpp
+msgid "Pin current folder to Quick access"
+msgstr "将当前文件夹固定到快速访问"
+
+#: src/WindowsTitles.cpp
+msgid "Pin to taskbar"
+msgstr "固定到任务栏"
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from Quick access"
+msgstr "从快速访问取消固定"
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from Start"
+msgstr "从“开始”屏幕取消固定"
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from taskbar"
+msgstr "从任务栏取消固定"
+
+#: src/WindowsTitles.cpp
+msgid "Print"
+msgstr "打印"
+
+#: src/WindowsTitles.cpp
+msgid "Rotate left"
+msgstr "向左旋转"
+
+#: src/WindowsTitles.cpp
+msgid "Rotate right"
+msgstr "向右旋转"
+
+#: src/WindowsTitles.cpp
+msgid "More options"
+msgstr "更多选项"
+
+#: src/WindowsTitles.cpp
+msgid "Set as desktop background"
+msgstr "设置为桌面背景"
+
+#: src/WindowsTitles.cpp
+msgid "Restore previous versions"
+msgstr "还原以前的版本"
 
 #: src/ConfigRules.cpp:553
 msgid "Imported from {}."

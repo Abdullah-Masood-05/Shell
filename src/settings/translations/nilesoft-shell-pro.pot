@@ -2987,6 +2987,550 @@ msgstr ""
 msgid "Anything"
 msgstr ""
 
+#. Quotes a menu or item name in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "quote"
+msgid "“{}”"
+msgstr ""
+
+#. Joins item names in a rule summary: “A”, “B”
+#: src/ConfigRules.cpp
+msgctxt "names"
+msgid "{0}, {1}"
+msgstr ""
+
+#. Joins the last two item names in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "names"
+msgid "{0} and {1}"
+msgstr ""
+
+#. {} is a quoted pattern such as “pin*”, or several joined with “or”
+#: src/ConfigRules.cpp
+msgid "items whose name matches {}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "the items an expression picks"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "every item"
+msgstr ""
+
+#. Starts a rule summary. {0} is the quoted item names; {1} a quoted menu title; position counts from 1
+#: src/ConfigRules.cpp
+msgid "Removes {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Hides {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Disables {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Changes when {0} is shown"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the top of {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the bottom of {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the middle of {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} into {1} at position {2}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} into {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the top of the menu"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the bottom of the menu"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to the middle of the menu"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0} to position {1} in the menu"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Moves {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Renames {0} to {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Adds a separator above {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Adds a separator below {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Adds separators above and below {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Changes the separators around {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Changes the icon of {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Shows a shortcut key on {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Adds a tip to {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Changes the state of {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Changes the command of {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "Matches {0} but changes nothing"
+msgstr ""
+
+#. Follows another action in a rule summary, about the same items (“Moves … and adds a separator above it”)
+#: src/ConfigRules.cpp
+msgid "removes it"
+msgid_plural "removes them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "hides it"
+msgid_plural "hides them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "disables it"
+msgid_plural "disables them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "changes when it is shown"
+msgid_plural "changes when they are shown"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the top of {0}"
+msgid_plural "moves them to the top of {0}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the bottom of {0}"
+msgid_plural "moves them to the bottom of {0}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the middle of {0}"
+msgid_plural "moves them to the middle of {0}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it into {0} at position {1}"
+msgid_plural "moves them into {0} at position {1}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it into {0}"
+msgid_plural "moves them into {0}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the top of the menu"
+msgid_plural "moves them to the top of the menu"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the bottom of the menu"
+msgid_plural "moves them to the bottom of the menu"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to the middle of the menu"
+msgid_plural "moves them to the middle of the menu"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it to position {0} in the menu"
+msgid_plural "moves them to position {0} in the menu"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "moves it"
+msgid_plural "moves them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "renames it to {0}"
+msgid_plural "renames them to {0}"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "adds a separator above it"
+msgid_plural "adds a separator above them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "adds a separator below it"
+msgid_plural "adds a separator below them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "adds separators above and below it"
+msgid_plural "adds separators above and below them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "changes the separators around it"
+msgid_plural "changes the separators around them"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "changes its icon"
+msgid_plural "changes their icons"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "shows a shortcut key"
+msgid_plural "shows shortcut keys"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "adds a tip"
+msgid_plural "adds tips"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "changes its state"
+msgid_plural "changes their state"
+msgstr[0] ""
+
+#: src/ConfigRules.cpp
+msgid "changes its command"
+msgid_plural "changes their commands"
+msgstr[0] ""
+
+#. Joins actions in a rule summary
+#: src/ConfigRules.cpp
+msgctxt "actions"
+msgid "{0}, {1}"
+msgstr ""
+
+#. Joins the last action in a rule summary: “Moves … and adds a separator above it”
+#: src/ConfigRules.cpp
+msgctxt "actions"
+msgid "{0} and {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "when one or more items are selected"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "when several items are selected"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "when nothing is selected"
+msgstr ""
+
+#. A rule summary {0} and when it applies {1}: “Hides … when one or more items are selected”
+#: src/ConfigRules.cpp
+msgctxt "when"
+msgid "{0} {1}"
+msgstr ""
+
+#. Where a rule applies: {0} is what was right-clicked, e.g. “folder backgrounds”
+#: src/ConfigRules.cpp
+msgid "for {0}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "in a text box"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "on the Start menu"
+msgstr ""
+
+#. “for the Recycle Bin” {0} plus “on the desktop” {1}
+#: src/ConfigRules.cpp
+msgctxt "where"
+msgid "{0} {1}"
+msgstr ""
+
+#. A rule summary {0} and where it applies {1}
+#: src/ConfigRules.cpp
+msgctxt "where"
+msgid "{0}, {1}"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgid "{} backgrounds"
+msgstr ""
+
+#. What a rule applies to (type=), as in “for folder backgrounds”
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "folder backgrounds"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "drive backgrounds"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual folder backgrounds"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the This PC background"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Recycle Bin background"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "library backgrounds"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "files"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "folders"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "USB drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "DVD drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "fixed drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual hard disks"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "removable drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "network drives"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "backgrounds"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the desktop"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Recycle Bin"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "This PC"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "virtual folders"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the taskbar"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "text boxes"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "the Start button"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "title bars"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "compressed folders"
+msgstr ""
+
+#: src/ConfigRules.cpp
+msgctxt "type"
+msgid "libraries"
+msgstr ""
+
+#. A Windows menu item, named in rule summaries when Windows shows its menus in another language; use the title Windows uses
+#: src/WindowsTitles.cpp
+msgid "Give access to"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Share"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Create shortcut"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Customize this folder"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Send to"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Map network drive"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Disconnect network drive"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Format"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Eject"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Include in library"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Cast to device"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Copy as path"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Empty Recycle Bin"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Open PowerShell window here"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Pin current folder to Quick access"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Pin to taskbar"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from Quick access"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from Start"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Unpin from taskbar"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Print"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Rotate left"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Rotate right"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "More options"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Set as desktop background"
+msgstr ""
+
+#: src/WindowsTitles.cpp
+msgid "Restore previous versions"
+msgstr ""
+
 #: src/ConfigRules.cpp:553
 msgid "Imported from {}."
 msgstr ""
