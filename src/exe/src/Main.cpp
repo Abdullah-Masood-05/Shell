@@ -1764,8 +1764,102 @@ namespace ConfigCommand
 		return ok ? cli_ok : cli_failed;
 	}
 
+	/*
+		-config:tree <root.nss> -context:<where> [-sample:<path>]
+
+		The menu a right-click in <where> (file, folder, drive, back, desktop,
+		taskbar) shows, for Nilesoft Shell Pro's Menu map: the check result
+		as -config:check prints it, plus "context", "sample" and "tree", the
+		JSON shell.dll's ConfigTree export gives (see ConfigCheck.h): Shell's
+		own items with their file and line, the Windows menu for <sample>
+		built off-screen (nothing is shown), and the modify/remove rules.
+		<sample> is the file, folder or drive whose menu is read (back: the
+		folder); desktop and taskbar need none. Exit code as -config:check.
+	*/
+	struct TreeResult : CheckResult
+	{
+		string tree;
+	};
+
+	static void CALLBACK tree_sink(void *context, const wchar_t *json)
+	{
+		static_cast<TreeResult *>(context)->tree = json;
+	}
+
+	static bool valid_context(const string &where)
+	{
+		for(auto name : { L"file", L"folder", L"dir", L"drive", L"back", L"background", L"desktop", L"taskbar" })
+		{
+			if(where.equals(name, true))
+				return true;
+		}
+		return false;
+	}
+
+	static string full_path(const string &path)
+	{
+		string out = path;
+		if(wchar_t full[MAX_PATH * 4]{}; !path.empty() && ::GetFullPathNameW(path, ARRAYSIZE(full), full, nullptr))
+		{
+			out = full;
+			if(wchar_t long_path[MAX_PATH * 4]{}; ::GetLongPathNameW(full, long_path, ARRAYSIZE(long_path)))
+				out = long_path;
+		}
+		return out;
+	}
+
+	static int tree(CliOutput &out, const string &root_arg, const string &where, const string &sample_arg)
+	{
+		TreeResult result;
+		HRESULT hr = E_FAIL;
+		string root = full_path(root_arg);
+		string sample = full_path(sample_arg);
+
+		auto dll_path = IO::Path::Combine(InstallDirectory(), dll_name).move();
+		auto module = ::LoadLibraryExW(dll_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+		auto proc = module ? reinterpret_cast<ConfigTreeProc>(::GetProcAddress(module, CONFIG_TREE_EXPORT)) : nullptr;
+		if(!proc)
+		{
+			string msg;
+			msg.format(L"cannot load the parser from '%s' (error %lu)", dll_path.c_str(), ::GetLastError());
+			check_sink(&result, TRUE, dll_path, 0, 0, msg);
+		}
+		else
+		{
+			hr = proc(root, where, sample.empty() ? nullptr : sample.c_str(), check_sink, tree_sink, &result);
+			if(FAILED(hr))
+			{
+				string msg;
+				msg.format(L"the menu could not be read (0x%08lx)", static_cast<unsigned long>(hr));
+				check_sink(&result, TRUE, root, 0, 0, msg);
+			}
+		}
+
+		auto ok = hr == S_OK;
+		string json = L"{\r\n  \"ok\": ";
+		json += json_bool(ok);
+		json += L",\r\n  \"root\": ";
+		json_quote(json, root);
+		json += L",\r\n  \"context\": ";
+		json_quote(json, where);
+		json += L",\r\n  \"sample\": ";
+		json_quote(json, sample);
+		json += L",\r\n  \"errors\": [";
+		json += result.errors;
+		json += result.errors.empty() ? L"]" : L"\r\n  ]";
+		json += L",\r\n  \"warnings\": [";
+		json += result.warnings;
+		json += result.warnings.empty() ? L"]" : L"\r\n  ]";
+		json += L",\r\n  \"tree\": ";
+		json += result.tree.empty() ? string(L"null") : result.tree;
+		json += L"\r\n}";
+		out.line(json);
+		return ok ? cli_ok : cli_failed;
+	}
+
 	static int run(const string &command, const string &root, bool force, bool titles, const string &where,
-				   const std::vector<std::string> &take, const wchar_t *out_path)
+				   const std::vector<std::string> &take, const wchar_t *out_path,
+				   const string &context = {}, const string &sample = {})
 	{
 		CliOutput out(out_path);
 
@@ -1779,6 +1873,15 @@ namespace ConfigCommand
 			}
 			ret = check(out, root, titles, where);
 		}
+		else if(command.equals(L"tree"))
+		{
+			if(root.empty() || !valid_context(context))
+			{
+				out.line(L"usage: shell -config:tree <root.nss> -context:file|folder|drive|back|desktop|taskbar [-sample:<path>] [-out:<file>]");
+				return cli_usage;
+			}
+			ret = tree(out, root, context, sample);
+		}
 		else if(command.equals(L"init"))
 			ret = init(out, force);
 		else if(command.equals(L"reset"))
@@ -1789,7 +1892,7 @@ namespace ConfigCommand
 			ret = upgrade(out, take);
 		else
 		{
-			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:upgrade [-take:<file>] | -config:check <root.nss> [-titles[:<where>]] [-out:<file>]");
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:upgrade [-take:<file>] | -config:check <root.nss> [-titles[:<where>]] | -config:tree <root.nss> -context:<where> [-sample:<path>] [-out:<file>]");
 			return cli_usage;
 		}
 
@@ -2440,6 +2543,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// -config:check <root.nss> -titles[:<where>]
 		bool titles = false;
 		string titles_where;
+		// -config:tree <root.nss> -context:<where> [-sample:<path>]
+		string tree_context, tree_sample;
 		// -config:upgrade -take:<file>...
 		std::vector<std::string> take;
 		// -status [-out:<file>]
@@ -2457,6 +2562,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					titles = true;
 					titles_where = op->Value;
+				}
+				else if(op->has_name(L"context"))
+				{
+					tree_context = op->Value;
+				}
+				else if(op->has_name(L"sample"))
+				{
+					tree_sample = op->Value;
 				}
 				else if(op->has_name(L"take"))
 				{
@@ -2484,7 +2597,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					config = true;
 					config_command = op->Value;
-					want_root = config_command.equals(L"check");
+					want_root = config_command.equals(L"check") || config_command.equals(L"tree");
 				}
 				else if(op->has_name(L"out"))
 				{
@@ -2548,7 +2661,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// Never elevated, never interactive; handled on its own.
 		if(config)
 		{
-			auto ret = ConfigCommand::run(config_command, config_root, force, titles, titles_where, take, out_path.empty() ? nullptr : out_path.c_str());
+			auto ret = ConfigCommand::run(config_command, config_root, force, titles, titles_where, take, out_path.empty() ? nullptr : out_path.c_str(),
+										  tree_context, tree_sample);
 			_log->close();
 			return ret;
 		}
@@ -2931,6 +3045,10 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"\t\terrors and warnings as JSON (exit 1 on error).\r\n"
                 L"\t\tWith -titles[:<where>], also list the menu titles\r\n"
                 L"\t\t(where: file, folder, back, desktop, taskbar).\r\n"
+                L"-config:tree <file> -context:<where> [-sample:<path>]\r\n"
+                L"\t\tThe menu for a right-click in <where> (also\r\n"
+                L"\t\tdrive) as JSON: Shell's items with their file\r\n"
+                L"\t\tand line, and the Windows menu for <path>.\r\n"
                 L"-status\t\tPrint registration, Windows 11 menu and\r\n"
                 L"\t\tconfig state as JSON (read-only).\r\n"
                 L"-out:<file>\tWrite the output to <file> (UTF-8)\r\n"

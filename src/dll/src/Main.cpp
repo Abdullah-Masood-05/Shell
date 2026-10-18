@@ -1333,6 +1333,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 //IID_FolderExtensions
 //#pragma comment(linker, "/export:DllGetClassObject=DllGetClassObject")
 _Check_return_
+bool MenuTreeReadingMenus(); // MenuTree.cpp
+
 STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid, [[maybe_unused]] _Outptr_ LPVOID FAR *ppv)
 {
 	auto hr = E_NOTIMPL;// CLASS_E_CLASSNOTAVAILABLE,E_NOTIMPL, E_OUTOFMEMORY, and E_UNEXPECTED,E_INVALIDARG
@@ -1342,6 +1344,10 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 
 	__try
 	{
+		// shell -config:tree is reading menus in this process: this copy joins none.
+		if(MenuTreeReadingMenus())
+			return CLASS_E_CLASSNOTAVAILABLE;
+
 		if(iid.equals(IID_FolderExtensions))
 			return E_NOTIMPL;
 
@@ -1423,7 +1429,8 @@ STDAPI DllCanUnloadNow(void)
 // duration; which is why this refuses to run inside Explorer or once a live
 // configuration exists (it would be swapped out under a menu). In shell.exe,
 // its only caller, there is never one.
-static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context)
+static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context,
+							const wchar_t *sample = nullptr, ConfigTreeSink tree_sink = nullptr)
 {
 	if(!root || !*root || !sink)
 		return E_INVALIDARG;
@@ -1433,6 +1440,7 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 
 	std::vector<ParseDiagnostic> diagnostics;
 	std::vector<Parser::TitleInfo> titles;
+	std::wstring tree;
 	bool ok = false;
 	bool where_ok = true;
 
@@ -1473,6 +1481,8 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 		// While the cache and the MUI titles are still there.
 		if(ok && title_sink)
 			where_ok = parser.ReportTitles(titles, where);
+		if(ok && tree_sink)
+			where_ok = parser.ReportTree(tree, where, sample);
 	}
 	catch(...)
 	{
@@ -1491,6 +1501,9 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 
 	if(!where_ok)
 		return E_INVALIDARG;
+
+	if(tree_sink && ok)
+		tree_sink(context, tree.c_str());
 
 	for(auto &t : titles)
 	{
@@ -1522,6 +1535,14 @@ STDAPI ConfigCheckTitles(const wchar_t *root, const wchar_t *where, ConfigCheckS
 	if(!titles)
 		return E_INVALIDARG;
 	return config_check(root, where, sink, titles, context);
+}
+
+// shell -config:tree <root.nss> -context:<where>: see ConfigCheck.h.
+STDAPI ConfigTree(const wchar_t *root, const wchar_t *where, const wchar_t *sample, ConfigCheckSink sink, ConfigTreeSink tree, void *context)
+{
+	if(!tree || !where || !*where)
+		return E_INVALIDARG;
+	return config_check(root, where, sink, nullptr, context, sample, tree);
 }
 
 // Register the COM server and the context menu handler.

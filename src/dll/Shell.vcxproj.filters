@@ -60,6 +60,9 @@
     <ClCompile Include="src\Selections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MenuTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Initializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,6 +153,9 @@
       <Filter>Header Files\Expression</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\FindPattern.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Include\IdNames.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\IndexOf.h">
