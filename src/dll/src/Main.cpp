@@ -750,6 +750,32 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 	return ret;
 }
 
+/*
+	The Windows 11 taskbar has no Win32 menu of its own: its right-click menu
+	is a XAML flyout. To show Shell's menu there, the right-click is eaten and
+	a popup is tracked on an empty menu, which NtUserTrackPopupMenu fills. If
+	Shell then declines to build it (settings.exclude matches the taskbar, or
+	the config's visibility hides it), the empty menu is all that is shown.
+
+	So the decision is made first, on the right button going down, and a
+	right-click Shell would decline is left alone: Windows shows its own
+	taskbar menu. Applies to every taskbar (Shell_TrayWnd and, on other
+	monitors, Shell_SecondaryTrayWnd). Not used on Windows 10, whose taskbar
+	is not hooked here: its menu is a real Win32 menu, which a declined
+	popup falls through to.
+*/
+
+// Set while this thread sends the WM_CONTEXTMENU that follows a right-click
+// the taskbar check already let through, so that it is not evaluated twice.
+static thread_local bool _taskbar_checked = false;
+
+static bool taskbar_declined(HWND hTaskbar) noexcept
+{
+	if(_taskbar_checked)
+		return false;
+	return ContextMenu::TaskbarDeclined(hTaskbar, _loader.explorer);
+}
+
 LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	auto wndproc = (WNDPROC)::GetPropW(hWnd, UxSubclass);
@@ -760,7 +786,7 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	if(uMsg == WM_CONTEXTMENU)
 	{
 		auto pt = Point::CursorPos();
-		if(taskbar_t::is_allowed_area(hWnd, pt))
+		if(taskbar_t::is_allowed_area(hWnd, pt) && !taskbar_declined(hWnd))
 		{
 			if(ShowTaskbarContextMenu(hWnd, pt, wParam == 0 && lParam == 0 ? WM_RBUTTONDOWN : WM_CONTEXTMENU))
 				return 0;
@@ -816,8 +842,14 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				return wndproc(hWnd, uMsg, wParam, lParam);
 			}
 
+			// Shell would not build this menu: leave the click to Windows.
+			if(taskbar_declined(hWnd))
+				return wndproc(hWnd, uMsg, wParam, lParam);
+
 			::SetFocus(hWnd);
+			_taskbar_checked = true;
 			::SendMessageW(hWnd, WM_CONTEXTMENU, 0, 0);
+			_taskbar_checked = false;
 
 			return MA_ACTIVATEANDEAT;
 		}
@@ -844,7 +876,7 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	{
 		auto hTaskbar = reinterpret_cast<HWND>(dwRefData);
 		auto pt = Point::CursorPos();
-		if(taskbar_t::is_allowed_area(hTaskbar, pt))
+		if(taskbar_t::is_allowed_area(hTaskbar, pt) && !taskbar_declined(hTaskbar))
 		{
 			if(ShowTaskbarContextMenu(hTaskbar, pt, wParam == 0 && lParam == 0? WM_RBUTTONDOWN : WM_CONTEXTMENU))
 				return 0;			
@@ -913,6 +945,10 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 			if(msg == WM_RBUTTONDOWN)
 			{
+				// Shell would not build this menu: leave the click to Windows.
+				if(taskbar_declined(hTaskbar))
+					return lret;
+
 				_taskbar_mouse.hook(WH_MOUSE, [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
 				{
 					//auto lret = _taskbar_mouse.callnext(nCode, wParam, lParam);

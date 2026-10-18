@@ -747,6 +747,9 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			uint32_t invoke(CommandProperty *cmd_prop);
 			bool is_excluded();
+			// settings.exclude (where, process, window) for a menu owned by hOwner,
+			// evaluated in context. is_excluded() and TaskbarDeclined share it.
+			static bool is_excluded(Context &context, CACHE *cache, HWND hOwner);
 			bool Initialize();
 			int Uninitialize();
 			int InvokeCommand(int id);	
@@ -818,6 +821,17 @@ plutovg_move_to(pluto, start.x, start.y);
 				wc_Layer.lpfnWndProc = LayerProc; /*::DefWindowProcW;*/
 				return ::RegisterClassW(&wc_Layer);
 			}
+
+			// Whether Shell would decline to build the menu for a right-click on
+			// this taskbar (Shell_TrayWnd or Shell_SecondaryTrayWnd): the
+			// config's visibility hides it or settings.exclude matches it. The
+			// same checks Initialize() makes, without creating a menu. Used at
+			// WM_RBUTTONDOWN on the Windows 11 taskbar, which has no Win32 menu
+			// of its own, so Shell can leave the click to Windows instead of
+			// eating it and showing an empty menu. Never throws; when the
+			// answer cannot be worked out it says declined, as Initialize()
+			// would fail too.
+			static bool TaskbarDeclined(HWND hTaskbar, bool explorer) noexcept;
 
 			inline static ContextMenu *CreateAndInitialize(HWND hWnd, HMENU hMenu, Point const &pt, bool explorer, bool contextmenuhandler)
 			{
