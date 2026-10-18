@@ -50,6 +50,11 @@ jobs:
         shell: pwsh
         run: ./scripts/update-shipped-hashes.ps1 -Check
 
+      # The app embeds the snippets and refuses one whose file doesn't match its hash.
+      - name: Check the hashes in src/bin/snippets/catalog.json
+        shell: pwsh
+        run: ./scripts/update-snippet-hashes.ps1 -Check
+
   app:
     name: Nilesoft Shell Pro app (x64)
     runs-on: windows-2022
@@ -180,6 +185,12 @@ jobs:
       - name: Check the menu titles
         if: matrix.platform != 'ARM64'
         run: ./scripts/check-titles.ps1 -BinDir $env:BIN_PATH
+
+      # Every bundled snippet (the app's Snippets page) must load with this shell.exe, alone
+      # and all together, without errors or warnings.
+      - name: Check the bundled snippets
+        if: matrix.platform != 'ARM64'
+        run: ./scripts/check-snippets.ps1 -BinDir $env:BIN_PATH
 
       - name: Make the portable zip
         if: matrix.platform == 'x64'

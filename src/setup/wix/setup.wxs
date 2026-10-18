@@ -125,6 +125,12 @@
 					</Component>
 				</Directory>
 				</Directory>
+				<!--
+					The app's bundled snippets (its Snippets page), for reading: the app has its own
+					copy inside NilesoftShellPro.exe and never reads these. Harvested by the Files
+					element in the APPLICATION feature below, one generated component per file.
+				-->
+				<Directory Id='SNIPPETS' Name='snippets' />
 					<Component Id='APPLICATION' Guid='{ED9EFE4B-E83D-42BB-8938-F72B13A2FAD2}'>
 					<CreateFolder Directory='INSTALLFOLDER' />
 					<File Id='shell.exe' Checksum='yes' Name='shell.exe' KeyPath='yes' Source='$(var.bin)\shell.exe' />
@@ -256,6 +262,9 @@
 				<Exclude Files='$(var.bin)\imports\lang\pt-BR.nss' />
 				<Exclude Files='$(var.bin)\imports\lang\zh-CN.nss' />
 			</Files>
+			<!-- The bundled snippets and their catalog. -->
+			<Files Directory='SNIPPETS' Include='$(var.bin)\snippets\*.nss' />
+			<Files Directory='SNIPPETS' Include='$(var.bin)\snippets\catalog.json' />
 			<ComponentRef Id='CLEANUP' />
 			<ComponentRef Id='AppShortcut' />
 			<ComponentRef Id='DisplayIcon' />
