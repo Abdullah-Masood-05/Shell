@@ -1,0 +1,210 @@
+{
+	"format": 1,
+	"about": "Snippets bundled with Nilesoft Shell Pro (the Snippets page of the app). Each entry is <id>.nss in this folder. sha256 is the SHA-256 of the file without a UTF-8 BOM and with LF line endings: run scripts/update-snippet-hashes.ps1 after editing a file. requires: app ids the app knows (7-zip, windows-terminal, git, vscode) or an exe path (environment variables allowed) or an exe name found on PATH. risk: none, admin (runs as administrator) or network (uses the internet).",
+	"snippets": [
+		{
+			"id": "copy-file-hash",
+			"title": "Copy file hash",
+			"description": "Puts a file's SHA-256, SHA-1 or MD5 hash on the clipboard.",
+			"category": "files",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/copy-file-hash.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "1a3ea7df3799cab409363c274de2d97cc215ece512e034b85b8408669cbccd9f",
+			"translations": {
+				"zh-CN": { "title": "复制文件哈希值", "description": "将文件的 SHA-256、SHA-1 或 MD5 哈希值复制到剪贴板。" },
+				"zh-TW": { "title": "複製檔案雜湊值", "description": "將檔案的 SHA-256、SHA-1 或 MD5 雜湊值複製到剪貼簿。" }
+			}
+		},
+		{
+			"id": "copy-file-contents",
+			"title": "Copy file contents",
+			"description": "Copies the text of a text or code file to the clipboard without opening it.",
+			"category": "files",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/copy-file-contents.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "4094a54f1cf8051d7d5c1e22abea7e0cab8967a9f20e7ef87dae0d72b744af77",
+			"translations": {
+				"zh-CN": { "title": "复制文件内容", "description": "无需打开即可将文本或代码文件的内容复制到剪贴板。" },
+				"zh-TW": { "title": "複製檔案內容", "description": "無需開啟即可將文字或程式碼檔案的內容複製到剪貼簿。" }
+			}
+		},
+		{
+			"id": "run-with-arguments",
+			"title": "Run with arguments",
+			"description": "Asks for command-line arguments, then runs the program or batch file with them.",
+			"category": "files",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/run-with-arguments.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "eb10eda755d35f56f5f051070b10ed6dc0b26dfb6ecb205e35d938c344dcb38b",
+			"translations": {
+				"zh-CN": { "title": "带参数运行", "description": "先询问命令行参数，再用这些参数运行程序或批处理文件。" },
+				"zh-TW": { "title": "帶參數執行", "description": "先詢問命令列參數，再以這些參數執行程式或批次檔。" }
+			}
+		},
+		{
+			"id": "copy-folder-tree",
+			"title": "Copy folder tree",
+			"description": "Copies a folder's files and subfolders to the clipboard as a text tree.",
+			"category": "folders",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/copy-folder-tree.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "3d9adfaa20bce99eee945854ca995295ce9a1d1f39b53b612e918351e578970a",
+			"translations": {
+				"zh-CN": { "title": "复制文件夹树", "description": "将文件夹中的文件和子文件夹以文本树形式复制到剪贴板。" },
+				"zh-TW": { "title": "複製資料夾樹狀結構", "description": "將資料夾中的檔案和子資料夾以文字樹狀結構複製到剪貼簿。" }
+			}
+		},
+		{
+			"id": "create-gitignore",
+			"title": "New .gitignore",
+			"description": "Creates a .gitignore with common entries in the folder you right-click in.",
+			"category": "folders",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/create-gitignore.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "fab63912fc5648aecb683e2c79752d085c77a5355258f3ed9ff2aac1c2c3157d",
+			"translations": {
+				"zh-CN": { "title": "新建 .gitignore", "description": "在当前文件夹中新建包含常用规则的 .gitignore。" },
+				"zh-TW": { "title": "新增 .gitignore", "description": "在目前資料夾中新增包含常用規則的 .gitignore。" }
+			}
+		},
+		{
+			"id": "compress-zip",
+			"title": "Compress to ZIP",
+			"description": "Puts the selected files and folders in a ZIP file next to them, never over an existing one.",
+			"category": "archives",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/compress-zip.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "453fdba846aa9750d745dab94414e4f0c8b2d0e8e1e30422152ed67aa3284bba",
+			"translations": {
+				"zh-CN": { "title": "压缩为 ZIP", "description": "将选中的文件和文件夹压缩为同一位置的 ZIP 文件，不覆盖已有文件。" },
+				"zh-TW": { "title": "壓縮成 ZIP", "description": "將選取的檔案和資料夾壓縮成同一位置的 ZIP 檔，不覆寫既有檔案。" }
+			}
+		},
+		{
+			"id": "extract-zip-here",
+			"title": "Extract ZIP to a folder",
+			"description": "Extracts a ZIP file into a new folder named after it, in one click.",
+			"category": "archives",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/extract-zip-here.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "982aba18f914a4f4c797404f5258b97e86a56a36acf2c38e6b07a9863d4e35b3",
+			"translations": {
+				"zh-CN": { "title": "解压 ZIP 到文件夹", "description": "一键将 ZIP 文件解压到以其命名的新文件夹。" },
+				"zh-TW": { "title": "解壓縮 ZIP 到資料夾", "description": "一鍵將 ZIP 檔解壓縮到以其命名的新資料夾。" }
+			}
+		},
+		{
+			"id": "sevenzip-each",
+			"title": "Compress each to its own .7z",
+			"description": "Gives every selected file or folder its own 7-Zip archive.",
+			"category": "archives",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/sevenzip-each.nss",
+			"requires": ["7-zip"],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "193889b18c5c1ef91cc605dacff6d5e715d0c71645724ae80c1d518b6ee28cfa",
+			"translations": {
+				"zh-CN": { "title": "分别压缩为 .7z", "description": "为每个选中的文件或文件夹单独创建 7-Zip 压缩包。" },
+				"zh-TW": { "title": "分別壓縮成 .7z", "description": "為每個選取的檔案或資料夾各建立一個 7-Zip 壓縮檔。" }
+			}
+		},
+		{
+			"id": "admin-terminal-here",
+			"title": "Open here as administrator",
+			"description": "Opens Command Prompt or PowerShell as administrator in the folder.",
+			"category": "terminal",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/admin-terminal-here.nss",
+			"requires": [],
+			"risk": "admin",
+			"min_version": "2.0.0",
+			"sha256": "a74e44a1e6c562d353b704c98234906be652338a3bd2bad1059f8e38c4af12ee",
+			"translations": {
+				"zh-CN": { "title": "以管理员身份在此处打开", "description": "以管理员身份在该文件夹中打开命令提示符或 PowerShell。" },
+				"zh-TW": { "title": "以系統管理員身分在此開啟", "description": "以系統管理員身分在該資料夾中開啟命令提示字元或 PowerShell。" }
+			}
+		},
+		{
+			"id": "terminal-new-tab",
+			"title": "Open in a new Terminal tab",
+			"description": "Opens the folder as a new tab in your last Windows Terminal window.",
+			"category": "terminal",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/terminal-new-tab.nss",
+			"requires": ["windows-terminal"],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "4dfd30827610a47b8d8b30645e488af4b854258d17fddf0fc2d8ea98d2a2dc4e",
+			"translations": {
+				"zh-CN": { "title": "在新的终端标签页中打开", "description": "在最近使用的 Windows 终端窗口中以新标签页打开该文件夹。" },
+				"zh-TW": { "title": "在新的終端機索引標籤中開啟", "description": "在最近使用的 Windows 終端機視窗中以新索引標籤開啟該資料夾。" }
+			}
+		},
+		{
+			"id": "unblock-files",
+			"title": "Unblock downloaded files",
+			"description": "Removes the downloaded-from-the-internet mark from files, or from every file in a folder.",
+			"category": "security",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/unblock-files.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.0.0",
+			"sha256": "0503837cf0e92cfc439ecdfe31e79956a8d558b5f0655fb31f500d94d93016af",
+			"translations": {
+				"zh-CN": { "title": "解除阻止下载的文件", "description": "去除文件的“来自互联网”标记，也可处理文件夹中的所有文件。" },
+				"zh-TW": { "title": "解除封鎖下載的檔案", "description": "移除檔案的「來自網際網路」標記，也可處理資料夾中的所有檔案。" }
+			}
+		},
+		{
+			"id": "virustotal-lookup",
+			"title": "Look up on VirusTotal",
+			"description": "Opens the VirusTotal report for a file. Only its hash is sent, never the file.",
+			"category": "security",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/virustotal-lookup.nss",
+			"requires": [],
+			"risk": "network",
+			"min_version": "2.0.0",
+			"sha256": "d621eb40e7a7dda75f58d7bd72236e28f7e5651de94ca3b9ac83ec8d49e0cff4",
+			"translations": {
+				"zh-CN": { "title": "在 VirusTotal 上查询", "description": "打开文件的 VirusTotal 报告。只发送哈希值，从不上传文件。" },
+				"zh-TW": { "title": "在 VirusTotal 上查詢", "description": "開啟檔案的 VirusTotal 報告。只傳送雜湊值，絕不上傳檔案。" }
+			}
+		}
+	]
+}
