@@ -948,10 +948,27 @@ namespace Nilesoft
 
 			std::vector<uint32_t> ids;
 
+			// Other titles Windows shows for the same item (see load_mui's ldalt):
+			// Windows 11 builds some menus from newer strings than Windows 10, and
+			// outside English they differ by more than the accelerator.
+			std::vector<uint32_t> alt_hashes;
+
 			void set_hash()
 			{
 				if(!title.empty())
 					hash = MenuItemInfo::normalize(title, &title_normalize);
+			}
+
+			bool has_hash(uint32_t value) const
+			{
+				if(hash == value)
+					return true;
+				for(auto h : alt_hashes)
+				{
+					if(h == value)
+						return true;
+				}
+				return false;
 			}
 
 			string get_title() const 

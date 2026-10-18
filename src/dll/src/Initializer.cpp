@@ -389,6 +389,47 @@ namespace Nilesoft
 					::FreeLibrary(hModule);
 			};
 
+			// More strings Windows uses as the title of an item already in the
+			// table: each one is matched as well. An item whose own string failed
+			// to load takes the first of these that loads as its title.
+			auto ldalt = [&](const wchar_t *dll, std::initializer_list<MUID> list)
+			{
+				HMODULE lib{}, hModule = ::GetModuleHandleW(dll);
+				if(!hModule)
+				{
+					lib = load_resource_module(dll);
+					hModule = lib;
+				}
+
+				if(!hModule)
+					return;
+
+				for(auto &it : list)
+				{
+					string title;
+					auto len = ::LoadStringW(hModule, it.res_id, title.buffer(MAX_PATH), MAX_PATH);
+					if(len <= 0)
+						continue;
+					title.release(len);
+
+					auto uid = &MAP_MUID[it.id];
+					if(uid->title.empty())
+					{
+						uid->id = it.id;
+						uid->res_id = it.res_id;
+						uid->title = title.move();
+						uid->set_hash();
+					}
+					else if(auto h = MenuItemInfo::normalize(title); h && !uid->has_hash(h))
+					{
+						uid->alt_hashes.push_back(h);
+					}
+				}
+
+				if(lib)
+					::FreeLibrary(lib);
+			};
+
 			auto parse_menu = [&](HMODULE hModule, uint32_t menu_id,
 								 std::initializer_list<MUID> list)
 			{
@@ -760,17 +801,19 @@ namespace Nilesoft
 				{IDENT_ID_OPEN_POWERSHELL_WINDOW_HERE, 8508},
 				{IDENT_ID_OPEN_WINDOWS_POWERSHELL, 37446},
 				{IDENT_ID_OPTIONS, 37459},
-				{IDENT_ID_PIN_TO_QUICK_ACCESS, 51377},
-				{IDENT_ID_PIN_CURRENT_FOLDER_TO_QUICK_ACCESS, 51388},
-				{IDENT_ID_PIN_TO_START, 51201},
-				{IDENT_ID_ADD_TO_FAVORITES, 51389},		//37408  windows 11 22H2
-				{IDENT_ID_REMOVE_FROM_FAVORITES, 51390},//windows 11 22H2
-				{IDENT_ID_REMOVE_FROM_RECENT, 51391},
+				// Windows 11's File Explorer menu uses the 516xx strings (the
+				// ones with an accelerator); the older ones are matched too, below.
+				{IDENT_ID_PIN_TO_QUICK_ACCESS, isw11(51601, 51377)},
+				{IDENT_ID_PIN_CURRENT_FOLDER_TO_QUICK_ACCESS, isw11(51602, 51388)},
+				{IDENT_ID_PIN_TO_START, isw11(51606, 51201)},
+				{IDENT_ID_ADD_TO_FAVORITES, isw11(51608, 51389)},		//37408  windows 11 22H2
+				{IDENT_ID_REMOVE_FROM_FAVORITES, isw11(51603, 51390)},//windows 11 22H2
+				{IDENT_ID_REMOVE_FROM_RECENT, isw11(51604, 51391)},
 				{IDENT_ID_PIN_TO_TASKBAR, 5386},
 				{IDENT_ID_PLAY, 31283, {L'\uE1A5'}},
 				{IDENT_ID_PREVIEW, 51260, {L'\uE275'}},
 				{IDENT_ID_PRINT, 31250, {L'\uE0A8', 0}},
-				{IDENT_ID_REMOVE_FROM_QUICK_ACCESS, 51381},
+				{IDENT_ID_REMOVE_FROM_QUICK_ACCESS, isw11(51610, 51381)},
 				{IDENT_ID_ROTATE_LEFT, 37610},
 				{IDENT_ID_ROTATE_RIGHT, 37612},
 				{IDENT_ID_RUN, 12710},
@@ -778,8 +821,8 @@ namespace Nilesoft
 				{IDENT_ID_SEARCH, 12708, {L'\uE187'}},
 				{IDENT_ID_EDIT, 37398},
 				//{IDENT_ID_TROUBLESHOOT_COMPATIBILITY, 37425},
-				{IDENT_ID_UNPIN_FROM_QUICK_ACCESS,51379},
-				{IDENT_ID_UNPIN_FROM_START, 51394},
+				{IDENT_ID_UNPIN_FROM_QUICK_ACCESS, isw11(51605, 51379)},
+				{IDENT_ID_UNPIN_FROM_START, isw11(51609, 51394)},
 				{IDENT_ID_UNPIN_FROM_TASKBAR, 5387},
 				{IDENT_ID_COMPRESSED, 31462},
 				{IDENT_ID_CLEANUP, 37494},
@@ -797,6 +840,31 @@ namespace Nilesoft
 				{IDENT_ID_CLOSE, 31450},
 				{IDENT_ID_PERMANENTLY_DELETE, 37394}
 			});
+
+			// Windows 11 still has the Windows 10 strings and some menus may use
+			// them. In English the two only differ by the accelerator, which the
+			// title hash ignores, but in other languages they don't: an East Asian
+			// accelerator such as "(&Q)" is hashed as "_Q", and the wording can
+			// differ too (on a Chinese Windows 11 the Explorer items Pin to Start
+			// and Pin to Quick access matched no id with the old strings). Not on
+			// Windows 10, where the 516xx ids aren't these strings.
+			if(os->IsWindows11OrGreater())
+			{
+				ldalt(shell32, {
+					{IDENT_ID_PIN_TO_QUICK_ACCESS, 51377},
+					{IDENT_ID_PIN_TO_QUICK_ACCESS, 51632},
+					{IDENT_ID_PIN_CURRENT_FOLDER_TO_QUICK_ACCESS, 51388},
+					{IDENT_ID_PIN_TO_START, 51201},
+					{IDENT_ID_ADD_TO_FAVORITES, 51389},
+					{IDENT_ID_ADD_TO_FAVORITES, 51621},
+					{IDENT_ID_REMOVE_FROM_FAVORITES, 51390},
+					{IDENT_ID_REMOVE_FROM_RECENT, 51391},
+					{IDENT_ID_REMOVE_FROM_QUICK_ACCESS, 51381},
+					{IDENT_ID_REMOVE_FROM_QUICK_ACCESS, 51382},
+					{IDENT_ID_UNPIN_FROM_QUICK_ACCESS, 51379},
+					{IDENT_ID_UNPIN_FROM_START, 51394},
+				});
+			}
 
 			//window 7
 			if(!os->IsWindows8OrGreater())

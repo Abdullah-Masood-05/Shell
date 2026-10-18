@@ -21,10 +21,13 @@ struct Entry
     unsigned res;
     const char *english;  // nsp::mark()ed when the app has a translation
     bool win7Only = false;
+    unsigned res11 = 0;   // string resource Windows 11 uses instead of `res`, tried first there
 };
 
 // Module and resource ids as in Initializer::load_mui (src/dll/src/Initializer.cpp).
 // Where shell.dll reads a name from two places, the first one it tries is used.
+// On Windows 11 File Explorer's pin and Quick access items use newer shell32
+// strings (res11); shell.dll takes those there and also matches the older ones.
 constexpr Entry kEntries[] = {
     // ntshrui.dll (Windows 10 1511 and later)
     { "give_access_to", L"ntshrui.dll", 0, 103, nsp::mark("Give access to") },
@@ -76,19 +79,19 @@ constexpr Entry kEntries[] = {
     { "open_folder_location", L"shell32.dll", 0, 1040, "Open folder location" },
     { "open_powershell_window_here", L"shell32.dll", 0, 8508, nsp::mark("Open PowerShell window here") },
     { "open_command_window_here", L"shell32.dll", 0, 8506, "Open command window here" },
-    { "pin_to_quick_access", L"shell32.dll", 0, 51377, nsp::mark("Pin to Quick access") },
-    { "pin_current_folder_to_quick_access", L"shell32.dll", 0, 51388, nsp::mark("Pin current folder to Quick access") },
-    { "pin_to_start", L"shell32.dll", 0, 51201, nsp::mark("Pin to Start") },
+    { "pin_to_quick_access", L"shell32.dll", 0, 51377, nsp::mark("Pin to Quick access"), false, 51601 },
+    { "pin_current_folder_to_quick_access", L"shell32.dll", 0, 51388, nsp::mark("Pin current folder to Quick access"), false, 51602 },
+    { "pin_to_start", L"shell32.dll", 0, 51201, nsp::mark("Pin to Start"), false, 51606 },
     { "pin_to_taskbar", L"shell32.dll", 0, 5386, nsp::mark("Pin to taskbar") },
-    { "unpin_from_quick_access", L"shell32.dll", 0, 51379, nsp::mark("Unpin from Quick access") },
-    { "unpin_from_start", L"shell32.dll", 0, 51394, nsp::mark("Unpin from Start") },
+    { "unpin_from_quick_access", L"shell32.dll", 0, 51379, nsp::mark("Unpin from Quick access"), false, 51605 },
+    { "unpin_from_start", L"shell32.dll", 0, 51394, nsp::mark("Unpin from Start"), false, 51609 },
     { "unpin_from_taskbar", L"shell32.dll", 0, 5387, nsp::mark("Unpin from taskbar") },
     { "pin_to_start_menu", L"shell32.dll", 0, 5381, "Pin to Start menu", true },
     { "unpin_from_start_menu", L"shell32.dll", 0, 5382, "Unpin from Start menu", true },
-    { "add_to_favorites", L"shell32.dll", 0, 51389, "Add to Favorites" },
-    { "remove_from_favorites", L"shell32.dll", 0, 51390, "Remove from Favorites" },
-    { "remove_from_recent", L"shell32.dll", 0, 51391, "Remove from Recent" },
-    { "remove_from_quick_access", L"shell32.dll", 0, 51381, "Remove from Quick access" },
+    { "add_to_favorites", L"shell32.dll", 0, 51389, "Add to Favorites", false, 51608 },
+    { "remove_from_favorites", L"shell32.dll", 0, 51390, "Remove from Favorites", false, 51603 },
+    { "remove_from_recent", L"shell32.dll", 0, 51391, "Remove from Recent", false, 51604 },
+    { "remove_from_quick_access", L"shell32.dll", 0, 51381, "Remove from Quick access", false, 51610 },
     { "print", L"shell32.dll", 0, 31250, nsp::mark("Print") },
     { "rotate_left", L"shell32.dll", 0, 37610, nsp::mark("Rotate left") },
     { "rotate_right", L"shell32.dll", 0, 37612, nsp::mark("Rotate right") },
@@ -147,6 +150,17 @@ std::string narrow(const wchar_t *s, size_t n)
     return out;
 }
 
+bool isWindows11()
+{
+    static const bool value = [] {
+        using RtlGetVersionFn = LONG(WINAPI *)(PRTL_OSVERSIONINFOW);
+        RTL_OSVERSIONINFOW v{ sizeof(v) };
+        auto fn = reinterpret_cast<RtlGetVersionFn>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion"));
+        return fn && fn(&v) == 0 && v.dwMajorVersion >= 10 && v.dwBuildNumber >= 22000;
+    }();
+    return value;
+}
+
 // Mapped as data only, from System32 or the Windows folder, never the search path
 // (as shell.dll does).
 HMODULE loadResources(const wchar_t *module)
@@ -170,7 +184,11 @@ std::optional<std::string> read(const Entry &e)
     std::optional<std::string> out;
     if (e.menu == 0) {
         const wchar_t *p = nullptr;
-        int n = LoadStringW(h, e.res, reinterpret_cast<LPWSTR>(&p), 0);
+        int n = 0;
+        if (e.res11 && isWindows11())
+            n = LoadStringW(h, e.res11, reinterpret_cast<LPWSTR>(&p), 0);
+        if (n <= 0 || !p)
+            n = LoadStringW(h, e.res, reinterpret_cast<LPWSTR>(&p), 0);
         if (n > 0 && p)
             out = narrow(p, size_t(n));
     } else if (HMENU menu = LoadMenuW(h, MAKEINTRESOURCEW(e.menu))) {
