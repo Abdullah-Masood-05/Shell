@@ -202,6 +202,7 @@ try {
 # --- 2. the C++ strings -----------------------------------------------------------------
 $lit = '"((?:[^"\\\r\n]|\\.)*)"'
 $cppRx = [regex]::new("\bnsp::(tr|trc|trf|trn|mark)\(\s*$lit(?:\s*,\s*$lit)?")
+$followRx = [regex]::new("\bfollow\(\s*$lit\s*,\s*$lit")
 $cppEntries = [System.Collections.Generic.List[object]]::new()
 foreach ($f in Get-ChildItem (Join-Path $appDir 'src') -File -Include *.cpp, *.h -Recurse | Sort-Object FullName) {
     $rel = [System.IO.Path]::GetRelativePath($appDir, $f.FullName).Replace('\', '/')
@@ -224,6 +225,18 @@ foreach ($f in Get-ChildItem (Join-Path $appDir 'src') -File -Include *.cpp, *.h
         if ($e.Id -match '\\[xuU0-7]') { throw "${rel}:${line}: use the character itself, not a \x or \u escape, in translatable strings" }
         $e.Refs.Add("${rel}:$line")
         $cppEntries.Add($e)
+    }
+    # ConfigRules.cpp's follow("hides it", "hides them", count): a trn() for the
+    # second part of a rule summary.
+    if ($rel -eq 'src/ConfigRules.cpp') {
+        foreach ($m in $followRx.Matches($text)) {
+            $line = ($text.Substring(0, $m.Index) -split "`n").Count
+            $e = New-Entry
+            $e.Id = $m.Groups[1].Value; $e.Plural = $m.Groups[2].Value
+            $e.Extracted.Add('Follows another action in a rule summary, about the same items (“Moves … and adds a separator above it”)')
+            $e.Refs.Add("${rel}:$line")
+            $cppEntries.Add($e)
+        }
     }
 }
 
