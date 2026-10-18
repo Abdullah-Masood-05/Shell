@@ -33,6 +33,23 @@ concurrency:
 # x86, x64 and ARM64, CMake and rustup.
 
 jobs:
+  # `shell -config:upgrade` only replaces a user's copy of a shipped config file when that
+  # copy is a version shipped before (src/shared/ShippedConfigHashes.inc). The list is built
+  # from the full history, so a release can't go out without the previous version in it.
+  shipped-hashes:
+    name: List of shipped config versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Check that src/shared/ShippedConfigHashes.inc is up to date
+        shell: pwsh
+        run: ./scripts/update-shipped-hashes.ps1 -Check
+
   app:
     name: Nilesoft Shell Pro app (x64)
     runs-on: windows-2022
