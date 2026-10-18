@@ -71,5 +71,6 @@
 			{"title":"Go to", "link":"/docs/examples/goto"}
 		]
 	},
+	{"title":"Snippets", "link":"/docs/snippets"},
 	{"title":"About this fork", "link":"/docs/fork"}
 ]

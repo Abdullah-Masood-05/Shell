@@ -1,0 +1,84 @@
+<h4>Snippets</h4>
+<br>
+<p>A snippet is a ready-made <code>.nss</code> file that adds a menu or a few items to the context menu, for example a
+	7-Zip menu or a way to copy a file's path. You save the file next to your configuration and add one line to
+	<code>shell.nss</code> that loads it. You don't have to write any of it yourself.</p>
+
+<h5 id="rubicbg">Snippets by RubicBG</h5>
+<p>The largest collection is
+	<a href="https://github.com/RubicBG/Nilesoft-Shell-Snippets"><b>Nilesoft Shell Snippets by RubicBG</b></a>. It is
+	not part of Nilesoft Shell Pro and is not maintained by this project; all credit for the snippets goes to RubicBG.
+	The files are sorted into folders by topic:</p>
+<table class="table">
+	<tr><td class="w-25"><code>ex1.system</code></td><td>Windows features: a replacement Open with menu, a larger Send
+		to menu, keyboard shortcuts, saving a copied image from the clipboard, and shortening long file names.</td></tr>
+	<tr><td><code>ex2.user.cloud.share</code></td><td>OneDrive, Dropbox, Google Drive and odrive menus, sharing through
+		Tailscale or Viber, and uploading files to online file and text sharing services.</td></tr>
+	<tr><td><code>ex3.archiver</code></td><td>Menus for 7-Zip, NanaZip, WinRAR and Universal Extractor, plus compressing
+		and extracting with the tools built into Windows.</td></tr>
+	<tr><td><code>ex3.multifunction</code></td><td>File tools: copy path in different forms, copy file hashes, copy a
+		list of names, drive tools, security and permission tools, links and shortcuts, and renaming.</td></tr>
+	<tr><td><code>ex4.terminal</code></td><td>A terminal menu for Command Prompt, PowerShell and Windows Terminal,
+		with a way to open them as administrator.</td></tr>
+	<tr><td><code>ex5.goto</code></td><td>Go to menus for common folders, registry keys, Run commands and Windows
+		settings pages.</td></tr>
+	<tr><td><code>ext.managers</code>, <code>ext.desktop</code>, <code>ext.nilesoft</code>,
+		<code>ext.others</code></td><td>Power options, Everything search, Windows version details, menus to manage Shell
+		itself, and items for the desktop, the Recycle Bin, the address bar and the navigation pane.</td></tr>
+	<tr><td><code>dev.develop</code>, <code>dev.helpers</code></td><td>Helpers for people who write their own menus,
+		such as lists of icons and paths.</td></tr>
+</table>
+<p>Many snippets have a <code>.md</code> page next to them with a description and a screenshot. Start from the
+	<a href="https://github.com/RubicBG/Nilesoft-Shell-Snippets#readme">readme</a>, which links to them by group.</p>
+<p>The <a href="https://github.com/moudey/nilesoft-shell-snippets">moudey/nilesoft-shell-snippets</a> repository is an
+	older copy of the same collection. Use RubicBG's repository for the current files.</p>
+
+<div class="notification is-warning mt-5" role="alert">
+	<i>Info:</i> The collection is written for the newest upstream test builds of Nilesoft Shell. A few snippets use
+	functions that Nilesoft Shell Pro doesn't have yet: <code>str.fmt</code>, <code>app.set</code>,
+	<code>app.exists</code>, <code>app.delete</code>, <code>path.file.save_box</code>, <code>input()</code> with more
+	than three arguments, and <code>appx(id, 'path')</code>. Those snippets won't load here; most of the others load normally.
+</div>
+<div class="notification is-danger mt-5" role="alert">
+	<i>Warning:</i> <strong>Read a snippet before you use it.</strong> Some of them run commands as administrator, change
+	system settings, or send your files to online services. Open the <code>.nss</code> file on GitHub and look at what
+	each item runs. If you are unsure, don't add it.
+</div>
+<br>
+
+<h5 id="use">Use a snippet</h5>
+<p>These steps use your personal configuration in <code>%APPDATA%\Nilesoft\Shell</code>, which you can change without
+	administrator rights. If you don't have one yet, press <kbd>Use per-user config</kbd> on
+	<a href="/docs/app/home#active-config">Home</a> in the Nilesoft Shell Pro app.</p>
+<ol>
+	<li>Open the snippet's <code>.nss</code> file on GitHub and use <i>Download raw file</i> (the download button
+		above the file).</li>
+	<li>Save it in the <code>imports</code> folder of your configuration:
+		<code>%APPDATA%\Nilesoft\Shell\imports</code>. Keep the file's own name, for example
+		<code>app.SevenZip.nss</code>.</li>
+	<li>Open <code>shell.nss</code> (in the app: <a href="/docs/app/config-editor">Config Editor</a>) and add this line
+		at the end, with the name of your file:
+		<pre><code class="lang-shell">import 'imports/app.SevenZip.nss'</code></pre>
+	</li>
+	<li>Save. Shell picks up the change on the next right-click.</li>
+</ol>
+<p>The path in the import line is relative to <code>shell.nss</code>, so <code>imports/</code> means the
+	<code>imports</code> folder next to it. Write <code>import</code> and the quoted path only, without
+	<code>settings</code> or <code>theme</code> in front; see <a href="/docs/configuration#import">Import tag</a> for
+	the details.</p>
+<p>If you use the shared configuration in the install folder instead (<code>C:\Program Files\Nilesoft Shell</code>),
+	the steps are the same with that folder's <code>imports</code> folder and <code>shell.nss</code>, but saving there
+	needs administrator rights.</p>
+<p><strong>Without a separate file.</strong> You can also copy the text of the snippet and paste it at the end of
+	<code>shell.nss</code> in the Config Editor. The editor checks it before saving and lists any error in Problems.</p>
+<p><strong>To remove a snippet</strong>, delete its <code>import</code> line (or the pasted text) and save. Your own
+	files in <code>imports</code> are left alone when Nilesoft Shell Pro updates.</p>
+<p>If the menu disappears after adding a snippet, the snippet most likely uses one of the functions listed above.
+	Open the Config Editor, look at Problems, and remove the line again. Every save in the app takes a snapshot first,
+	so you can also go back from <a href="/docs/app/backups">Backups</a>.</p>
+<br>
+
+<h5 id="write-your-own">Write your own</h5>
+<p>To change a snippet or make your own menus, start with <a href="/docs/get-started">Get Started</a>, then
+	<a href="/docs/configuration/new-items">New items</a> and <a href="/docs/configuration/modify-items">Modify
+	items</a>. The <a href="/docs/examples">Examples</a> show a few complete menus.</p>
