@@ -114,6 +114,18 @@ TEST_CASE("config upgrade: the app's import lines don't count")
           "x\r\ny\r\nimport 'imports/settings-app.nss'\r\nimport 'imports/settings-app-menus.nss'\r\n");
     CHECK(cu::with_app_imports("x\n", { "import 'imports/settings-app.nss'" }) == "x\nimport 'imports/settings-app.nss'\n");
     CHECK(cu::with_app_imports("x", {}) == "x");
+
+    // The Menu map's rules go before the root's other config imports (MapRules.h).
+    const std::string shipped = "settings {}\r\nimport lang 'imports/lang/en.nss'\r\n  import 'nested.nss'\r\n"
+                                "import 'imports/theme.nss'\r\nimport 'imports/modify.nss'\r\n";
+    CHECK(cu::with_app_imports(shipped, { "import 'imports/settings-app-map.nss'", "import 'imports/settings-app.nss'",
+                                          "import 'imports/settings-app-snippets.nss'" }) ==
+          "settings {}\r\nimport lang 'imports/lang/en.nss'\r\n  import 'nested.nss'\r\n"
+          "import 'imports/settings-app-map.nss'\r\nimport 'imports/theme.nss'\r\nimport 'imports/modify.nss'\r\n"
+          "import 'imports/settings-app.nss'\r\nimport 'imports/settings-app-snippets.nss'\r\n");
+    // No config import to go before: at the end, like the others.
+    CHECK(cu::with_app_imports("x", { "import \"Imports\\Settings-App-Map.nss\"" }) ==
+          "x\nimport \"Imports\\Settings-App-Map.nss\"\n");
 }
 
 TEST_CASE("config upgrade: the localization block -config:init adds doesn't count")
