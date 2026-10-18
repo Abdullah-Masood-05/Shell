@@ -4,8 +4,10 @@
 
 #include "nss/Literal.h"
 #include "nss/NssDocument.h"
+#include "nss/Text.h"
 #include "nss/ThemeSchema.h"
 
+#include <algorithm>
 #include <set>
 
 namespace fs = std::filesystem;
@@ -59,9 +61,62 @@ nss::Overrides PendingChanges::apply(const nss::Overrides &existing) const
     return out;
 }
 
+using maprules::uncommented;
+
+void PendingChanges::addRule(std::string_view text, std::string_view label, std::string_view page)
+{
+    std::string key(nss::trim(text));
+    auto it = rules_.find(key);
+    if (it != rules_.end() && !it->second.add) {
+        rules_.erase(it);
+        return;
+    }
+    rules_[key] = RuleChange{ true, std::string(label), std::string(page) };
+}
+
+void PendingChanges::removeRule(std::string_view text, std::string_view label, std::string_view page)
+{
+    std::string key(uncommented(text));
+    auto it = rules_.find(key);
+    if (it != rules_.end() && it->second.add) {
+        rules_.erase(it);
+        return;
+    }
+    rules_[key] = RuleChange{ false, std::string(label), std::string(page) };
+}
+
+const PendingChanges::RuleChange *PendingChanges::findRule(std::string_view text) const
+{
+    auto it = rules_.find(std::string(uncommented(text)));
+    return it == rules_.end() ? nullptr : &it->second;
+}
+
+maprules::Rules PendingChanges::applyRules(const maprules::Rules &existing) const
+{
+    maprules::Rules out;
+    for (const auto &line : existing) {
+        auto it = rules_.find(std::string(uncommented(line)));
+        if (it == rules_.end())
+            out.push_back(line);
+        else if (it->second.add)
+            out.push_back(it->first); // turned off: on again, in place
+        // removed: dropped, on or off
+    }
+    for (const auto &[text, change] : rules_) {
+        if (!change.add)
+            continue;
+        if (std::find(out.begin(), out.end(), text) == out.end())
+            out.push_back(text);
+    }
+    return out;
+}
+
 std::string PendingChanges::describe() const
 {
     std::map<std::string, std::vector<std::string>> byPage;
+    for (const auto &[text, change] : rules_)
+        byPage[change.page.empty() ? std::string("Menu map") : change.page].push_back(
+            change.label.empty() ? std::string(change.add ? "add a rule" : "remove a rule") : change.label);
     for (const auto &[key, change] : changes_) {
         std::string name = key;
         if (name.rfind("theme.", 0) == 0)
@@ -138,29 +193,58 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
         return plan;
     }
     plan.overridesPath = (root.parent_path() / fs::path(nss::widen(nss::OverridesWriter::relativePath))).lexically_normal();
+    plan.mapPath = (root.parent_path() / fs::path(nss::widen(maprules::relativePath))).lexically_normal();
 
-    std::optional<nss::NssDocument> existing;
-    std::error_code ec;
-    if (fs::is_regular_file(plan.overridesPath, ec)) {
-        nss::ParseContext ctx;
-        existing = nss::NssDocument::load(plan.overridesPath, ctx, &error);
-        if (!existing) {
-            plan.error = nsp::trf("Couldn't read {}: {}", nss::narrow(plan.overridesPath.wstring()), error);
+    auto loadExisting = [&](const fs::path &path, std::optional<nss::NssDocument> &out) {
+        std::error_code ec;
+        if (!fs::is_regular_file(path, ec))
+            return true;
+        out = nss::NssDocument::load(path, nss::ParseContext{}, &error);
+        if (!out)
+            plan.error = nsp::trf("Couldn't read {}: {}", nss::narrow(path.wstring()), error);
+        return bool(out);
+    };
+
+    // Theme and settings values: imports/settings-app.nss, imported last. Only
+    // written when one of them changed (the Menu map's rules alone don't need it).
+    if (!pending.items().empty() || pending.rules().empty()) {
+        std::optional<nss::NssDocument> existing;
+        if (!loadExisting(plan.overridesPath, existing))
+            return plan;
+        if (existing)
+            plan.before = nss::OverridesWriter::read(*existing);
+        plan.after = pending.apply(plan.before);
+
+        auto doc = nss::OverridesWriter::generateDocument(plan.after, existing ? &*existing : nullptr);
+        if (!doc.diagnostics().empty()) {
+            plan.error = nsp::trf("The generated settings-app.nss doesn't parse: {}", doc.diagnostics().front().message);
             return plan;
         }
-        plan.before = nss::OverridesWriter::read(*existing);
+        if (!existing || existing->text() != doc.text())
+            plan.writes.push_back(nss::FileWrite{ plan.overridesPath, doc.text(), doc.format() });
+        plan.rootChanged = nss::OverridesWriter::ensureImportedLast(*rootDoc);
     }
-    plan.after = pending.apply(plan.before);
 
-    auto doc = nss::OverridesWriter::generateDocument(plan.after, existing ? &*existing : nullptr);
-    if (!doc.diagnostics().empty()) {
-        plan.error = nsp::trf("The generated settings-app.nss doesn't parse: {}", doc.diagnostics().front().message);
-        return plan;
+    // The Menu map's rules: imports/settings-app-map.nss, imported before the
+    // other config files (see MapRules.h).
+    if (!pending.rules().empty()) {
+        std::optional<nss::NssDocument> existing;
+        if (!loadExisting(plan.mapPath, existing))
+            return plan;
+        if (existing)
+            plan.rulesBefore = maprules::read(*existing);
+        plan.rulesAfter = pending.applyRules(plan.rulesBefore);
+        auto format = existing ? existing->format() : nss::defaultFormat();
+        auto doc = nss::NssDocument::fromText(maprules::generate(plan.rulesAfter, format.eol), format);
+        if (!doc.diagnostics().empty()) {
+            plan.error = nsp::trf("The generated settings-app-map.nss doesn't parse: {}", doc.diagnostics().front().message);
+            return plan;
+        }
+        if (!existing || existing->text() != doc.text())
+            plan.writes.push_back(nss::FileWrite{ plan.mapPath, doc.text(), doc.format() });
+        plan.rootChanged |= maprules::ensureImported(*rootDoc);
     }
-    if (!existing || existing->text() != doc.text())
-        plan.writes.push_back(nss::FileWrite{ plan.overridesPath, doc.text(), doc.format() });
 
-    plan.rootChanged = nss::OverridesWriter::ensureImportedLast(*rootDoc);
     if (plan.rootChanged)
         plan.writes.push_back(nss::FileWrite{ root, rootDoc->text(), rootDoc->format() });
     plan.ok = true;

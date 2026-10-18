@@ -54,6 +54,7 @@ constexpr KnownModule kKnown[] = {
     { "taskbar", nsp::mark("Taskbar"), nsp::mark("Apps, window arrangement and Task Manager on the taskbar's menu."), nullptr },
     { "my-tools", nsp::mark("My tools"), nsp::mark("New file and System menus from Abdullah Masood's config."), nullptr },
     { "settings-app-menus", nsp::mark("Your menus"), nsp::mark("The menus and items you built on the Menu Builder page."), nullptr },
+    { "settings-app-map", nsp::mark("Menu map"), nsp::mark("The Windows items you hid, renamed or moved on the Menu map page."), nullptr },
     { "settings-app-openwith", nsp::mark("Open with"), nsp::mark("Editors and terminals you picked on the Open with page."), nullptr },
 };
 

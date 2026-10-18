@@ -123,6 +123,7 @@ private:
         std::string message;
         ConfigTarget target;
         std::map<std::string, PendingChanges::Change> saved;
+        std::map<std::string, PendingChanges::RuleChange> savedRules;
     };
 
     ConfigTarget queryTarget() const;                            // worker
