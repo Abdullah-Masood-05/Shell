@@ -55,6 +55,7 @@ constexpr KnownModule kKnown[] = {
     { "my-tools", nsp::mark("My tools"), nsp::mark("New file and System menus from Abdullah Masood's config."), nullptr },
     { "settings-app-menus", nsp::mark("Your menus"), nsp::mark("The menus and items you built on the Menu Builder page."), nullptr },
     { "settings-app-openwith", nsp::mark("Open with"), nsp::mark("Editors and terminals you picked on the Open with page."), nullptr },
+    { "settings-app-snippets", nsp::mark("Snippets"), nsp::mark("The snippets you turned on on the Snippets page."), nullptr },
 };
 
 std::string lineText(std::string_view text, size_t begin)
@@ -461,13 +462,6 @@ struct Action
     std::string follow;
 };
 
-// trn() for the follow-up forms: singular for one item, plural for several.
-template<class... A>
-std::string follow(const char *one, const char *many, size_t count, const A &...args)
-{
-    return nsp::trn(one, many, (long long)count, args...);
-}
-
 void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r, const Names &n)
 {
     std::map<std::string, std::string> props;
@@ -548,16 +542,16 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r, const Na
     // What it does, most important first.
     std::vector<Action> actions;
     if (r.kind == RuleKind::Remove)
-        actions.push_back({ nsp::trf("Removes {0}", target), follow("removes it", "removes them", count) });
+        actions.push_back({ nsp::trf("Removes {0}", target), nsp::trn("removes it", "removes them", (long long)count) });
     if (has("vis")) {
         auto v = word("vis", "vis");
         if (v == "remove" || v == "hidden" || v == "hide")
-            actions.push_back({ nsp::trf("Hides {0}", target), follow("hides it", "hides them", count) });
+            actions.push_back({ nsp::trf("Hides {0}", target), nsp::trn("hides it", "hides them", (long long)count) });
         else if (v == "disable" || v == "disabled")
-            actions.push_back({ nsp::trf("Disables {0}", target), follow("disables it", "disables them", count) });
+            actions.push_back({ nsp::trf("Disables {0}", target), nsp::trn("disables it", "disables them", (long long)count) });
         else if (v != "normal" && v != "enable") {
             actions.push_back({ nsp::trf("Changes when {0} is shown", target),
-                                follow("changes when it is shown", "changes when they are shown", count) });
+                                nsp::trn("changes when it is shown", "changes when they are shown", (long long)count) });
             r.complex = true;
         }
     }
@@ -571,33 +565,33 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r, const Na
         Action a;
         if (toMenu) {
             if (v == "top")
-                a = { nsp::trf("Moves {0} to the top of {1}", target, menu), follow("moves it to the top of {0}", "moves them to the top of {0}", count, menu) };
+                a = { nsp::trf("Moves {0} to the top of {1}", target, menu), nsp::trn("moves it to the top of {0}", "moves them to the top of {0}", (long long)count, menu) };
             else if (v == "bottom")
                 a = { nsp::trf("Moves {0} to the bottom of {1}", target, menu),
-                      follow("moves it to the bottom of {0}", "moves them to the bottom of {0}", count, menu) };
+                      nsp::trn("moves it to the bottom of {0}", "moves them to the bottom of {0}", (long long)count, menu) };
             else if (v == "middle")
                 a = { nsp::trf("Moves {0} to the middle of {1}", target, menu),
-                      follow("moves it to the middle of {0}", "moves them to the middle of {0}", count, menu) };
+                      nsp::trn("moves it to the middle of {0}", "moves them to the middle of {0}", (long long)count, menu) };
             else if (number)
                 a = { nsp::trf("Moves {0} into {1} at position {2}", target, menu, place),
-                      follow("moves it into {0} at position {1}", "moves them into {0} at position {1}", count, menu, place) };
+                      nsp::trn("moves it into {0} at position {1}", "moves them into {0} at position {1}", (long long)count, menu, place) };
             else
-                a = { nsp::trf("Moves {0} into {1}", target, menu), follow("moves it into {0}", "moves them into {0}", count, menu) };
+                a = { nsp::trf("Moves {0} into {1}", target, menu), nsp::trn("moves it into {0}", "moves them into {0}", (long long)count, menu) };
         } else {
             if (v == "top")
                 a = { nsp::trf("Moves {0} to the top of the menu", target),
-                      follow("moves it to the top of the menu", "moves them to the top of the menu", count) };
+                      nsp::trn("moves it to the top of the menu", "moves them to the top of the menu", (long long)count) };
             else if (v == "bottom")
                 a = { nsp::trf("Moves {0} to the bottom of the menu", target),
-                      follow("moves it to the bottom of the menu", "moves them to the bottom of the menu", count) };
+                      nsp::trn("moves it to the bottom of the menu", "moves them to the bottom of the menu", (long long)count) };
             else if (v == "middle")
                 a = { nsp::trf("Moves {0} to the middle of the menu", target),
-                      follow("moves it to the middle of the menu", "moves them to the middle of the menu", count) };
+                      nsp::trn("moves it to the middle of the menu", "moves them to the middle of the menu", (long long)count) };
             else if (number)
                 a = { nsp::trf("Moves {0} to position {1} in the menu", target, place),
-                      follow("moves it to position {0} in the menu", "moves them to position {0} in the menu", count, place) };
+                      nsp::trn("moves it to position {0} in the menu", "moves them to position {0} in the menu", (long long)count, place) };
             else
-                a = { nsp::trf("Moves {0}", target), follow("moves it", "moves them", count) };
+                a = { nsp::trf("Moves {0}", target), nsp::trn("moves it", "moves them", (long long)count) };
         }
         if (!number && v != "top" && v != "bottom" && v != "middle" && v != "auto")
             r.complex = true;
@@ -605,7 +599,7 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r, const Na
     }
     if (has("title")) {
         auto title = curly(renameValue(props["title"], n));
-        actions.push_back({ nsp::trf("Renames {0} to {1}", target, title), follow("renames it to {0}", "renames them to {0}", count, title) });
+        actions.push_back({ nsp::trf("Renames {0} to {1}", target, title), nsp::trn("renames it to {0}", "renames them to {0}", (long long)count, title) });
     }
     if (has("sep")) {
         auto v = props["sep"].empty() ? std::string("before") : word("sep", "sep");
@@ -614,26 +608,26 @@ void describe(const nss::NssDocument &doc, const nss::Node &d, Rule &r, const Na
         if (v == "bottom")
             v = "after";
         if (v == "before")
-            actions.push_back({ nsp::trf("Adds a separator above {0}", target), follow("adds a separator above it", "adds a separator above them", count) });
+            actions.push_back({ nsp::trf("Adds a separator above {0}", target), nsp::trn("adds a separator above it", "adds a separator above them", (long long)count) });
         else if (v == "after")
-            actions.push_back({ nsp::trf("Adds a separator below {0}", target), follow("adds a separator below it", "adds a separator below them", count) });
+            actions.push_back({ nsp::trf("Adds a separator below {0}", target), nsp::trn("adds a separator below it", "adds a separator below them", (long long)count) });
         else if (v == "both")
             actions.push_back({ nsp::trf("Adds separators above and below {0}", target),
-                                follow("adds separators above and below it", "adds separators above and below them", count) });
+                                nsp::trn("adds separators above and below it", "adds separators above and below them", (long long)count) });
         else if (v != "none")
             actions.push_back({ nsp::trf("Changes the separators around {0}", target),
-                                follow("changes the separators around it", "changes the separators around them", count) });
+                                nsp::trn("changes the separators around it", "changes the separators around them", (long long)count) });
     }
     if (has("image"))
-        actions.push_back({ nsp::trf("Changes the icon of {0}", target), follow("changes its icon", "changes their icons", count) });
+        actions.push_back({ nsp::trf("Changes the icon of {0}", target), nsp::trn("changes its icon", "changes their icons", (long long)count) });
     if (has("keys"))
-        actions.push_back({ nsp::trf("Shows a shortcut key on {0}", target), follow("shows a shortcut key", "shows shortcut keys", count) });
+        actions.push_back({ nsp::trf("Shows a shortcut key on {0}", target), nsp::trn("shows a shortcut key", "shows shortcut keys", (long long)count) });
     if (has("tip"))
-        actions.push_back({ nsp::trf("Adds a tip to {0}", target), follow("adds a tip", "adds tips", count) });
+        actions.push_back({ nsp::trf("Adds a tip to {0}", target), nsp::trn("adds a tip", "adds tips", (long long)count) });
     if (has("checked") || has("default"))
-        actions.push_back({ nsp::trf("Changes the state of {0}", target), follow("changes its state", "changes their state", count) });
+        actions.push_back({ nsp::trf("Changes the state of {0}", target), nsp::trn("changes its state", "changes their state", (long long)count) });
     if (has("cmd") || has("command") || has("args") || has("arg"))
-        actions.push_back({ nsp::trf("Changes the command of {0}", target), follow("changes its command", "changes their commands", count) });
+        actions.push_back({ nsp::trf("Changes the command of {0}", target), nsp::trn("changes its command", "changes their commands", (long long)count) });
     if (actions.empty())
         actions.push_back({ nsp::trf("Matches {0} but changes nothing", target), {} });
 
