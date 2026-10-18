@@ -65,6 +65,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)System\Windows\Windows.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ConfigCheck.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ConfigLocation.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConfigUpgrade.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RegistryConfig.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)targetver.h" />
   </ItemGroup>
@@ -81,6 +82,7 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)packages.config" />
     <None Include="$(MSBuildThisFileDirectory)VC-LTL.props" />
+    <None Include="$(MSBuildThisFileDirectory)ShippedConfigHashes.inc" />
   </ItemGroup>
   <!--<ItemGroup>
     <Library Include="$(MSBuildThisFileDirectory)Library\plutosvg.lib" />

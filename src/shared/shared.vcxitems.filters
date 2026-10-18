@@ -58,6 +58,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Library\plutovg.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ConfigCheck.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ConfigLocation.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConfigUpgrade.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RegistryConfig.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)targetver.h" />
   </ItemGroup>
@@ -66,5 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)VC-LTL.props" />
+    <None Include="$(MSBuildThisFileDirectory)ShippedConfigHashes.inc" />
   </ItemGroup>
 </Project>
