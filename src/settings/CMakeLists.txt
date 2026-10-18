@@ -103,7 +103,10 @@ add_executable(settings WIN32
     src/LogReader.cpp
     src/PendingChanges.cpp
     src/PresetsController.cpp
+    src/MapRules.cpp
     src/MenuBuilderController.cpp
+    src/MenuMap.cpp
+    src/MenuMapController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
     src/OnboardingController.cpp
@@ -180,6 +183,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_updater.cpp
         tests/test_tr.cpp
         tests/test_config_upgrade.cpp
+        tests/test_menumap.cpp
         tests/test_snippets.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
@@ -195,6 +199,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/ThemeModel.cpp
         src/ThemePresets.cpp
         src/Tr.cpp
+        src/MapRules.cpp
+        src/MenuMap.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp

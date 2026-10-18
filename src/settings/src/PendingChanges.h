@@ -6,6 +6,8 @@
 // (tests/test_pending.cpp).
 
 #include "nss/ConfigStore.h"
+#include "MapRules.h"
+
 #include "nss/OverridesWriter.h"
 
 #include <filesystem>
@@ -36,21 +38,46 @@ public:
     void reset(std::string_view key, std::string_view page = {});
     // Forgets the pending change for `key` (the value goes back to the saved one).
     void forget(std::string_view key);
-    void discard() { changes_.clear(); }
+    void discard()
+    {
+        changes_.clear();
+        rules_.clear();
+    }
 
-    size_t count() const { return changes_.size(); }
-    bool empty() const { return changes_.empty(); }
+    // The Menu map's rules (one modify/remove statement per line) in the app-owned
+    // imports/settings-app-map.nss (MapRules.h). Adding a rule whose removal is pending (or the
+    // reverse) just drops that pending change. `label` names it for the snapshot
+    // reason ("hide Cast to device").
+    struct RuleChange
+    {
+        bool add = true;
+        std::string label;
+        std::string page;
+    };
+    void addRule(std::string_view text, std::string_view label, std::string_view page = "Menu map");
+    void removeRule(std::string_view text, std::string_view label, std::string_view page = "Menu map");
+    void forgetRule(std::string_view text) { rules_.erase(std::string(text)); }
+    const std::map<std::string, RuleChange> &rules() const { return rules_; }
+    const RuleChange *findRule(std::string_view text) const;
+
+    size_t count() const { return changes_.size() + rules_.size(); }
+    bool empty() const { return changes_.empty() && rules_.empty(); }
     const std::map<std::string, Change> &items() const { return changes_; }
     const Change *find(std::string_view key) const;
 
     // The overrides after the pending changes are applied to `existing`.
     nss::Overrides apply(const nss::Overrides &existing) const;
+    // The rules after the pending rule changes: a removed rule goes whether it is on
+    // or turned off ("// ..."); an added one that is there turned off is turned on
+    // again in place; others are appended.
+    maprules::Rules applyRules(const maprules::Rules &existing) const;
 
     // "Appearance: background.color, item.radius" (the snapshot reason).
     std::string describe() const;
 
 private:
     std::map<std::string, Change> changes_;
+    std::map<std::string, RuleChange> rules_;
 };
 
 // Two value texts are the same literal ("modern" and 'modern', 8 and 8.0, #fff and
@@ -64,10 +91,13 @@ struct SavePlan
     bool ok = false;
     std::string error;
     std::filesystem::path overridesPath; // <root folder>/imports/settings-app.nss
+    std::filesystem::path mapPath;       // <root folder>/imports/settings-app-map.nss
     nss::Overrides before;               // what settings-app.nss held
     nss::Overrides after;
-    bool rootChanged = false;            // the import line had to be added or moved
-    std::vector<nss::FileWrite> writes;  // settings-app.nss first, then the root
+    maprules::Rules rulesBefore;          // the Menu map's rules (imports/settings-app-map.nss)
+    maprules::Rules rulesAfter;
+    bool rootChanged = false;          // the import line had to be added or moved
+    std::vector<nss::FileWrite> writes;  // settings-app.nss, settings-app-map.nss, then the root
 };
 
 SavePlan planSave(const std::filesystem::path &root, const PendingChanges &pending);

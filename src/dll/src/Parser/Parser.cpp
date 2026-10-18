@@ -511,6 +511,7 @@ namespace Nilesoft
 
 		bool Parser::parse_menu_item(NativeMenu *menu, uint32_t type)
 		{
+			record_item(menu, l->line, prevCol);
 			switch(type)
 			{
 				case MENU_TYPE_MENU:
@@ -578,6 +579,7 @@ namespace Nilesoft
 		{
 			auto cache = Initializer::instance->cache;
 			std::unique_ptr<NativeMenu> item(new NativeMenu(true));
+			record_item(item.get(), l->line, prevCol);
 			if(eat().parse_modify_properties(item.get(), action))
 				cache->statics.push_back(item.release());
 		}
@@ -1471,96 +1473,118 @@ namespace Nilesoft
 			}
 		}
 
-		bool Parser::ReportTitles(std::vector<TitleInfo> &out, const wchar_t *where)
+		bool Parser::WhereTypes(const wchar_t *where, int32_t (&types)[FSO_MAX], bool &background,
+								size_t &count, bool &filter)
 		{
 			// The selection a right-click in `where` makes, as Selections
 			// describes it; only type= is tested (where= and vis= need the real
 			// selection and are not evaluated).
-			int32_t types[FSO_MAX]{};
-			bool background = false;
-			size_t count = 1;
-			bool filter = where && *where;
-			if(filter)
+			std::fill(std::begin(types), std::end(types), 0);
+			background = false;
+			count = 1;
+			filter = where && *where;
+			if(!filter)
+				return true;
+
+			string name = where;
+			if(name.equals(L"file", true))
+				types[FSO_FILE] = 1;
+			else if(name.equals(L"folder", true) || name.equals(L"dir", true))
+				types[FSO_DIRECTORY] = 1;
+			else if(name.equals(L"drive", true))
 			{
-				string name = where;
-				if(name.equals(L"file", true))
-					types[FSO_FILE] = 1;
-				else if(name.equals(L"folder", true) || name.equals(L"dir", true))
-					types[FSO_DIRECTORY] = 1;
-				else if(name.equals(L"back", true) || name.equals(L"background", true))
-				{
-					background = true;
-					types[FSO_BACK_DIRECTORY] = 1;
-				}
-				else if(name.equals(L"desktop", true))
-				{
-					background = true;
-					types[FSO_DESKTOP] = 1;
-				}
-				else if(name.equals(L"taskbar", true))
-				{
-					types[FSO_TASKBAR] = 1;
-					count = 0;
-				}
-				else
-					return false;
-
-				types[FSO_BACK] = background;
-				for(int32_t i = 0; i < FSO_BACK; i++)
-					types[FSO_COUNT] += types[i];
+				types[FSO_DRIVE] = 1;
+				types[FSO_DRIVE_FIXED] = 1;
 			}
+			else if(name.equals(L"back", true) || name.equals(L"background", true))
+			{
+				background = true;
+				types[FSO_BACK_DIRECTORY] = 1;
+			}
+			else if(name.equals(L"desktop", true))
+			{
+				background = true;
+				types[FSO_DESKTOP] = 1;
+			}
+			else if(name.equals(L"taskbar", true))
+			{
+				types[FSO_TASKBAR] = 1;
+				count = 0;
+			}
+			else
+				return false;
 
+			types[FSO_BACK] = background;
+			for(int32_t i = 0; i < FSO_BACK; i++)
+				types[FSO_COUNT] += types[i];
+			return true;
+		}
+
+		Parser::TitleInfo Parser::DescribeTitle(NativeMenu *item, uint32_t depth, TitleInfo::Kind kind)
+		{
 			auto &loc = context.Cache->variables.loc;
+
+			TitleInfo info;
+			info.state = TitleInfo::Dynamic;
+			info.kind = kind;
+			info.depth = depth;
+			auto e = item->title.get();
+			if(!e)
+				return info;
+			if(auto it = m_titles.find(e); it != m_titles.end())
+			{
+				auto &ref = it->second;
+				info.file = ref.file;
+				info.line = ref.line;
+				info.column = ref.column;
+				if(ref.root)
+					info.source.format(L"%s.%s", ref.root == IDENT_LOC ? L"loc" : L"title", ref.name.c_str());
+
+				Expression *value = nullptr;
+				if(ref.literal)
+					value = e;
+				else if(ref.root == IDENT_LOC)
+				{
+					// Undefined (null) evaluates to an empty title.
+					value = loc.at(ref.key);
+					if(!value)
+						info.state = TitleInfo::Empty;
+					else if(!is_literal(value))
+						value = nullptr;	// e.g. 'Copy @sel.count paths'
+				}
+				else if(ref.root == IDENT_TITLE)
+				{
+					info.state = TitleInfo::Empty;
+					if(auto uid = Initializer::get_muid(ref.key); uid)
+					{
+						info.text = uid->get_title().move();
+						if(!info.text.empty())
+							info.state = TitleInfo::Text;
+					}
+				}
+
+				if(value)
+				{
+					info.text = context.Eval(value).to_string().move();
+					info.state = info.text.empty() ? TitleInfo::Empty : TitleInfo::Text;
+				}
+			}
+			return info;
+		}
+
+		bool Parser::ReportTitles(std::vector<TitleInfo> &out, const wchar_t *where)
+		{
+			int32_t types[FSO_MAX]{};
+			bool background = false, filter = false;
+			size_t count = 1;
+			// "drive" is ReportTree's; -config:check -titles never took it.
+			if((where && string(where).equals(L"drive", true)) || !WhereTypes(where, types, background, count, filter))
+				return false;
 
 			auto report = [&](NativeMenu *item, uint32_t depth, TitleInfo::Kind kind)
 			{
-				auto e = item->title.get();
-				if(!e)
-					return;
-
-				TitleInfo info;
-				info.state = TitleInfo::Dynamic;
-				info.kind = kind;
-				info.depth = depth;
-				if(auto it = m_titles.find(e); it != m_titles.end())
-				{
-					auto &ref = it->second;
-					info.file = ref.file;
-					info.line = ref.line;
-					info.column = ref.column;
-					if(ref.root)
-						info.source.format(L"%s.%s", ref.root == IDENT_LOC ? L"loc" : L"title", ref.name.c_str());
-
-					Expression *value = nullptr;
-					if(ref.literal)
-						value = e;
-					else if(ref.root == IDENT_LOC)
-					{
-						// Undefined (null) evaluates to an empty title.
-						value = loc.at(ref.key);
-						if(!value)
-							info.state = TitleInfo::Empty;
-						else if(!is_literal(value))
-							value = nullptr;	// e.g. 'Copy @sel.count paths'
-					}
-					else if(ref.root == IDENT_TITLE)
-					{
-						info.state = TitleInfo::Empty;
-						if(auto uid = Initializer::get_muid(ref.key); uid)
-						{
-							info.text = uid->get_title().move();
-							if(!info.text.empty())
-								info.state = TitleInfo::Text;
-						}
-					}
-
-					if(value)
-					{
-						info.text = context.Eval(value).to_string().move();
-						info.state = info.text.empty() ? TitleInfo::Empty : TitleInfo::Text;
-					}
-				}
-				out.push_back(std::move(info));
+				if(item->title.get())
+					out.push_back(DescribeTitle(item, depth, kind));
 			};
 
 			// A menu that does not show in `where` hides everything in it.
@@ -1587,6 +1611,18 @@ namespace Nilesoft
 				report(item, 0, TitleInfo::Modify);
 			}
 			return true;
+		}
+
+		void Parser::record_item(const NativeMenu *item, size_t line, size_t column)
+		{
+			// Only -config:check (which collects diagnostics) reports items.
+			if(!item || !Diagnostics)
+				return;
+			ItemRef ref;
+			ref.file = l ? l->path : m_path;
+			ref.line = line;
+			ref.column = column;
+			m_items.insert_or_assign(item, std::move(ref));
 		}
 
 		// load data from disk and populate

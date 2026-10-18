@@ -180,12 +180,14 @@
     <ClCompile Include="src\Expression\OperatorExpression.cpp" />
     <ClCompile Include="src\Expression\Scope.cpp" />
     <ClInclude Include="src\Include\FindPattern.h" />
+    <ClInclude Include="src\Include\IdNames.h" />
     <ClInclude Include="src\Include\IndexOf.h" />
     <ClCompile Include="src\Parser\Lexer.cpp" />
     <ClCompile Include="src\Parser\Properties.cpp" />
     <ClCompile Include="src\Parser\Verification.cpp" />
     <ClCompile Include="src\Parser\Parser.cpp" />
     <ClCompile Include="src\Selections.cpp" />
+    <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\ContextMenu.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Initializer.cpp" />

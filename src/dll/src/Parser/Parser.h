@@ -168,6 +168,17 @@ namespace Nilesoft
 			std::unordered_map<const Expression *, TitleRef> m_titles;
 			void record_title(const Expression *e, size_t line, size_t column);
 
+			// Where each menu/item/separator/modify/remove was declared (the
+			// keyword), for ReportTree(). Like m_titles, only while a check
+			// collects diagnostics.
+			struct ItemRef
+			{
+				string file;
+				size_t line{}, column{};
+			};
+			std::unordered_map<const NativeMenu *, ItemRef> m_items;
+			void record_item(const NativeMenu *item, size_t line, size_t column);
+
 			// Every loc.<name> the configuration uses but no imported language
 			// file defines gets the English string from imports\lang\en.nss
 			// (next to the root config, else in the install folder), or failing
@@ -285,6 +296,21 @@ namespace Nilesoft
 			// them show in "file", "folder", "back" (a folder's background),
 			// "desktop" or "taskbar"; false if `where` is none of these.
 			bool ReportTitles(std::vector<TitleInfo> &out, const wchar_t *where = nullptr);
+
+			// shell -config:tree: the menu for a right-click in `where` (as
+			// ReportTitles, plus "drive"), as JSON: Shell's own items with the
+			// file and line of each, the Windows menu built off-screen for
+			// `sample` (no window is shown), and the modify/remove rules with
+			// the Windows items each one reaches. See src/dll/src/MenuTree.cpp.
+			bool ReportTree(std::wstring &json, const wchar_t *where, const wchar_t *sample);
+
+			// The selection a right-click in `where` makes, as Selections
+			// describes it (types, background, item count). False for an
+			// unknown `where`; an empty one leaves `filter` false.
+			static bool WhereTypes(const wchar_t *where, int32_t (&types)[FSO_MAX], bool &background,
+								   size_t &count, bool &filter);
+			// What ReportTitles says about one item's title.
+			TitleInfo DescribeTitle(NativeMenu *item, uint32_t depth, TitleInfo::Kind kind);
 			TokenError		Error() const;
 
 			size_t			Line() const;

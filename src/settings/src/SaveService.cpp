@@ -359,6 +359,7 @@ SaveService::Outcome SaveService::runSave(const PendingChanges &snapshot) const
 {
     Outcome out;
     out.saved = snapshot.items();
+    out.savedRules = snapshot.rules();
     out.target = queryTarget();
     if (!out.target.ok) {
         out.message = out.target.error;
@@ -441,6 +442,11 @@ void SaveService::finish(Outcome outcome)
             const auto *now = pending_.find(key);
             if (now && now->literal == change.literal)
                 pending_.forget(key);
+        }
+        for (const auto &[ruleText, change] : outcome.savedRules) {
+            const auto *now = pending_.findRule(ruleText);
+            if (now && now->add == change.add)
+                pending_.forgetRule(ruleText);
         }
         text = outcome.nothingToDo ? nsp::tr("Nothing to save · the files already match")
                                    : nsp::tr("Saved · Shell reloads on next right-click");

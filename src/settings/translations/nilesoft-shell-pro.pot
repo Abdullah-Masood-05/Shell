@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:48
+#: ui/app.slint:50
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr ""
@@ -57,7 +57,7 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/preferences.slint:213
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/menu-map.slint:615 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/menu-map.slint:615
 msgid "Cancel"
 msgstr ""
 
@@ -179,39 +179,43 @@ msgstr ""
 msgid "Menus"
 msgstr ""
 
-#: ui/components/sidebar.slint:18 ui/pages/menu-builder.slint:402
+#: ui/components/sidebar.slint:18 ui/pages/menu-map.slint:646 src/ConfigRules.cpp:57
+msgid "Menu map"
+msgstr ""
+
+#: ui/components/sidebar.slint:19 ui/pages/menu-builder.slint:402
 msgid "Menu Builder"
 msgstr ""
 
-#: ui/components/sidebar.slint:19 ui/pages/openwith.slint:622 src/AppearanceController.cpp:86 src/ConfigRules.cpp:57 src/OpenWithController.cpp:821
+#: ui/components/sidebar.slint:20 ui/pages/openwith.slint:622 src/AppearanceController.cpp:86 src/ConfigRules.cpp:58 src/OpenWithController.cpp:821
 msgid "Open with"
 msgstr ""
 
-#: ui/components/sidebar.slint:20 ui/pages/snippets.slint:168 src/ConfigRules.cpp:58
+#: ui/components/sidebar.slint:21 ui/pages/snippets.slint:168 src/ConfigRules.cpp:59
 msgid "Snippets"
 msgstr ""
 
-#: ui/components/sidebar.slint:21 ui/pages/appearance.slint:747 ui/components/sidebar.slint:21 ui/pages/appearance.slint:747
+#: ui/components/sidebar.slint:22 ui/pages/appearance.slint:747 ui/components/sidebar.slint:22 ui/pages/appearance.slint:747
 msgid "Config Editor"
 msgstr ""
 
-#: ui/components/sidebar.slint:21 ui/pages/appearance.slint:240
+#: ui/components/sidebar.slint:22 ui/pages/appearance.slint:240
 msgid "Advanced"
 msgstr ""
 
-#: ui/components/sidebar.slint:22 ui/pages/backups.slint:195
+#: ui/components/sidebar.slint:23 ui/pages/backups.slint:195
 msgid "Backups"
 msgstr ""
 
-#: ui/components/sidebar.slint:102 ui/pages/preferences.slint:251
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:251
 msgid "Version {}"
 msgstr ""
 
-#: ui/components/sidebar.slint:166 ui/pages/home.slint:171 src/AppController.cpp:417
+#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:417
 msgid "Checking status…"
 msgstr ""
 
-#: ui/components/sidebar.slint:175 ui/pages/preferences.slint:48
+#: ui/components/sidebar.slint:181 ui/pages/preferences.slint:48
 msgid "Preferences"
 msgstr ""
 
@@ -404,7 +408,7 @@ msgstr ""
 msgid "Update available: {}"
 msgstr ""
 
-#: ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 src/ConfigRules.cpp:751
+#: ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 src/ConfigRules.cpp:752 src/MenuMapController.cpp:35
 msgid "Background"
 msgstr ""
 
@@ -656,7 +660,7 @@ msgstr ""
 msgid "Live preview"
 msgstr ""
 
-#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuModel.cpp:165
+#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuMapController.cpp:36 src/MenuModel.cpp:165
 msgid "Desktop"
 msgstr ""
 
@@ -741,7 +745,7 @@ msgstr ""
 msgid "No personal config to back up"
 msgstr ""
 
-#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/openwith.slint:644 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/openwith.slint:644 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:198 src/Status.cpp:189
 msgid "Create personal config"
 msgstr ""
 
@@ -857,7 +861,7 @@ msgstr ""
 msgid "Print Screen saves the open menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:736
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:35
 msgid "Folder"
 msgstr ""
 
@@ -917,7 +921,7 @@ msgstr ""
 msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
 msgstr ""
 
-#: ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/snippets.slint:171
+#: ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625 ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625
 msgid "Checking and saving…"
 msgstr ""
 
@@ -930,7 +934,7 @@ msgstr[0] ""
 msgid "Save"
 msgstr ""
 
-#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/openwith.slint:642 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/openwith.slint:642
+#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:196
 msgid "This is the shared config in the install folder"
 msgstr ""
 
@@ -996,7 +1000,7 @@ msgstr ""
 msgid "Couldn't open the config"
 msgstr ""
 
-#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:753 src/MenuModel.cpp:162 src/OtherApps.cpp:268 src/Snippets.cpp:637
+#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:754 src/MenuModel.cpp:162 src/OtherApps.cpp:268 src/Snippets.cpp:638
 msgid "Files"
 msgstr ""
 
@@ -1022,7 +1026,7 @@ msgstr ""
 msgid "Problems"
 msgstr ""
 
-#: ui/pages/editor.slint:407 src/EditorController.cpp:652
+#: ui/pages/editor.slint:407 ui/pages/menu-map.slint:619 src/EditorController.cpp:652
 msgid "Checking…"
 msgstr ""
 
@@ -1046,7 +1050,7 @@ msgstr ""
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr ""
 
-#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/home.slint:94 ui/pages/home.slint:305 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
+#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
 msgid "Refresh"
 msgstr ""
 
@@ -1316,7 +1320,7 @@ msgstr ""
 msgid "Everywhere"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:749 src/MenuModel.cpp:163 src/OtherApps.cpp:269 src/Snippets.cpp:639
+#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:750 src/MenuModel.cpp:163 src/OtherApps.cpp:269 src/Snippets.cpp:640
 msgid "Folders"
 msgstr ""
 
@@ -1454,7 +1458,7 @@ msgstr ""
 msgid "LOOK"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:348
+#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:348 src/MenuMapController.cpp:758
 msgid "Separator"
 msgstr ""
 
@@ -1516,6 +1520,134 @@ msgstr ""
 
 #: ui/pages/menu-builder.slint:852
 msgid "Nothing to preview yet."
+msgstr ""
+
+#: ui/pages/menu-map.slint:245 ui/pages/menu-map.slint:444 src/AppearanceController.cpp:83 src/MenuMapController.cpp:499 src/MenuMapController.cpp:516
+msgid "Hidden"
+msgstr ""
+
+#: ui/pages/menu-map.slint:245
+msgid "Moved"
+msgstr ""
+
+#: ui/pages/menu-map.slint:345
+msgid "Select an item to see where it comes from and what you can do with it."
+msgstr ""
+
+#: ui/pages/menu-map.slint:377
+msgid "Comes from"
+msgstr ""
+
+#: ui/pages/menu-map.slint:411
+msgid "Shows when"
+msgstr ""
+
+#: ui/pages/menu-map.slint:420 src/BehaviorController.cpp:24
+msgid "Rules"
+msgstr ""
+
+#: ui/pages/menu-map.slint:426
+msgid "Open {}"
+msgstr ""
+
+#: ui/pages/menu-map.slint:431
+msgid "Context Menus page"
+msgstr ""
+
+#: ui/pages/menu-map.slint:439 ui/pages/openwith.slint:725
+msgid "In the menu"
+msgstr ""
+
+#: ui/pages/menu-map.slint:444
+msgid "Shown"
+msgstr ""
+
+#: ui/pages/menu-map.slint:451 ui/pages/openwith.slint:247 ui/pages/menu-map.slint:451 ui/pages/openwith.slint:247
+msgid "Show {} in the menu"
+msgstr ""
+
+#: ui/pages/menu-map.slint:463 ui/pages/menu-map.slint:472 src/AppearanceController.cpp:90
+msgid "Rename"
+msgstr ""
+
+#: ui/pages/menu-map.slint:478
+msgid "Use the original title"
+msgstr ""
+
+#: ui/pages/menu-map.slint:485
+msgid "Move to"
+msgstr ""
+
+#: ui/pages/menu-map.slint:493
+msgid "Move"
+msgstr ""
+
+#: ui/pages/menu-map.slint:499
+msgid "Put it back where Windows has it"
+msgstr ""
+
+#: ui/pages/menu-map.slint:507
+msgid "Code"
+msgstr ""
+
+#: ui/pages/menu-map.slint:512
+msgid "Edit code"
+msgstr ""
+
+#: ui/pages/menu-map.slint:519
+msgid "Open in the Config Editor"
+msgstr ""
+
+#: ui/pages/menu-map.slint:562
+msgid "Edit code: {}"
+msgstr ""
+
+#: ui/pages/menu-map.slint:569
+msgid "{} · only this declaration changes; the rest of the file stays as it is."
+msgstr ""
+
+#: ui/pages/menu-map.slint:619
+msgid "Check and save"
+msgstr ""
+
+#: ui/pages/menu-map.slint:647
+msgid "The menu as it opens for a file, a folder or the desktop: your Shell items with the line that adds each one, and the items Windows and other programs add."
+msgstr ""
+
+#: ui/pages/menu-map.slint:649
+msgid "Reading the menu…"
+msgstr ""
+
+#: ui/pages/menu-map.slint:660
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to hide, rename or move items."
+msgstr ""
+
+#: ui/pages/menu-map.slint:667
+msgid "Couldn't read the menu"
+msgstr ""
+
+#: ui/pages/menu-map.slint:672
+msgid "Your config doesn't load"
+msgstr ""
+
+#: ui/pages/menu-map.slint:695
+msgid "Outline"
+msgstr ""
+
+#: ui/pages/menu-map.slint:695
+msgid "Nodes"
+msgstr ""
+
+#: ui/pages/menu-map.slint:713
+msgid "Expand all"
+msgstr ""
+
+#: ui/pages/menu-map.slint:718
+msgid "Collapse all"
+msgstr ""
+
+#: ui/pages/menu-map.slint:776
+msgid "Nothing to show yet."
 msgstr ""
 
 #: ui/pages/onboarding.slint:149
@@ -1680,10 +1812,6 @@ msgstr ""
 msgid "Locate…"
 msgstr ""
 
-#: ui/pages/openwith.slint:247 ui/pages/openwith.slint:504
-msgid "Show {} in the menu"
-msgstr ""
-
 #: ui/pages/openwith.slint:267 src/AppearanceController.cpp:77
 msgid "Name"
 msgstr ""
@@ -1801,7 +1929,7 @@ msgstr ""
 msgid "Couldn't read the Open with items"
 msgstr ""
 
-#: ui/pages/openwith.slint:676 src/Snippets.cpp:649
+#: ui/pages/openwith.slint:676 src/Snippets.cpp:650
 msgid "Apps"
 msgstr ""
 
@@ -1829,10 +1957,6 @@ msgstr ""
 msgid "Show {n} more app that wasn't found on this PC"
 msgid_plural "Show {n} more apps that weren't found on this PC"
 msgstr[0] ""
-
-#: ui/pages/openwith.slint:725
-msgid "In the menu"
-msgstr ""
 
 #: ui/pages/openwith.slint:726
 msgid "Where the items show, and whether they're grouped in a submenu."
@@ -2254,7 +2378,7 @@ msgstr ""
 msgid "shell.exe did not finish in time and was stopped."
 msgstr ""
 
-#: src/AppController.cpp:93 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:497
+#: src/AppController.cpp:93 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:503
 msgid "shell.exe exited with code {}."
 msgstr ""
 
@@ -2298,7 +2422,7 @@ msgstr ""
 msgid "Shared (install folder)"
 msgstr ""
 
-#: src/AppController.cpp:140
+#: src/AppController.cpp:140 src/MenuMapController.cpp:550
 msgid "Unknown"
 msgstr ""
 
@@ -2483,7 +2607,7 @@ msgstr ""
 msgid "Undo Rename"
 msgstr ""
 
-#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:643 src/WindowsTitles.cpp:125
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:644 src/WindowsTitles.cpp:125
 msgid "Terminal"
 msgstr ""
 
@@ -2571,20 +2695,12 @@ msgstr ""
 msgid "Shortcut"
 msgstr ""
 
-#: src/AppearanceController.cpp:83
-msgid "Hidden"
-msgstr ""
-
 #: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:203 src/ContextMenusController.cpp:226 src/EditorController.cpp:307
 msgid "Read-only"
 msgstr ""
 
 #: src/AppearanceController.cpp:86 src/OpenWithController.cpp:820 src/OpenWithController.cpp:826
 msgid "Open"
-msgstr ""
-
-#: src/AppearanceController.cpp:90
-msgid "Rename"
 msgstr ""
 
 #: src/AppearanceController.cpp:92 src/WindowsTitles.cpp:84
@@ -2807,10 +2923,6 @@ msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] ""
 
-#: src/BehaviorController.cpp:24
-msgid "Rules"
-msgstr ""
-
 #: src/BehaviorController.cpp:267
 msgid "Folder for menu screenshots"
 msgstr ""
@@ -2859,7 +2971,7 @@ msgstr ""
 msgid "Jump to common folders and Windows Settings pages."
 msgstr ""
 
-#: src/ConfigRules.cpp:54
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:36
 msgid "Taskbar"
 msgstr ""
 
@@ -2884,509 +2996,513 @@ msgid "The menus and items you built on the Menu Builder page."
 msgstr ""
 
 #: src/ConfigRules.cpp:57
-msgid "Editors and terminals you picked on the Open with page."
+msgid "The Windows items you hid, renamed or moved on the Menu map page."
 msgstr ""
 
 #: src/ConfigRules.cpp:58
+msgid "Editors and terminals you picked on the Open with page."
+msgstr ""
+
+#: src/ConfigRules.cpp:59
 msgid "The snippets you turned on on the Snippets page."
 msgstr ""
 
-#: src/ConfigRules.cpp:214
+#: src/ConfigRules.cpp:215
 msgctxt "quote"
 msgid "“{}”"
 msgstr ""
 
-#: src/ConfigRules.cpp:351
+#: src/ConfigRules.cpp:352
 msgid "in File Explorer"
 msgstr ""
 
-#: src/ConfigRules.cpp:352
+#: src/ConfigRules.cpp:353
 msgid "on the desktop"
 msgstr ""
 
-#: src/ConfigRules.cpp:353
+#: src/ConfigRules.cpp:354
 msgid "on the taskbar"
 msgstr ""
 
-#: src/ConfigRules.cpp:354
+#: src/ConfigRules.cpp:355
 msgid "in a text box"
 msgstr ""
 
-#: src/ConfigRules.cpp:355
+#: src/ConfigRules.cpp:356
 msgid "on the Start menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:379 src/ConfigRules.cpp:384
+#: src/ConfigRules.cpp:380 src/ConfigRules.cpp:385
 msgctxt "names"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:380
+#: src/ConfigRules.cpp:381
 msgid "{0} and {n} more"
 msgid_plural "{0} and {n} more"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:384
+#: src/ConfigRules.cpp:385
 msgctxt "names"
 msgid "{0} and {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:401
+#: src/ConfigRules.cpp:402
 msgctxt "type"
 msgid "folder backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:403
+#: src/ConfigRules.cpp:404
 msgctxt "type"
 msgid "drive backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:405
+#: src/ConfigRules.cpp:406
 msgctxt "type"
 msgid "virtual folder backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:407
+#: src/ConfigRules.cpp:408
 msgctxt "type"
 msgid "the This PC background"
 msgstr ""
 
-#: src/ConfigRules.cpp:409
+#: src/ConfigRules.cpp:410
 msgctxt "type"
 msgid "the Recycle Bin background"
 msgstr ""
 
-#: src/ConfigRules.cpp:411
+#: src/ConfigRules.cpp:412
 msgctxt "type"
 msgid "library backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:412
+#: src/ConfigRules.cpp:413
 msgid "{} backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:415
+#: src/ConfigRules.cpp:416
 msgctxt "type"
 msgid "files"
 msgstr ""
 
-#: src/ConfigRules.cpp:417
+#: src/ConfigRules.cpp:418
 msgctxt "type"
 msgid "folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:419
+#: src/ConfigRules.cpp:420
 msgctxt "type"
 msgid "drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:421
+#: src/ConfigRules.cpp:422
 msgctxt "type"
 msgid "USB drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:423
+#: src/ConfigRules.cpp:424
 msgctxt "type"
 msgid "DVD drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:425
+#: src/ConfigRules.cpp:426
 msgctxt "type"
 msgid "fixed drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:427
+#: src/ConfigRules.cpp:428
 msgctxt "type"
 msgid "virtual hard disks"
 msgstr ""
 
-#: src/ConfigRules.cpp:429
+#: src/ConfigRules.cpp:430
 msgctxt "type"
 msgid "removable drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:431
+#: src/ConfigRules.cpp:432
 msgctxt "type"
 msgid "network drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:433
+#: src/ConfigRules.cpp:434
 msgctxt "type"
 msgid "backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:435
+#: src/ConfigRules.cpp:436
 msgctxt "type"
 msgid "the desktop"
 msgstr ""
 
-#: src/ConfigRules.cpp:437
+#: src/ConfigRules.cpp:438
 msgctxt "type"
 msgid "the Recycle Bin"
 msgstr ""
 
-#: src/ConfigRules.cpp:439
+#: src/ConfigRules.cpp:440
 msgctxt "type"
 msgid "This PC"
 msgstr ""
 
-#: src/ConfigRules.cpp:441
+#: src/ConfigRules.cpp:442
 msgctxt "type"
 msgid "virtual folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:443
+#: src/ConfigRules.cpp:444
 msgctxt "type"
 msgid "the taskbar"
 msgstr ""
 
-#: src/ConfigRules.cpp:445
+#: src/ConfigRules.cpp:446
 msgctxt "type"
 msgid "text boxes"
 msgstr ""
 
-#: src/ConfigRules.cpp:447
+#: src/ConfigRules.cpp:448
 msgctxt "type"
 msgid "the Start button"
 msgstr ""
 
-#: src/ConfigRules.cpp:449
+#: src/ConfigRules.cpp:450
 msgctxt "type"
 msgid "title bars"
 msgstr ""
 
-#: src/ConfigRules.cpp:451
+#: src/ConfigRules.cpp:452
 msgctxt "type"
 msgid "compressed folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:453
+#: src/ConfigRules.cpp:454
 msgctxt "type"
 msgid "libraries"
 msgstr ""
 
-#: src/ConfigRules.cpp:529 src/ConfigRules.cpp:664 src/ConfigRules.cpp:672
+#: src/ConfigRules.cpp:530 src/ConfigRules.cpp:665 src/ConfigRules.cpp:673
 msgid "{} or {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:530
+#: src/ConfigRules.cpp:531
 msgid "items whose name matches {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:536
+#: src/ConfigRules.cpp:537
 msgid "the items an expression picks"
 msgstr ""
 
-#: src/ConfigRules.cpp:538
+#: src/ConfigRules.cpp:539
 msgid "every item"
 msgstr ""
 
-#: src/ConfigRules.cpp:545
+#: src/ConfigRules.cpp:546
 msgid "Removes {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:545
+#: src/ConfigRules.cpp:546
 msgid "removes it"
 msgid_plural "removes them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:549
+#: src/ConfigRules.cpp:550
 msgid "Hides {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:549
+#: src/ConfigRules.cpp:550
 msgid "hides it"
 msgid_plural "hides them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:551
+#: src/ConfigRules.cpp:552
 msgid "Disables {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:551
+#: src/ConfigRules.cpp:552
 msgid "disables it"
 msgid_plural "disables them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:553
+#: src/ConfigRules.cpp:554
 msgid "Changes when {0} is shown"
 msgstr ""
 
-#: src/ConfigRules.cpp:554
+#: src/ConfigRules.cpp:555
 msgid "changes when it is shown"
 msgid_plural "changes when they are shown"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:568
+#: src/ConfigRules.cpp:569
 msgid "Moves {0} to the top of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:568
+#: src/ConfigRules.cpp:569
 msgid "moves it to the top of {0}"
 msgid_plural "moves them to the top of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:570
+#: src/ConfigRules.cpp:571
 msgid "Moves {0} to the bottom of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:571
+#: src/ConfigRules.cpp:572
 msgid "moves it to the bottom of {0}"
 msgid_plural "moves them to the bottom of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:573
+#: src/ConfigRules.cpp:574
 msgid "Moves {0} to the middle of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:574
+#: src/ConfigRules.cpp:575
 msgid "moves it to the middle of {0}"
 msgid_plural "moves them to the middle of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:576
+#: src/ConfigRules.cpp:577
 msgid "Moves {0} into {1} at position {2}"
 msgstr ""
 
-#: src/ConfigRules.cpp:577
+#: src/ConfigRules.cpp:578
 msgid "moves it into {0} at position {1}"
 msgid_plural "moves them into {0} at position {1}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:579
+#: src/ConfigRules.cpp:580
 msgid "Moves {0} into {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:579
+#: src/ConfigRules.cpp:580
 msgid "moves it into {0}"
 msgid_plural "moves them into {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:582
+#: src/ConfigRules.cpp:583
 msgid "Moves {0} to the top of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:583
+#: src/ConfigRules.cpp:584
 msgid "moves it to the top of the menu"
 msgid_plural "moves them to the top of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:585
+#: src/ConfigRules.cpp:586
 msgid "Moves {0} to the bottom of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:586
+#: src/ConfigRules.cpp:587
 msgid "moves it to the bottom of the menu"
 msgid_plural "moves them to the bottom of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:588
+#: src/ConfigRules.cpp:589
 msgid "Moves {0} to the middle of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:589
+#: src/ConfigRules.cpp:590
 msgid "moves it to the middle of the menu"
 msgid_plural "moves them to the middle of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:591
+#: src/ConfigRules.cpp:592
 msgid "Moves {0} to position {1} in the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:592
+#: src/ConfigRules.cpp:593
 msgid "moves it to position {0} in the menu"
 msgid_plural "moves them to position {0} in the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:594
+#: src/ConfigRules.cpp:595
 msgid "Moves {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:594
+#: src/ConfigRules.cpp:595
 msgid "moves it"
 msgid_plural "moves them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:602
+#: src/ConfigRules.cpp:603
 msgid "Renames {0} to {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:602
+#: src/ConfigRules.cpp:603
 msgid "renames it to {0}"
 msgid_plural "renames them to {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:611
+#: src/ConfigRules.cpp:612
 msgid "Adds a separator above {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:611
+#: src/ConfigRules.cpp:612
 msgid "adds a separator above it"
 msgid_plural "adds a separator above them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:613
+#: src/ConfigRules.cpp:614
 msgid "Adds a separator below {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:613
+#: src/ConfigRules.cpp:614
 msgid "adds a separator below it"
 msgid_plural "adds a separator below them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:615
+#: src/ConfigRules.cpp:616
 msgid "Adds separators above and below {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:616
+#: src/ConfigRules.cpp:617
 msgid "adds separators above and below it"
 msgid_plural "adds separators above and below them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:618
+#: src/ConfigRules.cpp:619
 msgid "Changes the separators around {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:619
+#: src/ConfigRules.cpp:620
 msgid "changes the separators around it"
 msgid_plural "changes the separators around them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:622
+#: src/ConfigRules.cpp:623
 msgid "Changes the icon of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:622
+#: src/ConfigRules.cpp:623
 msgid "changes its icon"
 msgid_plural "changes their icons"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:624
+#: src/ConfigRules.cpp:625
 msgid "Shows a shortcut key on {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:624
+#: src/ConfigRules.cpp:625
 msgid "shows a shortcut key"
 msgid_plural "shows shortcut keys"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:626
+#: src/ConfigRules.cpp:627
 msgid "Adds a tip to {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:626
+#: src/ConfigRules.cpp:627
 msgid "adds a tip"
 msgid_plural "adds tips"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:628
+#: src/ConfigRules.cpp:629
 msgid "Changes the state of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:628
+#: src/ConfigRules.cpp:629
 msgid "changes its state"
 msgid_plural "changes their state"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:630
+#: src/ConfigRules.cpp:631
 msgid "Changes the command of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:630
+#: src/ConfigRules.cpp:631
 msgid "changes its command"
 msgid_plural "changes their commands"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:632
+#: src/ConfigRules.cpp:633
 msgid "Matches {0} but changes nothing"
 msgstr ""
 
-#: src/ConfigRules.cpp:636
+#: src/ConfigRules.cpp:637
 msgctxt "actions"
 msgid "{0} and {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:636
+#: src/ConfigRules.cpp:637
 msgctxt "actions"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:644
+#: src/ConfigRules.cpp:645
 msgid "when one or more items are selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:646
+#: src/ConfigRules.cpp:647
 msgid "when several items are selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:648
+#: src/ConfigRules.cpp:649
 msgid "when nothing is selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:653
+#: src/ConfigRules.cpp:654
 msgctxt "when"
 msgid "{0} {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:668
+#: src/ConfigRules.cpp:669
 msgid "for {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:674 src/ConfigRules.cpp:677
+#: src/ConfigRules.cpp:675 src/ConfigRules.cpp:678
 msgctxt "where"
 msgid "{0} {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:676
+#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:808
 msgid "in {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:680
+#: src/ConfigRules.cpp:681
 msgctxt "where"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:738
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:35
 msgid "File"
 msgstr ""
 
-#: src/ConfigRules.cpp:745
+#: src/ConfigRules.cpp:746
 msgid "{} background"
 msgstr ""
 
-#: src/ConfigRules.cpp:755
+#: src/ConfigRules.cpp:756
 msgid "Recycle bin"
 msgstr ""
 
-#: src/ConfigRules.cpp:757
+#: src/ConfigRules.cpp:758
 msgid "Anything"
 msgstr ""
 
-#: src/ConfigRules.cpp:831
+#: src/ConfigRules.cpp:832
 msgid "Imported from {}."
 msgstr ""
 
-#: src/ConfigRules.cpp:843
+#: src/ConfigRules.cpp:844
 msgid "The import spans several lines"
 msgstr ""
 
-#: src/ConfigRules.cpp:844
+#: src/ConfigRules.cpp:845
 msgid "Locked: the import spans several lines."
 msgstr ""
 
-#: src/ConfigRules.cpp:848
+#: src/ConfigRules.cpp:849
 msgid "Something else shares its line"
 msgstr ""
 
-#: src/ConfigRules.cpp:849
+#: src/ConfigRules.cpp:850
 msgid "Locked: something else shares its line."
 msgstr ""
 
-#: src/ConfigRules.cpp:884
+#: src/ConfigRules.cpp:885
 msgid "Inside a menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:887
+#: src/ConfigRules.cpp:888
 msgid "Shares a line with other code"
 msgstr ""
 
@@ -3424,7 +3540,7 @@ msgstr ""
 msgid "Red lines are only in your copy. Green lines are in the new version."
 msgstr ""
 
-#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:786
+#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:787
 msgid "Couldn't read {}."
 msgstr ""
 
@@ -3485,7 +3601,7 @@ msgstr ""
 msgid "shell.exe was not found, so nothing was saved."
 msgstr ""
 
-#: src/ContextMenusController.cpp:317 src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
+#: src/ContextMenusController.cpp:317 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
 msgid "Not saved"
 msgstr ""
 
@@ -3493,23 +3609,23 @@ msgstr ""
 msgid "{} is read-only here."
 msgstr ""
 
-#: src/ContextMenusController.cpp:335
+#: src/ContextMenusController.cpp:335 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145
 msgid "Saved"
 msgstr ""
 
-#: src/ContextMenusController.cpp:335 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/OpenWithController.cpp:1187
+#: src/ContextMenusController.cpp:335 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145 src/OpenWithController.cpp:1187
 msgid "No changes were needed."
 msgstr ""
 
-#: src/ContextMenusController.cpp:336 src/EditorController.cpp:749
+#: src/ContextMenusController.cpp:336 src/EditorController.cpp:749 src/MenuMapController.cpp:1037 src/MenuMapController.cpp:1146
 msgid "Snapshot {} was taken first."
 msgstr ""
 
-#: src/ContextMenusController.cpp:350 src/SnippetsController.cpp:477
+#: src/ContextMenusController.cpp:350 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:477
 msgid "Not saved: the config would fail to load"
 msgstr ""
 
-#: src/ContextMenusController.cpp:353 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/OpenWithController.cpp:1202 src/SnippetsController.cpp:480
+#: src/ContextMenusController.cpp:353 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1202 src/SnippetsController.cpp:480
 msgid "Couldn't save"
 msgstr ""
 
@@ -3617,7 +3733,7 @@ msgstr ""
 msgid "refusing to write under Program Files: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:77
+#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:633 src/MenuMapController.cpp:698 src/MenuMapController.cpp:757 src/MenuMapController.cpp:1080
 msgid "(no title)"
 msgstr ""
 
@@ -3633,7 +3749,7 @@ msgstr ""
 msgid "The file has a syntax problem at line {}: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:539 src/OpenWithController.cpp:1144 src/PendingChanges.cpp:137 src/PendingChanges.cpp:148 src/SnippetsController.cpp:426
+#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:539 src/OpenWithController.cpp:1144 src/PendingChanges.cpp:192 src/PendingChanges.cpp:204 src/SnippetsController.cpp:426
 msgid "Couldn't read {}: {}"
 msgstr ""
 
@@ -3657,8 +3773,279 @@ msgstr ""
 msgid "Not saved: Shell would reject these menus"
 msgstr ""
 
-#: src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
+#: src/MenuMapController.cpp:36
+msgid "Drive"
+msgstr ""
+
+#: src/MenuMapController.cpp:39
+msgid "Text file (.txt)"
+msgstr ""
+
+#: src/MenuMapController.cpp:39
+msgid "Image (.png)"
+msgstr ""
+
+#: src/MenuMapController.cpp:40
+msgid "Program (.exe)"
+msgstr ""
+
+#: src/MenuMapController.cpp:40
+msgid "Archive (.zip)"
+msgstr ""
+
+#: src/MenuMapController.cpp:41
+msgid "PDF (.pdf)"
+msgstr ""
+
+#: src/MenuMapController.cpp:41
+msgid "Music (.mp3)"
+msgstr ""
+
+#: src/MenuMapController.cpp:281
+msgid "The config file doesn't exist. Create a personal config from Home first."
+msgstr ""
+
+#: src/MenuMapController.cpp:286 src/ShellCli.cpp:118
+msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
+msgstr ""
+
+#: src/MenuMapController.cpp:304
+msgid "shell.exe took too long to read the menu and was stopped."
+msgstr ""
+
+#: src/MenuMapController.cpp:309
+msgid "shell.exe gave no menu ({}). It may be older than this app."
+msgstr ""
+
+#: src/MenuMapController.cpp:381
+msgid "{} (Windows)"
+msgstr ""
+
+#: src/MenuMapController.cpp:444 src/MenuMapController.cpp:480 src/MenuMapController.cpp:845
+msgid "The shared config is read-only here."
+msgstr ""
+
+#: src/MenuMapController.cpp:446
+msgid "This file is read-only here."
+msgstr ""
+
+#: src/MenuMapController.cpp:448
+msgid "It has its own vis= setting; change it with Edit code."
+msgstr ""
+
+#: src/MenuMapController.cpp:469
+msgid "A rule in your config hides it. Turn that rule off on the Context Menus page."
+msgstr ""
+
+#: src/MenuMapController.cpp:477 src/MenuMapController.cpp:846
+msgid "Its title changes with the selection, so a rule can't name it. Use the Config Editor."
+msgstr ""
+
+#: src/MenuMapController.cpp:503
+msgid "Disabled"
+msgstr ""
+
+#: src/MenuMapController.cpp:510
+msgid "Shows only sometimes"
+msgstr ""
+
+#: src/MenuMapController.cpp:520
+msgid "Moved to {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:524
+msgid "Renamed to {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:528
+msgid "May be hidden"
+msgstr ""
+
+#: src/MenuMapController.cpp:532
+msgid "A rule may change it"
+msgstr ""
+
+#: src/MenuMapController.cpp:543
+msgid "{}:{}"
+msgstr ""
+
+#: src/MenuMapController.cpp:547 src/Snippets.cpp:648
+msgid "Windows"
+msgstr ""
+
+#: src/MenuMapController.cpp:549 src/MenuMapController.cpp:795
+msgid "A program"
+msgstr ""
+
+#: src/MenuMapController.cpp:575
+msgid "Windows builds the taskbar's menu itself, so only Shell's items are listed here."
+msgstr ""
+
+#: src/MenuMapController.cpp:577
+msgid "Windows' items couldn't be read: {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:585
+msgid "{} · {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:585
+msgid "{n} of your items"
+msgid_plural "{n} of your items"
+msgstr[0] ""
+
+#: src/MenuMapController.cpp:586
+msgid "{n} from Windows and programs"
+msgid_plural "{n} from Windows and programs"
+msgstr[0] ""
+
+#: src/MenuMapController.cpp:621 src/MenuMapController.cpp:685
+msgid "Your Shell items"
+msgstr ""
+
+#: src/MenuMapController.cpp:621 src/MenuMapController.cpp:685
+msgid "Windows and other programs"
+msgstr ""
+
+#: src/MenuMapController.cpp:624
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] ""
+
+#: src/MenuMapController.cpp:631
+msgid "(drawn by its program)"
+msgstr ""
+
+#: src/MenuMapController.cpp:632 src/MenuMapController.cpp:698
+msgid "(set when the menu opens)"
+msgstr ""
+
+#: src/MenuMapController.cpp:758
+msgid "Submenu"
+msgstr ""
+
+#: src/MenuMapController.cpp:758
+msgid "Item"
+msgstr ""
+
+#: src/MenuMapController.cpp:769 src/MenuMapController.cpp:775 src/MenuMapController.cpp:816 src/MenuMapController.cpp:1081 src/SaveService.cpp:203
+msgid "{}, line {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:774
+msgid "From your config"
+msgstr ""
+
+#: src/MenuMapController.cpp:779
+msgid "Title from {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:783
+msgid "Hidden by vis= in its own line."
+msgstr ""
+
+#: src/MenuMapController.cpp:786
+msgid "To move one of your items, use Edit code or the Menu Builder."
+msgstr ""
+
+#: src/MenuMapController.cpp:789
+msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
+msgstr ""
+
+#: src/MenuMapController.cpp:793
+msgid "Added by Windows"
+msgstr ""
+
+#: src/MenuMapController.cpp:795
+msgid "Added by {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:797
+msgid "Added by Windows or an installed app; Shell couldn't tell which."
+msgstr ""
+
+#: src/MenuMapController.cpp:806
+msgid "verb {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:815
+msgid "a rule made here"
+msgstr ""
+
+#: src/MenuMapController.cpp:819
+msgid "Hidden by {}."
+msgstr ""
+
+#: src/MenuMapController.cpp:821
+msgid "Moved to {} by {}."
+msgstr ""
+
+#: src/MenuMapController.cpp:823
+msgid "Renamed to {} by {}."
+msgstr ""
+
+#: src/MenuMapController.cpp:825
+msgid "Changed by {}."
+msgstr ""
+
+#: src/MenuMapController.cpp:835
+msgid "{}, line {} may change it, depending on what is selected."
+msgstr ""
+
+#: src/MenuMapController.cpp:848
+msgid "Turning it off adds a rule that removes it from the menu. Save to apply."
+msgstr ""
+
+#: src/MenuMapController.cpp:849
+msgid "Hidden by a rule made here. Turning it on removes that rule."
+msgstr ""
+
+#: src/MenuMapController.cpp:858
+msgid "Shown again once you save."
+msgstr ""
+
+#: src/MenuMapController.cpp:859
+msgid "Hidden once you save."
+msgstr ""
+
+#: src/MenuMapController.cpp:860
+msgid "Changes once you save."
+msgstr ""
+
+#: src/MenuMapController.cpp:1016
+msgid "{} couldn't be read."
+msgstr ""
+
+#: src/MenuMapController.cpp:1021
+msgid "Not changed"
+msgstr ""
+
+#: src/MenuMapController.cpp:1068
+msgid "Couldn't open the code"
+msgstr ""
+
+#: src/MenuMapController.cpp:1068
+msgid "{} has no declaration on line {}."
+msgstr ""
+
+#: src/MenuMapController.cpp:1125
+msgid "The file changed since this code was opened. Cancel, then open it again."
+msgstr ""
+
+#: src/MenuMapController.cpp:1129 src/SaveService.cpp:458
+msgid "Not saved: {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:1157 src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
 msgid "line {}: {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:1160
+msgid "Not saved: the config would fail to load. {}"
+msgstr ""
+
+#: src/MenuMapController.cpp:1163
+msgid "Couldn't save: {}"
 msgstr ""
 
 #: src/OpenWithController.cpp:131 src/OtherApps.cpp:282
@@ -3889,24 +4276,28 @@ msgstr ""
 msgid "The file doesn't start with the generated header."
 msgstr ""
 
-#: src/PendingChanges.cpp:20
+#: src/PendingChanges.cpp:22
 msgid "{}: unknown key"
 msgstr ""
 
-#: src/PendingChanges.cpp:22
+#: src/PendingChanges.cpp:24
 msgid "{}: a value is needed"
 msgstr ""
 
-#: src/PendingChanges.cpp:24
+#: src/PendingChanges.cpp:26
 msgid "{}: the value must fit on one line"
 msgstr ""
 
-#: src/PendingChanges.cpp:26
+#: src/PendingChanges.cpp:28
 msgid "{}: only plain values can be set here"
 msgstr ""
 
-#: src/PendingChanges.cpp:157
+#: src/PendingChanges.cpp:220
 msgid "The generated settings-app.nss doesn't parse: {}"
+msgstr ""
+
+#: src/PendingChanges.cpp:240
+msgid "The generated settings-app-map.nss doesn't parse: {}"
 msgstr ""
 
 #: src/PresetsController.cpp:139
@@ -3969,10 +4360,6 @@ msgstr ""
 msgid "the check failed"
 msgstr ""
 
-#: src/SaveService.cpp:203
-msgid "{}, line {}"
-msgstr ""
-
 #: src/SaveService.cpp:211
 msgid "Changed here · not saved yet"
 msgstr ""
@@ -4009,40 +4396,32 @@ msgstr ""
 msgid "Checking with shell.exe…"
 msgstr ""
 
-#: src/SaveService.cpp:445
+#: src/SaveService.cpp:451
 msgid "Nothing to save · the files already match"
 msgstr ""
 
-#: src/SaveService.cpp:446
+#: src/SaveService.cpp:452
 msgid "Saved · Shell reloads on next right-click"
 msgstr ""
 
-#: src/SaveService.cpp:448
+#: src/SaveService.cpp:454
 msgid "Shell rejected the config, rolled back: {}"
 msgstr ""
 
-#: src/SaveService.cpp:450
+#: src/SaveService.cpp:456
 msgid "Shell rejected the config, nothing was written: {}"
 msgstr ""
 
-#: src/SaveService.cpp:452
-msgid "Not saved: {}"
-msgstr ""
-
-#: src/SaveService.cpp:481
+#: src/SaveService.cpp:487
 msgid "Creating your personal config…"
 msgstr ""
 
-#: src/SaveService.cpp:495
+#: src/SaveService.cpp:501
 msgid "shell.exe did not finish in time."
 msgstr ""
 
-#: src/SaveService.cpp:503
+#: src/SaveService.cpp:509
 msgid "Couldn't create the personal config: {}"
-msgstr ""
-
-#: src/ShellCli.cpp:118
-msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr ""
 
 #: src/ShellCli.cpp:125
@@ -4077,24 +4456,20 @@ msgstr ""
 msgid "The downloaded file isn't the version this app checked, so it wasn't used."
 msgstr ""
 
-#: src/Snippets.cpp:548
+#: src/Snippets.cpp:549
 msgid "There is no snippet called {}."
 msgstr ""
 
-#: src/Snippets.cpp:552
+#: src/Snippets.cpp:553
 msgid "{} isn't downloaded yet."
 msgstr ""
 
-#: src/Snippets.cpp:641
+#: src/Snippets.cpp:642
 msgid "Archives"
 msgstr ""
 
-#: src/Snippets.cpp:645
+#: src/Snippets.cpp:646
 msgid "Security"
-msgstr ""
-
-#: src/Snippets.cpp:647
-msgid "Windows"
 msgstr ""
 
 #: src/SnippetsController.cpp:267
@@ -4571,103 +4946,103 @@ msgstr ""
 msgid "The list of releases couldn't be read."
 msgstr ""
 
-#: src/Updater.cpp:678
+#: src/Updater.cpp:679
 msgid "The download address is not a release of Nilesoft Shell Pro: {}"
 msgstr ""
 
-#: src/Updater.cpp:685 src/Updater.cpp:698
+#: src/Updater.cpp:686 src/Updater.cpp:699
 msgid "Couldn't write {}."
 msgstr ""
 
-#: src/Updater.cpp:706
+#: src/Updater.cpp:707
 msgid "Couldn't save {}."
 msgstr ""
 
-#: src/Updater.cpp:737
+#: src/Updater.cpp:738
 msgid "NSP_UPDATE_FEED: couldn't read {}."
 msgstr ""
 
-#: src/Updater.cpp:766
+#: src/Updater.cpp:767
 msgid "The release lists an asset with an unusable name."
 msgstr ""
 
-#: src/Updater.cpp:771
+#: src/Updater.cpp:772
 msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
 msgstr ""
 
-#: src/Updater.cpp:777
+#: src/Updater.cpp:778
 msgid "Couldn't create {}."
 msgstr ""
 
-#: src/Updater.cpp:791
+#: src/Updater.cpp:792
 msgid "SHA256SUMS.txt is not served from this project's releases."
 msgstr ""
 
-#: src/Updater.cpp:796
+#: src/Updater.cpp:797
 msgid "Couldn't download SHA256SUMS.txt: {}"
 msgstr ""
 
-#: src/Updater.cpp:804
+#: src/Updater.cpp:805
 msgid "SHA256SUMS.txt has no entry for {}."
 msgstr ""
 
-#: src/Updater.cpp:817
+#: src/Updater.cpp:818
 msgid "Couldn't copy {}."
 msgstr ""
 
-#: src/Updater.cpp:826
+#: src/Updater.cpp:827
 msgid "The download failed: {}"
 msgstr ""
 
-#: src/Updater.cpp:834
+#: src/Updater.cpp:835
 msgid "nothing"
 msgstr ""
 
-#: src/Updater.cpp:835
+#: src/Updater.cpp:836
 msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
 msgstr ""
 
-#: src/Updater.cpp:850
+#: src/Updater.cpp:851
 msgid "The staging folder is not empty."
 msgstr ""
 
-#: src/Updater.cpp:857
+#: src/Updater.cpp:858
 msgid "tar.exe (part of Windows 10 and later) was not found."
 msgstr ""
 
-#: src/Updater.cpp:865
+#: src/Updater.cpp:866
 msgid "Couldn't start tar.exe: {}."
 msgstr ""
 
-#: src/Updater.cpp:877
+#: src/Updater.cpp:878
 msgid "The zip couldn't be extracted (tar.exe exit code {})."
 msgstr ""
 
-#: src/Updater.cpp:885
+#: src/Updater.cpp:886
 msgid "The zip contains a link, which an update never does."
 msgstr ""
 
-#: src/Updater.cpp:890
+#: src/Updater.cpp:891
 msgid "The zip contains a file outside its folder."
 msgstr ""
 
-#: src/Updater.cpp:935
+#: src/Updater.cpp:936
 msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
 msgstr ""
 
-#: src/Updater.cpp:939
+#: src/Updater.cpp:940
 msgid "The install folder {} doesn't exist."
 msgstr ""
 
-#: src/Updater.cpp:949
+#: src/Updater.cpp:950
 msgid "Couldn't read the update's files."
 msgstr ""
 
-#: src/Updater.cpp:991
+#: src/Updater.cpp:992
 msgid "Couldn't replace {}: {}."
 msgstr ""
 
-#: src/Updater.cpp:1001
+#: src/Updater.cpp:1002
 msgid "Couldn't write {}: {}."
 msgstr ""
 

@@ -61,3 +61,34 @@ typedef HRESULT(WINAPI *ConfigCheckTitlesProc)(const wchar_t *root, const wchar_
 												ConfigTitleSink titles, void *context);
 
 #define CONFIG_CHECK_TITLES_EXPORT "ConfigCheckTitles"
+
+/*
+	HRESULT WINAPI ConfigTree(const wchar_t *root, const wchar_t *where,
+							  const wchar_t *sample, ConfigCheckSink sink,
+							  ConfigTreeSink tree, void *context)
+
+	ConfigCheck, then (if the configuration loads) the menu for a right-click
+	in `where` through `tree`, once, as a JSON object:
+	  "shell":  Shell's own items that show there (type=), in config order:
+	            {kind, title, state, source, file, line, column, vis,
+	             conditions, dynamic, items}
+	  "system": the Windows menu for `sample`, built off-screen with
+	            IContextMenu (no window or menu is shown): {kind, title, name,
+	            path, uid, id, verb, disabled, owner_drawn, source (windows,
+	            program, unknown), program, module, clsid, handler, rules,
+	            maybe, hidden, maybe_hidden, moved, renamed, items}
+	  "rules":  every modify/remove: {index, file, line, column, applies,
+	            clsid, find, find_dynamic, in, where, vis, menu, menu_dynamic,
+	            title, title_dynamic, pos, sep, image}
+	  "system_error": why "system" is empty ("taskbar": not built there)
+	`where` is "file", "folder", "drive", "back", "desktop" or "taskbar";
+	`sample` is the file, folder or drive (back: the folder) whose menu is
+	built, and is not needed for "desktop" and "taskbar". E_INVALIDARG for any
+	other `where`. See src/dll/src/MenuTree.cpp.
+*/
+
+typedef void(CALLBACK *ConfigTreeSink)(void *context, const wchar_t *json);
+typedef HRESULT(WINAPI *ConfigTreeProc)(const wchar_t *root, const wchar_t *where, const wchar_t *sample,
+										ConfigCheckSink sink, ConfigTreeSink tree, void *context);
+
+#define CONFIG_TREE_EXPORT "ConfigTree"

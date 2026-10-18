@@ -20,6 +20,7 @@ namespace Nilesoft
 			Expression *get(size_t index);
 			bool size() const { return expressions.size(); }
 			bool empty() const { return expressions.empty(); }
+			const std::vector<Expression *> &items() const { return expressions; }
 			void push_back(Expression *e);
 			void push_back(std::unique_ptr<Expression> &&e);
 		};
