@@ -20,6 +20,8 @@ import { ContextMenusPage } from "pages/context-menus.slint";
 import { MenuBuilderPage } from "pages/menu-builder.slint";
 import { OpenWithPage } from "pages/openwith.slint";
 import { UpdateState } from "update-state.slint";
+import { ConfigUpdateState } from "config-update-state.slint";
+import { CompareDialog } from "components/config-update.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
@@ -28,7 +30,7 @@ export { SaveState, AppearanceState, K, Pages, SettingsState, SK }
 export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
 export { OpenWithState, OpenWithRow, OpenWithForm, OpenWithTestLine, OpenWithPreviewRow, OtherAppRow } from "openwith-types.slint";
 export { PresetsState, PresetCard } from "pages/presets-state.slint";
-export { UpdateState }
+export { UpdateState, ConfigUpdateState }
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Pro";
@@ -120,6 +122,11 @@ export component AppWindow inherits Window {
         title: AppState.toast-title;
         text: AppState.toast-text;
         close => { AppState.dismiss-toast(); }
+    }
+
+    if ConfigUpdateState.compare-shown: CompareDialog {
+        width: 100%;
+        height: 100%;
     }
 
     if SaveState.user-config-prompt: UserConfigPrompt {

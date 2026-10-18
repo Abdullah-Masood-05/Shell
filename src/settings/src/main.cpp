@@ -34,6 +34,7 @@
 #include "AppearanceController.h"
 #include "BackupsController.h"
 #include "BehaviorController.h"
+#include "ConfigUpdateController.h"
 #include "ContextMenusController.h"
 #include "EditorController.h"
 #include "MenuBuilderController.h"
@@ -211,6 +212,11 @@ int main()
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
     auto openWith = std::make_unique<OpenWithController>(ui);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
+    // After an update (a new version, or the helper's --updated): the personal config's
+    // menu files the user never changed are brought up to this version.
+    auto configUpdate = std::make_unique<ConfigUpdateController>(ui, !snapshot && options.statusFile.empty(),
+                                                                 !g_update.updated.empty());
+    configUpdate->onFilesChanged([&] { saveService->reloadConfig(); });
     // Installing an update closes the app first: the helper waits for this process to end.
     auto updates = std::make_unique<UpdateController>(ui, g_update, [&] {
         controller->saveWindowPlacement();
@@ -307,6 +313,7 @@ int main()
     slint::run_event_loop();
 
     updates.reset();
+    configUpdate.reset();
     onboarding.reset();
     behavior.reset();
     appearance.reset();

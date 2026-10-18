@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.21)
 
 # Nilesoft Shell Pro, the app (NilesoftShellPro.exe; the CMake target is still called
 # "settings"). It talks to the core only through shell.exe, files and HKCU: nothing here
-# includes src/shared or links the core.
+# includes src/shared or links the core. (settings_tests includes src/shared/ConfigUpgrade.h,
+# the logic behind `shell.exe -config:upgrade`, to test it.)
 
 # The version comes from the core's Resource.h, read by regex (never #included).
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../shared/Resource.h" _resource_h)
@@ -85,6 +86,8 @@ add_executable(settings WIN32
     src/BackupsModel.cpp
     src/BehaviorController.cpp
     src/ConfigRules.cpp
+    src/ConfigUpdate.cpp
+    src/ConfigUpdateController.cpp
     src/ContextMenusController.cpp
     src/Diff.cpp
     src/Dwm.cpp
@@ -171,8 +174,10 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_presets.cpp
         tests/test_updater.cpp
         tests/test_tr.cpp
+        tests/test_config_upgrade.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
+        src/ConfigUpdate.cpp
         src/Diff.cpp
         src/EditorSession.cpp
         src/ExcludeRules.cpp

@@ -10,6 +10,8 @@ import { AppButton, ActionTile, Link } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
 import { UpdateState } from "../update-state.slint";
 import { UpdateBanner } from "../components/update-banner.slint";
+import { ConfigUpdateState } from "../config-update-state.slint";
+import { KeptFilesNotice } from "../components/config-update.slint";
 
 component DiagnosticRow inherits Rectangle {
     in property <string> level;
@@ -113,6 +115,20 @@ export component HomePage inherits PageFrame {
     }
 
     if UpdateState.offered: UpdateBanner { }
+
+    // After an update: the menu files brought up to this version, and the ones the user
+    // changed, which were kept (src/ConfigUpdateController.cpp).
+    if ConfigUpdateState.updated-shown: Banner {
+        kind: "ok";
+        title: ConfigUpdateState.updated-title;
+        text: ConfigUpdateState.updated-text;
+        action-label: @tr("Open Backups");
+        closable: true;
+        action => { AppState.page = Pages.backups; }
+        close => { ConfigUpdateState.dismiss-updated(); }
+    }
+
+    if ConfigUpdateState.kept-shown: KeptFilesNotice { }
 
     for issue in AppState.issues: Banner {
         kind: issue.kind;
