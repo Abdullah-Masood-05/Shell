@@ -114,6 +114,7 @@ add_executable(settings WIN32
     src/UpdateController.cpp
     src/Updater.cpp
     src/Wallpaper.cpp
+    src/WindowsTitles.cpp
     src/Worker.cpp
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
 )
@@ -187,6 +188,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/OpenWithModel.cpp
         src/OtherApps.cpp
         src/Updater.cpp
+        src/WindowsTitles.cpp
     )
     target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
     add_dependencies(settings_tests translations_data)
@@ -195,7 +197,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 winhttp bcrypt)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()
