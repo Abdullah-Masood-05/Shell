@@ -99,12 +99,31 @@
 			running menu, and print the result as JSON. Exit code 0 if the configuration loads, 1 if it does not,
 			2 if no file is given.</td>
 	</tr>
+	<tr>
+		<td class="syntax-keyword">-config:tree &lt;file&gt; -context:&lt;where&gt; [-sample:&lt;path&gt;]</td>
+		<td>Print the right-click menu for one place as JSON: the items from <code>&lt;file&gt;</code> and its imports,
+			and the items Windows and other programs add. <code>&lt;where&gt;</code> is <code>file</code>,
+			<code>folder</code>, <code>drive</code>, <code>back</code>, <code>desktop</code> or <code>taskbar</code>.
+			Read-only; it never shows a window.</td>
+	</tr>
 </table>
 <p>The output of <code>-config:check</code> looks like this. Errors stop the configuration from loading; warnings
 	(such as a missing import) do not.</p>
 <pre><code>{"ok":false,"root":"C:\\Users\\me\\AppData\\Roaming\\Nilesoft\\Shell\\shell.nss",
  "errors":[{"file":"...\\imports\\theme.nss","line":12,"column":9,"message":"..."}],
  "warnings":[]}</code></pre>
+
+<p><code>-config:tree</code> is what the app's <a href="/docs/app/menu-map">Menu map</a> page reads. Windows' items are
+	read by building the menu off-screen for a sample file in <code>%TEMP%\NilesoftShellPro\menu-map</code>, or for the
+	path given with <code>-sample</code>; nothing is run. The output has <code>ok</code>, <code>root</code>,
+	<code>context</code>, <code>sample</code>, <code>errors</code>, <code>warnings</code> and <code>tree</code>.
+	<code>tree</code> holds <code>shell</code> (your items, each with its file and line), <code>system</code> (Windows'
+	and programs' items, with who added them and which rules hide, move or rename them), <code>rules</code> (each
+	<code>modify</code> and <code>remove</code> rule) and <code>system_error</code>.</p>
+<div class="console">
+	<div class="console-title">COMMAND PROMPT</div>
+	<div class="console-body">shell -config:tree "%APPDATA%\Nilesoft\Shell\shell.nss" -context:file -sample:C:\notes.txt -out:tree.json</div>
+</div>
 
 <p>The output of <code>-config:upgrade</code> lists the files by path relative to the configuration folder.
 	<code>backup</code> is the snapshot taken first, or <code>null</code> when nothing was written.</p>
