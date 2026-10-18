@@ -4412,9 +4412,23 @@ namespace Nilesoft
 					wchar_t szISOLang[51] = { };
 					if(Id.length() == 2)
 					{
-						auto len = ::GetUserDefaultLocaleName(szISOLang, 50);
-						if(len > 0)
-							_result = szISOLang;
+						// The Windows display language, which Windows' own menu items
+						// follow. The regional format (GetUserDefaultLocaleName) can differ,
+						// and picking the language file from it mixed two languages in one
+						// menu.
+						ULONG count = 0, size = 0;
+						if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, nullptr, &size) && size > 0)
+						{
+							std::wstring langs(size, L'\0');
+							if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, langs.data(), &size) && langs[0])
+								_result = langs.c_str();
+						}
+						if(_result.is_null())
+						{
+							auto len = ::GetUserDefaultLocaleName(szISOLang, 50);
+							if(len > 0)
+								_result = szISOLang;
+						}
 					}
 					else if(Id.length() == 3)
 					{

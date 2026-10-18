@@ -1085,6 +1085,12 @@ namespace hook_guard
 		::CloseHandle(section);
 		section = nullptr;
 
+		// shell.exe -config:tree builds Windows' context menu, which loads the registered
+		// shell.dll as a menu handler next to shell.exe's own copy. Expected there, and
+		// not worth a warning in shell.log every time the Menu map refreshes.
+		if(_loader.path.ends_with(L"\\shell.exe"))
+			return false;
+
 		_log.warning(L"Not hooking in %s (pid %lu): another Nilesoft shell.dll ('%s') already hooked this process; "
 					 L"this one is '%s'.",
 					 _loader.path.c_str(), ::GetCurrentProcessId(), other.c_str(), self.c_str());

@@ -1,6 +1,7 @@
 #include "Updater.h"
 
 #include "Text.h"
+#include "Tr.h"
 
 #include <nlohmann/json.hpp>
 
@@ -110,7 +111,7 @@ std::string winError(DWORD code)
     if (code >= WINHTTP_ERROR_BASE && code <= WINHTTP_ERROR_LAST && winhttp)
         flags |= FORMAT_MESSAGE_FROM_HMODULE;
     DWORD n = FormatMessageW(flags, winhttp, code, 0, reinterpret_cast<LPWSTR>(&buf), 0, nullptr);
-    std::wstring msg = n && buf ? std::wstring(buf, n) : L"error " + std::to_wstring(code);
+    std::wstring msg = n && buf ? std::wstring(buf, n) : widen(nsp::trf("error {}", code));
     if (buf)
         LocalFree(buf);
     while (!msg.empty() && (msg.back() == L'\n' || msg.back() == L'\r' || msg.back() == L' ' || msg.back() == L'.'))
@@ -211,7 +212,7 @@ HttpResult perform(const std::string &startUrl, const Sink &sink, const Progress
         if (!WinHttpCrackUrl(wurl.c_str(), DWORD(wurl.size()), 0, &uc))
             return fail(GetLastError());
         if (uc.nScheme != INTERNET_SCHEME_HTTPS) {
-            res.error = "Only https addresses are used for updates.";
+            res.error = nsp::tr("Only https addresses are used for updates.");
             return res;
         }
         std::wstring object(uc.lpszUrlPath, uc.dwUrlPathLength);
@@ -244,8 +245,9 @@ HttpResult perform(const std::string &startUrl, const Sink &sink, const Progress
             if (!location.empty() && location.front() == '/')
                 location = "https://" + narrow(host) + location;
             if (location.empty() || !allowRedirect || !allowRedirect(location)) {
-                res.error = "The download was redirected to an unexpected address" +
-                            (location.empty() ? std::string(".") : ": " + location.substr(0, 120));
+                res.error = location.empty()
+                                ? std::string(nsp::tr("The download was redirected to an unexpected address."))
+                                : nsp::trf("The download was redirected to an unexpected address: {}", location.substr(0, 120));
                 return res;
             }
             url = location;
@@ -255,8 +257,9 @@ HttpResult perform(const std::string &startUrl, const Sink &sink, const Progress
         if (status != 200) {
             auto remaining = queryCustomHeader(req.h, L"X-RateLimit-Remaining");
             res.rateLimited = (status == 403 || status == 429) && (remaining == L"0" || status == 429);
-            res.error = res.rateLimited ? "GitHub's limit for update checks was reached. Try again in an hour."
-                                        : "The server answered HTTP " + std::to_string(status) + ".";
+            res.error = res.rateLimited
+                            ? std::string(nsp::tr("GitHub's limit for update checks was reached. Try again in an hour."))
+                            : nsp::trf("The server answered HTTP {}.", status);
             return res;
         }
 
@@ -279,7 +282,7 @@ HttpResult perform(const std::string &startUrl, const Sink &sink, const Progress
             if (read == 0)
                 break;
             if (!sink(buf.data(), read)) {
-                res.error = "Writing the download failed.";
+                res.error = nsp::tr("Writing the download failed.");
                 return res;
             }
             done += read;
@@ -289,14 +292,14 @@ HttpResult perform(const std::string &startUrl, const Sink &sink, const Progress
             }
         }
         if (total && done != total) {
-            res.error = "The download was cut off.";
+            res.error = nsp::tr("The download was cut off.");
             res.offline = true;
             return res;
         }
         res.ok = true;
         return res;
     }
-    res.error = "Too many redirects.";
+    res.error = nsp::tr("Too many redirects.");
     return res;
 }
 
@@ -401,8 +404,8 @@ std::vector<Release> parseReleases(const std::string &json, std::string &error)
     std::vector<Release> out;
     auto j = nlohmann::json::parse(json, nullptr, false);
     if (!j.is_array()) {
-        error = j.is_object() && j.contains("message") ? "GitHub: " + str(j, "message")
-                                                       : "The list of releases couldn't be read.";
+        error = j.is_object() && j.contains("message") ? nsp::trf("GitHub: {}", str(j, "message"))
+                                                       : std::string(nsp::tr("The list of releases couldn't be read."));
         return out;
     }
     for (const auto &r : j) {
@@ -637,14 +640,14 @@ HttpResult httpDownload(const std::string &url, const fs::path &file, const Prog
 {
     HttpResult res;
     if (!isAllowedDownloadUrl(url)) {
-        res.error = "The download address is not a release of Nilesoft Shell Pro: " + url.substr(0, 120);
+        res.error = nsp::trf("The download address is not a release of Nilesoft Shell Pro: {}", url.substr(0, 120));
         return res;
     }
     auto part = fs::path(file.wstring() + L".part");
     {
         std::ofstream out(part, std::ios::binary | std::ios::trunc);
         if (!out) {
-            res.error = "Couldn't write " + narrow(part.wstring()) + ".";
+            res.error = nsp::trf("Couldn't write {}.", narrow(part.wstring()));
             return res;
         }
         res = perform(
@@ -657,7 +660,7 @@ HttpResult httpDownload(const std::string &url, const fs::path &file, const Prog
         out.close();
         if (res.ok && !out) {
             res.ok = false;
-            res.error = "Couldn't write " + narrow(part.wstring()) + ".";
+            res.error = nsp::trf("Couldn't write {}.", narrow(part.wstring()));
         }
     }
     std::error_code ec;
@@ -665,7 +668,7 @@ HttpResult httpDownload(const std::string &url, const fs::path &file, const Prog
         fs::rename(part, file, ec);
         if (ec) {
             res.ok = false;
-            res.error = "Couldn't save " + narrow(file.wstring()) + ".";
+            res.error = nsp::trf("Couldn't save {}.", narrow(file.wstring()));
         }
     }
     if (!res.ok)
@@ -696,7 +699,7 @@ FeedResult fetchReleases(const std::wstring &feed)
     } else {
         r.local = true;
         if (!readFile(fs::path(feed), body)) {
-            r.error = "NSP_UPDATE_FEED: couldn't read " + narrow(feed) + ".";
+            r.error = nsp::trf("NSP_UPDATE_FEED: couldn't read {}.", narrow(feed));
             return r;
         }
     }
@@ -725,18 +728,18 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
 {
     DownloadResult r;
     if (!safeFileName(asset.name)) {
-        r.error = "The release lists an asset with an unusable name.";
+        r.error = nsp::tr("The release lists an asset with an unusable name.");
         return r;
     }
     const Asset *sumsAsset = release.find(kSumsName);
     if (!sumsAsset) {
-        r.error = "This release has no SHA256SUMS.txt, so the download can't be verified.";
+        r.error = nsp::tr("This release has no SHA256SUMS.txt, so the download can't be verified.");
         return r;
     }
     std::error_code ec;
     fs::create_directories(dir, ec);
     if (ec) {
-        r.error = "Couldn't create " + narrow(dir.wstring()) + ".";
+        r.error = nsp::trf("Couldn't create {}.", narrow(dir.wstring()));
         return r;
     }
 
@@ -745,17 +748,17 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
     const bool localSums = allowLocal && !isHttps(sumsAsset->url);
     if (localSums) {
         if (!readFile(fs::path(widen(sumsAsset->url)), sumsText)) {
-            r.error = "Couldn't read " + sumsAsset->url + ".";
+            r.error = nsp::trf("Couldn't read {}.", sumsAsset->url);
             return r;
         }
     } else {
         if (!isAllowedDownloadUrl(sumsAsset->url)) {
-            r.error = "SHA256SUMS.txt is not served from this project's releases.";
+            r.error = nsp::tr("SHA256SUMS.txt is not served from this project's releases.");
             return r;
         }
         auto res = httpGet(sumsAsset->url, [](std::string_view u) { return isAllowedDownloadUrl(u); });
         if (!res.ok) {
-            r.error = "Couldn't download SHA256SUMS.txt: " + res.error;
+            r.error = nsp::trf("Couldn't download SHA256SUMS.txt: {}", res.error);
             return r;
         }
         sumsText = std::move(res.body);
@@ -763,7 +766,7 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
     auto sums = parseSha256Sums(sumsText);
     auto expected = sums.find(asset.name);
     if (expected == sums.end()) {
-        r.error = "SHA256SUMS.txt has no entry for " + asset.name + ".";
+        r.error = nsp::trf("SHA256SUMS.txt has no entry for {}.", asset.name);
         return r;
     }
 
@@ -776,7 +779,7 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
 
     if (allowLocal && !isHttps(asset.url)) {
         if (!CopyFileW(widen(asset.url).c_str(), r.file.c_str(), FALSE)) {
-            r.error = "Couldn't copy " + asset.url + ".";
+            r.error = nsp::trf("Couldn't copy {}.", asset.url);
             return r;
         }
         if (progress)
@@ -784,8 +787,8 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
     } else {
         auto res = httpDownload(asset.url, r.file, progress);
         if (!res.ok) {
-            r.cancelled = res.error == "Cancelled.";
-            r.error = r.cancelled ? res.error : "The download failed: " + res.error;
+            r.cancelled = res.error == "Cancelled."; // perform()'s marker, not shown
+            r.error = r.cancelled ? res.error : nsp::trf("The download failed: {}", res.error);
             return r;
         }
     }
@@ -793,8 +796,9 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
     auto actual = sha256File(r.file);
     if (actual != expected->second) {
         fs::remove(r.file, ec);
-        r.error = "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected " +
-                  expected->second.substr(0, 16) + "…, got " + (actual.empty() ? "nothing" : actual.substr(0, 16) + "…") + ".";
+        const std::string got = actual.empty() ? std::string(nsp::tr("nothing")) : actual.substr(0, 16) + "…";
+        r.error = nsp::trf("The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}.",
+                           expected->second.substr(0, 16), got);
         return r;
     }
     r.ok = true;
@@ -808,14 +812,14 @@ bool extractZip(const fs::path &zip, const fs::path &dest, std::string &error)
     std::error_code ec;
     fs::create_directories(dest, ec);
     if (!fs::is_empty(dest, ec)) {
-        error = "The staging folder is not empty.";
+        error = nsp::tr("The staging folder is not empty.");
         return false;
     }
     wchar_t sys[MAX_PATH];
     GetSystemDirectoryW(sys, MAX_PATH);
     const fs::path tar = fs::path(sys) / L"tar.exe";
     if (!fs::is_regular_file(tar, ec)) {
-        error = "tar.exe (part of Windows 10 and later) was not found.";
+        error = nsp::tr("tar.exe (part of Windows 10 and later) was not found.");
         return false;
     }
     std::wstring cmd = L"\"" + tar.wstring() + L"\" -xf \"" + zip.wstring() + L"\" -C \"" + dest.wstring() + L"\"";
@@ -823,7 +827,7 @@ bool extractZip(const fs::path &zip, const fs::path &dest, std::string &error)
     PROCESS_INFORMATION pi{};
     if (!CreateProcessW(tar.c_str(), cmd.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr,
                         dest.c_str(), &si, &pi)) {
-        error = "Couldn't start tar.exe: " + winError(GetLastError()) + ".";
+        error = nsp::trf("Couldn't start tar.exe: {}.", winError(GetLastError()));
         return false;
     }
     DWORD wait = WaitForSingleObject(pi.hProcess, 180000);
@@ -835,7 +839,7 @@ bool extractZip(const fs::path &zip, const fs::path &dest, std::string &error)
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
     if (code != 0) {
-        error = "The zip couldn't be extracted (tar.exe exit code " + std::to_string(code) + ").";
+        error = nsp::trf("The zip couldn't be extracted (tar.exe exit code {}).", code);
         return false;
     }
     // Everything must have landed inside dest (tar refuses ".." and absolute names anyway).
@@ -843,12 +847,12 @@ bool extractZip(const fs::path &zip, const fs::path &dest, std::string &error)
     for (auto it = fs::recursive_directory_iterator(dest, ec); !ec && it != fs::recursive_directory_iterator();
          it.increment(ec)) {
         if (it->is_symlink(ec)) {
-            error = "The zip contains a link, which an update never does.";
+            error = nsp::tr("The zip contains a link, which an update never does.");
             return false;
         }
         auto p = folderKey(fs::weakly_canonical(it->path(), ec));
         if (p.compare(0, root.size(), root) != 0) {
-            error = "The zip contains a file outside its folder.";
+            error = nsp::tr("The zip contains a file outside its folder.");
             return false;
         }
     }
@@ -893,11 +897,11 @@ ApplyResult applyPortable(const fs::path &staging, const fs::path &installDir)
     ApplyResult r;
     std::error_code ec;
     if (!fs::is_regular_file(staging / L"NilesoftShellPro.exe", ec) || !fs::is_regular_file(staging / L"shell.dll", ec)) {
-        r.error = "The update doesn't contain NilesoftShellPro.exe and shell.dll.";
+        r.error = nsp::tr("The update doesn't contain NilesoftShellPro.exe and shell.dll.");
         return r;
     }
     if (!fs::is_directory(installDir, ec)) {
-        r.error = "The install folder " + narrow(installDir.wstring()) + " doesn't exist.";
+        r.error = nsp::trf("The install folder {} doesn't exist.", narrow(installDir.wstring()));
         return r;
     }
 
@@ -907,7 +911,7 @@ ApplyResult applyPortable(const fs::path &staging, const fs::path &installDir)
         if (it->is_regular_file(ec))
             files.push_back(fs::relative(it->path(), staging, ec));
     if (ec) {
-        r.error = "Couldn't read the update's files.";
+        r.error = nsp::tr("Couldn't read the update's files.");
         return r;
     }
 
@@ -948,7 +952,8 @@ ApplyResult applyPortable(const fs::path &staging, const fs::path &installDir)
             for (int attempt = 0; attempt < 50 && !(moved = MoveFileExW(target.c_str(), backup.c_str(), 0)); ++attempt)
                 Sleep(100);
             if (!moved) {
-                r.error = "Couldn't replace " + narrow(target.wstring()) + ": " + winError(GetLastError()) + ".";
+                const auto why = winError(GetLastError());
+                r.error = nsp::trf("Couldn't replace {}: {}.", narrow(target.wstring()), why);
                 rollback();
                 return r;
             }
@@ -957,7 +962,8 @@ ApplyResult applyPortable(const fs::path &staging, const fs::path &installDir)
             done.push_back({ target, {} });
         }
         if (!CopyFileW(src.c_str(), target.c_str(), FALSE)) {
-            r.error = "Couldn't write " + narrow(target.wstring()) + ": " + winError(GetLastError()) + ".";
+            const auto why = winError(GetLastError());
+            r.error = nsp::trf("Couldn't write {}: {}.", narrow(target.wstring()), why);
             rollback();
             return r;
         }

@@ -2,7 +2,7 @@
 
 #define VERSION_MAJOR			2
 #define VERSION_MINOR			0
-#define VERSION_BUILD			5
+#define VERSION_BUILD			6
 #define VERSION_REV				0
 #define VERSION_YEAR			2026
 
@@ -33,7 +33,7 @@ namespace Nilesoft
 #define APP_FILENAME_TITLE		L"shell"
 
 #define	APP_PRODUCT_VERSION		L"2.0"
-#define	APP_VERSION				L"2.0.5"
+#define	APP_VERSION				L"2.0.6"
 //#define APP_VERSION_FULL		L"2.0 build 0"
 
 constexpr auto APP_EMAIL		= L"support@nilesoft.org";

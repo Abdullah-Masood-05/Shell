@@ -91,4 +91,10 @@ std::string exportBlock(const nss::Overrides &values, std::string_view eol = "\r
 // with `eol` line ends: what "Export to clipboard" copies.
 std::string exportText(const Preset &preset, std::string_view eol = "\r\n");
 
+// The name, about line and tags in the UI language (Preset keeps the English of the
+// file; ThemePresets.cpp marks the bundled presets' text for translation).
+std::string displayName(const Preset &preset);
+std::string displayAbout(const Preset &preset);
+std::vector<std::string> displayTags(const Preset &preset);
+
 } // namespace presets

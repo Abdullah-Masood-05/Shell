@@ -11,7 +11,7 @@ export component CloseGlyph inherits Rectangle {
     background: ta.has-hover ? Tokens.hover : transparent;
     animate background { duration: Tokens.fast; }
     accessible-role: button;
-    accessible-label: "Close";
+    accessible-label: @tr("Close");
     accessible-action-default => { root.clicked(); }
 
     Image {
@@ -73,12 +73,14 @@ export component Banner inherits Rectangle {
                 font-size: Tokens.body;
                 color: Tokens.text;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.text != "": Text {
                 text: root.text;
                 font-size: Tokens.body;
                 color: Tokens.text-2;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
         }
         if root.action-label != "": VerticalLayout {

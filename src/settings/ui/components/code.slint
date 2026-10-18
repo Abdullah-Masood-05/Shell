@@ -200,22 +200,22 @@ export component CodeEditor inherits Rectangle {
         height: 100%;
         Menu {
             MenuItem {
-                title: "Cut";
+                title: @tr("Cut");
                 enabled: !root.read-only && root.has-selection;
                 activated => { root.cut-selection(); }
             }
             MenuItem {
-                title: "Copy";
+                title: @tr("Copy");
                 enabled: root.has-selection;
                 activated => { root.copy-selection(); }
             }
             MenuItem {
-                title: "Paste";
+                title: @tr("Paste");
                 enabled: !root.read-only;
                 activated => { input.paste(); }
             }
             MenuItem {
-                title: "Select all";
+                title: @tr("Select all");
                 enabled: root.text != "";
                 activated => { input.select-all(); }
             }

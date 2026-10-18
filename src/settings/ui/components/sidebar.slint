@@ -10,15 +10,15 @@ import { UpdateNavHint } from "update-banner.slint";
 // sidebar has keyboard focus (Tab into it).
 export component Sidebar inherits Rectangle {
     in property <[NavEntry]> entries: [
-        { page: Pages.home, label: "Home", icon: Icons.home, header: "" },
-        { page: Pages.appearance, label: "Appearance", icon: Icons.appearance, header: "Customize" },
-        { page: Pages.behavior, label: "Behavior", icon: Icons.behavior, header: "" },
-        { page: Pages.rules, label: "Rules & Filters", icon: Icons.rules, header: "" },
-        { page: Pages.menus, label: "Context Menus", icon: Icons.menus, header: "Menus" },
-        { page: Pages.builder, label: "Menu Builder", icon: Icons.builder, header: "" },
-        { page: Pages.openwith, label: "Open with", icon: Icons.open-with, header: "" },
-        { page: Pages.editor, label: "Config Editor", icon: Icons.editor, header: "Advanced" },
-        { page: Pages.backups, label: "Backups", icon: Icons.backups, header: "" },
+        { page: Pages.home, label: @tr("Home"), icon: Icons.home, header: "" },
+        { page: Pages.appearance, label: @tr("Appearance"), icon: Icons.appearance, header: @tr("Customize") },
+        { page: Pages.behavior, label: @tr("Behavior"), icon: Icons.behavior, header: "" },
+        { page: Pages.rules, label: @tr("Rules & Filters"), icon: Icons.rules, header: "" },
+        { page: Pages.menus, label: @tr("Context Menus"), icon: Icons.menus, header: @tr("Menus") },
+        { page: Pages.builder, label: @tr("Menu Builder"), icon: Icons.builder, header: "" },
+        { page: Pages.openwith, label: @tr("Open with"), icon: Icons.open-with, header: "" },
+        { page: Pages.editor, label: @tr("Config Editor"), icon: Icons.editor, header: @tr("Advanced") },
+        { page: Pages.backups, label: @tr("Backups"), icon: Icons.backups, header: "" },
     ];
     // Pages are numbered in sidebar order; the arrow keys walk 0..last (Preferences).
     property <int> last-page: Pages.preferences;
@@ -96,7 +96,7 @@ export component Sidebar inherits Rectangle {
                         color: Tokens.text;
                     }
                     Text {
-                        text: "Version " + AppState.app-version;
+                        text: @tr("Version {}", AppState.app-version);
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                     }
@@ -160,7 +160,7 @@ export component Sidebar inherits Rectangle {
                 }
                 status-text := Text {
                     horizontal-stretch: 1;
-                    text: AppState.busy ? AppState.busy-label : AppState.status.loaded ? AppState.status.pill-text : "Checking status…";
+                    text: AppState.busy ? AppState.busy-label : AppState.status.loaded ? AppState.status.pill-text : @tr("Checking status…");
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     vertical-alignment: center;
@@ -169,7 +169,7 @@ export component Sidebar inherits Rectangle {
             }
             NavItem {
                 icon: Icons.preferences;
-                label: "Preferences";
+                label: @tr("Preferences");
                 selected: AppState.page == Pages.preferences;
                 show-focus: fs.has-focus && AppState.page == Pages.preferences;
                 clicked => {

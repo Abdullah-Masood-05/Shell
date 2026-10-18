@@ -3,6 +3,7 @@
 #include "Dwm.h"
 #include "Registry.h"
 #include "Text.h"
+#include "Tr.h"
 
 #include <nlohmann/json.hpp>
 
@@ -75,7 +76,7 @@ std::string describeFailure(const CliResult &r)
     if (!r.started)
         return narrow(r.error);
     if (r.timedOut)
-        return "shell.exe did not finish in time and was stopped.";
+        return nsp::tr("shell.exe did not finish in time and was stopped.");
     auto j = nlohmann::json::parse(r.output, nullptr, false);
     if (j.is_object()) {
         for (const char *key : { "error", "message" }) {
@@ -89,7 +90,7 @@ std::string describeFailure(const CliResult &r)
         out.pop_back();
     if (!out.empty() && out.size() < 300 && out.front() != '{')
         return out;
-    return "shell.exe exited with code " + std::to_string(long(r.exitCode)) + ".";
+    return nsp::trf("shell.exe exited with code {}.", long(r.exitCode));
 }
 
 StatusInfo toInfo(const ShellStatus &s)
@@ -113,63 +114,63 @@ StatusInfo toInfo(const ShellStatus &s)
     i.user_config_dir = ss(s.userConfigDir);
 
     if (s.regMode == "user")
-        i.reg_text = "Registered for you";
+        i.reg_text = nsp::tr("Registered for you");
     else if (s.regMode == "machine")
-        i.reg_text = "Registered for all users";
+        i.reg_text = nsp::tr("Registered for all users");
     else if (s.regMode == "both")
-        i.reg_text = "Registered for you and for all users";
+        i.reg_text = nsp::tr("Registered for you and for all users");
     else
-        i.reg_text = "Not registered";
+        i.reg_text = nsp::tr("Not registered");
 
     const std::string &treatAs = s.userTreatAs != "absent" ? s.userTreatAs : s.machineTreatAs;
     if (!s.win11Applicable)
-        i.win11_text = "Not applicable on this Windows version";
+        i.win11_text = nsp::tr("Not applicable on this Windows version");
     else if (s.classicMenu)
-        i.win11_text = treatAs == "foreign" ? "Classic menu (set by another app)" : "Classic menu (set by Shell)";
+        i.win11_text = treatAs == "foreign" ? nsp::tr("Classic menu (set by another app)") : nsp::tr("Classic menu (set by Shell)");
     else
-        i.win11_text = "Windows 11 menu; Shell is under \"Show more options\"";
+        i.win11_text = nsp::tr("Windows 11 menu; Shell is under \"Show more options\"");
 
     if (s.configSource == "appdata")
-        i.source_text = "Personal (%APPDATA%)";
+        i.source_text = nsp::tr("Personal (%APPDATA%)");
     else if (s.configSource == "registry")
-        i.source_text = "Custom path (registry)";
+        i.source_text = nsp::tr("Custom path (registry)");
     else if (s.configSource == "install")
-        i.source_text = "Shared (install folder)";
+        i.source_text = nsp::tr("Shared (install folder)");
     else
-        i.source_text = "Unknown";
+        i.source_text = nsp::tr("Unknown");
 
     if (!s.conflictDlls().empty()) {
         i.health_kind = "error";
-        i.health_title = "Two copies of Shell are registered";
-        i.health_detail = "Explorer can load the other copy, and then Shell's menu doesn't appear.";
-        i.pill_text = "Needs attention";
+        i.health_title = nsp::tr("Two copies of Shell are registered");
+        i.health_detail = nsp::tr("Explorer can load the other copy, and then Shell's menu doesn't appear.");
+        i.pill_text = nsp::tr("Needs attention");
     } else if (s.regMode == "none") {
         i.health_kind = "error";
-        i.health_title = "Shell is not enabled";
-        i.health_detail = "The context menu isn't registered for you or for all users.";
-        i.pill_text = "Not enabled";
+        i.health_title = nsp::tr("Shell is not enabled");
+        i.health_detail = nsp::tr("The context menu isn't registered for you or for all users.");
+        i.pill_text = nsp::tr("Not enabled");
     } else if (!i.active_dll_exists) {
         i.health_kind = "error";
-        i.health_title = "shell.dll is missing";
-        i.health_detail = "The registered DLL file can't be found. Register again to fix it.";
-        i.pill_text = "Needs attention";
+        i.health_title = nsp::tr("shell.dll is missing");
+        i.health_detail = nsp::tr("The registered DLL file can't be found. Register again to fix it.");
+        i.pill_text = nsp::tr("Needs attention");
     } else if (!s.configExists) {
         i.health_kind = "error";
-        i.health_title = "The config file is missing";
-        i.health_detail = "Shell can't build its menu without shell.nss.";
-        i.pill_text = "Needs attention";
+        i.health_title = nsp::tr("The config file is missing");
+        i.health_detail = nsp::tr("Shell can't build its menu without shell.nss.");
+        i.pill_text = nsp::tr("Needs attention");
     } else if (s.win11Applicable && s.classicMenu && treatAs == "foreign") {
         i.health_kind = "warning";
-        i.health_title = "Shell is active";
-        i.health_detail = "Another app set the Windows 11 classic-menu switch.";
-        i.pill_text = "Shell is active";
+        i.health_title = nsp::tr("Shell is active");
+        i.health_detail = nsp::tr("Another app set the Windows 11 classic-menu switch.");
+        i.pill_text = nsp::tr("Shell is active");
     } else {
         i.health_kind = "ok";
-        i.health_title = "Shell is active";
-        i.health_detail = s.regMode == "user"    ? "Your context menu is powered by Nilesoft Shell."
-                          : s.regMode == "both" ? "Active for you and for every user on this PC."
-                                                : "Active for every user on this PC.";
-        i.pill_text = "Shell is active";
+        i.health_title = nsp::tr("Shell is active");
+        i.health_detail = s.regMode == "user"    ? nsp::tr("Your context menu is powered by Nilesoft Shell.")
+                          : s.regMode == "both" ? nsp::tr("Active for you and for every user on this PC.")
+                                                : nsp::tr("Active for every user on this PC.");
+        i.pill_text = nsp::tr("Shell is active");
     }
     return i;
 }
@@ -206,8 +207,81 @@ AppController::AppController(slint::ComponentHandle<AppWindow> ui, AppOptions op
     state.set_classic_menu_option(registry::app::get(L"ClassicMenu").value_or(1) != 0);
     state.set_shield_icon(shieldIcon());
     state.set_page(options_.startPage);
+    // The language first: the controllers created after this one start translated.
+    languageSetting_ = !options_.language.empty() ? options_.language
+                                                  : narrow(registry::app::getString(L"Language").value_or(L""));
+    if (languageSetting_ == "auto")
+        languageSetting_.clear();
+    // Started again by the update helper: the language the app was showing when it
+    // closed for the update, so it comes back in it. Auto is resolved again from
+    // Windows otherwise, and the elevated helper's way back (Explorer just restarted
+    // by the installer, or another account's elevation) may not see the same settings.
+    // The saved setting is unchanged; Preferences still shows it.
+    applyLanguage(languageSetting_, options_.language.empty() ? options_.shownLanguage : std::string());
+    nsp::onLanguageChanged([this] {
+        // Push the text computed here again; a toast in the old language just goes.
+        const auto &st = ui_->global<AppState>();
+        st.set_toast_shown(false);
+        if (status_) {
+            auto info = toInfo(*status_);
+            st.set_status(info);
+            st.set_issues(std::make_shared<slint::VectorModel<Issue>>(issuesFor(*status_, info.active_dll_exists)));
+        } else if (!cli_.available()) {
+            refresh(false);
+        }
+    });
     bindCallbacks();
     applyTheme();
+}
+
+void AppController::applyLanguage(const std::string &setting, const std::string &shown)
+{
+    std::string code = nsp::resolveSetting(setting);
+    if (_stricmp(shown.c_str(), "en") == 0)
+        code.clear();
+    else
+        for (const auto &l : nsp::languages())
+            if (_stricmp(shown.c_str(), l.code) == 0)
+                code = l.code;
+    // Always: Slint picks a language from the system locale on its own when the window
+    // is created, and "" brings it back to English.
+    slint::select_bundled_translation(code);
+    nsp::setLanguage(code);
+    pushLanguageOptions();
+}
+
+void AppController::setLanguage(int index)
+{
+    const auto langs = nsp::languages();
+    std::string setting;
+    if (index == 1)
+        setting = "en";
+    else if (index >= 2 && size_t(index - 2) < langs.size())
+        setting = langs[size_t(index - 2)].code;
+    languageSetting_ = setting;
+    registry::app::setString(L"Language", widen(setting));
+    applyLanguage(setting);
+}
+
+void AppController::pushLanguageOptions()
+{
+    const auto &state = ui_->global<AppState>();
+    const auto langs = nsp::languages();
+    std::vector<slint::SharedString> options{ nsp::trc("Language", "Auto"), "English" };
+    int index = languageSetting_ == "en" ? 1 : 0;
+    for (size_t i = 0; i < langs.size(); ++i) {
+        options.emplace_back(langs[i].nativeName);
+        if (_stricmp(languageSetting_.c_str(), langs[i].code) == 0)
+            index = int(i) + 2;
+    }
+    state.set_language_options(std::make_shared<slint::VectorModel<slint::SharedString>>(options));
+    state.set_language_index(index);
+    std::string autoName = "English";
+    const std::string windows = nsp::resolveSetting("");
+    for (const auto &l : langs)
+        if (windows == l.code)
+            autoName = l.nativeName;
+    state.set_language_auto_name(ss(autoName));
 }
 
 AppController::~AppController() = default;
@@ -218,6 +292,7 @@ void AppController::bindCallbacks()
     state.on_refresh([this] { refresh(false); });
     state.on_action([this](slint::SharedString id) { runAction(std::string(id.data(), id.size())); });
     state.on_set_theme([this](int mode) { setTheme(mode); });
+    state.on_set_language([this](int index) { setLanguage(index); });
     state.on_open_url([](slint::SharedString url) {
         auto w = widen(std::string_view(url.data(), url.size()));
         if (w.rfind(L"https://", 0) == 0)
@@ -327,19 +402,19 @@ void AppController::refresh(bool quiet)
         return;
     if (!cli_.available()) {
         const auto &state = ui_->global<AppState>();
-        std::vector<Issue> issues{ Issue{ "error", "shell.exe was not found",
-                                          "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe.", "", "" } };
+        std::vector<Issue> issues{ Issue{ "error", nsp::tr("shell.exe was not found"),
+                                          nsp::tr("Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."), "", "" } };
         state.set_issues(std::make_shared<slint::VectorModel<Issue>>(issues));
         StatusInfo info{};
         info.health_kind = "error";
-        info.health_title = "Nilesoft Shell was not found";
-        info.health_detail = "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll.";
-        info.pill_text = "Not found";
+        info.health_title = nsp::tr("Nilesoft Shell was not found");
+        info.health_detail = nsp::tr("NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll.");
+        info.pill_text = nsp::tr("Not found");
         info.loaded = true;
         state.set_status(info);
         return;
     }
-    setBusy(true, "Checking status…");
+    setBusy(true, nsp::tr("Checking status…"));
     worker_.post([this, quiet] {
         auto snap = collect();
         slint::invoke_from_event_loop([this, quiet, snap = std::move(snap)]() mutable {
@@ -353,10 +428,10 @@ void AppController::applySnapshot(Snapshot snap, bool quiet)
 {
     const auto &state = ui_->global<AppState>();
     if (!snap.status) {
-        std::vector<Issue> issues{ Issue{ "error", "Couldn't read the Shell status", ss(snap.error), "refresh", "Try again" } };
+        std::vector<Issue> issues{ Issue{ "error", nsp::tr("Couldn't read the Shell status"), ss(snap.error), "refresh", nsp::tr("Try again") } };
         state.set_issues(std::make_shared<slint::VectorModel<Issue>>(issues));
         if (!quiet)
-            showToast("error", "Couldn't read the Shell status", snap.error);
+            showToast("error", nsp::tr("Couldn't read the Shell status"), snap.error);
         return;
     }
     status_ = snap.status;
@@ -430,31 +505,31 @@ void AppController::runAction(const std::string &id)
                        ui_->global<AppState>().get_classic_menu_option();
     Spec spec;
     if (id == "restart")
-        spec = { "Restarting Explorer…", { L"-restart" }, false, 45000, "Explorer restarted", "" };
+        spec = { nsp::tr("Restarting Explorer…"), { L"-restart" }, false, 45000, nsp::tr("Explorer restarted"), "" };
     else if (id == "register-user") {
-        spec = { "Registering for you…", { L"-register", L"-user" }, false, 30000, "Shell is enabled for you",
-                 "Restart Explorer to load it everywhere." };
+        spec = { nsp::tr("Registering for you…"), { L"-register", L"-user" }, false, 30000, nsp::tr("Shell is enabled for you"),
+                 nsp::tr("Restart Explorer to load it everywhere.") };
         if (treat)
             spec.args.push_back(L"-treat");
     } else if (id == "unregister-user")
-        spec = { "Unregistering…", { L"-unregister", L"-user" }, false, 30000, "Shell is disabled for you",
-                 "Restart Explorer to unload it." };
+        spec = { nsp::tr("Unregistering…"), { L"-unregister", L"-user" }, false, 30000, nsp::tr("Shell is disabled for you"),
+                 nsp::tr("Restart Explorer to unload it.") };
     else if (id == "config-init")
-        spec = { "Creating your config…", { L"-config:init" }, false, 30000, "Personal config created",
-                 "Shell now reads it from %APPDATA%\\Nilesoft\\Shell." };
+        spec = { nsp::tr("Creating your config…"), { L"-config:init" }, false, 30000, nsp::tr("Personal config created"),
+                 nsp::tr("Shell now reads it from %APPDATA%\\Nilesoft\\Shell.") };
     else if (id == "register-machine") {
-        spec = { "Waiting for administrator approval…", { L"-register" }, true, 120000,
-                 "Registered for all users", "Restart Explorer to load it." };
+        spec = { nsp::tr("Waiting for administrator approval…"), { L"-register" }, true, 120000,
+                 nsp::tr("Registered for all users"), nsp::tr("Restart Explorer to load it.") };
         if (treat)
             spec.args.push_back(L"-treat");
     } else if (id == "unregister-machine")
-        spec = { "Waiting for administrator approval…", { L"-unregister" }, true, 120000,
-                 "Unregistered for all users", "Restart Explorer to unload it." };
+        spec = { nsp::tr("Waiting for administrator approval…"), { L"-unregister" }, true, 120000,
+                 nsp::tr("Unregistered for all users"), nsp::tr("Restart Explorer to unload it.") };
     else if (id == "fix-conflicts") {
         // Register this copy for all users again, which takes the CLSIDs back from the
         // other copy, then restart Explorer so it drops the old dll.
-        spec = { "Waiting for administrator approval…", { L"-register" }, true, 120000,
-                 "Only this copy is registered now", "Explorer was restarted.", true };
+        spec = { nsp::tr("Waiting for administrator approval…"), { L"-register" }, true, 120000,
+                 nsp::tr("Only this copy is registered now"), nsp::tr("Explorer was restarted."), true };
         if (treat)
             spec.args.push_back(L"-treat");
     } else
@@ -472,30 +547,30 @@ void AppController::runAction(const std::string &id)
         std::string failure = r.ok() ? std::string{} : describeFailure(r);
         bool cancelled = r.cancelled;
         if (failure.empty() && spec.restartAfter) {
-            slint::invoke_from_event_loop([this] { setBusy(true, "Restarting Explorer…"); });
+            slint::invoke_from_event_loop([this] { setBusy(true, nsp::tr("Restarting Explorer…")); });
             auto restart = cli.run({ L"-restart" }, 45000);
             if (!restart.ok())
-                failure = "Registered, but Explorer didn't restart: " + describeFailure(restart);
+                failure = nsp::trf("Registered, but Explorer didn't restart: {}", describeFailure(restart));
         }
         auto snap = collect();
         // The other copy can still be there (it re-registers itself, or the core is older).
         if (failure.empty() && id == "fix-conflicts" && snap.status) {
             auto others = snap.status->conflictDlls();
             if (!others.empty())
-                failure = "Another copy is still registered: " + others[0] +
-                          ". Uninstall it from Settings > Apps, then try again.";
+                failure = nsp::trf("Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again.",
+                                   others[0]);
         }
         slint::invoke_from_event_loop([this, spec, failure, cancelled, snap = std::move(snap)]() mutable {
             setBusy(false);
             const auto &st = ui_->global<AppState>();
             if (cancelled) {
-                st.set_action_error("The administrator prompt was cancelled. Nothing was changed.");
-                showToast("info", "Cancelled", failure);
+                st.set_action_error(nsp::tr("The administrator prompt was cancelled. Nothing was changed."));
+                showToast("info", nsp::tr("Cancelled"), failure);
             } else if (failure.empty()) {
                 showToast("ok", spec.done, spec.hint);
             } else {
                 st.set_action_error(ss(failure));
-                showToast("error", "That didn't work", failure);
+                showToast("error", nsp::tr("That didn't work"), failure);
             }
             bool configChanged = failure.empty() && !cancelled && st.get_action_id() == "config-init";
             applySnapshot(std::move(snap), true);

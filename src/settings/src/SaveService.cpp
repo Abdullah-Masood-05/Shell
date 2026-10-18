@@ -3,6 +3,7 @@
 #include "LogReader.h"
 #include "Status.h"
 #include "Text.h"
+#include "Tr.h"
 
 #include "nss/ConfigStore.h"
 #include "nss/OverridesWriter.h"
@@ -60,7 +61,7 @@ std::string firstCheckError(const std::string &json)
 {
     auto j = nlohmann::json::parse(json, nullptr, false);
     if (!j.is_object())
-        return json.size() < 200 ? json : std::string("the check failed");
+        return json.size() < 200 ? json : std::string(nsp::tr("the check failed"));
     auto errors = j.find("errors");
     if (errors != j.end() && errors->is_array() && !errors->empty()) {
         const auto &e = errors->front();
@@ -68,14 +69,14 @@ std::string firstCheckError(const std::string &json)
         if (e.contains("file") && e["file"].is_string())
             out = fs::path(widen(e["file"].get<std::string>())).filename().string();
         if (e.contains("line") && e["line"].is_number())
-            out += (out.empty() ? "line " : ":") + std::to_string(e["line"].get<int>());
+            out += out.empty() ? nsp::trf("line {}", e["line"].get<int>()) : ":" + std::to_string(e["line"].get<int>());
         if (e.contains("message") && e["message"].is_string())
             out += (out.empty() ? "" : ": ") + e["message"].get<std::string>();
         return out;
     }
     if (j.contains("error") && j["error"].is_string())
         return j["error"].get<std::string>();
-    return "the check failed";
+    return nsp::tr("the check failed");
 }
 
 } // namespace
@@ -199,7 +200,7 @@ std::optional<std::string> SaveService::current(const std::string &key) const
 
 std::string SaveService::where(const nss::ValueOrigin &o)
 {
-    return narrow(o.file.filename().wstring()) + ", line " + std::to_string(o.line);
+    return nsp::trf("{}, line {}", narrow(o.file.filename().wstring()), o.line);
 }
 
 std::string SaveService::originText(const std::string &key) const
@@ -207,14 +208,16 @@ std::string SaveService::originText(const std::string &key) const
     auto o = origins(key);
     const auto *pending = pending_.find(key);
     if (pending && pending->literal)
-        return "Changed here · not saved yet";
+        return nsp::tr("Changed here · not saved yet");
     if (pending)
-        return o.file ? "Back to " + where(*o.file) + " · not saved yet" : "Back to the built-in default · not saved yet";
+        return o.file ? nsp::trf("Back to {} · not saved yet", where(*o.file))
+                      : std::string(nsp::tr("Back to the built-in default · not saved yet"));
     if (o.app)
-        return o.file ? "Set by this app · " + where(*o.file) + " has " + o.file->value : "Set by this app";
+        return o.file ? nsp::trf("Set by this app · {} has {}", where(*o.file), o.file->value)
+                      : std::string(nsp::tr("Set by this app"));
     if (o.file)
-        return (o.file->literal ? "From " : "") + where(*o.file);
-    return "Built-in default";
+        return o.file->literal ? nsp::trf("From {}", where(*o.file)) : where(*o.file);
+    return nsp::tr("Built-in default");
 }
 
 std::vector<std::string> SaveService::set(std::string_view key, std::string_view literal, std::string_view page)
@@ -294,7 +297,7 @@ ConfigTarget SaveService::queryTarget() const
     ConfigTarget t;
     auto r = cli_.run({ L"-status" }, 10000);
     if (!r.started || r.timedOut) {
-        t.error = r.started ? "shell.exe -status did not finish in time." : narrow(r.error);
+        t.error = r.started ? std::string(nsp::tr("shell.exe -status did not finish in time.")) : narrow(r.error);
         return t;
     }
     std::string err;
@@ -313,7 +316,7 @@ ConfigTarget SaveService::queryTarget() const
         t.logPath = logreader::logPathFor(fs::path(widen(status->activeLog())), fs::path(widen(dll)));
     std::error_code ec;
     if (t.root.empty() || !status->configExists || !fs::is_regular_file(t.root, ec)) {
-        t.error = "The config file was not found. Create a personal config from Home.";
+        t.error = nsp::tr("The config file was not found. Create a personal config from Home.");
         return t;
     }
     t.ok = true;
@@ -337,13 +340,13 @@ void SaveService::save()
     if (saving_ || pending_.empty())
         return;
     if (!cli_.available()) {
-        const std::string text = "shell.exe was not found, so the config can't be checked before saving.";
+        const std::string text = nsp::tr("shell.exe was not found, so the config can't be checked before saving.");
         setResult("error", text);
         notifyResult({ false, false, text });
         return;
     }
     saving_ = true;
-    ui_->global<SaveState>().set_saving_label("Checking with shell.exe…");
+    ui_->global<SaveState>().set_saving_label(nsp::tr("Checking with shell.exe…"));
     setResult("", "");
     publish();
     worker_.post([this, snapshot = pending_] {
@@ -439,13 +442,14 @@ void SaveService::finish(Outcome outcome)
             if (now && now->literal == change.literal)
                 pending_.forget(key);
         }
-        text = outcome.nothingToDo ? "Nothing to save · the files already match" : "Saved · Shell reloads on next right-click";
+        text = outcome.nothingToDo ? nsp::tr("Nothing to save · the files already match")
+                                   : nsp::tr("Saved · Shell reloads on next right-click");
     } else if (outcome.rolledBack) {
-        text = "Shell rejected the config, rolled back: " + outcome.message;
+        text = nsp::trf("Shell rejected the config, rolled back: {}", outcome.message);
     } else if (outcome.rejected) {
-        text = "Shell rejected the config, nothing was written: " + outcome.message;
+        text = nsp::trf("Shell rejected the config, nothing was written: {}", outcome.message);
     } else {
-        text = "Not saved: " + outcome.message;
+        text = nsp::trf("Not saved: {}", outcome.message);
     }
     setResult(outcome.ok ? "ok" : "error", text);
     publish();
@@ -474,7 +478,7 @@ void SaveService::createUserConfig()
     if (saving_)
         return;
     saving_ = true;
-    st.set_saving_label("Creating your personal config…");
+    st.set_saving_label(nsp::tr("Creating your personal config…"));
     publish();
     worker_.post([this] {
         auto r = cli_.run({ L"-config:init" }, 30000);
@@ -488,18 +492,18 @@ void SaveService::createUserConfig()
             else if (!r.started)
                 err = narrow(r.error);
             else if (r.timedOut)
-                err = "shell.exe did not finish in time.";
+                err = nsp::tr("shell.exe did not finish in time.");
             else
-                err = r.output.empty() ? "shell.exe exited with code " + std::to_string(long(r.exitCode)) + "."
-                                       : r.output;
+                err = r.output.empty() ? nsp::trf("shell.exe exited with code {}.", long(r.exitCode)) : r.output;
         }
         slint::invoke_from_event_loop([this, ok, err] {
             saving_ = false;
             ui_->global<AppState>().invoke_refresh(); // Home shows the new source
             if (!ok) {
-                setResult("error", "Couldn't create the personal config: " + err);
+                const std::string text = nsp::trf("Couldn't create the personal config: {}", err);
+                setResult("error", text);
                 publish();
-                notifyResult({ false, false, "Couldn't create the personal config: " + err });
+                notifyResult({ false, false, text });
                 return;
             }
             publish();

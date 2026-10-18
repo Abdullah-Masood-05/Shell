@@ -72,6 +72,8 @@ export global Pages {
 export global AppState {
     in-out property <int> page: 0;
     in property <string> app-version;
+    // --snapshot-scroll-end (src/main.cpp): every page scrolls to its end, for screenshots.
+    in property <bool> scroll-to-end;
 
     in property <StatusInfo> status;
     in property <[Issue]> issues;
@@ -95,6 +97,10 @@ export global AppState {
     // Preferences
     in-out property <int> theme-mode;  // 0 system, 1 light, 2 dark
     in property <image> shield-icon;   // the Windows UAC shield (stock icon)
+    // Language: "Auto", "English", then each bundled language in its own name.
+    in property <[string]> language-options;
+    in-out property <int> language-index;   // 0 follows Windows
+    in property <string> language-auto-name; // what Auto picks now, in its own name
 
     // Onboarding (src/OnboardingController.cpp)
     in-out property <bool> onboarding-shown;
@@ -106,6 +112,7 @@ export global AppState {
     callback refresh();
     callback action(id: string);       // see AppController::runAction
     callback set-theme(mode: int);
+    callback set-language(index: int); // an index into language-options; applies right away
     callback open-url(url: string);
     callback open-path(path: string);
     callback dismiss-onboarding();     // Skip setup / Esc: closes without saving the theme

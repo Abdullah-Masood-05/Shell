@@ -17,7 +17,10 @@
 //                          still the start page, the last the start page in light)
 //   --snapshot-dark        start the tour in the dark theme whatever Windows uses
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
+//   --snapshot-width <px>     a narrower or wider window for the tour
+//   --snapshot-scroll-end     every page of the tour scrolled to its end
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
+//   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
@@ -25,7 +28,8 @@
 // Update helper (UpdateController.h; started from a copy in %TEMP%, never by hand):
 //   --apply-update <staging> <installdir> <pid>, --apply-msi <msi> <installdir> <pid>
 // and what it passes back when it starts the app again:
-//   --updated <msi|portable>, --update-failed <message>, --update-cancelled
+//   --updated <msi|portable>, --update-failed <message>, --update-cancelled,
+//   and --ui-lang <en|zh-CN|...>: the language the app was showing
 
 #include "app.h"
 
@@ -33,6 +37,7 @@
 #include "AppearanceController.h"
 #include "BackupsController.h"
 #include "BehaviorController.h"
+#include "ConfigUpdateController.h"
 #include "ContextMenusController.h"
 #include "EditorController.h"
 #include "MenuBuilderController.h"
@@ -40,6 +45,7 @@
 #include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
+#include "Text.h"
 #include "UpdateController.h"
 
 #include <windows.h>
@@ -62,6 +68,8 @@ std::wstring g_snapshotPath;
 std::vector<int> g_snapshotPages;
 bool g_snapshotDark = false;
 int g_snapshotHeight = 0;
+int g_snapshotWidth = 0;
+bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
@@ -116,8 +124,12 @@ AppOptions parseArgs()
             o.onboardingStep = std::clamp(_wtoi(argv[++i]), 1, 3) - 1;
         } else if (_wcsicmp(argv[i], L"--snapshot") == 0 && i + 1 < argc) {
             g_snapshotPath = argv[++i];
+        } else if (_wcsicmp(argv[i], L"--lang") == 0 && i + 1 < argc) {
+            o.language = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
+        } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {
+            o.shownLanguage = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {
             g_update.updated = argv[++i];
         } else if (_wcsicmp(argv[i], L"--update-failed") == 0 && i + 1 < argc) {
@@ -128,6 +140,10 @@ AppOptions parseArgs()
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
             g_snapshotHeight = std::clamp(_wtoi(argv[++i]), 0, 4000);
+        } else if (_wcsicmp(argv[i], L"--snapshot-width") == 0 && i + 1 < argc) {
+            g_snapshotWidth = std::clamp(_wtoi(argv[++i]), 0, 4000);
+        } else if (_wcsicmp(argv[i], L"--snapshot-scroll-end") == 0) {
+            g_snapshotScrollEnd = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-pages") == 0 && i + 1 < argc) {
             std::wstring list = argv[++i];
             size_t start = 0;
@@ -207,6 +223,11 @@ int main()
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
     auto openWith = std::make_unique<OpenWithController>(ui);
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
+    // After an update (a new version, or the helper's --updated): the personal config's
+    // menu files the user never changed are brought up to this version.
+    auto configUpdate = std::make_unique<ConfigUpdateController>(ui, !snapshot && options.statusFile.empty(),
+                                                                 !g_update.updated.empty());
+    configUpdate->onFilesChanged([&] { saveService->reloadConfig(); });
     // Installing an update closes the app first: the helper waits for this process to end.
     auto updates = std::make_unique<UpdateController>(ui, g_update, [&] {
         controller->saveWindowPlacement();
@@ -225,8 +246,10 @@ int main()
     } else if (snapshot) {
         ui->window().set_position(slint::PhysicalPosition(
             { GetSystemMetrics(SM_XVIRTUALSCREEN) + GetSystemMetrics(SM_CXVIRTUALSCREEN) + 64, 0 }));
-        if (g_snapshotHeight > 0)
-            ui->window().set_size(slint::LogicalSize({ 1120.f, float(g_snapshotHeight) }));
+        if (g_snapshotHeight > 0 || g_snapshotWidth > 0)
+            ui->window().set_size(slint::LogicalSize({ g_snapshotWidth > 0 ? float(g_snapshotWidth) : 1120.f,
+                                                       g_snapshotHeight > 0 ? float(g_snapshotHeight) : 760.f }));
+        ui->global<AppState>().set_scroll_to_end(g_snapshotScrollEnd);
     }
 
     ui->window().on_close_requested([&] {
@@ -303,6 +326,7 @@ int main()
     slint::run_event_loop();
 
     updates.reset();
+    configUpdate.reset();
     onboarding.reset();
     behavior.reset();
     appearance.reset();

@@ -4,6 +4,7 @@
 #include "ShellCli.h"
 #include "Status.h"
 #include "Text.h"
+#include "Tr.h"
 
 #include <windows.h>
 #include <ole2.h>
@@ -25,6 +26,20 @@ using text::widen;
 namespace {
 
 slint::SharedString ss(const std::string &s) { return slint::SharedString(std::string_view(s)); }
+
+using Text = UpdateController::Text;
+
+// A message marked with nsp::mark(), translated each time it is shown.
+Text later(const char *msgid)
+{
+    return [msgid] { return std::string(nsp::tr(msgid)); };
+}
+
+// A message that is shown as it is (already translated, or from Windows or shell.exe).
+Text as(std::string text)
+{
+    return [text = std::move(text)] { return text; };
+}
 
 constexpr std::time_t kDay = 24 * 60 * 60;
 
@@ -68,12 +83,12 @@ fs::path copySelfToTemp(std::string &error)
     auto self = selfPath();
     auto dir = tempDir();
     if (self.empty() || dir.empty()) {
-        error = "Couldn't find this app's own file or the temporary folder.";
+        error = nsp::tr("Couldn't find this app's own file or the temporary folder.");
         return {};
     }
     auto copy = dir / (std::wstring(kHelperPrefix) + std::to_wstring(GetCurrentProcessId()) + L".exe");
     if (!CopyFileW(self.c_str(), copy.c_str(), FALSE)) {
-        error = "Couldn't copy the app to the temporary folder.";
+        error = nsp::tr("Couldn't copy the app to the temporary folder.");
         return {};
     }
     return copy;
@@ -122,15 +137,25 @@ Detected detectInstall()
 std::string formatSize(uint64_t bytes)
 {
     char buf[32];
-    if (bytes >= 1024 * 1024)
-        std::snprintf(buf, sizeof buf, "%.1f MB", double(bytes) / (1024.0 * 1024.0));
-    else
-        std::snprintf(buf, sizeof buf, "%llu KB", static_cast<unsigned long long>((bytes + 1023) / 1024));
-    return buf;
+    if (bytes >= 1024 * 1024) {
+        std::snprintf(buf, sizeof buf, "%.1f", double(bytes) / (1024.0 * 1024.0));
+        return nsp::trf("{} MB", std::string(buf));
+    }
+    std::snprintf(buf, sizeof buf, "%llu", static_cast<unsigned long long>((bytes + 1023) / 1024));
+    return nsp::trf("{} KB", std::string(buf));
 }
 
-const char *kMonths[] = { "January", "February", "March",     "April",   "May",      "June",
-                          "July",    "August",   "September", "October", "November", "December" };
+const char *kMonths[] = { nsp::mark("January"), nsp::mark("February"), nsp::mark("March"),
+                          nsp::mark("April"),   nsp::mark("May"),      nsp::mark("June"),
+                          nsp::mark("July"),    nsp::mark("August"),   nsp::mark("September"),
+                          nsp::mark("October"), nsp::mark("November"), nsp::mark("December") };
+
+// "14 October 2026"
+std::string formatDay(int day, int month, int year)
+{
+    const std::string args[] = { std::to_string(day), nsp::tr(kMonths[month - 1]), std::to_string(year) };
+    return nsp::format(nsp::trc("date: day, month name, year", "{0} {1} {2}"), args);
+}
 
 // "2026-10-14T09:00:00Z" -> "14 October 2026"
 std::string formatDate(const std::string &iso)
@@ -138,13 +163,13 @@ std::string formatDate(const std::string &iso)
     int y = 0, m = 0, d = 0;
     if (sscanf_s(iso.c_str(), "%d-%d-%d", &y, &m, &d) != 3 || m < 1 || m > 12)
         return {};
-    return std::to_string(d) + " " + kMonths[m - 1] + " " + std::to_string(y);
+    return formatDay(d, m, y);
 }
 
 std::string formatChecked(std::time_t t)
 {
     if (t <= 0)
-        return "Never";
+        return nsp::tr("Never");
     std::tm when{}, now{};
     std::time_t n = std::time(nullptr);
     localtime_s(&when, &t);
@@ -155,10 +180,10 @@ std::string formatChecked(std::time_t t)
     yesterday.tm_mday -= 1;
     std::mktime(&yesterday);
     if (when.tm_year == now.tm_year && when.tm_yday == now.tm_yday)
-        return std::string("Today at ") + hm;
+        return nsp::trf("Today at {}", std::string(hm));
     if (when.tm_year == yesterday.tm_year && when.tm_yday == yesterday.tm_yday)
-        return std::string("Yesterday at ") + hm;
-    return std::to_string(when.tm_mday) + " " + kMonths[when.tm_mon] + " " + std::to_string(when.tm_year + 1900);
+        return nsp::trf("Yesterday at {}", std::string(hm));
+    return formatDay(when.tm_mday, when.tm_mon + 1, when.tm_year + 1900);
 }
 
 bool isElevated()
@@ -284,13 +309,28 @@ int runUpdateHelper()
     const fs::path installDir = argv[3];
     const DWORD pid = wcstoul(argv[4], nullptr, 10);
     const fs::path app = installDir / L"NilesoftShellPro.exe";
+
+    // The language the app was showing (argument 5, "en" for English), passed back with
+    // --ui-lang so the app comes back in it. The messages passed back with --update-failed
+    // are shown as they are: they are written in it too. Without it (an older app), the
+    // saved setting, which an elevated helper may read from another account.
+    std::string shown = argc > 5 ? narrow(argv[5]) : std::string();
+    if (shown.empty() || shown.find_first_of(" \"") != std::string::npos) {
+        std::string setting = narrow(registry::app::getString(L"Language").value_or(L""));
+        if (setting == "auto")
+            setting.clear();
+        shown = nsp::resolveSetting(setting);
+    }
+    nsp::setLanguage(shown);
+    const std::wstring lang = L" --ui-lang " + widen(shown.empty() ? std::string("en") : shown);
+
     waitForExit(pid);
 
     if (portable) {
         auto r = updater::applyPortable(source, installDir);
         std::error_code ec;
         fs::remove_all(source, ec);
-        relaunch(app, r.ok ? L"--updated portable" : L"--update-failed " + ShellCli::quote(widen(r.error)));
+        relaunch(app, (r.ok ? L"--updated portable" : L"--update-failed " + ShellCli::quote(widen(r.error))) + lang);
         return r.ok ? 0 : 1;
     }
 
@@ -315,13 +355,14 @@ int runUpdateHelper()
     else if (code == ERROR_INSTALL_USEREXIT)
         args = L"--update-cancelled";
     else if (code == DWORD(-1))
-        args = L"--update-failed " + ShellCli::quote(L"msiexec.exe couldn't be started.");
+        args = L"--update-failed " + ShellCli::quote(widen(nsp::tr("msiexec.exe couldn't be started.")));
     else if (code == ERROR_INSTALL_ALREADY_RUNNING)
-        args = L"--update-failed " + ShellCli::quote(L"Another installation is in progress. Try again when it has finished.");
+        args = L"--update-failed " +
+               ShellCli::quote(widen(nsp::tr("Another installation is in progress. Try again when it has finished.")));
     else
-        args = L"--update-failed " + ShellCli::quote(L"The installer stopped with code " + std::to_wstring(code) +
-                                                     L". Its log is " + source.wstring() + L".log.");
-    relaunch(app, args);
+        args = L"--update-failed " + ShellCli::quote(widen(nsp::trf("The installer stopped with code {}. Its log is {}.log.",
+                                                                    code, narrow(source.wstring()))));
+    relaunch(app, args + lang);
     return code == ERROR_SUCCESS ? 0 : 1;
 }
 
@@ -346,6 +387,7 @@ UpdateController::UpdateController(slint::ComponentHandle<AppWindow> ui, UpdateO
     st.set_auto_install(autoInstall_);
     showLastChecked();
     bindCallbacks();
+    nsp::onLanguageChanged([this] { retranslate(); });
 }
 
 UpdateController::~UpdateController() { cancel_ = true; }
@@ -401,14 +443,16 @@ void UpdateController::start()
 
     // What the helper that just ran has to say.
     if (options_.updated == L"portable")
-        notice("ok", "Updated to " + current_.str(),
-               "Restart Explorer to load the new shell.dll; until then it keeps using the old one.", "restart");
+        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
+               later(nsp::mark("Restart Explorer to load the new shell.dll; until then it keeps using the old one.")),
+               "restart");
     else if (options_.updated == L"msi")
-        notice("ok", "Updated to " + current_.str(), "Nilesoft Shell Pro " + current_.str() + " is installed.", "");
+        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
+               [v = current_.str()] { return nsp::trf("Nilesoft Shell Pro {} is installed.", v); }, "");
     else if (!options_.updateFailed.empty())
-        notice("error", "The update wasn't installed", narrow(options_.updateFailed), "");
+        notice("error", later(nsp::mark("The update wasn't installed")), as(narrow(options_.updateFailed)), "");
     else if (options_.updateCancelled)
-        notice("info", "The update was cancelled", "Nothing was changed.", "");
+        notice("info", later(nsp::mark("The update was cancelled")), later(nsp::mark("Nothing was changed.")), "");
 
     auto due = [this] {
         std::time_t now = std::time(nullptr);
@@ -427,23 +471,39 @@ void UpdateController::start()
         });
 }
 
-void UpdateController::setState(const std::string &state, const std::string &message, const std::string &kind)
+void UpdateController::setState(const std::string &state, Text message, const std::string &kind)
 {
+    message_ = std::move(message);
     const auto &st = ui_->global<UpdateState>();
     st.set_state(ss(state));
-    st.set_message(ss(message));
+    st.set_message(ss(message_ ? message_() : std::string{}));
     st.set_message_kind(ss(kind));
 }
 
-void UpdateController::notice(const std::string &kind, const std::string &title, const std::string &body,
-                              const std::string &action)
+void UpdateController::notice(const std::string &kind, Text title, Text body, const std::string &action)
 {
+    noticeTitle_ = std::move(title);
+    noticeText_ = std::move(body);
     const auto &st = ui_->global<UpdateState>();
     st.set_notice_kind(ss(kind));
-    st.set_notice_title(ss(title));
-    st.set_notice_text(ss(body));
+    st.set_notice_title(ss(noticeTitle_ ? noticeTitle_() : std::string{}));
+    st.set_notice_text(ss(noticeText_ ? noticeText_() : std::string{}));
     st.set_notice_action(ss(action));
     st.set_notice_shown(true);
+}
+
+// After a language switch: the text this controller put on screen, again in the new
+// language. Nothing is checked, downloaded or written.
+void UpdateController::retranslate()
+{
+    const auto &st = ui_->global<UpdateState>();
+    st.set_message(ss(message_ ? message_() : std::string{}));
+    if (noticeTitle_)
+        st.set_notice_title(ss(noticeTitle_()));
+    if (noticeText_)
+        st.set_notice_text(ss(noticeText_()));
+    showLastChecked();
+    showRelease();
 }
 
 void UpdateController::showLastChecked()
@@ -473,7 +533,7 @@ void UpdateController::check(bool manual)
     if (working_)
         return;
     working_ = true;
-    setState("checking", "Checking for updates…");
+    setState("checking", later(nsp::mark("Checking for updates…")));
     auto feed = updater::feedOverride();
     worker_.post([this, manual, feed] {
         auto detected = detectInstall();
@@ -495,10 +555,10 @@ void UpdateController::applyCheck(updater::FeedResult feed, updater::InstallType
             setState("idle");
             return;
         }
-        std::string msg = feed.offline       ? "You seem to be offline, so updates couldn't be checked."
-                          : feed.rateLimited ? "GitHub's limit for update checks was reached. Try again in an hour."
-                                             : "Couldn't check for updates: " + feed.error;
-        setState("error", msg, "error");
+        Text msg = feed.offline       ? later(nsp::mark("You seem to be offline, so updates couldn't be checked."))
+                   : feed.rateLimited ? later(nsp::mark("GitHub's limit for update checks was reached. Try again in an hour."))
+                                      : Text([error = feed.error] { return nsp::trf("Couldn't check for updates: {}", error); });
+        setState("error", std::move(msg), "error");
         return;
     }
     lastCheck_ = std::time(nullptr);
@@ -522,11 +582,12 @@ void UpdateController::reselect()
     found_ = std::move(next);
     showRelease();
     if (!found_) {
-        setState("up-to-date", "You have the latest version.");
+        setState("up-to-date", later(nsp::mark("You have the latest version.")));
         return;
     }
     if (!updater::chooseAsset(*found_, installType_, updater::nativeArch()))
-        setState("available", "This release has no download for this kind of install. Get it from the release page.",
+        setState("available",
+                 later(nsp::mark("This release has no download for this kind of install. Get it from the release page.")),
                  "error");
     else if (!ready_.empty())
         setState("ready");
@@ -540,20 +601,22 @@ void UpdateController::download(bool thenInstall, bool quiet)
         return;
     const auto *asset = updater::chooseAsset(*found_, installType_, updater::nativeArch());
     if (!asset) {
-        setState("available", "This release has no download for this kind of install. Get it from the release page.",
+        setState("available",
+                 later(nsp::mark("This release has no download for this kind of install. Get it from the release page.")),
                  "error");
         return;
     }
     auto root = updater::updatesRoot();
     if (root.empty()) {
-        setState("available", "Couldn't find %LOCALAPPDATA%.", "error");
+        setState("available", later(nsp::mark("Couldn't find %LOCALAPPDATA%.")), "error");
         return;
     }
     working_ = true;
     cancel_ = false;
     const auto &st = ui_->global<UpdateState>();
     st.set_progress(0);
-    st.set_progress_text(ss(asset->size ? "0 of " + formatSize(asset->size) : std::string("Starting…")));
+    st.set_progress_text(ss(asset->size ? nsp::trf("{} of {}", 0, formatSize(asset->size))
+                                        : std::string(nsp::tr("Starting…"))));
     setState("downloading");
 
     auto release = *found_;
@@ -568,7 +631,7 @@ void UpdateController::download(bool thenInstall, bool quiet)
             if (now - last >= 100ms || (total && done == total)) {
                 last = now;
                 float f = total ? float(double(done) / double(total)) : 0.f;
-                std::string label = total ? formatSize(done) + " of " + formatSize(total) : formatSize(done);
+                std::string label = total ? nsp::trf("{} of {}", formatSize(done), formatSize(total)) : formatSize(done);
                 slint::invoke_from_event_loop([this, f, label] {
                     const auto &s = ui_->global<UpdateState>();
                     s.set_progress(f);
@@ -594,12 +657,14 @@ void UpdateController::download(bool thenInstall, bool quiet)
         slint::invoke_from_event_loop([this, ready, error, cancelled, version, thenInstall, quiet] {
             working_ = false;
             if (cancelled) {
-                setState("available", "Download cancelled.");
+                setState("available", later(nsp::mark("Download cancelled.")));
                 return;
             }
             if (ready.empty()) {
-                setState("available", quiet ? "The update couldn't be downloaded in the background: " + error : error,
-                         "error");
+                Text text = as(error);
+                if (quiet)
+                    text = [error] { return nsp::trf("The update couldn't be downloaded in the background: {}", error); };
+                setState("available", std::move(text), "error");
                 return;
             }
             ready_ = ready;
@@ -617,7 +682,7 @@ void UpdateController::install()
         return;
     if (ui_->global<SaveState>().get_unsaved() > 0) {
         setState(ready_.empty() ? "available" : "ready",
-                 "Save or discard your changes first: the app closes to install the update.", "error");
+                 later(nsp::mark("Save or discard your changes first: the app closes to install the update.")), "error");
         return;
     }
     if (!ready_.empty() && readyVersion_ == found_->version.str())
@@ -629,17 +694,19 @@ void UpdateController::install()
 void UpdateController::handOver()
 {
     if (ui_->global<SaveState>().get_unsaved() > 0) {
-        setState("ready", "Save or discard your changes first: the app closes to install the update.", "error");
+        setState("ready", later(nsp::mark("Save or discard your changes first: the app closes to install the update.")),
+                 "error");
         return;
     }
     std::string error;
     auto helper = copySelfToTemp(error);
     if (helper.empty()) {
-        setState("ready", error, "error");
+        setState("ready", as(error), "error");
         return;
     }
+    const std::string shown = nsp::currentLanguage();
     const std::wstring args = ShellCli::quote(ready_.wstring()) + L" " + ShellCli::quote(installDir_.wstring()) + L" " +
-                              std::to_wstring(GetCurrentProcessId());
+                              std::to_wstring(GetCurrentProcessId()) + L" " + widen(shown.empty() ? std::string("en") : shown);
 
     if (installType_ == updater::InstallType::Portable) {
         STARTUPINFOW si{ sizeof si };
@@ -648,20 +715,20 @@ void UpdateController::handOver()
         if (!CreateProcessW(helper.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr,
                             helper.parent_path().c_str(), &si, &pi)) {
             DeleteFileW(helper.c_str());
-            setState("ready", "Couldn't start the update helper.", "error");
+            setState("ready", later(nsp::mark("Couldn't start the update helper.")), "error");
             return;
         }
         AllowSetForegroundWindow(pi.dwProcessId);
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
-        setState("installing", "Installing the update…");
+        setState("installing", later(nsp::mark("Installing the update…")));
         quit_();
         return;
     }
 
     // MSI: one administrator prompt, for the helper that runs msiexec once this app has closed.
     working_ = true;
-    setState("installing", "Waiting for administrator approval…");
+    setState("installing", later(nsp::mark("Waiting for administrator approval…")));
     HWND owner = hwnd_;
     const std::wstring params = L"--apply-msi " + args;
     worker_.post([this, helper, params, owner] {
@@ -685,12 +752,12 @@ void UpdateController::handOver()
         slint::invoke_from_event_loop([this, ok, err] {
             working_ = false;
             if (ok) {
-                setState("installing", "Installing the update…");
+                setState("installing", later(nsp::mark("Installing the update…")));
                 quit_();
             } else if (err == ERROR_CANCELLED) {
-                setState("ready", "The administrator prompt was cancelled. Nothing was changed.", "info");
+                setState("ready", later(nsp::mark("The administrator prompt was cancelled. Nothing was changed.")), "info");
             } else {
-                setState("ready", "Couldn't start the installer (error " + std::to_string(err) + ").", "error");
+                setState("ready", [err] { return nsp::trf("Couldn't start the installer (error {}).", err); }, "error");
             }
         });
     });
@@ -708,5 +775,5 @@ void UpdateController::skip()
     ready_.clear();
     readyVersion_.clear();
     showRelease();
-    setState("up-to-date", "Version " + version + " is skipped. Newer versions will still show up.");
+    setState("up-to-date", [version] { return nsp::trf("Version {} is skipped. Newer versions will still show up.", version); });
 }

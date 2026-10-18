@@ -3,6 +3,7 @@
 #include "FontEnum.h"
 #include "Registry.h"
 #include "Text.h"
+#include "Tr.h"
 
 #include "nss/Literal.h"
 #include "nss/OverridesWriter.h"
@@ -20,7 +21,7 @@ using nss::LiteralKind;
 
 namespace {
 
-constexpr const char *kPage = "Appearance";
+constexpr const char *kPage = nsp::mark("Appearance");
 
 slint::SharedString ss(std::string_view s) { return slint::SharedString(s); }
 
@@ -60,42 +61,42 @@ struct ItemSpec
 constexpr ItemSpec kSep{ nullptr, nullptr };
 
 const std::vector<ItemSpec> kDesktop = {
-    { "View", "", 0 },        { "Sort by", "", 1 },       { "Refresh", "" },
+    { nsp::mark("View"), "", 0 },        { nsp::mark("Sort by"), "", 1 },       { nsp::mark("Refresh"), "" },
     kSep,
-    { "Paste", "", -1, true }, { "Undo Rename", "" },
+    { nsp::mark("Paste"), "", -1, true }, { nsp::mark("Undo Rename"), "" },
     kSep,
-    { "Terminal", "", 2 },    { "File manage", "", 3 },   { "Develop", "", 4 },
+    { nsp::mark("Terminal"), "", 2 },    { nsp::mark("File manage"), "", 3 },   { nsp::mark("Develop"), "", 4 },
     kSep,
-    { "New", "", 5 },
+    { nsp::mark("New"), "", 5 },
     kSep,
-    { "Display settings", "" }, { "Personalize", "" },
+    { nsp::mark("Display settings"), "" }, { nsp::mark("Personalize"), "" },
 };
 const std::vector<std::vector<ItemSpec>> kDesktopSubs = {
-    { { "Large icons", "" }, { "Medium icons", "" }, { "Small icons", "" }, kSep,
-      { "Auto arrange icons", "" }, { "Show desktop icons", "" } },
-    { { "Name", "" }, { "Size", "" }, { "Item type", "" }, { "Date modified", "" } },
-    { { "Command prompt", "" }, { "PowerShell", "" }, { "Windows Terminal", "" } },
-    { { "Copy path", "" }, { "Take ownership", "" }, { "Attributes", "", 6 }, kSep,
-      { "New folder", "" }, { "New file", "" } },
-    { { "Visual Studio Code", "" }, { "Git Bash", "" }, { "Open in editor", "", -1, true } },
-    { { "Folder", "" }, { "Text document", "" }, { "Shortcut", "" } },
-    { { "Hidden", "" }, { "Read-only", "" } },
+    { { nsp::mark("Large icons"), "" }, { nsp::mark("Medium icons"), "" }, { nsp::mark("Small icons"), "" }, kSep,
+      { nsp::mark("Auto arrange icons"), "" }, { nsp::mark("Show desktop icons"), "" } },
+    { { nsp::mark("Name"), "" }, { nsp::mark("Size"), "" }, { nsp::mark("Item type"), "" }, { nsp::mark("Date modified"), "" } },
+    { { nsp::mark("Command prompt"), "" }, { "PowerShell", "" }, { "Windows Terminal", "" } },
+    { { nsp::mark("Copy path"), "" }, { nsp::mark("Take ownership"), "" }, { nsp::mark("Attributes"), "", 6 }, kSep,
+      { nsp::mark("New folder"), "" }, { nsp::mark("New file"), "" } },
+    { { "Visual Studio Code", "" }, { "Git Bash", "" }, { nsp::mark("Open in editor"), "", -1, true } },
+    { { nsp::mark("Folder"), "" }, { nsp::mark("Text document"), "" }, { nsp::mark("Shortcut"), "" } },
+    { { nsp::mark("Hidden"), "" }, { nsp::mark("Read-only"), "" } },
 };
 const std::vector<ItemSpec> kExplorer = {
-    { "Open", "" },          { "Open with", "", 0 },
+    { nsp::mark("Open"), "" },          { nsp::mark("Open with"), "", 0 },
     kSep,
-    { "Cut", "" },           { "Copy", "" },             { "Paste", "", -1, true },
+    { nsp::mark("Cut"), "" },           { nsp::mark("Copy"), "" },             { nsp::mark("Paste"), "", -1, true },
     kSep,
-    { "Copy path", "" },     { "Rename", "" },           { "Delete", "" },
+    { nsp::mark("Copy path"), "" },     { nsp::mark("Rename"), "" },           { nsp::mark("Delete"), "" },
     kSep,
-    { "File manage", "", 1 }, { "Pin to Start", "" },
+    { nsp::mark("File manage"), "", 1 }, { nsp::mark("Pin to Start"), "" },
     kSep,
-    { "Properties", "" },
+    { nsp::mark("Properties"), "" },
 };
 const std::vector<std::vector<ItemSpec>> kExplorerSubs = {
-    { { "Notepad", "" }, { "Word", "" }, kSep, { "Choose another app", "" } },
-    { { "Copy path", "" }, { "Take ownership", "" }, { "Attributes", "" }, kSep,
-      { "New folder", "" }, { "New file", "" } },
+    { { "Notepad", "" }, { "Word", "" }, kSep, { nsp::mark("Choose another app"), "" } },
+    { { nsp::mark("Copy path"), "" }, { nsp::mark("Take ownership"), "" }, { nsp::mark("Attributes"), "" }, kSep,
+      { nsp::mark("New folder"), "" }, { nsp::mark("New file"), "" } },
 };
 
 struct Metrics
@@ -123,7 +124,7 @@ PreviewMenu buildMenu(const std::vector<ItemSpec> &specs, const Metrics &m, int 
     for (const auto &spec : specs) {
         PreviewItem it{};
         it.separator = spec.label == nullptr;
-        it.label = it.separator ? "" : spec.label;
+        it.label = it.separator ? "" : nsp::tr(spec.label);
         it.glyph = spec.glyph ? spec.glyph : "";
         it.disabled = spec.disabled;
         it.sub = spec.sub;
@@ -289,6 +290,7 @@ AppearanceController::AppearanceController(slint::ComponentHandle<AppWindow> ui,
     save_.onChanged([this] { rebuild(); });
     save_.onConfig([this] { configLoaded(); });
     rebuild(); // defaults until the config is read
+    nsp::onLanguageChanged([this] { rebuild(); }); // the notes and the preview menus
 }
 
 theme::SystemInfo AppearanceController::systemInfo(bool dark) const
@@ -645,25 +647,22 @@ void AppearanceController::rebuild()
         const bool arrayTint = effectLit && effectLit->kind == LiteralKind::Array && effectLit->items.size() >= 2;
         std::string effectNote;
         if (!system_.transparency && (asked == 2 || asked == 3))
-            effectNote = "Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in "
-                         "Personalization > Colors, or choose Auto, which Shell applies even with it off.";
+            effectNote = nsp::tr("Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in Personalization > Colors, or choose Auto, which Shell applies even with it off.");
         else if (forcedAuto)
-            effectNote = system_.win11 ? "Auto is acrylic on Windows 11, even with Windows Transparency effects off."
-                                       : "Auto is blur on Windows 10, even with Windows Transparency effects off.";
+            effectNote = system_.win11 ? nsp::tr("Auto is acrylic on Windows 11, even with Windows Transparency effects off.")
+                                       : nsp::tr("Auto is blur on Windows 10, even with Windows Transparency effects off.");
         else if (!first)
-            effectNote = "Not set: acrylic while Windows Transparency effects is on, none while it is off.";
+            effectNote = nsp::tr("Not set: acrylic while Windows Transparency effects is on, none while it is off.");
         else if (asked == 3)
-            effectNote = "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger "
-                         "look, raise the tint's alpha.";
+            effectNote = nsp::tr("The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger look, raise the tint's alpha.");
         st.set_effect_note(ss(effectNote));
-        st.set_tint_note(ss(std::string("Alpha sets the strength: 40 light, FF hides the blur.") +
+        st.set_tint_note(ss(std::string(nsp::tr("Alpha sets the strength: 40 light, FF hides the blur.")) +
                             (arrayTint && !lit("theme.background.tintcolor")
-                                 ? " From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
-                                 : "")));
+                                 ? std::string(" ") + nsp::tr("From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins.")
+                                 : std::string())));
         st.set_opacity_note(ss(r.effect == 0
-                                   ? std::string("No effect: the menu is solid, so opacity doesn't apply.")
-                                   : std::string("The background colour over the effect: 0 % shows only the effect "
-                                                 "and its tint, 100 % is solid and turns the effect off.")));
+                                   ? std::string(nsp::tr("No effect: the menu is solid, so opacity doesn't apply."))
+                                   : std::string(nsp::tr("The background colour over the effect: 0 % shows only the effect and its tint, 100 % is solid and turns the effect off."))));
     }
 
     // Preview

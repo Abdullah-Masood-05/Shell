@@ -1,0 +1,43 @@
+import { Tokens } from "../theme/tokens.slint";
+import { BackupsState, DiffLineRow } from "../backups-types.slint";
+import { CodeColors } from "code.slint";
+
+// One row of a line diff: old and new line numbers, then the text, green when added and
+// red when removed. The Backups page and the "Compare with the new version" dialog.
+export component DiffLine inherits Rectangle {
+    in property <DiffLineRow> entry;
+    height: CodeColors.row-height;
+    background: root.entry.kind == 1 ? Tokens.success.with-alpha(0.16) : root.entry.kind == 2 ? Tokens.danger.with-alpha(0.16) : root.entry.kind == 3 ? Tokens.layer-2 : transparent;
+
+    if root.entry.kind != 3: Text {
+        x: 0;
+        width: 36px;
+        height: parent.height;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        text: root.entry.old-line > 0 ? root.entry.old-line : "";
+        font-family: BackupsState.mono-font;
+        font-size: Tokens.caption;
+        color: Tokens.text-3;
+    }
+    if root.entry.kind != 3: Text {
+        x: 40px;
+        width: 36px;
+        height: parent.height;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        text: root.entry.new-line > 0 ? root.entry.new-line : "";
+        font-family: BackupsState.mono-font;
+        font-size: Tokens.caption;
+        color: Tokens.text-3;
+    }
+    Text {
+        x: root.entry.kind == 3 ? 8px : 86px;
+        height: parent.height;
+        vertical-alignment: center;
+        text: (root.entry.kind == 1 ? "+ " : root.entry.kind == 2 ? "− " : root.entry.kind == 3 ? "" : "  ") + root.entry.text;
+        font-family: BackupsState.mono-font;
+        font-size: CodeColors.font-size;
+        color: root.entry.kind == 3 ? Tokens.text-3 : root.entry.kind == 1 ? (Tokens.dark ? #B5E6A8 : #116329) : root.entry.kind == 2 ? (Tokens.dark ? #FFB3B8 : #82071E) : Tokens.text-2;
+    }
+}

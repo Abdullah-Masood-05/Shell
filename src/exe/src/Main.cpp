@@ -13,6 +13,7 @@
 #include <RegistryConfig.h>
 #include <ConfigLocation.h>
 #include <ConfigCheck.h>
+#include <ConfigUpgrade.h>
 
 //#pragma comment(lib, "mincore.lib")
 #pragma comment(lib, "UxTheme.lib")
@@ -993,7 +994,7 @@ static string InstallDirectory()
 }
 
 /*
-	-config:init, -config:reset, -config:path.
+	-config:init, -config:reset, -config:path, -config:upgrade.
 
 	None of them needs elevation: they only read the install folder and only
 	write below %APPDATA%\Nilesoft\Shell (see ConfigLocation). shell.dll never
@@ -1399,6 +1400,56 @@ namespace ConfigCommand
 		return true;
 	}
 
+	// "a, b, c" for a summary line.
+	static string join_list(const std::vector<std::string> &items)
+	{
+		string text;
+		for(auto &item : items)
+		{
+			if(!text.empty())
+				text += L", ";
+			text += config_upgrade::widen(item).c_str();
+		}
+		return text.move();
+	}
+
+	// Brings the shipped files in an existing per-user folder up to date (ConfigUpgrade.h)
+	// and says what it did, as text lines.
+	static bool upgrade_existing(CliOutput &out, const string &user_dir)
+	{
+		auto install_dir = InstallDirectory().move();
+		auto result = config_upgrade::run(install_dir.c_str(), user_dir.c_str());
+		string msg;
+		if(!result.updated.empty())
+		{
+			msg.format(L"Updated %u files you had not changed to this version: %s.",
+					   static_cast<unsigned>(result.updated.size()), join_list(result.updated).c_str());
+			out.line(msg);
+		}
+		if(!result.added.empty())
+		{
+			msg.format(L"Added %u files: %s.", static_cast<unsigned>(result.added.size()), join_list(result.added).c_str());
+			out.line(msg);
+		}
+		if(!result.backup_dir.empty())
+		{
+			msg.format(L"The files as they were are in '%s'.", result.backup_dir.c_str());
+			out.line(msg);
+		}
+		if(!result.modified_kept.empty())
+		{
+			msg.format(L"Kept %u files you changed: %s.", static_cast<unsigned>(result.modified_kept.size()),
+					   join_list(result.modified_kept).c_str());
+			out.line(msg);
+		}
+		if(!result.ok)
+		{
+			msg.format(L"error: %s.", config_upgrade::widen(result.error).c_str());
+			out.line(msg);
+		}
+		return result.ok;
+	}
+
 	// Copies <install>\shell.nss and <install>\imports\ into the per-user folder.
 	static int seed(CliOutput &out, const string &user_dir, bool overwrite)
 	{
@@ -1423,6 +1474,13 @@ namespace ConfigCommand
 
 		CopyStats stats;
 		auto dst_config = ConfigLocation::Join(user_dir, ConfigLocation::FileName).move();
+
+		// An existing per-user config: the shipped files the user never edited are
+		// replaced with this version's first (backed up; see ConfigUpgrade.h).
+		bool upgrade_failed = false;
+		if(!overwrite && ConfigLocation::IsFile(dst_config))
+			upgrade_failed = !upgrade_existing(out, user_dir);
+
 		copy_file(src_config, dst_config, overwrite, stats);
 
 		auto src_imports = ConfigLocation::Join(install_dir, ConfigLocation::ImportsName).move();
@@ -1440,7 +1498,56 @@ namespace ConfigCommand
 		out.line(msg);
 		if(stats.skipped && !overwrite)
 			out.line(L"Existing files were kept; use -force to overwrite them.");
-		return stats.failed ? cli_failed : cli_ok;
+		return stats.failed || upgrade_failed ? cli_failed : cli_ok;
+	}
+
+	/*
+		-config:upgrade [-take:<relative path>]...
+
+		Brings the per-user config (the folder of the active shell.nss, when that is the
+		%APPDATA% or the HKCU "config" one) up to date with the shipped files: see
+		ConfigUpgrade.h. -take:<path> (e.g. -take:imports/modify.nss) also replaces that
+		file when the user edited it. Prints
+		{"ok","configDir","installDir","backup","backupDir","updated","added",
+		 "modified_kept","unchanged","failed","error"}; configDir is null (and nothing is
+		done) when the active config is the shared one in the install folder.
+		Exit code 0 if ok, 1 otherwise.
+	*/
+	static int upgrade(CliOutput &out, const std::vector<std::string> &take)
+	{
+		auto install_dir = InstallDirectory().move();
+		auto location = ConfigLocation::Resolve(install_dir);
+
+		std::wstring config_dir, root_name = ConfigLocation::FileName;
+		if(location.source == ConfigLocation::Source::appdata || location.source == ConfigLocation::Source::registry)
+		{
+			std::wstring root = location.path.c_str();
+			auto slash = root.find_last_of(L"\\/");
+			if(slash != root.npos)
+			{
+				config_dir = root.substr(0, slash);
+				root_name = root.substr(slash + 1);
+			}
+			if(config_upgrade::same_path(config_dir, install_dir.c_str()))
+				config_dir.clear();
+		}
+
+		config_upgrade::Result result;
+		if(!config_dir.empty())
+		{
+			config_upgrade::Options options;
+			options.root_name = root_name;
+			options.take = take;
+			result = config_upgrade::run(install_dir.c_str(), config_dir, options);
+		}
+		else if(!take.empty())
+		{
+			result.ok = false;
+			result.error = "there is no per-user config";
+		}
+
+		out.line(config_upgrade::widen(config_upgrade::to_json(result, install_dir.c_str(), config_dir)).c_str());
+		return result.ok ? cli_ok : cli_failed;
 	}
 
 	static int init(CliOutput &out, bool force)
@@ -1657,7 +1764,8 @@ namespace ConfigCommand
 		return ok ? cli_ok : cli_failed;
 	}
 
-	static int run(const string &command, const string &root, bool force, bool titles, const string &where, const wchar_t *out_path)
+	static int run(const string &command, const string &root, bool force, bool titles, const string &where,
+				   const std::vector<std::string> &take, const wchar_t *out_path)
 	{
 		CliOutput out(out_path);
 
@@ -1677,9 +1785,11 @@ namespace ConfigCommand
 			ret = reset(out);
 		else if(command.equals(L"path"))
 			ret = path(out);
+		else if(command.equals(L"upgrade"))
+			ret = upgrade(out, take);
 		else
 		{
-			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:check <root.nss> [-titles[:<where>]] [-out:<file>]");
+			out.line(L"usage: shell -config:init [-force] | -config:reset | -config:path | -config:upgrade [-take:<file>] | -config:check <root.nss> [-titles[:<where>]] [-out:<file>]");
 			return cli_usage;
 		}
 
@@ -2321,7 +2431,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		bool _check = false;
 		//bool runglyphs = false;
         string cmd;
-		// -config:<init|reset|path>, -force, -out:<file>
+		// -config:<init|reset|path|upgrade>, -force, -out:<file>
 		bool config = false, force = false;
 		string config_command, out_path;
 		// -config:check <root.nss>: the first plain argument after it.
@@ -2330,6 +2440,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// -config:check <root.nss> -titles[:<where>]
 		bool titles = false;
 		string titles_where;
+		// -config:upgrade -take:<file>...
+		std::vector<std::string> take;
 		// -status [-out:<file>]
 		bool status = false;
         for(auto op : cmdline)
@@ -2345,6 +2457,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 				{
 					titles = true;
 					titles_where = op->Value;
+				}
+				else if(op->has_name(L"take"))
+				{
+					take.push_back(config_upgrade::narrow(op->Value.c_str()));
 				}
 				else  if(op->has_name({ L"r", L"register", L"e", L"enable" }))
 				{
@@ -2432,7 +2548,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 		// Never elevated, never interactive; handled on its own.
 		if(config)
 		{
-			auto ret = ConfigCommand::run(config_command, config_root, force, titles, titles_where, out_path.empty() ? nullptr : out_path.c_str());
+			auto ret = ConfigCommand::run(config_command, config_root, force, titles, titles_where, take, out_path.empty() ? nullptr : out_path.c_str());
 			_log->close();
 			return ret;
 		}
@@ -2800,10 +2916,16 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"Per-user configuration (no administrator rights):\r\n"
                 L"-config:init\tCopy shell.nss and imports\\ to\r\n"
                 L"\t\t%APPDATA%\\Nilesoft\\Shell. Existing files are\r\n"
-                L"\t\tkept unless -force is given.\r\n"
+                L"\t\tkept unless -force is given; the ones you\r\n"
+                L"\t\tnever changed are updated (-config:upgrade).\r\n"
                 L"-config:reset\tBack the per-user folder up to\r\n"
                 L"\t\tbackup-<timestamp>, then copy the defaults again.\r\n"
                 L"-config:path\tPrint the config file in use.\r\n"
+                L"-config:upgrade\tUpdate the shipped files in the per-user\r\n"
+                L"\t\tfolder that you never changed (backed up\r\n"
+                L"\t\tfirst); print what was done as JSON.\r\n"
+                L"\t\t-take:<file> also replaces that file if\r\n"
+                L"\t\tyou changed it.\r\n"
                 L"-config:check <file>\r\n"
                 L"\t\tParse <file> and its imports; print the\r\n"
                 L"\t\terrors and warnings as JSON (exit 1 on error).\r\n"

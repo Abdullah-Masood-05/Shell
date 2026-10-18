@@ -2,6 +2,7 @@
 
 #include "Text.h"
 #include "ThemePresets.h"
+#include "Tr.h"
 
 #include "nss/Literal.h"
 
@@ -56,6 +57,17 @@ PresetsController::PresetsController(slint::ComponentHandle<AppWindow> ui, SaveS
     ps.on_apply([this](int index) { apply(index); });
     ps.on_export_preset([this](int index) { exportPreset(index); });
     ps.on_export_current([this] { exportCurrent(); });
+    nsp::onLanguageChanged([this] {
+        // The cards' text only; the thumbnails stay as they are.
+        const auto &list = presets::all();
+        for (size_t i = 0; i < cards_->row_count() && i < list.size(); ++i) {
+            auto c = *cards_->row_data(i);
+            c.name = ss(presets::displayName(list[i]));
+            c.tags = ss(joinTags(presets::displayTags(list[i])));
+            c.about = ss(presets::displayAbout(list[i]));
+            cards_->set_row_data(i, c);
+        }
+    });
 }
 
 void PresetsController::rebuild(const theme::Values &values, const theme::SystemInfo &system)
@@ -96,9 +108,9 @@ void PresetsController::rebuild(const theme::Values &values, const theme::System
             v[key] = Literal::parse(text);
         PresetCard c{};
         c.id = ss(preset.id);
-        c.name = ss(preset.name);
-        c.tags = ss(joinTags(preset.tags));
-        c.about = ss(preset.about);
+        c.name = ss(presets::displayName(preset));
+        c.tags = ss(joinTags(presets::displayTags(preset)));
+        c.about = ss(presets::displayAbout(preset));
         c.source = ss(preset.source);
         c.t = preview_(theme::resolve(v, system));
         c.active = int(i) == active;
@@ -124,7 +136,7 @@ void PresetsController::apply(int index)
         return;
     const auto &preset = list[size_t(index)];
     if (save_.saving()) {
-        toast("info", "Saving", "Apply " + preset.name + " again once the save is done.");
+        toast("info", nsp::tr("Saving"), nsp::trf("Apply {} again once the save is done.", presets::displayName(preset)));
         return;
     }
     std::vector<std::string> appKeys;
@@ -139,14 +151,14 @@ void PresetsController::apply(int index)
     std::vector<std::string> errors;
     save_.edit([&](PendingChanges &pending) { errors = presets::stage(pending, preset, appKeys, saved, kPage); });
     if (!errors.empty()) {
-        toast("error", "Couldn't apply " + preset.name, errors.front());
+        toast("error", nsp::trf("Couldn't apply {}", presets::displayName(preset)), errors.front());
         return;
     }
     bool staged = false;
     for (const auto &[key, change] : save_.pending().items())
         staged = staged || presets::isThemeKey(key);
-    toast("ok", preset.name + " is in the preview",
-          staged ? "Save (Ctrl+S) to use it in your menus, or Discard to go back." : "It is your saved look already.");
+    toast("ok", nsp::trf("{} is in the preview", presets::displayName(preset)),
+          staged ? nsp::tr("Save (Ctrl+S) to use it in your menus, or Discard to go back.") : nsp::tr("It is your saved look already."));
 }
 
 void PresetsController::exportPreset(int index)
@@ -156,9 +168,9 @@ void PresetsController::exportPreset(int index)
         return;
     const auto &preset = list[size_t(index)];
     if (copyToClipboard(presets::exportText(preset)))
-        toast("ok", "Copied " + preset.name, "Paste the theme{} block into a .nss file of your own.");
+        toast("ok", nsp::trf("Copied {}", presets::displayName(preset)), nsp::tr("Paste the theme{} block into a .nss file of your own."));
     else
-        toast("error", "Couldn't copy", "Another app is holding the clipboard. Try again.");
+        toast("error", nsp::tr("Couldn't copy"), nsp::tr("Another app is holding the clipboard. Try again."));
 }
 
 void PresetsController::exportCurrent()
@@ -168,13 +180,13 @@ void PresetsController::exportCurrent()
         if (presets::isThemeKey(key))
             block[key] = lit.text;
     if (block.empty()) {
-        toast("info", "Nothing to copy", "Every theme setting has its built-in default.");
+        toast("info", nsp::tr("Nothing to copy"), nsp::tr("Every theme setting has its built-in default."));
         return;
     }
     if (copyToClipboard(presets::exportBlock(block)))
-        toast("ok", "Copied your current look", "A theme{} block with every theme setting in effect, saved or not.");
+        toast("ok", nsp::tr("Copied your current look"), nsp::tr("A theme{} block with every theme setting in effect, saved or not."));
     else
-        toast("error", "Couldn't copy", "Another app is holding the clipboard. Try again.");
+        toast("error", nsp::tr("Couldn't copy"), nsp::tr("Another app is holding the clipboard. Try again."));
 }
 
 void PresetsController::toast(const std::string &kind, const std::string &title, const std::string &body)

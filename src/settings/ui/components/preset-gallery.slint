@@ -74,7 +74,7 @@ component PresetTile inherits Rectangle {
     background: Tokens.layer-2;
     opacity: root.enabled ? 1 : 0.6;
     accessible-role: button;
-    accessible-label: root.card.name + (root.card.active ? ", active" : "");
+    accessible-label: root.card.active ? @tr("{}, active", root.card.name) : root.card.name;
     accessible-description: root.card.tags + ". " + root.card.about;
     accessible-enabled: root.enabled;
     accessible-action-default => { if (root.enabled && !root.card.active) { root.apply(); } }
@@ -140,7 +140,7 @@ component PresetTile inherits Rectangle {
                     border-radius: Tokens.radius-sm;
                     background: Tokens.accent-soft;
                     badge := Text {
-                        text: "Active";
+                        text: @tr("Active");
                         font-size: 11px;
                         font-weight: 600;
                         color: Tokens.accent;
@@ -164,7 +164,7 @@ component PresetTile inherits Rectangle {
             border-radius: Tokens.radius-sm;
             background: more-ta.pressed ? Tokens.pressed : more-ta.has-hover ? Tokens.hover : transparent;
             accessible-role: button;
-            accessible-label: "More for " + root.card.name;
+            accessible-label: @tr("More for {}", root.card.name);
             accessible-action-default => { popup.show(); }
             Text {
                 text: "\u{E712}";
@@ -205,12 +205,14 @@ component PresetTile inherits Rectangle {
                         font-size: Tokens.caption;
                         color: Tokens.text-2;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                     Text {
-                        text: "From " + root.card.source;
+                        text: @tr("From {}", root.card.source);
                         font-size: 11px;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 Rectangle {
@@ -219,7 +221,7 @@ component PresetTile inherits Rectangle {
                 }
                 MenuRow {
                     glyph: "\u{E73E}";
-                    text: root.card.active ? "Applied" : "Apply";
+                    text: root.card.active ? @tr("Applied") : @tr("Apply");
                     enabled: root.enabled && !root.card.active;
                     activated => {
                         popup.close();
@@ -228,7 +230,7 @@ component PresetTile inherits Rectangle {
                 }
                 MenuRow {
                     glyph: "\u{E8C8}";
-                    text: "Export to clipboard";
+                    text: @tr("Export to clipboard");
                     activated => {
                         popup.close();
                         root.export();
@@ -277,23 +279,24 @@ export component PresetGallery inherits VerticalLayout {
             spacing: Tokens.s3;
             Text {
                 horizontal-stretch: 1;
-                text: "Themes";
+                text: @tr("Themes");
                 font-size: Tokens.body-large;
                 font-weight: 600;
                 color: Tokens.text;
                 vertical-alignment: center;
             }
             Button {
-                text: "Export current look";
+                text: @tr("Export current look");
                 enabled: PresetsState.ready;
                 clicked => { PresetsState.export-current(); }
             }
         }
         Text {
-            text: "The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it.";
+            text: @tr("The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it.");
             font-size: Tokens.caption;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 
@@ -301,7 +304,7 @@ export component PresetGallery inherits VerticalLayout {
         height: root.rows * root.tile-height + max(0, root.rows - 1) * root.gap;
         enabled: PresetsState.ready;
         accessible-role: groupbox;
-        accessible-label: "Themes";
+        accessible-label: @tr("Themes");
 
         key-pressed(event) => {
             if (event.text == Key.LeftArrow) {
@@ -360,7 +363,7 @@ export component PresetGallery inherits VerticalLayout {
             property <bool> needed: root.closed-rows < root.all-rows;
             visible: self.needed;
             height: self.needed ? Tokens.caption + 6px : 0px;
-            text: root.open ? "Show fewer" : "Show all " + root.count + " themes";
+            text: root.open ? @tr("Show fewer") : @tr("Show all {} themes", root.count);
             font-size: Tokens.caption + 1px;
             activated => { root.open = !root.open; }
         }
@@ -372,11 +375,10 @@ export component PresetConfirm inherits ConfirmDialog {
     property <int> index: PresetsState.confirm;
     property <int> n: PresetsState.replaced;
 
-    title: "Apply " + (root.index >= 0 && root.index < PresetsState.presets.length ? PresetsState.presets[root.index].name : "this theme") + "?";
-    text: "It replaces " + (root.n == 1 ? "the theme setting" : "the " + root.n + " theme settings")
-        + " changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save.";
+    title: @tr("Apply {}?", root.index >= 0 && root.index < PresetsState.presets.length ? PresetsState.presets[root.index].name : @tr("this theme"));
+    text: @tr("It replaces the theme setting changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save." | "It replaces the {n} theme settings changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save." % root.n);
     kind: "warning";
-    confirm-label: "Apply";
+    confirm-label: @tr("Apply");
     confirmed => {
         PresetsState.confirm = -1;
         PresetsState.apply(root.index);

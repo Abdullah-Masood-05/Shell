@@ -40,7 +40,7 @@ component NameRow inherits Rectangle {
         if root.enabled: VerticalLayout {
             alignment: center;
             CloseGlyph {
-                accessible-label: "Remove " + root.name;
+                accessible-label: @tr("Remove {}", root.name);
                 clicked => { root.remove(); }
             }
         }
@@ -81,6 +81,7 @@ component NameList inherits VerticalLayout {
             font-size: 13px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     if !root.field.locked: VerticalLayout {
@@ -109,7 +110,7 @@ component NameList inherits VerticalLayout {
             }
         }
         AppButton {
-            text: "Add";
+            text: @tr("Add");
             enabled: root.ready && input.text != "";
             clicked => {
                 if (SettingsState.add-name(root.index, input.text)) {
@@ -131,29 +132,29 @@ export component RulesPage inherits PageFrame {
     changed where-text => { raw.text = root.where-text; }
 
     PageHeader {
-        title: "Rules & Filters";
-        description: "Where Shell's menu appears. Everywhere else, Windows shows its own menu.";
+        title: @tr("Rules & Filters");
+        description: @tr("Where Shell's menu appears. Everywhere else, Windows shows its own menu.");
         busy: AppState.busy;
         busy-label: AppState.busy-label;
     }
 
     if SettingsState.load-error != "": Banner {
         kind: "error";
-        title: "Couldn't read your config";
+        title: @tr("Couldn't read your config");
         text: SettingsState.load-error;
-        action-label: "Try again";
+        action-label: @tr("Try again");
         action => { SettingsState.reload(); }
     }
 
     Card {
         icon: Icons.rules;
-        heading: "Where the menu appears";
+        heading: @tr("Where the menu appears");
         SettingRow {
-            label: "Only in File Explorer and on the desktop";
+            label: @tr("Only in File Explorer and on the desktop");
             field: root.where;
             hint: SettingsState.where-kind == 2
-                ? "A custom condition is set below · " + root.where.origin
-                : "Other programs' file dialogs keep Windows' menu · " + root.where.origin;
+                ? @tr("A custom condition is set below · {}", root.where.origin)
+                : @tr("Other programs' file dialogs keep Windows' menu · {}", root.where.origin);
             control-width: 80px;
             reset => { SettingsState.reset(SK.where); }
             ToggleSwitch {
@@ -166,14 +167,15 @@ export component RulesPage inherits PageFrame {
         VerticalLayout {
             spacing: Tokens.s2;
             Text {
-                text: "Custom condition";
+                text: @tr("Custom condition");
                 color: Tokens.text;
             }
             Text {
-                text: "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save.";
+                text: @tr("An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save.");
                 font-size: Tokens.caption;
                 color: Tokens.text-3;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             HorizontalLayout {
                 spacing: Tokens.s2;
@@ -181,12 +183,12 @@ export component RulesPage inherits PageFrame {
                     horizontal-stretch: 1;
                     text: root.where.text;
                     font-size: 13px;
-                    placeholder-text: "e.g. process.name == \"notepad\"";
+                    placeholder-text: @tr("e.g. process.name == \"notepad\"");
                     enabled: root.ready;
                     accepted(t) => { SettingsState.set-text(SK.where, t); }
                 }
                 AppButton {
-                    text: "Apply";
+                    text: @tr("Apply");
                     enabled: root.ready && raw.text != root.where.text;
                     clicked => { SettingsState.set-text(SK.where, raw.text); }
                 }
@@ -196,11 +198,12 @@ export component RulesPage inherits PageFrame {
                 font-size: Tokens.caption;
                 color: Tokens.danger;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             if root.where.source-file != "" && !root.where.overridden: HorizontalLayout {
                 alignment: start;
                 Link {
-                    text: "Show it in the Config Editor";
+                    text: @tr("Show it in the Config Editor");
                     font-size: Tokens.caption;
                     activated => { EditorLink.open(root.where.source-file, root.where.source-line); }
                 }
@@ -210,24 +213,24 @@ export component RulesPage inherits PageFrame {
 
     Card {
         icon: Icons.window;
-        heading: "Keep Windows' own menu";
-        description: "Shell's menu stays out of these programs and windows.";
+        heading: @tr("Keep Windows' own menu");
+        description: @tr("Shell's menu stays out of these programs and windows.");
         NameList {
             index: SK.process;
-            label: "Programs";
-            hint: "By name, without .exe";
-            placeholder: "notepad, or a path to an .exe";
-            empty-text: "No programs.";
+            label: @tr("Programs");
+            hint: @tr("By name, without .exe");
+            placeholder: @tr("notepad, or a path to an .exe");
+            empty-text: @tr("No programs.");
             names: SettingsState.processes;
             ready: root.ready;
         }
         RowDivider { }
         NameList {
             index: SK.window;
-            label: "Window classes";
-            hint: "The class of the top-level window, e.g. CabinetWClass for File Explorer";
-            placeholder: "Window class name";
-            empty-text: "No window classes.";
+            label: @tr("Window classes");
+            hint: @tr("The class of the top-level window, e.g. CabinetWClass for File Explorer");
+            placeholder: @tr("Window class name");
+            empty-text: @tr("No window classes.");
             names: SettingsState.windows;
             ready: root.ready;
         }

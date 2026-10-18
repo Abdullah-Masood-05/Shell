@@ -1,5 +1,7 @@
 #include "PendingChanges.h"
 
+#include "Tr.h"
+
 #include "nss/Literal.h"
 #include "nss/NssDocument.h"
 #include "nss/ThemeSchema.h"
@@ -15,13 +17,13 @@ std::vector<std::string> PendingChanges::set(std::string_view key, std::string_v
     const auto *info = nss::ThemeSchema::find(canonical);
     std::vector<std::string> errors;
     if (!info)
-        errors.push_back(canonical + ": unknown key");
+        errors.push_back(nsp::trf("{}: unknown key", canonical));
     else if (lit.text.empty())
-        errors.push_back(canonical + ": a value is needed");
+        errors.push_back(nsp::trf("{}: a value is needed", canonical));
     else if (lit.text.find_first_of("\r\n") != std::string::npos)
-        errors.push_back(canonical + ": the value must fit on one line");
+        errors.push_back(nsp::trf("{}: the value must fit on one line", canonical));
     else if (!lit.isLiteral() && info->type != nss::ValueType::Any)
-        errors.push_back(canonical + ": only plain values can be set here");
+        errors.push_back(nsp::trf("{}: only plain values can be set here", canonical));
     else
         errors = nss::ThemeSchema::validate(canonical, lit);
     if (!errors.empty())
@@ -132,7 +134,7 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
     std::string error;
     auto rootDoc = nss::NssDocument::load(root, {}, &error);
     if (!rootDoc) {
-        plan.error = "Couldn't read " + nss::narrow(root.wstring()) + ": " + error;
+        plan.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         return plan;
     }
     plan.overridesPath = (root.parent_path() / fs::path(nss::widen(nss::OverridesWriter::relativePath))).lexically_normal();
@@ -143,7 +145,7 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
         nss::ParseContext ctx;
         existing = nss::NssDocument::load(plan.overridesPath, ctx, &error);
         if (!existing) {
-            plan.error = "Couldn't read " + nss::narrow(plan.overridesPath.wstring()) + ": " + error;
+            plan.error = nsp::trf("Couldn't read {}: {}", nss::narrow(plan.overridesPath.wstring()), error);
             return plan;
         }
         plan.before = nss::OverridesWriter::read(*existing);
@@ -152,7 +154,7 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
 
     auto doc = nss::OverridesWriter::generateDocument(plan.after, existing ? &*existing : nullptr);
     if (!doc.diagnostics().empty()) {
-        plan.error = "The generated settings-app.nss doesn't parse: " + doc.diagnostics().front().message;
+        plan.error = nsp::trf("The generated settings-app.nss doesn't parse: {}", doc.diagnostics().front().message);
         return plan;
     }
     if (!existing || existing->text() != doc.text())

@@ -67,7 +67,7 @@ component FileRow inherits Rectangle {
         }
         if root.file.managed: Text {
             vertical-alignment: center;
-            text: "app";
+            text: @tr("Managed by the app" => "app");
             font-size: Tokens.caption;
             color: Tokens.text-3;
         }
@@ -135,7 +135,7 @@ component ProblemRow inherits Rectangle {
             width: 64px;
             vertical-alignment: center;
             horizontal-alignment: right;
-            text: root.problem.source == "log" ? "shell.log" : "check";
+            text: root.problem.source == "log" ? "shell.log" : @tr("Problem source" => "check");
             font-size: Tokens.caption;
             color: Tokens.text-3;
         }
@@ -183,12 +183,12 @@ export component EditorPage inherits Rectangle {
         spacing: Tokens.s4;
 
         PageHeader {
-            title: "Config Editor";
-            description: "Edit shell.nss and its imports. Every save is checked and snapshotted first.";
+            title: @tr("Config Editor");
+            description: @tr("Edit shell.nss and its imports. Every save is checked and snapshotted first.");
             busy: EditorState.saving;
-            busy-label: "Saving…";
+            busy-label: @tr("Saving…");
             AppButton {
-                text: "Open in external editor";
+                text: @tr("Open in external editor");
                 icon: Icons.folder;
                 icon-size: 16px;
                 colorize-icon: true;
@@ -199,24 +199,24 @@ export component EditorPage inherits Rectangle {
 
         if EditorState.shared-config: Banner {
             kind: "info";
-            title: "This is the shared config in the install folder";
-            text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to edit it.";
-            action-label: "Create personal config";
+            title: @tr("This is the shared config in the install folder");
+            text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to edit it.");
+            action-label: @tr("Create personal config");
             action-enabled: !AppState.busy && AppState.cli-available;
             action => { EditorState.create-user-config(); }
         }
         if EditorState.external-change: Banner {
             kind: "warning";
-            title: "Changed outside the app";
+            title: @tr("Changed outside the app");
             text: EditorState.external-text;
-            action-label: "Reload from disk";
+            action-label: @tr("Reload from disk");
             closable: true;
             action => { EditorState.reload-external(); }
             close => { EditorState.keep-mine(); }
         }
         if EditorState.load-error != "": Banner {
             kind: "error";
-            title: "Couldn't open the config";
+            title: @tr("Couldn't open the config");
             text: EditorState.load-error;
         }
 
@@ -239,7 +239,7 @@ export component EditorPage inherits Rectangle {
                         padding-top: Tokens.s1;
                         padding-bottom: Tokens.s1;
                         Text {
-                            text: "Files";
+                            text: @tr("Files");
                             font-weight: 600;
                             color: Tokens.text;
                         }
@@ -285,7 +285,7 @@ export component EditorPage inherits Rectangle {
                     if EditorState.dirty: VerticalLayout {
                         alignment: center;
                         Badge {
-                            text: "Unsaved";
+                            text: @tr("Unsaved");
                             tint: Tokens.accent;
                         }
                     }
@@ -298,17 +298,17 @@ export component EditorPage inherits Rectangle {
                     }
                     Segmented {
                         width: 176px;
-                        options: ["Read", "Edit"];
+                        options: [@tr("Editor mode" => "Read"), @tr("Editor mode" => "Edit")];
                         selected: EditorState.editing ? 1 : 0;
                         changed(i) => { EditorState.set-editing(i == 1); }
                     }
                     AppButton {
-                        text: "Discard";
+                        text: @tr("Discard");
                         enabled: EditorState.dirty-count > 0 && !EditorState.saving;
                         clicked => { EditorState.discard(); }
                     }
                     AppButton {
-                        text: EditorState.dirty-count > 1 ? "Save " + EditorState.dirty-count + " files" : "Save";
+                        text: EditorState.dirty-count > 1 ? @tr("Save {} files", EditorState.dirty-count) : @tr("Save");
                         primary: true;
                         enabled: EditorState.dirty-count > 0 && !EditorState.saving;
                         clicked => { EditorState.save(); }
@@ -378,7 +378,7 @@ export component EditorPage inherits Rectangle {
                             padding-top: Tokens.s1;
                             spacing: Tokens.s2;
                             Text {
-                                text: "Problems";
+                                text: @tr("Problems");
                                 font-weight: 600;
                                 color: Tokens.text;
                             }
@@ -404,7 +404,7 @@ export component EditorPage inherits Rectangle {
                         }
                         if EditorState.problems.length == 0: Text {
                             vertical-stretch: 1;
-                            text: EditorState.check-state == "checking" ? "Checking…" : "No problems found.";
+                            text: EditorState.check-state == "checking" ? @tr("Checking…") : @tr("No problems found.");
                             color: Tokens.text-3;
                             horizontal-alignment: center;
                             vertical-alignment: center;
@@ -425,9 +425,9 @@ export component EditorPage inherits Rectangle {
         width: 100%;
         height: 100%;
         kind: "error";
-        title: "Save with errors?";
+        title: @tr("Save with errors?");
         text: EditorState.confirm-text;
-        confirm-label: "Save anyway";
+        confirm-label: @tr("Save anyway");
         confirmed => { EditorState.save-anyway(); }
         cancelled => { EditorState.cancel-force(); }
     }

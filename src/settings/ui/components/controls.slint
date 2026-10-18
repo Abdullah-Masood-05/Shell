@@ -219,36 +219,43 @@ export component Segmented inherits Rectangle {
         animate x { duration: Tokens.normal; easing: ease-out; }
     }
 
-    HorizontalLayout {
-        padding: 3px;
-        for option[i] in root.options: Rectangle {
-            horizontal-stretch: 1;
-            border-radius: Tokens.radius-xs;
-            background: i != root.selected && ta.has-hover && root.enabled ? Tokens.hover : transparent;
-            accessible-role: tab;
-            accessible-label: option;
-            accessible-item-selected: i == root.selected;
-            accessible-action-default => {
-                if (root.enabled) {
-                    root.selected = i;
-                    root.changed(i);
-                }
+    // Every option gets the same width, so the sliding pill always lines up with
+    // its label, whatever the length of the text in the current language.
+    for option[i] in root.options: Rectangle {
+        x: 3px + self.width * i;
+        y: 3px;
+        width: (root.width - 6px) / max(1, root.options.length);
+        height: root.height - 6px;
+        border-radius: Tokens.radius-xs;
+        background: i != root.selected && ta.has-hover && root.enabled ? Tokens.hover : transparent;
+        accessible-role: tab;
+        accessible-label: option;
+        accessible-item-selected: i == root.selected;
+        accessible-action-default => {
+            if (root.enabled) {
+                root.selected = i;
+                root.changed(i);
             }
-            Text {
-                text: option;
-                font-size: 13px;
-                font-weight: i == root.selected ? 600 : 400;
-                color: i == root.selected ? Tokens.on-accent : Tokens.text-2;
-                animate color { duration: Tokens.fast; }
-            }
-            ta := TouchArea {
-                enabled: root.enabled;
-                mouse-cursor: pointer;
-                clicked => {
-                    fs.focus();
-                    root.selected = i;
-                    root.changed(i);
-                }
+        }
+        Text {
+            x: 6px;
+            width: parent.width - 12px;
+            text: option;
+            font-size: 13px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            overflow: elide;
+            font-weight: i == root.selected ? 600 : 400;
+            color: i == root.selected ? Tokens.on-accent : Tokens.text-2;
+            animate color { duration: Tokens.fast; }
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                fs.focus();
+                root.selected = i;
+                root.changed(i);
             }
         }
     }

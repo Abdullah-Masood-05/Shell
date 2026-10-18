@@ -2,6 +2,8 @@
 
 #include "EditorSession.h"
 #include "ShellCli.h"
+#include "Tr.h"
+#include "WindowsTitles.h"
 
 #include "nss/ConfigGraph.h"
 #include "nss/ConfigStore.h"
@@ -38,6 +40,12 @@ ContextMenusController::ContextMenusController(slint::ComponentHandle<AppWindow>
 {
     bindCallbacks();
     statusPoll_.start(slint::TimerMode::Repeated, 500ms, [this] { pollStatus(); });
+    // The rows are built from the documents in memory, so staged changes stay.
+    nsp::onLanguageChanged([this] {
+        if (root_.empty() && !statusPath_.empty())
+            ui_->global<MenusState>().set_load_error(ss(nsp::trf("The config file doesn't exist: {}", statusPath_)));
+        push();
+    });
 }
 
 ContextMenusController::~ContextMenusController() = default;
@@ -83,7 +91,7 @@ void ContextMenusController::pollStatus()
     if (!status.config_exists || path.empty()) {
         root_.clear();
         files_.clear();
-        st.set_load_error(ss("The config file doesn't exist: " + path));
+        st.set_load_error(ss(nsp::trf("The config file doesn't exist: {}", path)));
         push();
         return;
     }
@@ -114,7 +122,7 @@ void ContextMenusController::load()
             const auto &gf = graph.files()[i];
             if (!gf.doc) {
                 if (i == 0)
-                    error = gf.error.empty() ? "The config couldn't be read." : gf.error;
+                    error = gf.error.empty() ? std::string(nsp::tr("The config couldn't be read.")) : gf.error;
                 continue;
             }
             if (gf.context.mode != nss::ParseMode::Config && gf.context.mode != nss::ParseMode::Menu)
@@ -127,8 +135,9 @@ void ContextMenusController::load()
                 continue;
             File f;
             f.path = gf.path;
-            f.label = isUnder(gf.path, rootDir) ? nss::narrow(gf.path.lexically_relative(rootDir).generic_wstring())
-                                                : nss::narrow(gf.path.filename().wstring()) + " (outside your config)";
+            f.outside = !isUnder(gf.path, rootDir);
+            f.label = !f.outside ? nss::narrow(gf.path.lexically_relative(rootDir).generic_wstring())
+                                 : nss::narrow(gf.path.filename().wstring());
             f.original = *gf.doc;
             f.current = *gf.doc;
             f.writable = !shared && isUnder(gf.path, rootDir) && !editor::isProtectedPath(gf.path);
@@ -155,6 +164,26 @@ int ContextMenusController::dirtyCount() const
     return n;
 }
 
+// loc.* titles from the language files next to the config (or the install's), in the
+// app's language, and Windows' own titles for id.* and title.*.
+const rules::Names &ContextMenusController::names()
+{
+    std::vector<fs::path> dirs;
+    if (!root_.empty())
+        dirs.push_back(root_.parent_path() / L"imports" / L"lang");
+    if (!shellExe_.empty())
+        dirs.push_back(shellExe_.parent_path() / L"imports" / L"lang");
+    auto key = nsp::currentLanguage();
+    for (const auto &d : dirs)
+        key += "|" + nss::narrow(d.wstring());
+    if (key != namesKey_ || !names_.windows) {
+        names_ = rules::langNames(dirs, nsp::currentLanguage());
+        names_.windows = [](std::string_view name) { return wintitles::displayTitle(name); };
+        namesKey_ = key;
+    }
+    return names_;
+}
+
 void ContextMenusController::push()
 {
     const auto &st = ui_->global<MenusState>();
@@ -171,8 +200,8 @@ void ContextMenusController::push()
                 return b.importIndex == m.importIndex && b.enabled != m.enabled;
             });
             bool locked = m.locked || !root.writable;
-            std::string reason = !root.writable ? std::string("Read-only") : m.lockReason;
-            moduleRows.push_back(ModuleRow{ ss(m.title), ss(m.path), ss(m.description), m.enabled, changed, locked,
+            std::string reason = !root.writable ? std::string(nsp::tr("Read-only")) : m.lockReason;
+            moduleRows.push_back(ModuleRow{ ss(nsp::tr(m.title.c_str())), ss(m.path), ss(m.description), m.enabled, changed, locked,
                                             ss(reason), ss(nss::narrow(root.path.wstring())), int(m.line) });
         }
     }
@@ -184,7 +213,7 @@ void ContextMenusController::push()
     size_t fileCount = 0;
     for (size_t fi = 0; fi < files_.size(); ++fi) {
         const auto &f = files_[fi];
-        auto list = rules::listRules(f.current);
+        auto list = rules::listRules(f.current, names());
         if (list.empty())
             continue;
         ++fileCount;
@@ -194,11 +223,12 @@ void ContextMenusController::push()
             bool changed = std::any_of(before.begin(), before.end(),
                                        [&](const rules::Rule &b) { return b.line == r.line && b.enabled != r.enabled; });
             bool toggleable = r.toggleable && !r.complex && f.writable;
-            std::string note = !f.writable ? std::string("Read-only")
+            std::string note = !f.writable ? std::string(nsp::tr("Read-only"))
                              : !r.toggleable ? r.note
-                             : r.complex     ? std::string("Complex: edit it in the Config Editor")
+                             : r.complex     ? std::string(nsp::tr("Complex: edit it in the Config Editor"))
                                              : std::string{};
-            ruleRows.push_back(RuleRow{ ss(first ? f.label : std::string{}), ss(r.action), ss(r.target), ss(r.scope),
+            std::string label = f.outside ? nsp::trf("{} (outside your config)", f.label) : f.label;
+            ruleRows.push_back(RuleRow{ ss(first ? label : std::string{}), ss(r.summary),
                                         ss(r.where), r.enabled, changed, toggleable, r.complex, ss(note),
                                         ss(nss::narrow(f.path.wstring())), int(r.line) });
             rules_.push_back(RuleRef{ fi, std::move(r) });
@@ -207,10 +237,10 @@ void ContextMenusController::push()
     }
     st.set_rules(std::make_shared<slint::VectorModel<RuleRow>>(ruleRows));
     auto n = rules_.size();
-    st.set_rules_caption(ss(n == 0 ? std::string("No modify or remove rules in your config.")
-                                   : std::to_string(n) + (n == 1 ? " rule" : " rules") + " in " +
-                                         std::to_string(fileCount) + (fileCount == 1 ? " file" : " files") +
-                                         ". Turning one off comments it out; turning it back on restores it."));
+    st.set_rules_caption(ss(n == 0 ? std::string(nsp::tr("No modify or remove rules in your config."))
+                                   : nsp::trn("{n} rule in {0}. Turning one off comments it out; turning it back on restores it.",
+                                              "{n} rules in {0}. Turning one off comments it out; turning it back on restores it.",
+                                              (long long)n, nsp::trn("{n} file", "{n} files", (long long)fileCount))));
     st.set_dirty_count(dirtyCount());
 }
 
@@ -222,7 +252,7 @@ void ContextMenusController::toggleModule(int index, bool on)
     if (m.locked)
         return;
     if (!rules::setModuleEnabled(files_[0].current, m.importIndex, on))
-        toast("error", "Couldn't change " + m.title, "Edit the import line in the Config Editor instead.");
+        toast("error", nsp::trf("Couldn't change {}", nsp::tr(m.title.c_str())), nsp::tr("Edit the import line in the Config Editor instead."));
     push();
 }
 
@@ -235,7 +265,7 @@ void ContextMenusController::toggleRule(int index, bool on)
     if (!f.writable)
         return;
     if (!rules::setRuleEnabled(f.current, ref.rule, on))
-        toast("error", "Couldn't change this rule", "Edit it in the Config Editor instead.");
+        toast("error", nsp::tr("Couldn't change this rule"), nsp::tr("Edit it in the Config Editor instead."));
     push();
 }
 
@@ -251,7 +281,7 @@ void ContextMenusController::save()
     if (saving_ || files_.empty() || dirtyCount() == 0)
         return;
     if (shellExe_.empty()) {
-        toast("error", "Can't check the config", "shell.exe was not found, so nothing was saved.");
+        toast("error", nsp::tr("Can't check the config"), nsp::tr("shell.exe was not found, so nothing was saved."));
         return;
     }
 
@@ -284,7 +314,7 @@ void ContextMenusController::save()
         if (f.current.text() == f.original.text())
             continue;
         if (!f.writable || editor::isProtectedPath(f.path)) {
-            toast("error", "Not saved", nss::narrow(f.path.wstring()) + " is read-only here.");
+            toast("error", nsp::tr("Not saved"), nsp::trf("{} is read-only here.", nss::narrow(f.path.wstring())));
             return;
         }
         writes.push_back(nss::FileWrite{ f.path, f.current.text(), f.current.format() });
@@ -302,8 +332,8 @@ void ContextMenusController::save()
             saving_ = false;
             ui_->global<MenusState>().set_saving(false);
             if (result.ok) {
-                toast("ok", "Saved", result.snapshotId.empty() ? std::string("No changes were needed.")
-                                                                : "Snapshot " + result.snapshotId + " was taken first.");
+                toast("ok", nsp::tr("Saved"), result.snapshotId.empty() ? std::string(nsp::tr("No changes were needed."))
+                                                                         : nsp::trf("Snapshot {} was taken first.", result.snapshotId));
                 load();
                 return;
             }
@@ -317,10 +347,10 @@ void ContextMenusController::save()
                             detail += " (" + nss::narrow(i.file.filename().wstring()) + ":" + std::to_string(i.line) + ")";
                         break;
                     }
-                toast("error", "Not saved: the config would fail to load", detail);
+                toast("error", nsp::tr("Not saved: the config would fail to load"), detail);
                 return;
             }
-            toast("error", "Couldn't save", detail);
+            toast("error", nsp::tr("Couldn't save"), detail);
         });
     });
 }

@@ -1,0 +1,34 @@
+// After an update: the menu files in the personal config that were brought up to date
+// (`shell.exe -config:upgrade`), and the ones the user changed, which were kept.
+// C++: src/ConfigUpdateController.cpp.
+
+import { DiffLineRow } from "backups-types.slint";
+
+export global ConfigUpdateState {
+    // "Updated N configuration files to this version" on Home.
+    in property <bool> updated-shown;
+    in property <string> updated-title;
+    in property <string> updated-text;
+
+    // The files the user changed, which were kept as they are.
+    in property <bool> kept-shown;
+    in property <string> kept-title;
+    in property <string> kept-text;
+    in property <[string]> kept-files;   // relative paths, e.g. imports/modify.nss
+    in property <bool> working;          // a "Use the new version" is running
+
+    // Compare one kept file with the new version.
+    in property <bool> compare-shown;
+    in property <string> compare-path;
+    in property <string> compare-title;
+    in property <string> compare-summary;
+    in property <bool> compare-loading;
+    in property <[DiffLineRow]> compare-lines;
+    in property <int> compare-max-columns: 80;
+
+    callback dismiss-updated();
+    callback dismiss-kept();
+    callback compare(path: string);
+    callback close-compare();
+    callback take(path: string);     // back the file up, then use the new version
+}

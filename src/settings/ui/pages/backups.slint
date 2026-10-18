@@ -7,6 +7,7 @@ import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { CodeColors } from "../components/code.slint";
 import { ConfirmDialog } from "../components/dialog.slint";
+import { DiffLine } from "../components/diff-line.slint";
 import { AppButton } from "../components/controls.slint";
 
 component Tag inherits Rectangle {
@@ -74,14 +75,14 @@ component SnapshotItem inherits Rectangle {
             if root.snap.current: VerticalLayout {
                 alignment: center;
                 Tag {
-                    text: "Current";
+                    text: @tr("Snapshot" => "Current");
                     tint: Tokens.success;
                 }
             }
             if root.snap.pinned: VerticalLayout {
                 alignment: center;
                 Tag {
-                    text: "Pinned";
+                    text: @tr("Pinned");
                     tint: Tokens.accent;
                 }
             }
@@ -93,7 +94,7 @@ component SnapshotItem inherits Rectangle {
             overflow: elide;
         }
         Text {
-            text: root.snap.files + (root.snap.files == 1 ? " file" : " files") + "  ·  " + root.snap.relative;
+            text: @tr("{n} file" | "{n} files" % root.snap.files) + "  ·  " + root.snap.relative;
             font-size: Tokens.caption;
             color: Tokens.text-3;
         }
@@ -114,7 +115,12 @@ component DiffFileItem inherits Rectangle {
     border-radius: Tokens.radius-sm;
     background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
     accessible-role: list-item;
-    accessible-label: root.file.path + ", " + root.file.status;
+    // status is an id from C++ (modified | added | removed | same); this is its label.
+    property <string> status-text: root.file.status == "modified" ? @tr("File status" => "modified")
+        : root.file.status == "added" ? @tr("File status" => "added")
+        : root.file.status == "removed" ? @tr("File status" => "removed")
+        : root.file.status == "same" ? @tr("File status" => "same") : root.file.status;
+    accessible-label: root.file.path + ", " + root.status-text;
     accessible-item-selected: root.selected;
 
     if root.selected: Rectangle {
@@ -139,7 +145,7 @@ component DiffFileItem inherits Rectangle {
         }
         Text {
             vertical-alignment: center;
-            text: root.file.status;
+            text: root.status-text;
             font-size: Tokens.caption;
             color: root.file.status == "removed" ? Tokens.danger : root.file.status == "added" ? Tokens.success : Tokens.text-2;
         }
@@ -166,44 +172,6 @@ component DiffFileItem inherits Rectangle {
     }
 }
 
-component DiffLine inherits Rectangle {
-    in property <DiffLineRow> entry;
-    height: CodeColors.row-height;
-    background: root.entry.kind == 1 ? Tokens.success.with-alpha(0.16) : root.entry.kind == 2 ? Tokens.danger.with-alpha(0.16) : root.entry.kind == 3 ? Tokens.layer-2 : transparent;
-
-    if root.entry.kind != 3: Text {
-        x: 0;
-        width: 36px;
-        height: parent.height;
-        horizontal-alignment: right;
-        vertical-alignment: center;
-        text: root.entry.old-line > 0 ? root.entry.old-line : "";
-        font-family: BackupsState.mono-font;
-        font-size: Tokens.caption;
-        color: Tokens.text-3;
-    }
-    if root.entry.kind != 3: Text {
-        x: 40px;
-        width: 36px;
-        height: parent.height;
-        horizontal-alignment: right;
-        vertical-alignment: center;
-        text: root.entry.new-line > 0 ? root.entry.new-line : "";
-        font-family: BackupsState.mono-font;
-        font-size: Tokens.caption;
-        color: Tokens.text-3;
-    }
-    Text {
-        x: root.entry.kind == 3 ? 8px : 86px;
-        height: parent.height;
-        vertical-alignment: center;
-        text: (root.entry.kind == 1 ? "+ " : root.entry.kind == 2 ? "− " : root.entry.kind == 3 ? "" : "  ") + root.entry.text;
-        font-family: BackupsState.mono-font;
-        font-size: CodeColors.font-size;
-        color: root.entry.kind == 3 ? Tokens.text-3 : root.entry.kind == 1 ? (Tokens.dark ? #B5E6A8 : #116329) : root.entry.kind == 2 ? (Tokens.dark ? #FFB3B8 : #82071E) : Tokens.text-2;
-    }
-}
-
 export component BackupsPage inherits Rectangle {
     property <float> appear: 0;
     init => {
@@ -224,12 +192,12 @@ export component BackupsPage inherits Rectangle {
         spacing: Tokens.s4;
 
         PageHeader {
-            title: "Backups";
-            description: "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it.";
+            title: @tr("Backups");
+            description: @tr("Every save takes a snapshot of your config first. Compare one with your files now, or go back to it.");
             busy: BackupsState.working;
-            busy-label: "Working…";
+            busy-label: @tr("Working…");
             AppButton {
-                text: "Open folder";
+                text: @tr("Open folder");
                 icon: Icons.folder;
                 icon-size: 16px;
                 colorize-icon: true;
@@ -237,7 +205,7 @@ export component BackupsPage inherits Rectangle {
                 clicked => { BackupsState.open-folder(); }
             }
             AppButton {
-                text: "Create snapshot now";
+                text: @tr("Create snapshot now");
                 primary: true;
                 enabled: BackupsState.available && !BackupsState.working;
                 clicked => { BackupsState.create(); }
@@ -246,9 +214,9 @@ export component BackupsPage inherits Rectangle {
 
         if !BackupsState.available: Banner {
             kind: "info";
-            title: "No personal config to back up";
+            title: @tr("No personal config to back up");
             text: BackupsState.unavailable-text;
-            action-label: AppState.status.config-source == "install" || !AppState.status.config-exists ? "Create personal config" : "";
+            action-label: AppState.status.config-source == "install" || !AppState.status.config-exists ? @tr("Create personal config") : "";
             action-enabled: !AppState.busy && AppState.cli-available;
             action => { AppState.action("config-init"); }
         }
@@ -272,7 +240,7 @@ export component BackupsPage inherits Rectangle {
                         padding-top: Tokens.s1;
                         spacing: Tokens.s2;
                         Text {
-                            text: "Timeline";
+                            text: @tr("Timeline");
                             font-weight: 600;
                             color: Tokens.text;
                         }
@@ -284,7 +252,7 @@ export component BackupsPage inherits Rectangle {
                     }
                     if BackupsState.loaded && BackupsState.snapshots.length == 0: Text {
                         vertical-stretch: 1;
-                        text: "No snapshots yet.\nOne is taken before every save.";
+                        text: @tr("No snapshots yet.\nOne is taken before every save.");
                         color: Tokens.text-3;
                         horizontal-alignment: center;
                         vertical-alignment: center;
@@ -307,6 +275,7 @@ export component BackupsPage inherits Rectangle {
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
             }
@@ -320,7 +289,7 @@ export component BackupsPage inherits Rectangle {
                 border-color: Tokens.stroke;
 
                 if !root.has-selection: Text {
-                    text: "Select a snapshot to see what changed since.";
+                    text: @tr("Select a snapshot to see what changed since.");
                     color: Tokens.text-3;
                 }
 
@@ -349,7 +318,7 @@ export component BackupsPage inherits Rectangle {
                         VerticalLayout {
                             alignment: center;
                             AppButton {
-                                text: root.sel.pinned ? "Unpin" : "Pin";
+                                text: root.sel.pinned ? @tr("Unpin") : @tr("Pin");
                                 enabled: !BackupsState.working;
                                 clicked => { BackupsState.toggle-pin(BackupsState.selected); }
                             }
@@ -357,7 +326,7 @@ export component BackupsPage inherits Rectangle {
                         VerticalLayout {
                             alignment: center;
                             AppButton {
-                                text: "Delete…";
+                                text: @tr("Delete…");
                                 enabled: !root.sel.pinned && !BackupsState.working;
                                 clicked => { BackupsState.ask-delete(BackupsState.selected); }
                             }
@@ -365,7 +334,7 @@ export component BackupsPage inherits Rectangle {
                         VerticalLayout {
                             alignment: center;
                             AppButton {
-                                text: "Restore…";
+                                text: @tr("Restore…");
                                 primary: true;
                                 enabled: !root.sel.current && !BackupsState.working && BackupsState.available;
                                 clicked => { BackupsState.ask-restore(BackupsState.selected); }
@@ -378,6 +347,7 @@ export component BackupsPage inherits Rectangle {
                         font-size: Tokens.caption + 1px;
                         color: Tokens.text-2;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
 
                     // Changed files (at most four rows tall), then the diff of the selected one.
@@ -407,7 +377,7 @@ export component BackupsPage inherits Rectangle {
                         border-color: Tokens.stroke;
                         clip: true;
                         if BackupsState.diff-lines.length == 0: Text {
-                            text: BackupsState.diff-loading ? "Comparing…" : BackupsState.diff-files.length == 0 ? "No differences." : "No line changes in this file.";
+                            text: BackupsState.diff-loading ? @tr("Comparing…") : BackupsState.diff-files.length == 0 ? @tr("No differences.") : @tr("No line changes in this file.");
                             color: Tokens.text-3;
                         }
                         diff := ListView {
@@ -431,9 +401,9 @@ export component BackupsPage inherits Rectangle {
         width: 100%;
         height: 100%;
         kind: BackupsState.confirm-kind == "delete" ? "error" : "warning";
-        title: BackupsState.confirm-kind == "delete" ? "Delete this snapshot?" : "Restore this snapshot?";
+        title: BackupsState.confirm-kind == "delete" ? @tr("Delete this snapshot?") : @tr("Restore this snapshot?");
         text: BackupsState.confirm-text;
-        confirm-label: BackupsState.confirm-kind == "delete" ? "Delete" : "Restore";
+        confirm-label: BackupsState.confirm-kind == "delete" ? @tr("Delete") : @tr("Restore");
         confirmed => { BackupsState.confirm(); }
         cancelled => { BackupsState.cancel(); }
     }

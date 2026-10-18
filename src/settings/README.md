@@ -109,3 +109,47 @@ cmake -S src\settings\nss -B src\settings\out\nss -A x64 -DCMAKE_MSVC_RUNTIME_LI
 cmake --build src\settings\out\nss --config Release
 src\settings\out\nss\Release\nsscore_tests.exe
 ```
+
+## Translations
+
+The app's text is in English, Simplified Chinese (`zh-CN`) and Traditional Chinese (`zh-TW`).
+Each language is one gettext file, `translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`,
+next to the template `translations/nilesoft-shell-pro.pot`. The build embeds them: the
+`.slint` strings through Slint's bundled translations (`SLINT_BUNDLE_TRANSLATIONS` in
+`CMakeLists.txt`), the C++ strings through `tools/po2inc` (`cmake/Translations.cmake`), so
+the exe still needs no files at run time.
+
+- **Marking text.** In `.slint` files: `@tr("Text")`, `@tr("Saved {}", name)`,
+  `@tr("{n} file" | "{n} files" % count)`, `@tr("Context" => "Text")`. Literal braces are
+  `{{` and `}}`. In C++: `nsp::tr`, `nsp::trc`, `nsp::trf`, `nsp::trn` and `nsp::mark` from
+  `src/Tr.h`. Config keywords, file names, code and app names are not marked.
+- **Updating the catalogs** after changing text (needs `slint-tr-extractor`:
+  `cargo install slint-tr-extractor --version 1.18.1`, or build `tools/tr-extractor` in the
+  Slint source and pass `-Extractor <path>`):
+
+  ```powershell
+  pwsh scripts/update-translations.ps1
+  ```
+
+  It rewrites the `.pot`, adds new strings to every `.po` with an empty `msgstr`, keeps the
+  existing translations, and moves strings the app no longer has to the end as `#~`
+  entries. `-Check` only tells whether the `.pot` is current. `-Import file.po` takes over
+  the translated entries of a `.po` someone sent back (its `Language:` header picks the
+  language).
+- **Translating.** Fill in the `msgstr` lines (a text editor, Poedit or Lokalize). Keep the
+  placeholders (`{}`, `{0}`, `{n}`, `{{ }}`), and keep keywords, file names and app names
+  as they are. Untranslated or `fuzzy` entries show in English. The entry with context
+  `UI font family` is the font the app uses for that language, not text.
+- **Adding a language.**
+
+  ```powershell
+  pwsh scripts/update-translations.ps1 -NewLanguage ja -NativeName "日本語"
+  ```
+
+  Then set `Plural-Forms` in the new file's header, translate, and rebuild. The language
+  appears in Preferences > Language under its native name, and *Auto* picks it when it
+  matches the Windows display language (an exact tag first, then the same base language).
+  Chinese is the one special case: `zh-TW`, `zh-HK`, `zh-MO` and `zh-Hant` go to `zh-TW`,
+  other `zh` to `zh-CN` (`resolveLanguage` in `src/Tr.cpp`).
+- **Checking a language** without changing the setting: `NilesoftShellPro.exe --lang zh-TW`
+  (`auto`, `en` or a code; that run only).

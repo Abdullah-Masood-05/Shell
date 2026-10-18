@@ -26,12 +26,14 @@ component PrefSwitch inherits HorizontalLayout {
             font-size: Tokens.body;
             color: Tokens.text;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
         Text {
             text: root.hint;
             font-size: Tokens.caption;
             color: Tokens.text-3;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     ToggleSwitch {
@@ -43,21 +45,21 @@ component PrefSwitch inherits HorizontalLayout {
 
 export component PreferencesPage inherits PageFrame {
     PageHeader {
-        title: "Preferences";
-        description: "How this app looks, updates, machine-wide registration, and about.";
+        title: @tr("Preferences");
+        description: @tr("How this app looks, updates, machine-wide registration, and about.");
         busy: AppState.busy;
         busy-label: AppState.busy-label;
     }
 
     Card {
         icon: Icons.moon;
-        heading: "App theme";
-        description: "System follows the Windows app mode and changes with it.";
+        heading: @tr("App theme");
+        description: @tr("System follows the Windows app mode and changes with it.");
         HorizontalLayout {
             alignment: start;
             Segmented {
                 width: 300px;
-                options: ["System", "Light", "Dark"];
+                options: [@tr("System"), @tr("Light"), @tr("Dark")];
                 selected: AppState.theme-mode;
                 changed(i) => { AppState.set-theme(i); }
             }
@@ -65,22 +67,38 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.language;
+        heading: @tr("Language");
+        description: @tr("Auto follows the Windows display language, which is {} now. A change applies right away.", AppState.language-auto-name);
+        HorizontalLayout {
+            alignment: start;
+            Segmented {
+                width: max(400px, self.min-width);
+                min-option-width: 96px;
+                options: AppState.language-options;
+                selected <=> AppState.language-index;
+                changed(i) => { AppState.set-language(i); }
+            }
+        }
+    }
+
+    Card {
         icon: Icons.person;
-        heading: "All users on this PC";
-        description: "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.";
+        heading: @tr("All users on this PC");
+        description: @tr("Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.");
         KeyValue {
-            key: "All users";
-            value: !AppState.status.loaded ? "—" : AppState.status.machine-registered ? "Registered" : "Not registered";
+            key: @tr("All users");
+            value: !AppState.status.loaded ? "—" : AppState.status.machine-registered ? @tr("Registered") : @tr("Not registered");
         }
         KeyValue {
-            key: "Just you";
-            value: !AppState.status.loaded ? "—" : AppState.status.user-registered ? "Registered" : "Not registered";
+            key: @tr("Just you");
+            value: !AppState.status.loaded ? "—" : AppState.status.user-registered ? @tr("Registered") : @tr("Not registered");
         }
         HorizontalLayout {
             alignment: start;
             spacing: Tokens.s2;
             AppButton {
-                text: AppState.status.machine-registered ? "Unregister for all users" : "Register for all users";
+                text: AppState.status.machine-registered ? @tr("Unregister for all users") : @tr("Register for all users");
                 icon: AppState.shield-icon;
                 icon-size: 16px;
                 enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
@@ -91,17 +109,18 @@ export component PreferencesPage inherits PageFrame {
 
     Card {
         icon: Icons.download;
-        heading: "Updates";
-        description: "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed.";
+        heading: @tr("Updates");
+        description: @tr("New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed.");
         KeyValue {
-            key: "Version";
-            value: UpdateState.current-version
-                + (UpdateState.install-kind == "msi" ? "  ·  installed for all users (MSI)" : UpdateState.install-kind == "portable" ? "  ·  portable copy" : "");
+            key: @tr("Version");
+            value: UpdateState.install-kind == "msi" ? @tr("{}  ·  installed for all users (MSI)", UpdateState.current-version)
+                : UpdateState.install-kind == "portable" ? @tr("{}  ·  portable copy", UpdateState.current-version)
+                : UpdateState.current-version;
         }
         HorizontalLayout {
             spacing: Tokens.s3;
             Text {
-                text: "Channel";
+                text: @tr("Channel");
                 width: 132px;
                 font-size: Tokens.body;
                 color: Tokens.text-2;
@@ -110,13 +129,13 @@ export component PreferencesPage inherits PageFrame {
             Segmented {
                 width: 220px;
                 min-option-width: 100px;
-                options: ["Stable", "Beta"];
+                options: [@tr("Stable"), @tr("Beta")];
                 selected: UpdateState.channel;
                 changed(i) => { UpdateState.set-channel(i); }
             }
             Text {
                 horizontal-stretch: 1;
-                text: UpdateState.channel == 1 ? "Pre-releases too" : "Releases only";
+                text: UpdateState.channel == 1 ? @tr("Pre-releases too") : @tr("Releases only");
                 font-size: Tokens.caption;
                 color: Tokens.text-3;
                 vertical-alignment: center;
@@ -124,14 +143,14 @@ export component PreferencesPage inherits PageFrame {
         }
         RowDivider { }
         PrefSwitch {
-            label: "Check for updates automatically";
-            hint: "When the app starts, at most once a day.";
+            label: @tr("Check for updates automatically");
+            hint: @tr("When the app starts, at most once a day.");
             on: UpdateState.auto-check;
             toggled(v) => { UpdateState.set-auto-check(v); }
         }
         PrefSwitch {
-            label: "Download and install updates automatically";
-            hint: "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt.";
+            label: @tr("Download and install updates automatically");
+            hint: @tr("Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt.");
             on: UpdateState.auto-install;
             toggled(v) => { UpdateState.set-auto-install(v); }
         }
@@ -154,25 +173,27 @@ export component PreferencesPage inherits PageFrame {
                 alignment: center;
                 spacing: 2px;
                 Text {
-                    text: UpdateState.state == "checking" ? "Checking for updates…"
-                        : UpdateState.state == "available" ? "Version " + UpdateState.latest-version + " is available"
-                        : UpdateState.state == "downloading" ? "Downloading " + UpdateState.latest-version + "…  " + UpdateState.progress-text
-                        : UpdateState.state == "ready" ? "Version " + UpdateState.latest-version + " is downloaded and verified"
-                        : UpdateState.state == "installing" ? "Installing " + UpdateState.latest-version + "…"
+                    text: UpdateState.state == "checking" ? @tr("Checking for updates…")
+                        : UpdateState.state == "available" ? @tr("Version {} is available", UpdateState.latest-version)
+                        : UpdateState.state == "downloading" ? @tr("Downloading {}…  {}", UpdateState.latest-version, UpdateState.progress-text)
+                        : UpdateState.state == "ready" ? @tr("Version {} is downloaded and verified", UpdateState.latest-version)
+                        : UpdateState.state == "installing" ? @tr("Installing {}…", UpdateState.latest-version)
                         : UpdateState.message != "" ? UpdateState.message
-                        : "Not checked yet";
+                        : @tr("Not checked yet");
                     font-size: Tokens.body;
                     color: UpdateState.state == "error" ? Tokens.danger : Tokens.text;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 if UpdateState.offered && UpdateState.message != "": Text {
                     text: UpdateState.message;
                     font-size: Tokens.caption;
                     color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 Text {
-                    text: "Last checked: " + UpdateState.last-checked;
+                    text: @tr("Last checked: {}", UpdateState.last-checked);
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                 }
@@ -182,18 +203,18 @@ export component PreferencesPage inherits PageFrame {
                 HorizontalLayout {
                     spacing: Tokens.s2;
                     if UpdateState.state == "available" || UpdateState.state == "ready": AppButton {
-                        text: UpdateState.state == "ready" ? "Restart to update" : "Download and install";
+                        text: UpdateState.state == "ready" ? @tr("Restart to update") : @tr("Download and install");
                         primary: true;
                         icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
                         colorize-icon: !UpdateState.needs-admin;
                         clicked => { UpdateState.install(); }
                     }
                     if UpdateState.state == "downloading": AppButton {
-                        text: "Cancel";
+                        text: @tr("Cancel");
                         clicked => { UpdateState.cancel(); }
                     }
                     AppButton {
-                        text: "Check now";
+                        text: @tr("Check now");
                         icon: Icons.refresh;
                         colorize-icon: true;
                         enabled: UpdateState.state != "checking" && UpdateState.state != "downloading" && UpdateState.state != "installing";
@@ -209,7 +230,7 @@ export component PreferencesPage inherits PageFrame {
 
     Card {
         icon: Icons.info;
-        heading: "About";
+        heading: @tr("About");
         HorizontalLayout {
             spacing: Tokens.s4;
             Image {
@@ -227,11 +248,11 @@ export component PreferencesPage inherits PageFrame {
                     color: Tokens.text;
                 }
                 Text {
-                    text: "Version " + AppState.app-version + (AppState.status.version != "" && AppState.status.version != AppState.app-version ? "  ·  shell.exe " + AppState.status.version : "");
+                    text: @tr("Version {}", AppState.app-version) + (AppState.status.version != "" && AppState.status.version != AppState.app-version ? "  ·  shell.exe " + AppState.status.version : "");
                     color: Tokens.text-2;
                 }
                 Text {
-                    text: "© Nilesoft Ltd. and contributors. MIT License.";
+                    text: @tr("© Nilesoft Ltd. and contributors. MIT License.");
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                 }
@@ -245,16 +266,16 @@ export component PreferencesPage inherits PageFrame {
                 activated => { AppState.open-url("https://nilesoft.org"); }
             }
             Link {
-                text: "Documentation";
+                text: @tr("Documentation");
                 activated => { AppState.open-url("https://nilesoft.org/docs"); }
             }
             // This build is the Nilesoft Shell Pro fork: its own source and issue tracker.
             Link {
-                text: "Source code";
+                text: @tr("Source code");
                 activated => { AppState.open-url("https://github.com/Abdullah-Masood-05/Shell"); }
             }
             Link {
-                text: "Report an issue";
+                text: @tr("Report an issue");
                 activated => { AppState.open-url("https://github.com/Abdullah-Masood-05/Shell/issues"); }
             }
         }
@@ -263,15 +284,16 @@ export component PreferencesPage inherits PageFrame {
             background: Tokens.stroke;
         }
         Text {
-            text: "Third-party software";
+            text: @tr("Third-party software");
             font-weight: 600;
             color: Tokens.text;
         }
         Text {
-            text: "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT).";
+            text: @tr("Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT).");
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
         HorizontalLayout {
             alignment: start;

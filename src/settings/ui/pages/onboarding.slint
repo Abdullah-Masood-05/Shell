@@ -80,6 +80,7 @@ component StateRow inherits Rectangle {
             horizontal-stretch: 1;
             color: Tokens.text;
             wrap: word-wrap;
+            min-height: self.preferred-height;
             vertical-alignment: center;
         }
     }
@@ -94,6 +95,7 @@ component StepTitle inherits Text {
 component StepText inherits Text {
     color: Tokens.text-2;
     wrap: word-wrap;
+    min-height: self.preferred-height;
 }
 
 // First-run setup: personal config, enable for this user, pick a look.
@@ -109,7 +111,7 @@ export component Onboarding inherits Rectangle {
     property <bool> offer-register: AppState.status.loaded && !AppState.status.user-registered && (!AppState.status.machine-registered || root.also-for-me);
     property <bool> working: AppState.busy || AppState.onboarding-saving;
     property <ThemeField> theme: AppearanceState.fields[K.name];
-    property <[string]> theme-names: ["Auto", "Modern", "Classic", "White", "Black"];
+    property <[string]> theme-names: [@tr("Theme name" => "Auto"), @tr("Theme name" => "Modern"), @tr("Theme name" => "Classic"), @tr("Theme name" => "White"), @tr("Theme name" => "Black")];
 
     pure function last-error(id: string) -> string {
         return AppState.action-id == id && !AppState.busy ? AppState.action-error : "";
@@ -144,7 +146,7 @@ export component Onboarding inherits Rectangle {
             drop-shadow-offset-y: 16px;
             drop-shadow-color: Tokens.shadow;
             accessible-role: groupbox;
-            accessible-label: "Set up Nilesoft Shell Pro";
+            accessible-label: @tr("Set up Nilesoft Shell Pro");
 
             body := VerticalLayout {
                 padding: Tokens.s8;
@@ -160,13 +162,13 @@ export component Onboarding inherits Rectangle {
                     VerticalLayout {
                         alignment: center;
                         Text {
-                            text: "Welcome to Nilesoft Shell Pro";
+                            text: @tr("Welcome to Nilesoft Shell Pro");
                             font-size: Tokens.subtitle;
                             font-weight: 600;
                             color: Tokens.text;
                         }
                         Text {
-                            text: "Three steps to set up your context menu.";
+                            text: @tr("Three steps to set up your context menu.");
                             color: Tokens.text-2;
                         }
                     }
@@ -175,9 +177,9 @@ export component Onboarding inherits Rectangle {
                 HorizontalLayout {
                     spacing: Tokens.s5;
                     alignment: start;
-                    StepDot { index: 0; label: "Personal config"; current: root.step; done: root.config-done; }
-                    StepDot { index: 1; label: "Enable"; current: root.step; done: root.enabled-done; }
-                    StepDot { index: 2; label: "Look"; current: root.step; done: false; }
+                    StepDot { index: 0; label: @tr("Personal config"); current: root.step; done: root.config-done; }
+                    StepDot { index: 1; label: @tr("Setup step" => "Enable"); current: root.step; done: root.enabled-done; }
+                    StepDot { index: 2; label: @tr("Setup step" => "Look"); current: root.step; done: false; }
                 }
 
                 Rectangle {
@@ -187,19 +189,19 @@ export component Onboarding inherits Rectangle {
 
                 if !AppState.cli-available: StateRow {
                     kind: "error";
-                    text: "shell.exe wasn't found next to this app, so setup can't run. Reinstall Nilesoft Shell.";
+                    text: @tr("shell.exe wasn't found next to this app, so setup can't run. Reinstall Nilesoft Shell.");
                 }
 
                 // Step 1
                 if root.step == 0: VerticalLayout {
                     spacing: Tokens.s3;
-                    StepTitle { text: "Create your personal config"; }
+                    StepTitle { text: @tr("Create your personal config"); }
                     StepText {
-                        text: "Shell builds its menu from shell.nss. A personal copy in %APPDATA%\\Nilesoft\\Shell is yours to change, needs no administrator rights, and is kept when Shell is updated.";
+                        text: @tr("Shell builds its menu from shell.nss. A personal copy in %APPDATA%\\Nilesoft\\Shell is yours to change, needs no administrator rights, and is kept when Shell is updated.");
                     }
                     if root.config-done: StateRow {
                         kind: "ok";
-                        text: (AppState.status.config-source == "registry" ? "Using the config at " : "Using your personal config: ") + AppState.status.config-path;
+                        text: AppState.status.config-source == "registry" ? @tr("Using the config at {}", AppState.status.config-path) : @tr("Using your personal config: {}", AppState.status.config-path);
                     }
                     if !root.config-done && AppState.busy && AppState.action-id == "config-init": StateRow {
                         kind: "busy";
@@ -207,12 +209,12 @@ export component Onboarding inherits Rectangle {
                     }
                     if !root.config-done && root.last-error("config-init") != "": StateRow {
                         kind: "error";
-                        text: "Couldn't create it: " + root.last-error("config-init");
+                        text: @tr("Couldn't create it: {}", root.last-error("config-init"));
                     }
                     if !root.config-done: HorizontalLayout {
                         alignment: start;
                         AppButton {
-                            text: root.last-error("config-init") != "" ? "Try again" : "Create personal config";
+                            text: root.last-error("config-init") != "" ? @tr("Try again") : @tr("Create personal config");
                             primary: true;
                             enabled: !root.working && AppState.cli-available && AppState.status.loaded;
                             clicked => { AppState.action("config-init"); }
@@ -223,11 +225,11 @@ export component Onboarding inherits Rectangle {
                 // Step 2
                 if root.step == 1: VerticalLayout {
                     spacing: Tokens.s3;
-                    StepTitle { text: "Enable Shell for you"; }
+                    StepTitle { text: @tr("Enable Shell for you"); }
                     StepText {
                         text: root.machine-only
-                            ? "Shell is already enabled for all users on this PC, which includes your account. There's nothing to do here."
-                            : "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences.";
+                            ? @tr("Shell is already enabled for all users on this PC, which includes your account. There's nothing to do here.")
+                            : @tr("Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences.");
                     }
                     if AppState.status.user-registered: StateRow {
                         kind: "ok";
@@ -235,18 +237,18 @@ export component Onboarding inherits Rectangle {
                     }
                     if root.machine-only: StateRow {
                         kind: "ok";
-                        text: "Enabled for all users";
+                        text: @tr("Enabled for all users");
                     }
                     if root.machine-only && !root.also-for-me: HorizontalLayout {
                         alignment: start;
                         Link {
-                            text: "Register it for my account as well";
+                            text: @tr("Register it for my account as well");
                             font-size: Tokens.caption + 1px;
                             activated => { root.also-for-me = true; }
                         }
                     }
                     if root.machine-only && root.also-for-me: StepText {
-                        text: "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home.";
+                        text: @tr("Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home.");
                         font-size: Tokens.caption + 1px;
                     }
                     if root.offer-register && AppState.status.win11-applicable: HorizontalLayout {
@@ -262,7 +264,7 @@ export component Onboarding inherits Rectangle {
                             }
                         }
                         classic-label := Text {
-                            text: "Use the classic context menu on Windows 11";
+                            text: @tr("Use the classic context menu on Windows 11");
                             color: root.working ? Tokens.text-3 : Tokens.text;
                             vertical-alignment: center;
                         }
@@ -273,12 +275,12 @@ export component Onboarding inherits Rectangle {
                     }
                     if root.offer-register && root.last-error("register-user") != "": StateRow {
                         kind: "error";
-                        text: "Couldn't enable it: " + root.last-error("register-user");
+                        text: @tr("Couldn't enable it: {}", root.last-error("register-user"));
                     }
                     if root.offer-register: HorizontalLayout {
                         alignment: start;
                         AppButton {
-                            text: root.also-for-me ? "Enable for my account too" : "Enable for me";
+                            text: root.also-for-me ? @tr("Enable for my account too") : @tr("Enable for me");
                             primary: true;
                             icon: Icons.person-add;
                             colorize-icon: true;
@@ -287,7 +289,7 @@ export component Onboarding inherits Rectangle {
                         }
                     }
                     if root.enabled-done && AppState.status.win11-applicable: StepText {
-                        text: "Windows 11 menu: " + AppState.status.win11-text;
+                        text: @tr("Windows 11 menu: {}", AppState.status.win11-text);
                         font-size: Tokens.caption + 1px;
                     }
                 }
@@ -295,9 +297,9 @@ export component Onboarding inherits Rectangle {
                 // Step 3
                 if root.step == 2: VerticalLayout {
                     spacing: Tokens.s3;
-                    StepTitle { text: "Pick a look"; }
+                    StepTitle { text: @tr("Pick a look"); }
                     StepText {
-                        text: "Auto follows the Windows menu style. Colours, fonts and corners are on the Appearance page.";
+                        text: @tr("Auto follows the Windows menu style. Colours, fonts and corners are on the Appearance page.");
                     }
                     ThemePicker {
                         one-row: true;
@@ -316,19 +318,19 @@ export component Onboarding inherits Rectangle {
                     if !AppState.onboarding-saving && AppState.onboarding-error == "": StepText {
                         font-size: Tokens.caption + 1px;
                         text: !AppearanceState.loaded
-                            ? (AppearanceState.load-error != "" ? "Create your personal config in step 1 to choose a theme." : "Reading your config…")
+                            ? (AppearanceState.load-error != "" ? @tr("Create your personal config in step 1 to choose a theme.") : @tr("Reading your config…"))
                             : root.theme.locked
-                            ? "Your config sets the theme with an expression, so it can't be changed here. Edit it in the Config Editor."
+                            ? @tr("Your config sets the theme with an expression, so it can't be changed here. Edit it in the Config Editor.")
                             : root.theme.pending
                             ? (root.config-done
-                                ? root.theme-names[root.theme.index] + " is saved when you press Finish, after shell.exe checks the config."
-                                : "Finish creates your personal config, then saves " + root.theme-names[root.theme.index] + " there.")
-                            : "In use: " + root.theme-names[root.theme.index] + " · " + root.theme.origin;
+                                ? @tr("{} is saved when you press Finish, after shell.exe checks the config.", root.theme-names[root.theme.index])
+                                : @tr("Finish creates your personal config, then saves {} there.", root.theme-names[root.theme.index]))
+                            : @tr("In use: {0} · {1}", root.theme-names[root.theme.index], root.theme.origin);
                     }
                     // The theme presets are on the Appearance page: the link finishes (saving
                     // a theme picked above) and opens that page behind the dialog.
                     if PresetsState.presets.length > 0: Link {
-                        text: "More themes on the Appearance page";
+                        text: @tr("More themes on the Appearance page");
                         font-size: Tokens.caption + 1px;
                         activated => {
                             if (!root.working) {
@@ -340,7 +342,7 @@ export component Onboarding inherits Rectangle {
                     HorizontalLayout {
                         spacing: Tokens.s3;
                         AppButton {
-                            text: "Restart Explorer";
+                            text: @tr("Restart Explorer");
                             icon: Icons.restart;
                             colorize-icon: true;
                             enabled: !root.working && AppState.cli-available;
@@ -353,8 +355,8 @@ export component Onboarding inherits Rectangle {
                             text: AppState.busy && AppState.action-id == "restart"
                                 ? AppState.busy-label
                                 : root.last-error("restart") != ""
-                                ? "Explorer didn't restart: " + root.last-error("restart")
-                                : "Do this once after enabling Shell. Theme changes show on the next right-click.";
+                                ? @tr("Explorer didn't restart: {}", root.last-error("restart"))
+                                : @tr("Do this once after enabling Shell. Theme changes show on the next right-click.");
                             color: root.last-error("restart") != "" ? Tokens.danger : Tokens.text-2;
                         }
                     }
@@ -364,24 +366,24 @@ export component Onboarding inherits Rectangle {
                     spacing: Tokens.s2;
                     padding-top: Tokens.s2;
                     AppButton {
-                        text: "Skip setup";
+                        text: @tr("Skip setup");
                         enabled: !root.working;
                         clicked => { AppState.dismiss-onboarding(); }
                     }
                     Rectangle { horizontal-stretch: 1; }
                     if root.step > 0: AppButton {
-                        text: "Back";
+                        text: @tr("Back");
                         enabled: !root.working;
                         clicked => { AppState.onboarding-step -= 1; }
                     }
                     if root.step < 2: AppButton {
-                        text: "Next";
+                        text: @tr("Next");
                         primary: true;
                         enabled: !AppState.onboarding-saving;
                         clicked => { AppState.onboarding-step += 1; }
                     }
                     if root.step == 2: AppButton {
-                        text: AppState.onboarding-saving ? "Saving…" : "Finish";
+                        text: AppState.onboarding-saving ? @tr("Saving…") : @tr("Finish");
                         primary: true;
                         enabled: !root.working;
                         clicked => { AppState.finish-onboarding(); }

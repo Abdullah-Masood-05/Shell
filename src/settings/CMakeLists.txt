@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.21)
 
 # Nilesoft Shell Pro, the app (NilesoftShellPro.exe; the CMake target is still called
 # "settings"). It talks to the core only through shell.exe, files and HKCU: nothing here
-# includes src/shared or links the core.
+# includes src/shared or links the core. (settings_tests includes src/shared/ConfigUpgrade.h,
+# the logic behind `shell.exe -config:upgrade`, to test it.)
 
 # The version comes from the core's Resource.h, read by regex (never #included).
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../shared/Resource.h" _resource_h)
@@ -74,6 +75,9 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 # The theme presets (presets/themes/*.nss), embedded as ThemePresetsData.inc.
 include(cmake/ThemePresets.cmake)
 
+# The UI translations (translations/*/LC_MESSAGES/*.po), for Slint and for src/Tr.cpp.
+include(cmake/Translations.cmake)
+
 add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
@@ -82,6 +86,8 @@ add_executable(settings WIN32
     src/BackupsModel.cpp
     src/BehaviorController.cpp
     src/ConfigRules.cpp
+    src/ConfigUpdate.cpp
+    src/ConfigUpdateController.cpp
     src/ContextMenusController.cpp
     src/Diff.cpp
     src/Dwm.cpp
@@ -107,15 +113,24 @@ add_executable(settings WIN32
     src/Status.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
+    src/Tr.cpp
     src/UpdateController.cpp
     src/Updater.cpp
     src/Wallpaper.cpp
+    src/WindowsTitles.cpp
     src/Worker.cpp
     "${CMAKE_CURRENT_BINARY_DIR}/settings.rc"
 )
 slint_target_sources(settings ui/app.slint)
+# @tr() strings get no default context (the component name), so a string that several
+# components and the C++ side share is translated once.
+set_target_properties(settings PROPERTIES
+    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_TRANSLATIONS_DIR}"
+    SLINT_TRANSLATION_DOMAIN "${SETTINGS_TRANSLATION_DOMAIN}"
+    SLINT_NO_DEFAULT_TRANSLATION_CONTEXT ON)
+add_dependencies(settings translations_data)
 
-target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}")
+target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
     SETTINGS_VERSION="${SETTINGS_FULL_VERSION}")
@@ -158,8 +173,11 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_indexof.cpp
         tests/test_presets.cpp
         tests/test_updater.cpp
+        tests/test_tr.cpp
+        tests/test_config_upgrade.cpp
         src/BackupsModel.cpp
         src/ConfigRules.cpp
+        src/ConfigUpdate.cpp
         src/Diff.cpp
         src/EditorSession.cpp
         src/ExcludeRules.cpp
@@ -169,19 +187,22 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/Status.cpp
         src/ThemeModel.cpp
         src/ThemePresets.cpp
+        src/Tr.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
         src/OtherApps.cpp
         src/Updater.cpp
+        src/WindowsTitles.cpp
     )
-    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}")
+    target_include_directories(settings_tests PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/nss/third_party/doctest" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
+    add_dependencies(settings_tests translations_data)
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 winhttp bcrypt)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()

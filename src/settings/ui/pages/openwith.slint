@@ -38,6 +38,7 @@ component SectionHead inherits HorizontalLayout {
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     VerticalLayout {
@@ -98,6 +99,7 @@ component FormRow inherits HorizontalLayout {
             text: root.label;
             color: Tokens.text-2;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
     VerticalLayout {
@@ -109,6 +111,7 @@ component FormRow inherits HorizontalLayout {
             font-size: Tokens.caption;
             color: root.hint-warning ? Tokens.warning : Tokens.text-3;
             wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 }
@@ -201,7 +204,7 @@ component AppItem inherits Rectangle {
                     overflow: elide;
                 }
                 if root.entry.custom: Text {
-                    text: "Added by you";
+                    text: @tr("Added by you");
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                     vertical-alignment: center;
@@ -231,7 +234,7 @@ component AppItem inherits Rectangle {
         if !root.entry.found: VerticalLayout {
             alignment: center;
             Button {
-                text: "Locate…";
+                text: @tr("Locate…");
                 enabled: !root.locked;
                 clicked => { root.locate(); }
             }
@@ -241,7 +244,7 @@ component AppItem inherits Rectangle {
             Toggle {
                 on: root.entry.enabled;
                 enabled: !root.locked && root.entry.found;
-                label: "Show " + root.entry.name + " in the menu";
+                label: @tr("Show {} in the menu", root.entry.name);
                 toggled(on) => { root.toggled(on); }
             }
         }
@@ -261,8 +264,8 @@ component AppEditor inherits Rectangle {
         spacing: Tokens.s3;
 
         FormRow {
-            label: "Name";
-            hint: OpenWithState.submenu ? "Shown in the submenu as is." : "Shown as \"Open in " + OpenWithState.form.name + "\".";
+            label: @tr("Name");
+            hint: OpenWithState.submenu ? @tr("Shown in the submenu as is.") : @tr("Shown as \"Open in {}\".", OpenWithState.form.name);
             TextField {
                 field: "name";
                 value: OpenWithState.form.name;
@@ -272,7 +275,7 @@ component AppEditor inherits Rectangle {
             }
         }
         FormRow {
-            label: "Program";
+            label: @tr("Program");
             HorizontalLayout {
                 spacing: Tokens.s2;
                 TextField {
@@ -284,15 +287,15 @@ component AppEditor inherits Rectangle {
                     placeholder-text: "C:\\Program Files\\App\\app.exe";
                 }
                 Button {
-                    text: "Browse…";
+                    text: @tr("Browse…");
                     enabled: !root.locked;
                     clicked => { OpenWithState.browse-program(); }
                 }
             }
         }
         FormRow {
-            label: "Arguments";
-            hint: "{path} the selected item, quoted · {paths} every selected item · {dir} its folder · {name} its name";
+            label: @tr("Arguments");
+            hint: @tr("{{path}} the selected item, quoted · {{paths}} every selected item · {{dir}} its folder · {{name}} its name");
             TextField {
                 field: "args";
                 value: OpenWithState.form.args;
@@ -302,7 +305,7 @@ component AppEditor inherits Rectangle {
             }
         }
         FormRow {
-            label: "Icon";
+            label: @tr("Icon");
             HorizontalLayout {
                 spacing: Tokens.s2;
                 TextField {
@@ -311,23 +314,23 @@ component AppEditor inherits Rectangle {
                     value: OpenWithState.form.icon;
                     serial: OpenWithState.form-serial;
                     enabled: !root.locked;
-                    placeholder-text: "The program's own icon";
+                    placeholder-text: @tr("The program's own icon");
                 }
                 Button {
-                    text: "Browse…";
+                    text: @tr("Browse…");
                     enabled: !root.locked;
                     clicked => { OpenWithState.browse-icon(); }
                 }
             }
         }
         FormRow {
-            label: "Shows for";
+            label: @tr("Shows for");
             HorizontalLayout {
                 spacing: Tokens.s2;
                 ChoiceField {
                     width: 260px;
                     enabled: !root.locked;
-                    model: ["Everything the menu shows on", "Files only", "Folders only", "Files with these extensions"];
+                    model: [@tr("Everything the menu shows on"), @tr("Files only"), @tr("Folders only"), @tr("Files with these extensions")];
                     field: "scope";
                     value: OpenWithState.form.scope;
                     serial: OpenWithState.form-serial;
@@ -343,10 +346,10 @@ component AppEditor inherits Rectangle {
             }
         }
         if OpenWithState.form.own != "": FormRow {
-            label: "Its own items";
-            hint: "Switched off, the app also hides " + OpenWithState.form.own + ". Tick this to hide only the item this page adds.";
+            label: @tr("Its own items");
+            hint: @tr("Switched off, the app also hides {}. Tick this to hide only the item this page adds.", OpenWithState.form.own);
             FlagField {
-                text: "Keep the app's own menu items when it's off";
+                text: @tr("Keep the app's own menu items when it's off");
                 enabled: !root.locked;
                 field: "keep-own";
                 value: OpenWithState.form.keep-own;
@@ -356,7 +359,7 @@ component AppEditor inherits Rectangle {
         FormRow {
             label: "";
             FlagField {
-                text: "Run as administrator";
+                text: @tr("Run as administrator");
                 enabled: !root.locked;
                 field: "admin";
                 value: OpenWithState.form.admin;
@@ -369,21 +372,21 @@ component AppEditor inherits Rectangle {
             spacing: Tokens.s2;
             padding-left: 112px + Tokens.s3;
             Button {
-                text: "Test";
+                text: @tr("Button" => "Test");
                 clicked => { OpenWithState.test(); }
             }
             Button {
-                text: "Move up";
+                text: @tr("Move up");
                 enabled: OpenWithState.can-up && !root.locked;
                 clicked => { OpenWithState.move-up(); }
             }
             Button {
-                text: "Move down";
+                text: @tr("Move down");
                 enabled: OpenWithState.can-down && !root.locked;
                 clicked => { OpenWithState.move-down(); }
             }
             if OpenWithState.form.custom: Button {
-                text: "Remove";
+                text: @tr("Remove");
                 enabled: !root.locked;
                 clicked => { OpenWithState.remove(); }
             }
@@ -398,7 +401,7 @@ component AppEditor inherits Rectangle {
                 padding: Tokens.s3;
                 spacing: Tokens.s2;
                 Text {
-                    text: "Clicking the item would run (nothing was started):";
+                    text: @tr("Clicking the item would run (nothing was started):");
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                 }
@@ -414,6 +417,7 @@ component AppEditor inherits Rectangle {
                         text: line.command;
                         color: Tokens.text;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 if OpenWithState.test-note != "": Text {
@@ -421,6 +425,7 @@ component AppEditor inherits Rectangle {
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
         }
@@ -486,7 +491,7 @@ component OtherItem inherits Rectangle {
             if root.entry.leftover && root.entry.shown: VerticalLayout {
                 alignment: center;
                 Button {
-                    text: "Hide";
+                    text: @tr("Hide");
                     enabled: !root.locked;
                     clicked => { OpenWithState.other-toggle(root.index, false); }
                 }
@@ -496,7 +501,7 @@ component OtherItem inherits Rectangle {
                 Toggle {
                     on: root.entry.shown;
                     enabled: !root.locked;
-                    label: "Show " + root.entry.title + " in the menu";
+                    label: @tr("Show {} in the menu", root.entry.title);
                     toggled(on) => { OpenWithState.other-toggle(root.index, on); }
                 }
             }
@@ -506,13 +511,13 @@ component OtherItem inherits Rectangle {
             spacing: Tokens.s3;
             Text {
                 vertical-alignment: center;
-                text: "Title to hide";
+                text: @tr("Title to hide");
                 color: Tokens.text-2;
             }
             LineEdit {
                 horizontal-stretch: 1;
                 enabled: !root.locked;
-                placeholder-text: "Exactly as the menu shows it";
+                placeholder-text: @tr("Exactly as the menu shows it");
                 init => { self.text = root.entry.hide-title; }
                 edited(t) => { OpenWithState.other-title(root.index, t); }
             }
@@ -524,6 +529,7 @@ component OtherItem inherits Rectangle {
                 font-size: Tokens.caption;
                 color: Tokens.warning;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
         }
     }
@@ -613,17 +619,17 @@ export component OpenWithPage inherits PageFrame {
     init => { OpenWithState.activated(); }
 
     PageHeader {
-        title: "Open with";
-        description: "Open the selected file or folder in your editor or terminal from the right-click menu.";
+        title: @tr("Open with");
+        description: @tr("Open the selected file or folder in your editor or terminal from the right-click menu.");
         busy: OpenWithState.saving;
-        busy-label: "Checking and saving…";
+        busy-label: @tr("Checking and saving…");
         Button {
-            text: "Discard";
+            text: @tr("Discard");
             enabled: OpenWithState.dirty && !OpenWithState.saving;
             clicked => { OpenWithState.discard(); }
         }
         Button {
-            text: "Save";
+            text: @tr("Save");
             primary: true;
             enabled: OpenWithState.dirty && !OpenWithState.saving && !root.locked;
             clicked => { OpenWithState.save(); }
@@ -633,44 +639,44 @@ export component OpenWithPage inherits PageFrame {
     if OpenWithState.shared-config: Banner {
         height: self.preferred-height; // never squeezed when the page scrolls
         kind: "info";
-        title: "This is the shared config in the install folder";
-        text: "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to add apps to the menu.";
-        action-label: "Create personal config";
+        title: @tr("This is the shared config in the install folder");
+        text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to add apps to the menu.");
+        action-label: @tr("Create personal config");
         action-enabled: !AppState.busy && AppState.cli-available;
         action => { OpenWithState.create-user-config(); }
     }
     if OpenWithState.import-off: Banner {
         height: self.preferred-height; // never squeezed when the page scrolls
         kind: "warning";
-        title: "These items are turned off";
-        text: "shell.nss imports this file, but the line is commented out. Turn \"Open with\" back on in Context Menus to see them.";
-        action-label: "Open Context Menus";
+        title: @tr("These items are turned off");
+        text: @tr("shell.nss imports this file, but the line is commented out. Turn \"Open with\" back on in Context Menus to see them.");
+        action-label: @tr("Open Context Menus");
         action => { OpenWithState.open-context-menus(); }
     }
     if OpenWithState.first-run && OpenWithState.loaded && !OpenWithState.shared-config: Banner {
         height: self.preferred-height; // never squeezed when the page scrolls
         kind: "info";
-        title: "Not in your menu yet";
-        text: OpenWithState.found-count == 0 ? "None of the listed apps were found on this PC. Use Locate… or Add app, then Save." : "The editors found on this PC are switched on below; terminals and Notepad are off because the Terminal and Develop menus have them. Save to add them to the menu.";
+        title: @tr("Not in your menu yet");
+        text: OpenWithState.found-count == 0 ? @tr("None of the listed apps were found on this PC. Use Locate… or Add app, then Save.") : @tr("The editors found on this PC are switched on below; terminals and Notepad are off because the Terminal and Develop menus have them. Save to add them to the menu.");
     }
     if OpenWithState.notice != "": Banner {
         height: self.preferred-height; // never squeezed when the page scrolls
         kind: "warning";
-        title: "Part of the file can't be shown here";
+        title: @tr("Part of the file can't be shown here");
         text: OpenWithState.notice;
     }
     if OpenWithState.load-error != "": Banner {
         height: self.preferred-height; // never squeezed when the page scrolls
         kind: "error";
-        title: "Couldn't read the Open with items";
+        title: @tr("Couldn't read the Open with items");
         text: OpenWithState.load-error;
     }
 
     SectionHead {
-        title: "Apps";
-        caption: !OpenWithState.loaded ? "Looking for installed apps…" : "Found " + OpenWithState.found-count + " of " + OpenWithState.preset-count + " known apps on this PC. An item stays hidden while its program is missing.";
+        title: @tr("Apps");
+        caption: !OpenWithState.loaded ? @tr("Looking for installed apps…") : @tr("Found {0} of {1} known apps on this PC. An item stays hidden while its program is missing.", OpenWithState.found-count, OpenWithState.preset-count);
         Button {
-            text: "Add app";
+            text: @tr("Add app");
             enabled: !root.locked;
             clicked => { OpenWithState.add-custom(); }
         }
@@ -680,7 +686,7 @@ export component OpenWithPage inherits PageFrame {
             height: 52px;
             vertical-alignment: center;
             horizontal-alignment: center;
-            text: OpenWithState.loaded ? "No apps." : "Looking for installed apps…";
+            text: OpenWithState.loaded ? @tr("No apps.") : @tr("Looking for installed apps…");
             color: Tokens.text-3;
         }
         // Presets that weren't found stay folded away until asked for (or selected).
@@ -707,7 +713,7 @@ export component OpenWithPage inherits PageFrame {
                 padding-bottom: Tokens.s2;
                 Link {
                     font-size: Tokens.caption + 1px;
-                    text: OpenWithState.show-missing ? "Hide the apps that weren't found" : "Show " + OpenWithState.missing-count + (OpenWithState.missing-count == 1 ? " more app that wasn't found on this PC" : " more apps that weren't found on this PC");
+                    text: OpenWithState.show-missing ? @tr("Hide the apps that weren't found") : @tr("Show {n} more app that wasn't found on this PC" | "Show {n} more apps that weren't found on this PC" % OpenWithState.missing-count);
                     activated => { OpenWithState.show-missing = !OpenWithState.show-missing; }
                 }
                 Rectangle { horizontal-stretch: 1; }
@@ -716,8 +722,8 @@ export component OpenWithPage inherits PageFrame {
     }
 
     SectionHead {
-        title: "In the menu";
-        caption: OpenWithState.options-problem != "" ? OpenWithState.options-problem : "Where the items show, and whether they're grouped in a submenu.";
+        title: @tr("In the menu");
+        caption: OpenWithState.options-problem != "" ? OpenWithState.options-problem : @tr("Where the items show, and whether they're grouped in a submenu.");
     }
     ListSurface {
         VerticalLayout {
@@ -727,10 +733,10 @@ export component OpenWithPage inherits PageFrame {
             padding-bottom: Tokens.s3;
             spacing: Tokens.s3;
             FormRow {
-                label: "Layout";
-                hint: (OpenWithState.submenu ? "One submenu with each app inside it, " : "Each app is its own \"Open in …\" item, in this order, ") + "right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu.";
+                label: @tr("Layout");
+                hint: OpenWithState.submenu ? @tr("One submenu with each app inside it, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu.") : @tr("Each app is its own \"Open in …\" item, in this order, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu.");
                 FlagField {
-                    text: "Group in an \"Open in\" submenu";
+                    text: @tr("Group in an \"Open in\" submenu");
                     enabled: !root.locked;
                     field: "submenu";
                     value: OpenWithState.submenu;
@@ -738,8 +744,8 @@ export component OpenWithPage inherits PageFrame {
                 }
             }
             if OpenWithState.submenu: FormRow {
-                label: "Submenu title";
-                hint: "Windows already has an \"Open with\" item on files, so a different title tells them apart.";
+                label: @tr("Submenu title");
+                hint: @tr("Windows already has an \"Open with\" item on files, so a different title tells them apart.");
                 TextField {
                     field: "title";
                     value: OpenWithState.title;
@@ -749,32 +755,32 @@ export component OpenWithPage inherits PageFrame {
                 }
             }
             FormRow {
-                label: "Shows on";
+                label: @tr("Shows on");
                 HorizontalLayout {
                     spacing: Tokens.s4;
                     FlagField {
-                        text: "Files";
+                        text: @tr("Files");
                         enabled: !root.locked;
                         field: "files";
                         value: OpenWithState.show-files;
                         serial: OpenWithState.options-serial;
                     }
                     FlagField {
-                        text: "Folders";
+                        text: @tr("Folders");
                         enabled: !root.locked;
                         field: "folders";
                         value: OpenWithState.show-folders;
                         serial: OpenWithState.options-serial;
                     }
                     FlagField {
-                        text: "Folder background";
+                        text: @tr("Folder background");
                         enabled: !root.locked;
                         field: "background";
                         value: OpenWithState.show-background;
                         serial: OpenWithState.options-serial;
                     }
                     FlagField {
-                        text: "Desktop";
+                        text: @tr("Desktop");
                         enabled: !root.locked;
                         field: "desktop";
                         value: OpenWithState.show-desktop;
@@ -792,13 +798,13 @@ export component OpenWithPage inherits PageFrame {
                 spacing: Tokens.s3;
                 Segmented {
                     width: 240px;
-                    options: ["Preview", "Generated .nss"];
+                    options: [@tr("Preview"), @tr("Generated .nss")];
                     selected: root.bottom-tab;
                     changed(i) => { root.bottom-tab = i; }
                 }
                 if root.bottom-tab == 0: Segmented {
                     width: 300px;
-                    options: ["A file", "A folder", "Background"];
+                    options: [@tr("A file"), @tr("A folder"), @tr("Right-click target" => "Background")];
                     selected: OpenWithState.preview-kind;
                     changed(i) => { OpenWithState.set-preview-kind(i); }
                 }
@@ -806,7 +812,7 @@ export component OpenWithPage inherits PageFrame {
                     horizontal-stretch: 1;
                     vertical-alignment: center;
                     horizontal-alignment: right;
-                    text: root.bottom-tab == 0 ? "Approximate" : "Save writes " + OpenWithState.file-label;
+                    text: root.bottom-tab == 0 ? @tr("Approximate") : @tr("Save writes {}", OpenWithState.file-label);
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                     overflow: elide;
@@ -825,6 +831,7 @@ export component OpenWithPage inherits PageFrame {
                     text: OpenWithState.preview-empty;
                     color: Tokens.text-3;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
                 main := PreviewMenu {
                     x: Tokens.s4;
@@ -857,15 +864,15 @@ export component OpenWithPage inherits PageFrame {
     }
 
     SectionHead {
-        title: "Other apps' menu items";
-        caption: "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed.";
+        title: @tr("Other apps' menu items");
+        caption: @tr("Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed.");
     }
     ListSurface {
         if !OpenWithState.others-loaded || OpenWithState.others.length == 0: Text {
             height: 52px;
             vertical-alignment: center;
             horizontal-alignment: center;
-            text: OpenWithState.others-loaded ? "No other program adds items to the menu for files, folders or drives." : "Reading the registry…";
+            text: OpenWithState.others-loaded ? @tr("No other program adds items to the menu for files, folders or drives.") : @tr("Reading the registry…");
             color: Tokens.text-3;
         }
         for o[i] in OpenWithState.others: VerticalLayout {
@@ -887,16 +894,17 @@ export component OpenWithPage inherits PageFrame {
                         color: Tokens.text-2;
                     }
                     if o.leftover: Text {
-                        text: "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is.";
+                        text: @tr("Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is.");
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                         wrap: word-wrap;
+                        min-height: self.preferred-height;
                     }
                 }
                 if o.leftover && OpenWithState.others-leftovers > 1: VerticalLayout {
                     alignment: center;
                     Button {
-                        text: "Hide all " + OpenWithState.others-leftovers;
+                        text: @tr("Hide all {}", OpenWithState.others-leftovers);
                         enabled: !root.locked;
                         clicked => { OpenWithState.hide-leftovers(); }
                     }
@@ -916,7 +924,7 @@ export component OpenWithPage inherits PageFrame {
                 height: 36px;
                 Text {
                     vertical-alignment: center;
-                    text: "Switched off: " + OpenWithState.others-hidden + ". Each is a remove() rule in " + OpenWithState.file-label + ", after the Open in items.";
+                    text: @tr("Switched off: {0}. Each is a remove() rule in {1}, after the Open in items.", OpenWithState.others-hidden, OpenWithState.file-label);
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     overflow: elide;
@@ -926,7 +934,7 @@ export component OpenWithPage inherits PageFrame {
     }
 
     if OpenWithState.develop-found: SectionHead {
-        title: "Develop menu";
+        title: @tr("Develop menu");
     }
     if OpenWithState.develop-found: ListSurface {
         HorizontalLayout {
@@ -940,15 +948,16 @@ export component OpenWithPage inherits PageFrame {
                 spacing: 2px;
                 alignment: center;
                 Text {
-                    text: "Hide Develop › Editors";
+                    text: @tr("Hide Develop › Editors");
                     font-weight: 600;
                     color: Tokens.text;
                 }
                 Text {
-                    text: OpenWithState.develop-locked ? "develop.nss has its own VS Code and Notepad items, shown while Shift is held. It's read-only here." : "develop.nss has its own VS Code and Notepad items. They only show while Shift is held, so they're left alone by default. Turn this on to keep your editors in one place; the lines are commented out, not deleted.";
+                    text: OpenWithState.develop-locked ? @tr("develop.nss has its own VS Code and Notepad items, shown while Shift is held. It's read-only here.") : @tr("develop.nss has its own VS Code and Notepad items. They only show while Shift is held, so they're left alone by default. Turn this on to keep your editors in one place; the lines are commented out, not deleted.");
                     font-size: Tokens.caption + 1px;
                     color: Tokens.text-2;
                     wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
             VerticalLayout {
@@ -956,7 +965,7 @@ export component OpenWithPage inherits PageFrame {
                 Toggle {
                     on: OpenWithState.develop-hidden;
                     enabled: !root.locked && !OpenWithState.develop-locked;
-                    label: "Hide Develop › Editors";
+                    label: @tr("Hide Develop › Editors");
                     toggled(on) => { OpenWithState.set-flag("hide-develop", on); }
                 }
             }
