@@ -207,6 +207,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
+        SETTINGS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
     target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt)

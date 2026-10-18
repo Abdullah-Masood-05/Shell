@@ -104,6 +104,8 @@ const std::vector<KnownApp> &knownApps()
         { "vscode", "Visual Studio Code",
           { L"%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe", L"%ProgramFiles%\\Microsoft VS Code\\Code.exe" },
           L"code.cmd" },
+        { "everything", "Everything",
+          { L"%ProgramFiles%\\Everything\\Everything.exe", L"%ProgramFiles(x86)%\\Everything\\Everything.exe" }, nullptr },
     };
     return apps;
 }
@@ -172,6 +174,60 @@ bool validId(std::string_view id)
     return std::all_of(id.begin(), id.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'; });
 }
 
+namespace {
+
+// The fields every catalog has. False (and why, in `errors`) for an entry to leave out.
+bool readEntry(const nlohmann::json &e, Snippet &s, std::set<std::string> &seen, std::vector<std::string> &errors)
+{
+    if (!e.is_object()) {
+        errors.push_back("catalog: an entry is not an object");
+        return false;
+    }
+    s.id = str(e, "id");
+    if (!validId(s.id)) {
+        errors.push_back("catalog: invalid id '" + s.id + "'");
+        return false;
+    }
+    if (!seen.insert(s.id).second) {
+        errors.push_back(s.id + ": listed twice");
+        return false;
+    }
+    s.title = str(e, "title");
+    s.description = str(e, "description");
+    s.category = nss::toLower(str(e, "category"));
+    s.minVersion = str(e, "min_version");
+    s.sha256 = nss::toLower(str(e, "sha256"));
+    if (s.title.empty()) {
+        errors.push_back(s.id + ": no title");
+        return false;
+    }
+    if (!isHex64(s.sha256)) {
+        errors.push_back(s.id + ": no valid sha256");
+        return false;
+    }
+    auto risk = nss::toLower(str(e, "risk"));
+    s.risk = risk == "admin" ? Risk::Admin : risk == "network" ? Risk::Network : Risk::None;
+    if (auto r = e.find("requires"); r != e.end() && r->is_array())
+        for (const auto &x : *r)
+            if (x.is_string() && !x.get<std::string>().empty())
+                s.needs.push_back(x.get<std::string>());
+    if (auto t = e.find("translations"); t != e.end() && t->is_object())
+        for (auto it = t->begin(); it != t->end(); ++it)
+            if (it->is_object())
+                s.translations[it.key()] = Text{ str(*it, "title"), str(*it, "description") };
+    return true;
+}
+
+std::optional<std::string> embedded(std::string_view name)
+{
+    for (const auto &f : kEmbeddedSnippetFiles)
+        if (name == f.name)
+            return std::string(reinterpret_cast<const char *>(f.data), f.size);
+    return std::nullopt;
+}
+
+} // namespace
+
 Catalog parseCatalog(std::string_view json, const std::function<std::optional<std::string>(const std::string &)> &file,
                      std::string_view origin)
 {
@@ -183,49 +239,19 @@ Catalog parseCatalog(std::string_view json, const std::function<std::optional<st
     }
     std::set<std::string> seen;
     for (const auto &e : j["snippets"]) {
-        if (!e.is_object()) {
-            out.errors.push_back("catalog.json: an entry is not an object");
-            continue;
-        }
         Snippet s;
-        s.id = str(e, "id");
-        if (!validId(s.id)) {
-            out.errors.push_back("catalog.json: invalid id '" + s.id + "'");
+        if (!readEntry(e, s, seen, out.errors))
             continue;
-        }
-        if (!seen.insert(s.id).second) {
-            out.errors.push_back(s.id + ": listed twice");
-            continue;
-        }
-        s.title = str(e, "title");
-        s.description = str(e, "description");
-        s.category = nss::toLower(str(e, "category"));
         s.author = str(e, "author");
         s.license = str(e, "license");
         s.source = str(e, "source");
-        s.minVersion = str(e, "min_version");
-        s.sha256 = nss::toLower(str(e, "sha256"));
         s.origin = std::string(origin);
-        if (s.title.empty()) {
-            out.errors.push_back(s.id + ": no title");
-            continue;
-        }
-        auto risk = nss::toLower(str(e, "risk"));
-        s.risk = risk == "admin" ? Risk::Admin : risk == "network" ? Risk::Network : Risk::None;
-        if (auto r = e.find("requires"); r != e.end() && r->is_array())
-            for (const auto &x : *r)
-                if (x.is_string() && !x.get<std::string>().empty())
-                    s.needs.push_back(x.get<std::string>());
-        if (auto t = e.find("translations"); t != e.end() && t->is_object())
-            for (auto it = t->begin(); it != t->end(); ++it)
-                if (it->is_object())
-                    s.translations[it.key()] = Text{ str(*it, "title"), str(*it, "description") };
         auto bytes = file ? file(s.id) : std::nullopt;
         if (!bytes) {
             out.errors.push_back(s.id + ": " + s.id + ".nss is missing");
             continue;
         }
-        if (!isHex64(s.sha256) || hashText(*bytes) != s.sha256) {
+        if (hashText(*bytes) != s.sha256) {
             out.errors.push_back(s.id + ": " + s.id + ".nss doesn't match its sha256");
             continue;
         }
@@ -235,21 +261,132 @@ Catalog parseCatalog(std::string_view json, const std::function<std::optional<st
     return out;
 }
 
+bool validRemotePath(std::string_view path)
+{
+    if (path.size() < 5 || path.size() > 200 || path.substr(path.size() - 4) != ".nss")
+        return false;
+    size_t begin = 0;
+    for (;;) {
+        auto end = path.find('/', begin);
+        auto part = path.substr(begin, end == std::string_view::npos ? std::string_view::npos : end - begin);
+        if (part.empty() || part == "." || part == "..")
+            return false;
+        for (char c : part)
+            if (!std::isalnum(static_cast<unsigned char>(c)) && c != '.' && c != '_' && c != '-')
+                return false;
+        if (end == std::string_view::npos)
+            return true;
+        begin = end + 1;
+    }
+}
+
+std::string rawUrl(std::string_view repository, std::string_view commit, std::string_view path)
+{
+    return "https://raw.githubusercontent.com/" + std::string(repository) + "/" + std::string(commit) + "/" +
+           std::string(path);
+}
+
+Catalog parseRemoteCatalog(std::string_view json, std::string_view origin, std::string_view repository,
+                           std::string_view commit)
+{
+    Catalog out;
+    auto j = nlohmann::json::parse(json, nullptr, false);
+    if (!j.is_object() || !j.contains("snippets") || !j["snippets"].is_array()) {
+        out.errors.push_back("remote catalog: not a catalog (no \"snippets\" list)");
+        return out;
+    }
+    if (str(j, "repository") != repository || nss::toLower(str(j, "commit")) != commit) {
+        out.errors.push_back("remote catalog: not for " + std::string(repository) + " at " + std::string(commit));
+        return out;
+    }
+    const auto author = str(j, "author");
+    const auto authorUrl = str(j, "author_url");
+    std::set<std::string> seen, paths;
+    for (const auto &e : j["snippets"]) {
+        Snippet s;
+        if (!readEntry(e, s, seen, out.errors))
+            continue;
+        const auto path = str(e, "path");
+        if (!validRemotePath(path) || !paths.insert(path).second) {
+            out.errors.push_back(s.id + ": invalid path '" + path + "'");
+            continue;
+        }
+        s.author = author;
+        s.authorUrl = authorUrl;
+        s.source = authorUrl;
+        s.origin = std::string(origin);
+        s.url = rawUrl(repository, commit, path);
+        if (!updater::isAllowedSnippetUrl(s.url)) {
+            out.errors.push_back(s.id + ": not an allowed address: " + s.url);
+            continue;
+        }
+        out.snippets.push_back(std::move(s));
+    }
+    return out;
+}
+
+Fetched fetchText(const Snippet &snippet, const HttpGet &get)
+{
+    Fetched f;
+    if (!snippet.remote() || !updater::isAllowedSnippetUrl(snippet.url)) {
+        f.error = nsp::trf("{} can't be downloaded from this address.", snippet.title);
+        return f;
+    }
+    auto res = get ? get(snippet.url)
+                   : updater::httpGet(snippet.url, [](std::string_view u) { return updater::isAllowedSnippetUrl(u); });
+    if (!res.ok) {
+        if (res.offline)
+            f.error = nsp::tr("Couldn't download the snippet. Check your internet connection and try again.");
+        else
+            f.error = nsp::trf("Couldn't download the snippet: {}",
+                               res.error.empty() ? "HTTP " + std::to_string(res.status) : res.error);
+        return f;
+    }
+    if (hashText(res.body) != snippet.sha256) {
+        f.error = nsp::tr("The downloaded file isn't the version this app checked, so it wasn't used.");
+        return f;
+    }
+    f.ok = true;
+    f.text = normalize(res.body);
+    return f;
+}
+
 Catalog BundledSource::load() const
 {
-    auto get = [](std::string_view name) -> std::optional<std::string> {
-        for (const auto &f : kEmbeddedSnippetFiles)
-            if (name == f.name)
-                return std::string(reinterpret_cast<const char *>(f.data), f.size);
-        return std::nullopt;
-    };
-    auto json = get("catalog.json");
+    auto json = embedded("catalog.json");
     if (!json) {
         Catalog c;
         c.errors.push_back("catalog.json is not embedded");
         return c;
     }
-    return parseCatalog(*json, [&](const std::string &id) { return get(id + ".nss"); }, id());
+    return parseCatalog(*json, [&](const std::string &id) { return embedded(id + ".nss"); }, id());
+}
+
+Catalog RubicSource::load() const
+{
+    auto json = embedded("rubicbg-catalog.json");
+    if (!json) {
+        Catalog c;
+        c.errors.push_back("rubicbg-catalog.json is not embedded");
+        return c;
+    }
+    return parseRemoteCatalog(*json, id(), kRubicRepository, kRubicCommit);
+}
+
+Catalog loadAll()
+{
+    Catalog all;
+    for (auto c : { BundledSource{}.load(), RubicSource{}.load() }) {
+        for (auto &s : c.snippets) {
+            if (all.find(s.id)) {
+                all.errors.push_back(s.id + ": already taken by another source");
+                continue;
+            }
+            all.snippets.push_back(std::move(s));
+        }
+        all.errors.insert(all.errors.end(), c.errors.begin(), c.errors.end());
+    }
+    return all;
 }
 
 // --- requirements -----------------------------------------------------------------------
@@ -340,7 +477,8 @@ std::vector<Entry> parseList(std::string_view text)
 {
     std::vector<Entry> out;
     std::map<std::string, std::string> hashes;
-    for (auto line : lines(normalize(text))) {
+    const auto normalized = normalize(text); // lines() points into it
+    for (auto line : lines(normalized)) {
         auto t = trim(line);
         if (startsWith(t, "// snippet ")) {
             // "// snippet <id> sha256=<hex>"
@@ -411,6 +549,10 @@ Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view 
             plan.error = nsp::trf("There is no snippet called {}.", std::string(id));
             return plan;
         }
+        if (s->text.empty()) {
+            plan.error = nsp::trf("{} isn't downloaded yet.", s->title);
+            return plan;
+        }
         const bool listed = it != entries.end();
         // A copy already there that the user edited (from an earlier time on) is kept.
         auto copy = files.copies.find(s->id);
@@ -453,6 +595,9 @@ Plan planRefresh(const Catalog &catalog, const ConfigFiles &files)
         if (!s)
             continue;
         auto state = copyState(*s, files);
+        // A remote snippet not downloaded: nothing to write it with yet.
+        if (s->text.empty() && (state == CopyState::Outdated || state == CopyState::Missing))
+            continue;
         if (state == CopyState::Outdated || state == CopyState::Missing) {
             plan.writes.push_back(Write{ copyPath(s->id), toCrlf(s->text) });
             plan.changes.push_back((state == CopyState::Missing ? "restore " : "update ") + s->id);
@@ -483,7 +628,7 @@ bool ensureImported(nss::NssDocument &root)
 
 const std::vector<std::string> &knownCategories()
 {
-    static const std::vector<std::string> list = { "files", "folders", "archives", "terminal", "security" };
+    static const std::vector<std::string> list = { "files", "folders", "archives", "terminal", "security", "system", "tools" };
     return list;
 }
 
@@ -499,6 +644,10 @@ const char *categoryLabel(std::string_view category)
         return nsp::mark("Terminal");
     if (category == "security")
         return nsp::mark("Security");
+    if (category == "system")
+        return nsp::mark("Windows");
+    if (category == "tools")
+        return nsp::mark("Apps");
     return nullptr;
 }
 

@@ -1,5 +1,7 @@
-# Embeds the bundled snippets (src/bin/snippets: catalog.json and *.nss) into
-# SnippetsData.inc, included by src/Snippets.cpp, so the exe needs no files beside it.
+# Embeds the bundled snippets (src/bin/snippets: catalog.json and *.nss) and the catalog of
+# RubicBG's snippets (snippets/rubicbg-catalog.json, without their files: the app downloads
+# those) into SnippetsData.inc, included by src/Snippets.cpp, so the exe needs no files
+# beside it.
 # Each file becomes a byte array (no raw-string length limits, no encoding questions);
 # the files are configure dependencies, so editing, adding or removing one re-runs this
 # on the next build.
@@ -9,6 +11,7 @@ set(SNIPPETS_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
 file(GLOB _snippet_files CONFIGURE_DEPENDS "${SNIPPETS_DIR}/*.nss" "${SNIPPETS_DIR}/catalog.json")
 list(SORT _snippet_files)
+list(APPEND _snippet_files "${CMAKE_CURRENT_SOURCE_DIR}/snippets/rubicbg-catalog.json")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_snippet_files})
 
 if(NOT EXISTS "${SNIPPETS_DIR}/catalog.json")
