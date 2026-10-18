@@ -92,15 +92,22 @@ component SnippetItem inherits VerticalLayout {
                 font-size: Tokens.caption + 1px;
                 color: root.entry.available ? Tokens.text-2 : Tokens.text-3;
                 wrap: word-wrap;
+                min-height: self.preferred-height;
             }
             HorizontalLayout {
                 spacing: Tokens.s3;
                 padding-top: 1px;
-                Text {
+                if root.entry.author-url == "": Text {
                     text: @tr("by {}", root.entry.author);
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                     vertical-alignment: center;
+                }
+                // RubicBG's snippets link to his collection.
+                if root.entry.author-url != "": Link {
+                    text: @tr("by {}", root.entry.author);
+                    font-size: Tokens.caption;
+                    activated => { AppState.open-url(root.entry.author-url); }
                 }
                 Link {
                     text: root.entry.expanded ? @tr("Hide code") : @tr("Show code");
@@ -129,7 +136,15 @@ component SnippetItem inherits VerticalLayout {
         }
     }
 
-    if root.entry.expanded: Rectangle {
+    // A remote snippet's code while it downloads, or why it couldn't be.
+    if root.entry.expanded && root.entry.code-status != "": Text {
+        text: root.entry.code-status;
+        font-size: Tokens.caption + 1px;
+        color: Tokens.text-3;
+        wrap: word-wrap;
+        min-height: self.preferred-height;
+    }
+    if root.entry.expanded && root.entry.code-status == "": Rectangle {
         height: min(300px, root.entry.code.length * CodeColors.row-height + 16px);
         border-radius: Tokens.radius-sm;
         background: Tokens.layer-2;
@@ -154,6 +169,26 @@ export component SnippetsPage inherits PageFrame {
         description: @tr("Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved.");
         busy: SnippetsState.busy;
         busy-label: @tr("Checking and saving…");
+    }
+
+    // Where the snippets by RubicBG come from.
+    VerticalLayout {
+        spacing: 2px;
+        Text {
+            text: @tr("The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with.");
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+        HorizontalLayout {
+            alignment: start;
+            Link {
+                text: @tr("RubicBG's snippet collection");
+                font-size: Tokens.caption + 1px;
+                activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
+            }
+        }
     }
 
     if SnippetsState.shared-config: Banner {
@@ -210,25 +245,6 @@ export component SnippetsPage inherits PageFrame {
                 entry: r;
                 locked: SnippetsState.shared-config || SnippetsState.busy;
             }
-        }
-    }
-
-    // RubicBG's collection: a link only (it has no license, so nothing of it is bundled).
-    VerticalLayout {
-        spacing: 2px;
-        padding-top: Tokens.s1;
-        HorizontalLayout {
-            alignment: start;
-            Link {
-                text: @tr("More snippets by RubicBG");
-                activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
-            }
-        }
-        Text {
-            text: @tr("A large community collection on GitHub. It isn't part of this app: read a snippet before you add it to your config in the Config Editor.");
-            font-size: Tokens.caption + 1px;
-            color: Tokens.text-3;
-            wrap: word-wrap;
         }
     }
 }

@@ -59,6 +59,37 @@ void SnippetsController::showCode(const std::string &id)
     push();
 }
 
+void SnippetsController::addTexts(const std::map<std::string, std::string> &texts)
+{
+    if (!catalog_ || texts.empty())
+        return;
+    auto next = std::make_shared<snippets::Catalog>(*catalog_);
+    for (auto &s : next->snippets)
+        if (auto it = texts.find(s.id); it != texts.end() && s.text.empty())
+            s.text = it->second;
+    catalog_ = next;
+}
+
+void SnippetsController::fetchCode(const std::string &id)
+{
+    const auto *s = catalog_ ? catalog_->find(id) : nullptr;
+    if (!s || !s->remote() || !s->text.empty() || fetching_.count(id))
+        return;
+    fetching_.insert(id);
+    codeErrors_.erase(id);
+    worker_.post([this, snippet = *s] {
+        auto f = snippets::fetchText(snippet);
+        slint::invoke_from_event_loop([this, id = snippet.id, f = std::move(f)] {
+            fetching_.erase(id);
+            if (f.ok)
+                addTexts({ { id, f.text } });
+            else
+                codeErrors_[id] = f.error;
+            push();
+        });
+    });
+}
+
 void SnippetsController::bindCallbacks()
 {
     const auto &st = ui_->global<SnippetsState>();
@@ -80,10 +111,13 @@ void SnippetsController::bindCallbacks()
     st.on_toggle([this](slint::SharedString id, bool on) { toggle(str(id), on); });
     st.on_toggle_code([this](slint::SharedString id) {
         auto key = str(id);
-        if (!expanded_.erase(key))
+        if (!expanded_.erase(key)) {
             expanded_.insert(key);
+            fetchCode(key);
+        }
         push();
     });
+
     st.on_create_user_config([this] { ui_->global<AppState>().invoke_action("config-init"); });
 }
 
@@ -128,7 +162,7 @@ void SnippetsController::load(bool refresh)
     auto catalog = catalog_;
     worker_.post([this, gen, root, catalog, refresh]() mutable {
         if (!catalog)
-            catalog = std::make_shared<const snippets::Catalog>(snippets::BundledSource{}.load());
+            catalog = std::make_shared<const snippets::Catalog>(snippets::loadAll());
         auto out = std::make_shared<Loaded>();
         if (!root.empty()) {
             const auto dir = root.parent_path();
@@ -137,12 +171,30 @@ void SnippetsController::load(bool refresh)
                 out->files.list = bytes;
             for (const auto &s : catalog->snippets) {
                 std::string copy;
-                if (nss::readFile(dir / nss::widen(snippets::copyPath(s.id)), copy))
+                if (nss::readFile(dir / nss::widen(snippets::copyPath(s.id)), copy)) {
+                    // A remote snippet's copy that is still the checked file is its text:
+                    // no download needed to show its code.
+                    if (s.remote() && s.text.empty() && snippets::hashText(copy) == s.sha256)
+                        out->texts[s.id] = snippets::normalize(copy);
                     out->files.copies[s.id] = copy;
+                }
                 else
                     out->files.copies[s.id] = std::nullopt;
             }
         }
+        // The refresh needs the text of remote snippets whose copy is outdated or missing:
+        // download those now (a failure only means they wait for the next start).
+        if (refresh && allowWrites_ && !root.empty())
+            for (const auto &s : catalog->snippets) {
+                if (!s.remote() || !s.text.empty())
+                    continue;
+                auto state = snippets::copyState(s, out->files);
+                if (state != snippets::CopyState::Outdated && state != snippets::CopyState::Missing)
+                    continue;
+                auto f = snippets::fetchText(s);
+                if (f.ok)
+                    out->texts[s.id] = std::move(f.text);
+            }
         auto probe = snippets::systemProbe();
         for (const auto &s : catalog->snippets)
             for (const auto &r : s.needs)
@@ -151,6 +203,7 @@ void SnippetsController::load(bool refresh)
             if (gen != gen_)
                 return;
             catalog_ = catalog;
+            addTexts(out->texts);
             loaded_ = std::move(*out);
             haveFiles_ = !root.empty();
             // Categories: the known ones in their order, then any other the catalog has.
@@ -269,15 +322,22 @@ void SnippetsController::push()
 
             const bool expanded = expanded_.count(s.id) > 0;
             int columns = 0;
-            auto lines = expanded ? code(s, columns) : std::make_shared<slint::VectorModel<CodeLine>>();
+            auto lines = expanded && !s.text.empty() ? code(s, columns) : std::make_shared<slint::VectorModel<CodeLine>>();
+            std::string codeStatus;
+            if (expanded && s.text.empty()) {
+                if (auto e = codeErrors_.find(s.id); e != codeErrors_.end())
+                    codeStatus = e->second;
+                else
+                    codeStatus = nsp::tr("Downloading the code…");
+            }
             const char *label = snippets::categoryLabel(s.category);
             rows.push_back(SnippetRow{
-                ss(s.id), ss(title), ss(description), ss(s.author),
+                ss(s.id), ss(title), ss(description), ss(s.author), ss(s.authorUrl), s.remote(),
                 ss(label ? std::string(nsp::tr(label)) : s.category), enabled,
                 // A snippet that is on can always be turned off.
                 needs.empty() || enabled, ss(needs),
                 ss(s.risk == snippets::Risk::Admin ? "admin" : s.risk == snippets::Risk::Network ? "network" : ""),
-                ss(note), expanded, lines, columns });
+                ss(note), expanded, lines, columns, ss(codeStatus) });
         }
     }
     st.set_rows(std::make_shared<slint::VectorModel<SnippetRow>>(rows));
@@ -304,6 +364,38 @@ void SnippetsController::toggle(const std::string &id, bool on)
         toast("error", nsp::tr("Not saved"), nsp::tr("Program Files is never written to."));
         return;
     }
+    // A remote snippet is downloaded (and checked against its hash) first; nothing is
+    // written when that fails.
+    if (on && s->remote() && s->text.empty()) {
+        busy_ = true;
+        busyId_ = id;
+        push();
+        worker_.post([this, snippet = *s] {
+            auto f = snippets::fetchText(snippet);
+            slint::invoke_from_event_loop([this, id = snippet.id, title = snippet.titleIn(nsp::currentLanguage()),
+                                           f = std::move(f)] {
+                busy_ = false;
+                busyId_.clear();
+                if (!f.ok) {
+                    toast("error", nsp::trf("Couldn't turn on {}", title), f.error + " " + nsp::tr("Nothing was changed."));
+                    push();
+                    return;
+                }
+                addTexts({ { id, f.text } });
+                codeErrors_.erase(id);
+                setNow(id, true);
+            });
+        });
+        return;
+    }
+    setNow(id, on);
+}
+
+void SnippetsController::setNow(const std::string &id, bool on)
+{
+    const auto *s = catalog_ ? catalog_->find(id) : nullptr;
+    if (!s)
+        return;
     auto plan = snippets::planSet(*catalog_, loaded_.files, id, on);
     if (!plan.error.empty()) {
         toast("error", nsp::tr("Couldn't change this snippet"), plan.error);

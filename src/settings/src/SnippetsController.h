@@ -1,7 +1,9 @@
 #pragma once
 
 // The Snippets page (ui/pages/snippets.slint, SnippetsState): the catalog (Snippets.h) with
-// a search box and a category filter, one switch per snippet. A switch saves right away:
+// a search box and a category filter, one switch per snippet. A remote snippet (RubicBG's)
+// is downloaded and checked against its hash when it is turned on or its code is shown;
+// a failed download changes nothing. A switch saves right away:
 // the copy and imports/settings-app-snippets.nss are written through nss::ConfigStore,
 // checked with `shell.exe -config:check` on a temporary copy first and snapshotted, so a
 // snippet Shell would reject changes nothing. Once the config is known, copies the user
@@ -34,6 +36,7 @@ private:
     {
         snippets::ConfigFiles files;
         std::map<std::string, std::vector<snippets::Requirement>> requirements; // by id
+        std::map<std::string, std::string> texts; // remote snippets downloaded for the refresh
     };
 
     void bindCallbacks();
@@ -41,6 +44,10 @@ private:
     void load(bool refresh);
     void push();
     void toggle(const std::string &id, bool on);
+    void setNow(const std::string &id, bool on);
+    void fetchCode(const std::string &id);
+    // catalog_ with these remote snippets' text filled in (a new catalog: workers may hold the old one).
+    void addTexts(const std::map<std::string, std::string> &texts);
     void apply(snippets::Plan plan, const std::string &reason, bool quiet);
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
     std::shared_ptr<slint::VectorModel<CodeLine>> code(const snippets::Snippet &s, int &columns);
@@ -56,6 +63,8 @@ private:
     bool haveFiles_ = false;
     std::set<std::string> refreshed_;   // roots whose copies were brought up to date
     std::set<std::string> expanded_;    // ids showing their code
+    std::set<std::string> fetching_;    // remote ids whose code is downloading
+    std::map<std::string, std::string> codeErrors_; // remote ids whose code couldn't be downloaded
     std::string query_;
     int category_ = 0;                  // 0: all, else categories_[category_ - 1]
     std::vector<std::string> categories_;
