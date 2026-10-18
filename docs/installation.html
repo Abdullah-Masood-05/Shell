@@ -27,6 +27,8 @@
 	<li><a href="#scoop">Scoop</a></li>
 	<li><a href="#chocolatey">Chocolatey</a></li>
 </ul><br>
+<p>See also <a href="#config-updates">Updates and your configuration</a>.</p>
+<br>
 <p>Please also note the following reference sections:</p>
 <ul>
 	<li><a href="#cli">Command-Line Help</a></li>
@@ -54,7 +56,9 @@
 			administrator prompt. It installs to <code>C:\Program Files\Nilesoft Shell\</code>, registers Shell for all users
 			with the Windows 11 classic menu, restarts File Explorer and adds <i>Nilesoft Shell Pro</i> to the Start menu.</p>
 		<p>Installing a newer version of Nilesoft Shell Pro over an older one upgrades it in place and
-			keeps your <code>shell.nss</code>. The original Nilesoft Shell must be uninstalled first (see the warning at the top).</p>
+			keeps your <code>shell.nss</code>. The original Nilesoft Shell must be uninstalled first (see the warning at the top).
+			Your personal configuration is brought up to date the next time you open the app; see
+			<a href="#config-updates">Updates and your configuration</a>.</p>
 	</div>
 	<hr>
 	<div id="installer-uninstall">
@@ -63,6 +67,29 @@
 			Shell is unregistered and File Explorer restarts. Your per-user configuration in
 			<code>%APPDATA%\Nilesoft\Shell</code> is left in place.</p>
 	</div>
+</div>
+<br/>
+<div id="config-updates">
+	<h5>Updates and your configuration</h5>
+	<p>Your personal configuration in <code>%APPDATA%\Nilesoft\Shell</code> holds copies of the menu files that come
+		with Shell (<code>shell.nss</code> and the files in <code>imports</code>, such as <code>modify.nss</code> and
+		<code>theme.nss</code>). An update only replaces the program folder, so in older versions those copies stayed as
+		they were and never got the fixes of later versions.</p>
+	<p>Now the next start of the Nilesoft Shell Pro app after an update (from the installer, the portable zip or the
+		app itself) brings them up to date:</p>
+	<ul>
+		<li>A file you never edited is replaced with the one from the new version.</li>
+		<li>A file you edited is left as it is. Home lists it, and you can compare it with the new version or switch to
+			the new version.</li>
+		<li>A file that is missing is added when your configuration imports it.</li>
+		<li>The files the app writes for you (<code>imports\settings-app*.nss</code>) and files of your own are never
+			touched.</li>
+	</ul>
+	<p>Before anything is replaced, all your files are saved as a snapshot on the
+		<a href="/docs/app/backups">Backups</a> page, so you can compare or go back. Nothing of this runs as
+		administrator, and the installer itself never touches your personal files. Without the app, run
+		<code>shell -config:upgrade</code> (or <code>shell -config:init</code>, which does the same for files that already
+		exist).</p>
 </div>
 <br/>
 <div id="portable">
@@ -243,8 +270,17 @@
 		<tr>
 			<td class="syntax-keyword">-config:init [-force]</td>
 			<td>Copy <code>shell.nss</code> and the <code>imports</code> folder from the install folder to
-				<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> is given.
+				<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> is given; the
+				ones you never edited are first brought up to date as with <code>-config:upgrade</code>.
 				Needs no administrator rights.</td>
+		</tr>
+		<tr>
+			<td class="syntax-keyword">-config:upgrade [-take:&lt;file&gt;]</td>
+			<td>Bring the menu files in your personal configuration up to date with the install folder: replace the ones
+				you never edited, add missing ones your configuration imports, and leave the ones you edited. A snapshot
+				of your files is saved first (see <a href="#config-updates">Updates and your configuration</a>).
+				<code>-take:imports/modify.nss</code> also replaces that file if you edited it. Prints the result as
+				JSON. Needs no administrator rights.</td>
 		</tr>
 		<tr>
 			<td class="syntax-keyword">-config:reset</td>

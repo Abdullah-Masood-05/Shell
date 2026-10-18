@@ -69,7 +69,19 @@
 	<tr>
 		<td class="syntax-keyword w-25">-config:init [-force]</td>
 		<td>Copy <code>shell.nss</code> and the <code>imports</code> folder from the program folder to
-			<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> (<code>-f</code>) is given.</td>
+			<code>%APPDATA%\Nilesoft\Shell</code>. Existing files are kept unless <code>-force</code> (<code>-f</code>) is given;
+			the ones you never edited are first brought up to date as with <code>-config:upgrade</code>.</td>
+	</tr>
+	<tr>
+		<td class="syntax-keyword">-config:upgrade [-take:&lt;file&gt;]</td>
+		<td>Bring the per-user copies of the shipped files (<code>shell.nss</code> and <code>imports\**\*.nss</code>) up to
+			date with the program folder. A copy that is a version shipped before (you never edited it) is replaced; a
+			missing file is added when your configuration imports it; a copy you edited is kept and listed. Line endings,
+			a BOM and the app's own <code>import 'imports/settings-app*.nss'</code> lines don't count as edits, and the
+			app's own files are never touched. All your files are saved as a snapshot in the <code>backups</code> folder
+			first (the app's <a href="/docs/app/backups">Backups</a> page). <code>-take:&lt;file&gt;</code>, for example
+			<code>-take:imports/modify.nss</code>, also replaces that file if you edited it. Prints JSON (below); exit code
+			0 if everything went through, 1 if not. With no personal configuration it does nothing.</td>
 	</tr>
 	<tr>
 		<td class="syntax-keyword">-config:reset</td>
@@ -93,6 +105,13 @@
 <pre><code>{"ok":false,"root":"C:\\Users\\me\\AppData\\Roaming\\Nilesoft\\Shell\\shell.nss",
  "errors":[{"file":"...\\imports\\theme.nss","line":12,"column":9,"message":"..."}],
  "warnings":[]}</code></pre>
+
+<p>The output of <code>-config:upgrade</code> lists the files by path relative to the configuration folder.
+	<code>backup</code> is the snapshot taken first, or <code>null</code> when nothing was written.</p>
+<pre><code>{"ok":true,"configDir":"C:\\Users\\me\\AppData\\Roaming\\Nilesoft\\Shell",
+ "installDir":"C:\\Program Files\\Nilesoft Shell","backup":"20261018-120000","backupDir":"...",
+ "updated":["imports/modify.nss"],"added":[],"modified_kept":["imports/theme.nss"],
+ "unchanged":["imports/goto.nss","shell.nss"],"failed":[],"error":null}</code></pre>
 
 <h5 id="status">Status</h5>
 <table class="table">

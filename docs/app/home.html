@@ -61,6 +61,22 @@
 </ul>
 <p><kbd>Open folder</kbd> opens the folder in File Explorer with <code>shell.nss</code> selected.</p>
 
+<h5 id="after-update">After an update</h5>
+<p>Your personal configuration holds copies of the menu files that come with Shell, such as <code>modify.nss</code> and
+	<code>theme.nss</code>. The first time you open the app after an update, it brings those copies up to date, so you
+	get the fixes of the new version:</p>
+<ul>
+	<li>Files you never edited are replaced with the new version. A green banner says
+		<i>Updated N configuration files to this version</i>; <kbd>Open Backups</kbd> shows the snapshot of your files
+		from just before, which you can compare or restore.</li>
+	<li>Files you edited are kept as they are and listed in a blue notice. <kbd>Compare</kbd> shows your copy next to
+		the new version (red lines are only in your copy, green lines are in the new version). <kbd>Use the new
+		version</kbd> replaces your copy, after saving it in <a href="/docs/app/backups">Backups</a>.</li>
+</ul>
+<p>The files the app writes for you, your own files and the shared configuration in the program folder are never
+	changed. This works the same after the installer, the portable zip and the app's own updater; see
+	<a href="/docs/installation#config-updates">Updates and your configuration</a>.</p>
+
 <h5 id="warnings">Warnings and fixes</h5>
 <p>When something needs attention, a banner appears at the top of Home with a button that fixes it:</p>
 <table class="table">
