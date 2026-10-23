@@ -23,7 +23,7 @@ msgstr "关闭"
 msgid "Cut"
 msgstr "剪切"
 
-#: ui/components/code.slint:208 src/AppearanceController.cpp:88 src/OpenWithController.cpp:777 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:662 src/SnippetPreview.cpp:664
+#: ui/components/code.slint:208 src/AppearanceController.cpp:88 src/OpenWithController.cpp:777 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717
 msgid "Copy"
 msgstr "复制"
 
@@ -190,7 +190,7 @@ msgstr "自定义菜单"
 msgid "Open with"
 msgstr "打开方式"
 
-#: ui/components/sidebar.slint:21 ui/pages/snippets.slint:358 src/ConfigRules.cpp:59
+#: ui/components/sidebar.slint:21 ui/pages/snippets.slint:372 src/ConfigRules.cpp:59
 msgid "Snippets"
 msgstr "代码片段"
 
@@ -407,7 +407,7 @@ msgstr "正在安装更新…"
 msgid "Update available: {}"
 msgstr "有可用更新：{}"
 
-#: ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 src/ConfigRules.cpp:752 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:285
+#: ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 ui/pages/appearance.slint:61 ui/pages/appearance.slint:385 src/ConfigRules.cpp:752 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:338
 msgid "Background"
 msgstr "背景"
 
@@ -659,7 +659,7 @@ msgstr "分隔线外边距"
 msgid "Live preview"
 msgstr "实时预览"
 
-#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuMapController.cpp:36 src/MenuModel.cpp:165 src/SnippetPreview.cpp:286
+#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuMapController.cpp:36 src/MenuModel.cpp:165 src/SnippetPreview.cpp:339
 msgid "Desktop"
 msgstr "桌面"
 
@@ -744,7 +744,7 @@ msgstr "立即创建快照"
 msgid "No personal config to back up"
 msgstr "没有可备份的个人配置"
 
-#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:401 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:415 src/Status.cpp:189
 msgid "Create personal config"
 msgstr "创建个人配置"
 
@@ -860,7 +860,7 @@ msgstr "截图"
 msgid "Print Screen saves the open menu"
 msgstr "按 Print Screen 截取打开的菜单"
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:284
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:337
 msgid "Folder"
 msgstr "文件夹"
 
@@ -933,7 +933,7 @@ msgstr[0] "已更改 {n} 个文件"
 msgid "Save"
 msgstr "保存"
 
-#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:399
+#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:413
 msgid "This is the shared config in the install folder"
 msgstr "这是安装文件夹中的共享配置"
 
@@ -941,7 +941,7 @@ msgstr "这是安装文件夹中的共享配置"
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
 msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本，以开启或关闭菜单和规则。"
 
-#: ui/pages/context-menus.slint:237 ui/pages/snippets.slint:407
+#: ui/pages/context-menus.slint:237 ui/pages/snippets.slint:421
 msgid "Couldn't read the config"
 msgstr "无法读取配置"
 
@@ -1049,7 +1049,7 @@ msgstr "第 {} 行，第 {} 列"
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr "Nilesoft Shell 概览：注册状态、当前使用的配置和最近的诊断信息。"
 
-#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 src/AppearanceController.cpp:64 src/OpenWithController.cpp:787 src/SnippetPreview.cpp:666 src/SnippetPreview.cpp:669
+#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 src/AppearanceController.cpp:64 src/OpenWithController.cpp:787 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
 msgid "Refresh"
 msgstr "刷新"
 
@@ -2302,47 +2302,47 @@ msgstr "窗口类名"
 msgid "No window classes."
 msgstr "没有窗口类。"
 
-#: ui/pages/snippets.slint:80
+#: ui/pages/snippets.slint:83
 msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
 msgstr "代码片段添加的菜单项以蓝色标出；灰色的菜单项是菜单中原有的。"
 
-#: ui/pages/snippets.slint:260
+#: ui/pages/snippets.slint:273
 msgid "Runs as administrator"
 msgstr "以管理员身份运行"
 
-#: ui/pages/snippets.slint:264
+#: ui/pages/snippets.slint:277
 msgid "Uses the internet"
 msgstr "需要联网"
 
-#: ui/pages/snippets.slint:279 ui/pages/snippets.slint:286
+#: ui/pages/snippets.slint:292 ui/pages/snippets.slint:299
 msgid "by {}"
 msgstr "作者：{}"
 
-#: ui/pages/snippets.slint:291
+#: ui/pages/snippets.slint:304
 msgid "Hide code"
 msgstr "隐藏代码"
 
-#: ui/pages/snippets.slint:291
+#: ui/pages/snippets.slint:304
 msgid "Show code"
 msgstr "显示代码"
 
-#: ui/pages/snippets.slint:359
+#: ui/pages/snippets.slint:373
 msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
 msgstr "可直接添加到右键菜单的现成小功能。开启后，下次右键单击时就会出现；关闭后即会消失。每次更改在保存前都会先由 Shell 检查。"
 
-#: ui/pages/snippets.slint:381
+#: ui/pages/snippets.slint:395
 msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
 msgstr "标注“作者：RubicBG”的代码片段来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
 
-#: ui/pages/snippets.slint:390
+#: ui/pages/snippets.slint:404
 msgid "RubicBG's snippet collection"
 msgstr "RubicBG 的代码片段合集"
 
-#: ui/pages/snippets.slint:400
+#: ui/pages/snippets.slint:414
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
 msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本，以开启代码片段。"
 
-#: ui/pages/snippets.slint:416
+#: ui/pages/snippets.slint:430
 msgid "Search snippets"
 msgstr "搜索代码片段"
 
@@ -2357,7 +2357,7 @@ msgctxt "Explorer menu"
 msgid "View"
 msgstr "查看"
 
-#: ui/preview/menu-preview.slint:199 src/AppearanceController.cpp:64 src/OpenWithController.cpp:786 src/SnippetPreview.cpp:666 src/SnippetPreview.cpp:669
+#: ui/preview/menu-preview.slint:199 src/AppearanceController.cpp:64 src/OpenWithController.cpp:786 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
 msgid "Sort by"
 msgstr "排序方式"
 
@@ -2602,7 +2602,7 @@ msgstr "已取消"
 msgid "That didn't work"
 msgstr "操作未成功"
 
-#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:666 src/SnippetPreview.cpp:669
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
 msgid "View"
 msgstr "查看"
 
@@ -2626,11 +2626,11 @@ msgstr "开发"
 msgid "New"
 msgstr "新建"
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:670
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:723
 msgid "Display settings"
 msgstr "显示设置"
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:670
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:723
 msgid "Personalize"
 msgstr "个性化"
 
@@ -2702,7 +2702,7 @@ msgstr "快捷方式"
 msgid "Read-only"
 msgstr "只读"
 
-#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:773 src/OpenWithController.cpp:779 src/SnippetPreview.cpp:662 src/SnippetPreview.cpp:664 src/SnippetPreview.cpp:672
+#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:773 src/OpenWithController.cpp:779 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717 src/SnippetPreview.cpp:725
 msgid "Open"
 msgstr "打开"
 
@@ -2710,7 +2710,7 @@ msgstr "打开"
 msgid "Pin to Start"
 msgstr "固定到“开始”屏幕"
 
-#: src/AppearanceController.cpp:94 src/SnippetPreview.cpp:662 src/SnippetPreview.cpp:664 src/SnippetPreview.cpp:667 src/SnippetPreview.cpp:672
+#: src/AppearanceController.cpp:94 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717 src/SnippetPreview.cpp:720 src/SnippetPreview.cpp:725
 msgid "Properties"
 msgstr "属性"
 
@@ -2974,7 +2974,7 @@ msgstr "转到"
 msgid "Jump to common folders and Windows Settings pages."
 msgstr "跳转到常用文件夹和 Windows 设置页面。"
 
-#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:36 src/SnippetPreview.cpp:288
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:36 src/SnippetPreview.cpp:341
 msgid "Taskbar"
 msgstr "任务栏"
 
@@ -3465,7 +3465,7 @@ msgctxt "where"
 msgid "{0}, {1}"
 msgstr "{1}，{0}"
 
-#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:283
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:35 src/SnippetPreview.cpp:336
 msgid "File"
 msgstr "文件"
 
@@ -3776,7 +3776,7 @@ msgstr "{}（第 {} 行）"
 msgid "Not saved: Shell would reject these menus"
 msgstr "未保存：Shell 会拒绝这些菜单"
 
-#: src/MenuMapController.cpp:36 src/SnippetPreview.cpp:287
+#: src/MenuMapController.cpp:36 src/SnippetPreview.cpp:340
 msgid "Drive"
 msgstr "驱动器"
 
@@ -4443,15 +4443,15 @@ msgstr "管理员权限提示已取消。"
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr "无法以管理员身份启动 shell.exe（错误 {}）。"
 
-#: src/SnippetPreview.cpp:674
+#: src/SnippetPreview.cpp:727
 msgid "Task Manager"
 msgstr "任务管理器"
 
-#: src/SnippetPreview.cpp:674
+#: src/SnippetPreview.cpp:727
 msgid "Taskbar settings"
 msgstr "任务栏设置"
 
-#: src/SnippetPreview.cpp:728
+#: src/SnippetPreview.cpp:781
 msgid "Name from the selection"
 msgstr "所选项目的名称"
 
@@ -5193,14 +5193,77 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
+#~ msgid "No visible change"
+#~ msgstr "无可见更改"
+
+#~ msgid "Change icon"
+#~ msgstr "更改图标"
 
 #~ msgid "Add a separator after"
 #~ msgstr "在后面添加分隔线"
 
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移到 {} 的第 {} 个位置"
+
+#~ msgid "multiple selection"
+#~ msgstr "多选"
+
 #~ msgid "on the start"
 #~ msgstr "在“开始”菜单中"
+
+#~ msgid "Move to {}"
+#~ msgstr "移到 {}"
+
+#~ msgid "Change visibility"
+#~ msgstr "更改可见性"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移到中间"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "与表达式匹配的项"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移到底部"
+
+#~ msgid "Change state"
+#~ msgstr "更改状态"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移到 {} 顶部"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移到第 {} 个位置"
+
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
+
+#~ msgid "File Explorer"
+#~ msgstr "文件资源管理器"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移到 {} 底部"
+
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
+
+#~ msgid "Change command"
+#~ msgstr "更改命令"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
 
 #~ msgid "Add a tip"
 #~ msgstr "添加提示"
@@ -5208,71 +5271,8 @@ msgstr "还原以前的版本"
 #~ msgid "Rename to {}"
 #~ msgstr "重命名为 {}"
 
-#~ msgid "no selection"
-#~ msgstr "未选择"
-
-#~ msgid "Change state"
-#~ msgstr "更改状态"
-
-#~ msgid "File Explorer"
-#~ msgstr "文件资源管理器"
-
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
-
-#~ msgid "Move to {}"
-#~ msgstr "移到 {}"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移到 {} 底部"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移到第 {} 个位置"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移到 {} 的第 {} 个位置"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
-#~ msgid "Change icon"
-#~ msgstr "更改图标"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移到中间"
-
-#~ msgid "No visible change"
-#~ msgstr "无可见更改"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
-
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
-
-#~ msgid "Change visibility"
-#~ msgstr "更改可见性"
+#~ msgid "Add a separator before"
+#~ msgstr "在前面添加分隔线"
 
 #~ msgid "Move to the top"
 #~ msgstr "移到顶部"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移到 {} 顶部"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "与表达式匹配的项"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移到底部"
-
-#~ msgid "Change command"
-#~ msgstr "更改命令"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前面添加分隔线"
