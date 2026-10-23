@@ -5,6 +5,7 @@ import { Icons } from "theme/icons.slint";
 import { AppState, Pages, StatusInfo, Diagnostic, Issue, NavEntry } from "types.slint";
 import { Sidebar } from "components/sidebar.slint";
 import { Toast } from "components/toast.slint";
+import { TranslationBanner } from "components/translation-banner.slint";
 import { HomePage } from "pages/home.slint";
 import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
@@ -100,6 +101,7 @@ export component AppWindow inherits Window {
             // and the unsaved-changes footer under it.
             VerticalLayout {
             horizontal-stretch: 1;
+            if AppState.translation-test-active: TranslationBanner { }
             Rectangle {
                 vertical-stretch: 1;
                 background: Tokens.content;

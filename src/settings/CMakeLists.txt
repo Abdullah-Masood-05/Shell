@@ -104,6 +104,7 @@ add_executable(settings WIN32
     src/Highlight.cpp
     src/LogReader.cpp
     src/PendingChanges.cpp
+    src/PoFile.cpp
     src/PresetsController.cpp
     src/MapRules.cpp
     src/MenuBuilderController.cpp
@@ -134,11 +135,20 @@ add_executable(settings WIN32
 slint_target_sources(settings ui/app.slint)
 # @tr() strings get no default context (the component name), so a string that several
 # components and the C++ side share is translated once.
+# Slint bundles po2inc's copy of translations/ (cmake/Translations.cmake), which adds the
+# zz-keys language for the translator preview. The generated code gets src/TrPreviewHook.h
+# first: it routes Slint's bundled lookups to a .po file loaded at run time.
 set_target_properties(settings PROPERTIES
-    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_TRANSLATIONS_DIR}"
+    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_SLINT_TRANSLATIONS_DIR}"
     SLINT_TRANSLATION_DOMAIN "${SETTINGS_TRANSLATION_DOMAIN}"
     SLINT_NO_DEFAULT_TRANSLATION_CONTEXT ON)
 add_dependencies(settings translations_data)
+get_target_property(_settings_sources settings SOURCES)
+foreach(_src IN LISTS _settings_sources)
+    if(_src MATCHES "slint_generated_[^/]*[.]cpp$")
+        set_property(SOURCE "${_src}" APPEND PROPERTY COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/TrPreviewHook.h")
+    endif()
+endforeach()
 
 target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
@@ -184,6 +194,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_presets.cpp
         tests/test_updater.cpp
         tests/test_tr.cpp
+        tests/test_pofile.cpp
         tests/test_config_upgrade.cpp
         tests/test_menumap.cpp
         tests/test_snippets.cpp
@@ -198,6 +209,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/PoFile.cpp
         src/Snippets.cpp
         src/Status.cpp
         src/ThemeModel.cpp
