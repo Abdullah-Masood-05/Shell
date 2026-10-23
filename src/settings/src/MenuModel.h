@@ -67,6 +67,12 @@ struct Node
     std::vector<Prop> extra; // anything else, kept verbatim and written last
     std::vector<Node> children; // menus only
 
+    // Hand edits the builder doesn't edit, written back as they were (lines
+    // joined with '\n', without their common indentation):
+    std::string before;  // comments and other statements just above this entry
+    std::string comment; // a "// ..." comment at the end of its line
+    std::string tail;    // menus: what follows the last child, before the '}'
+
     bool operator==(const Node &) const = default;
 };
 
@@ -107,8 +113,11 @@ int rowOf(const Tree &tree, const Path &path);
 // Adds after `at` as a sibling; into `at` (last child) when it is a menu;
 // at the end of the root when `at` is empty.
 std::optional<Path> add(Tree &tree, const Path &at, Node node);
-std::optional<Path> remove(Tree &tree, const Path &at);  // selects the next sibling, else the previous, else the parent
-std::optional<Path> duplicate(Tree &tree, const Path &at);
+// Selects the next sibling, else the previous, else the parent. The entry's
+// `before` text stays: it moves to the next sibling, else to the end of the
+// parent menu (the caller keeps it for the last entry at the root).
+std::optional<Path> remove(Tree &tree, const Path &at);
+std::optional<Path> duplicate(Tree &tree, const Path &at); // the copy has no `before`/`tail` text
 std::optional<Path> moveUp(Tree &tree, const Path &at);
 std::optional<Path> moveDown(Tree &tree, const Path &at);
 std::optional<Path> indent(Tree &tree, const Path &at);  // into the previous sibling menu, as its last child
@@ -121,8 +130,12 @@ Node makeNode(Kind kind);
 struct ParseResult
 {
     Tree tree;
-    std::vector<std::string> warnings; // statements that were not menu entries (dropped)
+    std::vector<std::string> warnings; // statements that are not menu entries (kept as written)
+    std::string tail;                  // what follows the last entry at the root (see Node::before)
 };
+
+// Joins two kept texts (Node::before, Node::tail) with a line break.
+std::string joinKept(std::string_view first, std::string_view second);
 
 ParseResult parse(const nss::NssDocument &doc);
 ParseResult parse(std::string_view text);

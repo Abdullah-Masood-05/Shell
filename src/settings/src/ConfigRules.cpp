@@ -829,9 +829,11 @@ std::vector<Module> listModules(const nss::NssDocument &root)
             continue; // the Appearance page's file
         m.name = stemOf(m.path);
         m.title = humanize(m.name);
-        m.description = nsp::trf("Imported from {}.", m.path);
+        m.description = nsp::trf("Your own file, imported from {}.", m.path);
+        m.own = m.name.rfind("settings-app", 0) != 0;
         for (const auto &k : kKnown)
             if (m.name == k.stem) {
+                m.own = false;
                 m.title = k.title;
                 m.description = nsp::tr(k.description);
                 if (k.lock) {
@@ -852,6 +854,92 @@ std::vector<Module> listModules(const nss::NssDocument &root)
         out.push_back(std::move(m));
     }
     return out;
+}
+
+namespace {
+
+// "./imports\Mine.nss" -> "imports/mine.nss"
+std::string importKey(std::string_view path)
+{
+    auto k = nss::toLower(nss::trim(path));
+    std::replace(k.begin(), k.end(), '\\', '/');
+    while (k.rfind("./", 0) == 0)
+        k.erase(0, 2);
+    return k;
+}
+
+std::optional<std::string> importPath(const nss::NssDocument &root, const nss::Node &n)
+{
+    auto expr = std::string(root.slice(n.valueSpan));
+    return nss::ConfigGraph::evaluate(expr, {});
+}
+
+} // namespace
+
+bool hasModule(const nss::NssDocument &root, std::string_view path)
+{
+    auto key = importKey(path);
+    for (const auto *n : root.imports())
+        if (n->importKind == nss::ImportKind::Config && n->context.empty())
+            if (auto v = importPath(root, *n); v && importKey(*v) == key)
+                return true;
+    return false;
+}
+
+bool addModule(nss::NssDocument &root, std::string_view path)
+{
+    if (hasModule(root, path))
+        return false;
+    auto list = root.imports();
+    // The run of the app's own imports at the end.
+    size_t first = list.size();
+    for (size_t i = list.size(); i-- > 0;) {
+        const auto *n = list[i];
+        if (n->importKind != nss::ImportKind::Config || !n->context.empty())
+            break;
+        auto v = importPath(root, *n);
+        if (!v || stemOf(*v).rfind("settings-app", 0) != 0)
+            break;
+        first = i;
+    }
+    if (first == list.size())
+        return root.appendImport(path);
+    // At the start of that import's line.
+    const auto &text = root.text();
+    size_t at = list[first]->enabled ? list[first]->span.begin : list[first]->keywordSpan.begin;
+    while (at > 0 && text[at - 1] != '\n' && text[at - 1] != '\r')
+        --at;
+    root.replace(nss::Span{ at, at }, "import " + nss::quoteImportPath(path) + std::string(root.eol()));
+    return true;
+}
+
+bool removeModule(nss::NssDocument &root, size_t importIndex)
+{
+    auto list = root.imports();
+    if (importIndex >= list.size())
+        return false;
+    const auto *n = list[importIndex];
+    if (n->enabled)
+        return root.removeImport(importIndex);
+    // A commented-out import: its whole line, when nothing else is on it.
+    const auto &text = root.text();
+    size_t b = n->keywordSpan.begin;
+    while (b > 0 && text[b - 1] != '\n' && text[b - 1] != '\r')
+        --b;
+    auto e = text.find_first_of("\r\n", n->span.end);
+    auto line = std::string_view(text).substr(b, (e == std::string::npos ? text.size() : e) - b);
+    auto t = nss::trim(line);
+    if (t.substr(0, 2) != "//")
+        return false;
+    auto body = nss::trim(t.substr(2));
+    if (body.size() < 6 || body.substr(0, 6) != "import")
+        return false;
+    if (e != std::string::npos)
+        e += (text[e] == '\r' && e + 1 < text.size() && text[e + 1] == '\n') ? 2 : 1;
+    else
+        e = text.size();
+    root.replace(nss::Span{ b, e }, "");
+    return true;
 }
 
 bool setModuleEnabled(nss::NssDocument &root, size_t importIndex, bool enabled)

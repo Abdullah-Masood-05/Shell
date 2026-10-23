@@ -335,8 +335,6 @@ bool EditorController::readOnly(const editor::FileEntry &e, std::string *reason)
     };
     if (shared_)
         return set(nsp::tr("Shared config: read-only"));
-    if (e.managed)
-        return set(nsp::tr("Managed by the app"));
     if (e.missing || e.unresolved)
         return set(nsp::tr("Not found"));
     if (!isUnder(e.path, root_.parent_path()))
@@ -407,6 +405,7 @@ void EditorController::showCurrent()
     if (current_ < 0) {
         st.set_current_label("");
         st.set_current_path("");
+        st.set_current_managed(false);
         showDoc();
         st.set_lines(std::make_shared<slint::VectorModel<CodeLine>>());
         rehighlightEdit();
@@ -418,6 +417,7 @@ void EditorController::showCurrent()
     st.set_current_label(ss(e.label));
     st.set_current_path(ss(nss::narrow(e.path.wstring())));
     st.set_read_only(ro);
+    st.set_current_managed(e.managed);
     st.set_read_only_reason(ss(reason));
     showDoc();
     updateDirty();

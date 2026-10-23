@@ -1124,11 +1124,16 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
         // top), in the order of the list; no separators between them.
         if (!o.submenu)
             n.extra.push_back({ "pos", std::string(kPosition) });
+        n.extra.insert(n.extra.end(), a.extra.begin(), a.extra.end());
         auto line = "item(" + menus::MenuWriter::props(n) + ")";
         out += indent + (shows(a) ? "" : "// ") + line + nl;
     }
-    if (inMenu)
+    // The user's own lines: in the submenu when they were in it and it's there.
+    if (inMenu) {
+        for (const auto &l : model.keptInMenu)
+            out += l + nl;
         out += "}" + nl;
+    }
 
     // The apps' own entries: "// own app=pwsh verb=PowerShell7x64", then its
     // remove() rule, commented out while the app is on (or keeps them). A
@@ -1160,6 +1165,16 @@ std::string generate(const Model &model, const Env &env, nss::Eol eol)
                 out += "remove(find=" + find + ")" + nl;
         }
     }
+
+    // Lines the user wrote by hand, as written.
+    if (!model.kept.empty() || (!inMenu && !model.keptInMenu.empty())) {
+        out += nl;
+        for (const auto &l : model.kept)
+            out += l + nl;
+        if (!inMenu)
+            for (const auto &l : model.keptInMenu)
+                out += l + nl;
+    }
     return out;
 }
 
@@ -1179,6 +1194,8 @@ ParseResult parse(std::string_view text, const Env &env)
 {
     ParseResult r;
     r.model.options = Options{};
+    if (text.substr(0, 3) == "\xEF\xBB\xBF")
+        text.remove_prefix(3); // the file's bytes, read as they are
     auto lines = splitLines(text);
     struct Meta
     {
@@ -1189,7 +1206,8 @@ ParseResult parse(std::string_view text, const Env &env)
         bool hideOwn = false;
     };
     std::optional<Meta> pending;
-    bool sawHeader = false, sawOptions = false, sawPos = false, olderPos = false;
+    bool sawOptions = false, sawPos = false, olderPos = false;
+    std::string menuTitle; // the submenu's title as written on its line
     std::optional<size_t> pendingHide; // a "// hide" line waiting for its remove()
     struct Own
     {
@@ -1199,15 +1217,53 @@ ParseResult parse(std::string_view text, const Env &env)
     };
     std::vector<Own> owns;
     bool pendingOwn = false; // an "// own" line waiting for its remove()
+
+    // The "Open in" submenu (the page has always given it icon.open_with; a menu
+    // the user added is read like any other lines of theirs):
+    // its first lines up to the '{' and the '}' line are the page's; the
+    // lines between are read like the others.
+    size_t menuFirst = 0, menuOpen = 0, menuClose = 0; // 1-based lines; 0: none
+    auto doc = nss::NssDocument::fromText(std::string(text));
+    const nss::Node *menuNode = nullptr;
+    for (const auto &n : doc.nodes()) {
+        if (n.kind != nss::NodeKind::MenuDecl || n.menuKind != nss::MenuKind::Menu || n.bodySpan.size() < 2)
+            continue;
+        bool icon = std::any_of(n.props.begin(), n.props.end(), [&](const nss::MenuProp &p) {
+            return (p.name == "image" || p.name == "icon") && nss::trim(doc.slice(p.valueSpan)) == "icon.open_with";
+        });
+        if (icon) {
+            menuNode = &n;
+            break;
+        }
+    }
+    if (menuNode) {
+        menuFirst = doc.lineOf(menuNode->span.begin);
+        menuOpen = doc.lineOf(menuNode->bodySpan.begin);
+        menuClose = doc.lineOf(menuNode->bodySpan.end - 1);
+        // A title changed by hand on the menu line wins over the options line's.
+        for (const auto &p : menuNode->props) {
+            bool str = false;
+            auto v = p.name == "title" && p.hasValue ? menus::unquote(doc.slice(p.valueSpan), &str) : std::string();
+            if (str && !v.empty() && v.find('@') == std::string::npos)
+                menuTitle = v;
+        }
+    }
+    auto keep = [&](size_t i) {
+        std::string_view raw = lines[i];
+        while (!raw.empty() && (raw.back() == ' ' || raw.back() == '\t'))
+            raw.remove_suffix(1);
+        (i + 1 > menuOpen && i + 1 < menuClose ? r.model.keptInMenu : r.model.kept).emplace_back(raw);
+    };
+
     for (size_t i = 0; i < lines.size(); ++i) {
         std::string_view line = nss::trim(lines[i]);
-        if (line.empty() || line == "{" || line == "}")
+        if (line.empty())
             continue;
+        if (menuFirst && ((i + 1 >= menuFirst && i + 1 <= menuOpen) || i + 1 == menuClose))
+            continue; // the submenu's: its type comes from the options line
         auto body = commentBody(line);
-        if (body && *body == kHeader.substr(3)) {
-            sawHeader = true;
+        if (nss::OverridesWriter::isHeader(line))
             continue;
-        }
         if (body && body->rfind("Edit these items", 0) == 0)
             continue;
         if (body && body->rfind("options:", 0) == 0) {
@@ -1358,16 +1414,28 @@ ParseResult parse(std::string_view text, const Env &env)
                     a.icon = fromNssPath(image, env);
                 if (a.scope == Scope::Extensions)
                     a.extensions = findToExtensions(n.find);
+                // Properties added by hand; pos= is the page's own.
+                for (const auto &p : n.extra)
+                    if (p.name != "pos")
+                        a.extra.push_back(p);
+                if (!n.keys.empty())
+                    a.extra.push_back({ "keys", menus::MenuWriter::plainString(n.keys) });
+                if (!n.tip.empty())
+                    a.extra.push_back({ "tip", menus::MenuWriter::plainString(n.tip) });
+                if (!n.sep.empty())
+                    a.extra.push_back({ "sep", n.sep });
                 r.model.apps.push_back(std::move(a));
                 pending.reset();
                 continue;
             }
         }
-        if (!body && line.substr(0, 5) == "menu(")
-            continue; // the submenu: its title and type come from the options line
+        // A line the page didn't write: kept as it is.
         r.warnings.push_back(nsp::trf("line {}: {}", i + 1, line.substr(0, 60)));
+        keep(i);
         pending.reset();
     }
+    if (!menuTitle.empty())
+        r.model.options.title = menuTitle;
     // The apps' own entries, to their apps ("custom-2": the second custom app).
     for (auto &o : owns) {
         App *owner = nullptr;
@@ -1389,8 +1457,6 @@ ParseResult parse(std::string_view text, const Env &env)
         } else
             r.warnings.push_back(nsp::trf("own app={}: no such app in the file", o.ref));
     }
-    if (!sawHeader && !lines.empty())
-        r.warnings.insert(r.warnings.begin(), nsp::tr("The file doesn't start with the generated header."));
     // An older page wrote no pos=: its "Open in" submenu (then the default)
     // landed in the middle of the menu. It reads as today's default layout,
     // top-level items, and is rewritten on the next save. One that wrote

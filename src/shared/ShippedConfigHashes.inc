@@ -94,6 +94,7 @@
 { "imports/my-tools.nss", 0x9e46ffb38e08ea17ull },
 { "imports/my-tools.nss", 0xcc426ad29700e87dull },
 { "imports/static.nss", 0x8c7338655fcd1ba4ull },
+{ "imports/taskbar.nss", 0x0d1f16e724324e36ull },
 { "imports/taskbar.nss", 0x86aa0b01a1d5f479ull },
 { "imports/taskbar.nss", 0x905cd62649f7a0e5ull },
 { "imports/taskbar.nss", 0x992e6b8d9278f853ull },

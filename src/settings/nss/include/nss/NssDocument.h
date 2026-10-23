@@ -154,7 +154,8 @@ namespace nss
 
 		// Edits. Each returns false (and changes nothing) when it cannot apply.
 		bool setValue(std::string_view path, std::string_view literal, bool force = false);
-		bool insertAssign(std::string_view blockPath, std::string_view key, std::string_view literal);
+		// The spacing around '=' is the block's last value's, else `sep`.
+		bool insertAssign(std::string_view blockPath, std::string_view key, std::string_view literal, std::string_view sep = "=");
 		bool removeAssign(std::string_view path);
 		bool toggleImport(size_t index, bool enabled);
 		bool removeImport(size_t index);

@@ -2,6 +2,7 @@
 
 #include "MenuWriter.h"
 
+#include "nss/OverridesWriter.h"
 #include "nss/Text.h"
 
 #include <algorithm>
@@ -22,12 +23,13 @@ std::string generate(const Rules &rules, nss::Eol eol)
     std::string out(header);
     out += nl;
     for (const auto &rule : rules) {
-        std::string line(nss::trim(rule));
+        std::string line(rule);
         // One statement per line: a line break would end the "// " that turns it off.
         std::replace(line.begin(), line.end(), '\r', ' ');
         std::replace(line.begin(), line.end(), '\n', ' ');
-        if (!line.empty())
-            out += line + nl;
+        while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
+            line.pop_back();
+        out += line + nl; // blank lines too: the user's own
     }
     return out;
 }
@@ -37,15 +39,23 @@ Rules read(const nss::NssDocument &doc)
     Rules out;
     std::string_view text = doc.text();
     size_t at = 0;
-    while (at <= text.size()) {
-        auto end = text.find('\n', at);
-        auto line = nss::trim(text.substr(at, end == std::string_view::npos ? std::string_view::npos : end - at));
-        if (!line.empty() && line != header)
+    bool top = true; // the header and blank lines before the first line of the file's own
+    while (at < text.size()) {
+        auto end = text.find_first_of("\r\n", at);
+        auto line = text.substr(at, end == std::string_view::npos ? std::string_view::npos : end - at);
+        auto trimmed = nss::trim(line);
+        if (!(top && (trimmed.empty() || nss::OverridesWriter::isHeader(trimmed)))) {
+            top = false;
+            while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
+                line.remove_suffix(1);
             out.emplace_back(line);
+        }
         if (end == std::string_view::npos)
             break;
-        at = end + 1;
+        at = end + (text[end] == '\r' && end + 1 < text.size() && text[end + 1] == '\n' ? 2 : 1);
     }
+    while (!out.empty() && nss::trim(out.back()).empty())
+        out.pop_back();
     return out;
 }
 

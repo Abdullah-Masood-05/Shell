@@ -107,6 +107,7 @@ add_executable(settings WIN32
     src/PendingChanges.cpp
     src/PoFile.cpp
     src/PresetsController.cpp
+    src/ProgramIcon.cpp
     src/MapRules.cpp
     src/MenuBuilderController.cpp
     src/MenuMap.cpp
@@ -124,6 +125,7 @@ add_executable(settings WIN32
     src/Snippets.cpp
     src/SnippetsController.cpp
     src/Status.cpp
+    src/TaskbarApps.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
     src/Tr.cpp
@@ -160,7 +162,7 @@ target_compile_options(settings PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHs
 # /W4 for our own sources only; the Slint-generated code is noisy at that level.
 file(GLOB SETTINGS_OWN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 set_source_files_properties(${SETTINGS_OWN_SOURCES} PROPERTIES COMPILE_OPTIONS "/W4")
-target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs winhttp bcrypt)
+target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs winhttp bcrypt version)
 # A WIN32 executable that keeps the standard main().
 target_link_options(settings PRIVATE /ENTRY:mainCRTStartup /MANIFEST:NO)
 
@@ -202,6 +204,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_snippets.cpp
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp
+        tests/test_taskbar.cpp
         src/BackupsModel.cpp
         src/CodeDocument.cpp
         src/ConfigRules.cpp
@@ -216,6 +219,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/SnippetPreview.cpp
         src/Snippets.cpp
         src/Status.cpp
+        src/TaskbarApps.cpp
         src/ThemeModel.cpp
         src/ThemePresets.cpp
         src/Tr.cpp
@@ -236,7 +240,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         SETTINGS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt version)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()

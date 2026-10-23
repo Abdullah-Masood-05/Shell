@@ -248,8 +248,9 @@ namespace config_upgrade
 		return true;
 	}
 
-	// imports/settings-app*.nss and the snippet copies in imports/snippets/ (the app's
-	// Snippets page): the app's own files.
+	// imports/settings-app*.nss (settings, menus, map, openwith, snippets, and the taskbar
+	// menu's Apps list that taskbar.nss reads) and the snippet copies in imports/snippets/
+	// (the app's Snippets page): the app's own files.
 	inline bool is_app_owned(std::string_view path)
 	{
 		auto key = to_lower(path);

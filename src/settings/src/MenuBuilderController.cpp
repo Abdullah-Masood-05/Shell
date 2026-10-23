@@ -154,7 +154,12 @@ void MenuBuilderController::bindCallbacks()
             edited(true);
         }
     });
-    st.on_remove([this] { structural(&menus::remove); });
+    st.on_remove([this] {
+        // The last entry at the root: the file's own lines above it stay, at the end.
+        if (!readOnly() && selected_.size() == 1 && selected_[0] + 1 == tree_.size())
+            tail_ = menus::joinKept(tree_.back().before, tail_);
+        structural(&menus::remove);
+    });
     st.on_duplicate([this] { structural(&menus::duplicate); });
     st.on_move_up([this] { structural(&menus::moveUp); });
     st.on_move_down([this] { structural(&menus::moveDown); });
@@ -177,6 +182,7 @@ void MenuBuilderController::bindCallbacks()
     st.on_save([this] { save(); });
     st.on_discard([this] {
         tree_ = saved_;
+        tail_ = savedTail_;
         if (!menus::nodeAt(tree_, selected_))
             selected_.clear();
         edited(true);
@@ -236,12 +242,9 @@ void MenuBuilderController::load()
         struct Loaded
         {
             menus::Tree tree;
+            std::string tail;
             nss::TextFormat format = nss::defaultFormat();
-            size_t warnings = 0;      // statements that aren't menus or items
-            std::string firstWarning;
-            bool syntax = false;      // a syntax problem, when there are no warnings
-            size_t syntaxLine = 0;
-            std::string syntaxMessage;
+            std::optional<nss::NssDocument> broken; // edited by hand so that it doesn't parse
             bool readFailed = false;
             std::string error;        // why the file couldn't be read
             bool importOff = false;
@@ -253,15 +256,10 @@ void MenuBuilderController::load()
             if (auto doc = nss::NssDocument::load(file, {}, &error)) {
                 auto parsed = menus::parse(*doc);
                 out->tree = std::move(parsed.tree);
+                out->tail = std::move(parsed.tail);
                 out->format = doc->format();
-                if (!parsed.warnings.empty()) {
-                    out->warnings = parsed.warnings.size();
-                    out->firstWarning = parsed.warnings[0];
-                } else if (!doc->diagnostics().empty()) {
-                    out->syntax = true;
-                    out->syntaxLine = doc->diagnostics()[0].line;
-                    out->syntaxMessage = doc->diagnostics()[0].message;
-                }
+                if (!doc->diagnostics().empty())
+                    out->broken = std::move(*doc);
             } else {
                 out->readFailed = true;
                 out->error = error;
@@ -277,6 +275,7 @@ void MenuBuilderController::load()
             const auto &st = ui_->global<BuilderState>();
             tree_ = out->tree;
             saved_ = out->tree;
+            tail_ = savedTail_ = out->tail;
             format_ = out->format;
             if (!menus::nodeAt(tree_, selected_))
                 selected_ = tree_.empty() ? menus::Path{} : menus::Path{ 0 };
@@ -284,11 +283,8 @@ void MenuBuilderController::load()
             loadText_ = [this, out, file] {
                 const auto &bs = ui_->global<BuilderState>();
                 std::string notice;
-                if (out->warnings)
-                    notice = nsp::trf("{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}",
-                                      out->warnings, out->firstWarning);
-                else if (out->syntax)
-                    notice = nsp::trf("The file has a syntax problem at line {}: {}", out->syntaxLine, out->syntaxMessage);
+                if (out->broken)
+                    notice = menus::handEditProblem(*out->broken, nss::narrow(file.filename().wstring()));
                 bs.set_notice(ss(notice));
                 bs.set_load_error(ss(!out->readFailed
                                          ? std::string{}
@@ -331,7 +327,7 @@ void MenuBuilderController::edited(bool structure)
     pushPreview();
     pushCode();
     const auto &st = ui_->global<BuilderState>();
-    st.set_dirty(tree_ != saved_);
+    st.set_dirty(tree_ != saved_ || tail_ != savedTail_);
 }
 
 void MenuBuilderController::pushRows()
@@ -428,7 +424,7 @@ void MenuBuilderController::pushPreview()
 void MenuBuilderController::pushCode()
 {
     const auto &st = ui_->global<BuilderState>();
-    auto text = menus::MenuWriter::generate(tree_, nss::Eol::LF);
+    auto text = menus::MenuWriter::generate(tree_, nss::Eol::LF, tail_);
     auto rows = std::make_shared<slint::VectorModel<CodeLine>>();
     size_t maxColumns = 0;
     int number = 0;
@@ -522,20 +518,28 @@ void MenuBuilderController::save()
         return;
     }
     auto tree = tree_;
+    auto tail = tail_;
     auto menusCount = countKind(tree, menus::Kind::Menu), itemCount = countKind(tree, menus::Kind::Item);
     std::string reason = "Menu Builder: " + std::to_string(menusCount) + (menusCount == 1 ? " menu, " : " menus, ") +
                          std::to_string(itemCount) + (itemCount == 1 ? " item" : " items");
     saving_ = true;
     ui_->global<BuilderState>().set_saving(true);
-    worker_.post([this, tree, reason, file, root = root_, exe = shellExe_, format = format_] {
+    worker_.post([this, tree, tail, reason, file, root = root_, exe = shellExe_, format = format_] {
         nss::SaveResult result;
         std::string error;
+        // A hand edit that doesn't parse can't be read into the builder: the file stays as it is.
+        std::error_code ec;
+        if (fs::exists(file, ec))
+            if (auto now = nss::NssDocument::load(file, {}, &error))
+                result.error = menus::handEditProblem(*now, nss::narrow(file.filename().wstring()));
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
-        if (!rootDoc) {
+        if (!result.error.empty()) {
+            // reported below
+        } else if (!rootDoc) {
             result.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         } else {
             std::vector<nss::FileWrite> writes;
-            writes.push_back(nss::FileWrite{ file, menus::MenuWriter::generate(tree, format.eol), format });
+            writes.push_back(nss::FileWrite{ file, menus::MenuWriter::generate(tree, format.eol, tail), format });
             if (menus::MenuWriter::ensureImported(*rootDoc))
                 writes.push_back(nss::FileWrite{ root, rootDoc->text(), rootDoc->format() });
             nss::ConfigStore store(root);
@@ -544,11 +548,12 @@ void MenuBuilderController::save()
             options.validator = nss::makeShellCheckValidator(exe);
             result = store.save(std::move(writes), options);
         }
-        slint::invoke_from_event_loop([this, tree, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, tree, tail, result = std::move(result), root] {
             saving_ = false;
             ui_->global<BuilderState>().set_saving(false);
             if (result.ok) {
                 saved_ = tree;
+                savedTail_ = tail;
                 edited(false);
                 toast("ok", nsp::tr("Saved your menus"),
                       result.snapshotId.empty()

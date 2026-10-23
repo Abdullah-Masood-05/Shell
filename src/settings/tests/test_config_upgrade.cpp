@@ -199,6 +199,7 @@ TEST_CASE("config upgrade: known versions, paths and references")
 
     CHECK(cu::is_app_owned("imports/settings-app.nss"));
     CHECK(cu::is_app_owned("Imports\\Settings-App-Menus.nss"));
+    CHECK(cu::is_app_owned("imports/settings-app-taskbar.nss")); // the taskbar menu's Apps list
     CHECK(cu::is_app_owned("imports\\snippets\\copy-file-hash.nss"));
     CHECK_FALSE(cu::is_app_owned("imports/theme.nss"));
     CHECK_FALSE(cu::is_app_owned("imports/snippets.nss"));

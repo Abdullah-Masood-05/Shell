@@ -21,8 +21,9 @@
 <table class="table">
 	<tr><td class="w-25">Warning icon</td><td>An import that can't be found, or whose path is an expression (shown in
 		italics). Such an entry can't be opened.</td></tr>
-	<tr><td><i>app</i></td><td>A file the app writes itself (<code>settings-app.nss</code>,
-		<code>settings-app-menus.nss</code>). Change it on its page instead.</td></tr>
+	<tr><td><i>app</i></td><td>A file the app writes for one of its pages: <code>imports\settings-app*.nss</code>
+		(Appearance and Behavior, Menu Builder, Open with, Menu map, Snippets, and the taskbar menu's apps on Context
+		Menus). You can edit it here too; see <a href="#app-files">The app's own files</a>.</td></tr>
 	<tr><td>Red dot</td><td>The file has errors.</td></tr>
 	<tr><td>Blue dot</td><td>The file has unsaved changes.</td></tr>
 </table>
@@ -41,12 +42,25 @@
 <table class="table">
 	<tr><td class="w-25">Shared config: read-only</td><td>Explorer reads the shared configuration in the program folder,
 		which the app never writes to. See <a href="#shared">The shared configuration</a>.</td></tr>
-	<tr><td>Managed by the app</td><td>One of the app's own files. Change it on Appearance, Behavior, Rules &amp; Filters
-		or Menu Builder.</td></tr>
 	<tr><td>Outside your config folder</td><td>An import from somewhere else on the disk.</td></tr>
 	<tr><td>Read-only</td><td>A file under Program Files.</td></tr>
 	<tr><td>Not found</td><td>The file doesn't exist.</td></tr>
 </table>
+
+<h5 id="app-files">The app's own files</h5>
+<p>The files marked <i>app</i> are the ones the app's pages write, such as <code>imports\settings-app-openwith.nss</code>
+	for the Open with page or <code>imports\settings-app-taskbar.nss</code> for the taskbar menu's apps. They are not
+	locked: open one and the editor says <i>Managed by Nilesoft Shell Pro. You can edit it; the app keeps your
+	changes.</i></p>
+<ul>
+	<li>Values the page knows, such as an app's name or a setting's value, show up on the page the next time you open
+		it, and the page's next save keeps them.</li>
+	<li>Things the page doesn't show, such as comments or properties it has no field for, stay in the file when the
+		page saves.</li>
+	<li>If you write something a page can't read back, the page says so and doesn't write over the file. Fix it here,
+		or restore a snapshot from <a href="/docs/app/backups">Backups</a>.</li>
+</ul>
+<p>Each save, here or on a page, is checked with <code>shell -config:check</code> and takes a snapshot first.</p>
 
 <h5 id="tabs">Tabs</h5>
 <p>Files that are indented with tab characters keep them. In the edit view each tab is drawn as blank space up to the

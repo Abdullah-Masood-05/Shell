@@ -145,10 +145,12 @@ std::vector<FileEntry> loadTree(const fs::path &root, const fs::path &appDir)
 
 bool isManaged(const fs::path &rootDir, const fs::path &file)
 {
-    auto key = nss::pathKey(file);
-    return key == nss::pathKey(rootDir / L"imports" / L"settings-app.nss") ||
-           key == nss::pathKey(rootDir / L"imports" / L"settings-app-menus.nss") ||
-           key == nss::pathKey(rootDir / L"imports" / L"settings-app-snippets.nss");
+    // imports/settings-app.nss and every imports/settings-app-<page>.nss.
+    if (nss::pathKey(file.parent_path()) != nss::pathKey(rootDir / L"imports"))
+        return false;
+    auto name = nss::toLower(nss::narrow(file.filename().wstring()));
+    return name.size() >= 16 && name.rfind("settings-app", 0) == 0 && name.substr(name.size() - 4) == ".nss" &&
+           (name.size() == 16 || name[12] == '-');
 }
 
 bool isProtectedPath(const fs::path &file)

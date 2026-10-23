@@ -366,8 +366,7 @@ void OpenWithController::load()
             bool legacy = false;     // an older page's layout
             bool customised = false; // lines the page didn't write
             nss::TextFormat format = nss::defaultFormat();
-            size_t warnings = 0; // lines the page didn't write
-            std::string firstWarning;
+            std::optional<nss::NssDocument> broken; // edited by hand so that it doesn't parse
             bool readFailed = false;
             std::string error;   // why the file couldn't be read
             bool importOff = false;
@@ -394,9 +393,9 @@ void OpenWithController::load()
                 out->format = doc->format();
                 out->legacy = parsed.legacy;
                 out->customised = !parsed.warnings.empty();
-                if (!parsed.warnings.empty()) {
-                    out->warnings = parsed.warnings.size();
-                    out->firstWarning = parsed.warnings[0];
+                if (!doc->diagnostics().empty()) {
+                    out->customised = true; // no rewrite in today's layout either
+                    out->broken = std::move(*doc);
                 }
             } else {
                 out->readFailed = true;
@@ -480,9 +479,8 @@ void OpenWithController::load()
             loadText_ = [this, out, file, legacyNote] {
                 const auto &ows = ui_->global<OpenWithState>();
                 std::string notice;
-                if (out->warnings)
-                    notice = nsp::trf("{} line(s) of the file weren't written by this page and will be replaced on save. First: {}",
-                                      out->warnings, out->firstWarning);
+                if (out->broken)
+                    notice = menus::handEditProblem(*out->broken, nss::narrow(file.filename().wstring()));
                 if (legacyNote)
                     notice = nsp::trf("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}",
                                       notice);
@@ -1092,8 +1090,15 @@ void OpenWithController::save(Migrate migrate)
                   developChange, hideDevelop, migrate, hiding, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
+        // A hand edit that doesn't parse can't be read into the page: the file stays as it is.
+        std::error_code ec;
+        if (fs::exists(file, ec))
+            if (auto now = nss::NssDocument::load(file, {}, &error))
+                result.error = menus::handEditProblem(*now, nss::narrow(file.filename().wstring()));
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
-        if (!rootDoc) {
+        if (!result.error.empty()) {
+            // reported below
+        } else if (!rootDoc) {
             result.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         } else {
             std::vector<nss::FileWrite> writes;

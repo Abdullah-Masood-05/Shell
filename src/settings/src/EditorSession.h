@@ -27,7 +27,7 @@ struct FileEntry
     std::string label;    // relative to the root's folder ("imports/theme.nss")
     std::string name;     // file name, or the import expression when unresolved
     int depth = 0;        // 0 for the root
-    bool managed = false; // app-owned (imports/settings-app*.nss): read-only
+    bool managed = false; // app-owned (imports/settings-app*.nss): the app writes it too; editable
     bool missing = false; // could not be loaded
     bool unresolved = false;
     bool lang = false;    // import lang
@@ -38,8 +38,9 @@ struct FileEntry
 // unresolved imports listed under the importing file.
 std::vector<FileEntry> loadTree(const fs::path &root, const fs::path &appDir = {});  // appDir: app.dir (the install folder)
 
-// imports/settings-app.nss, imports/settings-app-menus.nss and imports/settings-app-snippets.nss
-// under the root's folder.
+// imports/settings-app.nss and imports/settings-app-<page>.nss (menus, snippets, openwith,
+// map, taskbar...) under the root's folder: files the app's pages write. The user may
+// edit them too; the pages keep the hand edits.
 bool isManaged(const fs::path &rootDir, const fs::path &file);
 
 // A path the app must never write: under Program Files.

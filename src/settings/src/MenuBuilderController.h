@@ -5,7 +5,9 @@
 // imports/settings-app-menus.nss, a properties form, a preview, and the
 // generated .nss. Save writes the file (and, once, the import line in the
 // root shell.nss) through nss::ConfigStore with the `shell.exe -config:check`
-// validator and a snapshot.
+// validator and a snapshot. The user may also edit the file by hand: what the
+// builder doesn't edit is kept (MenuWriter.h); a file that doesn't parse is
+// left alone, with a notice.
 
 #include "app.h"
 
@@ -51,6 +53,8 @@ private:
     bool shared_ = false;
     menus::Tree tree_;
     menus::Tree saved_;
+    std::string tail_;               // the file's own lines after the last entry (menus::ParseResult::tail)
+    std::string savedTail_;
     std::string savedText_;          // the file as generated from saved_
     nss::TextFormat format_ = nss::defaultFormat();
     menus::Path selected_;

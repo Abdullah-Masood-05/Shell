@@ -13,6 +13,8 @@
 //   --snippets-code <id>   the Snippets page shows that snippet's code
 //   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
 //                          the Snippets page previews that snippet (in that context)
+//   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
+//                          list, or its installed apps list
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
