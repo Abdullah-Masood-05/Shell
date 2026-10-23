@@ -84,7 +84,7 @@ msgstr "没有差异。"
 msgid "OK"
 msgstr "确定"
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:230
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:231
 msgid "Cancel"
 msgstr "取消"
 
@@ -234,11 +234,11 @@ msgstr "高级"
 msgid "Backups"
 msgstr "备份"
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:268
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:269
 msgid "Version {}"
 msgstr "版本 {}"
 
-#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:510
+#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:528
 msgid "Checking status…"
 msgstr "正在检查状态…"
 
@@ -423,11 +423,11 @@ msgstr "发行说明"
 msgid "Skip this version"
 msgstr "跳过此版本"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
 msgid "Restart to update"
 msgstr "重启以更新"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
 msgid "Download and install"
 msgstr "下载并安装"
 
@@ -479,7 +479,7 @@ msgstr "Shell 菜单的主题、颜色、字体和效果。更改时预览会随
 msgid "Couldn't read your config"
 msgstr "无法读取你的配置"
 
-#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:524
+#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:542
 msgid "Try again"
 msgstr "重试"
 
@@ -1253,7 +1253,7 @@ msgstr "Windows 11 菜单"
 msgid "Shell DLL"
 msgstr "Shell DLL"
 
-#: ui/pages/home.slint:206 ui/pages/preferences.slint:132
+#: ui/pages/home.slint:206 ui/pages/preferences.slint:133
 msgid "Version"
 msgstr "版本"
 
@@ -2210,155 +2210,155 @@ msgstr "语言"
 msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
 msgstr "“自动”跟随 Windows 显示语言（当前为 {}）。更改后立即生效。"
 
-#: ui/pages/preferences.slint:88
+#: ui/pages/preferences.slint:89
 msgid "Test a translation file…"
 msgstr "测试翻译文件…"
 
-#: ui/pages/preferences.slint:92
+#: ui/pages/preferences.slint:93
 msgid "For translators: shows the app in a .po file until you stop it or close the app."
 msgstr "供译者使用：按一个 .po 文件显示本应用，直到你停止测试或关闭应用。"
 
-#: ui/pages/preferences.slint:104
+#: ui/pages/preferences.slint:105
 msgid "All users on this PC"
 msgstr "这台电脑上的所有用户"
 
-#: ui/pages/preferences.slint:105
+#: ui/pages/preferences.slint:106
 msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
 msgstr "为这台电脑上的所有人注册 Shell 需要管理员权限。此应用中的其他功能无需管理员权限即可使用。"
 
-#: ui/pages/preferences.slint:107
+#: ui/pages/preferences.slint:108
 msgid "All users"
 msgstr "所有用户"
 
-#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112
+#: ui/pages/preferences.slint:109 ui/pages/preferences.slint:113
 msgid "Registered"
 msgstr "已注册"
 
-#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112 src/AppController.cpp:123
+#: ui/pages/preferences.slint:109 ui/pages/preferences.slint:113 src/AppController.cpp:123
 msgid "Not registered"
 msgstr "未注册"
 
-#: ui/pages/preferences.slint:111
+#: ui/pages/preferences.slint:112
 msgid "Just you"
 msgstr "仅当前用户"
 
-#: ui/pages/preferences.slint:118
+#: ui/pages/preferences.slint:119
 msgid "Unregister for all users"
 msgstr "为所有用户取消注册"
 
-#: ui/pages/preferences.slint:118
+#: ui/pages/preferences.slint:119
 msgid "Register for all users"
 msgstr "为所有用户注册"
 
-#: ui/pages/preferences.slint:129
+#: ui/pages/preferences.slint:130
 msgid "Updates"
 msgstr "更新"
 
-#: ui/pages/preferences.slint:130
+#: ui/pages/preferences.slint:131
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
 msgstr "新版本来自此项目在 GitHub 上的发布，安装前会先核对 SHA-256 校验和。"
 
-#: ui/pages/preferences.slint:133
+#: ui/pages/preferences.slint:134
 msgid "{}  ·  installed for all users (MSI)"
 msgstr "{}  ·  已为所有用户安装 (MSI)"
 
-#: ui/pages/preferences.slint:134
+#: ui/pages/preferences.slint:135
 msgid "{}  ·  portable copy"
 msgstr "{}  ·  便携版"
 
-#: ui/pages/preferences.slint:140
+#: ui/pages/preferences.slint:141
 msgid "Channel"
 msgstr "频道"
 
-#: ui/pages/preferences.slint:149
+#: ui/pages/preferences.slint:150
 msgid "Stable"
 msgstr "稳定版"
 
-#: ui/pages/preferences.slint:149
+#: ui/pages/preferences.slint:150
 msgid "Beta"
 msgstr "测试版"
 
-#: ui/pages/preferences.slint:155
+#: ui/pages/preferences.slint:156
 msgid "Pre-releases too"
 msgstr "包括预发布版本"
 
-#: ui/pages/preferences.slint:155
+#: ui/pages/preferences.slint:156
 msgid "Releases only"
 msgstr "仅发布版本"
 
-#: ui/pages/preferences.slint:163
+#: ui/pages/preferences.slint:164
 msgid "Check for updates automatically"
 msgstr "自动检查更新"
 
-#: ui/pages/preferences.slint:164
+#: ui/pages/preferences.slint:165
 msgid "When the app starts, at most once a day."
 msgstr "在应用启动时检查，每天最多一次。"
 
-#: ui/pages/preferences.slint:169
+#: ui/pages/preferences.slint:170
 msgid "Download and install updates automatically"
 msgstr "自动下载并安装更新"
 
-#: ui/pages/preferences.slint:170
+#: ui/pages/preferences.slint:171
 msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
 
-#: ui/pages/preferences.slint:193 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:194 src/UpdateController.cpp:536
 msgid "Checking for updates…"
 msgstr "正在检查更新…"
 
-#: ui/pages/preferences.slint:194
+#: ui/pages/preferences.slint:195
 msgid "Version {} is available"
 msgstr "版本 {} 可用"
 
-#: ui/pages/preferences.slint:195
+#: ui/pages/preferences.slint:196
 msgid "Downloading {}…  {}"
 msgstr "正在下载 {}…  {}"
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:197
 msgid "Version {} is downloaded and verified"
 msgstr "版本 {} 已下载并验证"
 
-#: ui/pages/preferences.slint:197
+#: ui/pages/preferences.slint:198
 msgid "Installing {}…"
 msgstr "正在安装 {}…"
 
-#: ui/pages/preferences.slint:199
+#: ui/pages/preferences.slint:200
 msgid "Not checked yet"
 msgstr "尚未检查"
 
-#: ui/pages/preferences.slint:213
+#: ui/pages/preferences.slint:214
 msgid "Last checked: {}"
 msgstr "上次检查时间：{}"
 
-#: ui/pages/preferences.slint:234
+#: ui/pages/preferences.slint:235
 msgid "Check now"
 msgstr "立即检查"
 
-#: ui/pages/preferences.slint:250
+#: ui/pages/preferences.slint:251
 msgid "About"
 msgstr "关于"
 
-#: ui/pages/preferences.slint:272
+#: ui/pages/preferences.slint:273
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr "© Nilesoft Ltd. 及贡献者。MIT 许可证。"
 
-#: ui/pages/preferences.slint:286
+#: ui/pages/preferences.slint:287
 msgid "Documentation"
 msgstr "文档"
 
-#: ui/pages/preferences.slint:291
+#: ui/pages/preferences.slint:292
 msgid "Source code"
 msgstr "源代码"
 
-#: ui/pages/preferences.slint:295
+#: ui/pages/preferences.slint:296
 msgid "Report an issue"
 msgstr "报告问题"
 
-#: ui/pages/preferences.slint:304
+#: ui/pages/preferences.slint:305
 msgid "Third-party software"
 msgstr "第三方软件"
 
-#: ui/pages/preferences.slint:309
+#: ui/pages/preferences.slint:310
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "使用 Slint 构建 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
 
@@ -2529,7 +2529,7 @@ msgstr "shell.exe 已退出，退出代码为 {}。"
 msgid "Registered for you"
 msgstr "已为你注册"
 
-#: src/AppController.cpp:119 src/AppController.cpp:615
+#: src/AppController.cpp:119 src/AppController.cpp:633
 msgid "Registered for all users"
 msgstr "已为所有用户注册"
 
@@ -2672,116 +2672,116 @@ msgstr[0] "{n} 个不在此版本的应用中"
 msgid "Translation file reloaded"
 msgstr "已重新加载翻译文件"
 
-#: src/AppController.cpp:357
+#: src/AppController.cpp:372
 msgctxt "Language"
 msgid "Auto"
 msgstr "自动"
 
-#: src/AppController.cpp:498 src/SnippetsController.cpp:183
+#: src/AppController.cpp:516 src/SnippetsController.cpp:183
 msgid "shell.exe was not found"
 msgstr "找不到 shell.exe"
 
-#: src/AppController.cpp:499
+#: src/AppController.cpp:517
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr "请安装 Nilesoft Shell，或将 NilesoftShellPro.exe 放到 shell.exe 所在的文件夹中。"
 
-#: src/AppController.cpp:503
+#: src/AppController.cpp:521
 msgid "Nilesoft Shell was not found"
 msgstr "找不到 Nilesoft Shell"
 
-#: src/AppController.cpp:504
+#: src/AppController.cpp:522
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr "NilesoftShellPro.exe 会在自身所在的文件夹和已注册的 shell.dll 所在的文件夹中查找 shell.exe。"
 
-#: src/AppController.cpp:505 src/EditorController.cpp:339
+#: src/AppController.cpp:523 src/EditorController.cpp:339
 msgid "Not found"
 msgstr "未找到"
 
-#: src/AppController.cpp:524 src/AppController.cpp:527
+#: src/AppController.cpp:542 src/AppController.cpp:545
 msgid "Couldn't read the Shell status"
 msgstr "无法读取 Shell 状态"
 
-#: src/AppController.cpp:601 src/AppController.cpp:643
+#: src/AppController.cpp:619 src/AppController.cpp:661
 msgid "Restarting Explorer…"
 msgstr "正在重启资源管理器…"
 
-#: src/AppController.cpp:601
+#: src/AppController.cpp:619
 msgid "Explorer restarted"
 msgstr "资源管理器已重启"
 
-#: src/AppController.cpp:603
+#: src/AppController.cpp:621
 msgid "Registering for you…"
 msgstr "正在为你注册…"
 
-#: src/AppController.cpp:603
+#: src/AppController.cpp:621
 msgid "Shell is enabled for you"
 msgstr "已为你启用 Shell"
 
-#: src/AppController.cpp:604
+#: src/AppController.cpp:622
 msgid "Restart Explorer to load it everywhere."
 msgstr "重启资源管理器，使其在所有位置生效。"
 
-#: src/AppController.cpp:608
+#: src/AppController.cpp:626
 msgid "Unregistering…"
 msgstr "正在取消注册…"
 
-#: src/AppController.cpp:608
+#: src/AppController.cpp:626
 msgid "Shell is disabled for you"
 msgstr "已为你禁用 Shell"
 
-#: src/AppController.cpp:609 src/AppController.cpp:620
+#: src/AppController.cpp:627 src/AppController.cpp:638
 msgid "Restart Explorer to unload it."
 msgstr "重启资源管理器后生效。"
 
-#: src/AppController.cpp:611
+#: src/AppController.cpp:629
 msgid "Creating your config…"
 msgstr "正在创建你的配置…"
 
-#: src/AppController.cpp:611
+#: src/AppController.cpp:629
 msgid "Personal config created"
 msgstr "已创建个人配置"
 
-#: src/AppController.cpp:612
+#: src/AppController.cpp:630
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr "Shell 现在从 %APPDATA%\\Nilesoft\\Shell 读取配置。"
 
-#: src/AppController.cpp:614 src/AppController.cpp:619 src/AppController.cpp:624 src/UpdateController.cpp:731
+#: src/AppController.cpp:632 src/AppController.cpp:637 src/AppController.cpp:642 src/UpdateController.cpp:731
 msgid "Waiting for administrator approval…"
 msgstr "正在等待管理员批准…"
 
-#: src/AppController.cpp:615
+#: src/AppController.cpp:633
 msgid "Restart Explorer to load it."
 msgstr "重启资源管理器以加载它。"
 
-#: src/AppController.cpp:620
+#: src/AppController.cpp:638
 msgid "Unregistered for all users"
 msgstr "已为所有用户取消注册"
 
-#: src/AppController.cpp:625
+#: src/AppController.cpp:643
 msgid "Only this copy is registered now"
 msgstr "现在只注册了这一份"
 
-#: src/AppController.cpp:625
+#: src/AppController.cpp:643
 msgid "Explorer was restarted."
 msgstr "资源管理器已重启。"
 
-#: src/AppController.cpp:646
+#: src/AppController.cpp:664
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr "已注册，但资源管理器未能重启：{}"
 
-#: src/AppController.cpp:653
+#: src/AppController.cpp:671
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr "另一份仍处于注册状态：{}。请在“设置 > 应用”中将其卸载，然后重试。"
 
-#: src/AppController.cpp:660 src/UpdateController.cpp:758
+#: src/AppController.cpp:678 src/UpdateController.cpp:758
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr "管理员提示已取消。未进行任何更改。"
 
-#: src/AppController.cpp:661
+#: src/AppController.cpp:679
 msgid "Cancelled"
 msgstr "已取消"
 
-#: src/AppController.cpp:666
+#: src/AppController.cpp:684
 msgid "That didn't work"
 msgstr "操作未成功"
 
@@ -5452,140 +5452,140 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的代码片段合集"
-
-#~ msgid "Imported from {}."
-#~ msgstr "从 {} 导入。"
-
-#~ msgid "Change icon"
-#~ msgstr "更改图标"
+#~ msgid "Move to the bottom"
+#~ msgstr "移到底部"
 
 #~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
 #~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
 
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
-
-#~ msgid "on the start"
-#~ msgstr "在“开始”菜单中"
-
 #~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
 #~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下载。"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重命名为 {}"
-
-#~ msgid "Change state"
-#~ msgstr "更改状态"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本应用管理"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下载代码…"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "文件开头不是自动生成的文件头。"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "文件第 {} 行存在语法问题：{}"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前面添加分隔线"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的代码片段来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移到第 {} 个位置"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移到 {} 的第 {} 个位置"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "无法预览：未能下载此代码片段。{}"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载代码片段…"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移到 {} 顶部"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载代码片段。请检查网络连接，然后重试。"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载代码片段：{}"
-
-#~ msgid "Move to the top"
-#~ msgstr "移到顶部"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在后面添加分隔线"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "无法从此地址下载 {}。"
 
 #~ msgid "Move to {}, at the bottom"
 #~ msgstr "移到 {} 底部"
 
+#~ msgid "Change state"
+#~ msgstr "更改状态"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下载代码片段…"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下载。"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的代码片段合集"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
+
 #~ msgid "Change command"
 #~ msgstr "更改命令"
 
-#~ msgid "no selection"
-#~ msgstr "未选择"
+#~ msgid "Move to position {}"
+#~ msgstr "移到第 {} 个位置"
 
-#~ msgid "Change visibility"
-#~ msgstr "更改可见性"
+#~ msgid "Change icon"
+#~ msgstr "更改图标"
+
+#~ msgid "Imported from {}."
+#~ msgstr "从 {} 导入。"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在后面添加分隔线"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前面添加分隔线"
 
 #~ msgid "No visible change"
 #~ msgstr "无可见更改"
 
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "无法开启“{}”"
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
 
-#~ msgid "Move to {}"
-#~ msgstr "移到 {}"
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移到 {} 顶部"
 
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移到底部"
-
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+#~ msgid "Move to the top"
+#~ msgstr "移到顶部"
 
 #~ msgid "Items matching an expression"
 #~ msgstr "与表达式匹配的项"
 
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下载代码…"
+
 #~ msgid "Add a tip"
 #~ msgstr "添加提示"
 
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
+#~ msgid "on the start"
+#~ msgstr "在“开始”菜单中"
+
+#~ msgid "Move to {}"
+#~ msgstr "移到 {}"
+
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "无法从此地址下载 {}。"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
+
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "无法下载代码片段。请检查网络连接，然后重试。"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "Change visibility"
+#~ msgstr "更改可见性"
 
 #~ msgid "Move to the middle"
 #~ msgstr "移到中间"
 
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "标注“作者：RubicBG”的代码片段来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移到 {} 的第 {} 个位置"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重命名为 {}"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "无法预览：未能下载此代码片段。{}"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "文件第 {} 行存在语法问题：{}"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "文件开头不是自动生成的文件头。"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
+
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本应用管理"
+
+#~ msgid "multiple selection"
+#~ msgstr "多选"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "无法开启“{}”"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "无法下载代码片段：{}"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
