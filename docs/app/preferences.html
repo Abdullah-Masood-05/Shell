@@ -27,17 +27,57 @@
 		default configuration has its own language files in <code>imports\lang</code>.</li>
 	<li>Config keywords, file names and code samples stay in English in every language, because that is how you type
 		them in <code>shell.nss</code>.</li>
+	<li>A language that is still being translated (Spanish, for now) is not in the list until at least half of the app
+		is translated, and <i>Auto</i> doesn't pick it before then. Its translators can still see it with
+		<a href="#translate">Test a translation file</a>.</li>
 </ul>
 <p>The choice is stored as <code>Language</code> under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>
 	(empty for Auto, <code>en</code>, <code>zh-CN</code> or <code>zh-TW</code>).</p>
 
 <h5 id="translate">Translating the app</h5>
-<p>The translations are plain gettext <code>.po</code> files in the source tree, under
-	<code>src/settings/translations/&lt;language&gt;/LC_MESSAGES/nilesoft-shell-pro.po</code>, and are built into
-	<code>NilesoftShellPro.exe</code>, so the app needs no extra files. To fix a translation, edit the
-	<code>msgstr</code> of the entry in that file (any text editor or Poedit works) and send a pull request. To add a
-	language, see <i>Translations</i> in <code>src/settings/README.md</code>: one command creates the file, and the new
-	language then shows up in this setting by itself.</p>
+<p>Anyone can translate the app; you don't need to be a programmer. All the text of the app is in one file per language,
+	a gettext <code>.po</code> file: each English text, and under it a line for your translation. You can test your file
+	in the app while you work on it, without building anything.</p>
+<ol>
+	<li><strong>Get the file.</strong> If your language already has a folder in
+		<a href="https://github.com/Abdullah-Masood-05/Shell/tree/main/src/settings/translations">src/settings/translations</a>
+		(for example <code>es</code> for Spanish), download the <code>nilesoft-shell-pro.po</code> inside it. If not,
+		download the template,
+		<a href="https://github.com/Abdullah-Masood-05/Shell/blob/main/src/settings/translations/nilesoft-shell-pro.pot">nilesoft-shell-pro.pot</a>,
+		and save a copy named after your language, for example <code>fr.po</code>. (On GitHub, use the <i>Download raw
+		file</i> button.)</li>
+	<li><strong>Translate it.</strong> <a href="https://poedit.net/">Poedit</a> (free) is the easiest: open the file,
+		click an English text and type yours below it. For a <code>.pot</code>, use <i>Create new translation</i> and
+		pick your language, which also fills in the plural rules. Notepad++ or any text editor works too: fill in each
+		<code>msgstr ""</code> line under its <code>msgid</code>, and save as UTF-8.
+		<ul>
+			<li>Keep the placeholders as they are: <code>{}</code>, <code>{0}</code>, <code>{n}</code> (a number) and
+				<code>{{ }}</code>. You can move them within the sentence.</li>
+			<li>Keep config keywords, file names and app names in English (<code>shell.nss</code>, <code>shell.exe</code>,
+				Explorer, Windows Terminal).</li>
+			<li>Text you leave empty, or mark as <i>Needs work</i> in Poedit (<code>#, fuzzy</code> in the file), shows in
+				English.</li>
+			<li>The entry with the context <i>UI font family</i> is not text: it is the font the app uses for your
+				language. Leave it empty unless your script needs a different font.</li>
+		</ul></li>
+	<li><strong>Test it.</strong> In <i>Preferences</i> &rarr; <i>Language</i>, click
+		<kbd>Test a translation file…</kbd> and choose your file. The whole app switches to your text right away, and a
+		bar at the top says which file is shown and how many of the app's strings it translates, how many are missing,
+		and how many are marked fuzzy. Keep the app open while you work: save the file in your editor, then press
+		<kbd>Reload</kbd> in the bar to see the change. <kbd>Stop</kbd> goes back to your usual language. Nothing is
+		saved; closing the app ends the test too. You can also start the app with
+		<code>NilesoftShellPro.exe --po "C:\path\to\fr.po"</code>.</li>
+	<li><strong>Share it.</strong> Post the file in
+		<a href="https://github.com/Abdullah-Masood-05/Shell/discussions">GitHub Discussions</a>, or, if you know GitHub,
+		open a pull request that puts it at
+		<code>src/settings/translations/&lt;language&gt;/LC_MESSAGES/nilesoft-shell-pro.po</code>. The next version of
+		the app then includes it. A language appears in the <i>Language</i> list once at least half of the app is
+		translated.</li>
+</ol>
+<p>When the app gets new text, its <code>.po</code> files get the new entries with an empty translation, and the
+	translations you made are kept. To fix one translation in a language that is already in the app, edit its
+	<code>msgstr</code> in the same way. For developers, <i>Translations</i> in <code>src/settings/README.md</code>
+	explains how the files are built into the app.</p>
 
 <h5 id="all-users">All users on this PC</h5>
 <p>This card shows whether Shell is registered for <i>All users</i> and for <i>Just you</i>, and has the one button in
