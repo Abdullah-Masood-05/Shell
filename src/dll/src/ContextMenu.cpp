@@ -2913,17 +2913,34 @@ namespace Nilesoft
 
 							auto get_bk_clr = [&](Color &clr, int iPartId, int iStateId, int x = -1, int y = -1, int size = 9)->bool
 							{
-								DC dc = hwnd.owner;
+								// Sample the part in an off-screen bitmap. Drawing it into the
+								// owner window's DC left a small square of the hot-item colour
+								// at the top-left of the desktop or folder view until that area
+								// was repainted (accent-coloured on newer Windows 11 builds).
+								auto_gdi<HBITMAP> bitmap(DC::CreateDIBSection(size, size));
+								if(!bitmap)
+									return false;
+
+								DC dc(::CreateCompatibleDC(nullptr), 1);
+								if(!dc)
+									return false;
+
+								dc.select_bitmap(bitmap.get());
 								RECT rc = { 0, 0, size, size };
+
+								// parts with transparency blend onto the menu background
+								auto_gdi<HBRUSH> brush(::CreateSolidBrush(_theme.background.color.to_BGR()));
+								::FillRect(dc, &rc, brush.get());
+
 								auto res = ::DrawThemeBackground(_hTheme, dc, iPartId, iStateId, &rc, nullptr);
 								if(SUCCEEDED(res))
 								{
 									x = x < 0 ? size / 2 : x;
 									y = y < 0 ? size / 2 : y;
 									clr.from(dc.get_pixel(x, y), 100);
-									return true;
 								}
-								return false;
+								dc.restore_bitmap();
+								return SUCCEEDED(res);
 							};
 
 							auto get_clr = [&](Color &clr, int iPartId, int iStateId, int iPropId)->bool
