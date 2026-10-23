@@ -1,0 +1,81 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A heading (optional icon, title, description) with actions (the children) on its
+// right. When the row is too narrow for both, so that the text would be squeezed
+// under `min-text-width` (a long translation, a narrow window), the actions move
+// under the text instead of overflowing the card or the page.
+//
+// Laid out by hand: a layout can't move a child from one row to another.
+export component ActionHeader inherits Rectangle {
+    in property <image> icon;
+    in property <color> icon-color: Tokens.text-2;
+    in property <length> icon-size: 20px;
+    in property <string> title;
+    in property <length> title-size: Tokens.heading;
+    in property <string> description;
+    in property <length> description-size: Tokens.caption;
+    in property <length> text-spacing: 2px;
+    in property <length> gap: Tokens.s3;          // between the text and the actions
+    in property <length> min-text-width: 260px;
+    // Where the actions sit next to taller text: 0 top, 1 centre, 2 bottom.
+    in property <int> actions-align: 1;
+    in property <length> pad-top;
+    in property <length> pad-bottom;
+    out property <bool> stacked: actions.preferred-width > 0
+        && root.width - root.text-x - actions.preferred-width - root.gap < root.min-text-width;
+
+    property <bool> has-icon: root.icon.width > 0;
+    property <length> text-x: root.has-icon ? root.icon-size + Tokens.s3 : 0px;
+    property <length> row-height: max(text-col.min-height, actions.preferred-height);
+
+    min-width: root.text-x + min(root.min-text-width, actions.min-width);
+    height: root.pad-top + root.pad-bottom
+        + (root.stacked ? text-col.min-height + Tokens.s3 + actions.preferred-height : root.row-height);
+
+    if root.has-icon: Image {
+        x: 0px;
+        y: root.pad-top + 1px;
+        width: root.icon-size;
+        height: root.icon-size;
+        source: root.icon;
+        colorize: root.icon-color;
+    }
+
+    text-col := VerticalLayout {
+        x: root.text-x;
+        y: root.pad-top + (root.stacked ? 0px : (root.row-height - self.height) / 2);
+        width: root.stacked || actions.preferred-width == 0
+            ? root.width - root.text-x
+            : root.width - root.text-x - actions.preferred-width - root.gap;
+        height: self.min-height;
+        spacing: root.text-spacing;
+        Text {
+            text: root.title;
+            font-size: root.title-size;
+            font-weight: 600;
+            color: Tokens.text;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+            accessible-role: text;
+        }
+        if root.description != "": Text {
+            text: root.description;
+            font-size: root.description-size;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+    }
+
+    actions := HorizontalLayout {
+        x: root.stacked ? root.text-x : root.width - self.width;
+        y: root.pad-top + (root.stacked ? text-col.min-height + Tokens.s3
+            : root.actions-align == 0 ? 0px
+            : root.actions-align == 2 ? root.row-height - self.height
+            : (root.row-height - self.height) / 2);
+        width: min(self.preferred-width, root.width - (root.stacked ? root.text-x : 0px));
+        height: self.preferred-height;
+        spacing: Tokens.s2;
+        @children
+    }
+}
