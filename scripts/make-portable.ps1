@@ -133,11 +133,15 @@ shell.exe -status prints the current state as JSON.
 
 Update
 ------
-Unregister and restart Explorer (see below), replace the files, register again.
+Unregister and restart Explorer (see below), quit the app (right-click its
+icon in the system tray, then Quit), replace the files, register again.
 shell.dll is locked while Explorer has it loaded.
 
 Remove
 ------
+In the app, turn off Preferences > Startup and tray > "Keep Nilesoft Shell Pro
+in the system tray" (Windows then no longer starts it when you sign in), and
+close the app. Then:
     shell.exe -unregister -user
     shell.exe -restart
 Then delete the folder (and %APPDATA%\Nilesoft\Shell if you no longer want

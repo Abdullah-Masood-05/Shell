@@ -6,6 +6,7 @@ import { EditorState } from "../editor-types.slint";
 import { MenusState, ModuleRow, RuleRow, TaskbarRow, InstalledRow } from "../menus-types.slint";
 import { Banner, CloseGlyph } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
+import { ActionHeader } from "../components/action-header.slint";
 import { Toggle } from "../components/toggle.slint";
 import { PageFrame } from "page-frame.slint";
 import { AppButton, Link } from "../components/controls.slint";
@@ -25,36 +26,13 @@ component ChangedDot inherits Rectangle {
 }
 
 // A section title with its caption, and buttons on the right.
-component SectionHead inherits HorizontalLayout {
-    in property <string> title;
+component SectionHead inherits ActionHeader {
     in property <string> caption;
-    spacing: Tokens.s3;
-    padding-top: Tokens.s2;
-    VerticalLayout {
-        horizontal-stretch: 1;
-        spacing: 2px;
-        alignment: end;
-        Text {
-            text: root.title;
-            font-size: Tokens.heading;
-            font-weight: 600;
-            color: Tokens.text;
-        }
-        if root.caption != "": Text {
-            text: root.caption;
-            font-size: Tokens.caption + 1px;
-            color: Tokens.text-2;
-            wrap: word-wrap;
-            min-height: self.preferred-height;
-        }
-    }
-    VerticalLayout {
-        alignment: end;
-        HorizontalLayout {
-            spacing: Tokens.s2;
-            @children
-        }
-    }
+    title-size: Tokens.heading;
+    description: root.caption;
+    description-size: Tokens.caption + 1px;
+    actions-align: 2;
+    pad-top: Tokens.s2;
 }
 
 // The list surface: one bordered layer, rows separated by hairlines.

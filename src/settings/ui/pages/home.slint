@@ -85,6 +85,8 @@ component DiagnosticRow inherits Rectangle {
 }
 
 export component HomePage inherits PageFrame {
+    // Too narrow for four quick actions in a row.
+    property <bool> narrow: root.width - 2 * (Tokens.s8 + Tokens.s1) < 680px;
     PageHeader {
         title: @tr("Home");
         description: @tr("Nilesoft Shell at a glance: registration, the active config and recent diagnostics.");
@@ -115,7 +117,9 @@ export component HomePage inherits PageFrame {
         close => { UpdateState.dismiss-notice(); }
     }
 
-    if UpdateState.offered: UpdateBanner { }
+    if UpdateState.offered && !UpdateState.deferred: UpdateBanner {
+        narrow: root.width - 2 * (Tokens.s8 + Tokens.s1) < 820px;
+    }
 
     // After an update: the menu files brought up to this version, and the ones the user
     // changed, which were kept (src/ConfigUpdateController.cpp).
@@ -146,7 +150,7 @@ export component HomePage inherits PageFrame {
         // Health. Both cards get the same preferred width so they split the row evenly.
         Card {
             horizontal-stretch: 1;
-            min-width: 280px;
+            min-width: 250px;
             preferred-width: 320px;
             HorizontalLayout {
                 spacing: Tokens.s3;
@@ -204,7 +208,10 @@ export component HomePage inherits PageFrame {
             }
             KeyValue {
                 key: @tr("Version");
-                value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", AppState.status.version) : AppState.status.version;
+                // After an app update for this user, the app is newer than the installed Shell core: both.
+                property <string> shown: AppState.app-version != "" && AppState.status.version != AppState.app-version
+                    ? @tr("Shell core {}  ·  app {}", AppState.status.version, AppState.app-version) : AppState.status.version;
+                value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", self.shown) : self.shown;
             }
             Rectangle { vertical-stretch: 1; }
         }
@@ -212,7 +219,7 @@ export component HomePage inherits PageFrame {
         // Active config
         Card {
             horizontal-stretch: 1;
-            min-width: 280px;
+            min-width: 250px;
             preferred-width: 320px;
             icon: Icons.document;
             heading: @tr("Active config");
@@ -291,6 +298,26 @@ export component HomePage inherits PageFrame {
             enabled: !AppState.busy && AppState.cli-available && AppState.status.loaded;
             clicked => { AppState.action(AppState.status.user-registered ? "unregister-user" : "register-user"); }
         }
+        if !root.narrow: ActionTile {
+            horizontal-stretch: 1;
+            icon: Icons.folder;
+            title: @tr("Open config folder");
+            caption: @tr("Show shell.nss in Explorer");
+            enabled: !AppState.busy && AppState.status.config-path != "";
+            clicked => { AppState.action("open-config-folder"); }
+        }
+        if !root.narrow: ActionTile {
+            horizontal-stretch: 1;
+            icon: Icons.refresh;
+            title: @tr("Refresh");
+            caption: @tr("Check the status again");
+            enabled: !AppState.busy;
+            clicked => { AppState.refresh(); }
+        }
+    }
+    // A narrow window: two rows of two.
+    if root.narrow: HorizontalLayout {
+        spacing: Tokens.s3;
         ActionTile {
             horizontal-stretch: 1;
             icon: Icons.folder;

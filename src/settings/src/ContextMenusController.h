@@ -26,6 +26,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 class ContextMenusController
 {
@@ -138,7 +139,7 @@ private:
     int devSelect_ = -1;                // --taskbar-select
     bool devPicker_ = false;            // --taskbar-picker
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     slint::Timer jumpTimer_;
     Worker worker_; // last: joined first

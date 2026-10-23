@@ -7,6 +7,8 @@
 #include <string>
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "msi.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "user32.lib")
 
 template<typename ... Args>
 static void log(const char *format, Args ... args)
@@ -107,6 +109,61 @@ constexpr auto FILECONFIGSTOCK = L"shell.nss.stock-new";
 constexpr auto PROPCONFIGSAVED = L"SHELLCONFIGSAVED";
 
 constexpr auto upgrading = L"UPGRADINGPRODUCTCODE";
+
+/*
+	Nilesoft Shell Pro (NilesoftShellPro.exe) can be running in the system tray,
+	and Windows starts it at sign-in through a per-user Run entry. Its hidden
+	window (src/settings/src/TrayIcon.h) ends the app on APPMSGQUIT, so setup can
+	replace or remove the exe without a "files in use" prompt.
+*/
+constexpr auto APPEXE = L"NilesoftShellPro.exe";
+constexpr auto APPWINDOWCLASS = L"Nilesoft.ShellPro.Instance";
+constexpr UINT APPMSGQUIT = WM_APP + 3;
+constexpr auto APPRUNKEY = L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+constexpr auto APPRUNVALUE = L"NilesoftShellPro";
+// Set by the immediate Update action when it closed the app; Install starts it
+// again, in the tray.
+constexpr auto PROPAPPCLOSED = L"SHELLPROAPPCLOSED";
+
+static bool CloseRunningApp()
+{
+	bool closed = false;
+	for(int tries = 0; tries < 3; tries++)
+	{
+		HWND hwnd = ::FindWindowW(APPWINDOWCLASS, nullptr);
+		if(!hwnd)
+			break;
+		DWORD pid = 0;
+		::GetWindowThreadProcessId(hwnd, &pid);
+		HANDLE process = ::OpenProcess(SYNCHRONIZE, FALSE, pid);
+		::PostMessageW(hwnd, APPMSGQUIT, 0, 0);
+		if(process)
+		{
+			::WaitForSingleObject(process, 10000);
+			::CloseHandle(process);
+		}
+		else
+			::Sleep(1000);
+		closed = true;
+	}
+	return closed;
+}
+
+// The current user's Run entry, when it starts this installation's app.
+static void RemoveRunEntry(std::wstring install_folder)
+{
+	if(install_folder.empty())
+		return;
+	if(install_folder.back() != L'\\')
+		install_folder += L'\\';
+	wchar_t value[2 * MAX_PATH]{};
+	DWORD size = sizeof(value);
+	if(ERROR_SUCCESS != ::RegGetValueW(HKEY_CURRENT_USER, APPRUNKEY, APPRUNVALUE, RRF_RT_REG_SZ, nullptr, value, &size))
+		return;
+	const wchar_t *program = value[0] == L'"' ? value + 1 : value;
+	if(::_wcsnicmp(program, install_folder.c_str(), install_folder.size()) == 0)
+		::RegDeleteKeyValueW(HKEY_CURRENT_USER, APPRUNKEY, APPRUNVALUE);
+}
 
 BOOL ShellExec(const wchar_t *file, const wchar_t *parameters, const wchar_t *directory, bool run_as_admin = false, int nshow = SW_NORMAL, bool wait = false)
 {
@@ -526,6 +583,11 @@ UINT __stdcall Install(MSIHANDLE hInstall)
 		// Explorer has just been restarted, so the rotation this install made
 		// may already be unmapped.
 		PruneRotations(install_folder);
+
+		// Update closed the app in the tray: it goes back there.
+		std::wstring closed;
+		if(MSI(hInstall).get(PROPAPPCLOSED, closed) && closed.c_str()[0] == L'1')
+			ShellExec(JoinPath(install_folder, APPEXE).c_str(), L"--background", install_folder.c_str(), false, SW_HIDE, false);
 	}
 	return ERROR_SUCCESS;
 	//return ERROR_INSTALL_FAILURE;
@@ -533,9 +595,15 @@ UINT __stdcall Install(MSIHANDLE hInstall)
 
 UINT __stdcall Uninstall(MSIHANDLE hInstall)
 {
+	// The app in the tray goes first, so its exe can be removed, and Windows no
+	// longer starts it at sign-in (for the user who uninstalls; another user's
+	// Run entry points to a missing file and Windows skips it).
+	CloseRunningApp();
+
 	std::wstring install_folder;
 	if(InstallFolder(hInstall, install_folder, true))
 	{
+		RemoveRunEntry(install_folder);
 		ShellExec(JoinPath(install_folder, FILEEXE).c_str(),
 				  L"-u -s -t -restart", install_folder.c_str(), true, SW_HIDE, true);
 	}
@@ -566,6 +634,11 @@ UINT __stdcall Update(MSIHANDLE hInstall)
 		{
 			if(BackupUserConfig(install_folder))
 				MSI(hInstall).set(PROPCONFIGSAVED, L"1");
+
+			// Before InstallValidate looks for files in use: the app in the tray
+			// lets go of NilesoftShellPro.exe; Install starts it again.
+			if(CloseRunningApp())
+				MSI(hInstall).set(PROPAPPCLOSED, L"1");
 		}
 
 		RotateOutOfTheWay(JoinPath(install_folder, FILEDLL));

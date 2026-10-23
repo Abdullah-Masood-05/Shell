@@ -1,0 +1,14 @@
+// Preferences > Startup and tray: filled by src/TrayController.cpp.
+
+export global TrayState {
+    // Closing the window leaves the app running in the system tray.
+    in property <bool> keep-in-tray: true;
+    // Windows starts the app in the tray when you sign in (only with keep-in-tray).
+    in property <bool> start-with-windows: true;
+    // The setting is on, but the Startup apps list in Windows (or Task Manager) has the
+    // app switched off.
+    in property <bool> off-in-windows;
+
+    callback set-keep-in-tray(bool);
+    callback set-start-with-windows(bool);
+}

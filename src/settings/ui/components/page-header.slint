@@ -2,18 +2,27 @@ import { Spinner } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 
 // Breadcrumb ("Nilesoft Shell Pro / Home"), page title, description, and actions on the right
-// (the children). Shows a spinner while an action is running.
-export component PageHeader inherits HorizontalLayout {
+// (the children). Shows a spinner while an action is running. When the window is too narrow
+// for the actions next to the description, they go under it (laid out by hand, like
+// ActionHeader: a layout can't move a child from one row to another).
+export component PageHeader inherits Rectangle {
     in property <string> section: "Nilesoft Shell Pro";
     in property <string> title;
     in property <string> description;
     in property <bool> busy;
     in property <string> busy-label;
 
-    spacing: Tokens.s4;
+    property <length> gap: Tokens.s4;
+    property <bool> stacked: actions.preferred-width > 0 && root.width - actions.preferred-width - root.gap < 360px;
+    property <length> row-height: max(text-col.min-height, actions.preferred-height);
 
-    VerticalLayout {
-        horizontal-stretch: 1;
+    height: root.stacked ? text-col.min-height + Tokens.s3 + actions.preferred-height : root.row-height;
+
+    text-col := VerticalLayout {
+        x: 0px;
+        y: root.stacked ? 0px : (root.row-height - self.height) / 2;
+        width: root.stacked || actions.preferred-width == 0 ? root.width : root.width - actions.preferred-width - root.gap;
+        height: self.min-height;
         spacing: Tokens.s1;
 
         // A quiet breadcrumb: where the page sits, not a second title.
@@ -55,29 +64,36 @@ export component PageHeader inherits HorizontalLayout {
         }
     }
 
-    if root.busy: VerticalLayout {
-        alignment: center;
-        HorizontalLayout {
-            spacing: Tokens.s2;
-            Spinner {
-                width: 20px;
-                height: 20px;
-                indeterminate: true;
-            }
-            Text {
-                text: root.busy-label;
-                vertical-alignment: center;
-                font-size: Tokens.caption + 1px;
-                color: Tokens.text-2;
+    actions := HorizontalLayout {
+        x: root.stacked ? 0px : root.width - self.width;
+        y: root.stacked ? text-col.min-height + Tokens.s3 : (root.row-height - self.height) / 2;
+        width: min(self.preferred-width, root.width);
+        height: self.preferred-height;
+        spacing: Tokens.s4;
+
+        if root.busy: VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                Spinner {
+                    width: 20px;
+                    height: 20px;
+                    indeterminate: true;
+                }
+                Text {
+                    text: root.busy-label;
+                    vertical-alignment: center;
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                }
             }
         }
-    }
-
-    VerticalLayout {
-        alignment: center;
-        HorizontalLayout {
-            spacing: Tokens.s2;
-            @children
+        VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                @children
+            }
         }
     }
 }

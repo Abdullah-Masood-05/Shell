@@ -21,10 +21,51 @@ export component ProgressBar inherits Rectangle {
     }
 }
 
+// The update's actions: release notes, skip or later, install or restart, cancel.
+component UpdateActions inherits HorizontalLayout {
+    property <string> st: UpdateState.state;
+    property <bool> admin: UpdateState.needs-admin;
+    spacing: Tokens.s2;
+    alignment: end;
+    if root.st == "available" || root.st == "ready": VerticalLayout {
+        alignment: center;
+        padding-right: Tokens.s2;
+        Link {
+            text: @tr("Release notes");
+            activated => { UpdateState.open-notes(); }
+        }
+    }
+    if root.st == "available" && !root.admin: AppButton {
+        text: @tr("Skip this version");
+        clicked => { UpdateState.skip(); }
+    }
+    if root.st == "available" && root.admin: AppButton {
+        text: @tr("Later");
+        clicked => { UpdateState.later(); }
+    }
+    if root.st == "available" || root.st == "ready": AppButton {
+        text: root.admin ? @tr("Install with administrator approval")
+            : root.st == "ready" ? (UpdateState.update-path == "app" ? @tr("Restart now") : @tr("Restart to update"))
+            : @tr("Download and install");
+        primary: true;
+        icon: root.admin ? AppState.shield-icon : Icons.download;
+        colorize-icon: !root.admin;
+        clicked => { UpdateState.install(); }
+    }
+    if root.st == "downloading": AppButton {
+        text: @tr("Cancel");
+        clicked => { UpdateState.cancel(); }
+    }
+}
+
 // Home: the update on offer, its download, and the restart that installs it.
 export component UpdateBanner inherits Rectangle {
     property <string> st: UpdateState.state;
     property <string> version: UpdateState.latest-version;
+    property <bool> admin: UpdateState.needs-admin;
+    // Too narrow for the actions next to the text: they go under it. Set by the page,
+    // from its own width (this width depends on the layout inside).
+    in property <bool> narrow;
 
     // The wrapped text's height, not just the minimum, so the second line isn't clipped.
     height: max(48px, content.preferred-height);
@@ -34,105 +75,101 @@ export component UpdateBanner inherits Rectangle {
     background: Tokens.info-bg;
     animate background { duration: Tokens.normal; }
 
-    content := HorizontalLayout {
+    content := VerticalLayout {
         padding-left: Tokens.s4;
         padding-right: Tokens.s4;
         padding-top: Tokens.s3;
         padding-bottom: Tokens.s3;
         spacing: Tokens.s3;
+        HorizontalLayout {
+            spacing: Tokens.s3;
 
-        VerticalLayout {
-            alignment: start;
-            padding-top: 1px;
-            Image {
-                source: Icons.download;
-                width: 18px;
-                height: 18px;
-                colorize: Tokens.accent;
-            }
-        }
-        VerticalLayout {
-            horizontal-stretch: 1;
-            alignment: center;
-            spacing: 2px;
-            Text {
-                text: root.st == "downloading" ? @tr("Downloading Nilesoft Shell Pro {}…", root.version)
-                    : root.st == "ready" ? @tr("Update ready: Nilesoft Shell Pro {}", root.version)
-                    : root.st == "installing" ? @tr("Installing Nilesoft Shell Pro {}…", root.version)
-                    : @tr("Nilesoft Shell Pro {} is available", root.version);
-                font-weight: 600;
-                font-size: Tokens.body;
-                color: Tokens.text;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-            if root.st == "available": Text {
-                text: @tr("You have {}.", UpdateState.current-version)
-                    + (UpdateState.released != "" ? " " + @tr("Released {}.", UpdateState.released) : "")
-                    + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "");
-                font-size: Tokens.body;
-                color: Tokens.text-2;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-            if root.st == "ready": Text {
-                text: UpdateState.needs-admin
-                    ? @tr("Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again.")
-                    : @tr("Downloaded and verified. The app closes for a moment and opens again.");
-                font-size: Tokens.body;
-                color: Tokens.text-2;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-            if root.st == "downloading": VerticalLayout {
-                spacing: 6px;
-                padding-top: 4px;
-                ProgressBar {
-                    value: UpdateState.progress;
+            VerticalLayout {
+                alignment: start;
+                padding-top: 1px;
+                Image {
+                    source: Icons.download;
+                    width: 18px;
+                    height: 18px;
+                    colorize: Tokens.accent;
                 }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 2px;
                 Text {
-                    text: @tr("{} · checked against SHA256SUMS.txt when done", UpdateState.progress-text);
-                    font-size: Tokens.caption;
-                    color: Tokens.text-2;
+                    text: root.st == "downloading" ? @tr("Downloading Nilesoft Shell Pro {}…", root.version)
+                        : root.st == "ready" ? @tr("Update ready: Nilesoft Shell Pro {}", root.version)
+                        : root.st == "installing" ? @tr("Installing Nilesoft Shell Pro {}…", root.version)
+                        : @tr("Nilesoft Shell Pro {} is available", root.version);
+                    font-weight: 600;
+                    font-size: Tokens.body;
+                    color: Tokens.text;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
-            }
-            if UpdateState.message != "" && (root.st == "available" || root.st == "ready" || root.st == "installing"): Text {
-                text: UpdateState.message;
-                font-size: Tokens.body;
-                color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-        }
-        VerticalLayout {
-            alignment: center;
-            HorizontalLayout {
-                spacing: Tokens.s2;
-                alignment: end;
-                if root.st == "available" || root.st == "ready": VerticalLayout {
-                    alignment: center;
-                    padding-right: Tokens.s2;
-                    Link {
-                        text: @tr("Release notes");
-                        activated => { UpdateState.open-notes(); }
+                if root.st == "available": Text {
+                    text: @tr("You have {}.", UpdateState.current-version)
+                        + (UpdateState.released != "" ? " " + @tr("Released {}.", UpdateState.released) : "")
+                        + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "")
+                        + (UpdateState.update-path == "app" ? " " + @tr("It installs for you only, without administrator rights.") : "");
+                    font-size: Tokens.body;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+                // Administrator approval is only ever an explicit choice, with the reason.
+                if root.st == "available" && root.admin: Text {
+                    text: UpdateState.elevation-reason == "core"
+                        ? @tr("This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval.")
+                        : @tr("This update can only be installed with its installer, which installs for all users and needs administrator approval.");
+                    font-size: Tokens.body;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+                if root.st == "ready": Text {
+                    text: UpdateState.update-path == "app"
+                        ? @tr("Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts.")
+                        : root.admin
+                        ? @tr("Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again.")
+                        : @tr("Downloaded and verified. The app closes for a moment and opens again.");
+                    font-size: Tokens.body;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+                if root.st == "downloading": VerticalLayout {
+                    spacing: 6px;
+                    padding-top: 4px;
+                    ProgressBar {
+                        value: UpdateState.progress;
+                    }
+                    Text {
+                        text: @tr("{} · checked against SHA256SUMS.txt when done", UpdateState.progress-text);
+                        font-size: Tokens.caption;
+                        color: Tokens.text-2;
                     }
                 }
-                if root.st == "available": AppButton {
-                    text: @tr("Skip this version");
-                    clicked => { UpdateState.skip(); }
-                }
-                if root.st == "available" || root.st == "ready": AppButton {
-                    text: root.st == "ready" ? @tr("Restart to update") : @tr("Download and install");
-                    primary: true;
-                    icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
-                    colorize-icon: !UpdateState.needs-admin;
-                    clicked => { UpdateState.install(); }
-                }
-                if root.st == "downloading": AppButton {
-                    text: @tr("Cancel");
-                    clicked => { UpdateState.cancel(); }
+                if UpdateState.message != "" && (root.st == "available" || root.st == "ready" || root.st == "installing"): Text {
+                    text: UpdateState.message;
+                    font-size: Tokens.body;
+                    color: UpdateState.message-kind == "error" ? Tokens.danger : Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
                 }
             }
+            if !root.narrow: VerticalLayout {
+                alignment: center;
+                UpdateActions { }
+            }
+        }
+
+        // A narrow banner: the actions under the text.
+        if root.narrow: HorizontalLayout {
+            padding-left: 18px + Tokens.s3;
+            UpdateActions { }
         }
     }
 }

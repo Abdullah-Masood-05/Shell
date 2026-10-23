@@ -14,6 +14,7 @@ import { AppearanceState } from "../pages/appearance-state.slint";
 import { PresetsState, PresetCard } from "../pages/presets-state.slint";
 import { Link } from "controls.slint";
 import { ConfirmDialog } from "dialog.slint";
+import { ActionHeader } from "action-header.slint";
 
 // One row of the "…" menu.
 component MenuRow inherits Rectangle {
@@ -273,33 +274,18 @@ export component PresetGallery inherits VerticalLayout {
 
     spacing: Tokens.s3;
 
-    if root.show-header: VerticalLayout {
-        spacing: 2px;
-        HorizontalLayout {
-            spacing: Tokens.s3;
-            Text {
-                horizontal-stretch: 1;
-                text: @tr("Themes");
-                font-size: Tokens.body-large;
-                font-weight: 600;
-                color: Tokens.text;
-                vertical-alignment: center;
-            }
-            Button {
-                text: @tr("Export current look");
-                enabled: PresetsState.ready;
-                clicked => { PresetsState.export-current(); }
-            }
-        }
-        Text {
-            text: @tr("The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it.");
-            font-size: Tokens.caption;
-            color: Tokens.text-2;
-            wrap: word-wrap;
-            min-height: self.preferred-height;
+    // The button goes under the description when the column is narrow.
+    if root.show-header: ActionHeader {
+        title: @tr("Themes");
+        title-size: Tokens.body-large;
+        description: @tr("The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it.");
+        actions-align: 0;
+        Button {
+            text: @tr("Export current look");
+            enabled: PresetsState.ready;
+            clicked => { PresetsState.export-current(); }
         }
     }
-
     grid := FocusScope {
         height: root.rows * root.tile-height + max(0, root.rows - 1) * root.gap;
         enabled: PresetsState.ready;

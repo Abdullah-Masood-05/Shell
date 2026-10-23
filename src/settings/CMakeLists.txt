@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Nilesoft Shell Pro, the app (NilesoftShellPro.exe; the CMake target is still called
-# "settings"). It talks to the core only through shell.exe, files and HKCU: nothing here
-# includes src/shared or links the core. (settings_tests includes src/shared/ConfigUpgrade.h,
-# the logic behind `shell.exe -config:upgrade`, to test it.)
+# "settings"). It talks to the core only through shell.exe, files and HKCU, and never links
+# the core. The one exception is src/shared/ConfigUpgrade.h (header only, the logic behind
+# `shell.exe -config:upgrade`): src/ConfigUpdate.cpp runs it for a per-user copy of the
+# app, whose shipped files are newer than the install folder's, and settings_tests tests it.
 
 # The version comes from the core's Resource.h, read by regex (never #included).
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../shared/Resource.h" _resource_h)
@@ -83,8 +84,10 @@ include(cmake/Translations.cmake)
 
 add_executable(settings WIN32
     src/main.cpp
+    src/AppChannel.cpp
     src/AppController.cpp
     src/AppearanceController.cpp
+    src/Background.cpp
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
@@ -129,6 +132,8 @@ add_executable(settings WIN32
     src/ThemeModel.cpp
     src/ThemePresets.cpp
     src/Tr.cpp
+    src/TrayController.cpp
+    src/TrayIcon.cpp
     src/UpdateController.cpp
     src/Updater.cpp
     src/Wallpaper.cpp
@@ -205,6 +210,10 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp
         tests/test_taskbar.cpp
+        tests/test_background.cpp
+        src/Background.cpp
+        tests/test_app_channel.cpp
+        src/AppChannel.cpp
         src/BackupsModel.cpp
         src/CodeDocument.cpp
         src/ConfigRules.cpp

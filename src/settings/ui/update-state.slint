@@ -17,7 +17,14 @@ export global UpdateState {
     in property <string> latest-version;
     in property <string> released;           // "14 October 2026"
     in property <string> asset-size;         // "8.7 MB"
-    in property <bool> needs-admin;          // MSI: the install button carries the UAC shield
+    in property <bool> needs-admin;          // only the installer can install it: the button carries the UAC shield
+    in property <string> update-path;        // "" | app (for this user, no admin) | portable | installer
+    in property <string> elevation-reason;   // "" | core (the Shell core changed) | installer-only
+    in-out property <bool> deferred;         // "Later" on an update that needs administrator approval
+
+    // This app is a per-user copy (an app-only update) of an all-users install of this release.
+    in property <bool> per-user-app;
+    in property <string> installed-release;
     in property <float> progress;            // 0..1 while downloading
     in property <string> progress-text;      // "3.2 MB of 8.7 MB"
 
@@ -33,6 +40,7 @@ export global UpdateState {
     callback check-now();
     callback install();                      // download if needed, then install (the app closes)
     callback skip();
+    callback later();                        // sets deferred
     callback cancel();                       // stops a download
     callback open-notes();
     callback set-channel(int);

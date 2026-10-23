@@ -7,6 +7,7 @@ import { EditorState } from "../editor-types.slint";
 import { OpenWithState, OpenWithRow, OpenWithPreviewRow, OtherAppRow } from "../openwith-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
+import { ActionHeader } from "../components/action-header.slint";
 import { Link, Segmented } from "../components/controls.slint";
 import { Toggle } from "../components/toggle.slint";
 import { CodeColors, CodeRow } from "../components/code.slint";
@@ -19,33 +20,13 @@ global Mdl {
     out property <string> chevron: "\u{E76C}";
 }
 
-component SectionHead inherits HorizontalLayout {
-    in property <string> title;
+component SectionHead inherits ActionHeader {
     in property <string> caption;
-    spacing: Tokens.s3;
-    padding-top: Tokens.s2;
-    VerticalLayout {
-        horizontal-stretch: 1;
-        spacing: 2px;
-        alignment: end;
-        Text {
-            text: root.title;
-            font-size: Tokens.body-large;
-            font-weight: 600;
-            color: Tokens.text;
-        }
-        if root.caption != "": Text {
-            text: root.caption;
-            font-size: Tokens.caption + 1px;
-            color: Tokens.text-2;
-            wrap: word-wrap;
-            min-height: self.preferred-height;
-        }
-    }
-    VerticalLayout {
-        alignment: end;
-        @children
-    }
+    title-size: Tokens.body-large;
+    description: root.caption;
+    description-size: Tokens.caption + 1px;
+    actions-align: 2;
+    pad-top: Tokens.s2;
 }
 
 component ListSurface inherits Rectangle {
@@ -617,6 +598,8 @@ component PreviewMenu inherits Rectangle {
 export component OpenWithPage inherits PageFrame {
     property <bool> locked: OpenWithState.shared-config || !OpenWithState.loaded;
     property <int> bottom-tab: 0;
+    // A narrow window (or a long translation): rows of options wrap.
+    property <bool> narrow: root.width < 820px;
     init => { OpenWithState.activated(); }
 
     PageHeader {
@@ -757,6 +740,7 @@ export component OpenWithPage inherits PageFrame {
             }
             FormRow {
                 label: @tr("Shows on");
+                // Four in a row, or two rows of two in a narrow window.
                 HorizontalLayout {
                     spacing: Tokens.s4;
                     FlagField {
@@ -773,6 +757,24 @@ export component OpenWithPage inherits PageFrame {
                         value: OpenWithState.show-folders;
                         serial: OpenWithState.options-serial;
                     }
+                    if !root.narrow: FlagField {
+                        text: @tr("Folder background");
+                        enabled: !root.locked;
+                        field: "background";
+                        value: OpenWithState.show-background;
+                        serial: OpenWithState.options-serial;
+                    }
+                    if !root.narrow: FlagField {
+                        text: @tr("Desktop");
+                        enabled: !root.locked;
+                        field: "desktop";
+                        value: OpenWithState.show-desktop;
+                        serial: OpenWithState.options-serial;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+                if root.narrow: HorizontalLayout {
+                    spacing: Tokens.s4;
                     FlagField {
                         text: @tr("Folder background");
                         enabled: !root.locked;
@@ -803,7 +805,7 @@ export component OpenWithPage inherits PageFrame {
                     selected: root.bottom-tab;
                     changed(i) => { root.bottom-tab = i; }
                 }
-                if root.bottom-tab == 0: Segmented {
+                if root.bottom-tab == 0 && !root.narrow: Segmented {
                     width: 300px;
                     options: [@tr("A file"), @tr("A folder"), @tr("Right-click target" => "Background")];
                     selected: OpenWithState.preview-kind;
@@ -817,6 +819,16 @@ export component OpenWithPage inherits PageFrame {
                     font-size: Tokens.caption;
                     color: Tokens.text-3;
                     overflow: elide;
+                }
+            }
+            // A narrow window: the preview's target on its own row.
+            if root.bottom-tab == 0 && root.narrow: HorizontalLayout {
+                alignment: start;
+                Segmented {
+                    width: 300px;
+                    options: [@tr("A file"), @tr("A folder"), @tr("Right-click target" => "Background")];
+                    selected: OpenWithState.preview-kind;
+                    changed(i) => { OpenWithState.set-preview-kind(i); }
                 }
             }
             if root.bottom-tab == 0: Rectangle {

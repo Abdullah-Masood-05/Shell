@@ -1,7 +1,7 @@
 <h4>Preferences &amp; Updates</h4>
 <br>
-<p>Preferences is about the app itself: how it looks, registering Shell for everyone on this PC, keeping the app up to
-	date, and version and licence information.</p>
+<p>Preferences is about the app itself: how it looks, whether it stays in the system tray and starts with Windows,
+	registering Shell for everyone on this PC, keeping the app up to date, and version and licence information.</p>
 
 <figure class="screenshot my-5">
 	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
@@ -79,6 +79,45 @@
 	<code>msgstr</code> in the same way. For developers, <i>Translations</i> in <code>src/settings/README.md</code>
 	explains how the files are built into the app.</p>
 
+<h5 id="startup-and-tray">Startup and tray</h5>
+<p>The app can keep running in the system tray, the area next to the clock on the taskbar, so it opens at once and can
+	tell you when a new version is out. Its icon is the Nilesoft Shell Pro logo. If you don't see it, click the small
+	arrow next to the clock: Windows hides some tray icons there.</p>
+<ul>
+	<li><strong>Keep Nilesoft Shell Pro in the system tray</strong> (on by default): closing the window leaves the app
+		running in the tray. Click the icon to open the window again. Turn this off and the app works as before: closing
+		the window ends it, and there is no tray icon.</li>
+	<li><strong>Start with Windows</strong> (on by default): when you sign in to Windows, the app starts in the tray
+		without opening its window. It only works while the first setting is on, so the switch is greyed out when the
+		app isn't kept in the tray. It only applies to your Windows account, and it doesn't need administrator rights.</li>
+</ul>
+<p>Right-click the tray icon for a menu:</p>
+<ul>
+	<li><strong>Open Nilesoft Shell Pro</strong> opens the window (clicking the icon does the same).</li>
+	<li><strong>Check for updates</strong> checks right away and tells you the result in a notification.</li>
+	<li><strong>Restart Explorer</strong> is the same as the button on <a href="/docs/app/home#quick-actions">Home</a>.</li>
+	<li><strong>Quit</strong> ends the app until you start it again (or until you next sign in, if <i>Start with
+		Windows</i> is on).</li>
+</ul>
+<p>While the app is in the tray it checks for updates a minute or two after Windows starts and then about every eight
+	hours, if <a href="#update-settings">Check for updates automatically</a> is on. When it finds a new version you get a
+	Windows notification, <i>Nilesoft Shell Pro 2.x is available. Click to see what's new.</i> Clicking it opens the app
+	on Home, where the update banner is. You are told once about each version, and never about a version you skipped. If
+	<i>Download and install updates automatically</i> is on, the update is also downloaded in the background, as
+	before.</p>
+<p>The app runs only once. Starting it from the Start menu while it is in the tray opens the window you already have.
+	In the tray it uses very little: it draws nothing while the window is closed, and it wakes up only for its icon and
+	the update checks.</p>
+<p>How Windows starts it: an entry named <code>NilesoftShellPro</code> under
+	<code>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run</code>, which runs
+	<code>NilesoftShellPro.exe --background</code>. The app adds it the first time you run version 2.2.0 or later, and
+	never again on its own, so if you remove it another way it stays removed. Turning off either setting removes it.
+	It also shows in <i>Settings &rarr; Apps &rarr; Startup</i> and in Task Manager, where you can turn it off too; the
+	card then says so, and turning <i>Start with Windows</i> on in the app turns it back on there. Uninstalling the MSI
+	closes the app and removes the entry. For a portable copy, turn off <i>Keep Nilesoft Shell Pro in the system
+	tray</i> before you delete the folder. The settings are stored as <code>KeepInTray</code> and
+	<code>StartWithWindows</code> under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>.</p>
+
 <h5 id="all-users">All users on this PC</h5>
 <p>This card shows whether Shell is registered for <i>All users</i> and for <i>Just you</i>, and has the one button in
 	the app that needs administrator rights.</p>
@@ -101,15 +140,23 @@
 	and the sidebar shows <i>Update available</i> above the status line. The <strong>Updates</strong> card in Preferences
 	has the version you run (and whether it is the MSI, installed for all users, or a portable copy), the channel, the
 	last check and a <strong>Check now</strong> button.</p>
+<p>Updates don't ask for administrator rights. Most updates only change the app and the menu files that come with it, and
+	those are installed for you alone, even when Shell is installed for all users. Only an update that also changes the
+	Shell core (<code>shell.dll</code> and <code>shell.exe</code>, which an all-users install shares with everyone on the
+	PC) needs administrator approval. The banner then says so and offers <strong>Install with administrator approval</strong>
+	and <strong>Later</strong>; nothing asks for approval unless you press that button.</p>
 
 <h5 id="update-settings">Update settings</h5>
 <ul>
 	<li><strong>Check for updates automatically</strong> (on by default): when the app starts, at most once a day, and
-		once a day while it stays open. A failed automatic check (offline, or GitHub's request limit) stays quiet and is
+		once a day while it stays open; about every eight hours while it is in the <a href="#startup-and-tray">system
+		tray</a>. A failed automatic check (offline, or GitHub's request limit) stays quiet and is
 		tried again later; <i>Check now</i> says what went wrong.</li>
 	<li><strong>Download and install updates automatically</strong> (off by default): the update is downloaded and
-		verified in the background, then the banner offers <i>Restart to update</i>. Nothing is installed without that
-		click, and an MSI install still asks for administrator approval once.</li>
+		verified in the background. An app update for an all-users install is also installed for you right away and is
+		used the next time the app starts (or press <i>Restart now</i>); a portable copy is replaced when you press
+		<i>Restart to update</i>. An update that changes the Shell core for all users is never installed automatically:
+		it is only announced, because it needs administrator approval.</li>
 	<li><strong>Channel:</strong> <i>Stable</i> offers releases only; <i>Beta</i> also offers pre-releases such as
 		<code>2.1.0-beta.1</code>. A pre-release build starts on Beta, every other build on Stable.</li>
 	<li><strong>Skip this version</strong> (on the Home banner) hides that version; a newer one still shows up.</li>
@@ -121,29 +168,57 @@
 		the update while Appearance, Behavior or Rules &amp; Filters have changes waiting.</li>
 	<li>Press <kbd>Download and install</kbd> on the Home banner or in Preferences (or <kbd>Check now</kbd> first). A
 		progress bar shows the download; <kbd>Cancel</kbd> stops it.</li>
-	<li>When the download is checked, the app closes and the update is installed:
+	<li>When the download is checked, the update is installed:
 		<ul>
-			<li><strong>MSI</strong> (the button has the UAC shield): Windows asks for administrator approval once. Choose
-				<i>Yes</i>. The installer runs with a small progress window and restarts Explorer.</li>
-			<li><strong>Portable:</strong> no administrator rights and no prompt. The app is gone for a moment.</li>
+			<li><strong>App update</strong> (the usual case for an all-users install): installed for you, with no
+				administrator rights and no prompt. Press <kbd>Restart now</kbd> to use it right away, or keep working:
+				the next time the app starts, it is the new version.</li>
+			<li><strong>Portable:</strong> no administrator rights and no prompt. The app closes for a moment and the
+				files in its folder are replaced.</li>
+			<li><strong>Shell core update</strong> for an all-users install (the button has the UAC shield and says
+				<i>Install with administrator approval</i>): the app closes and Windows asks for administrator approval
+				once. Choose <i>Yes</i>. The installer runs with a small progress window and restarts Explorer. Choose
+				<i>Later</i> on the banner if you don't want that now; the update stays in Preferences.</li>
 		</ul>
 	</li>
 	<li>The app opens again on its own and Home says <i>Updated to</i> and the new version. For a portable copy, press
 		<kbd>Restart Explorer</kbd> on that banner to load the new <code>shell.dll</code>; until then Explorer keeps
 		using the old one.</li>
 </ol>
-<p>Your configuration in <code>%APPDATA%\Nilesoft\Shell</code> is never touched by an update.</p>
+<p>After an app update for an all-users install, Home shows two versions next to <i>Version</i>: the Shell core
+	installed for everyone and the newer app you run (for example <i>Shell core 2.1.1 · app 2.2.0</i>). That is
+	expected: the core is updated only when a release changes it.</p>
+<p>A file of your configuration in <code>%APPDATA%\Nilesoft\Shell</code> that you edited is never replaced by an update;
+	see <a href="/docs/installation#config-updates">Updates and your configuration</a>.</p>
 
 <h5 id="how-updates-work">What happens behind the scenes</h5>
 <ol>
-	<li>The file for your install is downloaded to <code>%LOCALAPPDATA%\Nilesoft\Shell\updates\&lt;version&gt;</code>:
-		<code>setup-x64.msi</code> or <code>setup-arm64.msi</code> when the app runs from <i>Program Files</i> and Shell is
-		registered for all users from there, otherwise the x64 portable zip. Only addresses under this project's
-		releases (and the GitHub hosts they redirect to) are accepted.</li>
+	<li>For an all-users install (the app runs from <i>Program Files</i> and Shell is registered for all users from
+		there), the app first reads the release's <code>update.json</code>. It says which release the Shell core of the
+		new version comes from. When your installed core is at least that release, the app downloads only
+		<code>NilesoftShellPro-&lt;version&gt;-x64-app.zip</code> (the app and the menu files that come with it). Otherwise
+		(or for an older release without <code>update.json</code>) it offers <code>setup-x64.msi</code> or
+		<code>setup-arm64.msi</code>, which needs administrator approval. A portable copy downloads the x64 portable zip.
+		Downloads go to <code>%LOCALAPPDATA%\Nilesoft\Shell\updates\&lt;version&gt;</code>. Only addresses under this
+		project's releases (and the GitHub hosts they redirect to) are accepted.</li>
 	<li>It is checked against the release's <code>SHA256SUMS.txt</code>, which is downloaded first. A file that doesn't
 		match is deleted and nothing is installed. A release without <code>SHA256SUMS.txt</code> isn't installed at
 		all.</li>
-	<li>The app closes and a copy of it in <code>%TEMP%</code> finishes the job:
+	<li><strong>App update:</strong> every file in the zip is checked once more against the SHA-256 listed in
+		<code>update.json</code>, then the files are copied to
+		<code>%LOCALAPPDATA%\Programs\Nilesoft Shell Pro\app\&lt;version&gt;</code> with an
+		<code>install.json</code> that lists them. Program Files is not touched. When the app in Program Files starts
+		(from the Start menu or with Windows), it looks there and starts the newest copy that is newer than itself and
+		whose <code>NilesoftShellPro.exe</code> still matches, with the same command line. If that copy is damaged or
+		closes before its window appears, it is removed and the installed app runs instead. Copies older than the
+		installed version (for example after you install a newer MSI) are removed, and so are older copies once a newer
+		one runs. When the app is started <i>as administrator</i>, it never starts a per-user copy.</li>
+	<li>Your personal configuration is brought up to date from the new version's menu files (see
+		<a href="/docs/installation#config-updates">Updates and your configuration</a>), also without administrator
+		rights. A configuration that is still the shared one in Program Files keeps the installed menu files until the
+		next Shell core update, or until you create a personal configuration on Home.</li>
+	<li>For a portable copy or a Shell core update, the app closes and a copy of it in <code>%TEMP%</code> finishes the
+		job:
 		<ul>
 			<li><strong>MSI:</strong> Windows asks for administrator approval, then
 				<code>msiexec /i setup-x64.msi /passive /norestart</code> runs (its log is saved next to the MSI). The
@@ -177,6 +252,13 @@
 		the installer's log file next to the MSI. <i>Another installation is in progress</i> means Windows is installing
 		something else: wait and try again.</td></tr>
 	<tr><td><i>The update was cancelled</i></td><td>The installer was cancelled; nothing was changed.</td></tr>
+	<tr><td><i>Version 2.2.0 couldn't start, so 2.1.1 is running.</i></td><td>The app update was installed but closed
+		before its window appeared, so the installed app started instead and the damaged copy was removed. Press
+		<kbd>Check now</kbd> to install it again. If it keeps happening, report it and install the MSI from the release
+		page.</td></tr>
+	<tr><td>The app asks for administrator approval to update</td><td>Only an update that changes the Shell core of an
+		all-users install does, and only after you press <i>Install with administrator approval</i>. Choose
+		<i>Later</i> to keep the version you have.</td></tr>
 	<tr><td>The update can't be installed from the app at all</td><td>Download the MSI or the portable zip from the
 		<a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest">latest release</a> and install it by hand
 		(see <a href="/docs/installation">Installation</a>).</td></tr>

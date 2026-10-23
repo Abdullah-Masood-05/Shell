@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 struct AppOptions
 {
@@ -84,6 +85,6 @@ private:
     std::wstring testFile_;       // the translator preview's .po file, while it shows
     std::vector<std::function<void()>> configChanged_;
     slint::Timer toastTimer_;
-    slint::Timer themePoll_;
+    WindowPoll themePoll_;
     Worker worker_; // last: joined first, before cli_ goes away
 };

@@ -23,18 +23,23 @@ export component MenuSurface inherits Rectangle {
     in property <bool> flat-backdrop;
     in property <color> flat-color;
     in-out property <int> hovered: -1;
+    // Drawn smaller than the theme says (a narrow preview pane): every length times this.
+    in property <float> zoom: 1;
 
     // The menu's default font, Segoe UI; each language can name another one in its .po file,
     // because Slint's fallback for Chinese text in Segoe UI misses characters.
     property <string> default-family: @tr("Menu font family" => "Segoe UI");
     property <string> family: t.font-family != "" ? t.font-family : root.default-family;
-    property <length> label-x: t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px);
+    property <length> label-x: (t.item-pad-left * root.zoom) + (t.show-images ? (t.image-size * root.zoom) + (t.image-gap * root.zoom) : 0px);
 
-    width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + root.label-x + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
-    height: root.menu.height;
-    border-radius: t.radius;
-    drop-shadow-blur: t.shadow ? t.shadow-size * 3 : 0px;
-    drop-shadow-offset-y: t.shadow ? t.shadow-offset : 0px;
+    // The width at zoom 1, for placing the menus in the pane.
+    out property <length> natural-width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
+
+    width: root.natural-width * root.zoom;
+    height: (root.menu.height * root.zoom);
+    border-radius: (t.radius * root.zoom);
+    drop-shadow-blur: t.shadow ? (t.shadow-size * root.zoom) * 3 : 0px;
+    drop-shadow-offset-y: t.shadow ? (t.shadow-offset * root.zoom) : 0px;
     drop-shadow-color: t.shadow ? t.shadow-color : transparent;
     accessible-role: list;
 
@@ -56,7 +61,7 @@ export component MenuSurface inherits Rectangle {
     }
 
     Rectangle {
-        border-radius: t.radius;
+        border-radius: (t.radius * root.zoom);
         clip: true;
 
         if t.effect >= 2 && !root.flat-backdrop: Image {
@@ -90,28 +95,28 @@ export component MenuSurface inherits Rectangle {
         }
 
         for it[i] in root.menu.items: Rectangle {
-            x: t.pad-left;
-            y: it.y;
-            width: parent.width - t.pad-left - t.pad-right;
-            height: it.h;
+            x: (t.pad-left * root.zoom);
+            y: (it.y * root.zoom);
+            width: parent.width - (t.pad-left * root.zoom) - (t.pad-right * root.zoom);
+            height: (it.h * root.zoom);
             property <bool> selected: i == root.hovered && !it.separator;
 
             if it.separator: Rectangle {
-                x: t.sep-mar-left;
-                y: t.sep-mar-top;
-                width: parent.width - t.sep-mar-left - t.sep-mar-right;
-                height: t.sep-size;
+                x: (t.sep-mar-left * root.zoom);
+                y: (t.sep-mar-top * root.zoom);
+                width: parent.width - (t.sep-mar-left * root.zoom) - (t.sep-mar-right * root.zoom);
+                height: (t.sep-size * root.zoom);
                 background: t.sep-color;
             }
             // The Snippets preview marks the snippet's own rows: a faint accent wash
             // behind them and a short accent bar at the menu's edge.
             if it.own && !it.separator: Rectangle {
-                x: -t.pad-left + 1px;
-                width: parent.width + t.pad-left + t.pad-right - 2px;
+                x: -(t.pad-left * root.zoom) + 1px;
+                width: parent.width + (t.pad-left * root.zoom) + (t.pad-right * root.zoom) - 2px;
                 background: Tokens.accent.with-alpha(0.13);
             }
             if it.own && !it.separator: Rectangle {
-                x: -t.pad-left + 2px;
+                x: -(t.pad-left * root.zoom) + 2px;
                 y: (parent.height - self.height) / 2;
                 width: 3px;
                 height: min(parent.height - 6px, 16px);
@@ -119,42 +124,42 @@ export component MenuSurface inherits Rectangle {
                 background: Tokens.accent;
             }
             if !it.separator: Rectangle {
-                x: t.item-mar-left;
-                y: t.item-mar-top;
-                width: parent.width - t.item-mar-left - t.item-mar-right;
-                height: parent.height - t.item-mar-top - t.item-mar-bottom;
-                border-radius: t.item-radius;
+                x: (t.item-mar-left * root.zoom);
+                y: (t.item-mar-top * root.zoom);
+                width: parent.width - (t.item-mar-left * root.zoom) - (t.item-mar-right * root.zoom);
+                height: parent.height - (t.item-mar-top * root.zoom) - (t.item-mar-bottom * root.zoom);
+                border-radius: (t.item-radius * root.zoom);
                 background: !selected ? transparent : it.disabled ? t.back-dis-sel : t.back-sel;
                 accessible-role: list-item;
                 accessible-label: it.label;
 
                 if t.show-images && it.has-icon: Image {
-                    x: t.item-pad-left;
+                    x: (t.item-pad-left * root.zoom);
                     y: (parent.height - self.height) / 2;
-                    width: t.image-size;
-                    height: t.image-size;
+                    width: (t.image-size * root.zoom);
+                    height: (t.image-size * root.zoom);
                     source: it.icon;
                     image-fit: contain;
                     opacity: it.disabled ? 0.45 : 1;
                 }
                 if t.show-images && !it.has-icon && it.glyph != "": Text {
-                    x: t.item-pad-left;
-                    width: t.image-size;
+                    x: (t.item-pad-left * root.zoom);
+                    width: (t.image-size * root.zoom);
                     height: parent.height;
                     text: it.glyph;
                     font-family: it.glyph-font != "" ? it.glyph-font : root.icon-font;
-                    font-size: t.image-size * 0.94;
+                    font-size: (t.image-size * root.zoom) * 0.94;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                     color: it.disabled ? t.text-dis : selected ? t.icon-sel : t.icon;
                 }
                 Text {
                     x: root.label-x;
-                    width: parent.width - self.x - t.item-pad-right - t.font-size * 1.5;
+                    width: parent.width - self.x - (t.item-pad-right * root.zoom) - (t.font-size * root.zoom) * 1.5;
                     height: parent.height;
                     text: it.label;
                     font-family: root.family;
-                    font-size: t.font-size;
+                    font-size: (t.font-size * root.zoom);
                     font-weight: t.font-weight;
                     font-italic: t.italic || it.placeholder;
                     vertical-alignment: center;
@@ -162,11 +167,11 @@ export component MenuSurface inherits Rectangle {
                     color: it.disabled || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
                 }
                 if it.sub >= 0: Text {
-                    x: parent.width - t.item-pad-right - self.width;
+                    x: parent.width - (t.item-pad-right * root.zoom) - self.width;
                     height: parent.height;
                     text: "\u{E76C}";
                     font-family: root.icon-font;
-                    font-size: t.font-size * 0.72;
+                    font-size: (t.font-size * root.zoom) * 0.72;
                     vertical-alignment: center;
                     color: it.disabled ? t.text-dis : selected ? t.chevron-sel : t.chevron;
                 }
@@ -183,8 +188,8 @@ export component MenuSurface inherits Rectangle {
 
     // The border is drawn over the rows, like the core does.
     Rectangle {
-        border-radius: t.radius;
-        border-width: t.border-size;
+        border-radius: (t.radius * root.zoom);
+        border-width: (t.border-size * root.zoom);
         border-color: t.border-color;
     }
 }
@@ -376,9 +381,25 @@ export component PreviewPane inherits Rectangle {
         dark: root.dark;
     }
 
+    // Where the menus go, like Windows places a submenu: to the right of its item, or
+    // flipped to the left of the menu when the right side has no room. When neither
+    // side has room (a narrow pane), the pair moves left as far as it must and, if it
+    // still doesn't fit, is drawn smaller. The submenu never covers the menu's labels.
+    property <bool> has-sub: root.open-sub >= 0 && root.open-sub < root.subs.length;
+    property <length> edge: 4px;
+    property <length> overlap: 4px;
+    property <length> natural-x: root.explorer ? min(64px, max(16px, root.width - main.natural-width * 2 - 8px)) : 16px;
+    property <bool> fits-right: root.natural-x + main.natural-width - root.overlap + sub.natural-width <= root.width - root.edge;
+    property <bool> fits-left: root.natural-x + root.overlap - sub.natural-width >= root.edge;
+    property <bool> flip: root.has-sub && !root.fits-right && root.fits-left;
+    property <bool> squeeze: root.has-sub && !root.fits-right && !root.fits-left;
+    property <length> pair-width: main.natural-width + sub.natural-width - root.overlap;
+    property <float> zoom: root.squeeze ? clamp((root.width - 2 * root.edge) / max(1px, root.pair-width), 0.6, 1) : 1;
+
     main := MenuSurface {
-        x: root.explorer ? min(64px, max(16px, root.width - self.width * 2 - 8px)) : 16px;
+        x: root.squeeze ? max(root.edge, min(root.natural-x, root.width - root.edge - root.pair-width * root.zoom)) : root.natural-x;
         y: root.explorer ? 100px : 20px;
+        zoom: root.zoom;
         t: root.t;
         menu: root.menu;
         icon-font: root.icon-font;
@@ -392,14 +413,14 @@ export component PreviewPane inherits Rectangle {
         hovered <=> root.hovered;
     }
 
-    if root.open-sub >= 0 && root.open-sub < root.subs.length: sub := MenuSurface {
-        // Opens to the right like the real menu; in a narrow preview it cascades
-        // over the parent's right edge, as far left as it takes to show it whole.
-        property <length> right-x: main.x + main.width - 4px;
-        x: self.right-x + self.width <= root.width - 4px ? self.right-x : max(4px, root.width - self.width - 4px);
-        y: min(main.y + root.menu.items[root.hovered].y - root.t.pad-top, max(0px, root.height - self.height - 8px));
+    // Always there (hidden without a submenu), so the placement above can measure it.
+    sub := MenuSurface {
+        visible: root.has-sub;
+        x: root.flip ? main.x + root.overlap - self.width : main.x + main.width - root.overlap * root.zoom;
+        y: !root.has-sub ? main.y : min(main.y + (root.menu.items[root.hovered].y - root.t.pad-top) * root.zoom, max(0px, root.height - self.height - 8px));
+        zoom: root.zoom;
         t: root.t;
-        menu: root.subs[root.open-sub];
+        menu: root.has-sub ? root.subs[root.open-sub] : { items: [], height: 0px, open: -1 };
         icon-font: root.icon-font;
         blurred: root.blurred;
         backdrop-x: self.x;
@@ -408,5 +429,4 @@ export component PreviewPane inherits Rectangle {
         backdrop-height: root.height;
         flat-backdrop: root.explorer;
         flat-color: root.dark ? #191919 : #FFFFFF;
-    }
-}
+    }}

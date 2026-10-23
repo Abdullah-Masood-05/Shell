@@ -7,6 +7,7 @@ import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Link, Segmented } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
 import { UpdateState } from "../update-state.slint";
+import { TrayState } from "../tray-state.slint";
 import { ProgressBar } from "../components/update-banner.slint";
 import { ToggleSwitch, RowDivider } from "../components/theme-controls.slint";
 
@@ -15,6 +16,7 @@ component PrefSwitch inherits HorizontalLayout {
     in property <string> label;
     in property <string> hint;
     in property <bool> on;
+    in property <bool> enabled: true;
     callback toggled(on: bool);
     spacing: Tokens.s4;
     VerticalLayout {
@@ -24,7 +26,7 @@ component PrefSwitch inherits HorizontalLayout {
         Text {
             text: root.label;
             font-size: Tokens.body;
-            color: Tokens.text;
+            color: root.enabled ? Tokens.text : Tokens.text-3;
             wrap: word-wrap;
             min-height: self.preferred-height;
         }
@@ -38,6 +40,7 @@ component PrefSwitch inherits HorizontalLayout {
     }
     ToggleSwitch {
         on: root.on;
+        enabled: root.enabled;
         label: root.label;
         toggled(v) => { root.toggled(v); }
     }
@@ -46,7 +49,7 @@ component PrefSwitch inherits HorizontalLayout {
 export component PreferencesPage inherits PageFrame {
     PageHeader {
         title: @tr("Preferences");
-        description: @tr("How this app looks, updates, machine-wide registration, and about.");
+        description: @tr("How this app looks and starts, updates, machine-wide registration, and about.");
         busy: AppState.busy;
         busy-label: AppState.busy-label;
     }
@@ -101,6 +104,34 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.window;
+        heading: @tr("Startup and tray");
+        description: @tr("The app can wait in the notification area next to the clock, so it opens at once and can tell you when an update is out.");
+        PrefSwitch {
+            label: @tr("Keep Nilesoft Shell Pro in the system tray");
+            hint: @tr("Closing the window leaves the app running there. Turn this off to end the app when you close its window.");
+            on: TrayState.keep-in-tray;
+            toggled(v) => { TrayState.set-keep-in-tray(v); }
+        }
+        PrefSwitch {
+            label: @tr("Start with Windows");
+            hint: TrayState.keep-in-tray
+                ? @tr("When you sign in, the app starts in the tray without opening its window.")
+                : @tr("Works only while the app is kept in the system tray.");
+            on: TrayState.keep-in-tray && TrayState.start-with-windows;
+            enabled: TrayState.keep-in-tray;
+            toggled(v) => { TrayState.set-start-with-windows(v); }
+        }
+        if TrayState.off-in-windows: Text {
+            text: @tr("Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on.");
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+    }
+
+    Card {
         icon: Icons.person;
         heading: @tr("All users on this PC");
         description: @tr("Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.");
@@ -131,7 +162,8 @@ export component PreferencesPage inherits PageFrame {
         description: @tr("New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed.");
         KeyValue {
             key: @tr("Version");
-            value: UpdateState.install-kind == "msi" ? @tr("{}  ·  installed for all users (MSI)", UpdateState.current-version)
+            value: UpdateState.per-user-app ? @tr("{}  ·  app updated for you; Shell core {} for all users", UpdateState.current-version, UpdateState.installed-release)
+                : UpdateState.install-kind == "msi" ? @tr("{}  ·  installed for all users (MSI)", UpdateState.current-version)
                 : UpdateState.install-kind == "portable" ? @tr("{}  ·  portable copy", UpdateState.current-version)
                 : UpdateState.current-version;
         }
@@ -162,13 +194,13 @@ export component PreferencesPage inherits PageFrame {
         RowDivider { }
         PrefSwitch {
             label: @tr("Check for updates automatically");
-            hint: @tr("When the app starts, at most once a day.");
+            hint: @tr("When the app starts, at most once a day, and every few hours while it is in the system tray.");
             on: UpdateState.auto-check;
             toggled(v) => { UpdateState.set-auto-check(v); }
         }
         PrefSwitch {
             label: @tr("Download and install updates automatically");
-            hint: @tr("Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt.");
+            hint: @tr("Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval.");
             on: UpdateState.auto-install;
             toggled(v) => { UpdateState.set-auto-install(v); }
         }
@@ -221,7 +253,9 @@ export component PreferencesPage inherits PageFrame {
                 HorizontalLayout {
                     spacing: Tokens.s2;
                     if UpdateState.state == "available" || UpdateState.state == "ready": AppButton {
-                        text: UpdateState.state == "ready" ? @tr("Restart to update") : @tr("Download and install");
+                        text: UpdateState.needs-admin ? @tr("Install with administrator approval")
+                            : UpdateState.state == "ready" ? (UpdateState.update-path == "app" ? @tr("Restart now") : @tr("Restart to update"))
+                            : @tr("Download and install");
                         primary: true;
                         icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
                         colorize-icon: !UpdateState.needs-admin;

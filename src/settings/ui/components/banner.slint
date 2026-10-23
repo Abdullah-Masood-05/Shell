@@ -1,6 +1,7 @@
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppButton } from "controls.slint";
+import { ActionHeader } from "action-header.slint";
 
 // A small square "x" button.
 export component CloseGlyph inherits Rectangle {
@@ -46,54 +47,28 @@ export component Banner inherits Rectangle {
     background: Tokens.status-bg(root.kind);
     animate background { duration: Tokens.normal; }
 
-    content := HorizontalLayout {
+    // The action (and the close button) go under the text when the banner is narrow.
+    content := VerticalLayout {
         padding-left: Tokens.s4;
         padding-right: Tokens.s2;
         padding-top: Tokens.s3;
         padding-bottom: Tokens.s3;
-        spacing: Tokens.s3;
 
-        VerticalLayout {
-            alignment: start;
-            padding-top: 1px;
-            Image {
-                source: Icons.status(root.kind);
-                width: 18px;
-                height: 18px;
-                colorize: Tokens.status-color(root.kind);
-            }
-        }
-        VerticalLayout {
-            horizontal-stretch: 1;
-            alignment: center;
-            spacing: 2px;
-            Text {
-                text: root.title;
-                font-weight: 600;
-                font-size: Tokens.body;
-                color: Tokens.text;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-            if root.text != "": Text {
-                text: root.text;
-                font-size: Tokens.body;
-                color: Tokens.text-2;
-                wrap: word-wrap;
-                min-height: self.preferred-height;
-            }
-        }
-        if root.action-label != "": VerticalLayout {
-            alignment: center;
-            AppButton {
+        ActionHeader {
+            icon: Icons.status(root.kind);
+            icon-color: Tokens.status-color(root.kind);
+            icon-size: 18px;
+            title: root.title;
+            title-size: Tokens.body;
+            description: root.text;
+            description-size: Tokens.body;
+            min-text-width: 240px;
+            if root.action-label != "": AppButton {
                 text: root.action-label;
                 enabled: root.action-enabled;
                 clicked => { root.action(); }
             }
-        }
-        if root.closable: VerticalLayout {
-            alignment: center;
-            CloseGlyph {
+            if root.closable: CloseGlyph {
                 clicked => { root.close(); }
             }
         }

@@ -114,35 +114,47 @@ export component FieldLabel inherits VerticalLayout {
     }
 }
 
-// Label on the left, control on the right.
-export component SettingRow inherits HorizontalLayout {
+// Label on the left, control on the right. When the row is too narrow for the label
+// to have a sensible width next to the control (a narrow window, a long translation),
+// the control goes under the label instead. Laid out by hand: a layout can't move a
+// child from one row to another.
+export component SettingRow inherits Rectangle {
     in property <string> label;
     in property <ThemeField> field;
     in property <string> hint;
     in property <length> control-width: 220px;
     callback reset();
 
-    spacing: Tokens.s4;
-    padding-top: Tokens.s1;
-    padding-bottom: Tokens.s1;
+    property <length> gap: Tokens.s4;
+    property <length> pad: Tokens.s1;
+    property <bool> stacked: root.width - root.control-width - root.gap < 220px;
+    property <length> row-height: max(label-col.min-height, control.preferred-height);
 
-    FieldLabel {
-        horizontal-stretch: 1;
+    min-width: min(root.control-width, 160px);
+    height: 2 * root.pad + (root.stacked ? label-col.min-height + Tokens.s2 + control.preferred-height : root.row-height);
+
+    label-col := FieldLabel {
+        x: 0px;
+        y: root.pad + (root.stacked ? 0px : (root.row-height - self.height) / 2);
+        width: root.stacked ? root.width : root.width - root.control-width - root.gap;
+        height: self.min-height;
         label: root.label;
         field: root.field;
         hint: root.hint;
         reset => { root.reset(); }
     }
-    HorizontalLayout {
-        width: root.control-width;
-        alignment: end;
+    control := HorizontalLayout {
+        x: root.stacked ? 0px : root.width - self.width;
+        y: root.pad + (root.stacked ? label-col.min-height + Tokens.s2 : (root.row-height - self.height) / 2);
+        width: min(root.control-width, root.width);
+        height: self.preferred-height;
+        alignment: root.stacked ? LayoutAlignment.start : LayoutAlignment.end;
         VerticalLayout {
             alignment: center;
             @children
         }
     }
 }
-
 // Label above, control below at full width.
 export component SettingBlock inherits VerticalLayout {
     in property <string> label;
@@ -176,8 +188,17 @@ export component ChipGroup inherits Rectangle {
     in property <bool> enabled: true;
     callback changed(index: int);
 
-    height: 32px;
-    min-width: row.min-width;
+    // One row when every label fits; else two rows of equal chips (long translations,
+    // a narrow column), so the group never overflows.
+    property <length> chip-height: 26px;
+    property <length> one-row-width: measure.preferred-width + root.options.length * 16px + max(0, root.options.length - 1) * 2px + 6px;
+    property <int> per-row: root.width >= root.one-row-width ? root.options.length : Math.ceil(root.options.length / 2);
+    property <int> rows: Math.ceil(root.options.length / max(1, root.per-row));
+    property <length> chip-width: (root.width - 6px - (root.per-row - 1) * 2px) / max(1, root.per-row);
+
+    height: root.rows * root.chip-height + (root.rows - 1) * 2px + 6px;
+    min-width: Math.ceil(root.options.length / 2) * (widest.preferred-width + 16px + 2px) + 4px;
+    preferred-width: root.one-row-width;
     border-radius: Tokens.radius-sm;
     background: Tokens.dark ? Tokens.sidebar : Tokens.layer-3;
     border-width: 1px;
@@ -185,34 +206,53 @@ export component ChipGroup inherits Rectangle {
     opacity: root.enabled ? 1 : 0.5;
     accessible-role: tab-list;
 
-    row := HorizontalLayout {
-        padding: 3px;
-        spacing: 2px;
-        for option[i] in root.options: Rectangle {
-            min-width: label.preferred-width + 16px;
-            horizontal-stretch: 1;
-            border-radius: Tokens.radius-xs;
-            background: i == root.selected ? Tokens.accent-fill : ta.has-hover && root.enabled ? Tokens.hover : transparent;
-            animate background { duration: Tokens.fast; easing: ease-out; }
-            accessible-role: tab;
-            accessible-label: option;
-            accessible-item-selected: i == root.selected;
-            accessible-action-default => { if (root.enabled) { root.changed(i); } }
-            label := Text {
+    // Measures the labels (never shown): all of them in a row, and the widest.
+    Rectangle {
+        width: 0px;
+        height: 0px;
+        clip: true;
+        opacity: 0;
+        measure := HorizontalLayout {
+            for option in root.options: Text {
                 text: option;
                 font-size: 13px;
-                font-weight: i == root.selected ? 600 : 400;
-                color: i == root.selected ? Tokens.on-accent : ta.has-hover && root.enabled ? Tokens.text : Tokens.text-2;
+                font-weight: 600;
             }
-            ta := TouchArea {
-                enabled: root.enabled;
-                mouse-cursor: root.enabled ? pointer : default;
-                clicked => { root.changed(i); }
+        }
+        widest := VerticalLayout {
+            for option in root.options: Text {
+                text: option;
+                font-size: 13px;
+                font-weight: 600;
             }
         }
     }
-}
 
+    for option[i] in root.options: Rectangle {
+        x: 3px + Math.mod(i, root.per-row) * (root.chip-width + 2px);
+        y: 3px + Math.floor(i / root.per-row) * (root.chip-height + 2px);
+        width: root.chip-width;
+        height: root.chip-height;
+        border-radius: Tokens.radius-xs;
+        background: i == root.selected ? Tokens.accent-fill : ta.has-hover && root.enabled ? Tokens.hover : transparent;
+        animate background { duration: Tokens.fast; easing: ease-out; }
+        accessible-role: tab;
+        accessible-label: option;
+        accessible-item-selected: i == root.selected;
+        accessible-action-default => { if (root.enabled) { root.changed(i); } }
+        Text {
+            text: option;
+            font-size: 13px;
+            font-weight: i == root.selected ? 600 : 400;
+            color: i == root.selected ? Tokens.on-accent : ta.has-hover && root.enabled ? Tokens.text : Tokens.text-2;
+        }
+        ta := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: root.enabled ? pointer : default;
+            clicked => { root.changed(i); }
+        }
+    }
+}
 // The 0..4 radius step as five tiles showing 0/4/8/12/16 px corners.
 export component RadiusSteps inherits HorizontalLayout {
     in property <int> selected;

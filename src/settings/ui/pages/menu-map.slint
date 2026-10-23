@@ -162,7 +162,8 @@ component OutlineRow inherits Rectangle {
                 vertical-alignment: center;
                 overflow: elide;
             }
-            if root.entry.status != "": VerticalLayout {
+            // A narrow list keeps the switch in view: the tag goes first, then the file narrows.
+            if root.entry.status != "" && root.width >= 440px: VerticalLayout {
                 alignment: center;
                 StatusTag {
                     text: root.entry.status;
@@ -170,7 +171,7 @@ component OutlineRow inherits Rectangle {
                 }
             }
             Text {
-                min-width: 120px;
+                min-width: min(self.preferred-width, 48px);
                 max-width: 120px;
                 text: root.entry.origin-label;
                 font-size: Tokens.caption;
@@ -632,6 +633,8 @@ component EditCodeDialog inherits Rectangle {
 
 export component MenuMapPage inherits Rectangle {
     property <float> appear: 0;
+    // Too narrow for the contexts, the sample and the view on one row.
+    property <bool> narrow: root.width - 2 * (Tokens.s8 + Tokens.s1) < 800px;
     init => {
         root.appear = 1;
         MenuMapState.activated();
@@ -677,16 +680,35 @@ export component MenuMapPage inherits Rectangle {
             text: MenuMapState.config-errors[0];
         }
 
-        // What to show: the context, the sample file type, the view.
+        // What to show: the context, the sample file type, the view. In a narrow
+        // window the sample and the view go on a second row.
         HorizontalLayout {
             spacing: Tokens.s3;
             Segmented {
+                horizontal-stretch: root.narrow ? 1 : 0;
                 options: MenuMapState.contexts;
                 selected: MenuMapState.context;
                 min-option-width: 72px;
                 enabled: !MenuMapState.loading;
                 changed(i) => { MenuMapState.set-context(i); }
             }
+            if !root.narrow && MenuMapState.context == 0: ComboBox {
+                width: 168px;
+                model: MenuMapState.samples;
+                current-index: MenuMapState.sample;
+                enabled: !MenuMapState.loading;
+                selected => { MenuMapState.set-sample(self.current-index); }
+            }
+            if !root.narrow: Rectangle { horizontal-stretch: 1; }
+            if !root.narrow: Segmented {
+                options: [@tr("Outline"), @tr("Nodes")];
+                selected: MenuMapState.view;
+                min-option-width: 76px;
+                changed(i) => { MenuMapState.set-view(i); }
+            }
+        }
+        if root.narrow: HorizontalLayout {
+            spacing: Tokens.s3;
             if MenuMapState.context == 0: ComboBox {
                 width: 168px;
                 model: MenuMapState.samples;
@@ -785,7 +807,7 @@ export component MenuMapPage inherits Rectangle {
             }
 
             DetailPanel {
-                width: 320px;
+                width: clamp((root.width - 2 * (Tokens.s8 + Tokens.s1) - Tokens.s4) * 0.42, 240px, 320px);
                 read-only: MenuMapState.shared-config;
             }
         }

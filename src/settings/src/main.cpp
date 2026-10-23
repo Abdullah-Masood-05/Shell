@@ -1,5 +1,8 @@
 // Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
+//   --background       start in the system tray, no window (the Run entry that starts the
+//                      app with Windows uses it; see Background.h and TrayController.h)
+//
 // Development switches:
 //   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith|menumap|snippets>
 //   --no-onboarding    don't show the first-run dialog this time
@@ -35,15 +38,20 @@
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
+//   --install-update-now   the same, then download and install an update that needs no
+//                          administrator rights, as the automatic install does (tests; with a
+//                          local feed, NSP_UPDATE_INSTALL_TYPE=msi|portable sets the install kind)
 //
 // Update helper (UpdateController.h; started from a copy in %TEMP%, never by hand):
-//   --apply-update <staging> <installdir> <pid>, --apply-msi <msi> <installdir> <pid>
+//   --apply-update <staging> <installdir> <pid>, --apply-app <appdir> <installdir> <pid>,
+//   --apply-msi <msi> <installdir> <pid>
 // and what it passes back when it starts the app again:
-//   --updated <msi|portable>, --update-failed <message>, --update-cancelled,
+//   --updated <msi|portable|app:<version>>, --update-failed <message>, --update-cancelled,
 //   and --ui-lang <en|zh-CN|...>: the language the app was showing
 
 #include "app.h"
 
+#include "AppChannel.h"
 #include "AppController.h"
 #include "AppearanceController.h"
 #include "BackupsController.h"
@@ -59,7 +67,10 @@
 #include "SaveService.h"
 #include "SnippetsController.h"
 #include "Text.h"
+#include "TrayController.h"
+#include "TrayIcon.h"
 #include "UpdateController.h"
+#include "WindowPoll.h"
 
 #include <windows.h>
 #include <objbase.h>
@@ -70,6 +81,7 @@
 #include <chrono>
 #include <cwchar>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -89,6 +101,7 @@ std::string g_snippetsSelect;
 std::string g_snippetsContext;
 MenuMapController::DevOptions g_map;
 bool g_mapSet = false;
+bool g_background = false;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -131,6 +144,8 @@ AppOptions parseArgs()
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;
+        else if (_wcsicmp(argv[i], L"--background") == 0)
+            g_background = true;
         else if (_wcsicmp(argv[i], L"--page") == 0 && i + 1 < argc) {
             ++i;
             for (int p = 0; p < int(std::size(pages)); ++p)
@@ -148,6 +163,9 @@ AppOptions parseArgs()
             o.testPo = argv[++i];
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
+        } else if (_wcsicmp(argv[i], L"--install-update-now") == 0) {
+            g_update.checkNow = true;
+            g_update.installNow = true;
         } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {
             o.shownLanguage = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {
@@ -209,13 +227,17 @@ AppOptions parseArgs()
 // the same ID (setup.wxs, System.AppUserModel.ID).
 constexpr const wchar_t *appUserModelId = L"Nilesoft.ShellPro";
 
-// One window per user session: a second start brings the first one forward. The mutex
-// name predates the rename and stays, so an older build that is still open counts too.
-bool activateExistingInstance(HANDLE &mutex)
+// One copy per user session: a second start shows the first one's window (from the tray
+// too) and brings it forward; a second --background start just ends. The mutex name
+// predates the rename and stays, so an older build that is still open counts too.
+bool activateExistingInstance(HANDLE &mutex, bool background)
 {
     mutex = CreateMutexW(nullptr, TRUE, L"Local\\Nilesoft.Shell.Settings");
     if (GetLastError() != ERROR_ALREADY_EXISTS)
         return false;
+    if (TrayIcon::signalRunning(!background) || background)
+        return true;
+    // A version before the tray: its window, by title.
     HWND hwnd = FindWindowW(nullptr, L"Nilesoft Shell Pro");
     if (!hwnd)
         hwnd = FindWindowW(nullptr, L"Nilesoft Shell Settings"); // the title before the rename
@@ -235,6 +257,11 @@ int main()
     if (int rc = runUpdateHelper(); rc >= 0)
         return rc;
 
+    // An app update installed for this user only (AppChannel.h): the installed exe starts
+    // the newer per-user copy with the same arguments, or carries on itself.
+    if (int rc = appchannel::handOff(updater::Version::parse(SETTINGS_VERSION).value_or(updater::Version{})); rc >= 0)
+        return rc;
+
     auto options = parseArgs();
     const bool snapshot = !g_snapshotPath.empty();
     // Snapshots write nothing and check only when asked to.
@@ -245,8 +272,21 @@ int main()
 
     // Snapshots never touch a running window of the app (no single-instance check).
     HANDLE mutex = nullptr;
-    if (!snapshot && activateExistingInstance(mutex))
+    const bool background = g_background && !snapshot;
+    if (!snapshot && activateExistingInstance(mutex, background)) {
+        appchannel::signalStarted(); // a per-user copy: the running one took over, handOff() can end
         return 0;
+    }
+    // A start with Windows while the tray setting is off: nothing to do. (Turning the
+    // setting off removes the Run entry, so this is only a leftover one.)
+    if (background) {
+        startup::RegistryStore store;
+        if (!startup::load(store).keepInTray) {
+            CloseHandle(mutex);
+            appchannel::signalStarted();
+            return 0;
+        }
+    }
 
     // Before the first window exists, so the window picks it up.
     SetCurrentProcessExplicitAppUserModelID(appUserModelId);
@@ -255,6 +295,8 @@ int main()
     const HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
     auto ui = AppWindow::create();
+    // Started in the tray: the pages' polls wait until the window is first shown.
+    WindowPoll::setWindowShown(!background);
     auto controller = std::make_unique<AppController>(ui, options);
     auto editor = std::make_unique<EditorController>(ui);
     auto backups = std::make_unique<BackupsController>(ui);
@@ -282,11 +324,16 @@ int main()
                                                                  !g_update.updated.empty());
     configUpdate->onFilesChanged([&] { saveService->reloadConfig(); });
     // Installing an update closes the app first: the helper waits for this process to end.
-    auto updates = std::make_unique<UpdateController>(ui, g_update, [&] {
-        controller->saveWindowPlacement();
+    // Ends the app: the window (if it was ever shown) remembers its place, the event loop
+    // stops. The tray's Quit, signing out, and the update helper's turn.
+    bool windowAttached = false;
+    auto quitApp = [&] {
+        if (windowAttached && ui->window().is_visible())
+            controller->saveWindowPlacement();
         ui->hide();
         slint::quit_event_loop();
-    });
+    };
+    auto updates = std::make_unique<UpdateController>(ui, g_update, [&] { quitApp(); });
     // A personal config created from Home or the first-run dialog is the new root: read it.
     controller->onConfigChanged([&] { saveService->reloadConfig(); });
 
@@ -305,12 +352,65 @@ int main()
         ui->global<AppState>().set_scroll_to_end(g_snapshotScrollEnd);
     }
 
+    // The native window is created once the event loop runs and the window is shown;
+    // poll briefly for it after each first show.
+    slint::Timer hwndPoll, snapshotTour;
+    std::function<void()> attach; // set below, with the snapshot tour
+
+    // Shows the window (from the tray, or a second start of the app) and brings it forward.
+    auto showWindow = [&](int page) {
+        if (page >= 0)
+            ui->global<AppState>().set_page(page);
+        ui->show();
+        WindowPoll::setWindowShown(true);
+        if (!windowAttached) {
+            if (!hwndPoll.running())
+                hwndPoll.start(slint::TimerMode::Repeated, std::chrono::milliseconds(10), [&] { attach(); });
+            return;
+        }
+        if (HWND hwnd = ui->window().win32_hwnd()) {
+            if (IsIconic(hwnd))
+                ShowWindow(hwnd, SW_RESTORE);
+            SetForegroundWindow(hwnd);
+        }
+    };
+
+    // Preferences > Startup and tray, and the tray icon itself (not for snapshots).
+    auto tray = std::make_unique<TrayController>(ui, *updates, TrayController::Hooks{ showWindow, quitApp }, !snapshot);
+    if (!snapshot) {
+        tray->start(background);
+        // An installer that closes the app (Restart Manager) starts it again, in the tray.
+        // Not a per-user copy (AppChannel.h): Windows would start that exe itself, also
+        // after a newer MSI made it outdated; the Run entry starts the installed one.
+        if (tray->keepRunning() && !appchannel::isPerUserCopy())
+            RegisterApplicationRestart(L"--background", RESTART_NO_CRASH | RESTART_NO_HANG | RESTART_NO_REBOOT);
+        // Started in the tray, so no window will say so: the tray icon is up, handOff()
+        // in the installed exe can end.
+        if (background)
+            appchannel::signalStarted();
+    }
+
+    // Closing the window: the app stays in the tray when that setting is on, else it ends.
     ui->window().on_close_requested([&] {
-        controller->saveWindowPlacement();
+        if (windowAttached)
+            controller->saveWindowPlacement();
+        if (tray->keepRunning()) {
+            WindowPoll::setWindowShown(false);
+            tray->windowHidden();
+        } else {
+            slint::quit_event_loop();
+        }
         return slint::CloseRequestResponse::HideWindow;
     });
 
-    ui->show();
+    // In the background: no window until the tray icon asks for it. Update checks run.
+    bool updatesStarted = false;
+    if (background) {
+        updates->start();
+        updatesStarted = true;
+    } else {
+        ui->show();
+    }
 
     // The snapshot tour: the first shot is the window as started; each later one is a
     // frame from this list. With --onboarding, the dialog's later steps come first.
@@ -331,11 +431,12 @@ int main()
         frames.push_back({ g_snapshotPages.empty() ? 0 : options.startPage, -1, true });
     }
 
-    // The native window is created once the event loop runs; poll briefly for it.
-    slint::Timer hwndPoll, snapshotTour;
-    hwndPoll.start(slint::TimerMode::Repeated, std::chrono::milliseconds(10), [&] {
+    // The first time the window is shown: the controllers that need it start.
+    attach = [&] {
         if (HWND hwnd = ui->window().win32_hwnd()) {
             hwndPoll.stop();
+            windowAttached = true;
+            appchannel::signalStarted(); // the window is up: handOff() in the installed exe can end
             controller->attachWindow(hwnd);
             saveService->attachWindow(hwnd);
             updates->attachWindow(hwnd);
@@ -343,7 +444,13 @@ int main()
                 ui->window().set_maximized(true);
             controller->start();
             appearance->start();
-            updates->start();
+            if (!updatesStarted) {
+                updates->start();
+                updatesStarted = true;
+            }
+            // Opened from the tray: to the front.
+            if (background)
+                SetForegroundWindow(hwnd);
             if (snapshot)
                 snapshotTour.start(slint::TimerMode::Repeated, std::chrono::milliseconds(1200), [&] {
                     static int step = 0;
@@ -374,10 +481,14 @@ int main()
                     }
                 });
         }
-    });
+    };
+    if (!background)
+        hwndPoll.start(slint::TimerMode::Repeated, std::chrono::milliseconds(10), [&] { attach(); });
 
-    slint::run_event_loop();
+    // Hiding the window (closing it to the tray) doesn't end the app; quitApp() does.
+    slint::run_event_loop(slint::EventLoopMode::RunUntilQuit);
 
+    tray.reset();
     updates.reset();
     configUpdate.reset();
     onboarding.reset();
