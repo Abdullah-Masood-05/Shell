@@ -27,7 +27,7 @@
 	<li><a href="#scoop">Scoop</a></li>
 	<li><a href="#chocolatey">Chocolatey</a></li>
 </ul><br>
-<p>See also <a href="#config-updates">Updates and your configuration</a>.</p>
+<p>See also <a href="#updates">How updates work</a> and <a href="#config-updates">Updates and your configuration</a>.</p>
 <br>
 <p>Please also note the following reference sections:</p>
 <ul>
@@ -69,6 +69,32 @@
 	</div>
 </div>
 <br/>
+<div id="updates">
+	<h5>How updates work</h5>
+	<p>The Nilesoft Shell Pro app updates itself from this project's GitHub releases (see
+		<a href="/docs/app/preferences#updates">Preferences: Updates</a>). Updates don't ask for administrator rights:</p>
+	<ul>
+		<li><strong>Installed for all users (MSI):</strong> most releases only change the app and the menu files that come
+			with it. Those are installed for you alone, in
+			<code>%LOCALAPPDATA%\Programs\Nilesoft Shell Pro\app\&lt;version&gt;</code>, without touching
+			<code>C:\Program Files\Nilesoft Shell\</code>. The Start menu shortcut and the app's autostart keep pointing to
+			the installed app, which starts your newer copy for you. Other people on the PC keep the version they have
+			until they update it themselves.</li>
+		<li><strong>Shell core updates:</strong> when a release changes <code>shell.dll</code> or <code>shell.exe</code>,
+			which an all-users install shares with everyone on the PC, the app says so and offers
+			<i>Install with administrator approval</i>. Only then does Windows ask for approval, and only after you press
+			that button. Automatic updates never do this; they only tell you about it.</li>
+		<li><strong>Portable copy:</strong> the files in its folder are replaced, core included. The folder is yours, so no
+			administrator rights are needed. This is also how a copy registered for you only
+			(<code>shell -register -user</code>) gets core updates: its <code>shell.dll</code> lives in a folder you own, so
+			the whole copy, core included, updates without administrator rights.</li>
+	</ul>
+	<p>Every download is checked against the release's <code>SHA256SUMS.txt</code> before anything is installed, and an
+		app update also against the SHA-256 of each of its files in the release's <code>update.json</code>. You can always
+		install a release by hand instead: run the newer MSI, or replace the portable files. A newer MSI makes the app
+		copies in <code>%LOCALAPPDATA%</code> unnecessary; they are removed the next time the app starts.</p>
+</div>
+<br/>
 <div id="config-updates">
 	<h5>Updates and your configuration</h5>
 	<p>Your personal configuration in <code>%APPDATA%\Nilesoft\Shell</code> holds copies of the menu files that come
@@ -87,7 +113,10 @@
 	</ul>
 	<p>Before anything is replaced, all your files are saved as a snapshot on the
 		<a href="/docs/app/backups">Backups</a> page, so you can compare or go back. Nothing of this runs as
-		administrator, and the installer itself never touches your personal files. Without the app, run
+		administrator, and the installer itself never touches your personal files. After an app update for an all-users
+		install, the new menu files come from the app's own copy in <code>%LOCALAPPDATA%</code>, so a personal
+		configuration gets them without administrator rights too. A configuration that is still the shared one in
+		Program Files gets them with the next Shell core update. Without the app, run
 		<code>shell -config:upgrade</code> (or <code>shell -config:init</code>, which does the same for files that already
 		exist).</p>
 </div>
