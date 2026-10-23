@@ -14,8 +14,6 @@ global Mdl {
     // Segoe MDL2 Assets (on every Windows 10/11)
     out property <string> family: "Segoe MDL2 Assets";
     out property <string> app: "\u{E7AC}";      // OpenWith
-    out property <string> code: "\u{E70F}";     // Edit: written by hand
-    out property <string> search: "\u{E721}";
 }
 
 // "Unsaved" dot next to a changed row.
@@ -342,13 +340,22 @@ component TaskbarItem inherits Rectangle {
                 }
             }
         }
-        if root.entry.kind != "sep": VerticalLayout {
+        if root.entry.kind == "app": VerticalLayout {
             alignment: center;
             AppIcon {
                 icon: root.entry.icon;
                 has-icon: root.entry.has-icon;
-                glyph: root.entry.kind == "other" ? Mdl.code : Mdl.app;
                 dim: !root.entry.enabled;
+            }
+        }
+        // Written by hand: the Config Editor's icon.
+        if root.entry.kind == "other": VerticalLayout {
+            alignment: center;
+            Image {
+                source: Icons.editor;
+                width: 20px;
+                height: 16px;
+                colorize: Tokens.text-3;
             }
         }
         if root.entry.kind != "sep": VerticalLayout {
