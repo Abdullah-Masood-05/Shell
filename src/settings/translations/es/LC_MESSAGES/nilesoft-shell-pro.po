@@ -19,7 +19,7 @@ msgstr "Segoe UI Variable Text"
 msgid "Close"
 msgstr "Cerrar"
 
-#: ui/components/code.slint:330 src/UpdateController.cpp:618 src/UpdateController.cpp:634
+#: ui/components/code.slint:330 src/UpdateController.cpp:760 src/UpdateController.cpp:785
 msgid "{} of {}"
 msgstr "{} de {}"
 
@@ -84,7 +84,7 @@ msgstr "Sin diferencias."
 msgid "OK"
 msgstr "Aceptar"
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:231
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:234
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -236,7 +236,7 @@ msgstr "Avanzado"
 msgid "Backups"
 msgstr "Copias de seguridad"
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:269
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:272
 msgid "Version {}"
 msgstr "Versión {}"
 
@@ -381,71 +381,99 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: ui/components/update-banner.slint:59
+#: ui/components/update-banner.slint:60
 msgid "Downloading Nilesoft Shell Pro {}…"
 msgstr "Descargando Nilesoft Shell Pro {}…"
 
-#: ui/components/update-banner.slint:60
+#: ui/components/update-banner.slint:61
 msgid "Update ready: Nilesoft Shell Pro {}"
 msgstr "Actualización lista: Nilesoft Shell Pro {}"
 
-#: ui/components/update-banner.slint:61
+#: ui/components/update-banner.slint:62
 msgid "Installing Nilesoft Shell Pro {}…"
 msgstr "Instalando Nilesoft Shell Pro {}…"
 
-#: ui/components/update-banner.slint:62
+#: ui/components/update-banner.slint:63
 msgid "Nilesoft Shell Pro {} is available"
 msgstr "Nilesoft Shell Pro {} está disponible"
 
-#: ui/components/update-banner.slint:70
+#: ui/components/update-banner.slint:71
 msgid "You have {}."
 msgstr "Tu versión: {}."
 
-#: ui/components/update-banner.slint:71
+#: ui/components/update-banner.slint:72
 msgid "Released {}."
 msgstr "Publicada el {}."
 
-#: ui/components/update-banner.slint:80
+#: ui/components/update-banner.slint:74
+msgid "It installs for you only, without administrator rights."
+msgstr "Se instala solo para ti, sin derechos de administrador."
+
+#: ui/components/update-banner.slint:83
+msgid "This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval."
+msgstr "Esta actualización también cambia el núcleo de Shell, que está instalado para todos los usuarios. Instalarla requiere la aprobación del administrador."
+
+#: ui/components/update-banner.slint:84
+msgid "This update can only be installed with its installer, which installs for all users and needs administrator approval."
+msgstr "Esta actualización solo se puede instalar con su instalador, que instala para todos los usuarios y requiere la aprobación del administrador."
+
+#: ui/components/update-banner.slint:92
+msgid "Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts."
+msgstr "Instalada para ti, sin derechos de administrador. Reinicia la aplicación para usarla ya; si no, se usará la próxima vez que se abra la aplicación."
+
+#: ui/components/update-banner.slint:94
 msgid "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
 msgstr "Descarga completa y verificada. La aplicación se cierra, Windows pide la aprobación del administrador una vez y la aplicación se abre de nuevo."
 
-#: ui/components/update-banner.slint:81
+#: ui/components/update-banner.slint:95
 msgid "Downloaded and verified. The app closes for a moment and opens again."
 msgstr "Descarga completa y verificada. La aplicación se cierra un momento y se abre de nuevo."
 
-#: ui/components/update-banner.slint:94
+#: ui/components/update-banner.slint:108
 msgid "{} · checked against SHA256SUMS.txt when done"
 msgstr "{} · se comprueba con SHA256SUMS.txt al terminar"
 
-#: ui/components/update-banner.slint:116
+#: ui/components/update-banner.slint:130
 msgid "Release notes"
 msgstr "Notas de la versión"
 
-#: ui/components/update-banner.slint:121
+#: ui/components/update-banner.slint:135
 msgid "Skip this version"
 msgstr "Omitir esta versión"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
+#: ui/components/update-banner.slint:139
+msgid "Later"
+msgstr "Más tarde"
+
+#: ui/components/update-banner.slint:143 ui/pages/preferences.slint:225
+msgid "Install with administrator approval"
+msgstr "Instalar con aprobación del administrador"
+
+#: ui/components/update-banner.slint:144 ui/pages/preferences.slint:226
+msgid "Restart now"
+msgstr "Reiniciar ahora"
+
+#: ui/components/update-banner.slint:144 ui/pages/preferences.slint:226
 msgid "Restart to update"
 msgstr "Reiniciar para actualizar"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
+#: ui/components/update-banner.slint:145 ui/pages/preferences.slint:227
 msgid "Download and install"
 msgstr "Descargar e instalar"
 
-#: ui/components/update-banner.slint:168
+#: ui/components/update-banner.slint:188
 msgid "Downloading update… {}%"
 msgstr "Descargando actualización… {}%"
 
-#: ui/components/update-banner.slint:169
+#: ui/components/update-banner.slint:189
 msgid "Update ready: restart to update"
 msgstr "Actualización lista: reinicia para actualizar"
 
-#: ui/components/update-banner.slint:170
+#: ui/components/update-banner.slint:190
 msgid "Installing update…"
 msgstr "Instalando actualización…"
 
-#: ui/components/update-banner.slint:171
+#: ui/components/update-banner.slint:191
 msgid "Update available: {}"
 msgstr "Actualización disponible: {}"
 
@@ -775,7 +803,7 @@ msgstr "Cada vez que guardas, se toma primero una instantánea de tu configuraci
 msgid "Working…"
 msgstr "Trabajando…"
 
-#: ui/pages/backups.slint:200 ui/pages/home.slint:262
+#: ui/pages/backups.slint:200 ui/pages/home.slint:265
 msgid "Open folder"
 msgstr "Abrir carpeta"
 
@@ -1233,11 +1261,11 @@ msgstr "línea {}, columna {}"
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr "Nilesoft Shell de un vistazo: registro, la configuración activa y diagnósticos recientes."
 
-#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:655 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:655 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
+#: ui/pages/home.slint:94 ui/pages/home.slint:308 ui/pages/menu-map.slint:655 ui/pages/home.slint:94 ui/pages/home.slint:308 ui/pages/menu-map.slint:655 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
 msgid "Refresh"
 msgstr "Actualizar"
 
-#: ui/pages/home.slint:108 ui/pages/home.slint:280 ui/pages/home.slint:108 ui/pages/home.slint:280
+#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283
 msgid "Restart Explorer"
 msgstr "Reiniciar el Explorador"
 
@@ -1261,94 +1289,98 @@ msgstr "DLL de Shell"
 msgid "Version"
 msgstr "Versión"
 
-#: ui/pages/home.slint:207
+#: ui/pages/home.slint:209
+msgid "Shell core {}  ·  app {}"
+msgstr "Núcleo de Shell {}  ·  aplicación {}"
+
+#: ui/pages/home.slint:210
 msgid "{}  (running as administrator)"
 msgstr "{}  (ejecutándose como administrador)"
 
-#: ui/pages/home.slint:218
+#: ui/pages/home.slint:221
 msgid "Active config"
 msgstr "Configuración activa"
 
-#: ui/pages/home.slint:219
+#: ui/pages/home.slint:222
 msgid "The shell.nss Shell builds its menu from, and the files it imports."
 msgstr "El shell.nss con el que Shell crea su menú y los archivos que importa."
 
-#: ui/pages/home.slint:245
+#: ui/pages/home.slint:248
 msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
 msgstr "Esta es la configuración compartida de la carpeta de instalación. Una copia personal en %APPDATA% se conserva por usuario y sobrevive a las actualizaciones."
 
-#: ui/pages/home.slint:256 src/Status.cpp:193
+#: ui/pages/home.slint:259 src/Status.cpp:193
 msgid "Use per-user config"
 msgstr "Usar configuración por usuario"
 
-#: ui/pages/home.slint:273
+#: ui/pages/home.slint:276
 msgid "Quick actions"
 msgstr "Acciones rápidas"
 
-#: ui/pages/home.slint:281
+#: ui/pages/home.slint:284
 msgid "Reload the shell and the menu"
 msgstr "Recargar Shell y el menú"
 
-#: ui/pages/home.slint:288 src/Status.cpp:185
+#: ui/pages/home.slint:291 src/Status.cpp:185
 msgid "Unregister for me"
 msgstr "Anular mi registro"
 
-#: ui/pages/home.slint:288
+#: ui/pages/home.slint:291
 msgid "Also register for me"
 msgstr "Registrar también para mí"
 
-#: ui/pages/home.slint:288 src/Status.cpp:180
+#: ui/pages/home.slint:291 src/Status.cpp:180
 msgid "Register for me"
 msgstr "Registrar para mí"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "Remove it from your account"
 msgstr "Quitarlo de tu cuenta"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "Overrides the all-users copy"
 msgstr "Reemplaza la copia de todos los usuarios"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "No administrator rights needed"
 msgstr "No requiere derechos de administrador"
 
-#: ui/pages/home.slint:297
+#: ui/pages/home.slint:300
 msgid "Open config folder"
 msgstr "Abrir carpeta de configuración"
 
-#: ui/pages/home.slint:298
+#: ui/pages/home.slint:301
 msgid "Show shell.nss in Explorer"
 msgstr "Mostrar shell.nss en el Explorador"
 
-#: ui/pages/home.slint:306
+#: ui/pages/home.slint:309
 msgid "Check the status again"
 msgstr "Comprobar el estado de nuevo"
 
-#: ui/pages/home.slint:315
+#: ui/pages/home.slint:318
 msgid "Diagnostics"
 msgstr "Diagnósticos"
 
-#: ui/pages/home.slint:319
+#: ui/pages/home.slint:322
 msgid "· newest first, from shell.log"
 msgstr "· los más recientes primero, de shell.log"
 
-#: ui/pages/home.slint:326
+#: ui/pages/home.slint:329
 msgid "Open shell.log"
 msgstr "Abrir shell.log"
 
-#: ui/pages/home.slint:343
+#: ui/pages/home.slint:346
 msgid "No shell.log found next to the active shell.dll."
 msgstr "No se encontró shell.log junto al shell.dll activo."
 
-#: ui/pages/home.slint:343
+#: ui/pages/home.slint:346
 msgid "No errors or warnings in shell.log."
 msgstr "Sin errores ni advertencias en shell.log."
 
-#: ui/pages/home.slint:366
+#: ui/pages/home.slint:369
 msgid "Run first-time setup again"
 msgstr "Ejecutar de nuevo la configuración inicial"
 
@@ -2265,106 +2297,110 @@ msgid "New versions come from this project's GitHub releases and are checked aga
 msgstr "Las nuevas versiones provienen de las versiones publicadas en GitHub de este proyecto y se comprueban con sus sumas SHA-256 antes de instalar nada."
 
 #: ui/pages/preferences.slint:134
+msgid "{}  ·  app updated for you; Shell core {} for all users"
+msgstr "{}  ·  aplicación actualizada para ti; núcleo de Shell {} para todos los usuarios"
+
+#: ui/pages/preferences.slint:135
 msgid "{}  ·  installed for all users (MSI)"
 msgstr "{}  ·  instalado para todos los usuarios (MSI)"
 
-#: ui/pages/preferences.slint:135
+#: ui/pages/preferences.slint:136
 msgid "{}  ·  portable copy"
 msgstr "{}  ·  copia portátil"
 
-#: ui/pages/preferences.slint:141
+#: ui/pages/preferences.slint:142
 msgid "Channel"
 msgstr "Canal"
 
-#: ui/pages/preferences.slint:150
+#: ui/pages/preferences.slint:151
 msgid "Stable"
 msgstr "Estable"
 
-#: ui/pages/preferences.slint:150
+#: ui/pages/preferences.slint:151
 msgid "Beta"
 msgstr "Beta"
 
-#: ui/pages/preferences.slint:156
+#: ui/pages/preferences.slint:157
 msgid "Pre-releases too"
 msgstr "También versiones preliminares"
 
-#: ui/pages/preferences.slint:156
+#: ui/pages/preferences.slint:157
 msgid "Releases only"
 msgstr "Solo versiones finales"
 
-#: ui/pages/preferences.slint:164
+#: ui/pages/preferences.slint:165
 msgid "Check for updates automatically"
 msgstr "Buscar actualizaciones automáticamente"
 
-#: ui/pages/preferences.slint:165
+#: ui/pages/preferences.slint:166
 msgid "When the app starts, at most once a day."
 msgstr "Al iniciar la aplicación, como máximo una vez al día."
 
-#: ui/pages/preferences.slint:170
+#: ui/pages/preferences.slint:171
 msgid "Download and install updates automatically"
 msgstr "Descargar e instalar actualizaciones automáticamente"
 
-#: ui/pages/preferences.slint:171
-msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
+#: ui/pages/preferences.slint:172
+msgid "Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval."
+msgstr "Las actualizaciones se descargan, se verifican y se instalan en segundo plano sin derechos de administrador; tú eliges cuándo reiniciar. Una actualización que cambia el núcleo de Shell para todos los usuarios solo se anuncia, porque requiere la aprobación del administrador."
 
-#: ui/pages/preferences.slint:194 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:195 src/UpdateController.cpp:616 src/UpdateController.cpp:645
 msgid "Checking for updates…"
 msgstr "Buscando actualizaciones…"
 
-#: ui/pages/preferences.slint:195
+#: ui/pages/preferences.slint:196
 msgid "Version {} is available"
 msgstr "La versión {} está disponible"
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:197
 msgid "Downloading {}…  {}"
 msgstr "Descargando {}…  {}"
 
-#: ui/pages/preferences.slint:197
+#: ui/pages/preferences.slint:198
 msgid "Version {} is downloaded and verified"
 msgstr "La versión {} está descargada y verificada"
 
-#: ui/pages/preferences.slint:198
+#: ui/pages/preferences.slint:199
 msgid "Installing {}…"
 msgstr "Instalando {}…"
 
-#: ui/pages/preferences.slint:200
+#: ui/pages/preferences.slint:201
 msgid "Not checked yet"
 msgstr "Aún sin comprobar"
 
-#: ui/pages/preferences.slint:214
+#: ui/pages/preferences.slint:215
 msgid "Last checked: {}"
 msgstr "Última comprobación: {}"
 
-#: ui/pages/preferences.slint:235
+#: ui/pages/preferences.slint:238
 msgid "Check now"
 msgstr "Buscar ahora"
 
-#: ui/pages/preferences.slint:251
+#: ui/pages/preferences.slint:254
 msgid "About"
 msgstr "Acerca de"
 
-#: ui/pages/preferences.slint:273
+#: ui/pages/preferences.slint:276
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr "© Nilesoft Ltd. y colaboradores. Licencia MIT."
 
-#: ui/pages/preferences.slint:287
+#: ui/pages/preferences.slint:290
 msgid "Documentation"
 msgstr "Documentación"
 
-#: ui/pages/preferences.slint:292
+#: ui/pages/preferences.slint:295
 msgid "Source code"
 msgstr "Código fuente"
 
-#: ui/pages/preferences.slint:296
+#: ui/pages/preferences.slint:299
 msgid "Report an issue"
 msgstr "Informar de un problema"
 
-#: ui/pages/preferences.slint:305
+#: ui/pages/preferences.slint:308
 msgid "Third-party software"
 msgstr "Software de terceros"
 
-#: ui/pages/preferences.slint:310
+#: ui/pages/preferences.slint:313
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "Creado con Slint (licencia libre de regalías 2.0). JSON for Modern C++ de Niels Lohmann (MIT). Fluent UI System Icons de Microsoft (MIT)."
 
@@ -2754,7 +2790,7 @@ msgstr "Configuración personal creada"
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr "Shell ahora la lee desde %APPDATA%\\Nilesoft\\Shell."
 
-#: src/AppController.cpp:632 src/AppController.cpp:637 src/AppController.cpp:642 src/UpdateController.cpp:731
+#: src/AppController.cpp:632 src/AppController.cpp:637 src/AppController.cpp:642 src/UpdateController.cpp:932
 msgid "Waiting for administrator approval…"
 msgstr "Esperando la aprobación del administrador…"
 
@@ -2782,7 +2818,7 @@ msgstr "Registrado, pero el Explorador no se reinició: {}"
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr "Otra copia sigue registrada: {}. Desinstálala en Configuración > Aplicaciones y vuelve a intentarlo."
 
-#: src/AppController.cpp:678 src/UpdateController.cpp:758
+#: src/AppController.cpp:678 src/UpdateController.cpp:959
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr "Se canceló la solicitud de administrador. No se cambió nada."
 
@@ -3062,7 +3098,7 @@ msgstr "mar"
 msgid "Apr"
 msgstr "abr"
 
-#: src/BackupsModel.cpp:141 src/UpdateController.cpp:149
+#: src/BackupsModel.cpp:141 src/UpdateController.cpp:153
 msgid "May"
 msgstr "mayo"
 
@@ -3741,47 +3777,47 @@ msgstr "Antes de actualizar los archivos de menú"
 msgid "Before using the new version of a menu file"
 msgstr "Antes de usar la nueva versión de un archivo de menú"
 
-#: src/ConfigUpdateController.cpp:132
+#: src/ConfigUpdateController.cpp:165
 msgid "Updated {n} configuration file to this version"
 msgid_plural "Updated {n} configuration files to this version"
 msgstr[0] "Se actualizó {n} archivo de configuración a esta versión"
 msgstr[1] "Se actualizaron {n} archivos de configuración a esta versión"
 
-#: src/ConfigUpdateController.cpp:134
+#: src/ConfigUpdateController.cpp:167
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
 msgstr "Venían con Nilesoft Shell y no los habías cambiado. Tus copias anteriores están guardadas en Copias de seguridad."
 
-#: src/ConfigUpdateController.cpp:135
+#: src/ConfigUpdateController.cpp:168
 msgid "{n} configuration file wasn't updated because you changed it"
 msgid_plural "{n} configuration files weren't updated because you changed them"
 msgstr[0] "{n} archivo de configuración no se actualizó porque lo cambiaste"
 msgstr[1] "{n} archivos de configuración no se actualizaron porque los cambiaste"
 
-#: src/ConfigUpdateController.cpp:138
+#: src/ConfigUpdateController.cpp:171
 msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
 msgstr "Tus cambios se conservan. Compara un archivo con la nueva versión o usa la nueva versión en su lugar. Tu copia se guarda primero en Copias de seguridad."
 
-#: src/ConfigUpdateController.cpp:144
+#: src/ConfigUpdateController.cpp:177
 msgid "{}: your copy and the new version"
 msgstr "{}: tu copia y la nueva versión"
 
-#: src/ConfigUpdateController.cpp:145
+#: src/ConfigUpdateController.cpp:178
 msgid "Red lines are only in your copy. Green lines are in the new version."
 msgstr "Las líneas rojas solo están en tu copia. Las líneas verdes están en la nueva versión."
 
-#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:767
+#: src/ConfigUpdateController.cpp:208 src/Updater.cpp:886
 msgid "Couldn't read {}."
 msgstr "No se pudo leer {}."
 
-#: src/ConfigUpdateController.cpp:210
+#: src/ConfigUpdateController.cpp:244
 msgid "Couldn't use the new version"
 msgstr "No se pudo usar la nueva versión"
 
-#: src/ConfigUpdateController.cpp:223
+#: src/ConfigUpdateController.cpp:257
 msgid "Now using the new version of {}"
 msgstr "Ahora se usa la nueva versión de {}"
 
-#: src/ConfigUpdateController.cpp:223
+#: src/ConfigUpdateController.cpp:257
 msgid "Your copy is saved in Backups."
 msgstr "Tu copia está guardada en Copias de seguridad."
 
@@ -3999,7 +4035,7 @@ msgstr "Nada que guardar"
 msgid "These files are read-only here."
 msgstr "Estos archivos son de solo lectura aquí."
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:203
+#: src/EditorController.cpp:740 src/ShellCli.cpp:209
 msgid "shell.exe was not found."
 msgstr "No se encontró shell.exe."
 
@@ -4111,7 +4147,7 @@ msgstr ""
 msgid "The config file doesn't exist. Create a personal config from Home first."
 msgstr ""
 
-#: src/MenuMapController.cpp:284 src/ShellCli.cpp:118
+#: src/MenuMapController.cpp:284 src/ShellCli.cpp:124
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr "No se encontró shell.exe junto a NilesoftShellPro.exe ni al shell.dll registrado."
 
@@ -4713,19 +4749,19 @@ msgstr "shell.exe no terminó a tiempo."
 msgid "Couldn't create the personal config: {}"
 msgstr "No se pudo crear la configuración personal: {}"
 
-#: src/ShellCli.cpp:125
+#: src/ShellCli.cpp:131
 msgid "CreatePipe failed."
 msgstr "CreatePipe falló."
 
-#: src/ShellCli.cpp:164
+#: src/ShellCli.cpp:170
 msgid "Could not start shell.exe (error {})."
 msgstr "No se pudo iniciar shell.exe (error {})."
 
-#: src/ShellCli.cpp:219
+#: src/ShellCli.cpp:225
 msgid "The administrator prompt was cancelled."
 msgstr "Se canceló la solicitud de administrador."
 
-#: src/ShellCli.cpp:220
+#: src/ShellCli.cpp:226
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr "No se pudo iniciar shell.exe como administrador (error {})."
 
@@ -5095,314 +5131,370 @@ msgstr ""
 msgid "The file can't be opened."
 msgstr ""
 
-#: src/UpdateController.cpp:86
+#: src/UpdateController.cpp:87
 msgid "Couldn't find this app's own file or the temporary folder."
 msgstr "No se encontró el archivo de esta aplicación ni la carpeta temporal."
 
-#: src/UpdateController.cpp:91
+#: src/UpdateController.cpp:92
 msgid "Couldn't copy the app to the temporary folder."
 msgstr "No se pudo copiar la aplicación a la carpeta temporal."
 
-#: src/UpdateController.cpp:142
+#: src/UpdateController.cpp:146
 msgid "{} MB"
 msgstr "{} MB"
 
-#: src/UpdateController.cpp:145
+#: src/UpdateController.cpp:149
 msgid "{} KB"
 msgstr "{} KB"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "January"
 msgstr "enero"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "February"
 msgstr "febrero"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "March"
 msgstr "marzo"
 
-#: src/UpdateController.cpp:149
+#: src/UpdateController.cpp:153
 msgid "April"
 msgstr "abril"
 
-#: src/UpdateController.cpp:149
+#: src/UpdateController.cpp:153
 msgid "June"
 msgstr "junio"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "July"
 msgstr "julio"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "August"
 msgstr "agosto"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "September"
 msgstr "septiembre"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "October"
 msgstr "octubre"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "November"
 msgstr "noviembre"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "December"
 msgstr "diciembre"
 
-#: src/UpdateController.cpp:157
+#: src/UpdateController.cpp:161
 msgctxt "date: day, month name, year"
 msgid "{0} {1} {2}"
 msgstr "{0} de {1} de {2}"
 
-#: src/UpdateController.cpp:172
+#: src/UpdateController.cpp:176
 msgid "Never"
 msgstr "Nunca"
 
-#: src/UpdateController.cpp:183
+#: src/UpdateController.cpp:187
 msgid "Today at {}"
 msgstr "Hoy, {}"
 
-#: src/UpdateController.cpp:185
+#: src/UpdateController.cpp:189
 msgid "Yesterday at {}"
 msgstr "Ayer, {}"
 
-#: src/UpdateController.cpp:358
+#: src/UpdateController.cpp:339
+msgid "The update's files are missing."
+msgstr "Faltan los archivos de la actualización."
+
+#: src/UpdateController.cpp:373
 msgid "msiexec.exe couldn't be started."
 msgstr "No se pudo iniciar msiexec.exe."
 
-#: src/UpdateController.cpp:361
+#: src/UpdateController.cpp:376
 msgid "Another installation is in progress. Try again when it has finished."
 msgstr "Hay otra instalación en curso. Inténtalo de nuevo cuando termine."
 
-#: src/UpdateController.cpp:363
+#: src/UpdateController.cpp:378
 msgid "The installer stopped with code {}. Its log is {}.log."
 msgstr "El instalador se detuvo con el código {}. Su registro es {}.log."
 
-#: src/UpdateController.cpp:446 src/UpdateController.cpp:450
+#: src/UpdateController.cpp:479 src/UpdateController.cpp:488 src/UpdateController.cpp:492
 msgid "Updated to {}"
 msgstr "Actualizado a {}"
 
-#: src/UpdateController.cpp:447
-msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
-msgstr "Reinicia el Explorador para cargar el nuevo shell.dll; hasta entonces sigue usando el anterior."
+#: src/UpdateController.cpp:480
+msgid "The app was updated for you, without administrator rights."
+msgstr "La aplicación se actualizó para ti, sin derechos de administrador."
 
-#: src/UpdateController.cpp:451
-msgid "Nilesoft Shell Pro {} is installed."
-msgstr "Nilesoft Shell Pro {} está instalado."
-
-#: src/UpdateController.cpp:453
+#: src/UpdateController.cpp:482 src/UpdateController.cpp:495
 msgid "The update wasn't installed"
 msgstr "La actualización no se instaló"
 
-#: src/UpdateController.cpp:455
+#: src/UpdateController.cpp:484
+msgid "Version {} couldn't start, so {} is running. Check for updates to try again."
+msgstr "La versión {} no pudo iniciarse, así que se está ejecutando la {}. Busca actualizaciones para intentarlo de nuevo."
+
+#: src/UpdateController.cpp:489
+msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
+msgstr "Reinicia el Explorador para cargar el nuevo shell.dll; hasta entonces sigue usando el anterior."
+
+#: src/UpdateController.cpp:493
+msgid "Nilesoft Shell Pro {} is installed."
+msgstr "Nilesoft Shell Pro {} está instalado."
+
+#: src/UpdateController.cpp:497
 msgid "The update was cancelled"
 msgstr "La actualización se canceló"
 
-#: src/UpdateController.cpp:455
+#: src/UpdateController.cpp:497
 msgid "Nothing was changed."
 msgstr "No se cambió nada."
 
-#: src/UpdateController.cpp:558
+#: src/UpdateController.cpp:680
 msgid "You seem to be offline, so updates couldn't be checked."
 msgstr "Parece que no tienes conexión, así que no se pudieron buscar actualizaciones."
 
-#: src/UpdateController.cpp:559 src/Updater.cpp:261
+#: src/UpdateController.cpp:681 src/Updater.cpp:262
 msgid "GitHub's limit for update checks was reached. Try again in an hour."
 msgstr "Se alcanzó el límite de GitHub para comprobar actualizaciones. Inténtalo de nuevo en una hora."
 
-#: src/UpdateController.cpp:560
+#: src/UpdateController.cpp:682
 msgid "Couldn't check for updates: {}"
 msgstr "No se pudieron buscar actualizaciones: {}"
 
-#: src/UpdateController.cpp:585
+#: src/UpdateController.cpp:727
 msgid "You have the latest version."
 msgstr "Tienes la última versión."
 
-#: src/UpdateController.cpp:590 src/UpdateController.cpp:605
+#: src/UpdateController.cpp:732 src/UpdateController.cpp:747
 msgid "This release has no download for this kind of install. Get it from the release page."
 msgstr "Esta versión no tiene descarga para este tipo de instalación. Obtenla en la página de la versión."
 
-#: src/UpdateController.cpp:611
+#: src/UpdateController.cpp:753 src/Updater.cpp:1209
 msgid "Couldn't find %LOCALAPPDATA%."
 msgstr "No se encontró %LOCALAPPDATA%."
 
-#: src/UpdateController.cpp:619
+#: src/UpdateController.cpp:761
 msgid "Starting…"
 msgstr "Iniciando…"
 
-#: src/UpdateController.cpp:660
+#: src/UpdateController.cpp:804
+msgid "The app package doesn't match update.json."
+msgstr "El paquete de la aplicación no coincide con update.json."
+
+#: src/UpdateController.cpp:828
 msgid "Download cancelled."
 msgstr "Descarga cancelada."
 
-#: src/UpdateController.cpp:666
+#: src/UpdateController.cpp:834
 msgid "The update couldn't be downloaded in the background: {}"
 msgstr "La actualización no se pudo descargar en segundo plano: {}"
 
-#: src/UpdateController.cpp:685 src/UpdateController.cpp:697
+#: src/UpdateController.cpp:853 src/UpdateController.cpp:894
 msgid "Save or discard your changes first: the app closes to install the update."
 msgstr "Guarda o descarta primero tus cambios: la aplicación se cierra para instalar la actualización."
 
-#: src/UpdateController.cpp:718
+#: src/UpdateController.cpp:881 src/UpdateController.cpp:919
 msgid "Couldn't start the update helper."
 msgstr "No se pudo iniciar el asistente de actualización."
 
-#: src/UpdateController.cpp:724 src/UpdateController.cpp:755
+#: src/UpdateController.cpp:887
+msgid "Restarting…"
+msgstr "Reiniciando…"
+
+#: src/UpdateController.cpp:925 src/UpdateController.cpp:956
 msgid "Installing the update…"
 msgstr "Instalando la actualización…"
 
-#: src/UpdateController.cpp:760
+#: src/UpdateController.cpp:961
 msgid "Couldn't start the installer (error {})."
 msgstr "No se pudo iniciar el instalador (error {})."
 
-#: src/UpdateController.cpp:778
+#: src/UpdateController.cpp:980
 msgid "Version {} is skipped. Newer versions will still show up."
 msgstr "Se omite la versión {}. Las versiones más nuevas se seguirán mostrando."
 
-#: src/Updater.cpp:114
+#: src/Updater.cpp:115
 msgid "error {}"
 msgstr "error {}"
 
-#: src/Updater.cpp:215
+#: src/Updater.cpp:216
 msgid "Only https addresses are used for updates."
 msgstr "Para las actualizaciones solo se usan direcciones https."
 
-#: src/Updater.cpp:249
+#: src/Updater.cpp:250
 msgid "The download was redirected to an unexpected address."
 msgstr "La descarga se redirigió a una dirección inesperada."
 
-#: src/Updater.cpp:250
+#: src/Updater.cpp:251
 msgid "The download was redirected to an unexpected address: {}"
 msgstr "La descarga se redirigió a una dirección inesperada: {}"
 
-#: src/Updater.cpp:262
+#: src/Updater.cpp:263
 msgid "The server answered HTTP {}."
 msgstr "El servidor respondió HTTP {}."
 
-#: src/Updater.cpp:285
+#: src/Updater.cpp:286
 msgid "Writing the download failed."
 msgstr "Falló la escritura de la descarga."
 
-#: src/Updater.cpp:295
+#: src/Updater.cpp:296
 msgid "The download was cut off."
 msgstr "La descarga se interrumpió."
 
-#: src/Updater.cpp:302
+#: src/Updater.cpp:303
 msgid "Too many redirects."
 msgstr "Demasiadas redirecciones."
 
-#: src/Updater.cpp:407
+#: src/Updater.cpp:408
 msgid "GitHub: {}"
 msgstr "GitHub: {}"
 
-#: src/Updater.cpp:408
+#: src/Updater.cpp:409
 msgid "The list of releases couldn't be read."
 msgstr "No se pudo leer la lista de versiones."
 
-#: src/Updater.cpp:659
+#: src/Updater.cpp:799
 msgid "The download address is not a release of Nilesoft Shell Pro: {}"
 msgstr "La dirección de descarga no es una versión de Nilesoft Shell Pro: {}"
 
-#: src/Updater.cpp:666 src/Updater.cpp:679
+#: src/Updater.cpp:806 src/Updater.cpp:819 src/Updater.cpp:1273
 msgid "Couldn't write {}."
 msgstr "No se pudo escribir {}."
 
-#: src/Updater.cpp:687
+#: src/Updater.cpp:827
 msgid "Couldn't save {}."
 msgstr "No se pudo guardar {}."
 
-#: src/Updater.cpp:718
+#: src/Updater.cpp:858
 msgid "NSP_UPDATE_FEED: couldn't read {}."
 msgstr "NSP_UPDATE_FEED: no se pudo leer {}."
 
-#: src/Updater.cpp:747
-msgid "The release lists an asset with an unusable name."
-msgstr "La versión incluye un recurso con un nombre inutilizable."
+#: src/Updater.cpp:892
+msgid "{} is not served from this project's releases."
+msgstr "{} no proviene de las versiones publicadas de este proyecto."
 
-#: src/Updater.cpp:752
+#: src/Updater.cpp:897
+msgid "Couldn't download {}: {}"
+msgstr "No se pudo descargar {}: {}"
+
+#: src/Updater.cpp:916 src/Updater.cpp:957
 msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
 msgstr "Esta versión no tiene SHA256SUMS.txt, así que la descarga no se puede verificar."
 
-#: src/Updater.cpp:758
-msgid "Couldn't create {}."
-msgstr "No se pudo crear {}."
-
-#: src/Updater.cpp:772
-msgid "SHA256SUMS.txt is not served from this project's releases."
-msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
-
-#: src/Updater.cpp:777
-msgid "Couldn't download SHA256SUMS.txt: {}"
-msgstr "No se pudo descargar SHA256SUMS.txt: {}"
-
-#: src/Updater.cpp:785
+#: src/Updater.cpp:925 src/Updater.cpp:974
 msgid "SHA256SUMS.txt has no entry for {}."
 msgstr "SHA256SUMS.txt no tiene entrada para {}."
 
-#: src/Updater.cpp:798
+#: src/Updater.cpp:929
+msgid "update.json doesn't match SHA256SUMS.txt."
+msgstr "update.json no coincide con SHA256SUMS.txt."
+
+#: src/Updater.cpp:939
+msgid "update.json is for another version."
+msgstr "update.json es de otra versión."
+
+#: src/Updater.cpp:952
+msgid "The release lists an asset with an unusable name."
+msgstr "La versión incluye un recurso con un nombre inutilizable."
+
+#: src/Updater.cpp:963 src/Updater.cpp:1252
+msgid "Couldn't create {}."
+msgstr "No se pudo crear {}."
+
+#: src/Updater.cpp:987
 msgid "Couldn't copy {}."
 msgstr "No se pudo copiar {}."
 
-#: src/Updater.cpp:807
+#: src/Updater.cpp:996
 msgid "The download failed: {}"
 msgstr "La descarga falló: {}"
 
-#: src/Updater.cpp:815
+#: src/Updater.cpp:1004
 msgid "nothing"
 msgstr "nada"
 
-#: src/Updater.cpp:816
+#: src/Updater.cpp:1005
 msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
 msgstr "La descarga no coincide con SHA256SUMS.txt, así que se eliminó. Se esperaba {}…, se obtuvo {}."
 
-#: src/Updater.cpp:831
+#: src/Updater.cpp:1020
 msgid "The staging folder is not empty."
 msgstr "La carpeta de preparación no está vacía."
 
-#: src/Updater.cpp:838
+#: src/Updater.cpp:1027
 msgid "tar.exe (part of Windows 10 and later) was not found."
 msgstr "No se encontró tar.exe (parte de Windows 10 y posteriores)."
 
-#: src/Updater.cpp:846
+#: src/Updater.cpp:1035
 msgid "Couldn't start tar.exe: {}."
 msgstr "No se pudo iniciar tar.exe: {}."
 
-#: src/Updater.cpp:858
+#: src/Updater.cpp:1047
 msgid "The zip couldn't be extracted (tar.exe exit code {})."
 msgstr "No se pudo extraer el zip (código de salida de tar.exe: {})."
 
-#: src/Updater.cpp:866
+#: src/Updater.cpp:1055
 msgid "The zip contains a link, which an update never does."
 msgstr "El zip contiene un vínculo, algo que una actualización nunca hace."
 
-#: src/Updater.cpp:871
+#: src/Updater.cpp:1060
 msgid "The zip contains a file outside its folder."
 msgstr "El zip contiene un archivo fuera de su carpeta."
 
-#: src/Updater.cpp:916
+#: src/Updater.cpp:1105
 msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
 msgstr "La actualización no contiene NilesoftShellPro.exe ni shell.dll."
 
-#: src/Updater.cpp:920
+#: src/Updater.cpp:1109
 msgid "The install folder {} doesn't exist."
 msgstr "La carpeta de instalación {} no existe."
 
-#: src/Updater.cpp:930
+#: src/Updater.cpp:1119 src/Updater.cpp:1223
 msgid "Couldn't read the update's files."
 msgstr "No se pudieron leer los archivos de la actualización."
 
-#: src/Updater.cpp:972
+#: src/Updater.cpp:1161
 msgid "Couldn't replace {}: {}."
 msgstr "No se pudo reemplazar {}: {}."
 
-#: src/Updater.cpp:982
+#: src/Updater.cpp:1171 src/Updater.cpp:1264
 msgid "Couldn't write {}: {}."
 msgstr "No se pudo escribir {}: {}."
+
+#: src/Updater.cpp:1205
+msgid "This release has no app package."
+msgstr "Esta versión no tiene paquete de la aplicación."
+
+#: src/Updater.cpp:1229
+msgid "The app package has no {}."
+msgstr "El paquete de la aplicación no tiene {}."
+
+#: src/Updater.cpp:1233
+msgid "{} in the app package doesn't match update.json."
+msgstr "{} del paquete de la aplicación no coincide con update.json."
+
+#: src/Updater.cpp:1241
+msgid "The app package has a file update.json doesn't list: {}."
+msgstr "El paquete de la aplicación tiene un archivo que update.json no incluye: {}."
+
+#: src/Updater.cpp:1266
+msgid "{} was not written correctly."
+msgstr "{} no se escribió correctamente."
+
+#: src/Updater.cpp:1280
+msgid "Couldn't replace {}."
+msgstr "No se pudo reemplazar {}."
+
+#: src/Updater.cpp:1283
+msgid "Couldn't create {}: {}."
+msgstr "No se pudo crear {}: {}."
 
 #: src/WindowsTitles.cpp:33
 msgid "Give access to"
@@ -5503,3 +5595,12 @@ msgstr "Establecer como fondo de escritorio"
 #: src/WindowsTitles.cpp:117
 msgid "Restore previous versions"
 msgstr "Restaurar versiones anteriores"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
