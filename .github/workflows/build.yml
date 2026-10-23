@@ -1,7 +1,7 @@
 name: Build
 
 # Builds the core (shell.dll, shell.exe, ca.dll) for x64, x86 and ARM64, the app
-# (NilesoftShellPro.exe, x64 only), the MSIs and the x64 portable zip. release.yml calls this
+# (NilesoftShellPro.exe, x64 only), the MSIs, the x64 portable zip and the app-only update zip. release.yml calls this
 # workflow for tagged releases.
 
 on:
@@ -192,7 +192,7 @@ jobs:
         if: matrix.platform != 'ARM64'
         run: ./scripts/check-snippets.ps1 -BinDir $env:BIN_PATH
 
-      - name: Make the portable zip
+      - name: Make the portable zip and the app package
         if: matrix.platform == 'x64'
         env:
           VERSION: ${{ inputs.version }}
@@ -200,6 +200,9 @@ jobs:
           $params = @{ OutDir = 'dist' }
           if ($env:VERSION) { $params.Version = $env:VERSION }
           ./scripts/make-portable.ps1 @params
+          # The app-only update for all-users installs (no administrator rights; see
+          # src/settings/src/AppChannel.h). release.yml describes it in update.json.
+          ./scripts/make-app-package.ps1 @params
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           Get-ChildItem dist/*.zip | ForEach-Object {
             Write-Host "== $($_.Name)"
