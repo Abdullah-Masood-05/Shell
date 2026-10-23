@@ -350,18 +350,36 @@ void AppController::setLanguage(int index)
     applyLanguage(setting);
 }
 
+// A font that has the glyphs of a language's own name, whatever the UI language: the
+// English UI's Segoe UI Variable has no CJK glyphs, so the name would show as boxes.
+static const char *languageNameFont(const char *code)
+{
+    if (_strnicmp(code, "zh-TW", 5) == 0 || _strnicmp(code, "zh-HK", 5) == 0 || _strnicmp(code, "zh-Hant", 7) == 0)
+        return "Microsoft JhengHei UI";
+    if (_strnicmp(code, "zh", 2) == 0)
+        return "Microsoft YaHei UI";
+    if (_strnicmp(code, "ja", 2) == 0)
+        return "Yu Gothic UI";
+    if (_strnicmp(code, "ko", 2) == 0)
+        return "Malgun Gothic";
+    return "Segoe UI";
+}
+
 void AppController::pushLanguageOptions()
 {
     const auto &state = ui_->global<AppState>();
     const auto langs = nsp::languages();
     std::vector<slint::SharedString> options{ nsp::trc("Language", "Auto"), "English" };
+    std::vector<slint::SharedString> fonts{ "", "" }; // Auto and English: the window's font
     int index = languageSetting_ == "en" ? 1 : 0;
     for (size_t i = 0; i < langs.size(); ++i) {
         options.emplace_back(langs[i].nativeName);
+        fonts.emplace_back(languageNameFont(langs[i].code));
         if (_stricmp(languageSetting_.c_str(), langs[i].code) == 0)
             index = int(i) + 2;
     }
     state.set_language_options(std::make_shared<slint::VectorModel<slint::SharedString>>(options));
+    state.set_language_option_fonts(std::make_shared<slint::VectorModel<slint::SharedString>>(fonts));
     state.set_language_index(index);
     std::string autoName = "English";
     const std::string windows = nsp::resolveSetting("");

@@ -101,6 +101,9 @@ export global AppState {
     in property <image> shield-icon;   // the Windows UAC shield (stock icon)
     // Language: "Auto", "English", then each bundled language in its own name.
     in property <[string]> language-options;
+    // The font for each option: a language name in its own script needs a font that has
+    // its glyphs whatever the UI language ("" for the window's font).
+    in property <[string]> language-option-fonts;
     in-out property <int> language-index;   // 0 follows Windows
     in property <string> language-auto-name; // what Auto picks now, in its own name
     // The translator preview: a .po file shown for this session (Test a translation file,

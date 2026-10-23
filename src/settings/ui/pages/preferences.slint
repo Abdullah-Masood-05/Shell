@@ -76,6 +76,7 @@ export component PreferencesPage inherits PageFrame {
                 width: max(400px, self.min-width);
                 min-option-width: 96px;
                 options: AppState.language-options;
+                option-fonts: AppState.language-option-fonts;
                 selected <=> AppState.language-index;
                 changed(i) => { AppState.set-language(i); }
             }
