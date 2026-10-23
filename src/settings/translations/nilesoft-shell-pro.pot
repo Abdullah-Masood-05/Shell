@@ -20,15 +20,15 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: ui/components/code.slint:203 src/AppearanceController.cpp:88 src/OpenWithController.cpp:823
+#: ui/components/code.slint:203 src/AppearanceController.cpp:88 src/OpenWithController.cpp:821
 msgid "Cut"
 msgstr ""
 
-#: ui/components/code.slint:208 src/AppearanceController.cpp:88 src/OpenWithController.cpp:824 src/OpenWithController.cpp:830
+#: ui/components/code.slint:208 src/AppearanceController.cpp:88 src/OpenWithController.cpp:822 src/OpenWithController.cpp:828
 msgid "Copy"
 msgstr ""
 
-#: ui/components/code.slint:213 src/AppearanceController.cpp:66 src/AppearanceController.cpp:88 src/OpenWithController.cpp:836
+#: ui/components/code.slint:213 src/AppearanceController.cpp:66 src/AppearanceController.cpp:88 src/OpenWithController.cpp:834
 msgid "Paste"
 msgstr ""
 
@@ -187,7 +187,7 @@ msgstr ""
 msgid "Menu Builder"
 msgstr ""
 
-#: ui/components/sidebar.slint:20 ui/pages/openwith.slint:622 src/AppearanceController.cpp:86 src/ConfigRules.cpp:58 src/OpenWithController.cpp:821
+#: ui/components/sidebar.slint:20 ui/pages/openwith.slint:622 src/AppearanceController.cpp:86 src/ConfigRules.cpp:58 src/OpenWithController.cpp:819
 msgid "Open with"
 msgstr ""
 
@@ -660,7 +660,7 @@ msgstr ""
 msgid "Live preview"
 msgstr ""
 
-#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuMapController.cpp:36 src/MenuModel.cpp:165
+#: ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 ui/pages/appearance.slint:677 ui/pages/menu-builder.slint:671 src/MenuMapController.cpp:36 src/MenuModel.cpp:168
 msgid "Desktop"
 msgstr ""
 
@@ -698,7 +698,7 @@ msgstr ""
 msgid "Pinned"
 msgstr ""
 
-#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:379
+#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:380
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] ""
@@ -1136,7 +1136,7 @@ msgstr ""
 msgid "Couldn't open the config"
 msgstr ""
 
-#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:754 src/MenuModel.cpp:162 src/OtherApps.cpp:268 src/Snippets.cpp:638
+#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:754 src/MenuModel.cpp:165 src/OtherApps.cpp:268 src/Snippets.cpp:723
 msgid "Files"
 msgstr ""
 
@@ -1158,23 +1158,27 @@ msgstr ""
 msgid "Save {} files"
 msgstr ""
 
-#: ui/pages/editor.slint:381
+#: ui/pages/editor.slint:319
+msgid "Managed by Nilesoft Shell Pro. You can edit it; the app keeps your changes."
+msgstr ""
+
+#: ui/pages/editor.slint:389
 msgid "Problems"
 msgstr ""
 
-#: ui/pages/editor.slint:407 ui/pages/menu-map.slint:619 src/EditorController.cpp:652
+#: ui/pages/editor.slint:415 ui/pages/menu-map.slint:619 src/EditorController.cpp:652
 msgid "Checking…"
 msgstr ""
 
-#: ui/pages/editor.slint:407
+#: ui/pages/editor.slint:415
 msgid "No problems found."
 msgstr ""
 
-#: ui/pages/editor.slint:428
+#: ui/pages/editor.slint:436
 msgid "Save with errors?"
 msgstr ""
 
-#: ui/pages/editor.slint:430
+#: ui/pages/editor.slint:438
 msgid "Save anyway"
 msgstr ""
 
@@ -1186,7 +1190,7 @@ msgstr ""
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr ""
 
-#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 src/AppearanceController.cpp:64 src/OpenWithController.cpp:834
+#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:651 src/AppearanceController.cpp:64 src/OpenWithController.cpp:832
 msgid "Refresh"
 msgstr ""
 
@@ -1444,27 +1448,27 @@ msgstr ""
 msgid "Shows on"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:161
+#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:164
 msgid "Everywhere"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:750 src/MenuModel.cpp:163 src/OtherApps.cpp:269 src/Snippets.cpp:640
+#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:750 src/MenuModel.cpp:166 src/OtherApps.cpp:269 src/Snippets.cpp:725
 msgid "Folders"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:776 src/MenuModel.cpp:164 src/OtherApps.cpp:270
+#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:776 src/MenuModel.cpp:167 src/OtherApps.cpp:270
 msgid "Folder background"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:166 src/OtherApps.cpp:271
+#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:169 src/OtherApps.cpp:271
 msgid "Drives"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:167
+#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:170
 msgid "Files with extensions"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:168
+#: ui/pages/menu-builder.slint:671 src/MenuModel.cpp:171
 msgid "Custom"
 msgstr ""
 
@@ -1578,7 +1582,7 @@ msgstr ""
 msgid "LOOK"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:348 src/MenuMapController.cpp:758 src/TaskbarApps.cpp:561
+#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:758 src/TaskbarApps.cpp:561
 msgid "Separator"
 msgstr ""
 
@@ -2025,7 +2029,7 @@ msgstr ""
 msgid "Couldn't read the Open with items"
 msgstr ""
 
-#: ui/pages/openwith.slint:676 src/Snippets.cpp:650
+#: ui/pages/openwith.slint:676 src/Snippets.cpp:735
 msgid "Apps"
 msgstr ""
 
@@ -2082,11 +2086,11 @@ msgstr ""
 msgid "Windows already has an \"Open with\" item on files, so a different title tells them apart."
 msgstr ""
 
-#: ui/pages/openwith.slint:807 src/OpenWithController.cpp:912
+#: ui/pages/openwith.slint:807 src/OpenWithController.cpp:910
 msgid "A file"
 msgstr ""
 
-#: ui/pages/openwith.slint:807 src/OpenWithController.cpp:918
+#: ui/pages/openwith.slint:807 src/OpenWithController.cpp:916
 msgid "A folder"
 msgstr ""
 
@@ -2446,7 +2450,7 @@ msgctxt "Explorer menu"
 msgid "View"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:172 src/AppearanceController.cpp:64 src/OpenWithController.cpp:833
+#: ui/preview/menu-preview.slint:172 src/AppearanceController.cpp:64 src/OpenWithController.cpp:831
 msgid "Sort by"
 msgstr ""
 
@@ -2599,7 +2603,7 @@ msgstr ""
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr ""
 
-#: src/AppController.cpp:412 src/EditorController.cpp:303
+#: src/AppController.cpp:412 src/EditorController.cpp:301
 msgid "Not found"
 msgstr ""
 
@@ -2691,7 +2695,7 @@ msgstr ""
 msgid "That didn't work"
 msgstr ""
 
-#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:832
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:830
 msgid "View"
 msgstr ""
 
@@ -2699,7 +2703,7 @@ msgstr ""
 msgid "Undo Rename"
 msgstr ""
 
-#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:644 src/WindowsTitles.cpp:125
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:729 src/WindowsTitles.cpp:125
 msgid "Terminal"
 msgstr ""
 
@@ -2787,11 +2791,11 @@ msgstr ""
 msgid "Shortcut"
 msgstr ""
 
-#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:337 src/ContextMenusController.cpp:362 src/EditorController.cpp:307
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:305
 msgid "Read-only"
 msgstr ""
 
-#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:820 src/OpenWithController.cpp:826
+#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:818 src/OpenWithController.cpp:824
 msgid "Open"
 msgstr ""
 
@@ -2860,7 +2864,7 @@ msgstr ""
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr ""
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:87 src/ContextMenusController.cpp:174 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:387 src/SnippetsController.cpp:49 src/SnippetsController.cpp:148
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:204 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:387 src/SnippetsController.cpp:49 src/SnippetsController.cpp:148
 msgid "The config file doesn't exist: {}"
 msgstr ""
 
@@ -3648,164 +3652,164 @@ msgstr ""
 msgid "Your copy is saved in Backups."
 msgstr ""
 
-#: src/ContextMenusController.cpp:207
+#: src/ContextMenusController.cpp:208
 msgid "The config couldn't be read."
 msgstr ""
 
-#: src/ContextMenusController.cpp:364
+#: src/ContextMenusController.cpp:365
 msgid "Complex: edit it in the Config Editor"
 msgstr ""
 
-#: src/ContextMenusController.cpp:366
+#: src/ContextMenusController.cpp:367
 msgid "{} (outside your config)"
 msgstr ""
 
-#: src/ContextMenusController.cpp:376
+#: src/ContextMenusController.cpp:377
 msgid "No modify or remove rules in your config."
 msgstr ""
 
-#: src/ContextMenusController.cpp:377
+#: src/ContextMenusController.cpp:378
 msgid "{n} rule in {0}. Turning one off comments it out; turning it back on restores it."
 msgid_plural "{n} rules in {0}. Turning one off comments it out; turning it back on restores it."
 msgstr[0] ""
 
-#: src/ContextMenusController.cpp:392
+#: src/ContextMenusController.cpp:393
 msgid "Couldn't change {}"
 msgstr ""
 
-#: src/ContextMenusController.cpp:392 src/ContextMenusController.cpp:689
+#: src/ContextMenusController.cpp:393 src/ContextMenusController.cpp:690
 msgid "Edit the import line in the Config Editor instead."
 msgstr ""
 
-#: src/ContextMenusController.cpp:405
+#: src/ContextMenusController.cpp:406
 msgid "Couldn't change this rule"
 msgstr ""
 
-#: src/ContextMenusController.cpp:405
+#: src/ContextMenusController.cpp:406
 msgid "Edit it in the Config Editor instead."
 msgstr ""
 
-#: src/ContextMenusController.cpp:427 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:702 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1077 src/SnippetsController.cpp:360
 msgid "Can't check the config"
 msgstr ""
 
-#: src/ContextMenusController.cpp:427 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
+#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1077 src/SnippetsController.cpp:360
 msgid "shell.exe was not found, so nothing was saved."
 msgstr ""
 
-#: src/ContextMenusController.cpp:472 src/ContextMenusController.cpp:481 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1082 src/SnippetsController.cpp:364
 msgid "Not saved"
 msgstr ""
 
-#: src/ContextMenusController.cpp:472 src/ContextMenusController.cpp:481
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482
 msgid "{} is read-only here."
 msgstr ""
 
-#: src/ContextMenusController.cpp:511
+#: src/ContextMenusController.cpp:512
 msgid "Saved, but a file couldn't be deleted"
 msgstr ""
 
-#: src/ContextMenusController.cpp:513 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145
+#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145
 msgid "Saved"
 msgstr ""
 
-#: src/ContextMenusController.cpp:513 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145 src/OpenWithController.cpp:1187
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:748 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145 src/OpenWithController.cpp:1192
 msgid "No changes were needed."
 msgstr ""
 
-#: src/ContextMenusController.cpp:514 src/EditorController.cpp:749 src/MenuMapController.cpp:1037 src/MenuMapController.cpp:1146
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:749 src/MenuMapController.cpp:1037 src/MenuMapController.cpp:1146
 msgid "Snapshot {} was taken first."
 msgstr ""
 
-#: src/ContextMenusController.cpp:528 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:477
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:477
 msgid "Not saved: the config would fail to load"
 msgstr ""
 
-#: src/ContextMenusController.cpp:531 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1202 src/SnippetsController.cpp:480
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:771 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1207 src/SnippetsController.cpp:480
 msgid "Couldn't save"
 msgstr ""
 
-#: src/ContextMenusController.cpp:556 src/OpenWithController.cpp:1041
+#: src/ContextMenusController.cpp:557 src/OpenWithController.cpp:1039
 msgid "All files"
 msgstr ""
 
-#: src/ContextMenusController.cpp:596
+#: src/ContextMenusController.cpp:597
 msgid "Choose a .nss file to add"
 msgstr ""
 
-#: src/ContextMenusController.cpp:596
+#: src/ContextMenusController.cpp:597
 msgid "Shell config files"
 msgstr ""
 
-#: src/ContextMenusController.cpp:602
+#: src/ContextMenusController.cpp:603
 msgid "That's your shell.nss"
 msgstr ""
 
-#: src/ContextMenusController.cpp:602
+#: src/ContextMenusController.cpp:603
 msgid "Pick another .nss file to add to it."
 msgstr ""
 
-#: src/ContextMenusController.cpp:608
+#: src/ContextMenusController.cpp:609
 msgid "Couldn't read the file"
 msgstr ""
 
-#: src/ContextMenusController.cpp:644
+#: src/ContextMenusController.cpp:645
 msgid "Already in your config"
 msgstr ""
 
-#: src/ContextMenusController.cpp:644
+#: src/ContextMenusController.cpp:645
 msgid "shell.nss already imports {}."
 msgstr ""
 
-#: src/ContextMenusController.cpp:647
+#: src/ContextMenusController.cpp:648
 msgid "{} added"
 msgstr ""
 
-#: src/ContextMenusController.cpp:647
+#: src/ContextMenusController.cpp:648
 msgid "Save to check it and use it. Nothing is written until then."
 msgstr ""
 
-#: src/ContextMenusController.cpp:689
+#: src/ContextMenusController.cpp:690
 msgid "Couldn't remove {}"
 msgstr ""
 
-#: src/ContextMenusController.cpp:779
+#: src/ContextMenusController.cpp:780
 msgid "Written by hand"
 msgstr ""
 
-#: src/ContextMenusController.cpp:789
+#: src/ContextMenusController.cpp:790
 msgid "Choose a program for it"
 msgstr ""
 
-#: src/ContextMenusController.cpp:791 src/OpenWithController.cpp:654
+#: src/ContextMenusController.cpp:792 src/OpenWithController.cpp:652
 msgid "Not found: {}"
 msgstr ""
 
-#: src/ContextMenusController.cpp:825 src/MenuMapController.cpp:1157 src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
+#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1157 src/MenuModel.cpp:536 src/OpenWithModel.cpp:1433
 msgid "Line {}: {}"
 msgstr ""
 
-#: src/ContextMenusController.cpp:832
+#: src/ContextMenusController.cpp:833
 msgid "The Taskbar module is off, so the taskbar's menu doesn't show these apps. Turn it on under Modules."
 msgstr ""
 
-#: src/ContextMenusController.cpp:834
+#: src/ContextMenusController.cpp:835
 msgid "Your imports\\taskbar.nss doesn't read this list: it was changed by hand, or it comes from an older version. Take the new taskbar.nss on the Home page (your copy goes into a backup), or open it in the Config Editor."
 msgstr ""
 
-#: src/ContextMenusController.cpp:953
+#: src/ContextMenusController.cpp:954
 msgid "Choose a program or shortcut"
 msgstr ""
 
-#: src/ContextMenusController.cpp:953
+#: src/ContextMenusController.cpp:954
 msgid "Programs and shortcuts"
 msgstr ""
 
-#: src/ContextMenusController.cpp:1018 src/MenuMapController.cpp:547 src/Snippets.cpp:648
+#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:547 src/Snippets.cpp:733
 msgid "Windows"
 msgstr ""
 
-#: src/ContextMenusController.cpp:1018
+#: src/ContextMenusController.cpp:1019
 msgid "Installed apps"
 msgstr ""
 
@@ -3817,15 +3821,11 @@ msgstr ""
 msgid "Shared config: read-only"
 msgstr ""
 
-#: src/EditorController.cpp:301
-msgid "Managed by the app"
-msgstr ""
-
-#: src/EditorController.cpp:305
+#: src/EditorController.cpp:303
 msgid "Outside your config folder"
 msgstr ""
 
-#: src/EditorController.cpp:347
+#: src/EditorController.cpp:345
 msgid "Couldn't open {}"
 msgstr ""
 
@@ -3901,15 +3901,15 @@ msgstr ""
 msgid "That file isn't in the import tree"
 msgstr ""
 
-#: src/EditorSession.cpp:222
+#: src/EditorSession.cpp:224
 msgid "shell.exe -config:check gave no result"
 msgstr ""
 
-#: src/EditorSession.cpp:254
+#: src/EditorSession.cpp:256
 msgid "The configuration does not load."
 msgstr ""
 
-#: src/EditorSession.cpp:312
+#: src/EditorSession.cpp:314
 msgid "refusing to write under Program Files: {}"
 msgstr ""
 
@@ -3921,35 +3921,27 @@ msgstr ""
 msgid "(title from an expression)"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:288
-msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-msgstr ""
-
-#: src/MenuBuilderController.cpp:291
-msgid "The file has a syntax problem at line {}: {}"
-msgstr ""
-
-#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:539 src/OpenWithController.cpp:1144 src/PendingChanges.cpp:192 src/PendingChanges.cpp:204 src/SnippetsController.cpp:426
+#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:537 src/OpenWithController.cpp:1149 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:426
 msgid "Couldn't read {}: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
+#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1082 src/SnippetsController.cpp:364
 msgid "Program Files is never written to."
 msgstr ""
 
-#: src/MenuBuilderController.cpp:553
+#: src/MenuBuilderController.cpp:558
 msgid "Saved your menus"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:556
+#: src/MenuBuilderController.cpp:561
 msgid "Snapshot {} was taken first. Right-click to see them."
 msgstr ""
 
-#: src/MenuBuilderController.cpp:564 src/OpenWithController.cpp:1196
+#: src/MenuBuilderController.cpp:569 src/OpenWithController.cpp:1201
 msgid "{} (line {})"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:567
+#: src/MenuBuilderController.cpp:572
 msgid "Not saved: Shell would reject these menus"
 msgstr ""
 
@@ -4220,6 +4212,10 @@ msgstr ""
 msgid "Couldn't save: {}"
 msgstr ""
 
+#: src/MenuWriter.cpp:154
+msgid "{} was edited by hand, and line {} can't be read ({}). The app didn't change the file, so your edit is safe. Fix it in the Config Editor, then try again."
+msgstr ""
+
 #: src/OpenWithController.cpp:131 src/OtherApps.cpp:282
 msgid "{} and {}"
 msgstr ""
@@ -4236,179 +4232,175 @@ msgstr ""
 msgid "Icons and programs"
 msgstr ""
 
-#: src/OpenWithController.cpp:531
-msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-msgstr ""
-
-#: src/OpenWithController.cpp:534
+#: src/OpenWithController.cpp:532
 msgid "This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:647
+#: src/OpenWithController.cpp:645
 msgid "(no name)"
 msgstr ""
 
-#: src/OpenWithController.cpp:652
+#: src/OpenWithController.cpp:650
 msgid "No program chosen"
 msgstr ""
 
-#: src/OpenWithController.cpp:652
+#: src/OpenWithController.cpp:650
 msgid "Not found on this PC"
 msgstr ""
 
-#: src/OpenWithController.cpp:657
+#: src/OpenWithController.cpp:655
 msgid "Doesn't show: the menu isn't on the places it's for."
 msgstr ""
 
-#: src/OpenWithController.cpp:660
+#: src/OpenWithController.cpp:658
 msgid "Also hides: {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:661
+#: src/OpenWithController.cpp:659
 msgid "Switching it off also hides: {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:662
+#: src/OpenWithController.cpp:660
 msgid "Keeps its own: {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:663
+#: src/OpenWithController.cpp:661
 msgid "Off by default, its own still show: {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:698
+#: src/OpenWithController.cpp:696
 msgid "Shell extension \"{}\""
 msgstr ""
 
-#: src/OpenWithController.cpp:699
+#: src/OpenWithController.cpp:697
 msgid "Shell extension \"{}\" ({})"
 msgstr ""
 
-#: src/OpenWithController.cpp:703
+#: src/OpenWithController.cpp:701
 msgid "Shift only"
 msgstr ""
 
-#: src/OpenWithController.cpp:703
+#: src/OpenWithController.cpp:701
 msgid "Title shown by the app"
 msgstr ""
 
-#: src/OpenWithController.cpp:707
+#: src/OpenWithController.cpp:705
 msgid "Program not found: {}"
 msgstr ""
 
-#: src/OpenWithController.cpp:717
+#: src/OpenWithController.cpp:715
 msgid "No longer in the registry. The rule stays until you switch it back on."
 msgstr ""
 
-#: src/OpenWithController.cpp:721
+#: src/OpenWithController.cpp:719
 msgid "Type the title the menu shows, or nothing is hidden."
 msgstr ""
 
-#: src/OpenWithController.cpp:722
+#: src/OpenWithController.cpp:720
 msgid "A title with \" or | can't be matched exactly, so nothing is hidden."
 msgstr ""
 
-#: src/OpenWithController.cpp:727
+#: src/OpenWithController.cpp:725
 msgid "Leftovers from uninstalled programs"
 msgstr ""
 
-#: src/OpenWithController.cpp:730
+#: src/OpenWithController.cpp:728
 msgid "Other items"
 msgstr ""
 
-#: src/OpenWithController.cpp:774
+#: src/OpenWithController.cpp:772
 msgid "Pick at least one place, or nothing shows."
 msgstr ""
 
-#: src/OpenWithController.cpp:776
+#: src/OpenWithController.cpp:774
 msgid "Give the submenu a title."
 msgstr ""
 
-#: src/OpenWithController.cpp:827
+#: src/OpenWithController.cpp:825
 msgid "Open in new window"
 msgstr ""
 
-#: src/OpenWithController.cpp:828 src/WindowsTitles.cpp:82
+#: src/OpenWithController.cpp:826 src/WindowsTitles.cpp:82
 msgid "Pin to Quick access"
 msgstr ""
 
-#: src/OpenWithController.cpp:855
+#: src/OpenWithController.cpp:853
 msgid "Nothing of yours shows for a .txt file."
 msgstr ""
 
-#: src/OpenWithController.cpp:856
+#: src/OpenWithController.cpp:854
 msgid "Nothing of yours shows for a folder."
 msgstr ""
 
-#: src/OpenWithController.cpp:857
+#: src/OpenWithController.cpp:855
 msgid "Nothing of yours shows for a folder's background."
 msgstr ""
 
-#: src/OpenWithController.cpp:903
+#: src/OpenWithController.cpp:901
 msgid "Pick the program first."
 msgstr ""
 
-#: src/OpenWithController.cpp:912
+#: src/OpenWithController.cpp:910
 msgid "Two files"
 msgstr ""
 
-#: src/OpenWithController.cpp:923
+#: src/OpenWithController.cpp:921
 msgid "A folder's background"
 msgstr ""
 
-#: src/OpenWithController.cpp:926
+#: src/OpenWithController.cpp:924
 msgid "It doesn't show anywhere with the current settings, so there's nothing to run."
 msgstr ""
 
-#: src/OpenWithController.cpp:928
+#: src/OpenWithController.cpp:926
 msgid "The program isn't there, so Shell hides the item."
 msgstr ""
 
-#: src/OpenWithController.cpp:930
+#: src/OpenWithController.cpp:928
 msgid "Parts starting with @ are filled in by Shell when the menu opens."
 msgstr ""
 
-#: src/OpenWithController.cpp:932
+#: src/OpenWithController.cpp:930
 msgid "It runs as administrator; Windows asks first."
 msgstr ""
 
-#: src/OpenWithController.cpp:1153
+#: src/OpenWithController.cpp:1158
 msgid "Couldn't change the Editors submenu in {}."
 msgstr ""
 
-#: src/OpenWithController.cpp:1175
+#: src/OpenWithController.cpp:1180
 msgid "Updated the switched-off apps' own items"
 msgstr ""
 
-#: src/OpenWithController.cpp:1176
+#: src/OpenWithController.cpp:1181
 msgid "{} Snapshot {} has the file before."
 msgstr ""
 
-#: src/OpenWithController.cpp:1177
+#: src/OpenWithController.cpp:1182
 msgid "Their menu entries changed in the registry."
 msgstr ""
 
-#: src/OpenWithController.cpp:1178
+#: src/OpenWithController.cpp:1183
 msgid "The menu no longer shows {}'s own entries."
 msgstr ""
 
-#: src/OpenWithController.cpp:1181
+#: src/OpenWithController.cpp:1186
 msgid "Moved the Open with items"
 msgstr ""
 
-#: src/OpenWithController.cpp:1182
+#: src/OpenWithController.cpp:1187
 msgid "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot {} has the old layout."
 msgstr ""
 
-#: src/OpenWithController.cpp:1185
+#: src/OpenWithController.cpp:1190
 msgid "Saved the Open with items"
 msgstr ""
 
-#: src/OpenWithController.cpp:1188
+#: src/OpenWithController.cpp:1193
 msgid "Snapshot {} was taken first. Right-click a file to see them."
 msgstr ""
 
-#: src/OpenWithController.cpp:1199
+#: src/OpenWithController.cpp:1204
 msgid "Not saved: Shell would reject these items"
 msgstr ""
 
@@ -4432,35 +4424,31 @@ msgstr ""
 msgid "List at least one extension, like .py .js"
 msgstr ""
 
-#: src/OpenWithModel.cpp:1390
+#: src/OpenWithModel.cpp:1458
 msgid "own app={}: no such app in the file"
 msgstr ""
 
-#: src/OpenWithModel.cpp:1393
-msgid "The file doesn't start with the generated header."
-msgstr ""
-
-#: src/PendingChanges.cpp:22
+#: src/PendingChanges.cpp:23
 msgid "{}: unknown key"
 msgstr ""
 
-#: src/PendingChanges.cpp:24
+#: src/PendingChanges.cpp:25
 msgid "{}: a value is needed"
 msgstr ""
 
-#: src/PendingChanges.cpp:26
+#: src/PendingChanges.cpp:27
 msgid "{}: the value must fit on one line"
 msgstr ""
 
-#: src/PendingChanges.cpp:28
+#: src/PendingChanges.cpp:29
 msgid "{}: only plain values can be set here"
 msgstr ""
 
-#: src/PendingChanges.cpp:220
+#: src/PendingChanges.cpp:229
 msgid "The generated settings-app.nss doesn't parse: {}"
 msgstr ""
 
-#: src/PendingChanges.cpp:240
+#: src/PendingChanges.cpp:249
 msgid "The generated settings-app-map.nss doesn't parse: {}"
 msgstr ""
 
@@ -4620,19 +4608,19 @@ msgstr ""
 msgid "The downloaded file isn't the version this app checked, so it wasn't used."
 msgstr ""
 
-#: src/Snippets.cpp:549
+#: src/Snippets.cpp:634
 msgid "There is no snippet called {}."
 msgstr ""
 
-#: src/Snippets.cpp:553
+#: src/Snippets.cpp:638
 msgid "{} isn't downloaded yet."
 msgstr ""
 
-#: src/Snippets.cpp:642
+#: src/Snippets.cpp:727
 msgid "Archives"
 msgstr ""
 
-#: src/Snippets.cpp:646
+#: src/Snippets.cpp:731
 msgid "Security"
 msgstr ""
 
