@@ -29,7 +29,11 @@ TEST_CASE("every shipped .nss round-trips byte-identically")
 		CHECK(d->lossless());
 		CHECK_FALSE(d->modified());
 		CHECK(d->serialize() == bytes);
-		CHECK(d->diagnostics().empty());
+		// RubicBG's snippets are shipped exactly as he wrote them (hash-checked), and
+		// some lean on Shell's leniency (rubicbg-copy-name-list.nss has no final '}').
+		// scripts/check-snippets.ps1 checks them with shell.exe instead.
+		if(file.parent_path().filename() != "rubicbg")
+			CHECK(d->diagnostics().empty());
 
 		// No statement fell back to a single-token Opaque node: everything was
 		// recognised as a block, assignment, import, declaration or named value.
