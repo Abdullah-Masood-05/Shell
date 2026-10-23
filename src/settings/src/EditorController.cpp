@@ -84,6 +84,10 @@ EditorController::EditorController(slint::ComponentHandle<AppWindow> ui)
         LocalFree(argv);
     }
     ui_->global<EditorState>().set_edit_lines(rows_.model());
+    // Shared by every CodeEditor (this page and the Menu map's "Edit code").
+    ui_->global<CodeText>().on_selection([](slint::SharedString text, int anchor, int cursor) {
+        return codeui::selectionRows(std::string_view(text), anchor, cursor);
+    });
     bindCallbacks();
     // The active config comes from AppState.status (shell.exe -status, run by
     // AppController); follow it, so "Create personal config" switches over.

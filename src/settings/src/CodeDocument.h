@@ -47,6 +47,17 @@ struct Result
 // '\r\n' and lone '\r' become '\n'.
 std::string normalizeNewlines(std::string_view text);
 
+// A selection of `text` by rows, for drawing it: rows first..last (-1 when it
+// is empty), and the text of those two rows up to the selection's start and end.
+struct RowSpan
+{
+    int first = -1;
+    int last = -1;
+    std::string_view startPrefix;
+    std::string_view endPrefix;
+};
+RowSpan rowSpan(std::string_view text, size_t anchor, size_t cursor);
+
 class Document
 {
 public:

@@ -29,6 +29,10 @@ code::Result command(code::Document &doc, std::string_view name, int anchor, int
 FindResult find(const code::Document &doc, std::string_view query, int anchor, int cursor, bool backwards,
                 bool incremental);
 
+// The selection by rows, for drawing it behind the highlighted text
+// (CodeText.selection in ui/editor-types.slint). Offsets into `text`.
+CodeSelection selectionRows(std::string_view text, int anchor, int cursor);
+
 // The selection's text for the find box: "" unless it is on one line.
 std::string findSeed(const code::Document &doc, int anchor, int cursor);
 

@@ -429,3 +429,42 @@ TEST_CASE("code document: typing in a 2,000-line file")
     MESSAGE("per keystroke (model + full highlight), " << text.size() / 1024 << " KB: " << ms << " ms");
     CHECK(ms < 40.0);
 }
+
+TEST_CASE("code document: typing over a selection undoes back to the selection")
+{
+    code::Document d("menu item");
+    auto shown = d.display();
+    shown.replace(5, 4, "x"); // "item" selected, "x" typed
+    auto r = d.input(shown, 6, { 5, 9 }, 1000);
+    CHECK(d.text() == "menu x");
+    CHECK(!r.display);
+    r = d.undo();
+    CHECK(d.text() == "menu item");
+    CHECK(r.selection == code::Selection{ 5, 9 });
+}
+
+TEST_CASE("code document: the selection by rows, for drawing it")
+{
+    const std::string_view s = "ab\ncde\n\nf";
+    CHECK(code::rowSpan(s, 1, 1).first == -1);
+    auto r = code::rowSpan(s, 1, 2);
+    CHECK(r.first == 0);
+    CHECK(r.last == 0);
+    CHECK(r.startPrefix == "a");
+    CHECK(r.endPrefix == "ab");
+    r = code::rowSpan(s, 5, 1); // backwards: cursor before anchor
+    CHECK(r.first == 0);
+    CHECK(r.last == 1);
+    CHECK(r.startPrefix == "a");
+    CHECK(r.endPrefix == "cd");
+    r = code::rowSpan(s, 0, s.size()); // Ctrl+A
+    CHECK(r.first == 0);
+    CHECK(r.last == 3);
+    CHECK(r.startPrefix == "");
+    CHECK(r.endPrefix == "f");
+    r = code::rowSpan(s, 3, 8); // to the start of a line: that line is in, empty
+    CHECK(r.first == 1);
+    CHECK(r.last == 3);
+    CHECK(r.endPrefix == "");
+    CHECK(code::rowSpan(s, 0, 999).last == 3);
+}

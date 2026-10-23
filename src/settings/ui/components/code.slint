@@ -1,6 +1,6 @@
 import { ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
-import { CodeLine, EditResult, FindResult } from "../editor-types.slint";
+import { CodeLine, CodeSelection, CodeText, EditResult, FindResult } from "../editor-types.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppLineEdit } from "line-edit.slint";
 
@@ -112,6 +112,43 @@ component EditRow inherits Rectangle {
     }
 }
 
+// The part of a row that is selected, drawn under the row's text. Its edges
+// are measured like EditRow's glyphs: the row's text up to them, same font.
+component SelectionRow inherits Rectangle {
+    in property <CodeLine> line;
+    in property <string> font;
+    in property <length> gutter;
+    in property <bool> from-start;   // the selection began on an earlier row
+    in property <string> start-prefix;
+    in property <bool> to-end;       // the selection goes on to the next row
+    in property <string> end-prefix;
+
+    property <string> line-text: root.line.spans.length == 0 ? "" : root.line.spans[root.line.spans.length - 1].prefix + root.line.spans[root.line.spans.length - 1].text;
+    start-measure := Text {
+        visible: false;
+        text: root.from-start ? "" : root.start-prefix;
+        font-family: root.font;
+        font-size: CodeColors.font-size;
+    }
+    end-measure := Text {
+        visible: false;
+        text: root.to-end ? root.line-text : root.end-prefix;
+        font-family: root.font;
+        font-size: CodeColors.font-size;
+    }
+    property <length> x0: root.from-start || start-measure.text == "" ? 0 : start-measure.preferred-width - 0.5px;
+    // A selected line end shows as a little more than half a column.
+    property <length> x1: (end-measure.text == "" ? 0 : end-measure.preferred-width - 0.5px) + (root.to-end ? CodeColors.column-width * 0.6 : 0);
+
+    Rectangle {
+        x: root.gutter + root.x0;
+        y: 0;
+        width: max(0, root.x1 - root.x0);
+        height: parent.height;
+        background: Tokens.code-selection;
+    }
+}
+
 // The edit view's line number and problem marker; it stays put when the code
 // scrolls sideways.
 component GutterRow inherits Rectangle {
@@ -186,9 +223,9 @@ component FindButton inherits Rectangle {
 // line the font's natural height, measured here with a Text in the same font.
 // Only the rows in view are instantiated.
 //
-// Selected text is drawn by the TextInput itself, in selection-text on an
-// opaque selection-bg that covers the highlighted glyphs underneath, so it
-// reads the same whatever the syntax colours are.
+// The selection is drawn under the highlighted rows (SelectionRow, from
+// CodeText.selection), so selected code keeps its syntax colours; the
+// TextInput's own selection is transparent.
 //
 // Edits go one way: the TextInput changes its text and reports it (edited);
 // C++ writes the text back only when what is shown must change. Undo, redo,
@@ -262,6 +299,7 @@ export component CodeEditor inherits Rectangle {
     property <length> caret-y;
     property <bool> blink: true;
     property <bool> has-selection: input.cursor-position-byte-offset != input.anchor-position-byte-offset;
+    property <CodeSelection> sel: CodeText.selection(input.text, input.anchor-position-byte-offset, input.cursor-position-byte-offset);
     property <int> first-row: max(0, floor(-view.content-y / root.line-height) - 2);
     property <int> last-row: root.first-row + ceil(view.visible-height / root.line-height) + 4;
     // The selection when the last key went down: what undo puts back.
@@ -358,6 +396,17 @@ export component CodeEditor inherits Rectangle {
                 y: i * root.line-height;
                 width: view.content-width;
                 height: root.line-height;
+                if i >= root.first-row && i <= root.last-row && i >= root.sel.first && i <= root.sel.last: SelectionRow {
+                    width: parent.width;
+                    height: parent.height;
+                    line: line;
+                    font: root.font;
+                    gutter: root.gutter;
+                    from-start: i > root.sel.first;
+                    start-prefix: root.sel.start-prefix;
+                    to-end: i < root.sel.last;
+                    end-prefix: root.sel.end-prefix;
+                }
                 if i >= root.first-row && i <= root.last-row: EditRow {
                     width: parent.width;
                     height: parent.height;
@@ -378,8 +427,9 @@ export component CodeEditor inherits Rectangle {
                 font-size: CodeColors.font-size;
                 // --editor-debug-overlay: the TextInput's own glyphs in red, to check the alignment.
                 color: root.debug-overlay ? #FF000099 : transparent;
-                selection-background-color: Tokens.selection-bg;
-                selection-foreground-color: Tokens.selection-text;
+                // The selection is drawn under the rows (SelectionRow).
+                selection-background-color: transparent;
+                selection-foreground-color: root.debug-overlay ? #FF000099 : transparent;
                 page-height: view.visible-height;
 
                 edited => {
@@ -526,7 +576,6 @@ export component CodeEditor inherits Rectangle {
             spacing: 2px;
             find-field := AppLineEdit {
                 height: 30px;
-                min-height: 30px;
                 font-size: Tokens.body - 1px;
                 text <=> root.find-text;
                 placeholder-text: @tr("Find");

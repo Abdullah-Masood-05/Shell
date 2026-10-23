@@ -103,6 +103,25 @@ std::string normalizeNewlines(std::string_view text)
     return out;
 }
 
+RowSpan rowSpan(std::string_view text, size_t anchor, size_t cursor)
+{
+    const size_t b = std::min({ anchor, cursor, text.size() });
+    const size_t e = std::min(std::max(anchor, cursor), text.size());
+    RowSpan out;
+    if (b >= e)
+        return out;
+    auto lineStart = [&](size_t o) {
+        const size_t k = o == 0 ? std::string_view::npos : text.rfind('\n', o - 1);
+        return k == std::string_view::npos ? size_t(0) : k + 1;
+    };
+    const size_t bs = lineStart(b), es = lineStart(e);
+    out.first = int(std::count(text.begin(), text.begin() + ptrdiff_t(b), '\n'));
+    out.last = out.first + int(std::count(text.begin() + ptrdiff_t(b), text.begin() + ptrdiff_t(e), '\n'));
+    out.startPrefix = text.substr(bs, b - bs);
+    out.endPrefix = text.substr(es, e - es);
+    return out;
+}
+
 Document::Document(std::string text, int tabWidth) : tabWidth_(std::max(1, tabWidth)) { reset(std::move(text)); }
 
 void Document::reset(std::string text)

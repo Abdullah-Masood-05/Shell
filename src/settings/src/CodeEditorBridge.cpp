@@ -103,6 +103,17 @@ FindResult find(const code::Document &doc, std::string_view query, int anchor, i
     return FindResult{ true, int(m->selection.anchor), int(m->selection.cursor), m->index, m->count };
 }
 
+CodeSelection selectionRows(std::string_view text, int anchor, int cursor)
+{
+    const auto r = code::rowSpan(text, size_t(std::max(0, anchor)), size_t(std::max(0, cursor)));
+    CodeSelection out;
+    out.first = r.first;
+    out.last = r.last;
+    out.start_prefix = ss(r.startPrefix);
+    out.end_prefix = ss(r.endPrefix);
+    return out;
+}
+
 std::string findSeed(const code::Document &doc, int anchor, int cursor)
 {
     auto s = doc.selectedText(selection(anchor, cursor));

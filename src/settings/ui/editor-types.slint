@@ -33,6 +33,21 @@ export struct FindResult {
     count: int,
 }
 
+// The selection of a CodeEditor by rows, so it can be drawn behind the
+// highlighted text: rows `first`..`last` (-1: nothing selected), and the text
+// of the first and last rows up to where the selection starts and ends.
+export struct CodeSelection {
+    first: int,
+    last: int,
+    start-prefix: string,
+    end-prefix: string,
+}
+
+// Helpers for the CodeEditor component, bound once in C++ (src/CodeEditorBridge.cpp).
+export global CodeText {
+    pure callback selection(text: string, anchor: int, cursor: int) -> CodeSelection;
+}
+
 // One row of the import tree.
 export struct EditorFile {
     path: string,
