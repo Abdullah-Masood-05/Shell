@@ -708,7 +708,7 @@ namespace nss
 		return true;
 	}
 
-	bool NssDocument::insertAssign(std::string_view blockPath, std::string_view key, std::string_view literal)
+	bool NssDocument::insertAssign(std::string_view blockPath, std::string_view key, std::string_view literal, std::string_view emptySep)
 	{
 		auto block = findBlock(blockPath);
 		if(!block)
@@ -722,7 +722,7 @@ namespace nss
 			if(c.kind == NodeKind::Assign || c.kind == NodeKind::Block || (c.kind == NodeKind::Import && c.enabled))
 				sibling = &c;
 
-		std::string indent, sep = "=";
+		std::string indent, sep(emptySep);
 		if(sibling && ownsLines({ sibling->span.begin, sibling->span.begin }))
 			indent = indentOf(sibling->span.begin);
 		else
