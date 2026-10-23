@@ -4,14 +4,16 @@
 // ui/tray-state.slint), the tray icon and its menu (TrayIcon.h), and the update checks
 // and notifications while the window is closed (Background.h).
 //
-// Updates go through UpdateState like the Check now button: this class asks for a check
-// (UpdateState.check-now) and reads the result (state, latest-version). The checking,
-// the channel, "Skip this version" and the automatic download stay in UpdateController.
+// Updates go through UpdateController: this class asks it for a check and reads what is on
+// offer from its summary(). The checking, the channel, "Skip this version" and the
+// automatic download and install stay there; an update that needs administrator approval
+// (summary().needsElevation) is only ever announced from the tray, never installed.
 
 #include "app.h"
 
 #include "Background.h"
 #include "TrayIcon.h"
+#include "UpdateController.h"
 
 #include <functional>
 #include <memory>
@@ -27,7 +29,7 @@ public:
     };
 
     // `persist` false (--snapshot): the switches show the settings and nothing is written.
-    TrayController(slint::ComponentHandle<AppWindow> ui, Hooks hooks, bool persist);
+    TrayController(slint::ComponentHandle<AppWindow> ui, UpdateController &updates, Hooks hooks, bool persist);
     ~TrayController();
 
     // Once, not for --snapshot: the Run entry (Background.h), the instance window that a
@@ -49,9 +51,12 @@ private:
     void afterCheck(bool manual);
     void command(TrayIcon::Command c);
     std::wstring label(TrayIcon::Command c) const;
+    // What the Run entry starts: the installed exe (AppChannel launcherPath()), also in a
+    // per-user copy of the app; for a portable copy its own exe.
     std::wstring exePath() const;
 
     slint::ComponentHandle<AppWindow> ui_;
+    UpdateController &updates_;
     Hooks hooks_;
     bool persist_;
     startup::RegistryStore store_;

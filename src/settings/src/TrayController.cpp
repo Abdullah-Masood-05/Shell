@@ -1,5 +1,6 @@
 #include "TrayController.h"
 
+#include "AppChannel.h"
 #include "Registry.h"
 #include "Text.h"
 #include "Tr.h"
@@ -30,8 +31,8 @@ void trimWorkingSet() { SetProcessWorkingSetSize(GetCurrentProcess(), SIZE_T(-1)
 
 } // namespace
 
-TrayController::TrayController(slint::ComponentHandle<AppWindow> ui, Hooks hooks, bool persist)
-    : ui_(std::move(ui)), hooks_(std::move(hooks)), persist_(persist)
+TrayController::TrayController(slint::ComponentHandle<AppWindow> ui, UpdateController &updates, Hooks hooks, bool persist)
+    : ui_(std::move(ui)), updates_(updates), hooks_(std::move(hooks)), persist_(persist)
 {
     prefs_ = startup::load(store_);
     pushPrefs();
@@ -40,20 +41,7 @@ TrayController::TrayController(slint::ComponentHandle<AppWindow> ui, Hooks hooks
 
 TrayController::~TrayController() = default;
 
-std::wstring TrayController::exePath() const
-{
-    std::wstring buf(MAX_PATH, L'\0');
-    while (true) {
-        DWORD n = GetModuleFileNameW(nullptr, buf.data(), DWORD(buf.size()));
-        if (n == 0)
-            return {};
-        if (n < buf.size()) {
-            buf.resize(n);
-            return buf;
-        }
-        buf.resize(buf.size() * 2);
-    }
-}
+std::wstring TrayController::exePath() const { return appchannel::launcherPath().wstring(); }
 
 void TrayController::pushPrefs()
 {
@@ -90,7 +78,7 @@ bool TrayController::start(bool background)
 {
     background_ = background;
     if (persist_)
-        startup::onStartup(store_, exePath());
+        startup::onStartup(store_, exePath(), appchannel::appRoot().wstring());
     prefs_ = startup::load(store_);
     pushPrefs();
 
@@ -162,15 +150,14 @@ void TrayController::tick()
 {
     if (!icon_ || !icon_->visible())
         return; // no tray: UpdateController's own checks while the window is open
-    const auto &st = ui_->global<UpdateState>();
-    const std::string state = str(st.get_state());
+    const std::string state = updates_.summary().state;
     if (state == "checking") {
         watchCheck(false);
         return;
     }
     if (offered(state))
         afterCheck(false); // found by UpdateController's own check
-    if (state == "downloading" || state == "ready" || state == "installing" || !st.get_auto_check())
+    if (state == "downloading" || state == "ready" || state == "installing" || !ui_->global<UpdateState>().get_auto_check())
         return;
     const std::time_t last = std::time_t(registry::app::get(L"UpdateLastCheck").value_or(0));
     if (background::checkDue(std::time(nullptr), last))
@@ -180,14 +167,16 @@ void TrayController::tick()
 void TrayController::check(bool manual)
 {
     manualPending_ = manualPending_ || manual;
-    const auto &st = ui_->global<UpdateState>();
-    const std::string state = str(st.get_state());
+    const std::string state = updates_.summary().state;
+    // An automatic check is like the daily one (quiet failures, the automatic download
+    // and install of an update that needs no administrator rights); Check for updates in
+    // the tray menu is like Check now.
     if (state != "checking" && state != "downloading" && state != "installing")
-        st.invoke_check_now();
+        updates_.checkForUpdates(manual);
     watchCheck(manual);
 }
 
-// The check runs on UpdateController's worker; its result shows in UpdateState.state.
+// The check runs on UpdateController's worker; its result shows in summary().state.
 // Looked at twice a second while it runs (a few seconds), for two minutes at most.
 void TrayController::watchCheck(bool)
 {
@@ -195,7 +184,7 @@ void TrayController::watchCheck(bool)
     if (watch_.running())
         return;
     watch_.start(slint::TimerMode::Repeated, 500ms, [this] {
-        const std::string state = str(ui_->global<UpdateState>().get_state());
+        const std::string state = updates_.summary().state;
         if (state == "checking" && ++watchTicks_ < 240)
             return;
         watch_.stop();
@@ -209,26 +198,31 @@ void TrayController::afterCheck(bool manual)
 {
     if (!icon_)
         return;
-    const auto &st = ui_->global<UpdateState>();
-    const std::string state = str(st.get_state());
-    if (offered(state)) {
-        const std::string version = str(st.get_latest_version());
+    const UpdateSummary sum = updates_.summary();
+    if (offered(sum.state) && !sum.version.empty()) {
+        const std::string &version = sum.version;
         const std::string last = narrow(registry::app::getString(kNotified).value_or(L""));
         const std::string skipped = narrow(registry::app::getString(L"UpdateSkipVersion").value_or(L""));
         if (!manual && !background::shouldNotify(version, last, skipped))
             return;
         // With the window open, the banner on Home says it already.
         const bool windowOpen = ui_->window().is_visible() && !manual;
-        if (windowOpen || icon_->notify(widen(nsp::tr("Update available")),
-                                        widen(nsp::trf("Nilesoft Shell Pro {} is available. Click to see what's new.", version))))
+        // A core update is only installed with the user's click on Home (it asks for
+        // administrator approval there); the notification says so up front.
+        const std::string body =
+            sum.needsElevation
+                ? nsp::trf("Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new.",
+                           version)
+                : nsp::trf("Nilesoft Shell Pro {} is available. Click to see what's new.", version);
+        if (windowOpen || icon_->notify(widen(nsp::tr("Update available")), widen(body)))
             if (persist_)
                 registry::app::setString(kNotified, widen(version));
         return;
     }
     if (!manual)
         return;
-    const std::string message = str(st.get_message());
-    if (state == "error")
+    const std::string message = str(ui_->global<UpdateState>().get_message());
+    if (sum.state == "error")
         icon_->notify(widen(nsp::tr("Couldn't check for updates")), widen(message));
     else
         icon_->notify(L"Nilesoft Shell Pro", widen(message.empty() ? std::string(nsp::tr("You have the latest version.")) : message));

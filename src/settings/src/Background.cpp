@@ -126,7 +126,18 @@ bool isOurs(const std::wstring &command)
     return equalNoCase(name, L"NilesoftShellPro.exe");
 }
 
-Sync onStartup(Store &store, const std::wstring &exe)
+bool isUnder(const std::wstring &path, const std::wstring &root)
+{
+    std::wstring r = root;
+    while (!r.empty() && (r.back() == L'\\' || r.back() == L'/'))
+        r.pop_back();
+    if (r.empty() || path.size() <= r.size() + 1)
+        return false;
+    const wchar_t sep = path[r.size()];
+    return (sep == L'\\' || sep == L'/') && _wcsnicmp(path.c_str(), r.c_str(), r.size()) == 0;
+}
+
+Sync onStartup(Store &store, const std::wstring &exe, const std::wstring &perUserRoot)
 {
     const Prefs p = load(store);
     const bool want = p.keepInTray && p.startWithWindows;
@@ -145,7 +156,7 @@ Sync onStartup(Store &store, const std::wstring &exe)
         return store.setRunValue(runCommand(exe)) ? Sync::Created : Sync::Unchanged;
     if (ours) {
         const std::wstring program = programOf(*current);
-        if (!equalNoCase(program, exe) && !store.fileExists(program))
+        if (!equalNoCase(program, exe) && (!store.fileExists(program) || isUnder(program, perUserRoot)))
             return store.setRunValue(runCommand(exe)) ? Sync::Repaired : Sync::Unchanged;
     }
     return Sync::Unchanged;

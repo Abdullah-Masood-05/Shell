@@ -1261,7 +1261,7 @@ msgstr "Nilesoft Shell 概览：注册状态、当前使用的配置和最近的
 msgid "Refresh"
 msgstr "刷新"
 
-#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283 src/TrayController.cpp:135
+#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283 src/TrayController.cpp:123
 msgid "Restart Explorer"
 msgstr "重启资源管理器"
 
@@ -5111,31 +5111,35 @@ msgstr "无法读取文件头中的 Plural-Forms 行：{}"
 msgid "The file can't be opened."
 msgstr "无法打开此文件。"
 
-#: src/TrayController.cpp:131
+#: src/TrayController.cpp:119
 msgid "Open Nilesoft Shell Pro"
 msgstr "打开 Nilesoft Shell Pro"
 
-#: src/TrayController.cpp:133
+#: src/TrayController.cpp:121
 msgid "Check for updates"
 msgstr "检查更新"
 
-#: src/TrayController.cpp:137
+#: src/TrayController.cpp:125
 msgid "Quit"
 msgstr "退出"
 
-#: src/TrayController.cpp:222
-msgid "Update available"
-msgstr "有可用更新"
+#: src/TrayController.cpp:214
+msgid "Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new."
+msgstr "Nilesoft Shell Pro {} 已发布。安装它需要管理员批准。点击查看新内容。"
 
-#: src/TrayController.cpp:223
+#: src/TrayController.cpp:216
 msgid "Nilesoft Shell Pro {} is available. Click to see what's new."
 msgstr "Nilesoft Shell Pro {} 已发布。点击查看新内容。"
 
-#: src/TrayController.cpp:232
+#: src/TrayController.cpp:217
+msgid "Update available"
+msgstr "有可用更新"
+
+#: src/TrayController.cpp:226
 msgid "Couldn't check for updates"
 msgstr "无法检查更新"
 
-#: src/TrayController.cpp:234 src/UpdateController.cpp:727
+#: src/TrayController.cpp:228 src/UpdateController.cpp:727
 msgid "You have the latest version."
 msgstr "你使用的已是最新版本。"
 
@@ -5600,152 +5604,152 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "No visible change"
-#~ msgstr "无可见更改"
-
-#~ msgid "Move to {}"
-#~ msgstr "移到 {}"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移到中间"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移到 {} 的第 {} 个位置"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载扩展功能…"
-
-#~ msgid "Change icon"
-#~ msgstr "更改图标"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "无法开启“{}”"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前面添加分隔线"
-
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在应用启动时检查，每天最多一次。"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载扩展功能：{}"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的扩展功能合集"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移到 {} 底部"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "无法从此地址下载 {}。"
-
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "与表达式匹配的项"
-
-#~ msgid "Add a tip"
-#~ msgstr "添加提示"
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "无法下载 SHA256SUMS.txt：{}"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "文件第 {} 行存在语法问题：{}"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
-
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
-
-#~ msgid "Imported from {}."
-#~ msgstr "从 {} 导入。"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
+#~ msgid "Managed by the app"
+#~ msgstr "由本应用管理"
 
 #~ msgid "Change visibility"
 #~ msgstr "更改可见性"
 
-#~ msgid "Move to the top"
-#~ msgstr "移到顶部"
-
-#~ msgid "Change command"
-#~ msgstr "更改命令"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重命名为 {}"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下载。"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本应用管理"
-
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
-#~ msgid "on the start"
-#~ msgstr "在“开始”菜单中"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下载代码…"
-
-#~ msgid "Change state"
-#~ msgstr "更改状态"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "文件开头不是自动生成的文件头。"
-
-#~ msgid "no selection"
-#~ msgstr "未选择"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移到 {} 顶部"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在后面添加分隔线"
-
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移到底部"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移到 {} 底部"
 
 #~ msgid "Move to position {}"
 #~ msgstr "移到第 {} 个位置"
 
 #~ msgid "No preview: the snippet couldn't be downloaded. {}"
 #~ msgstr "无法预览：未能下载此扩展功能。{}"
+
+#~ msgid "Add a tip"
+#~ msgstr "添加提示"
+
+#~ msgid "Change command"
+#~ msgstr "更改命令"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
+
+#~ msgid "on the start"
+#~ msgstr "在“开始”菜单中"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "无法下载 SHA256SUMS.txt：{}"
+
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的扩展功能合集"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "文件第 {} 行存在语法问题：{}"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移到中间"
+
+#~ msgid "Change icon"
+#~ msgstr "更改图标"
+
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "无法从此地址下载 {}。"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "无法开启“{}”"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在后面添加分隔线"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下载。"
+
+#~ msgid "multiple selection"
+#~ msgstr "多选"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前面添加分隔线"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+
+#~ msgid "Imported from {}."
+#~ msgstr "从 {} 导入。"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "文件开头不是自动生成的文件头。"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下载代码…"
+
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "No visible change"
+#~ msgstr "无可见更改"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "与表达式匹配的项"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重命名为 {}"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在应用启动时检查，每天最多一次。"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
+
+#~ msgid "Move to {}"
+#~ msgstr "移到 {}"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移到 {} 顶部"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下载扩展功能…"
+
+#~ msgid "Move to the top"
+#~ msgstr "移到顶部"
+
+#~ msgid "Change state"
+#~ msgstr "更改状态"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移到底部"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移到 {} 的第 {} 个位置"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "无法下载扩展功能：{}"

@@ -90,9 +90,16 @@ enum class Sync { Unchanged, Created, Repaired, Removed };
 //  - the first start of a version with this feature: create the Run entry if the
 //    settings want it (both default on), and remember that it was done;
 //  - the settings say no (the user turned it off, or the tray): no Run entry of ours;
-//  - our Run entry names a NilesoftShellPro.exe that is gone (the folder moved): this one.
+//  - our Run entry names a NilesoftShellPro.exe that is gone (the folder moved), or one
+//    under `perUserRoot` (a per-user copy of the app, AppChannel.h, which is replaced by
+//    the next update): `exe`.
+// `exe` is the installed exe (AppChannel launcherPath()), never a per-user copy: it hands
+// off to the newest per-user copy itself. For a portable copy, its own exe.
 // A Run entry the user deleted after the first time stays deleted.
-Sync onStartup(Store &store, const std::wstring &exe);
+Sync onStartup(Store &store, const std::wstring &exe, const std::wstring &perUserRoot = {});
+
+// `path` is inside the folder `root` (case-insensitive; false for an empty root).
+bool isUnder(const std::wstring &path, const std::wstring &root);
 
 // The Preferences switches. Each writes the setting and adds or removes the Run entry.
 void setKeepInTray(Store &store, const std::wstring &exe, bool on);

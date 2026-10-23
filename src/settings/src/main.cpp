@@ -376,7 +376,7 @@ int main()
     };
 
     // Preferences > Startup and tray, and the tray icon itself (not for snapshots).
-    auto tray = std::make_unique<TrayController>(ui, TrayController::Hooks{ showWindow, quitApp }, !snapshot);
+    auto tray = std::make_unique<TrayController>(ui, *updates, TrayController::Hooks{ showWindow, quitApp }, !snapshot);
     if (!snapshot) {
         tray->start(background);
         // An installer that closes the app (Restart Manager) starts it again, in the tray.

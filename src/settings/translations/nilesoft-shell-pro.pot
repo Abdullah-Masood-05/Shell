@@ -1262,7 +1262,7 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
-#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283 src/TrayController.cpp:135
+#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283 src/TrayController.cpp:123
 msgid "Restart Explorer"
 msgstr ""
 
@@ -5112,31 +5112,35 @@ msgstr ""
 msgid "The file can't be opened."
 msgstr ""
 
-#: src/TrayController.cpp:131
+#: src/TrayController.cpp:119
 msgid "Open Nilesoft Shell Pro"
 msgstr ""
 
-#: src/TrayController.cpp:133
+#: src/TrayController.cpp:121
 msgid "Check for updates"
 msgstr ""
 
-#: src/TrayController.cpp:137
+#: src/TrayController.cpp:125
 msgid "Quit"
 msgstr ""
 
-#: src/TrayController.cpp:222
-msgid "Update available"
+#: src/TrayController.cpp:214
+msgid "Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new."
 msgstr ""
 
-#: src/TrayController.cpp:223
+#: src/TrayController.cpp:216
 msgid "Nilesoft Shell Pro {} is available. Click to see what's new."
 msgstr ""
 
-#: src/TrayController.cpp:232
+#: src/TrayController.cpp:217
+msgid "Update available"
+msgstr ""
+
+#: src/TrayController.cpp:226
 msgid "Couldn't check for updates"
 msgstr ""
 
-#: src/TrayController.cpp:234 src/UpdateController.cpp:727
+#: src/TrayController.cpp:228 src/UpdateController.cpp:727
 msgid "You have the latest version."
 msgstr ""
 

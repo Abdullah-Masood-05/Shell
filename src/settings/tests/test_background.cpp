@@ -172,6 +172,28 @@ TEST_CASE("startup: a Run entry for a copy that moved points to this one")
     CHECK(s.run == L"\"D:\\Portable\\NilesoftShellPro.exe\" --background");
 }
 
+TEST_CASE("startup: a Run entry for a per-user copy of the app points to the installed exe")
+{
+    const std::wstring root = L"C:\\Users\\me\\AppData\\Local\\Programs\\Nilesoft Shell Pro\\app";
+    const std::wstring copy = root + L"\\2.2.1\\NilesoftShellPro.exe";
+    FakeStore s;
+    s.prefs[kDefaultsApplied] = 1;
+    s.run = runCommand(copy);
+    s.files.insert(copy);
+    CHECK(onStartup(s, kExe, root) == Sync::Repaired);
+    CHECK(s.run == kCommand);
+
+    // The switches write the installed exe too.
+    setStartWithWindows(s, kExe, true);
+    CHECK(s.run == kCommand);
+
+    CHECK(isUnder(copy, root));
+    CHECK(isUnder(copy, root + L"\\"));
+    CHECK_FALSE(isUnder(root, root));
+    CHECK_FALSE(isUnder(root + L"x\\NilesoftShellPro.exe", root));
+    CHECK_FALSE(isUnder(copy, L""));
+}
+
 TEST_CASE("startup: switched off in Windows' startup apps")
 {
     FakeStore s;
