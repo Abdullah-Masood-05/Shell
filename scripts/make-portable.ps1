@@ -92,12 +92,17 @@ try {
 		Copy-Item -LiteralPath $_.FullName -Destination $dest
 	}
 	# snippets\ (the app's bundled snippets and their catalog, for reading; the app has
-	# its own copy inside NilesoftShellPro.exe). Optional, so an older build output works.
+	# its own copy inside NilesoftShellPro.exe) and snippets\rubicbg\ (RubicBG's, CC0-1.0,
+	# with his LICENSE.txt). Optional, so an older build output works.
 	$snippetsSrc = Join-Path $BinDir 'snippets'
-	if (Test-Path -LiteralPath $snippetsSrc -PathType Container) {
-		New-Item -ItemType Directory -Path (Join-Path $stage 'snippets') | Out-Null
-		Get-ChildItem -LiteralPath $snippetsSrc -File | Where-Object { $_.Extension -eq '.nss' -or $_.Name -eq 'catalog.json' } |
-			Copy-Item -Destination (Join-Path $stage 'snippets')
+	foreach ($sub in @('', 'rubicbg')) {
+		$from = Join-Path $snippetsSrc $sub
+		if (-not (Test-Path -LiteralPath $from -PathType Container)) { continue }
+		$to = Join-Path (Join-Path $stage 'snippets') $sub
+		New-Item -ItemType Directory -Force -Path $to | Out-Null
+		Get-ChildItem -LiteralPath $from -File |
+			Where-Object { $_.Extension -eq '.nss' -or $_.Name -eq 'catalog.json' -or ($sub -and $_.Name -eq 'LICENSE.txt') } |
+			Copy-Item -Destination $to
 	}
 
 	$portable = @"
