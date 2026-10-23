@@ -83,6 +83,7 @@ include(cmake/Translations.cmake)
 
 add_executable(settings WIN32
     src/main.cpp
+    src/AppChannel.cpp
     src/AppController.cpp
     src/AppearanceController.cpp
     src/BackupsController.cpp
@@ -205,6 +206,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp
         tests/test_taskbar.cpp
+        tests/test_app_channel.cpp
+        src/AppChannel.cpp
         src/BackupsModel.cpp
         src/CodeDocument.cpp
         src/ConfigRules.cpp

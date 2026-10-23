@@ -90,6 +90,76 @@ std::map<std::string, std::string> parseSha256Sums(const std::string &text);
 
 // Lowercase hex, or "" on error.
 std::string sha256File(const std::filesystem::path &file);
+std::string sha256Bytes(std::string_view bytes);
+
+// --- update.json: what a release changes ----------------------------------------------
+//
+// Published next to the other assets since 2.2.0 (release.yml) and listed in
+// SHA256SUMS.txt:
+//   { "schema": 1, "version": "2.2.0",
+//     "app":    { "package": "NilesoftShellPro-2.2.0-x64-app.zip", "sha256": "<zip>",
+//                 "minCore": "2.1.1", "files": { "NilesoftShellPro.exe": "<sha256>", ... } },
+//     "core":   { "since": "2.1.1", "changed": false },
+//     "config": { "since": "2.2.0", "changed": true } }
+// core.since: the release whose shell.dll and shell.exe this release still ships (the core
+// sources haven't changed after it). app.minCore: the oldest installed release whose core
+// this app works with (core.since). config: the same for shell.nss and imports\.
+
+inline constexpr const char *kManifestName = "update.json";
+
+struct Manifest
+{
+    int schema = 0;
+    Version version;
+    bool hasApp = false;
+    std::string appPackage;                    // a file name in the same release
+    std::string appSha256;
+    Version minCore;
+    std::map<std::string, std::string> appFiles; // '/'-separated relative path -> sha256
+    Version coreSince;
+    bool coreChanged = true;
+    Version configSince;
+    bool configChanged = true;
+};
+
+// Nullopt (and `error`) for anything that isn't a schema 1 manifest. A file path with
+// "..", a drive or a leading slash makes the whole manifest unusable.
+std::optional<Manifest> parseManifest(const std::string &json, std::string &error);
+
+// How an update gets installed.
+//   Portable   the portable zip, copied over the portable folder (no administrator rights)
+//   AppOnly    the app package, installed for this user only (no administrator rights)
+//   Installer  setup-<arch>.msi for all users: needs administrator approval
+enum class UpdatePath { Portable, AppOnly, Installer };
+
+// Why an MSI install needs the installer (and so administrator approval).
+enum class ElevationReason { None, CoreChanged, NoAppPackage, UnknownCore };
+
+struct UpdatePlan
+{
+    UpdatePath path = UpdatePath::Installer;
+    bool needsElevation = true;
+    ElevationReason reason = ElevationReason::None;
+    const Asset *asset = nullptr; // what to download; nullptr: nothing usable in the release
+};
+
+// The way to install `release`. `installedRelease` is the release of the installed core
+// (the MSI's own NilesoftShellPro.exe version), nullopt when unknown. Only the Installer
+// path ever needs elevation, and it's chosen only when the app package can't be used: the
+// release has no update.json or package, or its core is newer than the installed one.
+UpdatePlan choosePlan(const Release &release, InstallType type, Arch arch, const std::optional<Manifest> &manifest,
+                      const std::optional<Version> &installedRelease);
+
+struct ManifestResult
+{
+    bool ok = false;      // fetched and verified
+    bool missing = false; // the release has no update.json (older releases): not an error
+    std::optional<Manifest> manifest;
+    std::string error;
+};
+
+// Downloads update.json and checks it against SHA256SUMS.txt (both small, into memory).
+ManifestResult fetchManifest(const Release &release, bool allowLocal = false);
 
 // Release downloads only: github.com/Abdullah-Masood-05/Shell/releases/download/... and
 // the hosts GitHub redirects them to. https only.
@@ -169,6 +239,16 @@ ApplyResult applyPortable(const std::filesystem::path &staging, const std::files
 // Deletes the *.update.old files a previous update left in installDir (a dll Explorer
 // still has loaded stays until the next time).
 void cleanupOldFiles(const std::filesystem::path &installDir);
+
+// Installs an extracted app package for this user: every file must be in the manifest
+// with a matching SHA-256 (and nothing else may be there), NilesoftShellPro.exe among
+// them. The files go to <appRoot>\<version>\ with an install.json (AppChannel.h) naming
+// `baseDir`, the install folder this copy belongs to. Written as <version>.partial first
+// and renamed when complete, so a half-written copy is never used. No administrator rights.
+// On success `installedDir` is the new folder.
+ApplyResult installAppPackage(const std::filesystem::path &staging, const Manifest &manifest,
+                              const std::filesystem::path &appRoot, const std::filesystem::path &baseDir,
+                              std::filesystem::path *installedDir = nullptr);
 
 // Removes updates\<version> folders for versions at or below `current`.
 void cleanupDownloads(const Version &current);

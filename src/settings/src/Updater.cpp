@@ -1,5 +1,6 @@
 #include "Updater.h"
 
+#include "AppChannel.h"
 #include "Text.h"
 #include "Tr.h"
 
@@ -519,6 +520,126 @@ const Asset *chooseAsset(const Release &release, InstallType type, Arch arch)
     return release.find("NilesoftShellPro-x64-portable.zip");
 }
 
+// --- update.json ------------------------------------------------------------------------
+
+namespace {
+
+bool isSha256Hex(const std::string &s)
+{
+    return s.size() == 64 && std::all_of(s.begin(), s.end(), [](char c) { return std::isxdigit(static_cast<unsigned char>(c)); });
+}
+
+// A '/'-separated path inside a folder: no drive, no leading slash, no "." or ".." part.
+bool safeRelativePath(const std::string &p)
+{
+    if (p.empty() || p.front() == '/' || p.find_first_of("\\:*?\"<>|") != std::string::npos)
+        return false;
+    for (auto part : split(p, '/'))
+        if (part.empty() || part == "." || part == "..")
+            return false;
+    return true;
+}
+
+} // namespace
+
+std::optional<Manifest> parseManifest(const std::string &json, std::string &error)
+{
+    auto fail = [&](const char *msg) -> std::optional<Manifest> {
+        error = msg;
+        return std::nullopt;
+    };
+    auto j = nlohmann::json::parse(json, nullptr, false);
+    if (!j.is_object())
+        return fail("update.json is not a JSON object");
+    Manifest m;
+    if (auto s = j.find("schema"); s != j.end() && s->is_number_integer())
+        m.schema = s->get<int>();
+    if (m.schema != 1)
+        return fail("update.json has an unknown schema");
+    auto v = Version::parse(str(j, "version"));
+    if (!v)
+        return fail("update.json has no version");
+    m.version = *v;
+
+    auto part = [&](const char *key, Version &since, bool &changed) {
+        auto it = j.find(key);
+        if (it == j.end() || !it->is_object())
+            return false;
+        auto s = Version::parse(str(*it, "since"));
+        if (!s || compare(*s, m.version) > 0)
+            return false;
+        since = *s;
+        auto c = it->find("changed");
+        changed = c == it->end() || !c->is_boolean() || c->get<bool>();
+        return true;
+    };
+    if (!part("core", m.coreSince, m.coreChanged))
+        return fail("update.json has no usable core entry");
+    if (!part("config", m.configSince, m.configChanged)) {
+        m.configSince = m.version; // unknown: as if it changed now
+        m.configChanged = true;
+    }
+
+    if (auto app = j.find("app"); app != j.end() && app->is_object()) {
+        m.appPackage = str(*app, "package");
+        m.appSha256 = lower(str(*app, "sha256"));
+        auto minCore = Version::parse(str(*app, "minCore"));
+        m.minCore = minCore ? *minCore : m.coreSince;
+        if (!safeFileName(m.appPackage) || !isSha256Hex(m.appSha256))
+            return fail("update.json names an unusable app package");
+        auto files = app->find("files");
+        if (files == app->end() || !files->is_object())
+            return fail("update.json lists no app files");
+        for (auto it = files->begin(); it != files->end(); ++it) {
+            if (!it.value().is_string() || !safeRelativePath(it.key()) || !isSha256Hex(it.value().get<std::string>()))
+                return fail("update.json lists an unusable app file");
+            m.appFiles[it.key()] = lower(it.value().get<std::string>());
+        }
+        bool hasExe = false;
+        for (const auto &[path, hash] : m.appFiles)
+            hasExe = hasExe || lower(path) == "nilesoftshellpro.exe";
+        if (!hasExe)
+            return fail("update.json's app package has no NilesoftShellPro.exe");
+        m.hasApp = true;
+    }
+    return m;
+}
+
+UpdatePlan choosePlan(const Release &release, InstallType type, Arch arch, const std::optional<Manifest> &manifest,
+                      const std::optional<Version> &installedRelease)
+{
+    UpdatePlan p;
+    if (type == InstallType::Portable) {
+        // The portable folder is the user's own: replaced in place, core included.
+        p.path = UpdatePath::Portable;
+        p.needsElevation = false;
+        p.asset = chooseAsset(release, type, arch);
+        return p;
+    }
+    p.path = UpdatePath::Installer;
+    p.needsElevation = true;
+    p.asset = chooseAsset(release, type, arch);
+    // The app is an x64 program (ARM64 runs it too); an x86 install has no app.
+    const Asset *package = manifest && manifest->hasApp && arch != Arch::X86 ? release.find(manifest->appPackage) : nullptr;
+    if (!package) {
+        p.reason = ElevationReason::NoAppPackage;
+        return p;
+    }
+    if (!installedRelease) {
+        p.reason = ElevationReason::UnknownCore;
+        return p;
+    }
+    if (compare(*installedRelease, manifest->minCore) < 0) {
+        p.reason = ElevationReason::CoreChanged;
+        return p;
+    }
+    p.path = UpdatePath::AppOnly;
+    p.needsElevation = false;
+    p.reason = ElevationReason::None;
+    p.asset = package;
+    return p;
+}
+
 // --- checksums --------------------------------------------------------------------------
 
 std::map<std::string, std::string> parseSha256Sums(const std::string &textIn)
@@ -585,6 +706,25 @@ std::string sha256File(const fs::path &file)
     if (alg)
         BCryptCloseAlgorithmProvider(alg, 0);
     CloseHandle(f);
+    return result;
+}
+
+std::string sha256Bytes(std::string_view bytes)
+{
+    std::string result;
+    UCHAR digest[32];
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    if (!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA256_ALGORITHM, nullptr, 0)))
+        return result;
+    if (BCRYPT_SUCCESS(BCryptHash(alg, nullptr, 0, reinterpret_cast<PUCHAR>(const_cast<char *>(bytes.data())),
+                                  ULONG(bytes.size()), digest, sizeof digest))) {
+        static const char *hex = "0123456789abcdef";
+        for (UCHAR b : digest) {
+            result += hex[b >> 4];
+            result += hex[b & 15];
+        }
+    }
+    BCryptCloseAlgorithmProvider(alg, 0);
     return result;
 }
 
@@ -731,12 +871,77 @@ FeedResult fetchReleases(const std::wstring &feed)
 
 fs::path updatesRoot()
 {
-    PWSTR local = nullptr;
-    fs::path root;
-    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local)) && local)
-        root = fs::path(local) / L"Nilesoft" / L"Shell" / L"updates";
-    CoTaskMemFree(local);
-    return root;
+    auto local = appchannel::localAppData();
+    return local.empty() ? fs::path() : local / L"Nilesoft" / L"Shell" / L"updates";
+}
+
+namespace {
+
+// A small release asset (SHA256SUMS.txt, update.json) into memory: from this project's
+// releases, or a local path with a local NSP_UPDATE_FEED.
+bool fetchSmall(const Asset &asset, bool allowLocal, std::string &out, std::string &error)
+{
+    if (allowLocal && !isHttps(asset.url)) {
+        if (!readFile(fs::path(widen(asset.url)), out)) {
+            error = nsp::trf("Couldn't read {}.", asset.url);
+            return false;
+        }
+        return true;
+    }
+    if (!isAllowedDownloadUrl(asset.url)) {
+        error = nsp::trf("{} is not served from this project's releases.", asset.name);
+        return false;
+    }
+    auto res = httpGet(asset.url, [](std::string_view u) { return isAllowedDownloadUrl(u); });
+    if (!res.ok) {
+        error = nsp::trf("Couldn't download {}: {}", asset.name, res.error);
+        return false;
+    }
+    out = std::move(res.body);
+    return true;
+}
+
+} // namespace
+
+ManifestResult fetchManifest(const Release &release, bool allowLocal)
+{
+    ManifestResult r;
+    const Asset *asset = release.find(kManifestName);
+    if (!asset) {
+        r.missing = true;
+        return r;
+    }
+    const Asset *sumsAsset = release.find(kSumsName);
+    if (!sumsAsset) {
+        r.error = nsp::tr("This release has no SHA256SUMS.txt, so the download can't be verified.");
+        return r;
+    }
+    std::string sumsText, body;
+    if (!fetchSmall(*sumsAsset, allowLocal, sumsText, r.error) || !fetchSmall(*asset, allowLocal, body, r.error))
+        return r;
+    auto sums = parseSha256Sums(sumsText);
+    auto expected = sums.find(kManifestName);
+    if (expected == sums.end()) {
+        r.error = nsp::trf("SHA256SUMS.txt has no entry for {}.", std::string(kManifestName));
+        return r;
+    }
+    if (sha256Bytes(body) != expected->second) {
+        r.error = nsp::tr("update.json doesn't match SHA256SUMS.txt.");
+        return r;
+    }
+    std::string error;
+    auto m = parseManifest(body, error);
+    if (!m) {
+        r.error = error;
+        return r;
+    }
+    if (!(m->version == release.version)) {
+        r.error = nsp::tr("update.json is for another version.");
+        return r;
+    }
+    r.manifest = std::move(m);
+    r.ok = true;
+    return r;
 }
 
 DownloadResult downloadAndVerify(const Release &release, const Asset &asset, const fs::path &dir,
@@ -761,24 +966,8 @@ DownloadResult downloadAndVerify(const Release &release, const Asset &asset, con
 
     // The checksums first: without them nothing is downloaded.
     std::string sumsText;
-    const bool localSums = allowLocal && !isHttps(sumsAsset->url);
-    if (localSums) {
-        if (!readFile(fs::path(widen(sumsAsset->url)), sumsText)) {
-            r.error = nsp::trf("Couldn't read {}.", sumsAsset->url);
-            return r;
-        }
-    } else {
-        if (!isAllowedDownloadUrl(sumsAsset->url)) {
-            r.error = nsp::tr("SHA256SUMS.txt is not served from this project's releases.");
-            return r;
-        }
-        auto res = httpGet(sumsAsset->url, [](std::string_view u) { return isAllowedDownloadUrl(u); });
-        if (!res.ok) {
-            r.error = nsp::trf("Couldn't download SHA256SUMS.txt: {}", res.error);
-            return r;
-        }
-        sumsText = std::move(res.body);
-    }
+    if (!fetchSmall(*sumsAsset, allowLocal, sumsText, r.error))
+        return r;
     auto sums = parseSha256Sums(sumsText);
     auto expected = sums.find(asset.name);
     if (expected == sums.end()) {
@@ -1005,6 +1194,97 @@ void cleanupOldFiles(const fs::path &installDir)
     }
     for (const auto &p : old)
         DeleteFileW(p.c_str());
+}
+
+ApplyResult installAppPackage(const fs::path &staging, const Manifest &manifest, const fs::path &appRoot,
+                              const fs::path &baseDir, fs::path *installedDir)
+{
+    ApplyResult r;
+    std::error_code ec;
+    if (!manifest.hasApp) {
+        r.error = nsp::tr("This release has no app package.");
+        return r;
+    }
+    if (appRoot.empty() || baseDir.empty()) {
+        r.error = nsp::tr("Couldn't find %LOCALAPPDATA%.");
+        return r;
+    }
+
+    // Exactly the files update.json lists, each with its SHA-256.
+    std::map<std::string, fs::path> found; // lower-case '/' path -> file
+    for (auto it = fs::recursive_directory_iterator(staging, ec); !ec && it != fs::recursive_directory_iterator();
+         it.increment(ec)) {
+        if (!it->is_regular_file(ec))
+            continue;
+        auto rel = narrow(fs::relative(it->path(), staging, ec).generic_wstring());
+        found[lower(rel)] = it->path();
+    }
+    if (ec || found.empty()) {
+        r.error = nsp::tr("Couldn't read the update's files.");
+        return r;
+    }
+    for (const auto &[rel, hash] : manifest.appFiles) {
+        auto f = found.find(lower(rel));
+        if (f == found.end()) {
+            r.error = nsp::trf("The app package has no {}.", rel);
+            return r;
+        }
+        if (sha256File(f->second) != hash) {
+            r.error = nsp::trf("{} in the app package doesn't match update.json.", rel);
+            return r;
+        }
+    }
+    for (const auto &[rel, path] : found) {
+        bool listed = std::any_of(manifest.appFiles.begin(), manifest.appFiles.end(),
+                                  [&](const auto &e) { return lower(e.first) == rel; });
+        if (!listed) {
+            r.error = nsp::trf("The app package has a file update.json doesn't list: {}.", rel);
+            return r;
+        }
+    }
+
+    const auto version = widen(manifest.version.str());
+    const fs::path partial = appRoot / (version + L".partial");
+    const fs::path target = appRoot / version;
+    fs::remove_all(partial, ec);
+    fs::create_directories(partial, ec);
+    if (ec) {
+        r.error = nsp::trf("Couldn't create {}.", narrow(partial.wstring()));
+        return r;
+    }
+    auto fail = [&](std::string msg) {
+        fs::remove_all(partial, ec);
+        r.error = std::move(msg);
+        return r;
+    };
+    for (const auto &[rel, hash] : manifest.appFiles) {
+        const fs::path dest = partial / fs::path(widen(rel)).make_preferred();
+        fs::create_directories(dest.parent_path(), ec);
+        if (!CopyFileW(found[lower(rel)].c_str(), dest.c_str(), FALSE))
+            return fail(nsp::trf("Couldn't write {}: {}.", narrow(dest.wstring()), winError(GetLastError())));
+        if (sha256File(dest) != hash)
+            return fail(nsp::trf("{} was not written correctly.", rel));
+    }
+    appchannel::Record rec;
+    rec.version = manifest.version;
+    rec.base = baseDir;
+    rec.files = manifest.appFiles;
+    if (!appchannel::writeRecord(partial, rec))
+        return fail(nsp::trf("Couldn't write {}.", narrow((partial / appchannel::kRecordName).wstring())));
+
+    // The same version again (a repaired copy): the old folder goes first. It can't be
+    // removed while that copy runs, and then the new one isn't needed.
+    if (fs::exists(target, ec)) {
+        fs::remove_all(target, ec);
+        if (ec)
+            return fail(nsp::trf("Couldn't replace {}.", narrow(target.wstring())));
+    }
+    if (!MoveFileExW(partial.c_str(), target.c_str(), 0))
+        return fail(nsp::trf("Couldn't create {}: {}.", narrow(target.wstring()), winError(GetLastError())));
+    if (installedDir)
+        *installedDir = target;
+    r.ok = true;
+    return r;
 }
 
 void cleanupDownloads(const Version &current)

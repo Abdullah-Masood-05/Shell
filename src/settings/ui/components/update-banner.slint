@@ -25,6 +25,7 @@ export component ProgressBar inherits Rectangle {
 export component UpdateBanner inherits Rectangle {
     property <string> st: UpdateState.state;
     property <string> version: UpdateState.latest-version;
+    property <bool> admin: UpdateState.needs-admin;
 
     // The wrapped text's height, not just the minimum, so the second line isn't clipped.
     height: max(48px, content.preferred-height);
@@ -69,14 +70,27 @@ export component UpdateBanner inherits Rectangle {
             if root.st == "available": Text {
                 text: @tr("You have {}.", UpdateState.current-version)
                     + (UpdateState.released != "" ? " " + @tr("Released {}.", UpdateState.released) : "")
-                    + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "");
+                    + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "")
+                    + (UpdateState.update-path == "app" ? " " + @tr("It installs for you only, without administrator rights.") : "");
+                font-size: Tokens.body;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+            // Administrator approval is only ever an explicit choice, with the reason.
+            if root.st == "available" && root.admin: Text {
+                text: UpdateState.elevation-reason == "core"
+                    ? @tr("This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval.")
+                    : @tr("This update can only be installed with its installer, which installs for all users and needs administrator approval.");
                 font-size: Tokens.body;
                 color: Tokens.text-2;
                 wrap: word-wrap;
                 min-height: self.preferred-height;
             }
             if root.st == "ready": Text {
-                text: UpdateState.needs-admin
+                text: UpdateState.update-path == "app"
+                    ? @tr("Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts.")
+                    : root.admin
                     ? @tr("Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again.")
                     : @tr("Downloaded and verified. The app closes for a moment and opens again.");
                 font-size: Tokens.body;
@@ -117,15 +131,21 @@ export component UpdateBanner inherits Rectangle {
                         activated => { UpdateState.open-notes(); }
                     }
                 }
-                if root.st == "available": AppButton {
+                if root.st == "available" && !root.admin: AppButton {
                     text: @tr("Skip this version");
                     clicked => { UpdateState.skip(); }
                 }
+                if root.st == "available" && root.admin: AppButton {
+                    text: @tr("Later");
+                    clicked => { UpdateState.later(); }
+                }
                 if root.st == "available" || root.st == "ready": AppButton {
-                    text: root.st == "ready" ? @tr("Restart to update") : @tr("Download and install");
+                    text: root.admin ? @tr("Install with administrator approval")
+                        : root.st == "ready" ? (UpdateState.update-path == "app" ? @tr("Restart now") : @tr("Restart to update"))
+                        : @tr("Download and install");
                     primary: true;
-                    icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
-                    colorize-icon: !UpdateState.needs-admin;
+                    icon: root.admin ? AppState.shield-icon : Icons.download;
+                    colorize-icon: !root.admin;
                     clicked => { UpdateState.install(); }
                 }
                 if root.st == "downloading": AppButton {

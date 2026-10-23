@@ -1,5 +1,7 @@
 #include "ShellCli.h"
 
+#include "AppChannel.h"
+
 #include "Registry.h"
 #include "Text.h"
 #include "Tr.h"
@@ -57,6 +59,10 @@ fs::path ShellCli::locate()
     auto local = moduleDir() / L"shell.exe";
     if (isFile(local))
         return local;
+    // A per-user copy of the app (AppChannel.h): the shell.exe of the install it belongs to.
+    if (appchannel::isPerUserCopy())
+        if (auto base = appchannel::baseDir() / L"shell.exe"; isFile(base))
+            return base;
     for (const auto &dll : registry::registeredDllPaths()) {
         auto exe = fs::path(dll).parent_path() / L"shell.exe";
         if (isFile(exe))

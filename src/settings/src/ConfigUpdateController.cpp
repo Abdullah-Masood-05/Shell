@@ -46,7 +46,8 @@ std::string failureText(const CliResult &r, const std::optional<config_update::R
 } // namespace
 
 ConfigUpdateController::ConfigUpdateController(slint::ComponentHandle<AppWindow> ui, bool enabled, bool forced)
-    : ui_(std::move(ui)), cli_(ShellCli::locate()), enabled_(enabled), forced_(forced)
+    : ui_(std::move(ui)), cli_(ShellCli::locate()), shipped_(config_update::localShippedDir()), enabled_(enabled),
+      forced_(forced)
 {
     bindCallbacks();
     if (enabled_)
@@ -75,30 +76,62 @@ void ConfigUpdateController::pollStatus()
     auto status = ui_->global<AppState>().get_status();
     if (!status.loaded)
         return;
+    const bool personal = config_update::isPersonal(str(status.config_source), status.config_exists);
+    const std::string root = str(status.config_path);
+
+    if (checked_) {
+        // A per-user copy of the app only: a personal config made since (from Home or the
+        // first-run dialog) got the install folder's older files; bring them up to this version.
+        if (personal && root != upgradedRoot_ && !running_)
+            run(root);
+        return;
+    }
+    checked_ = true;
     statusPoll_.stop();
+    if (!shipped_.empty())
+        statusPoll_.start(slint::TimerMode::Repeated, 2s, [this] { pollStatus(); });
+    upgradedRoot_ = personal ? root : std::string();
 
     const std::string current = SETTINGS_VERSION;
     auto last = registry::app::getString(config_update::versionValue).value_or(L"");
     if (!config_update::shouldRun(text::narrow(last), current, forced_))
         return;
 
-    if (!config_update::isPersonal(str(status.config_source), status.config_exists)) {
-        // The shared config in the install folder is the new files already.
+    if (!personal) {
+        // The shared config in the install folder: nothing per user to bring up to date.
         registry::app::setString(config_update::versionValue, text::widen(current));
         return;
     }
-    run();
+    run(root);
 }
 
-void ConfigUpdateController::run()
+std::optional<config_update::Report> ConfigUpdateController::upgrade(const ShellCli &cli, const std::wstring &shipped,
+                                                                     const std::string &root,
+                                                                     const std::vector<std::string> &take, CliResult &r)
 {
-    if (started_ || !cli_.available())
+    if (!shipped.empty()) {
+        // A per-user copy of the app: its own shell.nss and imports\ are this version's.
+        r.started = true;
+        return config_update::runLocal(shipped, text::widen(root), take);
+    }
+    std::vector<std::wstring> args{ L"-config:upgrade" };
+    for (const auto &t : take)
+        args.push_back(L"-take:" + text::widen(t));
+    r = cli.run(args, 60000);
+    return config_update::parseReport(r.output);
+}
+
+void ConfigUpdateController::run(const std::string &root)
+{
+    if (running_ || (shipped_.empty() && !cli_.available()))
         return;
-    started_ = true;
-    worker_.post([this, cli = cli_] {
-        CliResult r = cli.run({ L"-config:upgrade" }, 60000);
-        auto report = config_update::parseReport(r.output);
+    running_ = true;
+    upgradedRoot_ = root;
+    worker_.post([this, cli = cli_, shipped = shipped_, root] {
+        CliResult r;
+        auto report = upgrade(cli, shipped, root, {}, r);
         slint::invoke_from_event_loop([this, r, report] {
+            running_ = false;
             if (!report || !r.started || r.timedOut) {
                 // Tried again at the next start.
                 return;
@@ -194,12 +227,13 @@ void ConfigUpdateController::compare(const std::string &path)
 void ConfigUpdateController::take(const std::string &path)
 {
     const auto &st = ui_->global<ConfigUpdateState>();
-    if (st.get_working() || !cli_.available())
+    if (st.get_working() || (shipped_.empty() && !cli_.available()))
         return;
     st.set_working(true);
-    worker_.post([this, path, cli = cli_] {
-        CliResult r = cli.run({ L"-config:upgrade", L"-take:" + text::widen(path) }, 60000);
-        auto report = config_update::parseReport(r.output);
+    const std::string root = str(ui_->global<AppState>().get_status().config_path);
+    worker_.post([this, path, root, cli = cli_, shipped = shipped_] {
+        CliResult r;
+        auto report = upgrade(cli, shipped, root, { path }, r);
         bool done = report && std::any_of(report->updated.begin(), report->updated.end(),
                                           [&](const std::string &p) { return _stricmp(p.c_str(), path.c_str()) == 0; });
         std::string failure = done ? std::string{} : failureText(r, report);

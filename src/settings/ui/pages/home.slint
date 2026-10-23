@@ -115,7 +115,7 @@ export component HomePage inherits PageFrame {
         close => { UpdateState.dismiss-notice(); }
     }
 
-    if UpdateState.offered: UpdateBanner { }
+    if UpdateState.offered && !UpdateState.deferred: UpdateBanner { }
 
     // After an update: the menu files brought up to this version, and the ones the user
     // changed, which were kept (src/ConfigUpdateController.cpp).
@@ -204,7 +204,10 @@ export component HomePage inherits PageFrame {
             }
             KeyValue {
                 key: @tr("Version");
-                value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", AppState.status.version) : AppState.status.version;
+                // After an app update for this user, the app is newer than the installed Shell core: both.
+                property <string> shown: UpdateState.per-user-app
+                    ? @tr("Shell core {}  ·  app {}", AppState.status.version, AppState.app-version) : AppState.status.version;
+                value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", self.shown) : self.shown;
             }
             Rectangle { vertical-stretch: 1; }
         }
