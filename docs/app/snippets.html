@@ -23,8 +23,8 @@
 <ul>
 	<li>The <strong>name</strong> and one line about what it does.</li>
 	<li><strong>by ...</strong>: who wrote it. The snippets <i>by Nilesoft Shell Pro</i> are written for this app, use
-		the MIT license and are built into it. <i>by RubicBG</i> is a link to RubicBG's collection on GitHub, where those
-		snippets come from (see <a href="#rubicbg">below</a>).</li>
+		the MIT license and are built into it. The snippets <i>by RubicBG</i> come from RubicBG's collection and are built
+		into the app too (see <a href="#rubicbg">below</a>). <i>by RubicBG</i> is a link to his collection on GitHub.</li>
 	<li>Labels after the name, when they apply:
 		<ul>
 			<li><i>Runs as administrator</i>: the snippet starts something with administrator rights. Windows asks you to
@@ -36,8 +36,7 @@
 		</ul>
 	</li>
 	<li><strong>Show code</strong> opens the snippet's code under the row, so you can see exactly what it adds.
-		<strong>Hide code</strong> closes it again. For a snippet by RubicBG the code is downloaded first, so this needs
-		an internet connection.</li>
+		<strong>Hide code</strong> closes it again.</li>
 </ul>
 
 <h5 id="preview">Preview</h5>
@@ -57,8 +56,6 @@
 	<li>An item whose name comes from what you right-click shows <i>Name from the selection</i> in italics.</li>
 	<li>A snippet that only changes or hides other items, and a snippet the app can't read the menu of, shows its code
 		instead, with a line that says why.</li>
-	<li>For a snippet by RubicBG the file is downloaded and checked first, the same way as for
-		<strong>Show code</strong>. Without an internet connection the preview says it couldn't be downloaded.</li>
 </ul>
 <p>The app asks Shell itself which items the snippet adds (in a temporary folder, with your theme), so the preview
 	never changes your configuration. It is close to the real menu, not exact: Windows adds its own items around it.</p>
@@ -94,17 +91,17 @@
 <h5 id="rubicbg">Snippets by RubicBG</h5>
 <p>The rows <i>by RubicBG</i> come from
 	<a href="https://github.com/RubicBG/Nilesoft-Shell-Snippets" target="_blank" rel="noopener">RubicBG's Nilesoft Shell
-	Snippets</a>, a large community collection on GitHub. All credit for them goes to RubicBG. The page lists a
-	selection: snippets that load in this version of Shell and don't need administrator rights, upload files, or change
-	security settings. The names and descriptions on the page are written for this app.</p>
+	Snippets</a>, a large community collection on GitHub. All credit for them goes to RubicBG. His snippets are CC0
+	(public domain), and the app includes them with his permission. The page lists a selection: snippets that load in
+	this version of Shell and don't need administrator rights, upload files, or change security settings. The names and
+	descriptions on the page are written for this app.</p>
 <ul>
-	<li>Nothing of the collection is built into the app. A snippet is downloaded only when you turn it on (or press
-		<strong>Show code</strong>), from a copy of the collection on GitHub at one fixed version.</li>
-	<li>The app knows the exact contents of every file it may download. If the download is different in any way, it is
-		not used and nothing is changed.</li>
-	<li>Without an internet connection, turning one on shows <i>Couldn't download the snippet</i> and nothing is
-		changed. Snippets that are already on keep working offline, because the copy in your configuration folder is
-		what Shell loads.</li>
+	<li>The selected files come with the app, unchanged from his repository, so turning one on works offline like the
+		app's own snippets.</li>
+	<li>They are also in the <code>snippets\rubicbg</code> folder of the installation, next to his license text
+		(<code>LICENSE.txt</code>).</li>
+	<li>When an update of the app brings a newer version of one, your copy is brought up to date the same way, unless you
+		edited it.</li>
 </ul>
 <p>The rest of the collection, and how to add any of its snippets by hand, is described on the
 	<a href="/docs/snippets">Snippets</a> page of these docs.</p>
@@ -121,6 +118,4 @@
 		space in a folder. Also check that the <i>Snippets</i> module is on in Context Menus.</li>
 	<li><strong><i>The copy in imports\snippets is missing</i>.</strong> The file was deleted outside the app. Turn the
 		snippet off and on again.</li>
-	<li><strong><i>Couldn't download the snippet</i>.</strong> Only snippets by RubicBG are downloaded. Check the
-		internet connection and try again; nothing was changed in the meantime.</li>
 </ul>
