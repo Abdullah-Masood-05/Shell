@@ -280,4 +280,34 @@ std::vector<Line> highlight(std::string_view s, int tabWidth, const TabGlyphs *g
     return lines;
 }
 
+LinePatch highlightPatch(std::string_view o, std::string_view n, int tabWidth, const TabGlyphs *glyphs)
+{
+    size_t p = 0;
+    const size_t maxP = std::min(o.size(), n.size());
+    while (p < maxP && o[p] == n[p])
+        ++p;
+    size_t s = 0;
+    const size_t maxS = std::min(o.size(), n.size()) - p;
+    while (s < maxS && o[o.size() - 1 - s] == n[n.size() - 1 - s])
+        ++s;
+    // Whole lines around the change: [lineStart, end of the line holding the change's end).
+    constexpr char nl = '\n';
+    size_t lineStart = 0;
+    if (p > 0) {
+        const size_t k = n.rfind(nl, p - 1);
+        lineStart = k == std::string_view::npos ? 0 : k + 1;
+    }
+    size_t newEnd = n.find(nl, n.size() - s);
+    if (newEnd == std::string_view::npos)
+        newEnd = n.size();
+    size_t oldEnd = o.find(nl, o.size() - s);
+    if (oldEnd == std::string_view::npos)
+        oldEnd = o.size();
+    LinePatch out;
+    out.first = size_t(std::count(n.begin(), n.begin() + ptrdiff_t(lineStart), nl));
+    out.oldCount = size_t(std::count(o.begin() + ptrdiff_t(lineStart), o.begin() + ptrdiff_t(oldEnd), nl)) + 1;
+    out.lines = highlight(n.substr(lineStart, newEnd - lineStart), tabWidth, glyphs);
+    return out;
+}
+
 } // namespace hl

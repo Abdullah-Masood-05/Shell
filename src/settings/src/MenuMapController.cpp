@@ -145,21 +145,6 @@ std::optional<nss::NssDocument> loadDecls(const fs::path &file, std::string *err
     return doc;
 }
 
-std::vector<CodeLine> codeLines(const std::string &display, const hl::TabGlyphs &glyphs)
-{
-    std::vector<CodeLine> out;
-    for (const auto &line : hl::highlight(display, 4, &glyphs)) {
-        auto spans = std::make_shared<slint::VectorModel<CodeSpan>>();
-        std::string prefix;
-        for (size_t k = 0; k < line.spans.size(); ++k) {
-            spans->push_back(CodeSpan{ ss(line.spans[k].text), line.spans[k].kind, ss(prefix), k + 1 == line.spans.size() });
-            prefix += line.spans[k].text;
-        }
-        out.push_back(CodeLine{ 0, spans, 0 });
-    }
-    return out;
-}
-
 std::string fmt(float v)
 {
     char buf[32];
@@ -226,7 +211,20 @@ void MenuMapController::bindCallbacks()
     st.on_move_to([this](int i) { moveTo(i); });
     st.on_reset_menu([this] { resetMenu(); });
     st.on_edit_code([this] { editCode(); });
-    st.on_edit_edited([this](slint::SharedString t) { return editEdited(str(t)); });
+    st.on_edit_edited([this](slint::SharedString t, int cursor, int beforeAnchor, int beforeCursor) {
+        auto r = editDoc_.input(str(t), size_t(std::max(0, cursor)), codeui::selection(beforeAnchor, beforeCursor));
+        editChanged(r);
+        return codeui::toSlint(r);
+    });
+    st.on_edit_command([this](slint::SharedString name, int anchor, int cursor) {
+        auto r = codeui::command(editDoc_, str(name), anchor, cursor, false);
+        editChanged(r);
+        return codeui::toSlint(r);
+    });
+    st.on_edit_find([this](slint::SharedString q, int anchor, int cursor, bool backwards, bool incremental) {
+        return codeui::find(editDoc_, str(q), anchor, cursor, backwards, incremental);
+    });
+    st.on_edit_selected_text([this](int anchor, int cursor) { return ss(codeui::findSeed(editDoc_, anchor, cursor)); });
     st.on_edit_save([this] { editSave(); });
     st.on_edit_cancel([this] { editCancel(); });
     st.on_open_in_editor([this] {
@@ -1073,34 +1071,29 @@ void MenuMapController::editCode()
     editLine_ = size_t(n.line);
     editColumn_ = size_t(n.column);
     editOriginal_ = block->text;
-    editText_ = block->text;
-    glyphs_ = hl::pickTabGlyphs(editText_);
-    editDisplay_ = hl::tabsToDisplay(editText_, glyphs_);
+    editDoc_.reset(code::normalizeNewlines(block->text));
     const auto &st = ui_->global<MenuMapState>();
     st.set_edit_title(ss(n.title.empty() ? std::string(nsp::tr("(no title)")) : n.title));
     st.set_edit_file_label(ss(nsp::trf("{}, line {}", fileLabel(n.file), n.line)));
-    st.set_edit_text(ss(editDisplay_));
-    st.set_edit_lines(std::make_shared<slint::VectorModel<CodeLine>>(codeLines(editDisplay_, glyphs_)));
+    st.set_edit_text(ss(editDoc_.display()));
+    editRows_.update(hl::highlight(editDoc_.text(), editDoc_.tabWidth(), &editDoc_.glyphs()));
+    st.set_edit_lines(editRows_.model());
     st.set_edit_error("");
     st.set_edit_dirty(false);
     st.set_editing(true);
 }
 
-int MenuMapController::editEdited(const std::string &display)
+// An edit or a command in the code box (see CodeDocument.h).
+void MenuMapController::editChanged(const code::Result &r)
 {
-    auto edit = hl::applyDisplayEdit(editDisplay_, display, glyphs_);
-    editText_ = std::move(edit.text);
-    editDisplay_ = std::move(edit.display);
     const auto &st = ui_->global<MenuMapState>();
-    int cursor = -1;
-    if (edit.changed) {
-        st.set_edit_text(ss(editDisplay_));
-        cursor = int(edit.cursor);
-    }
-    st.set_edit_lines(std::make_shared<slint::VectorModel<CodeLine>>(codeLines(editDisplay_, glyphs_)));
-    st.set_edit_dirty(editText_ != editOriginal_);
+    if (r.display)
+        st.set_edit_text(ss(editDoc_.display()));
+    if (!r.edited)
+        return;
+    editRows_.update(hl::highlight(editDoc_.text(), editDoc_.tabWidth(), &editDoc_.glyphs()));
+    st.set_edit_dirty(editDoc_.text() != code::normalizeNewlines(editOriginal_));
     st.set_edit_error("");
-    return cursor;
 }
 
 void MenuMapController::editCancel()
@@ -1114,7 +1107,10 @@ void MenuMapController::editSave()
     const auto &st = ui_->global<MenuMapState>();
     if (editFile_.empty() || st.get_busy())
         return;
-    if (editText_ == editOriginal_) {
+    // Back to the file's own line ends.
+    const bool crlf = editOriginal_.find("\r\n") != std::string::npos;
+    const std::string editText = editor::fromEditorText(editDoc_.text(), crlf ? nss::Eol::CRLF : nss::Eol::LF);
+    if (editText == editOriginal_) {
         editCancel();
         return;
     }
@@ -1125,7 +1121,7 @@ void MenuMapController::editSave()
         st.set_edit_error(ss(nsp::tr("The file changed since this code was opened. Cancel, then open it again.")));
         return;
     }
-    if (!menumap::replaceBlock(*doc, *block, editText_, &error)) {
+    if (!menumap::replaceBlock(*doc, *block, editText, &error)) {
         st.set_edit_error(ss(nsp::trf("Not saved: {}", error)));
         return;
     }

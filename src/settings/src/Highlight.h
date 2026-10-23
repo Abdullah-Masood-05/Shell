@@ -83,6 +83,19 @@ DisplayEdit applyDisplayEdit(std::string_view oldDisplay, std::string_view newDi
 // with them, the line text matches tabsToDisplay(text, *glyphs) exactly.
 std::vector<Line> highlight(std::string_view text, int tabWidth = 4, const TabGlyphs *glyphs = nullptr);
 
+// For typing in big files: the lines of `newText` that differ from `oldText`
+// (same tab glyphs), highlighted on their own. Replace `oldCount` lines from
+// `first` with `lines`. A change inside a multi-line comment or string may be
+// coloured wrongly until the next full highlight().
+struct LinePatch
+{
+    size_t first = 0;
+    size_t oldCount = 0;
+    std::vector<Line> lines;
+};
+LinePatch highlightPatch(std::string_view oldText, std::string_view newText, int tabWidth = 4,
+                         const TabGlyphs *glyphs = nullptr);
+
 // The per-byte kind of `text` (exposed for tests).
 std::vector<unsigned char> classify(std::string_view text);
 

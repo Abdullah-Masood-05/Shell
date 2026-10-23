@@ -42,6 +42,13 @@ export global Tokens {
     out property <color> selected: dark ? #FFFFFF12 : #0F172A0F;
     out property <color> focus-ring: dark ? #E5E7EB : #0F172AE4;
 
+    // Selected text in every text box and the code editors: an opaque fill with
+    // its own text colour, so syntax colours never sit on a tinted background.
+    // selection-text on selection-bg: 6.4:1 dark, 10.9:1 light. Both stand apart
+    // from the current-line tint (`hover`) and from layer/layer-2.
+    out property <color> selection-bg: dark ? #2D5BB8 : #B4CEFB;
+    out property <color> selection-text: dark ? #FFFFFF : #0F172A;
+
     // Status
     out property <color> success: dark ? #6CCB5F : #0F7B0F;
     out property <color> warning: dark ? #FCE100 : #9D5D00;

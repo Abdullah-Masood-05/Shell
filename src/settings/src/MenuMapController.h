@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "CodeEditorBridge.h"
 #include "Highlight.h"
 
 class MenuMapController
@@ -90,7 +91,7 @@ private:
     void moveTo(int index);
     void resetMenu();
     void editCode();
-    int editEdited(const std::string &display);
+    void editChanged(const code::Result &r);
     void editSave();
     void editCancel();
     void openInEditor(const std::string &path, int line);
@@ -134,10 +135,9 @@ private:
     // Edit code
     std::filesystem::path editFile_;
     size_t editLine_ = 0, editColumn_ = 0;
-    std::string editOriginal_;            // the block as read
-    std::string editText_;                // the block as edited
-    std::string editDisplay_;
-    hl::TabGlyphs glyphs_;
+    std::string editOriginal_;            // the block as read (the file's line ends)
+    code::Document editDoc_;              // the block as edited ('\n' line ends), with undo
+    codeui::Rows editRows_;
 
     slint::Timer toastTimer_;
     slint::Timer jumpTimer_;

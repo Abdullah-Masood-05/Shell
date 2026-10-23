@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -71,11 +70,20 @@ EditorController::EditorController(slint::ComponentHandle<AppWindow> ui)
                 line = _wtoi(argv[++i]);
             else if (_wcsicmp(argv[i], L"--editor-debug-overlay") == 0)
                 ui_->global<EditorState>().set_debug_overlay(true);
+            else if (_wcsicmp(argv[i], L"--editor-select") == 0 && i + 1 < argc) {
+                // <first>-<last>: select those lines (screenshots)
+                std::wstring v = argv[++i];
+                auto dash = v.find(L'-');
+                devSelectFirst_ = _wtoi(v.substr(0, dash).c_str());
+                devSelectLast_ = dash == std::wstring::npos ? devSelectFirst_ : _wtoi(v.substr(dash + 1).c_str());
+            } else if (_wcsicmp(argv[i], L"--editor-find") == 0 && i + 1 < argc)
+                devFind_ = nss::narrow(argv[++i]);
         }
         if (!open.empty())
             pendingJump_ = { open, line };
         LocalFree(argv);
     }
+    ui_->global<EditorState>().set_edit_lines(rows_.model());
     bindCallbacks();
     // The active config comes from AppState.status (shell.exe -status, run by
     // AppController); follow it, so "Create personal config" switches over.
@@ -102,6 +110,21 @@ void EditorController::bindCallbacks()
 {
     const auto &st = ui_->global<EditorState>();
     st.on_activated([this] {
+        // A new page: put the edit view back where the user left it.
+        rememberView();
+        if (!replayJump_ && !shownKey_.empty())
+            viewTimer_.start(slint::TimerMode::SingleShot, 120ms, [this] {
+                if (auto *d = currentDoc(); d && d->view.saved) {
+                    const auto &es = ui_->global<EditorState>();
+                    auto sel = d->toDisplay(d->view.selection);
+                    es.set_caret_anchor(int(sel.anchor));
+                    es.set_caret_offset(int(sel.cursor));
+                    es.set_caret_scroll(true);
+                    es.set_caret_scroll_x(d->view.x);
+                    es.set_caret_scroll_y(d->view.y);
+                    es.set_caret_serial(es.get_caret_serial() + 1);
+                }
+            });
         pollStatus();
         if (startEditing_) {
             startEditing_ = false;
@@ -123,8 +146,18 @@ void EditorController::bindCallbacks()
         if (!editing)
             rehighlight();
     });
-    st.on_edited([this](slint::SharedString text) { return onEdited(str(text)); });
-    st.on_fix_clipboard([this] { fixClipboard(); });
+    st.on_edited([this](slint::SharedString text, int cursor, int beforeAnchor, int beforeCursor) {
+        return onEdited(str(text), cursor, beforeAnchor, beforeCursor);
+    });
+    st.on_command([this](slint::SharedString name, int anchor, int cursor) { return onCommand(str(name), anchor, cursor); });
+    st.on_find([this](slint::SharedString query, int anchor, int cursor, bool backwards, bool incremental) {
+        auto *d = currentDoc();
+        return d ? codeui::find(*d, str(query), anchor, cursor, backwards, incremental) : FindResult{};
+    });
+    st.on_selected_text([this](int anchor, int cursor) {
+        auto *d = currentDoc();
+        return ss(d ? codeui::findSeed(*d, anchor, cursor) : std::string{});
+    });
     st.on_save([this] { save(false); });
     st.on_save_anyway([this] {
         ui_->global<EditorState>().set_confirm_force(false);
@@ -285,6 +318,7 @@ void EditorController::applyTree(std::vector<editor::FileEntry> entries)
         pendingJump_.reset();
         jumpTo(file, line);
     }
+    applyDevSelection();
     scheduleCheck(0);
 }
 
@@ -323,6 +357,16 @@ editor::Buffer *EditorController::currentBuffer()
     return it == buffers_.end() ? nullptr : &it->second;
 }
 
+code::Document *EditorController::currentDoc()
+{
+    auto *b = currentBuffer();
+    if (!b)
+        return nullptr;
+    if (!b->doc)
+        b->doc = std::make_shared<code::Document>(b->text);
+    return b->doc.get();
+}
+
 void EditorController::selectPath(const fs::path &path)
 {
     auto key = nss::pathKey(path);
@@ -353,14 +397,13 @@ void EditorController::selectFile(int index)
 void EditorController::showCurrent()
 {
     const auto &st = ui_->global<EditorState>();
+    rememberView(); // of the file shown until now
     st.set_current(current_);
     st.set_highlight_line(0);
     if (current_ < 0) {
         st.set_current_label("");
         st.set_current_path("");
-        glyphs_ = {};
-        display_.clear();
-        setEditText(0);
+        showDoc();
         st.set_lines(std::make_shared<slint::VectorModel<CodeLine>>());
         rehighlightEdit();
         return;
@@ -372,23 +415,51 @@ void EditorController::showCurrent()
     st.set_current_path(ss(nss::narrow(e.path.wstring())));
     st.set_read_only(ro);
     st.set_read_only_reason(ss(reason));
-    auto *b = currentBuffer();
-    glyphs_ = b ? hl::pickTabGlyphs(b->text) : hl::TabGlyphs{};
-    display_ = b ? hl::tabsToDisplay(b->text, glyphs_) : std::string{};
-    setEditText(0);
+    showDoc();
     updateDirty();
     rehighlight();
     rehighlightEdit();
 }
 
-// The edit view's TextInput gets display_, with the cursor at `cursor`.
-void EditorController::setEditText(size_t cursor)
+// The edit view's TextInput gets the current file's text, with the caret and
+// scroll position the file had when the user left it (else at the top).
+void EditorController::showDoc()
 {
     const auto &st = ui_->global<EditorState>();
-    st.set_text(ss(display_));
-    st.set_caret_anchor(int(cursor));
-    st.set_caret_offset(int(cursor));
+    auto *d = currentDoc();
+    code::Selection sel;
+    float x = 0, y = 0;
+    if (d && d->view.saved) {
+        sel = d->toDisplay(d->view.selection);
+        x = d->view.x;
+        y = d->view.y;
+    }
+    st.set_text(ss(d ? d->display() : std::string{}));
+    st.set_caret_anchor(int(sel.anchor));
+    st.set_caret_offset(int(sel.cursor));
+    st.set_caret_scroll(true);
+    st.set_caret_scroll_x(x);
+    st.set_caret_scroll_y(y);
     st.set_caret_serial(st.get_caret_serial() + 1);
+    shownKey_ = d && current_ >= 0 ? nss::pathKey(entries_[size_t(current_)].path) : std::string{};
+}
+
+// Notes where the edit view was in the file it shows (EditorState.view-*,
+// kept up to date by the page), before it shows another one.
+void EditorController::rememberView()
+{
+    if (shownKey_.empty())
+        return;
+    auto it = buffers_.find(shownKey_);
+    if (it == buffers_.end() || !it->second.doc)
+        return;
+    auto &d = *it->second.doc;
+    const auto &st = ui_->global<EditorState>();
+    d.view.saved = true;
+    d.view.selection = d.toText(codeui::selection(st.get_view_anchor(), st.get_view_cursor()));
+    d.view.x = st.get_view_x();
+    d.view.y = st.get_view_y();
+    d.closeGroup();
 }
 
 std::map<int, int> EditorController::issueMarks(const editor::Buffer &b) const
@@ -408,49 +479,19 @@ void EditorController::rehighlightEdit()
 {
     highlightTimer_.stop();
     auto *b = currentBuffer();
-    std::vector<hl::Line> lines;
-    std::vector<int> marks;
-    if (b) {
-        lines = hl::highlight(b->text, 4, &glyphs_);
-        marks.assign(lines.size(), 0);
-        for (auto [line, mark] : issueMarks(*b))
-            if (line >= 1 && line <= int(marks.size()))
-                marks[size_t(line - 1)] = mark;
+    auto *d = currentDoc();
+    if (!b || !d) {
+        rows_.clear();
+        highlighted_.clear();
+        return;
     }
-    auto row = [&](size_t i) {
-        // Each span is drawn as the line up to its end, clipped to the span, so
-        // every glyph sits where the TextInput (one run per line) puts it.
-        auto spans = std::make_shared<slint::VectorModel<CodeSpan>>();
-        std::string prefix;
-        const auto &ls = lines[i].spans;
-        for (size_t k = 0; k < ls.size(); ++k) {
-            spans->push_back(CodeSpan{ ss(ls[k].text), ls[k].kind, ss(prefix), k + 1 == ls.size() });
-            prefix += ls[k].text;
-        }
-        return CodeLine{ 0, spans, marks[i] }; // the page numbers edit rows by index
-    };
-    if (!editModel_) {
-        editModel_ = std::make_shared<slint::VectorModel<CodeLine>>();
-        editLines_.clear();
-        editMarks_.clear();
-        ui_->global<EditorState>().set_edit_lines(editModel_);
-    }
-    const size_t o = editLines_.size(), n = lines.size();
-    size_t pre = 0, suf = 0;
-    while (pre < o && pre < n && lines[pre] == editLines_[pre] && marks[pre] == editMarks_[pre])
-        ++pre;
-    while (suf < o - pre && suf < n - pre && lines[n - 1 - suf] == editLines_[o - 1 - suf] &&
-           marks[n - 1 - suf] == editMarks_[o - 1 - suf])
-        ++suf;
-    const size_t oldMid = o - pre - suf, newMid = n - pre - suf, common = std::min(oldMid, newMid);
-    for (size_t k = 0; k < common; ++k)
-        editModel_->set_row_data(pre + k, row(pre + k));
-    for (size_t k = common; k < newMid; ++k)
-        editModel_->insert(pre + k, row(pre + k));
-    for (size_t k = oldMid; k > common; --k)
-        editModel_->erase(pre + k - 1);
-    editLines_ = std::move(lines);
-    editMarks_ = std::move(marks);
+    highlighted_ = d->text();
+    auto lines = hl::highlight(d->text(), d->tabWidth(), &d->glyphs());
+    std::vector<int> marks(lines.size(), 0);
+    for (auto [line, mark] : issueMarks(*b))
+        if (line >= 1 && line <= int(marks.size()))
+            marks[size_t(line - 1)] = mark;
+    rows_.update(std::move(lines), std::move(marks));
 }
 
 void EditorController::rehighlight()
@@ -552,65 +593,58 @@ void EditorController::pushProblems()
 // ---------------------------------------------------------------------------
 // Editing and the live check
 
-// The TextInput changed. Returns the cursor to set when its text had to be
-// rewritten (a tab's glyphs re-padded or removed whole), else -1.
-int EditorController::onEdited(std::string display)
+// The TextInput changed its text (typing, Backspace, Delete, an IME). The
+// text is written back only when what it shows must change.
+EditResult EditorController::onEdited(const std::string &display, int cursor, int beforeAnchor, int beforeCursor)
+{
+    auto *d = currentDoc();
+    if (!d)
+        return {};
+    auto r = d->input(display, size_t(std::max(0, cursor)), codeui::selection(beforeAnchor, beforeCursor));
+    afterEdit(r);
+    return codeui::toSlint(r);
+}
+
+// Undo, redo, clipboard, Tab, Shift+Tab, Enter (see codeui::command).
+EditResult EditorController::onCommand(const std::string &name, int anchor, int cursor)
+{
+    auto *d = currentDoc();
+    if (!d || current_ < 0)
+        return {};
+    auto r = codeui::command(*d, name, anchor, cursor, readOnly(entries_[size_t(current_)]));
+    afterEdit(r);
+    return codeui::toSlint(r);
+}
+
+void EditorController::afterEdit(const code::Result &r)
 {
     auto *b = currentBuffer();
-    if (!b)
-        return -1;
-    auto edit = hl::applyDisplayEdit(display_, display, glyphs_);
+    auto *d = currentDoc();
+    if (!b || !d)
+        return;
+    const auto &st = ui_->global<EditorState>();
+    if (r.display)
+        st.set_text(ss(d->display()));
+    if (!r.edited)
+        return;
     bool wasDirty = b->dirty();
-    b->text = std::move(edit.text);
-    display_ = std::move(edit.display);
-    int cursor = -1;
-    if (edit.changed) {
-        ui_->global<EditorState>().set_text(ss(display_));
-        cursor = int(edit.cursor);
-    }
+    b->text = d->text();
     if (wasDirty != b->dirty())
         updateDirty();
     else
-        ui_->global<EditorState>().set_dirty(b->dirty());
-    ui_->global<EditorState>().set_highlight_line(0);
-    // Small files are highlighted on every keystroke (the glyphs on screen are
-    // the highlighted rows); big ones after a short pause.
-    if (b->text.size() < 256 * 1024)
+        st.set_dirty(b->dirty());
+    st.set_highlight_line(0);
+    // The glyphs on screen are the highlighted rows, so they follow every key.
+    // Small files are highlighted whole; in big ones only the changed lines,
+    // and the whole file once typing pauses.
+    if (b->text.size() < 48 * 1024 || r.display) {
         rehighlightEdit();
-    else
-        highlightTimer_.start(slint::TimerMode::SingleShot, 80ms, [this] { rehighlightEdit(); });
-    scheduleCheck(800);
-    return cursor;
-}
-
-// Copy and cut in the edit view put the display text on the clipboard: turn
-// the tab glyphs back into tabs there.
-void EditorController::fixClipboard()
-{
-    if (!glyphs_.valid() || !OpenClipboard(nullptr))
-        return;
-    std::string text;
-    if (HANDLE h = GetClipboardData(CF_UNICODETEXT))
-        if (auto *w = static_cast<const wchar_t *>(GlobalLock(h))) {
-            text = nss::narrow(w);
-            GlobalUnlock(h);
-        }
-    auto fixed = hl::tabsFromDisplay(text, glyphs_);
-    if (!text.empty() && fixed != text) {
-        auto wide = nss::widen(fixed);
-        if (HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t))) {
-            if (auto *dst = static_cast<wchar_t *>(GlobalLock(mem))) {
-                memcpy(dst, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
-                GlobalUnlock(mem);
-                EmptyClipboard();
-                if (!SetClipboardData(CF_UNICODETEXT, mem))
-                    GlobalFree(mem);
-            } else {
-                GlobalFree(mem);
-            }
-        }
+    } else {
+        rows_.patch(hl::highlightPatch(highlighted_, d->text(), d->tabWidth(), &d->glyphs()));
+        highlighted_ = d->text();
+        highlightTimer_.start(slint::TimerMode::SingleShot, 300ms, [this] { rehighlightEdit(); });
     }
-    CloseClipboard();
+    scheduleCheck(800);
 }
 
 void EditorController::scheduleCheck(int delayMs)
@@ -775,8 +809,14 @@ void EditorController::save(bool force)
 
 void EditorController::discard()
 {
-    for (auto &[k, b] : buffers_)
+    // Through the document where there is one, so Ctrl+Z brings the edits back.
+    for (auto &[k, b] : buffers_) {
+        if (b.doc && b.doc->text() != b.original) {
+            b.doc->replace({ 0, b.doc->display().size() }, b.original);
+            b.doc->closeGroup();
+        }
         b.text = b.original;
+    }
     showCurrent();
     scheduleCheck(0);
 }
@@ -841,9 +881,14 @@ void EditorController::reloadBuffers(const std::vector<std::string> &keys)
         if (cur == &it->second)
             currentChanged = true;
         std::string error;
-        if (auto b = editor::loadBuffer(it->second.path, &error))
+        if (auto b = editor::loadBuffer(it->second.path, &error)) {
+            auto view = it->second.doc ? it->second.doc->view : code::Document::View{};
             it->second = std::move(*b);
-        else
+            if (view.saved) {
+                it->second.doc = std::make_shared<code::Document>(it->second.text);
+                it->second.doc->view = view;
+            }
+        } else
             buffers_.erase(it); // gone: the tree reload shows it as missing
     }
     if (currentChanged)
@@ -865,11 +910,12 @@ void EditorController::jumpTo(const fs::path &file, int line)
             return;
         }
     }
-    auto *b = currentBuffer();
-    if (!b || line <= 0)
+    auto *d = currentDoc();
+    if (!d || line <= 0)
         return;
-    auto [begin, end] = editor::lineOffsets(display_, line); // offsets into the edit view's text
+    auto [begin, end] = editor::lineOffsets(d->display(), line); // offsets into the edit view's text
     const auto &st = ui_->global<EditorState>();
+    st.set_caret_scroll(false); // the jump scrolls to the line
     st.set_highlight_line(line);
     st.set_jump_line(line);
     st.set_jump_start(int(begin));
@@ -879,4 +925,33 @@ void EditorController::jumpTo(const fs::path &file, int line)
     st.set_caret_offset(int(begin));
     st.set_jump_serial(st.get_jump_serial() + 1);
     replayJump_ = ui_->global<AppState>().get_page() != ui_->global<Pages>().get_editor();
+}
+
+// --editor-select and --editor-find (screenshots of selected text).
+void EditorController::applyDevSelection()
+{
+    auto *d = currentDoc();
+    if (!d)
+        return;
+    const auto &st = ui_->global<EditorState>();
+    if (devSelectFirst_ > 0) {
+        auto first = editor::lineOffsets(d->display(), devSelectFirst_).first;
+        auto last = editor::lineOffsets(d->display(), std::max(devSelectFirst_, devSelectLast_)).second;
+        devSelectFirst_ = 0;
+        viewTimer_.start(slint::TimerMode::SingleShot, 300ms, [this, first, last] {
+            const auto &es = ui_->global<EditorState>();
+            es.set_caret_anchor(int(first));
+            es.set_caret_offset(int(last));
+            es.set_caret_scroll(false);
+            es.set_caret_serial(es.get_caret_serial() + 1);
+        });
+    }
+    if (!devFind_.empty()) {
+        st.set_find_query(ss(devFind_));
+        devFind_.clear();
+        replayTimer_.start(slint::TimerMode::SingleShot, 400ms, [this] {
+            const auto &es = ui_->global<EditorState>();
+            es.set_find_serial(es.get_find_serial() + 1);
+        });
+    }
 }

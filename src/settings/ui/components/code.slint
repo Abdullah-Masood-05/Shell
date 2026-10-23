@@ -1,6 +1,8 @@
 import { ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
-import { CodeLine } from "../editor-types.slint";
+import { CodeLine, EditResult, FindResult } from "../editor-types.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppLineEdit } from "line-edit.slint";
 
 // Syntax colours for the read view (kinds from src/Highlight.h), close to the
 // VS Code Dark+/Light+ themes.
@@ -141,11 +143,58 @@ component GutterRow inherits Rectangle {
     }
 }
 
-// The edit view. A TextInput with transparent glyphs (it still draws the
-// selection; the caret is drawn here) sits exactly over EditRows showing the
-// same text highlighted. Both are children of one ScrollView, so they scroll
-// together; Slint gives every line the font's natural height, measured here
-// with a Text in the same font. Only the rows in view are instantiated.
+
+// A small square button of the find bar.
+component FindButton inherits Rectangle {
+    in property <string> glyph;
+    in property <image> icon;
+    in property <string> tip;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    width: 28px;
+    height: 28px;
+    border-radius: Tokens.radius-sm;
+    background: ta.pressed ? Tokens.pressed : ta.has-hover && root.enabled ? Tokens.hover : transparent;
+    accessible-role: button;
+    accessible-label: root.tip;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { root.clicked(); }
+
+    if root.glyph != "": Text {
+        text: root.glyph;
+        font-size: Tokens.body;
+        color: root.enabled ? Tokens.text-2 : Tokens.text-3.with-alpha(0.5);
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    if root.glyph == "": Image {
+        width: 12px;
+        height: 12px;
+        source: root.icon;
+        colorize: Tokens.text-2;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        clicked => { root.clicked(); }
+    }
+}
+
+// The edit view. A TextInput with transparent glyphs (the caret is drawn
+// here) sits exactly over EditRows showing the same text highlighted. Both
+// are children of one ScrollView, so they scroll together; Slint gives every
+// line the font's natural height, measured here with a Text in the same font.
+// Only the rows in view are instantiated.
+//
+// Selected text is drawn by the TextInput itself, in selection-text on an
+// opaque selection-bg that covers the highlighted glyphs underneath, so it
+// reads the same whatever the syntax colours are.
+//
+// Edits go one way: the TextInput changes its text and reports it (edited);
+// C++ writes the text back only when what is shown must change. Undo, redo,
+// clipboard, Tab, Shift+Tab and Enter are commands run by C++
+// (src/CodeDocument.h), because writing the text resets the TextInput's own
+// undo stack.
 export component CodeEditor inherits Rectangle {
     in property <[CodeLine]> lines;
     in-out property <string> text <=> input.text;
@@ -154,17 +203,47 @@ export component CodeEditor inherits Rectangle {
     in property <bool> debug-overlay;
     in property <length> gutter: 56px;
     out property <bool> has-focus: input.has-focus;
+    out property <int> anchor: input.anchor-position-byte-offset;
+    out property <int> cursor: input.cursor-position-byte-offset;
+    out property <length> scroll-x: view.content-x;
+    out property <length> scroll-y: view.content-y;
+    in-out property <bool> find-open;
+    in-out property <string> find-text;
 
     background: Tokens.layer;
 
-    callback edited(text: string) -> int;     // returns a cursor to set, or -1
+    callback edited(text: string, cursor: int, before-anchor: int, before-cursor: int) -> EditResult;
+    // undo, redo, copy, cut, paste, tab, outdent, newline
+    callback command(name: string, anchor: int, cursor: int) -> EditResult;
+    callback find(query: string, anchor: int, cursor: int, backwards: bool, incremental: bool) -> FindResult;
+    callback selected-text(anchor: int, cursor: int) -> string; // for the find box: "" unless on one line
     callback key-pressed(event: KeyEvent) -> EventResult;
-    callback copied();                        // after copy or cut
 
     public function set-selection-offsets(anchor: int, focus: int) {
         input.set-selection-offsets(anchor, focus);
     }
     public function focus-input() {
+        input.focus();
+    }
+    public function scroll-to(x: length, y: length) {
+        view.content-x = max(min(0px, view.visible-width - view.content-width), min(0px, x));
+        view.content-y = max(min(0px, view.visible-height - view.content-height), min(0px, y));
+    }
+    public function open-find() {
+        if (input.anchor-position-byte-offset != input.cursor-position-byte-offset) {
+            let s = root.selected-text(input.anchor-position-byte-offset, input.cursor-position-byte-offset);
+            if (s != "") {
+                root.find-text = s;
+            }
+        }
+        root.find-open = true;
+        find-field.focus();
+        find-field.select-all();
+        root.find-next(false, true);
+    }
+    public function close-find() {
+        root.find-open = false;
+        root.find-status = "";
         input.focus();
     }
 
@@ -185,14 +264,36 @@ export component CodeEditor inherits Rectangle {
     property <bool> has-selection: input.cursor-position-byte-offset != input.anchor-position-byte-offset;
     property <int> first-row: max(0, floor(-view.content-y / root.line-height) - 2);
     property <int> last-row: root.first-row + ceil(view.visible-height / root.line-height) + 4;
+    // The selection when the last key went down: what undo puts back.
+    property <int> before-anchor;
+    property <int> before-cursor;
+    property <string> find-status;
+    property <bool> find-missed;
 
-    function copy-selection() {
-        input.copy();
-        root.copied();
+    function apply(r: EditResult) {
+        if (r.select) {
+            input.set-selection-offsets(r.anchor, r.cursor);
+        }
+        root.blink = true;
+        blinker.restart();
     }
-    function cut-selection() {
-        input.cut();
-        root.copied();
+    function run(name: string) {
+        root.apply(root.command(name, input.anchor-position-byte-offset, input.cursor-position-byte-offset));
+    }
+    function find-next(backwards: bool, incremental: bool) {
+        root.find-missed = false;
+        if (root.find-text == "") {
+            root.find-status = "";
+            return;
+        }
+        let r = root.find(root.find-text, input.anchor-position-byte-offset, input.cursor-position-byte-offset, backwards, incremental);
+        if (r.found) {
+            input.set-selection-offsets(r.anchor, r.cursor);
+            root.find-status = @tr("{} of {}", r.index, r.count);
+        } else {
+            root.find-status = @tr("No results");
+            root.find-missed = true;
+        }
     }
 
     ContextMenuArea {
@@ -200,24 +301,40 @@ export component CodeEditor inherits Rectangle {
         height: 100%;
         Menu {
             MenuItem {
+                title: @tr("Undo");
+                enabled: !root.read-only;
+                activated => { root.run("undo"); }
+            }
+            MenuItem {
+                title: @tr("Redo");
+                enabled: !root.read-only;
+                activated => { root.run("redo"); }
+            }
+            MenuSeparator { }
+            MenuItem {
                 title: @tr("Cut");
                 enabled: !root.read-only && root.has-selection;
-                activated => { root.cut-selection(); }
+                activated => { root.run("cut"); }
             }
             MenuItem {
                 title: @tr("Copy");
                 enabled: root.has-selection;
-                activated => { root.copy-selection(); }
+                activated => { root.run("copy"); }
             }
             MenuItem {
                 title: @tr("Paste");
                 enabled: !root.read-only;
-                activated => { input.paste(); }
+                activated => { root.run("paste"); }
             }
             MenuItem {
                 title: @tr("Select all");
                 enabled: root.text != "";
                 activated => { input.select-all(); }
+            }
+            MenuSeparator { }
+            MenuItem {
+                title: @tr("Find");
+                activated => { root.open-find(); }
             }
         }
 
@@ -261,25 +378,71 @@ export component CodeEditor inherits Rectangle {
                 font-size: CodeColors.font-size;
                 // --editor-debug-overlay: the TextInput's own glyphs in red, to check the alignment.
                 color: root.debug-overlay ? #FF000099 : transparent;
-                selection-background-color: Tokens.accent.with-alpha(0.35);
-                selection-foreground-color: root.debug-overlay ? #FF000099 : transparent;
+                selection-background-color: Tokens.selection-bg;
+                selection-foreground-color: Tokens.selection-text;
                 page-height: view.visible-height;
 
                 edited => {
-                    let cursor = root.edited(self.text);
-                    if (cursor >= 0) {
-                        self.set-selection-offsets(cursor, cursor);
-                    }
+                    root.apply(root.edited(self.text, self.cursor-position-byte-offset, root.before-anchor, root.before-cursor));
+                    root.before-anchor = self.anchor-position-byte-offset;
+                    root.before-cursor = self.cursor-position-byte-offset;
                 }
                 key-pressed(event) => {
-                    if (event.modifiers.control && !event.modifiers.alt && (event.text == "c" || event.text == "C" || event.text == Key.Insert)) {
-                        root.copy-selection();
+                    root.before-anchor = self.anchor-position-byte-offset;
+                    root.before-cursor = self.cursor-position-byte-offset;
+                    let ctrl = event.modifiers.control && !event.modifiers.alt && !event.modifiers.meta;
+                    let plain = !event.modifiers.control && !event.modifiers.alt && !event.modifiers.meta;
+                    let z = event.text == "z" || event.text == "Z";
+                    if (ctrl && z && !event.modifiers.shift) {
+                        if (!root.read-only) {
+                            root.run("undo");
+                        }
                         return accept;
                     }
-                    if (event.modifiers.control && !event.modifiers.alt && (event.text == "x" || event.text == "X")) {
+                    if (ctrl && (event.text == "y" || event.text == "Y" || (z && event.modifiers.shift))) {
                         if (!root.read-only) {
-                            root.cut-selection();
+                            root.run("redo");
                         }
+                        return accept;
+                    }
+                    if (ctrl && (event.text == "c" || event.text == "C" || event.text == Key.Insert)) {
+                        root.run("copy");
+                        return accept;
+                    }
+                    if ((ctrl && (event.text == "x" || event.text == "X")) || (plain && event.modifiers.shift && event.text == Key.Delete)) {
+                        if (!root.read-only) {
+                            root.run("cut");
+                        }
+                        return accept;
+                    }
+                    if ((ctrl && (event.text == "v" || event.text == "V")) || (plain && event.modifiers.shift && event.text == Key.Insert)) {
+                        if (!root.read-only) {
+                            root.run("paste");
+                        }
+                        return accept;
+                    }
+                    if (ctrl && (event.text == "f" || event.text == "F")) {
+                        root.open-find();
+                        return accept;
+                    }
+                    if (event.text == Key.F3) {
+                        if (root.find-text == "") {
+                            root.open-find();
+                        } else {
+                            root.find-next(event.modifiers.shift, false);
+                        }
+                        return accept;
+                    }
+                    if (plain && (event.text == Key.Tab || event.text == Key.Backtab) && !root.read-only) {
+                        root.run(event.modifiers.shift || event.text == Key.Backtab ? "outdent" : "tab");
+                        return accept;
+                    }
+                    if (plain && event.text == Key.Return && !root.read-only) {
+                        root.run("newline");
+                        return accept;
+                    }
+                    if (event.text == Key.Escape && root.find-open) {
+                        root.close-find();
                         return accept;
                     }
                     root.key-pressed(event)
@@ -335,6 +498,78 @@ export component CodeEditor inherits Rectangle {
                 font: root.font;
                 gutter: root.gutter;
                 current: input.has-focus && i == round(root.caret-y / root.line-height);
+            }
+        }
+    }
+
+    // Find (Ctrl+F): Enter or F3 finds the next match, Shift+Enter or Shift+F3
+    // the previous one, Esc closes.
+    Rectangle {
+        visible: root.find-open;
+        x: max(root.gutter, parent.width - self.width - Tokens.s5);
+        y: Tokens.s2;
+        width: min(380px, parent.width - root.gutter - Tokens.s5);
+        height: 40px;
+        background: Tokens.layer-2;
+        border-radius: Tokens.radius-md;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 12px;
+        drop-shadow-offset-y: 3px;
+        drop-shadow-color: Tokens.shadow;
+
+        // Clicks on the bar's padding don't reach the code underneath.
+        TouchArea { }
+
+        HorizontalLayout {
+            padding: 4px;
+            spacing: 2px;
+            find-field := AppLineEdit {
+                height: 30px;
+                min-height: 30px;
+                font-size: Tokens.body - 1px;
+                text <=> root.find-text;
+                placeholder-text: @tr("Find");
+                edited => { root.find-next(false, true); }
+                key-pressed(event) => {
+                    if (event.text == Key.Return || event.text == Key.F3) {
+                        root.find-next(event.modifiers.shift, false);
+                        return accept;
+                    }
+                    if (event.text == Key.Escape) {
+                        root.close-find();
+                        return accept;
+                    }
+                    return reject;
+                }
+            }
+            Text {
+                min-width: 64px;
+                text: root.find-status;
+                font-size: Tokens.caption;
+                color: root.find-missed ? Tokens.danger : Tokens.text-2;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            FindButton {
+                y: (parent.height - self.height) / 2;
+                glyph: "↑";
+                tip: @tr("Previous match");
+                enabled: root.find-text != "";
+                clicked => { root.find-next(true, false); }
+            }
+            FindButton {
+                y: (parent.height - self.height) / 2;
+                glyph: "↓";
+                tip: @tr("Next match");
+                enabled: root.find-text != "";
+                clicked => { root.find-next(false, false); }
+            }
+            FindButton {
+                y: (parent.height - self.height) / 2;
+                icon: Icons.close;
+                tip: @tr("Close");
+                clicked => { root.close-find(); }
             }
         }
     }
