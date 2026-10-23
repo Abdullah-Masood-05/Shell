@@ -1,3 +1,4 @@
+import { ScrollView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
 import { AppState, NavEntry, Pages } from "../types.slint";
@@ -38,7 +39,14 @@ export component Sidebar inherits Rectangle {
     function go(page: int) {
         AppState.page = page;
     }
-    // Menu map (page 10) sits between Context Menus and Menu Builder; Open with
+    // Scrolls the page list so that a row (its top and height in the list) shows.
+    function reveal(top: length, height: length) {
+        if (top + nav.content-y < 0px) {
+            nav.content-y = -top;
+        } else if (top + height + nav.content-y > nav.visible-height) {
+            nav.content-y = nav.visible-height - top - height;
+        }
+    }    // Menu map (page 10) sits between Context Menus and Menu Builder; Open with
     // (page 9) and Snippets (page 11) between Menu Builder and Config Editor.
     function next(page: int) -> int {
         if (page == Pages.menus) { return Pages.menumap; }
@@ -112,34 +120,49 @@ export component Sidebar inherits Rectangle {
                 }
             }
 
-            for entry in root.entries: VerticalLayout {
-                spacing: 2px;
-                if entry.header != "": HorizontalLayout {
-                    padding-left: Tokens.s3;
-                    padding-top: Tokens.s3;
-                    Text {
-                        text: entry.header;
-                        height: 28px;
-                        vertical-alignment: center;
-                        font-size: Tokens.caption;
-                        font-weight: 600;
-                        color: Tokens.text-3;
-                    }
-                }
-                NavItem {
-                    icon: entry.icon;
-                    label: entry.label;
-                    selected: AppState.page == entry.page;
-                    show-focus: fs.has-focus && AppState.page == entry.page;
-                    clicked => {
-                        fs.focus();
-                        root.go(entry.page);
+            // The pages. In a short window the list scrolls, so the status line and
+            // Preferences under it always show; the selected page scrolls into view.
+            nav := ScrollView {
+                vertical-stretch: 1;
+                min-height: 2 * 40px;
+                content-width: self.visible-width;
+                content-height: list.preferred-height;
+
+                list := VerticalLayout {
+                    width: nav.visible-width;
+                    spacing: 2px;
+                    for entry in root.entries: entry-box := VerticalLayout {
+                        spacing: 2px;
+                        if entry.header != "": HorizontalLayout {
+                            padding-left: Tokens.s3;
+                            padding-top: Tokens.s3;
+                            Text {
+                                text: entry.header;
+                                height: 28px;
+                                vertical-alignment: center;
+                                font-size: Tokens.caption;
+                                font-weight: 600;
+                                color: Tokens.text-3;
+                            }
+                        }
+                        NavItem {
+                            icon: entry.icon;
+                            label: entry.label;
+                            selected: AppState.page == entry.page;
+                            show-focus: fs.has-focus && AppState.page == entry.page;
+                            clicked => {
+                                fs.focus();
+                                root.go(entry.page);
+                            }
+                            changed selected => {
+                                if (self.selected) {
+                                    root.reveal(entry-box.y + self.y, self.height);
+                                }
+                            }
+                        }
                     }
                 }
             }
-
-            Rectangle { vertical-stretch: 1; }
-
             if UpdateState.offered: UpdateNavHint {
                 clicked => {
                     fs.focus();
