@@ -15,6 +15,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 class BackupsController
 {
@@ -46,7 +47,7 @@ private:
     uint64_t diffGen_ = 0;
     nss::RetentionPolicy retention_;
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     Worker worker_; // last: joined first
 };

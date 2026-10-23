@@ -24,6 +24,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 class EditorController
 {
@@ -118,7 +119,7 @@ private:
     int devSelectFirst_ = 0, devSelectLast_ = 0;
     std::string devFind_;
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer checkTimer_;
     slint::Timer toastTimer_;
     slint::Timer replayTimer_;

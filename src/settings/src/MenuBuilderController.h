@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include "WindowPoll.h"
 
 class MenuBuilderController
 {
@@ -62,7 +63,7 @@ private:
     uint64_t gen_ = 0;
     int serial_ = 0;
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     Worker worker_; // last: joined first
 };

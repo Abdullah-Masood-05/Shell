@@ -24,6 +24,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include "WindowPoll.h"
 
 class OpenWithController
 {
@@ -120,7 +121,7 @@ private:
     std::map<std::string, std::optional<slint::Image>> icons_; // by lower-case path; nullopt: none
     std::map<std::string, bool> iconsPending_;
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     Worker worker_; // last: joined first
 };

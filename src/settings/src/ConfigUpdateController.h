@@ -19,6 +19,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 class ConfigUpdateController
 {
@@ -53,7 +54,7 @@ private:
     std::string comparePath_;
     uint64_t compareGen_ = 0;
     std::vector<std::function<void()>> filesChanged_;
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     Worker worker_; // last: joined first
 };

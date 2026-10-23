@@ -65,6 +65,7 @@
 #include "TrayController.h"
 #include "TrayIcon.h"
 #include "UpdateController.h"
+#include "WindowPoll.h"
 
 #include <windows.h>
 #include <objbase.h>
@@ -278,6 +279,8 @@ int main()
     const HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
     auto ui = AppWindow::create();
+    // Started in the tray: the pages' polls wait until the window is first shown.
+    WindowPoll::setWindowShown(!background);
     auto controller = std::make_unique<AppController>(ui, options);
     auto editor = std::make_unique<EditorController>(ui);
     auto backups = std::make_unique<BackupsController>(ui);
@@ -343,6 +346,7 @@ int main()
         if (page >= 0)
             ui->global<AppState>().set_page(page);
         ui->show();
+        WindowPoll::setWindowShown(true);
         if (!windowAttached) {
             if (!hwndPoll.running())
                 hwndPoll.start(slint::TimerMode::Repeated, std::chrono::milliseconds(10), [&] { attach(); });
@@ -368,10 +372,12 @@ int main()
     ui->window().on_close_requested([&] {
         if (windowAttached)
             controller->saveWindowPlacement();
-        if (tray->keepRunning())
+        if (tray->keepRunning()) {
+            WindowPoll::setWindowShown(false);
             tray->windowHidden();
-        else
+        } else {
             slint::quit_event_loop();
+        }
         return slint::CloseRequestResponse::HideWindow;
     });
 

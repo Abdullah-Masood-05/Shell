@@ -26,6 +26,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "WindowPoll.h"
 
 class SnippetsController
 {
@@ -110,7 +111,7 @@ private:
     theme::Resolved theme_;
     std::map<std::string, slint::Image> svgImages_; // by the filled-in SVG
 
-    slint::Timer statusPoll_;
+    WindowPoll statusPoll_;
     slint::Timer toastTimer_;
     slint::Timer previewDelay_;
     Worker previewWorker_;
