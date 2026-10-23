@@ -5,6 +5,7 @@ import { AppState } from "../types.slint";
 import { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "../backups-types.slint";
 import { Banner } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
+import { ActionHeader } from "../components/action-header.slint";
 import { CodeColors } from "../components/code.slint";
 import { ConfirmDialog } from "../components/dialog.slint";
 import { DiffLine } from "../components/diff-line.slint";
@@ -227,7 +228,7 @@ export component BackupsPage inherits Rectangle {
 
             // Timeline
             Rectangle {
-                width: 300px;
+                width: clamp((root.width - 2 * (Tokens.s8 + Tokens.s1)) * 0.38, 220px, 300px);
                 background: Tokens.layer;
                 border-radius: Tokens.radius-lg;
                 border-width: 1px;
@@ -256,6 +257,7 @@ export component BackupsPage inherits Rectangle {
                         color: Tokens.text-3;
                         horizontal-alignment: center;
                         vertical-alignment: center;
+                        wrap: word-wrap;
                     }
                     if BackupsState.snapshots.length > 0: ListView {
                         for s[i] in BackupsState.snapshots: SnapshotItem {
@@ -289,56 +291,41 @@ export component BackupsPage inherits Rectangle {
                 border-color: Tokens.stroke;
 
                 if !root.has-selection: Text {
+                    x: Tokens.s4;
+                    width: parent.width - 2 * Tokens.s4;
                     text: @tr("Select a snapshot to see what changed since.");
                     color: Tokens.text-3;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
                 }
 
                 if root.has-selection: VerticalLayout {
                     padding: Tokens.s4;
                     spacing: Tokens.s3;
 
-                    HorizontalLayout {
-                        spacing: Tokens.s2;
-                        VerticalLayout {
-                            horizontal-stretch: 1;
-                            spacing: 2px;
-                            Text {
-                                text: root.sel.time;
-                                font-size: Tokens.body-large;
-                                font-weight: 600;
-                                color: Tokens.text;
-                                overflow: elide;
-                            }
-                            Text {
-                                text: root.sel.reason;
-                                color: Tokens.text-2;
-                                overflow: elide;
-                            }
+                    // The buttons go under the time and reason when the pane is narrow.
+                    ActionHeader {
+                        title: root.sel.time;
+                        title-size: Tokens.body-large;
+                        description: root.sel.reason;
+                        description-size: Tokens.body;
+                        min-text-width: 180px;
+                        AppButton {
+                            text: root.sel.pinned ? @tr("Unpin") : @tr("Pin");
+                            enabled: !BackupsState.working;
+                            clicked => { BackupsState.toggle-pin(BackupsState.selected); }
                         }
-                        VerticalLayout {
-                            alignment: center;
-                            AppButton {
-                                text: root.sel.pinned ? @tr("Unpin") : @tr("Pin");
-                                enabled: !BackupsState.working;
-                                clicked => { BackupsState.toggle-pin(BackupsState.selected); }
-                            }
+                        AppButton {
+                            text: @tr("Delete…");
+                            enabled: !root.sel.pinned && !BackupsState.working;
+                            clicked => { BackupsState.ask-delete(BackupsState.selected); }
                         }
-                        VerticalLayout {
-                            alignment: center;
-                            AppButton {
-                                text: @tr("Delete…");
-                                enabled: !root.sel.pinned && !BackupsState.working;
-                                clicked => { BackupsState.ask-delete(BackupsState.selected); }
-                            }
-                        }
-                        VerticalLayout {
-                            alignment: center;
-                            AppButton {
-                                text: @tr("Restore…");
-                                primary: true;
-                                enabled: !root.sel.current && !BackupsState.working && BackupsState.available;
-                                clicked => { BackupsState.ask-restore(BackupsState.selected); }
-                            }
+                        AppButton {
+                            text: @tr("Restore…");
+                            primary: true;
+                            enabled: !root.sel.current && !BackupsState.working && BackupsState.available;
+                            clicked => { BackupsState.ask-restore(BackupsState.selected); }
                         }
                     }
 

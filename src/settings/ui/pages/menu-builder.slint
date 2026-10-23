@@ -447,9 +447,9 @@ export component MenuBuilderPage inherits Rectangle {
             vertical-stretch: 1;
             spacing: Tokens.s4;
 
-            // Tree
+            // Tree (narrower in a narrow window)
             Rectangle {
-                width: 300px;
+                width: clamp((root.width - 2 * (Tokens.s8 + Tokens.s1)) * 0.42, 260px, 300px);
                 background: Tokens.layer;
                 border-radius: Tokens.radius-lg;
                 border-width: 1px;
@@ -575,8 +575,13 @@ export component MenuBuilderPage inherits Rectangle {
                     clip: true;
 
                     if BuilderState.node.kind == "": Text {
+                        x: Tokens.s4;
+                        width: parent.width - 2 * Tokens.s4;
                         text: BuilderState.rows.length == 0 ? @tr("Entries you add show their properties here.") : @tr("Select an entry to edit it.");
                         color: Tokens.text-3;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        wrap: word-wrap;
                     }
                     if BuilderState.node.kind == "separator": VerticalLayout {
                         padding: Tokens.s5;
@@ -850,8 +855,13 @@ export component MenuBuilderPage inherits Rectangle {
                             background: Tokens.sidebar;
                             clip: true;
                             if BuilderState.preview.length == 0: Text {
+                                x: Tokens.s4;
+                                width: parent.width - 2 * Tokens.s4;
                                 text: @tr("Nothing to preview yet.");
                                 color: Tokens.text-3;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                                wrap: word-wrap;
                             }
                             main := PreviewMenu {
                                 x: Tokens.s4;
