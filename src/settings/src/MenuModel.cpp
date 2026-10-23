@@ -1,6 +1,9 @@
 #include "MenuModel.h"
 
+#include "MenuWriter.h"
 #include "Tr.h"
+
+#include "nss/OverridesWriter.h"
 
 #include "nss/Literal.h"
 #include "nss/Text.h"
@@ -265,7 +268,14 @@ std::optional<Path> remove(Tree &tree, const Path &at)
     auto level = levelOf(tree, at);
     if (!level || at.back() >= level->size())
         return std::nullopt;
+    auto kept = std::move((*level)[at.back()].before);
     level->erase(level->begin() + std::ptrdiff_t(at.back()));
+    if (!kept.empty()) {
+        if (at.back() < level->size())
+            (*level)[at.back()].before = joinKept(kept, (*level)[at.back()].before);
+        else if (auto parent = at.size() > 1 ? nodeAt(tree, Path(at.begin(), at.end() - 1)) : nullptr)
+            parent->tail = joinKept(kept, parent->tail);
+    }
     Path p = at;
     if (p.back() < level->size())
         return p;
@@ -283,6 +293,14 @@ std::optional<Path> duplicate(Tree &tree, const Path &at)
     if (!level || at.back() >= level->size())
         return std::nullopt;
     Node copy = (*level)[at.back()];
+    // Statements kept from the file would run twice: the copy goes without them.
+    auto clearKept = [](auto &&self, Node &n) -> void {
+        n.before.clear();
+        n.tail.clear();
+        for (auto &c : n.children)
+            self(self, c);
+    };
+    clearKept(clearKept, copy);
     level->insert(level->begin() + std::ptrdiff_t(at.back() + 1), std::move(copy));
     Path p = at;
     p.back() += 1;
@@ -445,36 +463,120 @@ static void readProps(const nss::NssDocument &doc, const nss::Node &decl, Node &
     }
 }
 
-static void readLevel(const nss::NssDocument &doc, const std::vector<nss::Node> &nodes, Tree &out,
-                      std::vector<std::string> &warnings)
+std::string joinKept(std::string_view first, std::string_view second)
 {
+    if (first.empty())
+        return std::string(second);
+    if (second.empty())
+        return std::string(first);
+    return std::string(first) + "\n" + std::string(second);
+}
+
+// The text between two entries as kept text: its lines without the blank ones
+// at either end, the common indentation and trailing spaces.
+static std::string keptText(std::string_view gap)
+{
+    std::vector<std::string_view> lines;
+    size_t at = 0;
+    while (at <= gap.size()) {
+        auto end = gap.find_first_of("\r\n", at);
+        lines.push_back(gap.substr(at, end == std::string_view::npos ? std::string_view::npos : end - at));
+        if (end == std::string_view::npos)
+            break;
+        at = end + (gap[end] == '\r' && end + 1 < gap.size() && gap[end + 1] == '\n' ? 2 : 1);
+    }
+    auto blank = [](std::string_view l) { return nss::trim(l).empty(); };
+    size_t b = 0, e = lines.size();
+    while (b < e && blank(lines[b]))
+        ++b;
+    while (e > b && blank(lines[e - 1]))
+        --e;
+    size_t indent = std::string_view::npos;
+    for (size_t i = b; i < e; ++i) {
+        if (blank(lines[i]))
+            continue;
+        size_t k = 0;
+        while (k < lines[i].size() && (lines[i][k] == ' ' || lines[i][k] == '\t'))
+            ++k;
+        indent = std::min(indent, k);
+    }
+    std::string out;
+    for (size_t i = b; i < e; ++i) {
+        auto l = lines[i];
+        while (!l.empty() && (l.back() == ' ' || l.back() == '\t'))
+            l.remove_suffix(1);
+        if (!l.empty())
+            l.remove_prefix(std::min(indent, l.size()));
+        if (i > b)
+            out += '\n';
+        out += l;
+    }
+    return out;
+}
+
+// The menu entries of `nodes`, which lie in doc.text()[begin, end). Everything
+// between them (comments, other statements) is kept on the entry after it, or
+// in `tail` after the last one.
+static void readLevel(const nss::NssDocument &doc, const std::vector<nss::Node> &nodes, size_t begin, size_t end,
+                      Tree &out, std::string &tail, std::vector<std::string> &warnings)
+{
+    std::string_view text = doc.text();
+    size_t cursor = begin;
     for (const auto &d : nodes) {
+        if (d.span.begin < cursor)
+            continue; // before the region (a header line)
         if (d.kind != nss::NodeKind::MenuDecl ||
             (d.menuKind != nss::MenuKind::Menu && d.menuKind != nss::MenuKind::Item &&
              d.menuKind != nss::MenuKind::Separator)) {
             if (d.kind == nss::NodeKind::Import && !d.enabled)
                 continue;
-            auto text = std::string(doc.slice(d.span));
-            if (text.size() > 60)
-                text = text.substr(0, 57) + "...";
-            warnings.push_back(nsp::trf("line {}: {}", d.line, text));
-            continue;
+            auto line = std::string(doc.slice(d.span));
+            if (line.size() > 60)
+                line = line.substr(0, 57) + "...";
+            warnings.push_back(nsp::trf("line {}: {}", d.line, line));
+            continue; // kept: part of the text before the next entry
         }
         Node n;
         n.kind = d.menuKind == nss::MenuKind::Menu ? Kind::Menu
                : d.menuKind == nss::MenuKind::Item ? Kind::Item
                                                     : Kind::Separator;
+        n.before = keptText(text.substr(cursor, d.span.begin - cursor));
         readProps(doc, d, n);
-        if (n.kind == Kind::Menu)
-            readLevel(doc, d.children, n.children, warnings);
+        if (n.kind == Kind::Menu && d.bodySpan.size() >= 2)
+            readLevel(doc, d.children, d.bodySpan.begin + 1, d.bodySpan.end - 1, n.children, n.tail, warnings);
+        cursor = d.span.end;
+        // A comment at the end of its line goes with it.
+        size_t k = cursor;
+        while (k < end && (text[k] == ' ' || text[k] == '\t'))
+            ++k;
+        if (k + 1 < end && text[k] == '/' && text[k + 1] == '/') {
+            auto eol = text.find_first_of("\r\n", k);
+            eol = eol == std::string_view::npos ? end : std::min(eol, end);
+            n.comment = std::string(nss::trim(text.substr(k, eol - k)));
+            cursor = eol;
+        }
         out.push_back(std::move(n));
     }
+    tail = keptText(text.substr(cursor, end > cursor ? end - cursor : 0));
 }
 
 ParseResult parse(const nss::NssDocument &doc)
 {
     ParseResult r;
-    readLevel(doc, doc.nodes(), r.tree, r.warnings);
+    // The header lines the writer puts first are its own, not kept text.
+    std::string_view text = doc.text();
+    size_t begin = 0;
+    for (;;) {
+        size_t k = begin;
+        while (k < text.size() && (text[k] == ' ' || text[k] == '\t' || text[k] == '\r' || text[k] == '\n'))
+            ++k;
+        auto eol = text.find_first_of("\r\n", k);
+        auto line = nss::trim(text.substr(k, eol == std::string_view::npos ? std::string_view::npos : eol - k));
+        if (line.empty() || !(nss::OverridesWriter::isHeader(line) || line == MenuWriter::intro))
+            break;
+        begin = eol == std::string_view::npos ? text.size() : eol;
+    }
+    readLevel(doc, doc.nodes(), begin, text.size(), r.tree, r.tail, r.warnings);
     return r;
 }
 
