@@ -1,10 +1,11 @@
 {
 	"format": 1,
-	"about": "Snippets from RubicBG's collection (https://github.com/RubicBG/Nilesoft-Shell-Snippets), read from the fork Abdullah-Masood-05/Nilesoft-Shell-Snippets at the commit below. Nothing of it is bundled: the app downloads a file only when it is turned on, from raw.githubusercontent.com at this commit, and refuses it unless its SHA-256 (no UTF-8 BOM, LF line endings) is the one here. The commit must equal snippets::kRubicCommit in src/Snippets.h. Titles and descriptions are ours. Check with scripts/check-rubicbg-snippets.ps1.",
-	"repository": "Abdullah-Masood-05/Nilesoft-Shell-Snippets",
-	"commit": "0df154a5d181673be66e79350de2d4b8cf5fabe7",
+	"about": "Snippets from RubicBG's collection (https://github.com/RubicBG/Nilesoft-Shell-Snippets), CC0-1.0 (LICENSE.txt in this folder), shared with his permission. Each entry is <id>.nss in this folder, copied unchanged from \"path\" in his repository at \"commit\". sha256 is the SHA-256 of the file without a UTF-8 BOM and with LF line endings (scripts/update-snippet-hashes.ps1). Titles, descriptions and translations are ours. The selection leaves out snippets that need administrator rights, upload files, edit the registry or security settings, or don't pass shell.exe -config:check: scripts/check-snippets.ps1 checks every file here.",
+	"repository": "RubicBG/Nilesoft-Shell-Snippets",
+	"commit": "3efc6f01804f60b03f1767836e2abd07b60b4df1",
 	"author": "RubicBG",
 	"author_url": "https://github.com/RubicBG/Nilesoft-Shell-Snippets",
+	"license": "CC0-1.0",
 	"snippets": [
 		{
 			"id": "rubicbg-copy-name-list",
