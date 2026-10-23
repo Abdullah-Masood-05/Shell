@@ -99,23 +99,7 @@ const std::vector<std::vector<ItemSpec>> kExplorerSubs = {
       { nsp::mark("New folder"), "" }, { nsp::mark("New file"), "" } },
 };
 
-struct Metrics
-{
-    float scale = 1, top = 0, bottom = 0, row = 0, sep = 0;
-};
-
-Metrics metricsOf(const theme::Resolved &r)
-{
-    Metrics m;
-    m.scale = float(r.scale);
-    const float s = m.scale;
-    m.top = float(r.borderPadding.t + r.borderSize) * s;
-    m.bottom = float(r.borderPadding.b + r.borderSize) * s;
-    float content = std::max(float(r.fontSize), r.imageEnabled ? float(r.imageSize) * s : 0.f);
-    m.row = std::round(float(r.itemMargin.t + r.itemMargin.b + r.itemPadding.t + r.itemPadding.b) * s + content);
-    m.sep = std::round(float(r.separatorMargin.t + r.separatorSize + r.separatorMargin.b) * s);
-    return m;
-}
+using Metrics = theme::RowMetrics;
 
 PreviewMenu buildMenu(const std::vector<ItemSpec> &specs, const Metrics &m, int open)
 {
@@ -388,6 +372,13 @@ void AppearanceController::start()
         });
     });
     save_.reloadConfig();
+}
+
+void AppearanceController::onPreview(std::function<void(const theme::Resolved &)> fn)
+{
+    previewListener_ = std::move(fn);
+    if (previewListener_)
+        previewListener_(resolved_);
 }
 
 void AppearanceController::configLoaded()
@@ -667,7 +658,7 @@ void AppearanceController::rebuild()
 
     // Preview
     st.set_preview(toPreview(r));
-    auto m = metricsOf(r);
+    auto m = theme::rowMetrics(r);
     st.set_menu_desktop(buildMenu(kDesktop, m, 8));
     st.set_subs_desktop(buildSubs(kDesktopSubs, m));
     st.set_menu_explorer(buildMenu(kExplorer, m, 11));
@@ -682,6 +673,10 @@ void AppearanceController::rebuild()
     st.set_card_themes(cards);
 
     presets_.rebuild(values, system_);
+
+    resolved_ = r;
+    if (previewListener_)
+        previewListener_(resolved_);
 }
 
 void AppearanceController::applyDevArgs()

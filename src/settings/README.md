@@ -112,12 +112,37 @@ src\settings\out\nss\Release\nsscore_tests.exe
 
 ## Translations
 
-The app's text is in English, Simplified Chinese (`zh-CN`) and Traditional Chinese (`zh-TW`).
-Each language is one gettext file, `translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`,
-next to the template `translations/nilesoft-shell-pro.pot`. The build embeds them: the
-`.slint` strings through Slint's bundled translations (`SLINT_BUNDLE_TRANSLATIONS` in
-`CMakeLists.txt`), the C++ strings through `tools/po2inc` (`cmake/Translations.cmake`), so
-the exe still needs no files at run time.
+The app's text is in English, Simplified Chinese (`zh-CN`) and Traditional Chinese (`zh-TW`);
+Spanish (`es`) is started. Each language is one gettext file,
+`translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`, next to the template
+`translations/nilesoft-shell-pro.pot`. The build embeds them: the `.slint` strings through
+Slint's bundled translations (`SLINT_BUNDLE_TRANSLATIONS` in `CMakeLists.txt`), the C++
+strings through `tools/po2inc` (`cmake/Translations.cmake`), so the exe still needs no files
+at run time.
+
+### Translating the app (no programming needed)
+
+1. **Get the file.** If the language has a folder under `translations/` (`es` for Spanish),
+   take its `nilesoft-shell-pro.po`. Otherwise copy `translations/nilesoft-shell-pro.pot`
+   and name the copy after the language, for example `fr.po`.
+2. **Translate it** in [Poedit](https://poedit.net/) (free; for a `.pot` use *Create new
+   translation*, which also sets the plural rules) or in Notepad++ or any text editor: fill
+   in each `msgstr ""` under its `msgid`, and save as UTF-8. Keep the placeholders (`{}`,
+   `{0}`, `{n}`, `{{ }}`), and keep keywords, file names and app names as they are. Empty or
+   fuzzy (*Needs work* in Poedit) entries show in English.
+3. **Test it** in the app: Preferences > Language > *Test a translation file…*, then pick the
+   file (or start `NilesoftShellPro.exe --po "C:\path\to\fr.po"`). The whole app shows the
+   file's text for that session, with a bar at the top: "Showing translations from fr.po.
+   Untranslated text stays in English", how many of the app's strings it translates, how
+   many are missing or fuzzy, and *Reload* (read the file again after saving it) and *Stop*.
+   Nothing is saved.
+4. **Share it** in [GitHub Discussions](https://github.com/Abdullah-Masood-05/Shell/discussions),
+   or open a pull request that puts it at `translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`
+   (`scripts/update-translations.ps1 -Import fr.po` merges a file someone sent).
+
+The same steps are on the website: [Preferences > Translating the app](https://abdullah-masood-05.github.io/Shell/app/preferences/#translate).
+
+### For developers
 
 - **Marking text.** In `.slint` files: `@tr("Text")`, `@tr("Saved {}", name)`,
   `@tr("{n} file" | "{n} files" % count)`, `@tr("Context" => "Text")`. Literal braces are
@@ -146,10 +171,25 @@ the exe still needs no files at run time.
   pwsh scripts/update-translations.ps1 -NewLanguage ja -NativeName "日本語"
   ```
 
-  Then set `Plural-Forms` in the new file's header, translate, and rebuild. The language
+  Then set `Plural-Forms` in the new file's header, translate, and rebuild. Once at least
+  half of the template is translated (`nsp::languages()`; `po2inc` counts it), the language
   appears in Preferences > Language under its native name, and *Auto* picks it when it
   matches the Windows display language (an exact tag first, then the same base language).
-  Chinese is the one special case: `zh-TW`, `zh-HK`, `zh-MO` and `zh-Hant` go to `zh-TW`,
-  other `zh` to `zh-CN` (`resolveLanguage` in `src/Tr.cpp`).
+  Below that it is built in but hidden, so a Spanish Windows doesn't switch to a UI that is
+  mostly English with a few Spanish words; a label like "(incomplete)" would still have done
+  that through *Auto*. Chinese is the one special case: `zh-TW`, `zh-HK`, `zh-MO` and
+  `zh-Hant` go to `zh-TW`, other `zh` to `zh-CN` (`resolveLanguage` in `src/Tr.cpp`).
 - **Checking a language** without changing the setting: `NilesoftShellPro.exe --lang zh-TW`
-  (`auto`, `en` or a code; that run only).
+  (`auto`, `en` or a listed code; that run only).
+- **The translator preview** (*Test a translation file…*, `--po <file>`) reads any `.po` at
+  run time. C++ strings: `nsp::loadTestFile` (`src/Tr.cpp`, parser and plural rules in
+  `src/PoFile.cpp`) replaces the catalog. `.slint` strings: Slint 1.18 has no run-time
+  catalog for a static Windows build (its gettext path is Unix only and needs libintl, and
+  `slint::set_translator()` needs `SLINT_FEATURE_EXPERIMENTAL` and is ignored for bundled
+  strings). So `src/TrPreviewHook.h`, force-included into the generated code only, adds
+  overloads of Slint's `translate_from_bundle` that take the bundle arrays the generated
+  code passes; they look the string up in the preview's file and otherwise pass straight
+  through. The bundled lookup has no msgctxt, so `po2inc` bundles one more language,
+  `zz-keys`, whose "translation" is each string's context and msgid. After a Slint upgrade,
+  check the preview still covers the `.slint` text (a `--po` snapshot with a few strings
+  translated); if the generated code changed shape, only the C++ strings follow the file.

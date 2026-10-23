@@ -11,8 +11,10 @@
 			{"title":"Behavior", "link":"/docs/app/behavior"},
 			{"title":"Rules & Filters", "link":"/docs/app/rules-and-filters"},
 			{"title":"Context Menus", "link":"/docs/app/context-menus"},
+			{"title":"Menu map", "link":"/docs/app/menu-map"},
 			{"title":"Menu Builder", "link":"/docs/app/menu-builder"},
 			{"title":"Open with", "link":"/docs/app/open-with"},
+			{"title":"Snippets", "link":"/docs/app/snippets"},
 			{"title":"Config Editor", "link":"/docs/app/config-editor"},
 			{"title":"Backups", "link":"/docs/app/backups"},
 			{"title":"Preferences & Updates", "link":"/docs/app/preferences"}

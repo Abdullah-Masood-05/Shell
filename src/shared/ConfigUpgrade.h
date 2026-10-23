@@ -21,9 +21,10 @@
 	Files are compared after normalize(): BOM, line endings and trailing blanks don't
 	count, nor the app's own `import 'imports/settings-app*.nss'` lines or the
 	localization block -config:init adds to an old shell.nss. A replaced shell.nss keeps
-	the app's import lines (at its end, as the app writes them). Files the app owns
-	(imports\settings-app*.nss) and files the install folder doesn't have are never
-	touched.
+	the app's import lines where the app writes them: the Menu map's before the first
+	config import, the others at its end. Files the app owns
+	(imports\settings-app*.nss, and the snippet copies in imports\snippets\) and files the
+	install folder doesn't have are never touched.
 
 	Before anything is written, the whole config tree is snapshotted into
 	<config folder>\backups\<YYYYMMDD-HHMMSS>\ with a manifest.json, the format of the
@@ -247,13 +248,15 @@ namespace config_upgrade
 		return true;
 	}
 
-	// imports/settings-app*.nss: the app's own files.
+	// imports/settings-app*.nss (settings, menus, map, openwith, snippets, and the taskbar
+	// menu's Apps list that taskbar.nss reads) and the snippet copies in imports/snippets/
+	// (the app's Snippets page): the app's own files.
 	inline bool is_app_owned(std::string_view path)
 	{
 		auto key = to_lower(path);
 		for(auto &c : key)
 			if(c == '\\') c = '/';
-		return starts_with(key, "imports/settings-app");
+		return starts_with(key, "imports/settings-app") || starts_with(key, "imports/snippets/");
 	}
 
 	// Whether the user's config refers to `path` (see the top of the file). `texts` are
@@ -340,17 +343,66 @@ namespace config_upgrade
 		return out;
 	}
 
-	// `shipped` with `imports` appended, one per line, in its own line-break style.
+	// The import of imports/settings-app-map.nss (the Menu map's rules): the app puts it
+	// before the root's other config imports, not at the end (src/settings/src/MapRules.h).
+	inline bool is_map_import_line(std::string_view line)
+	{
+		auto l = to_lower(line);
+		for(auto &c : l)
+			if(c == '\\') c = '/';
+		return is_app_import_line(line) && l.find("imports/settings-app-map.nss") != l.npos;
+	}
+
+	// Where an import line may go in `text` before its first config import: the start of
+	// the first line, at the top level (not indented), that is `import '...'` or
+	// `import "..."` (not `import lang`). npos when there is none.
+	inline size_t first_config_import(std::string_view text)
+	{
+		size_t pos = starts_with(text, "\xEF\xBB\xBF") ? 3 : 0;
+		while(pos < text.size())
+		{
+			auto end = text.find('\n', pos);
+			auto line = text.substr(pos, end == text.npos ? text.npos : end - pos);
+			if(starts_with(line, "import"))
+			{
+				auto rest = line.substr(6);
+				size_t i = 0;
+				while(i < rest.size() && (rest[i] == ' ' || rest[i] == '\t'))
+					i++;
+				if(i > 0 && i < rest.size() && (rest[i] == '\'' || rest[i] == '"'))
+					return pos;
+			}
+			if(end == text.npos)
+				break;
+			pos = end + 1;
+		}
+		return std::string_view::npos;
+	}
+
+	// `shipped` with `imports` added, one per line, in its own line-break style: the Menu
+	// map's import before the first config import (as the app writes it), the others
+	// appended.
 	inline std::string with_app_imports(std::string_view shipped, const std::vector<std::string> &imports)
 	{
 		std::string out(shipped);
 		if(imports.empty())
 			return out;
 		const char *eol = out.find("\r\n") != out.npos ? "\r\n" : "\n";
-		if(!out.empty() && out.back() != '\n')
-			out += eol;
+		std::string early;
+		for(auto &line : imports)
+			if(is_map_import_line(line))
+				early += line + eol;
+		auto at = early.empty() ? std::string_view::npos : first_config_import(out);
+		if(at != std::string_view::npos)
+			out.insert(at, early);
+		bool appended = false;
 		for(auto &line : imports)
 		{
+			if(at != std::string_view::npos && is_map_import_line(line))
+				continue;
+			if(!appended && !out.empty() && out.back() != '\n')
+				out += eol;
+			appended = true;
 			out += line;
 			out += eol;
 		}

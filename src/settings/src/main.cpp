@@ -1,13 +1,20 @@
 // Nilesoft Shell Pro, the app (NilesoftShellPro.exe).
 //
 // Development switches:
-//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith>
+//   --page <home|appearance|behavior|rules|menus|builder|editor|backups|preferences|openwith|menumap|snippets>
 //   --no-onboarding    don't show the first-run dialog this time
 //   --onboarding <1|2|3>   show the first-run dialog at that step, whatever the status;
 //                          with --snapshot, the tour starts with that step and the ones after it
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
+//   --editor-select <first>-<last>, --editor-find <text>    select those lines, or open the
+//                          find box with that text, in the Config Editor's edit view (screenshots)
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
+//   --snippets-code <id>   the Snippets page shows that snippet's code
+//   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
+//                          the Snippets page previews that snippet (in that context)
+//   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
+//                          list, or its installed apps list
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
@@ -19,8 +26,12 @@
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --snapshot-width <px>     a narrower or wider window for the tour
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
+//   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
+//   --map-expand, --map-select <title>   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
+//   --po <file>            the translator preview: shows the app in that .po file, like
+//                          Preferences > Language > Test a translation file
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
@@ -41,10 +52,12 @@
 #include "ContextMenusController.h"
 #include "EditorController.h"
 #include "MenuBuilderController.h"
+#include "MenuMapController.h"
 #include "OnboardingController.h"
 #include "OpenWithController.h"
 #include "Registry.h"
 #include "SaveService.h"
+#include "SnippetsController.h"
 #include "Text.h"
 #include "UpdateController.h"
 
@@ -71,6 +84,11 @@ int g_snapshotHeight = 0;
 int g_snapshotWidth = 0;
 bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
+std::string g_snippetsCode;
+std::string g_snippetsSelect;
+std::string g_snippetsContext;
+MenuMapController::DevOptions g_map;
+bool g_mapSet = false;
 
 // Writes a top-down 32-bit BMP (used by --snapshot for screenshots in CI-like runs).
 bool writeBmp(const std::wstring &path, const slint::SharedPixelBuffer<slint::Rgba8Pixel> &px)
@@ -109,7 +127,7 @@ AppOptions parseArgs()
         return o;
     static constexpr const wchar_t *pages[] = { L"home",  L"appearance", L"behavior", L"rules",      L"menus",
                                                 L"builder", L"editor",   L"backups",  L"preferences",
-                                                L"openwith" };
+                                                L"openwith", L"menumap", L"snippets" };
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;
@@ -126,6 +144,8 @@ AppOptions parseArgs()
             g_snapshotPath = argv[++i];
         } else if (_wcsicmp(argv[i], L"--lang") == 0 && i + 1 < argc) {
             o.language = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--po") == 0 && i + 1 < argc) {
+            o.testPo = argv[++i];
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
         } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {
@@ -136,6 +156,28 @@ AppOptions parseArgs()
             g_update.updateFailed = argv[++i];
         } else if (_wcsicmp(argv[i], L"--update-cancelled") == 0) {
             g_update.updateCancelled = true;
+        } else if (_wcsicmp(argv[i], L"--snippets-code") == 0 && i + 1 < argc) {
+            g_snippetsCode = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-select") == 0 && i + 1 < argc) {
+            g_snippetsSelect = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-context") == 0 && i + 1 < argc) {
+            g_snippetsContext = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--map-context") == 0 && i + 1 < argc) {
+            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"taskbar" };
+            ++i;
+            for (int c = 0; c < int(std::size(contexts)); ++c)
+                if (_wcsicmp(argv[i], contexts[c]) == 0)
+                    g_map.context = c;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-view") == 0 && i + 1 < argc) {
+            g_map.view = _wcsicmp(argv[++i], L"nodes") == 0 ? 1 : 0;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-expand") == 0) {
+            g_map.expandAll = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-select") == 0 && i + 1 < argc) {
+            g_map.select = text::narrow(argv[++i]);
+            g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-height") == 0 && i + 1 < argc) {
@@ -221,7 +263,18 @@ int main()
     auto behavior = std::make_unique<BehaviorController>(ui, *saveService);
     auto contextMenus = std::make_unique<ContextMenusController>(ui);
     auto menuBuilder = std::make_unique<MenuBuilderController>(ui);
+    auto menuMap = std::make_unique<MenuMapController>(ui, *saveService);
+    if (g_mapSet)
+        menuMap->setDevOptions(g_map);
     auto openWith = std::make_unique<OpenWithController>(ui);
+    // The --snapshot tour writes nothing: no refresh of the snippet copies.
+    auto snippetsPage = std::make_unique<SnippetsController>(ui, !snapshot);
+    if (!g_snippetsCode.empty())
+        snippetsPage->showCode(g_snippetsCode);
+    if (!g_snippetsSelect.empty())
+        snippetsPage->selectForPreview(g_snippetsSelect, g_snippetsContext);
+    // The Snippets preview draws with the Appearance page's theme and Light/Dark.
+    appearance->onPreview([&](const theme::Resolved &r) { snippetsPage->setTheme(r); });
     auto onboarding = std::make_unique<OnboardingController>(ui, *saveService);
     // After an update (a new version, or the helper's --updated): the personal config's
     // menu files the user never changed are brought up to this version.
@@ -330,7 +383,9 @@ int main()
     onboarding.reset();
     behavior.reset();
     appearance.reset();
+    menuMap.reset();
     saveService.reset();
+    snippetsPage.reset();
     openWith.reset();
     menuBuilder.reset();
     contextMenus.reset();

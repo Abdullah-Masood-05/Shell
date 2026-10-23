@@ -75,6 +75,9 @@ configure_file(res/settings.rc.in "${CMAKE_CURRENT_BINARY_DIR}/settings.rc" @ONL
 # The theme presets (presets/themes/*.nss), embedded as ThemePresetsData.inc.
 include(cmake/ThemePresets.cmake)
 
+# The bundled snippets (../bin/snippets: catalog.json and *.nss), embedded as SnippetsData.inc.
+include(cmake/Snippets.cmake)
+
 # The UI translations (translations/*/LC_MESSAGES/*.po), for Slint and for src/Tr.cpp.
 include(cmake/Translations.cmake)
 
@@ -85,6 +88,8 @@ add_executable(settings WIN32
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
+    src/CodeDocument.cpp
+    src/CodeEditorBridge.cpp
     src/ConfigRules.cpp
     src/ConfigUpdate.cpp
     src/ConfigUpdateController.cpp
@@ -94,13 +99,19 @@ add_executable(settings WIN32
     src/EditorController.cpp
     src/EditorSession.cpp
     src/ExcludeRules.cpp
+    src/FileIcon.cpp
     src/FileWatcher.cpp
     src/FontEnum.cpp
     src/Highlight.cpp
     src/LogReader.cpp
     src/PendingChanges.cpp
+    src/PoFile.cpp
     src/PresetsController.cpp
+    src/ProgramIcon.cpp
+    src/MapRules.cpp
     src/MenuBuilderController.cpp
+    src/MenuMap.cpp
+    src/MenuMapController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
     src/OnboardingController.cpp
@@ -110,7 +121,11 @@ add_executable(settings WIN32
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
+    src/SnippetPreview.cpp
+    src/Snippets.cpp
+    src/SnippetsController.cpp
     src/Status.cpp
+    src/TaskbarApps.cpp
     src/ThemeModel.cpp
     src/ThemePresets.cpp
     src/Tr.cpp
@@ -124,11 +139,20 @@ add_executable(settings WIN32
 slint_target_sources(settings ui/app.slint)
 # @tr() strings get no default context (the component name), so a string that several
 # components and the C++ side share is translated once.
+# Slint bundles po2inc's copy of translations/ (cmake/Translations.cmake), which adds the
+# zz-keys language for the translator preview. The generated code gets src/TrPreviewHook.h
+# first: it routes Slint's bundled lookups to a .po file loaded at run time.
 set_target_properties(settings PROPERTIES
-    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_TRANSLATIONS_DIR}"
+    SLINT_BUNDLE_TRANSLATIONS "${SETTINGS_SLINT_TRANSLATIONS_DIR}"
     SLINT_TRANSLATION_DOMAIN "${SETTINGS_TRANSLATION_DOMAIN}"
     SLINT_NO_DEFAULT_TRANSLATION_CONTEXT ON)
 add_dependencies(settings translations_data)
+get_target_property(_settings_sources settings SOURCES)
+foreach(_src IN LISTS _settings_sources)
+    if(_src MATCHES "slint_generated_[^/]*[.]cpp$")
+        set_property(SOURCE "${_src}" APPEND PROPERTY COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/TrPreviewHook.h")
+    endif()
+endforeach()
 
 target_include_directories(settings PRIVATE src third_party "${CMAKE_CURRENT_SOURCE_DIR}/res" "${THEME_PRESETS_GENERATED_DIR}" "${TRANSLATIONS_GENERATED_DIR}")
 target_compile_definitions(settings PRIVATE
@@ -138,7 +162,7 @@ target_compile_options(settings PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHs
 # /W4 for our own sources only; the Slint-generated code is noisy at that level.
 file(GLOB SETTINGS_OWN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 set_source_files_properties(${SETTINGS_OWN_SOURCES} PROPERTIES COMPILE_OPTIONS "/W4")
-target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs winhttp bcrypt)
+target_link_libraries(settings PRIVATE Slint::Slint dwmapi shell32 shlwapi advapi32 ole32 user32 comctl32 windowscodecs winhttp bcrypt version)
 # A WIN32 executable that keeps the standard main().
 target_link_options(settings PRIVATE /ENTRY:mainCRTStartup /MANIFEST:NO)
 
@@ -174,8 +198,15 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_presets.cpp
         tests/test_updater.cpp
         tests/test_tr.cpp
+        tests/test_pofile.cpp
         tests/test_config_upgrade.cpp
+        tests/test_menumap.cpp
+        tests/test_snippets.cpp
+        tests/test_code_document.cpp
+        tests/test_snippet_preview.cpp
+        tests/test_taskbar.cpp
         src/BackupsModel.cpp
+        src/CodeDocument.cpp
         src/ConfigRules.cpp
         src/ConfigUpdate.cpp
         src/Diff.cpp
@@ -184,10 +215,16 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/FileWatcher.cpp
         src/Highlight.cpp
         src/PendingChanges.cpp
+        src/PoFile.cpp
+        src/SnippetPreview.cpp
+        src/Snippets.cpp
         src/Status.cpp
+        src/TaskbarApps.cpp
         src/ThemeModel.cpp
         src/ThemePresets.cpp
         src/Tr.cpp
+        src/MapRules.cpp
+        src/MenuMap.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
@@ -200,9 +237,10 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
     target_compile_definitions(settings_tests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00
         SETTINGS_SOURCE_BIN="${SETTINGS_BIN_DIR}"
+        SETTINGS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         SETTINGS_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
     target_compile_options(settings_tests PRIVATE /utf-8 /permissive- /Zc:__cplusplus /EHsc /W4)
-    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt)
+    target_link_libraries(settings_tests PRIVATE nsscore shell32 shlwapi ole32 advapi32 user32 winhttp bcrypt version)
     set_target_properties(settings_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests")
     add_test(NAME settings_tests COMMAND settings_tests)
 endif()

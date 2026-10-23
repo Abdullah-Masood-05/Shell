@@ -1,0 +1,143 @@
+import { Tokens } from "../theme/tokens.slint";
+
+// A one-line text box in the app's colours. The std-widgets LineEdit takes its
+// selection colours from the Fluent palette (the Windows accent, black text on
+// it in dark mode) and can't be given others; this one uses the selection
+// tokens, like the code editors.
+export component AppLineEdit inherits Rectangle {
+    in-out property <string> text <=> input.text;
+    in property <string> placeholder-text;
+    in property <bool> enabled: true;
+    in property <bool> read-only <=> input.read-only;
+    in property <length> font-size: Tokens.body;
+    in property <string> font-family;
+    out property <bool> has-focus: input.has-focus;
+
+    callback edited(text: string);
+    callback accepted(text: string);
+    callback key-pressed(event: KeyEvent) -> EventResult;
+
+    public function select-all() {
+        input.select-all();
+    }
+    public function set-selection-offsets(anchor: int, focus: int) {
+        input.set-selection-offsets(anchor, focus);
+    }
+    public function clear-selection() {
+        input.clear-selection();
+    }
+
+    accessible-role: text-input;
+    accessible-enabled: root.enabled;
+    accessible-value: root.text;
+    accessible-placeholder-text: root.placeholder-text;
+    accessible-read-only: root.read-only;
+    accessible-action-set-value(v) => {
+        root.text = v;
+        root.edited(v);
+    }
+
+    forward-focus: input;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+    min-width: 80px;
+    min-height: 32px;
+    preferred-height: 32px;
+    border-radius: Tokens.radius-sm;
+    background: !root.enabled ? Tokens.layer-2.with-alpha(0.5) : input.has-focus ? Tokens.layer : Tokens.layer-2;
+    border-width: 1px;
+    border-color: input.has-focus ? Tokens.accent-border : Tokens.stroke-strong;
+
+    property <length> margin: 10px;
+
+    ContextMenuArea {
+        enabled: root.enabled;
+        Menu {
+            MenuItem {
+                title: @tr("Undo");
+                enabled: !root.read-only;
+                activated => { input.undo(); }
+            }
+            MenuItem {
+                title: @tr("Redo");
+                enabled: !root.read-only;
+                activated => { input.redo(); }
+            }
+            MenuSeparator { }
+            MenuItem {
+                title: @tr("Cut");
+                enabled: !root.read-only && root.text != "";
+                activated => { input.cut(); }
+            }
+            MenuItem {
+                title: @tr("Copy");
+                enabled: root.text != "";
+                activated => { input.copy(); }
+            }
+            MenuItem {
+                title: @tr("Paste");
+                enabled: !root.read-only;
+                activated => { input.paste(); }
+            }
+            MenuItem {
+                title: @tr("Select all");
+                enabled: root.text != "";
+                activated => { input.select-all(); }
+            }
+        }
+
+        clip-box := Rectangle {
+            x: root.margin;
+            width: root.width - 2 * root.margin;
+            height: root.height;
+            clip: true;
+
+            Text {
+                width: 100%;
+                height: 100%;
+                vertical-alignment: center;
+                text: root.text == "" && input.preedit-text == "" ? root.placeholder-text : "";
+                font-size: root.font-size;
+                font-family: root.font-family;
+                color: Tokens.text-3;
+                accessible-role: none;
+            }
+
+            input := TextInput {
+                property <length> computed-x;
+                x: min(0px, max(clip-box.width - self.width - self.text-cursor-width, self.computed-x));
+                width: max(clip-box.width - self.text-cursor-width, self.preferred-width);
+                height: 100%;
+                vertical-alignment: center;
+                single-line: true;
+                enabled: root.enabled;
+                font-size: root.font-size;
+                font-family: root.font-family;
+                color: root.enabled ? Tokens.text : Tokens.text-3;
+                selection-background-color: Tokens.selection-bg;
+                selection-foreground-color: Tokens.selection-text;
+                accessible-role: none;
+
+                cursor-position-changed(pos) => {
+                    if (pos.x + self.computed-x < 0px) {
+                        self.computed-x = -pos.x;
+                    } else if (pos.x + self.computed-x > clip-box.width - self.text-cursor-width) {
+                        self.computed-x = clip-box.width - pos.x - self.text-cursor-width;
+                    }
+                }
+                accepted => { root.accepted(self.text); }
+                edited => { root.edited(self.text); }
+                key-pressed(event) => { root.key-pressed(event) }
+            }
+        }
+    }
+
+    // Focus: an accent line along the bottom, like the Fluent text box.
+    if input.has-focus: Rectangle {
+        x: root.border-radius;
+        y: root.height - self.height;
+        width: root.width - 2 * root.border-radius;
+        height: 2px;
+        background: Tokens.accent;
+    }
+}

@@ -67,6 +67,8 @@ export global Pages {
     out property <int> backups: 7;
     out property <int> preferences: 8;
     out property <int> openwith: 9;    // listed after Menu Builder in the sidebar
+    out property <int> menumap: 10;    // listed after Context Menus in the sidebar
+    out property <int> snippets: 11;   // listed after Open with
 }
 
 export global AppState {
@@ -99,8 +101,16 @@ export global AppState {
     in property <image> shield-icon;   // the Windows UAC shield (stock icon)
     // Language: "Auto", "English", then each bundled language in its own name.
     in property <[string]> language-options;
+    // The font for each option: a language name in its own script needs a font that has
+    // its glyphs whatever the UI language ("" for the window's font).
+    in property <[string]> language-option-fonts;
     in-out property <int> language-index;   // 0 follows Windows
     in property <string> language-auto-name; // what Auto picks now, in its own name
+    // The translator preview: a .po file shown for this session (Test a translation file,
+    // or --po <file>). See src/AppController.cpp.
+    in property <bool> translation-test-active;
+    in property <string> translation-test-file;    // the file name, e.g. es.po
+    in property <string> translation-test-summary; // how much of the app it translates
 
     // Onboarding (src/OnboardingController.cpp)
     in-out property <bool> onboarding-shown;
@@ -113,6 +123,9 @@ export global AppState {
     callback action(id: string);       // see AppController::runAction
     callback set-theme(mode: int);
     callback set-language(index: int); // an index into language-options; applies right away
+    callback test-translation();       // pick a .po file and show the app in it
+    callback reload-translation();     // read the same file again, after edits
+    callback stop-translation();       // back to the Language setting
     callback open-url(url: string);
     callback open-path(path: string);
     callback dismiss-onboarding();     // Skip setup / Esc: closes without saving the theme

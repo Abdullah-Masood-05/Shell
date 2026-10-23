@@ -750,6 +750,32 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 	return ret;
 }
 
+/*
+	The Windows 11 taskbar has no Win32 menu of its own: its right-click menu
+	is a XAML flyout. To show Shell's menu there, the right-click is eaten and
+	a popup is tracked on an empty menu, which NtUserTrackPopupMenu fills. If
+	Shell then declines to build it (settings.exclude matches the taskbar, or
+	the config's visibility hides it), the empty menu is all that is shown.
+
+	So the decision is made first, on the right button going down, and a
+	right-click Shell would decline is left alone: Windows shows its own
+	taskbar menu. Applies to every taskbar (Shell_TrayWnd and, on other
+	monitors, Shell_SecondaryTrayWnd). Not used on Windows 10, whose taskbar
+	is not hooked here: its menu is a real Win32 menu, which a declined
+	popup falls through to.
+*/
+
+// Set while this thread sends the WM_CONTEXTMENU that follows a right-click
+// the taskbar check already let through, so that it is not evaluated twice.
+static thread_local bool _taskbar_checked = false;
+
+static bool taskbar_declined(HWND hTaskbar) noexcept
+{
+	if(_taskbar_checked)
+		return false;
+	return ContextMenu::TaskbarDeclined(hTaskbar, _loader.explorer);
+}
+
 LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	auto wndproc = (WNDPROC)::GetPropW(hWnd, UxSubclass);
@@ -760,7 +786,7 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	if(uMsg == WM_CONTEXTMENU)
 	{
 		auto pt = Point::CursorPos();
-		if(taskbar_t::is_allowed_area(hWnd, pt))
+		if(taskbar_t::is_allowed_area(hWnd, pt) && !taskbar_declined(hWnd))
 		{
 			if(ShowTaskbarContextMenu(hWnd, pt, wParam == 0 && lParam == 0 ? WM_RBUTTONDOWN : WM_CONTEXTMENU))
 				return 0;
@@ -816,8 +842,14 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				return wndproc(hWnd, uMsg, wParam, lParam);
 			}
 
+			// Shell would not build this menu: leave the click to Windows.
+			if(taskbar_declined(hWnd))
+				return wndproc(hWnd, uMsg, wParam, lParam);
+
 			::SetFocus(hWnd);
+			_taskbar_checked = true;
 			::SendMessageW(hWnd, WM_CONTEXTMENU, 0, 0);
+			_taskbar_checked = false;
 
 			return MA_ACTIVATEANDEAT;
 		}
@@ -844,7 +876,7 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	{
 		auto hTaskbar = reinterpret_cast<HWND>(dwRefData);
 		auto pt = Point::CursorPos();
-		if(taskbar_t::is_allowed_area(hTaskbar, pt))
+		if(taskbar_t::is_allowed_area(hTaskbar, pt) && !taskbar_declined(hTaskbar))
 		{
 			if(ShowTaskbarContextMenu(hTaskbar, pt, wParam == 0 && lParam == 0? WM_RBUTTONDOWN : WM_CONTEXTMENU))
 				return 0;			
@@ -913,6 +945,10 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 			if(msg == WM_RBUTTONDOWN)
 			{
+				// Shell would not build this menu: leave the click to Windows.
+				if(taskbar_declined(hTaskbar))
+					return lret;
+
 				_taskbar_mouse.hook(WH_MOUSE, [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
 				{
 					//auto lret = _taskbar_mouse.callnext(nCode, wParam, lParam);
@@ -1339,6 +1375,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 //IID_FolderExtensions
 //#pragma comment(linker, "/export:DllGetClassObject=DllGetClassObject")
 _Check_return_
+bool MenuTreeReadingMenus(); // MenuTree.cpp
+
 STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid, [[maybe_unused]] _Outptr_ LPVOID FAR *ppv)
 {
 	auto hr = E_NOTIMPL;// CLASS_E_CLASSNOTAVAILABLE,E_NOTIMPL, E_OUTOFMEMORY, and E_UNEXPECTED,E_INVALIDARG
@@ -1348,6 +1386,10 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 
 	__try
 	{
+		// shell -config:tree is reading menus in this process: this copy joins none.
+		if(MenuTreeReadingMenus())
+			return CLASS_E_CLASSNOTAVAILABLE;
+
 		if(iid.equals(IID_FolderExtensions))
 			return E_NOTIMPL;
 
@@ -1429,7 +1471,8 @@ STDAPI DllCanUnloadNow(void)
 // duration; which is why this refuses to run inside Explorer or once a live
 // configuration exists (it would be swapped out under a menu). In shell.exe,
 // its only caller, there is never one.
-static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context)
+static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigCheckSink sink, ConfigTitleSink title_sink, void *context,
+							const wchar_t *sample = nullptr, ConfigTreeSink tree_sink = nullptr)
 {
 	if(!root || !*root || !sink)
 		return E_INVALIDARG;
@@ -1439,6 +1482,7 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 
 	std::vector<ParseDiagnostic> diagnostics;
 	std::vector<Parser::TitleInfo> titles;
+	std::wstring tree;
 	bool ok = false;
 	bool where_ok = true;
 
@@ -1479,6 +1523,8 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 		// While the cache and the MUI titles are still there.
 		if(ok && title_sink)
 			where_ok = parser.ReportTitles(titles, where);
+		if(ok && tree_sink)
+			where_ok = parser.ReportTree(tree, where, sample);
 	}
 	catch(...)
 	{
@@ -1497,6 +1543,9 @@ static HRESULT config_check(const wchar_t *root, const wchar_t *where, ConfigChe
 
 	if(!where_ok)
 		return E_INVALIDARG;
+
+	if(tree_sink && ok)
+		tree_sink(context, tree.c_str());
 
 	for(auto &t : titles)
 	{
@@ -1528,6 +1577,14 @@ STDAPI ConfigCheckTitles(const wchar_t *root, const wchar_t *where, ConfigCheckS
 	if(!titles)
 		return E_INVALIDARG;
 	return config_check(root, where, sink, titles, context);
+}
+
+// shell -config:tree <root.nss> -context:<where>: see ConfigCheck.h.
+STDAPI ConfigTree(const wchar_t *root, const wchar_t *where, const wchar_t *sample, ConfigCheckSink sink, ConfigTreeSink tree, void *context)
+{
+	if(!tree || !where || !*where)
+		return E_INVALIDARG;
+	return config_check(root, where, sink, nullptr, context, sample, tree);
 }
 
 // Register the COM server and the context menu handler.

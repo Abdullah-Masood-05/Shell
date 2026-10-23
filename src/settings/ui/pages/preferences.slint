@@ -76,8 +76,26 @@ export component PreferencesPage inherits PageFrame {
                 width: max(400px, self.min-width);
                 min-option-width: 96px;
                 options: AppState.language-options;
+                option-fonts: AppState.language-option-fonts;
                 selected <=> AppState.language-index;
                 changed(i) => { AppState.set-language(i); }
+            }
+        }
+        // For translators: show the app in a .po file for this session.
+        HorizontalLayout {
+            alignment: start;
+            spacing: Tokens.s3;
+            Link {
+                text: @tr("Test a translation file…");
+                activated => { AppState.test-translation(); }
+            }
+            Text {
+                text: @tr("For translators: shows the app in a .po file until you stop it or close the app.");
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                vertical-alignment: center;
+                wrap: word-wrap;
+                horizontal-stretch: 1;
             }
         }
     }

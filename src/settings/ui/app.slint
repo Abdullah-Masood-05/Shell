@@ -5,6 +5,7 @@ import { Icons } from "theme/icons.slint";
 import { AppState, Pages, StatusInfo, Diagnostic, Issue, NavEntry } from "types.slint";
 import { Sidebar } from "components/sidebar.slint";
 import { Toast } from "components/toast.slint";
+import { TranslationBanner } from "components/translation-banner.slint";
 import { HomePage } from "pages/home.slint";
 import { PreferencesPage } from "pages/preferences.slint";
 import { Onboarding } from "pages/onboarding.slint";
@@ -19,17 +20,24 @@ import { SettingsState, SK } from "pages/settings-state.slint";
 import { ContextMenusPage } from "pages/context-menus.slint";
 import { MenuBuilderPage } from "pages/menu-builder.slint";
 import { OpenWithPage } from "pages/openwith.slint";
+import { MenuMapPage } from "pages/menu-map.slint";
+import { SnippetsPage } from "pages/snippets.slint";
 import { UpdateState } from "update-state.slint";
 import { ConfigUpdateState } from "config-update-state.slint";
 import { CompareDialog } from "components/config-update.slint";
+import { MenusState, BuilderState } from "menus-types.slint";
+import { OpenWithState } from "openwith-types.slint";
+import { EditorState } from "editor-types.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
-export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem } from "editor-types.slint";
+export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem, CodeText } from "editor-types.slint";
 export { BackupsState, SnapshotRow, DiffFileRow, DiffLineRow } from "backups-types.slint";
 export { SaveState, AppearanceState, K, Pages, SettingsState, SK }
 export { MenusState, ModuleRow, RuleRow, BuilderState, BuilderRow, BuilderNode, PreviewRow } from "menus-types.slint";
 export { OpenWithState, OpenWithRow, OpenWithForm, OpenWithTestLine, OpenWithPreviewRow, OtherAppRow } from "openwith-types.slint";
+export { MenuMapState, MapRow, MapPanel, MapDetail } from "menumap-types.slint";
 export { PresetsState, PresetCard } from "pages/presets-state.slint";
+export { SnippetsState, SnippetRow } from "snippets-types.slint";
 export { UpdateState, ConfigUpdateState }
 
 export component AppWindow inherits Window {
@@ -53,62 +61,103 @@ export component AppWindow inherits Window {
         Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
     }
 
-    HorizontalLayout {
-        Sidebar {
-            width: 240px;
+    // Ctrl+S saves the current page, whichever save it uses: the page's own Save
+    // button (Context Menus, Menu Builder, Open with, Config Editor) or the footer.
+    // Key presses nothing else handled bubble up to here.
+    forward-focus: keys;
+    keys := FocusScope {
+        key-pressed(event) => {
+            if (!event.modifiers.control || event.modifiers.alt || (event.text != "s" && event.text != "S")) {
+                return reject;
+            }
+            if (AppState.page == Pages.menus && MenusState.dirty-count > 0) {
+                if (!MenusState.saving) { MenusState.save(); }
+                return accept;
+            }
+            if (AppState.page == Pages.builder && BuilderState.dirty) {
+                if (!BuilderState.saving) { BuilderState.save(); }
+                return accept;
+            }
+            if (AppState.page == Pages.openwith && OpenWithState.dirty) {
+                if (!OpenWithState.saving) { OpenWithState.save(); }
+                return accept;
+            }
+            if (AppState.page == Pages.editor && EditorState.dirty-count > 0) {
+                if (!EditorState.saving) { EditorState.save(); }
+                return accept;
+            }
+            if (SaveState.unsaved > 0 && !SaveState.saving) {
+                SaveState.save();
+            }
+            return accept;
         }
 
-        // The content (#101823 in dark; the sidebar draws the hairline between them)
-        // and the unsaved-changes footer under it.
-        VerticalLayout {
-        horizontal-stretch: 1;
-        Rectangle {
-            vertical-stretch: 1;
-            background: Tokens.content;
-            animate background { duration: Tokens.normal; }
+        HorizontalLayout {
+            Sidebar {
+                width: 240px;
+            }
 
-            if AppState.page == Pages.home: HomePage {
-                width: 100%;
-                height: 100%;
+            // The content (#101823 in dark; the sidebar draws the hairline between them)
+            // and the unsaved-changes footer under it.
+            VerticalLayout {
+            horizontal-stretch: 1;
+            if AppState.translation-test-active: TranslationBanner { }
+            Rectangle {
+                vertical-stretch: 1;
+                background: Tokens.content;
+                animate background { duration: Tokens.normal; }
+
+                if AppState.page == Pages.home: HomePage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.appearance: AppearancePage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.behavior: BehaviorPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.rules: RulesPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.menus: ContextMenusPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.menumap: MenuMapPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.builder: MenuBuilderPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.openwith: OpenWithPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.snippets: SnippetsPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.editor: EditorPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.backups: BackupsPage {
+                    width: 100%;
+                    height: 100%;
+                }
+                if AppState.page == Pages.preferences: PreferencesPage {
+                    width: 100%;
+                    height: 100%;
+                }
             }
-            if AppState.page == Pages.appearance: AppearancePage {
-                width: 100%;
-                height: 100%;
+            SaveFooter { }
             }
-            if AppState.page == Pages.behavior: BehaviorPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.rules: RulesPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.menus: ContextMenusPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.builder: MenuBuilderPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.openwith: OpenWithPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.editor: EditorPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.backups: BackupsPage {
-                width: 100%;
-                height: 100%;
-            }
-            if AppState.page == Pages.preferences: PreferencesPage {
-                width: 100%;
-                height: 100%;
-            }
-        }
-        SaveFooter { }
         }
     }
 

@@ -177,6 +177,9 @@ export component ActionTile inherits Rectangle {
 // accent pill slides to the selection. Arrow keys move the selection.
 export component Segmented inherits Rectangle {
     in property <[string]> options;
+    // Optional font family per option ("" or missing: the window's font). For labels
+    // the UI font has no glyphs for, such as language names in their own script.
+    in property <[string]> option-fonts;
     in-out property <int> selected;
     in property <bool> enabled: true;
     in property <length> min-option-width: 88px;
@@ -241,6 +244,7 @@ export component Segmented inherits Rectangle {
             x: 6px;
             width: parent.width - 12px;
             text: option;
+            font-family: root.option-fonts[i];
             font-size: 13px;
             horizontal-alignment: center;
             vertical-alignment: center;

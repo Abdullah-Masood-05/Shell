@@ -4,6 +4,8 @@
 	and the rules that hide, move or rename Windows' own items. Each one has a switch, so you can try a change without
 	editing any file. Nothing is deleted: turning something off comments its line out, and turning it back on gives you
 	the original text.</p>
+<p>It is also where you <a href="#add-module">add your own .nss files</a> without editing <code>shell.nss</code>, and
+	where you <a href="#taskbar">choose the apps</a> in the Apps submenu of the taskbar's menu.</p>
 
 <figure class="screenshot my-5">
 	<img class="preview" src="/docs/images/settings-app/context-menus-dark.png" width="1120" height="760"
@@ -32,9 +34,12 @@
 		page. Listed once you have saved there.</td></tr>
 	<tr><td>Open with</td><td>Editors and terminals you picked on the <a href="/docs/app/open-with">Open with</a> page.
 		Listed once you have saved there.</td></tr>
+	<tr><td>Menu map</td><td>The Windows items you hid, renamed or moved on the <a href="/docs/app/menu-map">Menu map</a>
+		page. Listed once you have saved there.</td></tr>
 </table>
-<p>Any other file your <code>shell.nss</code> imports is listed too, by its file name, as <i>Imported from
-	&lt;path&gt;</i>. The settings written by the Appearance and Behavior pages are not a module and aren't listed.</p>
+<p>Any other file your <code>shell.nss</code> imports is listed too, by its file name, as <i>Your own file, imported
+	from &lt;path&gt;</i>, whether you added it on this page or by hand. The settings written by the Appearance and
+	Behavior pages are not a module and aren't listed.</p>
 <p>To turn a module off:</p>
 <ol>
 	<li>Turn off its switch. A small dot next to the name marks the change, and the top of the page shows how many files
@@ -44,6 +49,78 @@
 </ol>
 <p>The file name at the right of each row (for example <code>imports/goto.nss</code>) opens that line in the Config
 	Editor.</p>
+
+<h5 id="add-module">Add your own .nss file</h5>
+<p>If you wrote a .nss file, or got one from someone else, you can add it to your menu here instead of adding an
+	<code>import</code> line to <code>shell.nss</code> yourself.</p>
+<ol>
+	<li>Click <kbd>Add a file…</kbd> next to <strong>Modules</strong> and pick the file.</li>
+	<li>It shows up at the end of the list with its own switch, and a dot marks it as not saved yet.</li>
+	<li>Click <kbd>Save</kbd>. Shell checks the configuration with the new file in it first. If the file has an error,
+		nothing is written and a message names the file and line.</li>
+</ol>
+<p>A file that isn't in your configuration folder yet is copied into its <code>imports</code> folder
+	(<code>%APPDATA%\Nilesoft\Shell\imports</code>), so the menu keeps working if the original is moved or deleted. If a
+	different file of that name is already there, the copy gets a number, such as <code>tools-2.nss</code>. A file that
+	is already in your configuration folder is used where it is.</p>
+<p>The import line goes before the app's own files at the end of <code>shell.nss</code>, so the Appearance page's
+	settings still come last:</p>
+<pre><code class="lang-shell">import 'imports/tools.nss'</code></pre>
+
+<h5 id="remove-module">Remove one of your own files</h5>
+<p>Your own modules have an <kbd>×</kbd> button next to their switch. Shell's own modules don't: turn those off
+	instead.</p>
+<ol>
+	<li>Click <kbd>×</kbd>. The app asks whether to remove the module.</li>
+	<li>Tick <i>Also delete the file</i> if you don't need the file any more. Leave it unticked to keep the file in
+		your configuration folder; you can add it again later.</li>
+	<li>Click <kbd>Remove</kbd>, then <kbd>Save</kbd>.</li>
+</ol>
+<p>The snapshot taken before the save has the file and the import line, so you can bring both back on the
+	<a href="/docs/app/backups">Backups</a> page.</p>
+
+<h5 id="taskbar">Choose the taskbar menu's apps</h5>
+<p>Right-click an empty spot on the taskbar and Shell's menu has an <strong>Apps</strong> submenu. Out of the box it
+	has Paint, Edge, Calculator and Registry Editor. The <strong>Taskbar menu</strong> section lists what is in it, and
+	you can make it your own launcher:</p>
+<table class="table">
+	<tr><td class="w-25"><kbd>Add a program…</kbd></td><td>Adds a program (<code>.exe</code>), a shortcut
+		(<code>.lnk</code>), a script or any other file. The name comes from the program or the shortcut, and so does
+		the icon.</td></tr>
+	<tr><td><kbd>Add an installed app…</kbd></td><td>Opens a list of Windows' own apps (Notepad, Command Prompt,
+		Device Manager…) and the apps in your Start menu, with a search box. Click one to add it. Apps that are already
+		in the list are marked <i>In the list</i>.</td></tr>
+	<tr><td><kbd>Add a separator</kbd></td><td>Adds a line between groups of apps.</td></tr>
+</table>
+<p>New entries go under the selected one, or at the end. Click an app to change it:</p>
+<ul>
+	<li><strong>Name</strong>: the title in the menu. Leave the name of one of Shell's four apps as it is and it
+		follows the language of your Windows.</li>
+	<li><strong>Program</strong>: what the item opens. <kbd>Browse…</kbd> picks another file. A web address or a
+		command such as <code>calc.exe</code> works too.</li>
+	<li><strong>Arguments</strong>: added after the program, for example a file to open.</li>
+	<li><strong>Run as administrator</strong>: Windows asks for permission each time.</li>
+	<li><kbd>Move up</kbd>, <kbd>Move down</kbd> and <kbd>Remove</kbd> change the order or take it out.</li>
+</ul>
+<p>Each entry has a switch: turn it off to hide an app without losing its settings. That is also how you hide
+	Shell's own apps. If you removed one of them, add it back from <kbd>Add an installed app…</kbd>, under
+	<i>Windows</i>.</p>
+<p>Click <kbd>Save</kbd>, then right-click the taskbar to see the new list.</p>
+<p>The list is saved in <code>imports\settings-app-taskbar.nss</code> in your configuration folder.
+	<code>imports\taskbar.nss</code> reads that file in its Apps menu, and while the file exists, its apps are shown
+	instead of the four built-in ones. To go back to those four, click <kbd>Put back Shell's four apps</kbd> under the
+	list and save. The file is yours too: you can open it in the <a href="/docs/app/config-editor">Config Editor</a>
+	and change it by hand. The page keeps what you wrote, including comments, properties it doesn't show (such as
+	<code>where=</code> or <code>keys=</code>) and things it can't edit, such as a submenu. Those are listed as
+	<i>Written by hand</i>; you can move or remove them here, and change them in the Config Editor. If the file has an
+	error, the page says so and doesn't change it until you fix it.</p>
+<p>What a switched-off app looks like in the file:</p>
+<pre><code class="lang-shell">item(title="Notepad++" image cmd='@sys.prog\Notepad++\notepad++.exe')
+// item(title=loc.calculator image= cmd='calc.exe')</code></pre>
+<p>If the section says <i>The taskbar's menu doesn't show this list yet</i>, either the Taskbar module is turned off
+	above, or your <code>imports\taskbar.nss</code> is an older or edited copy that doesn't read the list. Take the new
+	<code>taskbar.nss</code> from the config update on the Home page (your copy is kept in a backup), or open it with
+	<kbd>Open taskbar.nss</kbd> and compare it with the one in the program folder.</p>
 
 <h5 id="rules">Turn a rule for Windows' own items on or off</h5>
 <p>Shell can't remove Windows' own items from your PC, but its configuration can hide, move or rename them in Shell's
@@ -65,8 +142,10 @@
 </ol>
 <p><i>line 12</i> at the right of a rule opens the file at that line in the Config Editor.</p>
 <p>The <a href="/docs/app/open-with">Open with</a> page writes <code>remove</code> rules too, for the items it
-	hides, and they are listed here under <code>imports/settings-app-openwith.nss</code>. Change those on the Open with
-	page: it rewrites its file each time you save there.</p>
+	hides, and they are listed here under <code>imports/settings-app-openwith.nss</code>. It's easiest to change those
+	on the Open with page, which shows what each one is for.</p>
+<p>Rules made on the <a href="/docs/app/menu-map">Menu map</a> page are listed under
+	<code>imports/settings-app-map.nss</code>, and you can switch them off here too.</p>
 
 <h5 id="read-only">Why some switches can't be used</h5>
 <p>A greyed-out switch means the page can't turn that line on or off safely. The reason is shown under the rule, or in
@@ -102,9 +181,11 @@
 
 <h5 id="saved">Where your changes are saved</h5>
 <ul>
-	<li>Unlike the Menu Builder and Open with pages, this page has no file of its own. It changes the files the lines are
-		in: <code>shell.nss</code> for modules, and the file of each rule, such as <code>imports\modify.nss</code>. Only
-		files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are changed.</li>
+	<li>Modules and rules have no file of their own. The page changes the files the lines are in:
+		<code>shell.nss</code> for modules, and the file of each rule, such as <code>imports\modify.nss</code>. A file
+		you add is copied into <code>imports</code>. The taskbar menu's apps go in
+		<code>imports\settings-app-taskbar.nss</code>. Only files in your configuration folder
+		(<code>%APPDATA%\Nilesoft\Shell</code>) are changed.</li>
 	<li>Before writing, the configuration is checked with
 		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. If it would fail to load, nothing is
 		written and a message says what is wrong and where.</li>
@@ -125,6 +206,12 @@
 	<tr><td><i>Not saved: the config would fail to load</i></td><td>Another part of the configuration has an error that
 		the change brings out. The message names the file and line; fix it in the Config Editor, or click
 		<kbd>Discard</kbd>.</td></tr>
+	<tr><td>The file I added isn't in the menu</td><td>Check that its switch is on and that you saved. Its items may
+		only show for some selections, or only on the taskbar; open it from the row to see.</td></tr>
+	<tr><td>The taskbar's Apps submenu didn't change</td><td>Read the warning in the Taskbar menu section, if there is
+		one. Otherwise right-click the taskbar again, or use <strong>Restart Explorer</strong> on the Home page.</td></tr>
+	<tr><td>An app says <i>Not found</i></td><td>Its program was moved or uninstalled. Select it and pick the program
+		again with <kbd>Browse…</kbd>, or remove it.</td></tr>
 	<tr><td>The page doesn't show a rule I added by hand</td><td>Only <code>modify</code> and <code>remove</code> rules
 		are listed. If you added it while the page was open, save or discard your changes here,
 		then switch to another page and back.</td></tr>

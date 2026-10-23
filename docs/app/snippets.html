@@ -1,0 +1,121 @@
+<h4>Snippets</h4>
+<br>
+<p>A <strong>snippet</strong> is a small, ready-made addition to the right-click menu, such as <i>Copy hash</i> on a
+	file or <i>Compress to ZIP</i>. The Snippets page lists the ones that come with the app and a selection from
+	<a href="/docs/snippets">RubicBG's snippet collection</a>. Turn one on and it is in the menu the next time you
+	right-click. Turn it off and it is gone. You don't need to write or edit any code.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/snippets-dark.png" width="1120" height="760"
+		alt="The Snippets page with a search box, categories and a list of snippets with switches">
+	<figcaption>Snippets: each one says what it does, who wrote it and what it needs. The switch turns it on or off.</figcaption>
+</figure>
+
+<h5 id="find">Finding a snippet</h5>
+<ul>
+	<li>Type in <strong>Search snippets</strong> to filter the list by name or description.</li>
+	<li>Pick a category (for example <i>Files</i>, <i>Archives</i>, <i>Windows</i> or <i>Apps</i>) to see
+		only those, or <i>All</i> to see everything.</li>
+	<li>The count at the top right says how many snippets are on.</li>
+</ul>
+
+<h5 id="list">What each row shows</h5>
+<ul>
+	<li>The <strong>name</strong> and one line about what it does.</li>
+	<li><strong>by ...</strong>: who wrote it. The snippets <i>by Nilesoft Shell Pro</i> are written for this app, use
+		the MIT license and are built into it. The snippets <i>by RubicBG</i> come from RubicBG's collection and are built
+		into the app too (see <a href="#rubicbg">below</a>). <i>by RubicBG</i> is a link to his collection on GitHub.</li>
+	<li>Labels after the name, when they apply:
+		<ul>
+			<li><i>Runs as administrator</i>: the snippet starts something with administrator rights. Windows asks you to
+				allow it each time.</li>
+			<li><i>Uses the internet</i>: the snippet opens a web page or sends something over the internet. The row's
+				description says what is sent.</li>
+			<li><i>Needs ...</i>, for example <i>Needs 7-Zip</i>: a program the snippet uses is not installed. The switch
+				is greyed out until you install it. Come back to the page afterwards and the label is gone.</li>
+		</ul>
+	</li>
+	<li><strong>Show code</strong> opens the snippet's code under the row, so you can see exactly what it adds.
+		<strong>Hide code</strong> closes it again.</li>
+</ul>
+
+<h5 id="preview">Preview</h5>
+<p>Click a row to see what that snippet adds to the menu before you turn it on. The first snippet is shown when the
+	page opens. The preview is on the right; in a narrow window it opens under the row you clicked.</p>
+<ul>
+	<li>The menu is drawn in your theme, the same way as the live preview on the
+		<a href="/docs/app/appearance">Appearance</a> page, on your wallpaper or in a File Explorer window.
+		<strong>Light</strong> and <strong>Dark</strong> switch between the two, here and on the Appearance page.</li>
+	<li>The snippet's own items are marked in blue. The greyed items around them, such as <i>Open</i>, <i>Copy</i> and
+		<i>Properties</i>, are already in the menu and only show where the new items go. A submenu opens when you point
+		at it.</li>
+	<li>When a snippet adds items in more than one place, buttons above the menu switch between them: <i>File</i>,
+		<i>Folder</i>, <i>Background</i> (the empty space in a folder), <i>Desktop</i>, <i>Drive</i> and
+		<i>Taskbar</i>.</li>
+	<li>A snippet for some files only says so under the menu, for example <i>Shown for a .zip file</i>.</li>
+	<li>An item whose name comes from what you right-click shows <i>Name from the selection</i> in italics.</li>
+	<li>A snippet that only changes or hides other items, and a snippet the app can't read the menu of, shows its code
+		instead, with a line that says why.</li>
+</ul>
+<p>The app asks Shell itself which items the snippet adds (in a temporary folder, with your theme), so the preview
+	never changes your configuration. It is close to the real menu, not exact: Windows adds its own items around it.</p>
+
+<h5 id="turn-on">Turning a snippet on or off</h5>
+<p>Click the switch. The change is saved right away; there is no Save button on this page.</p>
+<ol>
+	<li>The app takes a <a href="/docs/app/backups">snapshot</a> of your configuration first.</li>
+	<li>It checks the change with Shell. If Shell would not load the result, nothing is saved and a message says why.</li>
+	<li>Shell picks up the change the next time you right-click.</li>
+</ol>
+<p>A snippet that is on stays on after an update of the app. To undo a change, turn the switch back, or restore the
+	snapshot on the Backups page.</p>
+
+<h5 id="files">Where the files go</h5>
+<p>When you turn on a snippet, the app copies it to <code>imports\snippets\&lt;name&gt;.nss</code> in your
+	configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) and lists it in
+	<code>imports\settings-app-snippets.nss</code>, a file the app looks after. <code>shell.nss</code> gets one line
+	that loads that list:</p>
+<pre><code>import 'imports/settings-app-snippets.nss'</code></pre>
+<p>Turning a snippet off removes it from the list and deletes its copy. The snapshot taken before still has it.</p>
+<p>On the <a href="/docs/app/context-menus">Context Menus</a> page the list shows up as the <i>Snippets</i> module.
+	Turning that module off turns every snippet off at once, without changing the switches here; turning a snippet on
+	turns the module back on.</p>
+
+<h5 id="updates">Updates and your own changes</h5>
+<p>When a new version of the app brings a newer version of a snippet you have on, the app replaces your copy the next
+	time it starts, as long as you never changed that copy.</p>
+<p>If you edited the copy, for example in the <a href="/docs/app/config-editor">Config Editor</a>, your version is kept
+	and the row says <i>You changed this copy, so newer versions aren't applied to it</i>. To get the bundled version
+	back, turn the snippet off and on again.</p>
+
+<h5 id="rubicbg">Snippets by RubicBG</h5>
+<p>The rows <i>by RubicBG</i> come from
+	<a href="https://github.com/RubicBG/Nilesoft-Shell-Snippets" target="_blank" rel="noopener">RubicBG's Nilesoft Shell
+	Snippets</a>, a large community collection on GitHub. All credit for them goes to RubicBG. His snippets are CC0
+	(public domain), and the app includes them with his permission. The page lists a selection: snippets that load in
+	this version of Shell and don't need administrator rights, upload files, or change security settings. The names and
+	descriptions on the page are written for this app.</p>
+<ul>
+	<li>The selected files come with the app, unchanged from his repository, so turning one on works offline like the
+		app's own snippets.</li>
+	<li>They are also in the <code>snippets\rubicbg</code> folder of the installation, next to his license text
+		(<code>LICENSE.txt</code>).</li>
+	<li>When an update of the app brings a newer version of one, your copy is brought up to date the same way, unless you
+		edited it.</li>
+</ul>
+<p>The rest of the collection, and how to add any of its snippets by hand, is described on the
+	<a href="/docs/snippets">Snippets</a> page of these docs.</p>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<ul>
+	<li><strong>The switches are greyed out and a blue message is at the top.</strong> Explorer reads the shared
+		configuration in the program folder, which the app never writes to. Press <kbd>Create personal config</kbd>.</li>
+	<li><strong><i>Not saved: the config would fail to load</i>.</strong> Shell rejected the result, so nothing was
+		changed. The message names the file and line. Often it is another file in your configuration that already has
+		an error: fix it in the Config Editor and try again.</li>
+	<li><strong>A snippet is on but its item doesn't show.</strong> Most snippets only appear for some selections, for
+		example <i>Extract to folder</i> only on a <code>.zip</code> file and <i>New .gitignore</i> only on the empty
+		space in a folder. Also check that the <i>Snippets</i> module is on in Context Menus.</li>
+	<li><strong><i>The copy in imports\snippets is missing</i>.</strong> The file was deleted outside the app. Turn the
+		snippet off and on again.</li>
+</ul>

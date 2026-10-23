@@ -15,13 +15,46 @@ export struct CodeLine {
     issue: int,                // 0 none, 1 warning, 2 error
 }
 
+// What C++ did with an edit or a command in a CodeEditor: C++ has already
+// written the text back when it had to; `select` sets the selection (byte
+// offsets into the text).
+export struct EditResult {
+    select: bool,
+    anchor: int,
+    cursor: int,
+}
+
+// A find in a CodeEditor: the match to select, and "index of count".
+export struct FindResult {
+    found: bool,
+    anchor: int,
+    cursor: int,
+    index: int,
+    count: int,
+}
+
+// The selection of a CodeEditor by rows, so it can be drawn behind the
+// highlighted text: rows `first`..`last` (-1: nothing selected), and the text
+// of the first and last rows up to where the selection starts and ends.
+export struct CodeSelection {
+    first: int,
+    last: int,
+    start-prefix: string,
+    end-prefix: string,
+}
+
+// Helpers for the CodeEditor component, bound once in C++ (src/CodeEditorBridge.cpp).
+export global CodeText {
+    pure callback selection(text: string, anchor: int, cursor: int) -> CodeSelection;
+}
+
 // One row of the import tree.
 export struct EditorFile {
     path: string,
     label: string,             // relative to the config folder
     name: string,
     depth: int,
-    managed: bool,             // imports/settings-app*.nss: owned by the app
+    managed: bool,             // imports/settings-app*.nss: the app writes it too (still editable)
     missing: bool,
     unresolved: bool,
     outside: bool,             // outside the config folder: read-only
@@ -57,18 +90,32 @@ export global EditorState {
     in property <string> mono-font: "Cascadia Mono";
 
     // Edit view. `text` is the display text: each tab is a lead glyph and pads
-    // up to the next tab stop (see src/Highlight.h); C++ maps it back.
+    // up to the next tab stop (see src/Highlight.h); C++ maps it back
+    // (src/CodeDocument.h). The TextInput edits it; C++ writes it only when
+    // what is shown must change (a paste, indent, undo, another file).
     in-out property <string> text;
     in property <[CodeLine]> edit-lines;   // `text`, highlighted; numbered by index
     in property <int> caret-serial;        // bumped: select caret-anchor..caret-offset (byte offsets into `text`)
     in property <int> caret-anchor;
     in property <int> caret-offset;
+    in property <bool> caret-scroll;       // with caret-serial: also scroll to caret-scroll-x/-y
+    in property <length> caret-scroll-x;
+    in property <length> caret-scroll-y;
+    // The edit view's selection and scroll position as the page last saw them,
+    // so C++ can put them back when the user returns to a file.
+    in-out property <int> view-anchor;
+    in-out property <int> view-cursor;
+    in-out property <length> view-x;
+    in-out property <length> view-y;
     in property <bool> debug-overlay;      // --editor-debug-overlay: show the TextInput's glyphs in red
+    in property <int> find-serial;         // bumped (--editor-find, screenshots): open the find box with find-query
+    in property <string> find-query;
     in-out property <bool> editing;
     in property <bool> dirty;              // the current file
     in property <int> dirty-count;         // all files
     in property <bool> read-only;
     in property <string> read-only-reason;
+    in property <bool> current-managed;    // an imports/settings-app*.nss file: the app writes it too
     in property <bool> shared-config;      // the install folder's config is active
 
     // Diagnostics
@@ -93,8 +140,11 @@ export global EditorState {
     callback activated();
     callback select-file(index: int);
     callback set-editing(editing: bool);
-    callback edited(text: string) -> int;   // the cursor to set after C++ rewrote `text`, or -1
-    callback fix-clipboard();               // after copy/cut in the edit view: glyphs back to tabs
+    // The CodeEditor's callbacks (ui/components/code.slint).
+    callback edited(text: string, cursor: int, before-anchor: int, before-cursor: int) -> EditResult;
+    callback command(name: string, anchor: int, cursor: int) -> EditResult;
+    callback find(query: string, anchor: int, cursor: int, backwards: bool, incremental: bool) -> FindResult;
+    callback selected-text(anchor: int, cursor: int) -> string;   // "" unless on one line
     callback save();
     callback save-anyway();
     callback cancel-force();

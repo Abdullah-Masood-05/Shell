@@ -431,6 +431,19 @@ std::optional<uint32_t> colorOf(const Literal &v, const SystemInfo &sys)
 
 double defaultFontSize(const SystemInfo &sys) { return sys.win11 ? 14.0 : 12.0; }
 
+RowMetrics rowMetrics(const Resolved &r)
+{
+    RowMetrics m;
+    m.scale = float(r.scale);
+    const float s = m.scale;
+    m.top = float(r.borderPadding.t + r.borderSize) * s;
+    m.bottom = float(r.borderPadding.b + r.borderSize) * s;
+    const float content = std::max(float(r.fontSize), r.imageEnabled ? float(r.imageSize) * s : 0.f);
+    m.row = std::round(float(r.itemMargin.t + r.itemMargin.b + r.itemPadding.t + r.itemPadding.b) * s + content);
+    m.sep = std::round(float(r.separatorMargin.t + r.separatorSize + r.separatorMargin.b) * s);
+    return m;
+}
+
 Resolved resolve(const Values &values, const SystemInfo &sys)
 {
     // Dark mode: the Windows app mode unless theme.dark says otherwise.

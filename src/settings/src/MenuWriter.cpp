@@ -1,5 +1,7 @@
 #include "MenuWriter.h"
 
+#include "Tr.h"
+
 #include "nss/ConfigGraph.h"
 #include "nss/Literal.h"
 #include "nss/OverridesWriter.h"
@@ -70,33 +72,54 @@ std::string MenuWriter::props(const Node &n)
     return out;
 }
 
-std::string MenuWriter::generate(const Tree &tree, nss::Eol eol)
+std::string MenuWriter::generate(const Tree &tree, nss::Eol eol, std::string_view tail)
 {
     const std::string nl(nss::eolString(eol));
     std::string out;
     out += header;
     out += nl;
-    out += "// Edit these menus on the Menu Builder page of Nilesoft Shell Pro.";
+    out += intro;
     out += nl;
 
+    // Kept text, one line at a time at the entry's indentation.
+    auto kept = [&](std::string_view text, const std::string &indent) {
+        size_t at = 0;
+        while (!text.empty() && at <= text.size()) {
+            auto end = text.find('\n', at);
+            auto line = text.substr(at, end == std::string_view::npos ? std::string_view::npos : end - at);
+            out += (line.empty() ? std::string() : indent + std::string(line)) + nl;
+            if (end == std::string_view::npos)
+                break;
+            at = end + 1;
+        }
+    };
+    auto comment = [](const Node &n) { return n.comment.empty() ? std::string() : " " + n.comment; };
     auto write = [&](auto &&self, const Node &n, int depth) -> void {
         std::string indent(size_t(depth), '\t');
+        kept(n.before, indent);
         auto p = props(n);
         out += indent;
         out += n.kind == Kind::Menu ? "menu" : n.kind == Kind::Item ? "item" : "separator";
         if (!p.empty() || n.kind != Kind::Separator)
             out += "(" + p + ")";
+        if (n.kind != Kind::Menu)
+            out += comment(n);
         out += nl;
         if (n.kind == Kind::Menu) {
             out += indent + "{" + nl;
             for (const auto &c : n.children)
                 self(self, c, depth + 1);
-            out += indent + "}" + nl;
+            kept(n.tail, indent + "\t");
+            out += indent + "}" + comment(n) + nl;
         }
     };
     for (const auto &n : tree) {
         out += nl;
         write(write, n, 0);
+    }
+    if (!tail.empty()) {
+        out += nl;
+        kept(tail, {});
     }
     return out;
 }
@@ -120,6 +143,17 @@ bool MenuWriter::ensureImported(nss::NssDocument &root, std::string_view relPath
     if (findImport(root, relPath) >= 0)
         return false;
     return root.appendImport(relPath);
+}
+
+std::string handEditProblem(const nss::NssDocument &doc, std::string_view name)
+{
+    if (doc.diagnostics().empty())
+        return {};
+    const auto &d = doc.diagnostics().front();
+    // clang-format off
+    return nsp::trf("{} was edited by hand, and line {} can't be read ({}). The app didn't change the file, so your edit is safe. Fix it in the Config Editor, then try again.",
+                    std::string(name), d.line, d.message);
+    // clang-format on
 }
 
 } // namespace menus

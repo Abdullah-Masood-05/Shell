@@ -3,12 +3,14 @@
 // The Config Editor page (ui/pages/editor.slint, EditorState): the import tree,
 // a highlighted read view, a highlighted edit view (a TextInput with invisible
 // glyphs over the highlighted rows; tabs shown as blank glyphs, see
-// Highlight.h), a live `-config:check` of the edited tree, saving through
-// nss::ConfigStore, and external-change handling.
+// Highlight.h; each file's text, caret and undo history in a code::Document,
+// see CodeDocument.h), a live `-config:check` of the edited tree, saving
+// through nss::ConfigStore, and external-change handling.
 // Heavy work runs on its own Worker; results come back on the UI thread.
 
 #include "app.h"
 
+#include "CodeEditorBridge.h"
 #include "EditorSession.h"
 #include "Highlight.h"
 #include "FileWatcher.h"
@@ -54,12 +56,15 @@ private:
     void rehighlight();
     void rehighlightEdit();
     std::map<int, int> issueMarks(const editor::Buffer &b) const;
-    void setEditText(size_t cursor);
-    void fixClipboard();
+    void showDoc();
+    void rememberView();
+    void afterEdit(const code::Result &r);
+    EditResult onEdited(const std::string &display, int cursor, int beforeAnchor, int beforeCursor);
+    EditResult onCommand(const std::string &name, int anchor, int cursor);
+    void applyDevSelection();
     void pushFiles();
     void pushProblems();
     void updateDirty();
-    int onEdited(std::string display);
     void scheduleCheck(int delayMs);
     void runCheck();
     void save(bool force);
@@ -76,6 +81,7 @@ private:
     void setExternalText(TextFn make);
 
     editor::Buffer *currentBuffer();
+    code::Document *currentDoc(); // the current buffer's, created on first use
     bool readOnly(const editor::FileEntry &e, std::string *reason = nullptr) const;
     std::string labelOf(const std::filesystem::path &p) const;
     std::vector<editor::SaveRequest> dirtyRequests(bool writableOnly) const;
@@ -102,13 +108,15 @@ private:
     bool lastDirty_ = false;
     TextFn checkText_, loadError_, externalText_;
 
-    // Edit view: the current buffer as shown (tabs as glyphs) and its rows.
-    hl::TabGlyphs glyphs_;
-    std::string display_;
-    std::vector<hl::Line> editLines_;
-    std::vector<int> editMarks_;
-    std::shared_ptr<slint::VectorModel<CodeLine>> editModel_;
+    // Edit view: its rows, and the buffer whose text it shows (pathKey).
+    codeui::Rows rows_;
+    std::string highlighted_; // the text the rows show (big files patch them while typing)
+    std::string shownKey_;
     slint::Timer highlightTimer_;
+    slint::Timer viewTimer_;
+    // --editor-select <line>-<line> and --editor-find <text> (screenshots).
+    int devSelectFirst_ = 0, devSelectLast_ = 0;
+    std::string devFind_;
 
     slint::Timer statusPoll_;
     slint::Timer checkTimer_;

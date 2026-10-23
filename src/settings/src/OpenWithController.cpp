@@ -2,6 +2,7 @@
 
 #include "ConfigRules.h"
 #include "EditorSession.h"
+#include "FileIcon.h"
 #include "Highlight.h"
 #include "MenuWriter.h"
 #include "ShellCli.h"
@@ -57,55 +58,7 @@ std::pair<std::wstring, int> splitIconIndex(const std::wstring &path)
 std::optional<std::vector<uint8_t>> extractIcon(const std::string &utf8, uint32_t &w, uint32_t &h)
 {
     auto [path, index] = splitIconIndex(nss::widen(utf8));
-    HICON icon = nullptr;
-    if (SHDefExtractIconW(path.c_str(), index, 0, &icon, nullptr, 32) != S_OK || !icon)
-        return std::nullopt;
-    std::optional<std::vector<uint8_t>> out;
-    ICONINFO ii{};
-    if (GetIconInfo(icon, &ii)) {
-        BITMAP bm{};
-        if (ii.hbmColor && GetObjectW(ii.hbmColor, sizeof bm, &bm) && bm.bmWidth > 0 && bm.bmHeight > 0) {
-            const int bw = bm.bmWidth, bh = bm.bmHeight;
-            BITMAPINFO bi{};
-            bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-            bi.bmiHeader.biWidth = bw;
-            bi.bmiHeader.biHeight = -bh; // top-down
-            bi.bmiHeader.biPlanes = 1;
-            bi.bmiHeader.biBitCount = 32;
-            bi.bmiHeader.biCompression = BI_RGB;
-            std::vector<uint8_t> bgra(size_t(bw) * size_t(bh) * 4);
-            HDC dc = GetDC(nullptr);
-            int lines = GetDIBits(dc, ii.hbmColor, 0, UINT(bh), bgra.data(), &bi, DIB_RGB_COLORS);
-            bool anyAlpha = false;
-            for (size_t i = 3; i < bgra.size(); i += 4)
-                anyAlpha |= bgra[i] != 0;
-            std::vector<uint8_t> mask;
-            if (lines == bh && !anyAlpha && ii.hbmMask) {
-                // An icon without alpha: the AND mask says what's transparent.
-                mask.resize(bgra.size());
-                GetDIBits(dc, ii.hbmMask, 0, UINT(bh), mask.data(), &bi, DIB_RGB_COLORS);
-            }
-            ReleaseDC(nullptr, dc);
-            if (lines == bh) {
-                std::vector<uint8_t> rgba(bgra.size());
-                for (size_t i = 0; i < size_t(bw) * size_t(bh); ++i) {
-                    rgba[i * 4 + 0] = bgra[i * 4 + 2];
-                    rgba[i * 4 + 1] = bgra[i * 4 + 1];
-                    rgba[i * 4 + 2] = bgra[i * 4 + 0];
-                    rgba[i * 4 + 3] = anyAlpha ? bgra[i * 4 + 3] : (mask.empty() || mask[i * 4] == 0 ? 255 : 0);
-                }
-                w = uint32_t(bw);
-                h = uint32_t(bh);
-                out = std::move(rgba);
-            }
-        }
-        if (ii.hbmColor)
-            DeleteObject(ii.hbmColor);
-        if (ii.hbmMask)
-            DeleteObject(ii.hbmMask);
-    }
-    DestroyIcon(icon);
-    return out;
+    return fileicon::extract(path, index, 32, w, h);
 }
 
 // Whether an app's item can show anywhere the menu shows.
@@ -413,8 +366,7 @@ void OpenWithController::load()
             bool legacy = false;     // an older page's layout
             bool customised = false; // lines the page didn't write
             nss::TextFormat format = nss::defaultFormat();
-            size_t warnings = 0; // lines the page didn't write
-            std::string firstWarning;
+            std::optional<nss::NssDocument> broken; // edited by hand so that it doesn't parse
             bool readFailed = false;
             std::string error;   // why the file couldn't be read
             bool importOff = false;
@@ -441,9 +393,9 @@ void OpenWithController::load()
                 out->format = doc->format();
                 out->legacy = parsed.legacy;
                 out->customised = !parsed.warnings.empty();
-                if (!parsed.warnings.empty()) {
-                    out->warnings = parsed.warnings.size();
-                    out->firstWarning = parsed.warnings[0];
+                if (!doc->diagnostics().empty()) {
+                    out->customised = true; // no rewrite in today's layout either
+                    out->broken = std::move(*doc);
                 }
             } else {
                 out->readFailed = true;
@@ -527,9 +479,8 @@ void OpenWithController::load()
             loadText_ = [this, out, file, legacyNote] {
                 const auto &ows = ui_->global<OpenWithState>();
                 std::string notice;
-                if (out->warnings)
-                    notice = nsp::trf("{} line(s) of the file weren't written by this page and will be replaced on save. First: {}",
-                                      out->warnings, out->firstWarning);
+                if (out->broken)
+                    notice = menus::handEditProblem(*out->broken, nss::narrow(file.filename().wstring()));
                 if (legacyNote)
                     notice = nsp::trf("This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}",
                                       notice);
@@ -1139,8 +1090,15 @@ void OpenWithController::save(Migrate migrate)
                   developChange, hideDevelop, migrate, hiding, developPath = developPath_] {
         nss::SaveResult result;
         std::string error;
+        // A hand edit that doesn't parse can't be read into the page: the file stays as it is.
+        std::error_code ec;
+        if (fs::exists(file, ec))
+            if (auto now = nss::NssDocument::load(file, {}, &error))
+                result.error = menus::handEditProblem(*now, nss::narrow(file.filename().wstring()));
         auto rootDoc = nss::NssDocument::load(root, {}, &error);
-        if (!rootDoc) {
+        if (!result.error.empty()) {
+            // reported below
+        } else if (!rootDoc) {
             result.error = nsp::trf("Couldn't read {}: {}", nss::narrow(root.wstring()), error);
         } else {
             std::vector<nss::FileWrite> writes;

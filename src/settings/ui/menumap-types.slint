@@ -1,0 +1,123 @@
+// Menu map data shared with C++ (src/MenuMapController.cpp).
+
+import { CodeLine, EditResult, FindResult } from "editor-types.slint";
+
+// One row of the outline, or of a panel in the node view.
+export struct MapRow {
+    key: int,                  // the entry in the controller's list
+    depth: int,                // outline indent; 0 in panels
+    kind: string,              // group | menu | item | separator
+    title: string,
+    origin: string,            // shell | windows | program | unknown | "" (groups)
+    origin-label: string,      // "Windows", "7-Zip", "file-manage.nss:12"
+    status: string,            // "Hidden", "Moved to More options", ...
+    status-kind: string,       // hidden | moved | renamed | maybe | ""
+    expandable: bool,
+    expanded: bool,
+    shown: bool,               // the switch
+    can-toggle: bool,
+    changed: bool,             // a change not saved yet
+    dim: bool,                 // hidden, or hidden once saved
+    selected: bool,
+}
+
+// One menu in the node view: a panel at (x, y) with its items.
+export struct MapPanel {
+    key: int,
+    title: string,
+    origin: string,
+    x: length,
+    y: length,
+    height: length,
+    rows: [MapRow],
+}
+
+// The selected item, for the side panel.
+export struct MapDetail {
+    key: int,                  // -1: nothing selected
+    title: string,
+    kind-label: string,        // "Item", "Submenu", "Separator"
+    origin: string,            // shell | windows | program | unknown
+    origin-text: string,       // "Added by 7-Zip", "From your config"
+    origin-detail: string,     // the DLL or EXE, or the handler's name
+    file-label: string,        // "imports/file-manage.nss, line 12"
+    file-path: string,
+    line: int,
+    facts: string,             // "Verb: copyaspath · id.copy_as_path"
+    conditions: string,        // where=..., find=...
+    status: string,            // what the rules do to it, one line each
+    rule-label: string,        // the rule behind `status`, "modify.nss, line 17"
+    rule-path: string,
+    rule-line: int,
+    pending: string,           // "Hidden once you save"
+    shown: bool,
+    can-toggle: bool,
+    toggle-note: string,       // why the switch is off limits, or what it does
+    can-rename: bool,
+    rename-value: string,
+    can-reset-title: bool,
+    can-move: bool,
+    move-note: string,
+    can-reset-menu: bool,
+    can-edit-code: bool,
+    can-open: bool,
+}
+
+export global MenuMapState {
+    in property <bool> loaded;
+    in property <bool> loading;
+    in property <string> error;                // the map couldn't be read
+    in property <[string]> config-errors;      // the config doesn't load
+    in property <string> notice;               // e.g. why the Windows part is empty
+    in property <bool> shared-config;
+    in property <[string]> contexts;
+    in property <int> context;
+    in property <[string]> samples;            // file types, for the File context
+    in property <int> sample;
+    in property <int> view;                    // 0 outline, 1 nodes
+    in property <string> summary;              // "112 of your items, 65 from Windows and programs"
+    in property <[MapRow]> rows;
+    in property <[MapPanel]> panels;
+    in property <string> links;                // the node view's connectors, as SVG path commands
+    in property <length> canvas-width;
+    in property <length> canvas-height;
+    in property <MapDetail> detail;
+    in property <int> detail-serial;           // bumped when the rename field must reload
+    in property <[string]> move-targets;
+    in property <bool> busy;                   // saving one of your items
+
+    // "Edit code": one declaration in its file.
+    in property <bool> editing;
+    in property <string> edit-title;
+    in property <string> edit-file-label;
+    in-out property <string> edit-text;
+    in property <[CodeLine]> edit-lines;
+    in property <string> edit-error;
+    in property <bool> edit-dirty;
+
+    callback activated();
+    callback set-context(index: int);
+    callback set-sample(index: int);
+    callback set-view(index: int);
+    callback refresh();
+    callback select(key: int);
+    callback toggle-expand(key: int);
+    callback expand-all(on: bool);
+    callback toggle(key: int, on: bool);
+    callback rename(title: string);
+    callback reset-title();
+    callback move-to(index: int);
+    callback reset-menu();
+    callback edit-code();
+    callback open-in-editor();
+    callback open-rule();
+    callback open-context-menus();
+    callback create-user-config();
+    // The CodeEditor's callbacks (ui/components/code.slint).
+    callback edit-edited(text: string, cursor: int, before-anchor: int, before-cursor: int) -> EditResult;
+    callback edit-command(name: string, anchor: int, cursor: int) -> EditResult;
+    callback edit-find(query: string, anchor: int, cursor: int, backwards: bool, incremental: bool) -> FindResult;
+    callback edit-selected-text(anchor: int, cursor: int) -> string;
+    callback edit-save();
+    callback edit-cancel();
+}

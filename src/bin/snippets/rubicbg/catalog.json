@@ -1,0 +1,455 @@
+{
+	"format": 1,
+	"about": "Snippets from RubicBG's collection (https://github.com/RubicBG/Nilesoft-Shell-Snippets), CC0-1.0 (LICENSE.txt in this folder), shared with his permission. Each entry is <id>.nss in this folder, copied unchanged from \"path\" in his repository at \"commit\". sha256 is the SHA-256 of the file without a UTF-8 BOM and with LF line endings (scripts/update-snippet-hashes.ps1). Titles, descriptions and translations are ours. The selection leaves out snippets that need administrator rights, upload files, edit the registry or security settings, or don't pass shell.exe -config:check: scripts/check-snippets.ps1 checks every file here.",
+	"repository": "RubicBG/Nilesoft-Shell-Snippets",
+	"commit": "3efc6f01804f60b03f1767836e2abd07b60b4df1",
+	"author": "RubicBG",
+	"author_url": "https://github.com/RubicBG/Nilesoft-Shell-Snippets",
+	"license": "CC0-1.0",
+	"snippets": [
+		{
+			"id": "rubicbg-copy-name-list",
+			"path": "ex3.multifunction/all.copy.list.ns.nss",
+			"title": "Copy a list of names",
+			"description": "Adds a Copy list menu that copies the names of the selected items, or of every file and folder inside a folder, to the clipboard, with full paths when you hold Shift.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "cda9f6f319df5c536c12556f98fa61042323b2eec2f03a5bdb9d71eb4ec5ac17",
+			"translations": {
+				"zh-CN": {
+					"title": "复制名称列表",
+					"description": "添加“Copy list”菜单，把选中项目的名称，或某个文件夹中所有文件和文件夹的名称复制到剪贴板，按住 Shift 时复制完整路径。"
+				},
+				"zh-TW": {
+					"title": "複製名稱清單",
+					"description": "加入「Copy list」選單，把選取項目的名稱，或某個資料夾中所有檔案和資料夾的名稱複製到剪貼簿，按住 Shift 時複製完整路徑。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-copy-shortcut-target",
+			"path": "ex3.multifunction/all.copy.path.lnk.nss",
+			"title": "Copy a shortcut's target",
+			"description": "On shortcut files, adds a Copy lnk path menu that opens the target's location or copies the target path, its folder, its name or its extension.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "4a9c954c1fe75fb8988d3e6c83ed998e94ad5181c0060e6b40531f913f255c84",
+			"translations": {
+				"zh-CN": {
+					"title": "复制快捷方式的目标",
+					"description": "在快捷方式文件上添加“Copy lnk path”菜单，可打开目标所在位置，或复制目标路径、所在文件夹、名称或扩展名。"
+				},
+				"zh-TW": {
+					"title": "複製捷徑的目標",
+					"description": "在捷徑檔案上加入「Copy lnk path」選單，可開啟目標所在位置，或複製目標路徑、所在資料夾、名稱或副檔名。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-copy-path-variants",
+			"path": "ex3.multifunction/all.copy.path.all.nss",
+			"title": "Copy path in many forms",
+			"description": "Adds a Copy as path menu that copies the full path, parent folder, name, name without extension or extension, and with Shift also network, WSL and file:// forms.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "3523f0e845eb281a147894916c9d4273674c536d2582ec659ff35f04298d6773",
+			"translations": {
+				"zh-CN": {
+					"title": "以多种形式复制路径",
+					"description": "添加“复制路径”菜单，可复制完整路径、上级文件夹、名称、不含扩展名的名称或扩展名，按住 Shift 还可复制网络路径、WSL 路径和 file:// 形式。"
+				},
+				"zh-TW": {
+					"title": "以多種形式複製路徑",
+					"description": "加入「複製路徑」選單，可複製完整路徑、上層資料夾、名稱、不含副檔名的名稱或副檔名，按住 Shift 還能複製網路路徑、WSL 路徑和 file:// 形式。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-copy-url-from-shortcut",
+			"path": "ex3.multifunction/all.copy.path.url.nss",
+			"title": "Copy the address of an internet shortcut",
+			"description": "On .url internet shortcuts, adds a Copy url path menu that copies the full address, the address without the part after #, or just the site name, and opens it in the browser when you hold Shift.",
+			"category": "files",
+			"requires": [],
+			"risk": "network",
+			"sha256": "be66d5ef79ec07af449bd493380d6aac7cecfe2cc906b1ba98a1d131fbf30054",
+			"translations": {
+				"zh-CN": {
+					"title": "复制网址快捷方式中的地址",
+					"description": "在 .url 网址快捷方式上添加“Copy url path”菜单，可复制完整网址、去掉 # 之后部分的网址或仅网站域名，按住 Shift 时则在浏览器中打开。"
+				},
+				"zh-TW": {
+					"title": "複製網際網路捷徑中的網址",
+					"description": "在 .url 網際網路捷徑上加入「Copy url path」選單，可複製完整網址、去掉 # 之後部分的網址或只有網站網域，按住 Shift 時則在瀏覽器中開啟。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-create-shortcuts",
+			"path": "ex3.multifunction/commands.shortcut.nss",
+			"title": "Create shortcuts here",
+			"description": "Adds a Create shortcut item that makes a shortcut for each selected file or folder in the same folder.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "6c672f37f458e9cac5afcb20f5d7cc9b6c98e552195f8ba3138361b95570b1e1",
+			"translations": {
+				"zh-CN": {
+					"title": "在原位置创建快捷方式",
+					"description": "添加“Create shortcut”项，为每个选中的文件或文件夹在同一文件夹中创建快捷方式。"
+				},
+				"zh-TW": {
+					"title": "在原位置建立捷徑",
+					"description": "加入「Create shortcut」項目，為每個選取的檔案或資料夾在同一資料夾中建立捷徑。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-fast-renamer",
+			"path": "ex3.multifunction/commands.renamer.nss",
+			"title": "Fast renamer",
+			"description": "Adds a Fast Renamer menu that renames the selected files and folders in one go, for example to lower or upper case, with a counter, with a prefix or suffix, or by replacing spaces, dots and underscores.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "3bb824fe924d78ceba12b20c6d2976cbe7d89e2adac8d40fcf972b1bdb6bb248",
+			"translations": {
+				"zh-CN": {
+					"title": "快速重命名",
+					"description": "添加“Fast Renamer”菜单，可一次重命名选中的文件和文件夹，例如改成小写或大写、加编号、加前缀或后缀，或替换空格、点和下划线。"
+				},
+				"zh-TW": {
+					"title": "快速重新命名",
+					"description": "加入「Fast Renamer」選單，可一次重新命名選取的檔案和資料夾，例如改成小寫或大寫、加上編號、加上前置或後置文字，或取代空格、句點和底線。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-send-to-extras",
+			"path": "ex1.system/all.sendto.nss",
+			"title": "More Send to options",
+			"description": "Moves Send to next to Copy and adds items to send a file to any program you pick, open the Send to folder, or add the selected folder or program to Send to.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "7ece357010ce9dba147305dd8a233fe63a67f84b5bcb99490e339520dacdb68e",
+			"translations": {
+				"zh-CN": {
+					"title": "更多“发送到”选项",
+					"description": "把“发送到”移到“复制”旁边，并加入几项：把文件发送给你选择的任意程序、打开“发送到”文件夹，或把选中的文件夹或程序添加到“发送到”。"
+				},
+				"zh-TW": {
+					"title": "更多「傳送到」選項",
+					"description": "把「傳送到」移到「複製」旁邊，並加入幾個項目：把檔案傳送給你選擇的任何程式、開啟「傳送到」資料夾，或把選取的資料夾或程式加入「傳送到」。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-open-with-menu",
+			"path": "ex1.system/all.openwith.simple.nss",
+			"title": "Open with menu",
+			"description": "Replaces the Open with entry with a small menu that lets you choose an app, search the Microsoft Store for the file type, or look up the file extension on a website.",
+			"category": "files",
+			"requires": [],
+			"risk": "network",
+			"sha256": "8751d562a592b89424a137e2d34036608ac1289d647916bf46567eaa006ba35d",
+			"translations": {
+				"zh-CN": {
+					"title": "“打开方式”菜单",
+					"description": "把“打开方式”换成一个小菜单，可以选择应用、在 Microsoft Store 中搜索这种文件类型，或在网站上查询该文件扩展名。"
+				},
+				"zh-TW": {
+					"title": "「開啟檔案」選單",
+					"description": "把「開啟檔案」換成一個小選單，可以選擇應用程式、在 Microsoft Store 搜尋這種檔案類型，或在網站上查詢該副檔名。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-save-clipboard-image",
+			"path": "ex1.system/all.clipboard.save.nss",
+			"title": "Save clipboard image",
+			"description": "When the clipboard holds a picture, right-clicking an empty spot in a folder or on the desktop shows Save Image, which saves it there as a PNG file named with the date and time.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "9e5e2d3374f07b6f83cdf3963b0e9a12786df89f253f3db5390bde9fcff22a48",
+			"translations": {
+				"zh-CN": {
+					"title": "保存剪贴板中的图片",
+					"description": "剪贴板里有图片时，在文件夹空白处或桌面上右键会出现“Save Image”，可把图片以日期时间命名的 PNG 文件保存到当前位置。"
+				},
+				"zh-TW": {
+					"title": "儲存剪貼簿中的圖片",
+					"description": "剪貼簿裡有圖片時，在資料夾空白處或桌面上按右鍵會出現「Save Image」，可將圖片以日期時間命名的 PNG 檔案儲存到目前位置。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-auto-shorten-long-names",
+			"path": "ex1.system/all.autorename.nss",
+			"title": "Shorten names that are too long",
+			"description": "When a file or folder path is longer than Windows allows, an Auto rename item appears next to Rename and shortens the name so the item works again.",
+			"category": "files",
+			"requires": [],
+			"risk": "none",
+			"sha256": "dc0ade0ba62c501ae30e505a265ccf154c43defa43c8a2dfc10ef5a0abcd7c50",
+			"translations": {
+				"zh-CN": {
+					"title": "缩短过长的名称",
+					"description": "当文件或文件夹的路径超过 Windows 允许的长度时，右键菜单的“重命名”旁会出现“自动”项，点击即可缩短名称，让它重新可用。"
+				},
+				"zh-TW": {
+					"title": "縮短過長的名稱",
+					"description": "當檔案或資料夾的路徑超過 Windows 允許的長度時，右鍵選單的「重新命名」旁會出現「自動」項目，按下即可縮短名稱，讓它恢復可用。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-temporary-bookmarks",
+			"path": "ex5.goto/goto.temp.nss",
+			"title": "Temporary folder bookmarks",
+			"description": "Adds a Go To Temporary menu where you can remember up to ten folders and jump back to them later in the same session.",
+			"category": "folders",
+			"requires": [],
+			"risk": "none",
+			"sha256": "203af0bb1383613b1a0596faa013575d67017e8dd207d058137b15e391306c09",
+			"translations": {
+				"zh-CN": {
+					"title": "临时文件夹书签",
+					"description": "添加“Go To Temporary”菜单，可记住最多十个文件夹，并在本次使用期间随时跳回这些文件夹。"
+				},
+				"zh-TW": {
+					"title": "暫時資料夾書籤",
+					"description": "加入「Go To Temporary」選單，可記住最多十個資料夾，並在本次使用期間隨時跳回這些資料夾。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-hide-7zip-menu",
+			"path": "ex3.archiver/app.SevenZip.remove.nss",
+			"title": "Hide 7-Zip's menu",
+			"description": "Hides the 7-Zip entry that 7-Zip adds to the right-click menu, while 7-Zip itself keeps working when you open it.",
+			"category": "archives",
+			"requires": [
+				"7-zip"
+			],
+			"risk": "none",
+			"sha256": "6416f8a9ddd838ea20f38373500bfb6c7a9bf1d06c85ce3f33d46d71ee6c5bb7",
+			"translations": {
+				"zh-CN": {
+					"title": "隐藏 7-Zip 菜单",
+					"description": "隐藏 7-Zip 添加到右键菜单中的项目，7-Zip 程序本身仍可正常使用。"
+				},
+				"zh-TW": {
+					"title": "隱藏 7-Zip 選單",
+					"description": "隱藏 7-Zip 加到右鍵選單中的項目，7-Zip 程式本身仍可正常使用。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-hide-nanazip-menu",
+			"path": "ex3.archiver/app.NanaZip.remove.nss",
+			"title": "Hide NanaZip's menu",
+			"description": "Hides the NanaZip entry that the NanaZip app adds to the right-click menu, for people who do not use it there.",
+			"category": "archives",
+			"requires": [],
+			"risk": "none",
+			"sha256": "010661a87068589f0a573b91ad585f69e22354cc147d174d0fd0e0ac38ce79c0",
+			"translations": {
+				"zh-CN": {
+					"title": "隐藏 NanaZip 菜单",
+					"description": "隐藏 NanaZip 应用添加到右键菜单中的项目，适合不在右键菜单里使用它的用户。"
+				},
+				"zh-TW": {
+					"title": "隱藏 NanaZip 選單",
+					"description": "隱藏 NanaZip 應用程式加到右鍵選單中的項目，適合不在右鍵選單裡使用它的使用者。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-file-hash",
+			"path": "ex3.multifunction/all.copy.hash.cmd.nss",
+			"title": "File hash with certutil",
+			"description": "Adds a File Hash menu to files that shows or copies MD5, SHA1 or SHA256 checksums, saves them to a file, and checks files against a checksum file.",
+			"category": "security",
+			"requires": [],
+			"risk": "none",
+			"sha256": "7b14d8dcc83b2ae10655bdf5b5039b9cf233abe9069afe632948fd3342df80c6",
+			"translations": {
+				"zh-CN": {
+					"title": "使用 certutil 计算文件哈希",
+					"description": "为文件添加“File Hash”菜单，可查看或复制 MD5、SHA1、SHA256 校验值，保存到文件，或用校验文件核对文件。"
+				},
+				"zh-TW": {
+					"title": "使用 certutil 計算檔案雜湊",
+					"description": "為檔案加入「File Hash」選單，可檢視或複製 MD5、SHA1、SHA256 雜湊值，儲存成檔案，或用校驗檔核對檔案。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-folder-options-menu",
+			"path": "ex3.multifunction/commands.item.options.nss",
+			"title": "Folder options shortcut",
+			"description": "Adds an Item Options menu with a Folder options item that opens the File Explorer options window.",
+			"category": "system",
+			"requires": [],
+			"risk": "none",
+			"sha256": "607d820047b2382b3233cd12fffcfc2478b76f627ded0ca5a1233d6dc990aa73",
+			"translations": {
+				"zh-CN": {
+					"title": "文件夹选项快捷入口",
+					"description": "添加“Item Options”菜单，其中的“文件夹选项”可打开文件资源管理器选项窗口。"
+				},
+				"zh-TW": {
+					"title": "資料夾選項捷徑",
+					"description": "加入「Item Options」選單，其中的「資料夾選項」可開啟檔案總管選項視窗。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-keyboard-shortcut-hints",
+			"path": "ex1.system/all.keyboard.shortcuts.nss",
+			"title": "Show keyboard shortcuts in menus",
+			"description": "Shows the matching keyboard shortcut next to common commands such as Copy, Paste, Rename and the View sizes, and adds Back, Forward, Up and Expand Navigation Pane items to the View menu.",
+			"category": "system",
+			"requires": [],
+			"risk": "none",
+			"sha256": "cbc85cb09cad3ac1f36e19aca4defd9e9b24d74603ce87d7d68e9250a1686c08",
+			"translations": {
+				"zh-CN": {
+					"title": "在菜单中显示键盘快捷键",
+					"description": "在复制、粘贴、重命名和“查看”中的图标大小等常用命令旁显示对应的快捷键，并在“查看”菜单中加入后退、前进、向上和展开导航窗格等项。"
+				},
+				"zh-TW": {
+					"title": "在選單中顯示鍵盤快速鍵",
+					"description": "在複製、貼上、重新命名和「檢視」中的圖示大小等常用命令旁顯示對應的快速鍵，並在「檢視」選單中加入上一頁、下一頁、上移和展開瀏覽窗格等項目。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-title-bar-window-tools",
+			"path": "ext.others/bar.title.nss",
+			"title": "Window tools on the title bar",
+			"description": "Right-clicking a window's title bar adds a Full screen item and a Windows menu to cascade, stack, place side by side, minimize or restore all windows.",
+			"category": "system",
+			"requires": [],
+			"risk": "none",
+			"sha256": "5ffa33d2658dcf07f56450408a93c1e8efdf46ab4481a9583405c5a6de9149de",
+			"translations": {
+				"zh-CN": {
+					"title": "标题栏窗口工具",
+					"description": "右键单击窗口标题栏时，会出现“全屏”项和一个窗口菜单，可层叠、堆叠、并排显示、全部最小化或还原所有窗口。"
+				},
+				"zh-TW": {
+					"title": "標題列視窗工具",
+					"description": "在視窗標題列上按右鍵時，會出現「全螢幕」項目和一個視窗選單，可重疊、堆疊、並排顯示、全部最小化或還原所有視窗。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-windows-version-taskbar",
+			"path": "ext.managers/nss.winver.nss",
+			"title": "Windows version on the taskbar menu",
+			"description": "Shows the Windows name and version number when you right-click the taskbar, and copies it to the clipboard when clicked.",
+			"category": "system",
+			"requires": [],
+			"risk": "none",
+			"sha256": "70ce630913151c68fc8e269d728a2b8fd905add740c8a0a5eddbc85c0870229a",
+			"translations": {
+				"zh-CN": {
+					"title": "在任务栏菜单中显示 Windows 版本",
+					"description": "右键单击任务栏时显示 Windows 名称和版本号，点击即可复制到剪贴板。"
+				},
+				"zh-TW": {
+					"title": "在工作列選單中顯示 Windows 版本",
+					"description": "在工作列上按右鍵時顯示 Windows 名稱和版本號碼，按一下即可複製到剪貼簿。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-dropbox-menu",
+			"path": "ex2.user.cloud.share/cloud.dropbox.basic.ml.nss",
+			"title": "Group Dropbox items",
+			"description": "For Dropbox users, gathers Dropbox's right-click commands such as Share and Copy Dropbox link into one Dropbox submenu.",
+			"category": "tools",
+			"requires": [],
+			"risk": "none",
+			"sha256": "80806c8b61e3a1980c451506a1c2c1aa84801743441607ecf526c3482176dd73",
+			"translations": {
+				"zh-CN": {
+					"title": "整理 Dropbox 菜单项",
+					"description": "适用于 Dropbox 用户：把“共享”“复制 Dropbox 链接”等 Dropbox 右键命令集中到一个 Dropbox 子菜单里。"
+				},
+				"zh-TW": {
+					"title": "整理 Dropbox 選單項目",
+					"description": "適用於 Dropbox 使用者：把「共用」、「複製 Dropbox 連結」等 Dropbox 右鍵命令集中到一個 Dropbox 子選單裡。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-onedrive-menu",
+			"path": "ex2.user.cloud.share/cloud.onedrive.nss",
+			"title": "Group OneDrive items",
+			"description": "Gathers OneDrive's right-click commands such as Share, View online and Free up space into one OneDrive submenu with the OneDrive icon.",
+			"category": "tools",
+			"requires": [],
+			"risk": "none",
+			"sha256": "0f64a7735f255eca788da6c2f2e767a3857fe4f6e903f9e596c80df326b4d6c9",
+			"translations": {
+				"zh-CN": {
+					"title": "整理 OneDrive 菜单项",
+					"description": "把“共享”“联机查看”“释放空间”等 OneDrive 右键命令集中到一个带 OneDrive 图标的子菜单里。"
+				},
+				"zh-TW": {
+					"title": "整理 OneDrive 選單項目",
+					"description": "把「共用」、「線上檢視」、「釋放空間」等 OneDrive 右鍵命令集中到一個帶有 OneDrive 圖示的子選單裡。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-hide-dropbox-modern-items",
+			"path": "ex2.user.cloud.share/cloud.dropbox.remove.nss",
+			"title": "Hide Dropbox's own menu items",
+			"description": "Hides the right-click items that the Dropbox app adds to the Windows 11 menu, for people who do not want them.",
+			"category": "tools",
+			"requires": [],
+			"risk": "none",
+			"sha256": "5bd531e75f9aad8c13b40b1f64a5021157938b04b56c538c3f8b873bdefab9eb",
+			"translations": {
+				"zh-CN": {
+					"title": "隐藏 Dropbox 自带的菜单项",
+					"description": "隐藏 Dropbox 应用添加到 Windows 11 右键菜单中的项目，适合不需要这些项目的用户。"
+				},
+				"zh-TW": {
+					"title": "隱藏 Dropbox 內建的選單項目",
+					"description": "隱藏 Dropbox 應用程式加到 Windows 11 右鍵選單中的項目，適合不需要這些項目的使用者。"
+				}
+			}
+		},
+		{
+			"id": "rubicbg-everything-search",
+			"path": "ext.managers/app.everything.nss",
+			"title": "Search with Everything",
+			"description": "Adds a Search Everything menu that opens the Everything search app already limited to the selected folder, drive or file type, or set to find duplicates, large files or recent changes.",
+			"category": "tools",
+			"requires": [
+				"everything"
+			],
+			"risk": "none",
+			"sha256": "164d326a45ea00f760d1017cfb5c24efb9d0ffdf1f67599d83ff1e5fe827f016",
+			"translations": {
+				"zh-CN": {
+					"title": "用 Everything 搜索",
+					"description": "添加“Search Everything...”菜单，打开 Everything 搜索工具并预先限定到选中的文件夹、驱动器或文件类型，或用来查找重复文件、大文件和最近修改的文件。"
+				},
+				"zh-TW": {
+					"title": "用 Everything 搜尋",
+					"description": "加入「Search Everything...」選單，開啟 Everything 搜尋工具並預先限定在選取的資料夾、磁碟機或檔案類型，或用來尋找重複檔案、大型檔案和最近修改的檔案。"
+				}
+			}
+		}
+	]
+}

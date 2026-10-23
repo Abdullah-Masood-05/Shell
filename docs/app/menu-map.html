@@ -1,0 +1,158 @@
+<h4 id="_top">Menu map</h4>
+<br>
+<p>The Menu map shows the right-click menu for a place you choose, item by item: the items from your Shell configuration
+	and the items Windows and your installed programs add. For each item it tells you where it comes from and which
+	rules change it. You can also hide, rename or move items from here.</p>
+<p>Open it from the sidebar: <strong>Menus &gt; Menu map</strong>, between Context Menus and Menu Builder.</p>
+
+<figure class="screenshot my-5">
+	<img class="preview" src="/docs/images/settings-app/menu-map-dark.png" width="1120" height="760"
+		alt="The Menu map page: the menu for a text file on the left, the selected item's details on the right">
+	<figcaption>Menu map: the menu for a text file, with the selected item's details at the right.</figcaption>
+</figure>
+
+<h5 id="place">Choose a place</h5>
+<p>The switcher at the top chooses which right-click menu is shown:</p>
+<table class="table">
+	<tr><td class="w-25">File</td><td>A file of the type you pick next to it: <i>Text file (.txt)</i>, <i>Image
+		(.png)</i>, <i>Program (.exe)</i>, <i>Archive (.zip)</i>, <i>PDF (.pdf)</i> or <i>Music (.mp3)</i>. Programs often
+		add items only for some types, so the menu can differ from one type to the next.</td></tr>
+	<tr><td>Folder</td><td>A folder you right-click.</td></tr>
+	<tr><td>Background</td><td>An empty spot inside an open folder (the folder background).</td></tr>
+	<tr><td>Desktop</td><td>An empty spot on the desktop.</td></tr>
+	<tr><td>Drive</td><td>A drive, such as <code>C:</code>.</td></tr>
+	<tr><td>Taskbar</td><td>An empty spot on the taskbar.</td></tr>
+</table>
+<p><kbd>Refresh</kbd> reads the menu again, for example after you install a program or edit a file by hand.</p>
+
+<h5 id="groups">What the page lists</h5>
+<p>The menu is shown in two groups:</p>
+<ul>
+	<li><strong>Your Shell items</strong>: the items and submenus from your configuration, in the order they are written.
+		Each one shows its file and line, for example <code>imports/file-manage.nss:12</code>.</li>
+	<li><strong>Windows and other programs</strong>: the items Windows and your installed programs add. Each one is
+		labelled with who added it: <i>Windows</i>, or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means
+		Shell couldn't tell.</li>
+</ul>
+<p>To read Windows' items, Shell builds the same menu Explorer would build, off-screen. For a file it uses a sample file
+	in <code>%TEMP%\NilesoftShellPro\menu-map</code>; for a folder, that folder; for a drive, your system drive. No window
+	or menu appears, and no item is run. For the folder background and the desktop, the list also has the items the folder
+	window adds itself, such as <i>View</i>, <i>Sort by</i>, <i>Group by</i>, <i>Refresh</i> and <i>Paste</i>.</p>
+<p>The taskbar's own menu is built by Windows itself, so for the taskbar only your Shell items are listed.</p>
+
+<h5 id="tags">Tags</h5>
+<p>Small tags next to an item show what your rules do to it:</p>
+<table class="table">
+	<tr><td class="w-25">Hidden</td><td>A rule hides it, so it isn't in the menu.</td></tr>
+	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>.</td></tr>
+	<tr><td>Renamed to …</td><td>A rule shows it under another title.</td></tr>
+	<tr><td>May be hidden, A rule may change it</td><td>A rule applies only for some selections or windows, such as
+		<code>where=sel.count&gt;1</code> or <code>window.is_desktop</code>. Without a real selection the page can't know,
+		so it says <i>may</i>.</td></tr>
+	<tr><td>Shows only sometimes</td><td>One of your items has a <code>where</code> or <code>find</code>
+		condition, so it shows only when that condition is met.</td></tr>
+</table>
+
+<h5 id="views">Outline and Nodes</h5>
+<p>Two views show the same menu:</p>
+<ul>
+	<li><strong>Outline</strong> (the default) is a list. Click a submenu to expand or collapse it, or use
+		<kbd>Expand all</kbd> and <kbd>Collapse all</kbd>. Each item has its switch on the row.</li>
+	<li><strong>Nodes</strong> shows each open menu as a panel, from left to right, with a line from the item that opens a
+		submenu to that submenu's panel. Click a submenu item to open its panel. Drag or scroll to move around.</li>
+</ul>
+
+<h5 id="details">The item's details</h5>
+<p>Click an item to see its details at the right:</p>
+<table class="table">
+	<tr><td class="w-25">Comes from</td><td>Windows, or the program and its DLL, or for your own items the config file
+		and line. Click the file and line to open the Config Editor there.</td></tr>
+	<tr><td>Shows when</td><td>For your items: the <code>where</code>, <code>find</code>, <code>mode</code>,
+		<code>type</code> and <code>vis</code> values that decide when it shows.</td></tr>
+	<tr><td>Rules</td><td>Each rule that hides, moves or renames the item, with a link to open the rule in the Config
+		Editor and a link to the <a href="/docs/app/context-menus">Context Menus</a> page.</td></tr>
+	<tr><td>In the menu</td><td>The switch that hides or shows the item.</td></tr>
+	<tr><td>Rename</td><td>A new title for the item.</td></tr>
+	<tr><td>Move to</td><td>Another menu to put it in (Windows and program items only).</td></tr>
+	<tr><td>Code</td><td>The code behind the item.</td></tr>
+</table>
+
+<h5 id="windows-items">Hide, rename or move a Windows item</h5>
+<p>This works for items from Windows and from other programs.</p>
+<ol>
+	<li>Select the item.</li>
+	<li>Turn off <strong>In the menu</strong> to hide it. Or type a new title under <strong>Rename</strong>, or pick a
+		menu under <strong>Move to</strong>. The list has your Shell menus, such as <i>File manage</i> or <i>More
+		options</i>, and Windows submenus, such as <i>Send to</i>.</li>
+	<li>The footer at the bottom of the window counts the change. Click <kbd>Save</kbd>, or <kbd>Discard</kbd> to drop
+		your changes.</li>
+	<li>Right-click again to see the result.</li>
+</ol>
+<p>To undo a change made here, turn the switch back on, or use <kbd>Use the original title</kbd> or <kbd>Put it back
+	where Windows has it</kbd>, then save.</p>
+<p>Some items can't be changed this way:</p>
+<ul>
+	<li>An item hidden by a rule in your own configuration, such as one in <code>imports/modify.nss</code>. The panel
+		names the rule and links to the <a href="/docs/app/context-menus#rules">Context Menus</a> page, where that rule has
+		a switch.</li>
+	<li>An item whose title changes with what is selected, such as 7-Zip's <i>Add to "name.7z"</i>. A rule can't name it,
+		so the panel suggests the Config Editor.</li>
+</ul>
+
+<h5 id="your-items">Change one of your Shell items</h5>
+<p>Changes to your own items are saved right away, without the footer.</p>
+<ul>
+	<li>Turn off <strong>In the menu</strong> to hide the item. The page adds <code>vis=vis.remove</code> to that item's
+		line; turning the switch back on removes exactly that. If the item already has its own <code>vis</code>, the
+		switch can't be used and the panel suggests <kbd>Edit code</kbd>.</li>
+	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
+	<li><kbd>Edit code</kbd> opens a small editor with just that item's code, or the whole <code>menu</code> block for a
+		submenu, with syntax colours. <kbd>Check and save</kbd> checks the whole configuration with Shell, takes a
+		snapshot, and changes only that part of the file. The rest of the file stays the same, byte for byte.</li>
+	<li><kbd>Open in the Config Editor</kbd> opens the file at that line.</li>
+</ul>
+<p>To move one of your items, use <kbd>Edit code</kbd> or the <a href="/docs/app/menu-builder">Menu Builder</a>.</p>
+
+<h5 id="what-it-writes">What it writes</h5>
+<p>For the curious: hiding, renaming or moving a Windows item writes a
+	<a href="/docs/configuration/modify-items">modify or remove</a> rule. When Shell knows the item's Windows id, the
+	rule uses it, so it works in every Windows language:</p>
+<pre><code class="lang-shell">remove(where=this.id==id.cast_to_device)</code></pre>
+<p>Otherwise the rule uses the item's exact title.</p>
+<p>These rules go into their own file, <code>imports/settings-app-map.nss</code>. It is imported near the top of
+	<code>shell.nss</code>, before the other configuration files, so it also works for items the bundled
+	<code>modify.nss</code> already moves. Hiding <i>Send to</i> is one example.</p>
+<p>The <a href="/docs/app/context-menus">Context Menus</a> page lists these rules under
+	<code>imports/settings-app-map.nss</code>, each with a switch, and lists the file as the module <i>Menu map</i>.</p>
+
+<h5 id="saved">Where your changes are saved</h5>
+<ul>
+	<li>Rules for Windows items go to <code>imports\settings-app-map.nss</code>. Changes to your own items go to the
+		file the item is written in. Only files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are
+		changed.</li>
+	<li>Before writing, the configuration is checked with
+		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. A configuration Shell would reject is
+		not written.</li>
+	<li>Each save first takes a snapshot in <a href="/docs/app/backups">Backups</a>.</li>
+	<li>If Explorer uses the shared configuration in the program folder, the page is read-only and offers
+		<kbd>Create personal config</kbd>. Program Files is never written to.</li>
+</ul>
+
+<h5 id="limits">Limits</h5>
+<ul>
+	<li>Rules that depend on the selection or the window are marked <i>may</i>. The page doesn't decide them.</li>
+	<li><code>mode</code> conditions are not tested.</li>
+	<li>Your Shell items are listed in config order, apart from Windows' items. In the real menu Shell places them with
+		<code>pos</code> when the menu opens.</li>
+	<li>The <code>modify.remove.duplicate</code> setting is not applied in the map.</li>
+</ul>
+
+<h5 id="troubleshooting">Troubleshooting</h5>
+<table class="table">
+	<tr><td class="w-25">An item I see when I right-click isn't listed</td><td>The page uses a sample file, so items a
+		program adds only for some files may be missing. Try another type in the switcher, then <kbd>Refresh</kbd>.</td></tr>
+	<tr><td>The menu didn't change after saving</td><td>Close the menu and right-click again. If it still looks the same,
+		use <strong>Restart Explorer</strong> on the Home page.</td></tr>
+	<tr><td>The switch is greyed out</td><td>The item is hidden by a rule in your own configuration, or it has its own
+		<code>vis</code>. The panel says which, and links to where you can change it.</td></tr>
+</table>

@@ -7,14 +7,20 @@
 	item(title="docs" image=\uE1C4 cmd='https://nilesoft.org/docs')
 	item(title="donate" image=\uE1A7 cmd='https://nilesoft.org/donate')
 }
+// The Apps list you make in Nilesoft Shell Pro (Context Menus page, Taskbar menu)
+// is kept in imports\settings-app-taskbar.nss. While that file exists, its apps
+// are shown instead of the four below.
+$taskbar_apps = path.location(app.cfg) + '\imports\settings-app-taskbar.nss'
+
 menu(where=@(this.count == 0) type="taskbar" image=icon.settings expanded=true)
 {
 	menu(title=loc.apps image=\uE254)
 	{
-		item(title=loc.paint image=\uE116 cmd='mspaint')
-		item(where=path.exists(sys.prog32 + '\Microsoft\Edge\Application\msedge.exe') title=loc.edge image cmd='@sys.prog32\Microsoft\Edge\Application\msedge.exe')
-		item(title=loc.calculator image=\ue1e7 cmd='calc.exe')
-		item(title=str.res('regedit.exe,-16') image cmd='regedit.exe')
+		import taskbar_apps
+		item(where=!path.exists(taskbar_apps) title=loc.paint image=\uE116 cmd='mspaint')
+		item(where=!path.exists(taskbar_apps) and path.exists(sys.prog32 + '\Microsoft\Edge\Application\msedge.exe') title=loc.edge image cmd='@sys.prog32\Microsoft\Edge\Application\msedge.exe')
+		item(where=!path.exists(taskbar_apps) title=loc.calculator image=\ue1e7 cmd='calc.exe')
+		item(where=!path.exists(taskbar_apps) title=str.res('regedit.exe,-16') image cmd='regedit.exe')
 	}
 	menu(title=loc.windows image=\uE1FB)
 	{

@@ -1,0 +1,488 @@
+import { ComboBox, ListView, Spinner } from "std-widgets.slint";
+import { AppLineEdit as LineEdit } from "../components/line-edit.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { EditorState, CodeLine } from "../editor-types.slint";
+import { SnippetsState, SnippetRow } from "../snippets-types.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Toggle } from "../components/toggle.slint";
+import { Link, Segmented } from "../components/controls.slint";
+import { CodeColors, CodeRow } from "../components/code.slint";
+import { ScrollColumn } from "../components/scroll-column.slint";
+import { PreviewPane } from "../preview/menu-preview.slint";
+import { AppearanceState } from "appearance-state.slint";
+
+// The list surface: one bordered layer, rows separated by hairlines.
+component ListSurface inherits Rectangle {
+    background: Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    VerticalLayout {
+        padding-top: Tokens.s1;
+        padding-bottom: Tokens.s1;
+        @children
+    }
+}
+
+component Hairline inherits Rectangle {
+    height: 1px;
+    background: Tokens.stroke;
+}
+
+// A small flat label after the title: what a snippet needs or does.
+component Badge inherits Rectangle {
+    in property <string> text;
+    in property <bool> warn;    // runs as administrator
+    height: 20px;
+    width: label.preferred-width + 12px;
+    border-radius: Tokens.radius-xs;
+    background: root.warn ? Tokens.warning-bg : Tokens.layer-2;
+    border-width: 1px;
+    border-color: root.warn ? Tokens.warning.with-alpha(0.35) : Tokens.stroke;
+    label := Text {
+        text: root.text;
+        font-size: Tokens.caption;
+        color: root.warn ? Tokens.warning : Tokens.text-2;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+// A snippet's code, highlighted, at most `limit` tall (it scrolls inside).
+component CodeView inherits Rectangle {
+    in property <[CodeLine]> lines;
+    in property <int> columns;
+    in property <length> limit: 300px;
+    height: min(root.limit, root.lines.length * CodeColors.row-height + 16px);
+    border-radius: Tokens.radius-sm;
+    background: Tokens.layer-2;
+    code := ListView {
+        width: 100%;
+        height: 100%;
+        content-width: max(self.visible-width, 56px + root.columns * CodeColors.column-width + Tokens.s6);
+        for line in root.lines: CodeRow {
+            width: code.content-width;
+            line: line;
+            font: EditorState.mono-font;
+        }
+    }
+}
+
+// What the selected snippet adds to the menu: the Appearance page's menu mock in the
+// user's theme, the snippet's rows marked with the accent between greyed rows of
+// Windows' own. Its code instead when Shell couldn't build the menu.
+component SnippetPreview inherits Rectangle {
+    in property <bool> compact;         // under the row (narrow window): no title, no card
+    in property <length> pane-height;   // 0: as tall as the panel allows
+    in property <length> avail;         // the width inside it: a list of places when the buttons don't fit
+
+    property <bool> contexts-fit: SnippetsState.preview-contexts.length * 64px + 6px <= root.avail;
+
+    property <string> marked: @tr("The snippet's items are marked in blue; the greyed ones are already in the menu.");
+
+    background: root.compact ? transparent : Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: root.compact ? 0 : 1px;
+    border-color: Tokens.stroke;
+
+    VerticalLayout {
+        padding: root.compact ? 0 : Tokens.s4;
+        spacing: Tokens.s3;
+
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                Image {
+                    source: Icons.eye;
+                    width: 20px;
+                    height: 20px;
+                    colorize: Tokens.text-2;
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                Text {
+                    text: @tr("Preview");
+                    font-size: root.compact ? Tokens.body : Tokens.heading;
+                    font-weight: 600;
+                    color: Tokens.text;
+                }
+                if !root.compact && SnippetsState.preview-title != "": Text {
+                    text: SnippetsState.preview-title;
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    overflow: elide;
+                }
+            }
+            if SnippetsState.preview-state == "menu": VerticalLayout {
+                alignment: center;
+                Segmented {
+                    width: 116px;
+                    min-option-width: 52px;
+                    options: [@tr("Light"), @tr("Dark")];
+                    selected: AppearanceState.preview-dark ? 1 : 0;
+                    changed(i) => { AppearanceState.set-preview-dark(i == 1); }
+                }
+            }
+        }
+
+        // Where it adds items, when that's more than one place.
+        if SnippetsState.preview-state == "menu" && SnippetsState.preview-contexts.length > 1 && root.contexts-fit: HorizontalLayout {
+            alignment: start;
+            Segmented {
+                min-option-width: 64px;
+                options: SnippetsState.preview-contexts;
+                selected: SnippetsState.preview-context;
+                changed(i) => { SnippetsState.set-preview-context(i); }
+            }
+        }
+        if SnippetsState.preview-state == "menu" && SnippetsState.preview-contexts.length > 1 && !root.contexts-fit: HorizontalLayout {
+            alignment: start;
+            ComboBox {
+                width: min(root.avail, 200px);
+                model: SnippetsState.preview-contexts;
+                current-index: SnippetsState.preview-context;
+                selected => { SnippetsState.set-preview-context(self.current-index); }
+            }
+        }
+
+        if SnippetsState.preview-state == "loading": Rectangle {
+            vertical-stretch: 1;
+            min-height: root.pane-height > 0 ? root.pane-height : 160px;
+            border-radius: Tokens.radius-md;
+            background: Tokens.layer-2;
+            HorizontalLayout {
+                alignment: center;
+                spacing: Tokens.s2;
+                VerticalLayout {
+                    alignment: center;
+                    Spinner {
+                        width: 20px;
+                        height: 20px;
+                        indeterminate: true;
+                    }
+                }
+                Text {
+                    text: SnippetsState.preview-message;
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        if SnippetsState.preview-state == "menu": PreviewPane {
+            vertical-stretch: 1;
+            min-height: root.pane-height > 0 ? root.pane-height : 280px;
+            t: AppearanceState.preview;
+            context: SnippetsState.preview-pane;
+            menu: SnippetsState.preview-menu;
+            subs: SnippetsState.preview-subs;
+            wallpaper: AppearanceState.wallpaper;
+            blurred: AppearanceState.wallpaper-blurred;
+            icon-font: AppearanceState.icon-font;
+            dark: AppearanceState.preview-dark;
+        }
+        if SnippetsState.preview-state == "menu": Text {
+            text: SnippetsState.preview-note != "" ? SnippetsState.preview-note + " " + root.marked : root.marked;
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+
+        // No menu: why, and the code when there is some.
+        if SnippetsState.preview-state == "code" || SnippetsState.preview-state == "message": Text {
+            text: SnippetsState.preview-message;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+        if SnippetsState.preview-state == "code": CodeView {
+            lines: SnippetsState.preview-code;
+            columns: SnippetsState.preview-code-columns;
+            limit: root.pane-height > 0 ? root.pane-height : 420px;
+        }
+        if !root.compact && SnippetsState.preview-state != "menu" && SnippetsState.preview-state != "loading": Rectangle {
+            vertical-stretch: 1;
+        }
+    }
+}
+
+// One snippet: title and badges, a line saying what it does, the author and "Show code",
+// the switch on the right; the code under it when expanded. Clicking the row selects it
+// for the preview; in a narrow window the preview opens under the selected row.
+component SnippetItem inherits Rectangle {
+    in property <SnippetRow> entry;
+    in property <bool> locked;          // shared config, or a save in progress
+    in property <bool> inline-preview;
+    in property <length> preview-avail;
+
+    background: root.entry.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; }
+    accessible-role: list-item;
+    accessible-label: root.entry.title;
+    accessible-description: root.entry.description;
+    accessible-item-selected: root.entry.selected;
+
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { SnippetsState.select(root.entry.id); }
+    }
+    if root.entry.selected: Rectangle {
+        x: 0;
+        y: 12px;
+        width: 3px;
+        height: 18px;
+        border-radius: 1.5px;
+        background: Tokens.accent;
+    }
+
+    VerticalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s4;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        spacing: Tokens.s2;
+
+        HorizontalLayout {
+            spacing: Tokens.s4;
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 3px;
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    Text {
+                        text: root.entry.title;
+                        font-weight: 600;
+                        color: root.entry.available ? Tokens.text : Tokens.text-2;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    if root.entry.needs != "": VerticalLayout {
+                        alignment: center;
+                        Badge { text: root.entry.needs; }
+                    }
+                    if root.entry.risk == "admin": VerticalLayout {
+                        alignment: center;
+                        Badge { text: @tr("Runs as administrator"); warn: true; }
+                    }
+                    if root.entry.risk == "network": VerticalLayout {
+                        alignment: center;
+                        Badge { text: @tr("Uses the internet"); }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+                Text {
+                    text: root.entry.description;
+                    font-size: Tokens.caption + 1px;
+                    color: root.entry.available ? Tokens.text-2 : Tokens.text-3;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+                HorizontalLayout {
+                    spacing: Tokens.s3;
+                    padding-top: 1px;
+                    if root.entry.author-url == "": Text {
+                        text: @tr("by {}", root.entry.author);
+                        font-size: Tokens.caption;
+                        color: Tokens.text-3;
+                        vertical-alignment: center;
+                    }
+                    // RubicBG's snippets link to his collection.
+                    if root.entry.author-url != "": Link {
+                        text: @tr("by {}", root.entry.author);
+                        font-size: Tokens.caption;
+                        activated => { AppState.open-url(root.entry.author-url); }
+                    }
+                    Link {
+                        text: root.entry.expanded ? @tr("Hide code") : @tr("Show code");
+                        font-size: Tokens.caption;
+                        activated => { SnippetsState.toggle-code(root.entry.id); }
+                    }
+                    if root.entry.note != "": Text {
+                        horizontal-stretch: 1;
+                        text: root.entry.note;
+                        font-size: Tokens.caption;
+                        color: Tokens.warning;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Toggle {
+                    on: root.entry.enabled;
+                    enabled: root.entry.available && !root.locked;
+                    label: root.entry.title;
+                    toggled(on) => { SnippetsState.toggle(root.entry.id, on); }
+                }
+            }
+        }
+
+        if root.entry.expanded: CodeView {
+            lines: root.entry.code;
+            columns: root.entry.code-columns;
+        }
+
+        if root.inline-preview && root.entry.selected: SnippetPreview {
+            compact: true;
+            avail: root.preview-avail;
+            pane-height: max(240px, SnippetsState.preview-menu.height + 40px);
+        }
+    }
+}
+
+export component SnippetsPage inherits Rectangle {
+    // Side by side when there's room for both, as on the Appearance page; otherwise
+    // the preview opens under the selected row.
+    property <bool> wide: root.width >= 820px;
+    property <length> preview-width: clamp((root.width - 72px) * 0.4, 300px, 460px);
+
+    property <float> appear: 0;
+    init => {
+        root.appear = 1;
+        SnippetsState.activated();
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        spacing: Tokens.s5;
+
+        VerticalLayout {
+            spacing: Tokens.s2;
+            PageHeader {
+                title: @tr("Snippets");
+                description: @tr("Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved.");
+                busy: SnippetsState.busy;
+                busy-label: @tr("Checking and saving…");
+            }
+            // The credit for RubicBG's snippets, which come with the app.
+            HorizontalLayout {
+                alignment: start;
+                spacing: Tokens.s2;
+                Text {
+                    text: @tr("RubicBG's snippets are CC0, shared with his permission.");
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                    vertical-alignment: center;
+                }
+                Link {
+                    text: @tr("His collection on GitHub");
+                    font-size: Tokens.caption + 1px;
+                    activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            list := ScrollColumn {
+                // The categories as buttons when they fit beside the preview, else a list.
+                property <bool> tabs-fit: SnippetsState.categories.length * 72px + 6px <= self.visible-width - Tokens.s3;
+                horizontal-stretch: 1;
+                fit-width: true;
+                inset-right: Tokens.s3;
+                inset-bottom: Tokens.s6;
+                spacing: Tokens.s4;
+
+                if SnippetsState.shared-config: Banner {
+                    kind: "info";
+                    title: @tr("This is the shared config in the install folder");
+                    text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on.");
+                    action-label: @tr("Create personal config");
+                    action-enabled: !AppState.busy && AppState.cli-available;
+                    action => { SnippetsState.create-user-config(); }
+                }
+                if SnippetsState.load-error != "": Banner {
+                    kind: "error";
+                    title: @tr("Couldn't read the config");
+                    text: SnippetsState.load-error;
+                }
+
+                // Search, the count, then the categories.
+                HorizontalLayout {
+                    spacing: Tokens.s3;
+                    // Narrower before anything overflows (the count in Chinese is longer).
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        min-width: 120px;
+                        max-width: list.tabs-fit ? 280px : 200px;
+                        placeholder-text: @tr("Search snippets");
+                        edited(text) => { SnippetsState.search(text); }
+                    }
+                    if !list.tabs-fit: ComboBox {
+                        horizontal-stretch: 1;
+                        min-width: 110px;
+                        max-width: 170px;
+                        model: SnippetsState.categories;
+                        current-index: SnippetsState.category;
+                        selected => { SnippetsState.set-category(self.current-index); }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    Text {
+                        min-width: self.preferred-width;
+                        text: SnippetsState.summary;
+                        font-size: Tokens.caption + 1px;
+                        color: Tokens.text-2;
+                        vertical-alignment: center;
+                    }
+                }
+                if list.tabs-fit: HorizontalLayout {
+                    alignment: start;
+                    Segmented {
+                        options: SnippetsState.categories;
+                        selected: SnippetsState.category;
+                        min-option-width: 72px;
+                        changed(index) => { SnippetsState.set-category(index); }
+                    }
+                }
+
+                ListSurface {
+                    if SnippetsState.rows.length == 0: Text {
+                        height: 52px;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                        text: SnippetsState.empty-text;
+                        color: Tokens.text-3;
+                    }
+                    for r[i] in SnippetsState.rows: VerticalLayout {
+                        if i > 0: Hairline { }
+                        SnippetItem {
+                            entry: r;
+                            locked: SnippetsState.shared-config || SnippetsState.busy;
+                            inline-preview: !root.wide;
+                            // ListSurface's border and the row's padding.
+                            preview-avail: list.visible-width - Tokens.s3 - 2 * Tokens.s4 - 2px;
+                        }
+                    }
+                }
+            }
+
+            if root.wide && SnippetsState.selected != "": VerticalLayout {
+                width: root.preview-width;
+                padding-bottom: Tokens.s6;
+                SnippetPreview {
+                    vertical-stretch: 1;
+                    avail: root.preview-width - 2 * Tokens.s4 - 2px;
+                }
+            }
+        }
+    }
+}

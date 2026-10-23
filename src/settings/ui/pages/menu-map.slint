@@ -1,0 +1,798 @@
+import { ComboBox, ListView, ScrollView } from "std-widgets.slint";
+import { AppLineEdit as LineEdit } from "../components/line-edit.slint";
+import { Tokens } from "../theme/tokens.slint";
+import { AppState } from "../types.slint";
+import { EditorState } from "../editor-types.slint";
+import { MenuMapState, MapRow, MapPanel, MapDetail } from "../menumap-types.slint";
+import { Banner } from "../components/banner.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Toggle } from "../components/toggle.slint";
+import { AppButton, Link, Segmented } from "../components/controls.slint";
+import { CodeEditor } from "../components/code.slint";
+import { ScrollColumn } from "../components/scroll-column.slint";
+
+// Segoe Fluent Icons
+global Glyph {
+    out property <string> right: "\u{E76C}";
+    out property <string> down: "\u{E70D}";
+}
+
+// The node view's panel width; MenuMapController.cpp lays the panels out with it.
+global MapGeometry {
+    out property <length> panel-width: 248px;
+    out property <length> header: 34px;
+    out property <length> row: 28px;
+}
+
+// A small coloured dot for where an item comes from: your config (accent),
+// Windows (neutral), another program (outlined).
+component OriginDot inherits Rectangle {
+    in property <string> origin;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: root.origin == "shell" ? Tokens.accent : root.origin == "windows" ? Tokens.text-3 : transparent;
+    border-width: root.origin == "program" || root.origin == "unknown" ? 1px : 0px;
+    border-color: Tokens.text-2;
+}
+
+component ChangedDot inherits Rectangle {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: Tokens.accent;
+}
+
+// "Hidden", "Moved to More options": what the rules do, in a quiet tag.
+component StatusTag inherits Rectangle {
+    in property <string> text;
+    in property <string> kind;
+    height: 18px;
+    width: label.preferred-width + 10px;
+    border-radius: Tokens.radius-xs;
+    background: root.kind == "hidden" || root.kind == "maybe" ? Tokens.layer-3 : Tokens.accent-soft;
+    label := Text {
+        text: root.text;
+        font-size: Tokens.caption - 1px;
+        color: root.kind == "hidden" || root.kind == "maybe" ? Tokens.text-2 : Tokens.accent;
+        vertical-alignment: center;
+    }
+}
+
+component Chevron inherits Rectangle {
+    in property <bool> expanded;
+    in property <bool> visible-glyph: true;
+    callback clicked;
+    width: 20px;
+    height: 20px;
+    border-radius: Tokens.radius-xs;
+    background: ta.has-hover && root.visible-glyph ? Tokens.hover : transparent;
+    if root.visible-glyph: Text {
+        text: root.expanded ? Glyph.down : Glyph.right;
+        font-family: "Segoe Fluent Icons";
+        font-size: 10px;
+        color: Tokens.text-2;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    ta := TouchArea {
+        enabled: root.visible-glyph;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// One row of the outline: chevron, title, what the rules do, where it comes from,
+// the switch.
+component OutlineRow inherits Rectangle {
+    in property <MapRow> entry;
+    in property <bool> read-only;
+    callback selected();
+    callback expand();
+    callback toggled(on: bool);
+
+    height: 30px;
+    border-radius: Tokens.radius-sm;
+    background: root.entry.selected ? Tokens.selected : ta.has-hover && root.entry.kind != "group" ? Tokens.hover : transparent;
+
+    ta := TouchArea {
+        mouse-cursor: root.entry.kind == "group" ? pointer : default;
+        clicked => {
+            if (root.entry.kind == "group") {
+                root.expand();
+            } else {
+                root.selected();
+            }
+        }
+        double-clicked => {
+            if (root.entry.expandable) {
+                root.expand();
+            }
+        }
+    }
+
+    HorizontalLayout {
+        padding-left: 4px + root.entry.depth * 18px;
+        padding-right: Tokens.s4;
+        spacing: Tokens.s2;
+
+        VerticalLayout {
+            alignment: center;
+            Chevron {
+                visible-glyph: root.entry.expandable;
+                expanded: root.entry.expanded;
+                clicked => { root.expand(); }
+            }
+        }
+        if root.entry.kind == "group": Text {
+            horizontal-stretch: 1;
+            text: root.entry.title;
+            font-size: Tokens.caption + 1px;
+            font-weight: 600;
+            color: Tokens.text-2;
+            vertical-alignment: center;
+        }
+        if root.entry.kind == "group": Text {
+            text: root.entry.origin-label;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+            vertical-alignment: center;
+        }
+        if root.entry.kind == "separator": VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            Rectangle {
+                height: 1px;
+                background: Tokens.stroke-strong;
+            }
+        }
+        if root.entry.kind == "menu" || root.entry.kind == "item": HorizontalLayout {
+            horizontal-stretch: 1;
+            spacing: Tokens.s2;
+            VerticalLayout {
+                alignment: center;
+                OriginDot { origin: root.entry.origin; }
+            }
+            Text {
+                horizontal-stretch: 1;
+                min-width: min(self.preferred-width, 72px);
+                text: root.entry.title;
+                color: root.entry.dim ? Tokens.text-3 : Tokens.text;
+                font-weight: root.entry.kind == "menu" ? 600 : 400;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            if root.entry.status != "": VerticalLayout {
+                alignment: center;
+                StatusTag {
+                    text: root.entry.status;
+                    kind: root.entry.status-kind;
+                }
+            }
+            Text {
+                min-width: 120px;
+                max-width: 120px;
+                text: root.entry.origin-label;
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            VerticalLayout {
+                alignment: center;
+                width: 6px;
+                if root.entry.changed: ChangedDot { }
+            }
+            VerticalLayout {
+                alignment: center;
+                Toggle {
+                    on: root.entry.shown;
+                    enabled: root.entry.can-toggle && !root.read-only;
+                    label: root.entry.title;
+                    toggled(on) => { root.toggled(on); }
+                }
+            }
+        }
+    }
+}
+
+// One item in a node-view panel.
+component PanelRow inherits Rectangle {
+    in property <MapRow> entry;
+    callback selected();
+    callback expand();
+    callback toggled(on: bool);
+
+    height: MapGeometry.row;
+    background: root.entry.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+
+    ta := TouchArea {
+        clicked => {
+            root.selected();
+            if (root.entry.expandable) {
+                root.expand();
+            }
+        }
+    }
+
+    if root.entry.kind == "separator": Rectangle {
+        x: Tokens.s3;
+        width: parent.width - Tokens.s3 * 2;
+        height: 1px;
+        background: Tokens.stroke-strong;
+    }
+    if root.entry.kind != "separator": HorizontalLayout {
+        padding-left: Tokens.s3;
+        padding-right: 6px;
+        spacing: 6px;
+        VerticalLayout {
+            alignment: center;
+            OriginDot { origin: root.entry.origin; }
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: root.entry.title;
+            font-size: 13px;
+            color: root.entry.dim ? Tokens.text-3 : Tokens.text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        if root.entry.changed: VerticalLayout {
+            alignment: center;
+            ChangedDot { }
+        }
+        if root.entry.status-kind == "hidden" || root.entry.status-kind == "moved": Text {
+            text: root.entry.status-kind == "hidden" ? @tr("Hidden") : @tr("Moved");
+            font-size: Tokens.caption - 1px;
+            color: root.entry.status-kind == "moved" ? Tokens.accent : Tokens.text-3;
+            vertical-alignment: center;
+        }
+        if root.entry.expandable: Text {
+            width: 12px;
+            text: Glyph.right;
+            font-family: "Segoe Fluent Icons";
+            font-size: 9px;
+            color: root.entry.expanded ? Tokens.accent : Tokens.text-3;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// One menu in the node view.
+component Panel inherits Rectangle {
+    in property <MapPanel> panel;
+    width: MapGeometry.panel-width;
+    height: root.panel.height;
+    background: Tokens.layer;
+    border-radius: Tokens.radius-md;
+    border-width: 1px;
+    border-color: Tokens.stroke-strong;
+    clip: true;
+
+    HorizontalLayout {
+        y: 0;
+        width: root.width;
+        height: MapGeometry.header;
+        padding-left: Tokens.s3;
+        padding-right: Tokens.s3;
+        spacing: 6px;
+        VerticalLayout {
+            alignment: center;
+            OriginDot { origin: root.panel.origin; }
+        }
+        Text {
+            text: root.panel.title;
+            font-size: Tokens.caption + 1px;
+            font-weight: 600;
+            color: Tokens.text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    Rectangle {
+        y: MapGeometry.header - 1px;
+        width: root.width;
+        height: 1px;
+        background: Tokens.stroke;
+    }
+    for r[i] in root.panel.rows: PanelRow {
+        x: 0;
+        y: MapGeometry.header + i * MapGeometry.row;
+        width: root.width;
+        entry: r;
+        selected => { MenuMapState.select(r.key); }
+        expand => { MenuMapState.toggle-expand(r.key); }
+    }
+}
+
+component Section inherits VerticalLayout {
+    in property <string> title;
+    spacing: 4px;
+    Text {
+        text: root.title;
+        font-size: Tokens.caption;
+        font-weight: 600;
+        color: Tokens.text-3;
+    }
+    @children
+}
+
+component Wrapped inherits Text {
+    wrap: word-wrap;
+    min-height: self.preferred-height;
+    color: Tokens.text-2;
+    font-size: Tokens.caption + 1px;
+}
+
+// The selected item: where it comes from, what the rules do to it, and the actions.
+component DetailPanel inherits Rectangle {
+    in property <MapDetail> d: MenuMapState.detail;
+    in property <bool> read-only;
+
+    background: Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+
+    property <string> rename-text: root.d.rename-value;
+    property <int> serial: MenuMapState.detail-serial;
+    changed serial => { root.rename-text = root.d.rename-value; }
+
+    if root.d.key < 0: VerticalLayout {
+        padding: Tokens.s5;
+        alignment: start;
+        Wrapped {
+            text: @tr("Select an item to see where it comes from and what you can do with it.");
+        }
+    }
+
+    if root.d.key >= 0: ScrollColumn {
+        fit-width: true;
+        inset-left: Tokens.s5;
+        inset-right: Tokens.s5;
+        inset-top: Tokens.s5;
+        inset-bottom: Tokens.s5;
+        spacing: Tokens.s4;
+        VerticalLayout {
+            spacing: Tokens.s4;
+
+            VerticalLayout {
+                spacing: 2px;
+                Text {
+                    text: root.d.title;
+                    font-size: Tokens.heading;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+                Text {
+                    text: root.d.kind-label;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                }
+            }
+
+            Section {
+                title: @tr("Comes from");
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    VerticalLayout {
+                        alignment: center;
+                        OriginDot { origin: root.d.origin; }
+                    }
+                    Text {
+                        horizontal-stretch: 1;
+                        text: root.d.origin-text;
+                        color: Tokens.text;
+                        wrap: word-wrap;
+                        min-height: self.preferred-height;
+                    }
+                }
+                if root.d.file-label != "": Link {
+                    text: root.d.file-label;
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.open-in-editor(); }
+                }
+                if root.d.origin-detail != "": Wrapped {
+                    text: root.d.origin-detail;
+                    font-family: EditorState.mono-font;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                }
+                if root.d.facts != "": Wrapped {
+                    text: root.d.facts;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                }
+            }
+
+            if root.d.conditions != "": Section {
+                title: @tr("Shows when");
+                Wrapped {
+                    text: root.d.conditions;
+                    font-family: EditorState.mono-font;
+                    font-size: Tokens.caption;
+                }
+            }
+
+            if root.d.status != "": Section {
+                title: @tr("Rules");
+                Wrapped { text: root.d.status; }
+                if root.d.rule-label != "": VerticalLayout {
+                    spacing: 4px;
+                    alignment: start;
+                    Link {
+                        text: @tr("Open {}", root.d.rule-label);
+                        font-size: Tokens.caption + 1px;
+                        activated => { MenuMapState.open-rule(); }
+                    }
+                    if root.d.origin != "shell": Link {
+                        text: @tr("Context Menus page");
+                        font-size: Tokens.caption + 1px;
+                        activated => { MenuMapState.open-context-menus(); }
+                    }
+                }
+            }
+
+            if root.d.can-toggle || root.d.toggle-note != "": Section {
+                title: @tr("In the menu");
+                HorizontalLayout {
+                    spacing: Tokens.s3;
+                    Text {
+                        horizontal-stretch: 1;
+                        text: root.d.shown ? @tr("Shown") : @tr("Hidden");
+                        color: Tokens.text;
+                        vertical-alignment: center;
+                    }
+                    Toggle {
+                        on: root.d.shown;
+                        enabled: root.d.can-toggle && !root.read-only;
+                        label: @tr("Show {} in the menu", root.d.title);
+                        toggled(on) => { MenuMapState.toggle(root.d.key, on); }
+                    }
+                }
+                if root.d.pending != "": Wrapped {
+                    text: root.d.pending;
+                    color: Tokens.accent;
+                }
+                if root.d.toggle-note != "": Wrapped { text: root.d.toggle-note; }
+            }
+
+            if root.d.can-rename: Section {
+                title: @tr("Rename");
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        text <=> root.rename-text;
+                        accepted => { MenuMapState.rename(self.text); }
+                    }
+                    AppButton {
+                        text: @tr("Rename");
+                        enabled: root.rename-text != "" && root.rename-text != root.d.rename-value;
+                        clicked => { MenuMapState.rename(root.rename-text); }
+                    }
+                }
+                if root.d.can-reset-title: Link {
+                    text: @tr("Use the original title");
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.reset-title(); }
+                }
+            }
+
+            if root.d.can-move || root.d.move-note != "": Section {
+                title: @tr("Move to");
+                if root.d.can-move: HorizontalLayout {
+                    spacing: Tokens.s2;
+                    target := ComboBox {
+                        horizontal-stretch: 1;
+                        model: MenuMapState.move-targets;
+                    }
+                    AppButton {
+                        text: @tr("Move");
+                        enabled: target.current-index >= 0;
+                        clicked => { MenuMapState.move-to(target.current-index); }
+                    }
+                }
+                if root.d.can-reset-menu: Link {
+                    text: @tr("Put it back where Windows has it");
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.reset-menu(); }
+                }
+                if root.d.move-note != "": Wrapped { text: root.d.move-note; }
+            }
+
+            if root.d.can-edit-code || root.d.can-open: Section {
+                title: @tr("Code");
+                HorizontalLayout {
+                    spacing: Tokens.s3;
+                    alignment: start;
+                    if root.d.can-edit-code: AppButton {
+                        text: @tr("Edit code");
+                        enabled: !MenuMapState.busy;
+                        clicked => { MenuMapState.edit-code(); }
+                    }
+                    if root.d.can-open: VerticalLayout {
+                        alignment: center;
+                        Link {
+                            text: @tr("Open in the Config Editor");
+                            font-size: Tokens.caption + 1px;
+                            activated => { MenuMapState.open-in-editor(); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// "Edit code": one declaration, checked by shell.exe before it is saved.
+component EditCodeDialog inherits Rectangle {
+    background: Tokens.scrim;
+    TouchArea { }
+
+    FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                MenuMapState.edit-cancel();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    Rectangle {
+        width: min(880px, root.width - 64px);
+        height: min(560px, root.height - 64px);
+        background: Tokens.layer;
+        border-radius: Tokens.radius-lg;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: Tokens.shadow;
+        drop-shadow-offset-y: 8px;
+
+        VerticalLayout {
+            padding: Tokens.s6;
+            spacing: Tokens.s3;
+            VerticalLayout {
+                spacing: 2px;
+                Text {
+                    text: @tr("Edit code: {}", MenuMapState.edit-title);
+                    font-size: Tokens.subtitle;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    overflow: elide;
+                }
+                Text {
+                    text: @tr("{} · only this declaration changes; the rest of the file stays as it is.", MenuMapState.edit-file-label);
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+            }
+            Rectangle {
+                vertical-stretch: 1;
+                border-radius: Tokens.radius-md;
+                border-width: 1px;
+                border-color: Tokens.stroke-strong;
+                clip: true;
+                editor := CodeEditor {
+                    x: 1px;
+                    y: 1px;
+                    width: parent.width - 2px;
+                    height: parent.height - 2px;
+                    lines: MenuMapState.edit-lines;
+                    text <=> MenuMapState.edit-text;
+                    font: EditorState.mono-font;
+                    edited(t, c, ba, bc) => { return MenuMapState.edit-edited(t, c, ba, bc); }
+                    command(name, a, c) => { return MenuMapState.edit-command(name, a, c); }
+                    find(q, a, c, back, inc) => { return MenuMapState.edit-find(q, a, c, back, inc); }
+                    selected-text(a, c) => { return MenuMapState.edit-selected-text(a, c); }
+                    key-pressed(event) => {
+                        if (event.modifiers.control && (event.text == "s" || event.text == "S")) {
+                            MenuMapState.edit-save();
+                            return accept;
+                        }
+                        if (event.text == Key.Escape) {
+                            MenuMapState.edit-cancel();
+                            return accept;
+                        }
+                        return reject;
+                    }
+                    init => { self.focus-input(); }
+                }
+            }
+            if MenuMapState.edit-error != "": Text {
+                text: MenuMapState.edit-error;
+                color: Tokens.danger;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                alignment: end;
+                AppButton {
+                    text: @tr("Cancel");
+                    clicked => { MenuMapState.edit-cancel(); }
+                }
+                AppButton {
+                    text: MenuMapState.busy ? @tr("Checking…") : @tr("Check and save");
+                    primary: true;
+                    enabled: MenuMapState.edit-dirty && !MenuMapState.busy;
+                    clicked => { MenuMapState.edit-save(); }
+                }
+            }
+        }
+    }
+}
+
+export component MenuMapPage inherits Rectangle {
+    property <float> appear: 0;
+    init => {
+        root.appear = 1;
+        MenuMapState.activated();
+    }
+    animate appear { duration: 180ms; easing: ease-out; }
+    opacity: root.appear;
+
+    VerticalLayout {
+        padding-left: Tokens.s8 + Tokens.s1;
+        padding-right: Tokens.s8 + Tokens.s1;
+        padding-top: Tokens.s6 + Tokens.s1;
+        padding-bottom: Tokens.s6;
+        spacing: Tokens.s4;
+
+        PageHeader {
+            title: @tr("Menu map");
+            description: @tr("The menu as it opens for a file, a folder or the desktop: your Shell items with the line that adds each one, and the items Windows and other programs add.");
+            busy: MenuMapState.loading || MenuMapState.busy;
+            busy-label: MenuMapState.loading ? @tr("Reading the menu…") : @tr("Checking and saving…");
+            AppButton {
+                text: @tr("Refresh");
+                enabled: !MenuMapState.loading;
+                clicked => { MenuMapState.refresh(); }
+            }
+        }
+
+        if MenuMapState.shared-config: Banner {
+            kind: "info";
+            title: @tr("This is the shared config in the install folder");
+            text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to hide, rename or move items.");
+            action-label: @tr("Create personal config");
+            action-enabled: !AppState.busy && AppState.cli-available;
+            action => { MenuMapState.create-user-config(); }
+        }
+        if MenuMapState.error != "": Banner {
+            kind: "error";
+            title: @tr("Couldn't read the menu");
+            text: MenuMapState.error;
+        }
+        if MenuMapState.config-errors.length > 0: Banner {
+            kind: "error";
+            title: @tr("Your config doesn't load");
+            text: MenuMapState.config-errors[0];
+        }
+
+        // What to show: the context, the sample file type, the view.
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            Segmented {
+                options: MenuMapState.contexts;
+                selected: MenuMapState.context;
+                min-option-width: 72px;
+                enabled: !MenuMapState.loading;
+                changed(i) => { MenuMapState.set-context(i); }
+            }
+            if MenuMapState.context == 0: ComboBox {
+                width: 168px;
+                model: MenuMapState.samples;
+                current-index: MenuMapState.sample;
+                enabled: !MenuMapState.loading;
+                selected => { MenuMapState.set-sample(self.current-index); }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Segmented {
+                options: [@tr("Outline"), @tr("Nodes")];
+                selected: MenuMapState.view;
+                min-option-width: 76px;
+                changed(i) => { MenuMapState.set-view(i); }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            Text {
+                horizontal-stretch: 1;
+                text: MenuMapState.notice != "" ? MenuMapState.notice : MenuMapState.summary;
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            Link {
+                text: @tr("Expand all");
+                font-size: Tokens.caption + 1px;
+                activated => { MenuMapState.expand-all(true); }
+            }
+            Link {
+                text: @tr("Collapse all");
+                font-size: Tokens.caption + 1px;
+                activated => { MenuMapState.expand-all(false); }
+            }
+        }
+
+        HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: Tokens.s4;
+
+            Rectangle {
+                horizontal-stretch: 1;
+                background: MenuMapState.view == 0 ? Tokens.layer : Tokens.layer-2;
+                border-radius: Tokens.radius-lg;
+                border-width: 1px;
+                border-color: Tokens.stroke;
+                clip: true;
+
+                if MenuMapState.view == 0: ListView {
+                    x: 4px;
+                    y: 4px;
+                    width: parent.width - 8px;
+                    height: parent.height - 8px;
+                    for r in MenuMapState.rows: OutlineRow {
+                        entry: r;
+                        read-only: MenuMapState.shared-config;
+                        selected => { MenuMapState.select(r.key); }
+                        expand => { MenuMapState.toggle-expand(r.key); }
+                        toggled(on) => { MenuMapState.toggle(r.key, on); }
+                    }
+                }
+
+                // Each open menu is a panel; a line runs from the item that opens a
+                // submenu to its panel. Drag or scroll to move around.
+                if MenuMapState.view == 1: Flickable {
+                    content-width: max(MenuMapState.canvas-width, parent.width);
+                    content-height: max(MenuMapState.canvas-height, parent.height);
+                    Path {
+                        x: 0;
+                        y: 0;
+                        width: MenuMapState.canvas-width;
+                        height: MenuMapState.canvas-height;
+                        viewbox-x: 0;
+                        viewbox-y: 0;
+                        viewbox-width: MenuMapState.canvas-width / 1px;
+                        viewbox-height: MenuMapState.canvas-height / 1px;
+                        commands: MenuMapState.links;
+                        stroke: Tokens.accent-border;
+                        stroke-width: 1.5px;
+                    }
+                    for p in MenuMapState.panels: Panel {
+                        x: p.x;
+                        y: p.y;
+                        panel: p;
+                    }
+                }
+
+                if MenuMapState.loaded && MenuMapState.rows.length == 0 && !MenuMapState.loading: Text {
+                    text: @tr("Nothing to show yet.");
+                    color: Tokens.text-3;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            DetailPanel {
+                width: 320px;
+                read-only: MenuMapState.shared-config;
+            }
+        }
+    }
+
+    if MenuMapState.editing: EditCodeDialog {
+        width: 100%;
+        height: 100%;
+    }
+}

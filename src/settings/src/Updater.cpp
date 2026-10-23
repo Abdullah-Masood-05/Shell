@@ -588,7 +588,12 @@ std::string sha256File(const fs::path &file)
     return result;
 }
 
-bool isAllowedDownloadUrl(std::string_view url)
+namespace {
+
+// An https URL split into its lower-case host and its path without query or fragment.
+// False for anything else, a user name, a port other than 443, or a path with "." or
+// ".." segments (also percent-encoded).
+bool splitHttpsUrl(std::string_view url, std::string &host, std::string_view &pathOnly)
 {
     if (!startsWithI(url, "https://") || url.find('\\') != std::string_view::npos)
         return false;
@@ -596,7 +601,7 @@ bool isAllowedDownloadUrl(std::string_view url)
     auto slash = rest.find('/');
     if (slash == std::string_view::npos)
         return false;
-    auto host = lower(std::string(rest.substr(0, slash)));
+    host = lower(std::string(rest.substr(0, slash)));
     auto path = rest.substr(slash);
     if (host.find('@') != std::string::npos)
         return false;
@@ -606,9 +611,20 @@ bool isAllowedDownloadUrl(std::string_view url)
         host.resize(colon);
     }
     auto query = path.find_first_of("?#");
-    auto pathOnly = path.substr(0, query);
+    pathOnly = path.substr(0, query);
     if (pathOnly.find("/../") != std::string_view::npos || pathOnly.find("/./") != std::string_view::npos ||
         pathOnly.find("%2e") != std::string_view::npos || pathOnly.find("%2E") != std::string_view::npos)
+        return false;
+    return true;
+}
+
+} // namespace
+
+bool isAllowedDownloadUrl(std::string_view url)
+{
+    std::string host;
+    std::string_view pathOnly;
+    if (!splitHttpsUrl(url, host, pathOnly))
         return false;
     if (host == "github.com")
         return startsWithI(pathOnly, "/Abdullah-Masood-05/Shell/releases/download/") &&

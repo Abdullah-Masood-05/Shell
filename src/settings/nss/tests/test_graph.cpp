@@ -108,11 +108,34 @@ TEST_CASE("config graph: import cycles and expression evaluation")
 	CHECK(ConfigGraph::evaluate("'a@@b'", vars) == "a@b");
 	CHECK(ConfigGraph::evaluate("'%NSS_TEST_UNSET_VAR%\\a'", vars) == "%NSS_TEST_UNSET_VAR%\\a");
 	std::string reason;
+	CHECK(ConfigGraph::evaluate("path.location(app.dir + '\\shell.nss') + '\\imports\\x.nss'", vars) == "C:\\Shell\\imports\\x.nss");
+	CHECK(ConfigGraph::evaluate("path.parent('C:\\a\\b')", vars) == "C:\\a");
+	CHECK_FALSE(ConfigGraph::evaluate("path.location(sys.dir)", vars));
 	CHECK_FALSE(ConfigGraph::evaluate("path.join(a, b)", vars, &reason));
 	CHECK_FALSE(ConfigGraph::evaluate("unknown + 'x'", vars, &reason));
 	CHECK(reason == "unknown identifier 'unknown'");
 	CHECK_FALSE(ConfigGraph::evaluate("'@str.lower(x)'", vars));
 	CHECK_FALSE(ConfigGraph::evaluate("a - b", vars));
+}
+
+TEST_CASE("config graph: taskbar.nss's Apps list, there or not yet")
+{
+	test::TempDir tmp;
+	auto dir = tmp.path;
+	test::writeBytes(dir / "shell.nss", "import 'imports/taskbar.nss'\r\n");
+	test::writeBytes(dir / "imports/taskbar.nss",
+					 "$taskbar_apps = path.location(app.cfg) + '\\imports\\settings-app-taskbar.nss'\r\n"
+					 "menu(title='Apps') { import taskbar_apps }\r\n");
+	auto none = ConfigGraph::load(dir / "shell.nss");
+	CHECK(none.files().size() == 2);  // not written yet: nothing, and nothing unresolved
+	CHECK(none.unresolved().empty());
+
+	test::writeBytes(dir / "imports/settings-app-taskbar.nss", "item(title='x' cmd='x.exe')\r\n");
+	auto some = ConfigGraph::load(dir / "shell.nss");
+	REQUIRE(some.files().size() == 3);
+	CHECK(some.files()[2].path.filename() == "settings-app-taskbar.nss");
+	CHECK(some.files()[2].context.mode == ParseMode::Menu);
+	CHECK(some.unresolved().empty());
 }
 
 TEST_CASE("config graph: the shipped configuration")

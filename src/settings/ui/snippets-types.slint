@@ -1,0 +1,59 @@
+// Snippets page data shared with C++ (src/SnippetsController.cpp).
+
+import { CodeLine } from "editor-types.slint";
+import { PreviewMenu } from "preview/preview-types.slint";
+
+// One snippet of the catalog, as the page lists it.
+export struct SnippetRow {
+    id: string,
+    title: string,
+    description: string,       // one line
+    author: string,
+    author-url: string,        // the "by ..." link, "" for none
+    category: string,          // the category's label
+    enabled: bool,             // turned on in the config
+    available: bool,           // its requirements are met: the switch works
+    needs: string,             // "Needs 7-Zip" when not available, else ""
+    risk: string,              // admin | network | ""
+    note: string,              // the user's copy: edited, missing, ...
+    expanded: bool,            // showing its code
+    code: [CodeLine],          // the .nss, highlighted (only while expanded)
+    code-columns: int,
+    selected: bool,            // the one the preview shows
+}
+
+export global SnippetsState {
+    in property <bool> loaded;
+    in property <string> load-error;
+    in property <bool> shared-config;   // the install folder's config: read-only here
+    in property <bool> busy;            // a switch is being checked and saved
+    in property <string> busy-id;
+    in property <[SnippetRow]> rows;    // the ones the search and the category let through
+    in property <[string]> categories;  // "All" first
+    in property <int> category;
+    in property <string> summary;       // "3 of 12 on"
+    in property <string> empty-text;    // when no row matches
+
+    // The preview of the selected snippet (src/SnippetsController.cpp, src/SnippetPreview.h).
+    in property <string> selected;          // its id
+    in property <string> preview-title;
+    in property <string> preview-state;     // loading | menu | code | message
+    in property <string> preview-message;   // loading, why there's no menu, or a note over the code
+    in property <string> preview-note;      // under the menu: "Shown for a .zip file"
+    in property <[string]> preview-contexts;// where it adds items: File, Folder, ...
+    in property <int> preview-context;
+    in property <int> preview-pane;         // PreviewPane's context: 0 desktop, 1 File Explorer
+    in property <PreviewMenu> preview-menu;
+    in property <[PreviewMenu]> preview-subs;
+    in property <[CodeLine]> preview-code;  // "code": the snippet's code instead
+    in property <int> preview-code-columns;
+
+    callback activated();
+    callback select(id: string);
+    callback set-preview-context(index: int);
+    callback search(text: string);
+    callback set-category(index: int);
+    callback toggle(id: string, on: bool);
+    callback toggle-code(id: string);
+    callback create-user-config();
+}

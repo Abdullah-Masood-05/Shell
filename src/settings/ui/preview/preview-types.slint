@@ -65,6 +65,12 @@ export struct PreviewItem {
     sub: int,                 // index into the context's submenus, or -1
     y: length,
     h: length,
+    // The Snippets page's preview (src/SnippetsController.cpp):
+    glyph-font: string,       // the glyph's font when it isn't the pane's icon font
+    icon: image,              // an SVG or a program's icon, drawn instead of the glyph
+    has-icon: bool,
+    own: bool,                // the snippet's item: marked with the accent
+    placeholder: bool,        // a title that depends on the selection
 }
 
 export struct PreviewMenu {

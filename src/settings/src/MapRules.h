@@ -1,0 +1,49 @@
+#pragma once
+
+// The app-owned imports/settings-app-map.nss: the modify(...)/remove(...) rules
+// the Menu map page writes (hide, rename or move a Windows item), one statement
+// per line.
+//
+// Why not imports/settings-app.nss: that file is imported last so its theme and
+// settings values win, but shell.dll applies modify/remove rules in the order it
+// reads them, and a rule can't reach an item an earlier rule already moved (the
+// shipped modify.nss moves Send to, Share, Print, Copy as path and more). So this
+// file is imported before the root's other config imports: hiding "Send to" works
+// although modify.nss moves it, and a move made here wins over one in modify.nss.
+//
+// Every line other than the header is a rule, kept verbatim: the Context Menus
+// page turns one off by commenting it out ("// remove(...)"), and that stays.
+// The user may edit the file by hand: comments, blank lines, indentation and
+// statements the page doesn't know are kept as lines too, in their place.
+
+#include "nss/NssDocument.h"
+#include "nss/OverridesWriter.h"
+
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace maprules {
+
+using Rules = std::vector<std::string>;
+
+inline constexpr std::string_view relativePath = "imports/settings-app-map.nss";
+inline constexpr std::string_view header = nss::OverridesWriter::header;
+
+// The file text: the header, then each line (a rule, a comment, a blank line...).
+std::string generate(const Rules &rules, nss::Eol eol = nss::Eol::CRLF);
+
+// The lines a settings-app-map.nss holds, as written: the header (today's or an
+// older one) and the blank lines around them left out, trailing spaces trimmed.
+Rules read(const nss::NssDocument &doc);
+
+// Makes sure the root imports the file: when it doesn't, the import is put on its
+// own line before the root's first config import (after `import lang` and the
+// settings{} block), else at the end. An import that is already there stays where
+// it is. Returns true when the document changed.
+bool ensureImported(nss::NssDocument &root, std::string_view relPath = relativePath);
+
+// "// remove(...)" -> "remove(...)"; any other text trimmed.
+std::string_view uncommented(std::string_view line);
+
+} // namespace maprules

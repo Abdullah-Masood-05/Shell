@@ -88,3 +88,12 @@
 		image = boolean value
 	}
 }</code></pre>
+<h5 id="exclude-taskbar">The taskbar</h5>
+<p>When <code>exclude</code> is true on the taskbar, Shell leaves the taskbar's right-click alone and you get Windows'
+	own taskbar menu. On Windows 11 that is the menu with Task Manager and Taskbar settings. On the taskbar
+	<code>window.is_taskbar</code> is true. For example, to keep Shell's menu in File Explorer and on the desktop and give
+	the taskbar back to Windows:</p>
+<pre><code class="lang-shell">settings
+{
+	exclude.where = !process.is_explorer or window.is_taskbar
+}</code></pre>
