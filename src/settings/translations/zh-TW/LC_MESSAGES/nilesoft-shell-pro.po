@@ -10,7 +10,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:50
+#: ui/app.slint:54
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Microsoft JhengHei UI"
@@ -206,11 +206,11 @@ msgstr "進階"
 msgid "Backups"
 msgstr "備份"
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:251
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:268
 msgid "Version {}"
 msgstr "版本 {}"
 
-#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:417
+#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:510
 msgid "Checking status…"
 msgstr "正在檢查狀態…"
 
@@ -339,6 +339,18 @@ msgstr "「現代」樣式，一律深色。"
 msgid "Theme"
 msgstr "主題"
 
+#: ui/components/translation-banner.slint:41
+msgid "Showing translations from {}. Untranslated text stays in English."
+msgstr "正在顯示 {} 中的翻譯。未翻譯的文字仍以英文顯示。"
+
+#: ui/components/translation-banner.slint:61
+msgid "Reload"
+msgstr "重新載入"
+
+#: ui/components/translation-banner.slint:67
+msgid "Stop"
+msgstr "停止"
+
 #: ui/components/update-banner.slint:59
 msgid "Downloading Nilesoft Shell Pro {}…"
 msgstr "正在下載 Nilesoft Shell Pro {}…"
@@ -383,11 +395,11 @@ msgstr "版本資訊"
 msgid "Skip this version"
 msgstr "略過此版本"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:206
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
 msgid "Restart to update"
 msgstr "重新啟動以更新"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:206
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
 msgid "Download and install"
 msgstr "下載並安裝"
 
@@ -439,7 +451,7 @@ msgstr "Shell 選單的主題、色彩、字型和效果。變更時預覽會隨
 msgid "Couldn't read your config"
 msgstr "無法讀取你的設定檔"
 
-#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:431
+#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:524
 msgid "Try again"
 msgstr "再試一次"
 
@@ -1073,7 +1085,7 @@ msgstr "Windows 11 選單"
 msgid "Shell DLL"
 msgstr "Shell DLL"
 
-#: ui/pages/home.slint:206 ui/pages/preferences.slint:115
+#: ui/pages/home.slint:206 ui/pages/preferences.slint:132
 msgid "Version"
 msgstr "版本"
 
@@ -2074,147 +2086,155 @@ msgstr "語言"
 msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
 msgstr "「自動」會依照 Windows 顯示語言（目前為 {}）。變更後會立即套用。"
 
-#: ui/pages/preferences.slint:87
+#: ui/pages/preferences.slint:88
+msgid "Test a translation file…"
+msgstr "測試翻譯檔案…"
+
+#: ui/pages/preferences.slint:92
+msgid "For translators: shows the app in a .po file until you stop it or close the app."
+msgstr "供譯者使用：依一個 .po 檔案顯示本應用程式，直到你停止測試或關閉應用程式。"
+
+#: ui/pages/preferences.slint:104
 msgid "All users on this PC"
 msgstr "這台電腦上的所有使用者"
 
-#: ui/pages/preferences.slint:88
+#: ui/pages/preferences.slint:105
 msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
 msgstr "為這台電腦上的所有人註冊 Shell 需要系統管理員權限。此應用程式中的其他功能都不需要系統管理員權限。"
 
-#: ui/pages/preferences.slint:90
+#: ui/pages/preferences.slint:107
 msgid "All users"
 msgstr "所有使用者"
 
-#: ui/pages/preferences.slint:91 ui/pages/preferences.slint:95
+#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112
 msgid "Registered"
 msgstr "已註冊"
 
-#: ui/pages/preferences.slint:91 ui/pages/preferences.slint:95 src/AppController.cpp:123
+#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112 src/AppController.cpp:123
 msgid "Not registered"
 msgstr "未註冊"
 
-#: ui/pages/preferences.slint:94
+#: ui/pages/preferences.slint:111
 msgid "Just you"
 msgstr "僅目前使用者"
 
-#: ui/pages/preferences.slint:101
+#: ui/pages/preferences.slint:118
 msgid "Unregister for all users"
 msgstr "為所有使用者取消註冊"
 
-#: ui/pages/preferences.slint:101
+#: ui/pages/preferences.slint:118
 msgid "Register for all users"
 msgstr "為所有使用者註冊"
 
-#: ui/pages/preferences.slint:112
+#: ui/pages/preferences.slint:129
 msgid "Updates"
 msgstr "更新"
 
-#: ui/pages/preferences.slint:113
+#: ui/pages/preferences.slint:130
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
 msgstr "新版本來自此專案在 GitHub 上的發行版本，安裝前會先核對 SHA-256 總和檢查碼。"
 
-#: ui/pages/preferences.slint:116
+#: ui/pages/preferences.slint:133
 msgid "{}  ·  installed for all users (MSI)"
 msgstr "{}  ·  已為所有使用者安裝 (MSI)"
 
-#: ui/pages/preferences.slint:117
+#: ui/pages/preferences.slint:134
 msgid "{}  ·  portable copy"
 msgstr "{}  ·  可攜式版本"
 
-#: ui/pages/preferences.slint:123
+#: ui/pages/preferences.slint:140
 msgid "Channel"
 msgstr "通道"
 
-#: ui/pages/preferences.slint:132
+#: ui/pages/preferences.slint:149
 msgid "Stable"
 msgstr "穩定版"
 
-#: ui/pages/preferences.slint:132
+#: ui/pages/preferences.slint:149
 msgid "Beta"
 msgstr "測試版"
 
-#: ui/pages/preferences.slint:138
+#: ui/pages/preferences.slint:155
 msgid "Pre-releases too"
 msgstr "包含發行前版本"
 
-#: ui/pages/preferences.slint:138
+#: ui/pages/preferences.slint:155
 msgid "Releases only"
 msgstr "僅發行版本"
 
-#: ui/pages/preferences.slint:146
+#: ui/pages/preferences.slint:163
 msgid "Check for updates automatically"
 msgstr "自動檢查更新"
 
-#: ui/pages/preferences.slint:147
+#: ui/pages/preferences.slint:164
 msgid "When the app starts, at most once a day."
 msgstr "在應用程式啟動時檢查，每天最多一次。"
 
-#: ui/pages/preferences.slint:152
+#: ui/pages/preferences.slint:169
 msgid "Download and install updates automatically"
 msgstr "自動下載並安裝更新"
 
-#: ui/pages/preferences.slint:153
+#: ui/pages/preferences.slint:170
 msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
 
-#: ui/pages/preferences.slint:176 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:193 src/UpdateController.cpp:536
 msgid "Checking for updates…"
 msgstr "正在檢查更新…"
 
-#: ui/pages/preferences.slint:177
+#: ui/pages/preferences.slint:194
 msgid "Version {} is available"
 msgstr "有可用的版本 {}"
 
-#: ui/pages/preferences.slint:178
+#: ui/pages/preferences.slint:195
 msgid "Downloading {}…  {}"
 msgstr "正在下載 {}…  {}"
 
-#: ui/pages/preferences.slint:179
+#: ui/pages/preferences.slint:196
 msgid "Version {} is downloaded and verified"
 msgstr "版本 {} 已下載並驗證"
 
-#: ui/pages/preferences.slint:180
+#: ui/pages/preferences.slint:197
 msgid "Installing {}…"
 msgstr "正在安裝 {}…"
 
-#: ui/pages/preferences.slint:182
+#: ui/pages/preferences.slint:199
 msgid "Not checked yet"
 msgstr "尚未檢查"
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:213
 msgid "Last checked: {}"
 msgstr "上次檢查時間：{}"
 
-#: ui/pages/preferences.slint:217
+#: ui/pages/preferences.slint:234
 msgid "Check now"
 msgstr "立即檢查"
 
-#: ui/pages/preferences.slint:233
+#: ui/pages/preferences.slint:250
 msgid "About"
 msgstr "關於"
 
-#: ui/pages/preferences.slint:255
+#: ui/pages/preferences.slint:272
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr "© Nilesoft Ltd. 及貢獻者。MIT 授權。"
 
-#: ui/pages/preferences.slint:269
+#: ui/pages/preferences.slint:286
 msgid "Documentation"
 msgstr "說明文件"
 
-#: ui/pages/preferences.slint:274
+#: ui/pages/preferences.slint:291
 msgid "Source code"
 msgstr "原始碼"
 
-#: ui/pages/preferences.slint:278
+#: ui/pages/preferences.slint:295
 msgid "Report an issue"
 msgstr "回報問題"
 
-#: ui/pages/preferences.slint:287
+#: ui/pages/preferences.slint:304
 msgid "Third-party software"
 msgstr "協力廠商軟體"
 
-#: ui/pages/preferences.slint:292
+#: ui/pages/preferences.slint:309
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "使用 Slint 建置 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
 
@@ -2385,7 +2405,7 @@ msgstr "shell.exe 已結束，結束代碼為 {}。"
 msgid "Registered for you"
 msgstr "已為你註冊"
 
-#: src/AppController.cpp:119 src/AppController.cpp:522
+#: src/AppController.cpp:119 src/AppController.cpp:615
 msgid "Registered for all users"
 msgstr "已為所有使用者註冊"
 
@@ -2485,116 +2505,159 @@ msgstr "已為你和這台電腦上的所有使用者啟用。"
 msgid "Active for every user on this PC."
 msgstr "已為這台電腦上的所有使用者啟用。"
 
+#: src/AppController.cpp:269
+msgid "Test a translation file"
+msgstr "測試翻譯檔案"
+
 #: src/AppController.cpp:270
+msgid "Translation files"
+msgstr "翻譯檔案"
+
+#: src/AppController.cpp:271 src/OpenWithController.cpp:1041
+msgid "All files"
+msgstr "所有檔案"
+
+#: src/AppController.cpp:305
+msgid "The translation file can't be reloaded"
+msgstr "無法重新載入翻譯檔案"
+
+#: src/AppController.cpp:305
+msgid "The translation file can't be used"
+msgstr "無法使用此翻譯檔案"
+
+#: src/AppController.cpp:315
+msgid "{} of {} strings translated"
+msgstr "已翻譯 {} / {} 個字串"
+
+#: src/AppController.cpp:317
+msgid "{n} missing"
+msgid_plural "{n} missing"
+msgstr[0] "缺少 {n} 個"
+
+#: src/AppController.cpp:319
+msgid "{n} fuzzy, not shown"
+msgid_plural "{n} fuzzy, not shown"
+msgstr[0] "{n} 個模糊翻譯未顯示"
+
+#: src/AppController.cpp:321
+msgid "{n} not in this version of the app"
+msgid_plural "{n} not in this version of the app"
+msgstr[0] "{n} 個不在此版本的應用程式中"
+
+#: src/AppController.cpp:329
+msgid "Translation file reloaded"
+msgstr "已重新載入翻譯檔案"
+
+#: src/AppController.cpp:357
 msgctxt "Language"
 msgid "Auto"
 msgstr "自動"
 
-#: src/AppController.cpp:405
+#: src/AppController.cpp:498
 msgid "shell.exe was not found"
 msgstr "找不到 shell.exe"
 
-#: src/AppController.cpp:406
+#: src/AppController.cpp:499
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr "請安裝 Nilesoft Shell，或將 NilesoftShellPro.exe 放到 shell.exe 所在的資料夾中。"
 
-#: src/AppController.cpp:410
+#: src/AppController.cpp:503
 msgid "Nilesoft Shell was not found"
 msgstr "找不到 Nilesoft Shell"
 
-#: src/AppController.cpp:411
+#: src/AppController.cpp:504
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr "NilesoftShellPro.exe 會在自身所在的資料夾及已註冊的 shell.dll 所在的資料夾中尋找 shell.exe。"
 
-#: src/AppController.cpp:412 src/EditorController.cpp:303
+#: src/AppController.cpp:505 src/EditorController.cpp:303
 msgid "Not found"
 msgstr "找不到"
 
-#: src/AppController.cpp:431 src/AppController.cpp:434
+#: src/AppController.cpp:524 src/AppController.cpp:527
 msgid "Couldn't read the Shell status"
 msgstr "無法讀取 Shell 狀態"
 
-#: src/AppController.cpp:508 src/AppController.cpp:550
+#: src/AppController.cpp:601 src/AppController.cpp:643
 msgid "Restarting Explorer…"
 msgstr "正在重新啟動檔案總管…"
 
-#: src/AppController.cpp:508
+#: src/AppController.cpp:601
 msgid "Explorer restarted"
 msgstr "檔案總管已重新啟動"
 
-#: src/AppController.cpp:510
+#: src/AppController.cpp:603
 msgid "Registering for you…"
 msgstr "正在為你註冊…"
 
-#: src/AppController.cpp:510
+#: src/AppController.cpp:603
 msgid "Shell is enabled for you"
 msgstr "已為你啟用 Shell"
 
-#: src/AppController.cpp:511
+#: src/AppController.cpp:604
 msgid "Restart Explorer to load it everywhere."
 msgstr "重新啟動檔案總管，讓它在所有位置生效。"
 
-#: src/AppController.cpp:515
+#: src/AppController.cpp:608
 msgid "Unregistering…"
 msgstr "正在取消註冊…"
 
-#: src/AppController.cpp:515
+#: src/AppController.cpp:608
 msgid "Shell is disabled for you"
 msgstr "已為你停用 Shell"
 
-#: src/AppController.cpp:516 src/AppController.cpp:527
+#: src/AppController.cpp:609 src/AppController.cpp:620
 msgid "Restart Explorer to unload it."
 msgstr "重新啟動檔案總管以將其卸載。"
 
-#: src/AppController.cpp:518
+#: src/AppController.cpp:611
 msgid "Creating your config…"
 msgstr "正在建立你的設定檔…"
 
-#: src/AppController.cpp:518
+#: src/AppController.cpp:611
 msgid "Personal config created"
 msgstr "已建立個人設定檔"
 
-#: src/AppController.cpp:519
+#: src/AppController.cpp:612
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr "Shell 現在會從 %APPDATA%\\Nilesoft\\Shell 讀取設定檔。"
 
-#: src/AppController.cpp:521 src/AppController.cpp:526 src/AppController.cpp:531 src/UpdateController.cpp:731
+#: src/AppController.cpp:614 src/AppController.cpp:619 src/AppController.cpp:624 src/UpdateController.cpp:731
 msgid "Waiting for administrator approval…"
 msgstr "正在等待系統管理員核准…"
 
-#: src/AppController.cpp:522
+#: src/AppController.cpp:615
 msgid "Restart Explorer to load it."
 msgstr "重新啟動檔案總管以載入它。"
 
-#: src/AppController.cpp:527
+#: src/AppController.cpp:620
 msgid "Unregistered for all users"
 msgstr "已為所有使用者取消註冊"
 
-#: src/AppController.cpp:532
+#: src/AppController.cpp:625
 msgid "Only this copy is registered now"
 msgstr "現在只註冊了這一份"
 
-#: src/AppController.cpp:532
+#: src/AppController.cpp:625
 msgid "Explorer was restarted."
 msgstr "檔案總管已重新啟動。"
 
-#: src/AppController.cpp:553
+#: src/AppController.cpp:646
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr "已註冊，但檔案總管未能重新啟動：{}"
 
-#: src/AppController.cpp:560
+#: src/AppController.cpp:653
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr "另一份仍處於註冊狀態：{}。請在「設定 > 應用程式」中將其解除安裝，然後再試一次。"
 
-#: src/AppController.cpp:567 src/UpdateController.cpp:758
+#: src/AppController.cpp:660 src/UpdateController.cpp:758
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr "已取消系統管理員提示。未進行任何變更。"
 
-#: src/AppController.cpp:568
+#: src/AppController.cpp:661
 msgid "Cancelled"
 msgstr "已取消"
 
-#: src/AppController.cpp:573
+#: src/AppController.cpp:666
 msgid "That didn't work"
 msgstr "操作未成功"
 
@@ -4203,10 +4266,6 @@ msgstr "以 @ 開頭的部分會在選單開啟時由 Shell 填入。"
 msgid "It runs as administrator; Windows asks first."
 msgstr "將以系統管理員身分執行；Windows 會先要求確認。"
 
-#: src/OpenWithController.cpp:1041
-msgid "All files"
-msgstr "所有檔案"
-
 #: src/OpenWithController.cpp:1153
 msgid "Couldn't change the Editors submenu in {}."
 msgstr "無法變更 {} 中的 Editors 子選單。"
@@ -4736,6 +4795,18 @@ msgstr "無陰影"
 msgid "Shell 1.x"
 msgstr "Shell 1.x"
 
+#: src/Tr.cpp:244
+msgid "The file is saved as {}. Save it as UTF-8 and try again."
+msgstr "此檔案的編碼為 {}。請另存為 UTF-8 後再試一次。"
+
+#: src/Tr.cpp:251
+msgid "The Plural-Forms line in the file's header can't be read: {}"
+msgstr "無法讀取檔案標頭中的 Plural-Forms 行：{}"
+
+#: src/Tr.cpp:308
+msgid "The file can't be opened."
+msgstr "無法開啟此檔案。"
+
 #: src/UpdateController.cpp:86
 msgid "Couldn't find this app's own file or the temporary folder."
 msgstr "找不到此應用程式本身的檔案或暫存資料夾。"
@@ -5145,86 +5216,86 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "Rename to {}"
-#~ msgstr "重新命名為 {}"
-
-#~ msgid "multiple selection"
-#~ msgstr "多重選取"
-
-#~ msgid "Change command"
-#~ msgstr "變更命令"
-
-#~ msgid "Add separators"
-#~ msgstr "新增分隔線"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前方新增分隔線"
-
-#~ msgid "Change state"
-#~ msgstr "變更狀態"
-
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "符合運算式的項目"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在後方新增分隔線"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "新增分隔線（{}）"
-
-#~ msgid "Change icon"
-#~ msgstr "變更圖示"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "Change visibility"
-#~ msgstr "變更可見度"
-
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
-
-#~ msgid "Disable"
-#~ msgstr "停用"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移至 {} 中間"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
-
-#~ msgid "Move to {}"
-#~ msgstr "移至 {}"
-
 #~ msgid "Move to the middle"
 #~ msgstr "移至中間"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移至底端"
-
-#~ msgid "on the edit"
-#~ msgstr "在編輯方塊中"
-
-#~ msgid "File Explorer"
-#~ msgstr "檔案總管"
 
 #~ msgid "no selection"
 #~ msgstr "未選取"
 
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
+
+#~ msgid "Change icon"
+#~ msgstr "變更圖示"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移至底端"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
+
+#~ msgid "on the edit"
+#~ msgstr "在編輯方塊中"
+
+#~ msgid "Disable"
+#~ msgstr "停用"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前方新增分隔線"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
+
+#~ msgid "Change state"
+#~ msgstr "變更狀態"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移至 {} 中間"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
+
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
+
+#~ msgid "Move to {}"
+#~ msgstr "移至 {}"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重新命名為 {}"
+
+#~ msgid "Add separators"
+#~ msgstr "新增分隔線"
+
 #~ msgid "Move to {}, at the bottom"
 #~ msgstr "移至 {} 底端"
+
+#~ msgid "File Explorer"
+#~ msgstr "檔案總管"
+
+#~ msgid "multiple selection"
+#~ msgstr "多重選取"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "符合運算式的項目"
+
+#~ msgid "Change visibility"
+#~ msgstr "變更可見度"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "新增分隔線（{}）"
+
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在後方新增分隔線"

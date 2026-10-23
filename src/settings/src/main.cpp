@@ -24,6 +24,8 @@
 //   --map-expand, --map-select <title>   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
+//   --po <file>            the translator preview: shows the app in that .po file, like
+//                          Preferences > Language > Test a translation file
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
@@ -134,6 +136,8 @@ AppOptions parseArgs()
             g_snapshotPath = argv[++i];
         } else if (_wcsicmp(argv[i], L"--lang") == 0 && i + 1 < argc) {
             o.language = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--po") == 0 && i + 1 < argc) {
+            o.testPo = argv[++i];
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
         } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {

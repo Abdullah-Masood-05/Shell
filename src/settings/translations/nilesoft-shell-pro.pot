@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:50
+#: ui/app.slint:54
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr ""
@@ -207,11 +207,11 @@ msgstr ""
 msgid "Backups"
 msgstr ""
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:251
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:268
 msgid "Version {}"
 msgstr ""
 
-#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:417
+#: ui/components/sidebar.slint:172 ui/pages/home.slint:171 src/AppController.cpp:510
 msgid "Checking status…"
 msgstr ""
 
@@ -340,6 +340,18 @@ msgstr ""
 msgid "Theme"
 msgstr ""
 
+#: ui/components/translation-banner.slint:41
+msgid "Showing translations from {}. Untranslated text stays in English."
+msgstr ""
+
+#: ui/components/translation-banner.slint:61
+msgid "Reload"
+msgstr ""
+
+#: ui/components/translation-banner.slint:67
+msgid "Stop"
+msgstr ""
+
 #: ui/components/update-banner.slint:59
 msgid "Downloading Nilesoft Shell Pro {}…"
 msgstr ""
@@ -384,11 +396,11 @@ msgstr ""
 msgid "Skip this version"
 msgstr ""
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:206
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
 msgid "Restart to update"
 msgstr ""
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:206
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:223
 msgid "Download and install"
 msgstr ""
 
@@ -440,7 +452,7 @@ msgstr ""
 msgid "Couldn't read your config"
 msgstr ""
 
-#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:431
+#: ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/appearance.slint:95 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:524
 msgid "Try again"
 msgstr ""
 
@@ -1074,7 +1086,7 @@ msgstr ""
 msgid "Shell DLL"
 msgstr ""
 
-#: ui/pages/home.slint:206 ui/pages/preferences.slint:115
+#: ui/pages/home.slint:206 ui/pages/preferences.slint:132
 msgid "Version"
 msgstr ""
 
@@ -2075,147 +2087,155 @@ msgstr ""
 msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
 msgstr ""
 
-#: ui/pages/preferences.slint:87
+#: ui/pages/preferences.slint:88
+msgid "Test a translation file…"
+msgstr ""
+
+#: ui/pages/preferences.slint:92
+msgid "For translators: shows the app in a .po file until you stop it or close the app."
+msgstr ""
+
+#: ui/pages/preferences.slint:104
 msgid "All users on this PC"
 msgstr ""
 
-#: ui/pages/preferences.slint:88
+#: ui/pages/preferences.slint:105
 msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
 msgstr ""
 
-#: ui/pages/preferences.slint:90
+#: ui/pages/preferences.slint:107
 msgid "All users"
 msgstr ""
 
-#: ui/pages/preferences.slint:91 ui/pages/preferences.slint:95
+#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112
 msgid "Registered"
 msgstr ""
 
-#: ui/pages/preferences.slint:91 ui/pages/preferences.slint:95 src/AppController.cpp:123
+#: ui/pages/preferences.slint:108 ui/pages/preferences.slint:112 src/AppController.cpp:123
 msgid "Not registered"
 msgstr ""
 
-#: ui/pages/preferences.slint:94
+#: ui/pages/preferences.slint:111
 msgid "Just you"
 msgstr ""
 
-#: ui/pages/preferences.slint:101
+#: ui/pages/preferences.slint:118
 msgid "Unregister for all users"
 msgstr ""
 
-#: ui/pages/preferences.slint:101
+#: ui/pages/preferences.slint:118
 msgid "Register for all users"
 msgstr ""
 
-#: ui/pages/preferences.slint:112
+#: ui/pages/preferences.slint:129
 msgid "Updates"
 msgstr ""
 
-#: ui/pages/preferences.slint:113
+#: ui/pages/preferences.slint:130
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
 msgstr ""
 
-#: ui/pages/preferences.slint:116
+#: ui/pages/preferences.slint:133
 msgid "{}  ·  installed for all users (MSI)"
 msgstr ""
 
-#: ui/pages/preferences.slint:117
+#: ui/pages/preferences.slint:134
 msgid "{}  ·  portable copy"
 msgstr ""
 
-#: ui/pages/preferences.slint:123
+#: ui/pages/preferences.slint:140
 msgid "Channel"
 msgstr ""
 
-#: ui/pages/preferences.slint:132
+#: ui/pages/preferences.slint:149
 msgid "Stable"
 msgstr ""
 
-#: ui/pages/preferences.slint:132
+#: ui/pages/preferences.slint:149
 msgid "Beta"
 msgstr ""
 
-#: ui/pages/preferences.slint:138
+#: ui/pages/preferences.slint:155
 msgid "Pre-releases too"
 msgstr ""
 
-#: ui/pages/preferences.slint:138
+#: ui/pages/preferences.slint:155
 msgid "Releases only"
 msgstr ""
 
-#: ui/pages/preferences.slint:146
+#: ui/pages/preferences.slint:163
 msgid "Check for updates automatically"
 msgstr ""
 
-#: ui/pages/preferences.slint:147
+#: ui/pages/preferences.slint:164
 msgid "When the app starts, at most once a day."
 msgstr ""
 
-#: ui/pages/preferences.slint:152
+#: ui/pages/preferences.slint:169
 msgid "Download and install updates automatically"
 msgstr ""
 
-#: ui/pages/preferences.slint:153
+#: ui/pages/preferences.slint:170
 msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 msgstr ""
 
-#: ui/pages/preferences.slint:176 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:193 src/UpdateController.cpp:536
 msgid "Checking for updates…"
 msgstr ""
 
-#: ui/pages/preferences.slint:177
+#: ui/pages/preferences.slint:194
 msgid "Version {} is available"
 msgstr ""
 
-#: ui/pages/preferences.slint:178
+#: ui/pages/preferences.slint:195
 msgid "Downloading {}…  {}"
 msgstr ""
 
-#: ui/pages/preferences.slint:179
+#: ui/pages/preferences.slint:196
 msgid "Version {} is downloaded and verified"
 msgstr ""
 
-#: ui/pages/preferences.slint:180
+#: ui/pages/preferences.slint:197
 msgid "Installing {}…"
 msgstr ""
 
-#: ui/pages/preferences.slint:182
+#: ui/pages/preferences.slint:199
 msgid "Not checked yet"
 msgstr ""
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:213
 msgid "Last checked: {}"
 msgstr ""
 
-#: ui/pages/preferences.slint:217
+#: ui/pages/preferences.slint:234
 msgid "Check now"
 msgstr ""
 
-#: ui/pages/preferences.slint:233
+#: ui/pages/preferences.slint:250
 msgid "About"
 msgstr ""
 
-#: ui/pages/preferences.slint:255
+#: ui/pages/preferences.slint:272
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr ""
 
-#: ui/pages/preferences.slint:269
+#: ui/pages/preferences.slint:286
 msgid "Documentation"
 msgstr ""
 
-#: ui/pages/preferences.slint:274
+#: ui/pages/preferences.slint:291
 msgid "Source code"
 msgstr ""
 
-#: ui/pages/preferences.slint:278
+#: ui/pages/preferences.slint:295
 msgid "Report an issue"
 msgstr ""
 
-#: ui/pages/preferences.slint:287
+#: ui/pages/preferences.slint:304
 msgid "Third-party software"
 msgstr ""
 
-#: ui/pages/preferences.slint:292
+#: ui/pages/preferences.slint:309
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr ""
 
@@ -2386,7 +2406,7 @@ msgstr ""
 msgid "Registered for you"
 msgstr ""
 
-#: src/AppController.cpp:119 src/AppController.cpp:522
+#: src/AppController.cpp:119 src/AppController.cpp:615
 msgid "Registered for all users"
 msgstr ""
 
@@ -2486,116 +2506,159 @@ msgstr ""
 msgid "Active for every user on this PC."
 msgstr ""
 
+#: src/AppController.cpp:269
+msgid "Test a translation file"
+msgstr ""
+
 #: src/AppController.cpp:270
+msgid "Translation files"
+msgstr ""
+
+#: src/AppController.cpp:271 src/OpenWithController.cpp:1041
+msgid "All files"
+msgstr ""
+
+#: src/AppController.cpp:305
+msgid "The translation file can't be reloaded"
+msgstr ""
+
+#: src/AppController.cpp:305
+msgid "The translation file can't be used"
+msgstr ""
+
+#: src/AppController.cpp:315
+msgid "{} of {} strings translated"
+msgstr ""
+
+#: src/AppController.cpp:317
+msgid "{n} missing"
+msgid_plural "{n} missing"
+msgstr[0] ""
+
+#: src/AppController.cpp:319
+msgid "{n} fuzzy, not shown"
+msgid_plural "{n} fuzzy, not shown"
+msgstr[0] ""
+
+#: src/AppController.cpp:321
+msgid "{n} not in this version of the app"
+msgid_plural "{n} not in this version of the app"
+msgstr[0] ""
+
+#: src/AppController.cpp:329
+msgid "Translation file reloaded"
+msgstr ""
+
+#: src/AppController.cpp:357
 msgctxt "Language"
 msgid "Auto"
 msgstr ""
 
-#: src/AppController.cpp:405
+#: src/AppController.cpp:498
 msgid "shell.exe was not found"
 msgstr ""
 
-#: src/AppController.cpp:406
+#: src/AppController.cpp:499
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr ""
 
-#: src/AppController.cpp:410
+#: src/AppController.cpp:503
 msgid "Nilesoft Shell was not found"
 msgstr ""
 
-#: src/AppController.cpp:411
+#: src/AppController.cpp:504
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr ""
 
-#: src/AppController.cpp:412 src/EditorController.cpp:303
+#: src/AppController.cpp:505 src/EditorController.cpp:303
 msgid "Not found"
 msgstr ""
 
-#: src/AppController.cpp:431 src/AppController.cpp:434
+#: src/AppController.cpp:524 src/AppController.cpp:527
 msgid "Couldn't read the Shell status"
 msgstr ""
 
-#: src/AppController.cpp:508 src/AppController.cpp:550
+#: src/AppController.cpp:601 src/AppController.cpp:643
 msgid "Restarting Explorer…"
 msgstr ""
 
-#: src/AppController.cpp:508
+#: src/AppController.cpp:601
 msgid "Explorer restarted"
 msgstr ""
 
-#: src/AppController.cpp:510
+#: src/AppController.cpp:603
 msgid "Registering for you…"
 msgstr ""
 
-#: src/AppController.cpp:510
+#: src/AppController.cpp:603
 msgid "Shell is enabled for you"
 msgstr ""
 
-#: src/AppController.cpp:511
+#: src/AppController.cpp:604
 msgid "Restart Explorer to load it everywhere."
 msgstr ""
 
-#: src/AppController.cpp:515
+#: src/AppController.cpp:608
 msgid "Unregistering…"
 msgstr ""
 
-#: src/AppController.cpp:515
+#: src/AppController.cpp:608
 msgid "Shell is disabled for you"
 msgstr ""
 
-#: src/AppController.cpp:516 src/AppController.cpp:527
+#: src/AppController.cpp:609 src/AppController.cpp:620
 msgid "Restart Explorer to unload it."
 msgstr ""
 
-#: src/AppController.cpp:518
+#: src/AppController.cpp:611
 msgid "Creating your config…"
 msgstr ""
 
-#: src/AppController.cpp:518
+#: src/AppController.cpp:611
 msgid "Personal config created"
 msgstr ""
 
-#: src/AppController.cpp:519
+#: src/AppController.cpp:612
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr ""
 
-#: src/AppController.cpp:521 src/AppController.cpp:526 src/AppController.cpp:531 src/UpdateController.cpp:731
+#: src/AppController.cpp:614 src/AppController.cpp:619 src/AppController.cpp:624 src/UpdateController.cpp:731
 msgid "Waiting for administrator approval…"
 msgstr ""
 
-#: src/AppController.cpp:522
+#: src/AppController.cpp:615
 msgid "Restart Explorer to load it."
 msgstr ""
 
-#: src/AppController.cpp:527
+#: src/AppController.cpp:620
 msgid "Unregistered for all users"
 msgstr ""
 
-#: src/AppController.cpp:532
+#: src/AppController.cpp:625
 msgid "Only this copy is registered now"
 msgstr ""
 
-#: src/AppController.cpp:532
+#: src/AppController.cpp:625
 msgid "Explorer was restarted."
 msgstr ""
 
-#: src/AppController.cpp:553
+#: src/AppController.cpp:646
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr ""
 
-#: src/AppController.cpp:560
+#: src/AppController.cpp:653
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr ""
 
-#: src/AppController.cpp:567 src/UpdateController.cpp:758
+#: src/AppController.cpp:660 src/UpdateController.cpp:758
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr ""
 
-#: src/AppController.cpp:568
+#: src/AppController.cpp:661
 msgid "Cancelled"
 msgstr ""
 
-#: src/AppController.cpp:573
+#: src/AppController.cpp:666
 msgid "That didn't work"
 msgstr ""
 
@@ -4204,10 +4267,6 @@ msgstr ""
 msgid "It runs as administrator; Windows asks first."
 msgstr ""
 
-#: src/OpenWithController.cpp:1041
-msgid "All files"
-msgstr ""
-
 #: src/OpenWithController.cpp:1153
 msgid "Couldn't change the Editors submenu in {}."
 msgstr ""
@@ -4735,6 +4794,18 @@ msgstr ""
 
 #: src/ThemePresets.cpp:58
 msgid "Shell 1.x"
+msgstr ""
+
+#: src/Tr.cpp:244
+msgid "The file is saved as {}. Save it as UTF-8 and try again."
+msgstr ""
+
+#: src/Tr.cpp:251
+msgid "The Plural-Forms line in the file's header can't be read: {}"
+msgstr ""
+
+#: src/Tr.cpp:308
+msgid "The file can't be opened."
 msgstr ""
 
 #: src/UpdateController.cpp:86

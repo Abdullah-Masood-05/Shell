@@ -1,0 +1,73 @@
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppButton } from "controls.slint";
+import { AppState } from "../types.slint";
+
+// Over every page while the translator preview shows a .po file (Preferences > Language >
+// Test a translation file, or --po <file>): which file, how much it covers, Reload, Stop.
+export component TranslationBanner inherits Rectangle {
+    min-height: max(48px, content.preferred-height);
+    preferred-height: content.preferred-height;
+    background: Tokens.status-bg("info");
+    animate background { duration: Tokens.normal; }
+
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Tokens.stroke;
+    }
+
+    content := HorizontalLayout {
+        padding-left: Tokens.s5;
+        padding-right: Tokens.s4;
+        padding-top: Tokens.s2;
+        padding-bottom: Tokens.s2;
+        spacing: Tokens.s3;
+
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: Icons.language;
+                width: 18px;
+                height: 18px;
+                colorize: Tokens.status-color("info");
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: @tr("Showing translations from {}. Untranslated text stays in English.", AppState.translation-test-file);
+                font-weight: 600;
+                font-size: Tokens.body;
+                color: Tokens.text;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+            if AppState.translation-test-summary != "": Text {
+                text: AppState.translation-test-summary;
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                AppButton {
+                    text: @tr("Reload");
+                    icon: Icons.refresh;
+                    colorize-icon: true;
+                    clicked => { AppState.reload-translation(); }
+                }
+                AppButton {
+                    text: @tr("Stop");
+                    clicked => { AppState.stop-translation(); }
+                }
+            }
+        }
+    }
+}

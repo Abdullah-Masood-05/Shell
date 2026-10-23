@@ -232,6 +232,8 @@ AppController::AppController(slint::ComponentHandle<AppWindow> ui, AppOptions op
     });
     bindCallbacks();
     applyTheme();
+    if (!options_.testPo.empty())
+        loadTestTranslation(options_.testPo, false);
 }
 
 void AppController::applyLanguage(const std::string &setting, const std::string &shown)
@@ -246,8 +248,93 @@ void AppController::applyLanguage(const std::string &setting, const std::string 
     // Always: Slint picks a language from the system locale on its own when the window
     // is created, and "" brings it back to English.
     slint::select_bundled_translation(code);
-    nsp::setLanguage(code);
+    const bool wasTest = nsp::testActive();
+    nsp::setLanguage(code); // ends a translator preview
+    if (wasTest) {
+        testFile_.clear();
+        ui_->global<AppState>().set_translation_test_active(false);
+        slint::update_all_translations();
+    }
     pushLanguageOptions();
+}
+
+void AppController::pickTestTranslation()
+{
+    IFileOpenDialog *dlg = nullptr;
+    if (FAILED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dlg))))
+        return;
+    DWORD flags = 0;
+    dlg->GetOptions(&flags);
+    dlg->SetOptions(flags | FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST);
+    const std::wstring title = widen(nsp::tr("Test a translation file"));
+    const std::wstring poName = widen(nsp::tr("Translation files"));
+    const std::wstring allFiles = widen(nsp::tr("All files"));
+    dlg->SetTitle(title.c_str());
+    COMDLG_FILTERSPEC filters[] = { { poName.c_str(), L"*.po;*.pot" }, { allFiles.c_str(), L"*.*" } };
+    dlg->SetFileTypes(UINT(std::size(filters)), filters);
+    if (!testFile_.empty()) {
+        IShellItem *folder = nullptr;
+        const std::wstring dir = fs::path(testFile_).parent_path().wstring();
+        if (SUCCEEDED(SHCreateItemFromParsingName(dir.c_str(), nullptr, IID_PPV_ARGS(&folder)))) {
+            dlg->SetFolder(folder);
+            folder->Release();
+        }
+    }
+    std::wstring picked;
+    if (SUCCEEDED(dlg->Show(hwnd_))) {
+        IShellItem *result = nullptr;
+        if (SUCCEEDED(dlg->GetResult(&result))) {
+            PWSTR path = nullptr;
+            if (SUCCEEDED(result->GetDisplayName(SIGDN_FILESYSPATH, &path)) && path) {
+                picked = path;
+                CoTaskMemFree(path);
+            }
+            result->Release();
+        }
+    }
+    dlg->Release();
+    if (!picked.empty())
+        loadTestTranslation(picked, false);
+}
+
+bool AppController::loadTestTranslation(const std::wstring &file, bool reload)
+{
+    nsp::TestStats stats;
+    std::string error;
+    if (!nsp::loadTestFile(fs::path(file), stats, error)) {
+        showToast("error", reload ? nsp::tr("The translation file can't be reloaded") : nsp::tr("The translation file can't be used"),
+                  error);
+        return false;
+    }
+    testFile_ = file;
+    // Slint in English, so whatever the file doesn't translate falls back to English
+    // (src/TrPreviewHook.h), and every @tr() is evaluated again.
+    slint::select_bundled_translation("");
+    slint::update_all_translations();
+
+    std::string summary = nsp::trf("{} of {} strings translated", stats.translated, stats.total);
+    if (stats.missing > 0)
+        summary += "  ·  " + nsp::trn("{n} missing", "{n} missing", (long long)stats.missing);
+    if (stats.fuzzy > 0)
+        summary += "  ·  " + nsp::trn("{n} fuzzy, not shown", "{n} fuzzy, not shown", (long long)stats.fuzzy);
+    if (stats.unknown > 0)
+        summary += "  ·  " + nsp::trn("{n} not in this version of the app", "{n} not in this version of the app",
+                                      (long long)stats.unknown);
+    const auto &state = ui_->global<AppState>();
+    state.set_translation_test_file(ss(narrow(fs::path(file).filename().wstring())));
+    state.set_translation_test_summary(ss(summary));
+    state.set_translation_test_active(true);
+    pushLanguageOptions();
+    if (reload)
+        showToast("ok", nsp::tr("Translation file reloaded"), summary);
+    return true;
+}
+
+void AppController::stopTestTranslation()
+{
+    if (!nsp::testActive())
+        return;
+    applyLanguage(languageSetting_);
 }
 
 void AppController::setLanguage(int index)
@@ -293,6 +380,12 @@ void AppController::bindCallbacks()
     state.on_action([this](slint::SharedString id) { runAction(std::string(id.data(), id.size())); });
     state.on_set_theme([this](int mode) { setTheme(mode); });
     state.on_set_language([this](int index) { setLanguage(index); });
+    state.on_test_translation([this] { pickTestTranslation(); });
+    state.on_reload_translation([this] {
+        if (!testFile_.empty())
+            loadTestTranslation(testFile_, true);
+    });
+    state.on_stop_translation([this] { stopTestTranslation(); });
     state.on_open_url([](slint::SharedString url) {
         auto w = widen(std::string_view(url.data(), url.size()));
         if (w.rfind(L"https://", 0) == 0)

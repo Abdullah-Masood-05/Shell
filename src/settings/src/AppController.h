@@ -23,6 +23,7 @@ struct AppOptions
     std::wstring statusFile;   // --status-json <file>: Home reads it instead of -status (development)
     std::string language;      // --lang <auto|en|zh-CN|...>: this run only, not saved (development)
     std::string shownLanguage; // --ui-lang <en|zh-CN|...>: from the update helper, see AppController.cpp
+    std::wstring testPo;       // --po <file>: the translator preview with that .po file
 };
 
 class AppController
@@ -59,6 +60,11 @@ private:
     void applyLanguage(const std::string &setting, const std::string &shown = {});
     void setLanguage(int index);
     void pushLanguageOptions();
+    // The translator preview (Preferences > Language > Test a translation file, --po):
+    // shows a .po file for this session, nothing saved. Stop goes back to the setting.
+    void pickTestTranslation();
+    bool loadTestTranslation(const std::wstring &file, bool reload);
+    void stopTestTranslation();
     void setBusy(bool busy, const std::string &label = {});
     void showToast(const std::string &kind, const std::string &title, const std::string &text = {});
     void applySnapshot(Snapshot snap, bool quiet);
@@ -75,6 +81,7 @@ private:
     bool busy_ = false;
     bool lastDark_ = true;
     std::string languageSetting_; // "" follows Windows
+    std::wstring testFile_;       // the translator preview's .po file, while it shows
     std::vector<std::function<void()>> configChanged_;
     slint::Timer toastTimer_;
     slint::Timer themePoll_;
