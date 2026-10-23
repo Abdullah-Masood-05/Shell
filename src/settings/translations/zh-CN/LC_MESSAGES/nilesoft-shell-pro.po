@@ -220,7 +220,7 @@ msgstr "打开方式"
 
 #: ui/components/sidebar.slint:21 ui/pages/snippets.slint:367 src/ConfigRules.cpp:59
 msgid "Snippets"
-msgstr "代码片段"
+msgstr "扩展功能"
 
 #: ui/components/sidebar.slint:22 ui/pages/appearance.slint:747 ui/components/sidebar.slint:22 ui/pages/appearance.slint:747
 msgid "Config Editor"
@@ -2444,7 +2444,7 @@ msgstr "没有窗口类。"
 
 #: ui/pages/snippets.slint:84
 msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-msgstr "代码片段添加的菜单项以蓝色标出；灰色的菜单项是菜单中原有的。"
+msgstr "扩展功能添加的菜单项以蓝色标出；灰色的菜单项是菜单中原有的。"
 
 #: ui/pages/snippets.slint:274
 msgid "Runs as administrator"
@@ -2472,7 +2472,7 @@ msgstr "可直接添加到右键菜单的现成小功能。开启后，下次右
 
 #: ui/pages/snippets.slint:377
 msgid "RubicBG's snippets are CC0, shared with his permission."
-msgstr "RubicBG 的代码片段采用 CC0 许可，经他同意收录。"
+msgstr "RubicBG 的扩展功能采用 CC0 许可，经他同意收录。"
 
 #: ui/pages/snippets.slint:385
 msgid "His collection on GitHub"
@@ -2480,11 +2480,11 @@ msgstr "他在 GitHub 上的合集"
 
 #: ui/pages/snippets.slint:408
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
-msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本，以开启代码片段。"
+msgstr "该配置在此处为只读，且本应用从不写入 Program Files。请在 %APPDATA% 中创建个人副本，以开启扩展功能。"
 
 #: ui/pages/snippets.slint:427
 msgid "Search snippets"
-msgstr "搜索代码片段"
+msgstr "搜索扩展功能"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
 #: ui/preview/menu-preview.slint:29 ui/preview/menu-preview.slint:198
@@ -3191,7 +3191,7 @@ msgstr "你在“打开方式”页面中选择的编辑器和终端。"
 
 #: src/ConfigRules.cpp:59
 msgid "The snippets you turned on on the Snippets page."
-msgstr "你在“代码片段”页面中开启的代码片段。"
+msgstr "你在“扩展功能”页面中开启的扩展功能。"
 
 #: src/ConfigRules.cpp:215
 msgctxt "quote"
@@ -4692,7 +4692,7 @@ msgstr "所选项目的名称"
 
 #: src/Snippets.cpp:579
 msgid "There is no snippet called {}."
-msgstr "没有名为 {} 的代码片段。"
+msgstr "没有名为 {} 的扩展功能。"
 
 #: src/Snippets.cpp:665
 msgid "Archives"
@@ -4708,7 +4708,7 @@ msgstr "无法写入 {}"
 
 #: src/SnippetsController.cpp:299
 msgid "shell.exe couldn't load the snippet"
-msgstr "shell.exe 无法加载此代码片段"
+msgstr "shell.exe 无法加载此扩展功能"
 
 #: src/SnippetsController.cpp:377
 msgid "Loading preview…"
@@ -4716,11 +4716,11 @@ msgstr "正在加载预览…"
 
 #: src/SnippetsController.cpp:382
 msgid "No preview ({}). This is the snippet's code."
-msgstr "无法预览（{}）。以下是此代码片段的代码。"
+msgstr "无法预览（{}）。以下是此扩展功能的代码。"
 
 #: src/SnippetsController.cpp:386
 msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-msgstr "此代码片段不会添加自己的菜单项：它会更改或隐藏其他菜单项，或在其他位置起作用。以下是它的代码。"
+msgstr "此扩展功能不会添加自己的菜单项：它会更改或隐藏其他菜单项，或在其他位置起作用。以下是它的代码。"
 
 #: src/SnippetsController.cpp:407
 msgid "Shown for a {} file."
@@ -4748,7 +4748,7 @@ msgstr "你修改过此副本，因此不会对它应用新版本。"
 
 #: src/SnippetsController.cpp:655
 msgid "The copy in {} is missing. Turn the snippet off and on again."
-msgstr "{} 中的副本已丢失。请关闭此代码片段，然后重新开启。"
+msgstr "{} 中的副本已丢失。请关闭此扩展功能，然后重新开启。"
 
 #: src/SnippetsController.cpp:658
 msgid "A newer version is applied the next time the app starts."
@@ -4765,15 +4765,15 @@ msgstr "正在加载…"
 
 #: src/SnippetsController.cpp:686
 msgid "No snippets are available."
-msgstr "没有可用的代码片段。"
+msgstr "没有可用的扩展功能。"
 
 #: src/SnippetsController.cpp:687
 msgid "No snippet matches the search."
-msgstr "没有与搜索内容匹配的代码片段。"
+msgstr "没有与搜索内容匹配的扩展功能。"
 
 #: src/SnippetsController.cpp:718
 msgid "Couldn't change this snippet"
-msgstr "无法更改此代码片段"
+msgstr "无法更改此扩展功能"
 
 #: src/SnippetsController.cpp:773
 msgid "Turned on {}"
@@ -5468,13 +5468,13 @@ msgstr "还原以前的版本"
 #~ msgstr "更改状态"
 
 #~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载代码片段…"
+#~ msgstr "正在下载扩展功能…"
 
 #~ msgid "{} isn't downloaded yet."
 #~ msgstr "{} 尚未下载。"
 
 #~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的代码片段合集"
+#~ msgstr "RubicBG 的扩展功能合集"
 
 #~ msgid "Move to {}, at the middle"
 #~ msgstr "移到 {} 中间"
@@ -5537,7 +5537,7 @@ msgstr "还原以前的版本"
 #~ msgstr "未选择"
 
 #~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载代码片段。请检查网络连接，然后重试。"
+#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
 
 #~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
 #~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
@@ -5552,7 +5552,7 @@ msgstr "还原以前的版本"
 #~ msgstr "移到中间"
 
 #~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的代码片段来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
 
 #~ msgid "Move to {}, position {}"
 #~ msgstr "移到 {} 的第 {} 个位置"
@@ -5561,7 +5561,7 @@ msgstr "还原以前的版本"
 #~ msgstr "重命名为 {}"
 
 #~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "无法预览：未能下载此代码片段。{}"
+#~ msgstr "无法预览：未能下载此扩展功能。{}"
 
 #~ msgid "The file has a syntax problem at line {}: {}"
 #~ msgstr "文件第 {} 行存在语法问题：{}"
@@ -5585,7 +5585,7 @@ msgstr "还原以前的版本"
 #~ msgstr "无法开启“{}”"
 
 #~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载代码片段：{}"
+#~ msgstr "无法下载扩展功能：{}"
 
 #~ msgid "Disable"
 #~ msgstr "禁用"

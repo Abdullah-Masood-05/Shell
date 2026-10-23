@@ -220,7 +220,7 @@ msgstr "開啟檔案"
 
 #: ui/components/sidebar.slint:21 ui/pages/snippets.slint:367 src/ConfigRules.cpp:59
 msgid "Snippets"
-msgstr "程式碼片段"
+msgstr "擴充功能"
 
 #: ui/components/sidebar.slint:22 ui/pages/appearance.slint:747 ui/components/sidebar.slint:22 ui/pages/appearance.slint:747
 msgid "Config Editor"
@@ -2444,7 +2444,7 @@ msgstr "沒有視窗類別。"
 
 #: ui/pages/snippets.slint:84
 msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-msgstr "程式碼片段新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
+msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
 
 #: ui/pages/snippets.slint:274
 msgid "Runs as administrator"
@@ -2472,7 +2472,7 @@ msgstr "可直接加入右鍵選單的現成小功能。開啟後，下次按右
 
 #: ui/pages/snippets.slint:377
 msgid "RubicBG's snippets are CC0, shared with his permission."
-msgstr "RubicBG 的程式碼片段採用 CC0 授權，經他同意收錄。"
+msgstr "RubicBG 的擴充功能採用 CC0 授權，經他同意收錄。"
 
 #: ui/pages/snippets.slint:385
 msgid "His collection on GitHub"
@@ -2480,11 +2480,11 @@ msgstr "他在 GitHub 上的合集"
 
 #: ui/pages/snippets.slint:408
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
-msgstr "此設定檔在這裡為唯讀，且本應用程式絕不會寫入 Program Files。請在 %APPDATA% 中建立個人複本，以開啟程式碼片段。"
+msgstr "此設定檔在這裡為唯讀，且本應用程式絕不會寫入 Program Files。請在 %APPDATA% 中建立個人複本，以開啟擴充功能。"
 
 #: ui/pages/snippets.slint:427
 msgid "Search snippets"
-msgstr "搜尋程式碼片段"
+msgstr "搜尋擴充功能"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
 #: ui/preview/menu-preview.slint:29 ui/preview/menu-preview.slint:198
@@ -3191,7 +3191,7 @@ msgstr "你在「開啟檔案」頁面中選擇的編輯器和終端機。"
 
 #: src/ConfigRules.cpp:59
 msgid "The snippets you turned on on the Snippets page."
-msgstr "你在「程式碼片段」頁面中開啟的程式碼片段。"
+msgstr "你在「擴充功能」頁面中開啟的擴充功能。"
 
 #: src/ConfigRules.cpp:215
 msgctxt "quote"
@@ -4692,7 +4692,7 @@ msgstr "所選項目的名稱"
 
 #: src/Snippets.cpp:579
 msgid "There is no snippet called {}."
-msgstr "沒有名為 {} 的程式碼片段。"
+msgstr "沒有名為 {} 的擴充功能。"
 
 #: src/Snippets.cpp:665
 msgid "Archives"
@@ -4708,7 +4708,7 @@ msgstr "無法寫入 {}"
 
 #: src/SnippetsController.cpp:299
 msgid "shell.exe couldn't load the snippet"
-msgstr "shell.exe 無法載入此程式碼片段"
+msgstr "shell.exe 無法載入此擴充功能"
 
 #: src/SnippetsController.cpp:377
 msgid "Loading preview…"
@@ -4716,11 +4716,11 @@ msgstr "正在載入預覽…"
 
 #: src/SnippetsController.cpp:382
 msgid "No preview ({}). This is the snippet's code."
-msgstr "無法預覽（{}）。以下是此程式碼片段的程式碼。"
+msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
 
 #: src/SnippetsController.cpp:386
 msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-msgstr "此程式碼片段不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
+msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
 
 #: src/SnippetsController.cpp:407
 msgid "Shown for a {} file."
@@ -4748,7 +4748,7 @@ msgstr "你修改過此複本，因此不會對它套用新版本。"
 
 #: src/SnippetsController.cpp:655
 msgid "The copy in {} is missing. Turn the snippet off and on again."
-msgstr "{} 中的複本已遺失。請關閉此程式碼片段，然後重新開啟。"
+msgstr "{} 中的複本已遺失。請關閉此擴充功能，然後重新開啟。"
 
 #: src/SnippetsController.cpp:658
 msgid "A newer version is applied the next time the app starts."
@@ -4765,15 +4765,15 @@ msgstr "正在載入…"
 
 #: src/SnippetsController.cpp:686
 msgid "No snippets are available."
-msgstr "沒有可用的程式碼片段。"
+msgstr "沒有可用的擴充功能。"
 
 #: src/SnippetsController.cpp:687
 msgid "No snippet matches the search."
-msgstr "沒有符合搜尋內容的程式碼片段。"
+msgstr "沒有符合搜尋內容的擴充功能。"
 
 #: src/SnippetsController.cpp:718
 msgid "Couldn't change this snippet"
-msgstr "無法變更此程式碼片段"
+msgstr "無法變更此擴充功能"
 
 #: src/SnippetsController.cpp:773
 msgid "Turned on {}"
@@ -5468,13 +5468,13 @@ msgstr "還原舊版"
 #~ msgstr "變更狀態"
 
 #~ msgid "Downloading the snippet…"
-#~ msgstr "正在下載程式碼片段…"
+#~ msgstr "正在下載擴充功能…"
 
 #~ msgid "{} isn't downloaded yet."
 #~ msgstr "{} 尚未下載。"
 
 #~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的程式碼片段合集"
+#~ msgstr "RubicBG 的擴充功能合集"
 
 #~ msgid "Move to {}, at the middle"
 #~ msgstr "移至 {} 中間"
@@ -5537,7 +5537,7 @@ msgstr "還原舊版"
 #~ msgstr "未選取"
 
 #~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "無法下載程式碼片段。請檢查網路連線，然後再試一次。"
+#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
 
 #~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
 #~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
@@ -5552,7 +5552,7 @@ msgstr "還原舊版"
 #~ msgstr "移至中間"
 
 #~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "標示「作者：RubicBG」的程式碼片段來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
+#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
 
 #~ msgid "Move to {}, position {}"
 #~ msgstr "移至 {} 的第 {} 個位置"
@@ -5561,7 +5561,7 @@ msgstr "還原舊版"
 #~ msgstr "重新命名為 {}"
 
 #~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "無法預覽：未能下載此程式碼片段。{}"
+#~ msgstr "無法預覽：未能下載此擴充功能。{}"
 
 #~ msgid "The file has a syntax problem at line {}: {}"
 #~ msgstr "檔案第 {} 行有語法問題：{}"
@@ -5585,7 +5585,7 @@ msgstr "還原舊版"
 #~ msgstr "無法開啟「{}」"
 
 #~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "無法下載程式碼片段：{}"
+#~ msgstr "無法下載擴充功能：{}"
 
 #~ msgid "Disable"
 #~ msgstr "停用"
