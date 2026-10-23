@@ -10,7 +10,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:50
+#: ui/app.slint:53
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Microsoft JhengHei UI"
@@ -56,7 +56,7 @@ msgstr "沒有差異。"
 msgid "OK"
 msgstr "確定"
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/menu-map.slint:615 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/menu-map.slint:615
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:588 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:588 ui/pages/preferences.slint:213
 msgid "Cancel"
 msgstr "取消"
 
@@ -126,7 +126,7 @@ msgid "{n} unsaved change"
 msgid_plural "{n} unsaved changes"
 msgstr[0] "{n} 項未儲存的變更"
 
-#: ui/components/save-footer.slint:89 ui/pages/context-menus.slint:215 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:215 ui/pages/menu-builder.slint:407 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:215 ui/pages/menu-builder.slint:407
+#: ui/components/save-footer.slint:89 ui/pages/context-menus.slint:773 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:773 ui/pages/menu-builder.slint:407 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:773 ui/pages/menu-builder.slint:407
 msgid "Discard"
 msgstr "捨棄"
 
@@ -170,7 +170,7 @@ msgstr "行為"
 msgid "Rules & Filters"
 msgstr "規則與篩選"
 
-#: ui/components/sidebar.slint:17 ui/pages/context-menus.slint:204
+#: ui/components/sidebar.slint:17 ui/pages/context-menus.slint:762
 msgid "Context Menus"
 msgstr "右鍵選單"
 
@@ -555,7 +555,7 @@ msgstr "選單後方透出的內容和透出程度。"
 msgid "Effect"
 msgstr "效果"
 
-#: ui/pages/appearance.slint:394
+#: ui/pages/appearance.slint:394 ui/pages/context-menus.slint:486
 msgid "None"
 msgstr "無"
 
@@ -697,7 +697,7 @@ msgstr "目前"
 msgid "Pinned"
 msgstr "已釘選"
 
-#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:243
+#: ui/pages/backups.slint:97 src/ContextMenusController.cpp:379
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} 個檔案"
@@ -744,7 +744,7 @@ msgstr "立即建立快照"
 msgid "No personal config to back up"
 msgstr "沒有可備份的個人設定檔"
 
-#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:198 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:789 ui/pages/backups.slint:219 ui/pages/context-menus.slint:789 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:789 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:789 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:198 src/Status.cpp:189
 msgid "Create personal config"
 msgstr "建立個人設定檔"
 
@@ -904,60 +904,196 @@ msgstr "「自動」會為沒有圖示的已知項目加上圖示 · {}"
 msgid "Icons on Shell's own items"
 msgstr "Shell 選單項目圖示"
 
-#: ui/pages/context-menus.slint:64
+#: ui/pages/context-menus.slint:87
 msgid "Open {} in the Config Editor"
 msgstr "在設定檔編輯器中開啟 {}"
 
-#: ui/pages/context-menus.slint:168
+#: ui/pages/context-menus.slint:177 ui/pages/rules.slint:43
+msgid "Remove {}"
+msgstr "移除 {}"
+
+#: ui/pages/context-menus.slint:230
 msgid "where {}"
 msgstr "where {}"
 
-#: ui/pages/context-menus.slint:185 src/SaveService.cpp:72
+#: ui/pages/context-menus.slint:247 src/SaveService.cpp:72
 msgid "line {}"
 msgstr "第 {} 行"
 
-#: ui/pages/context-menus.slint:205
-msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+#: ui/pages/context-menus.slint:391 ui/pages/menu-map.slint:451 ui/pages/context-menus.slint:391 ui/pages/menu-map.slint:451 ui/pages/openwith.slint:504
+msgid "Show {} in the menu"
+msgstr "在選單中顯示 {}"
 
-#: ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625 ui/pages/context-menus.slint:207 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625
+#: ui/pages/context-menus.slint:453 ui/pages/openwith.slint:267 src/AppearanceController.cpp:77
+msgid "Name"
+msgstr "名稱"
+
+#: ui/pages/context-menus.slint:454
+msgid "Left as it is, the name follows the language of your Windows."
+msgstr "保持不變時，名稱會跟隨 Windows 的顯示語言。"
+
+#: ui/pages/context-menus.slint:462 ui/pages/openwith.slint:278
+msgid "Program"
+msgstr "程式"
+
+#: ui/pages/context-menus.slint:463
+msgid "A program, a shortcut, a document, a web address, or a command such as calc.exe."
+msgstr "程式、捷徑、文件、網址，或像 calc.exe 這樣的命令。"
+
+#: ui/pages/context-menus.slint:474 ui/pages/openwith.slint:290 ui/pages/context-menus.slint:474 ui/pages/openwith.slint:290
+msgid "Browse…"
+msgstr "瀏覽…"
+
+#: ui/pages/context-menus.slint:481 ui/pages/menu-builder.slint:740 ui/pages/context-menus.slint:481 ui/pages/menu-builder.slint:740
+msgid "Arguments"
+msgstr "引數"
+
+#: ui/pages/context-menus.slint:492 ui/pages/menu-builder.slint:762 ui/pages/context-menus.slint:492 ui/pages/menu-builder.slint:762
+msgid "Run as administrator"
+msgstr "以系統管理員身分執行"
+
+#: ui/pages/context-menus.slint:499
+msgid "Written by hand in the file. The page keeps it as it is; change it in the Config Editor."
+msgstr "這是在檔案中手動撰寫的內容。此頁面會原樣保留它；請在設定檔編輯器中修改。"
+
+#: ui/pages/context-menus.slint:509 ui/pages/menu-builder.slint:484 ui/pages/context-menus.slint:509 ui/pages/menu-builder.slint:484
+msgid "Move up"
+msgstr "上移"
+
+#: ui/pages/context-menus.slint:514 ui/pages/menu-builder.slint:490 ui/pages/context-menus.slint:514 ui/pages/menu-builder.slint:490
+msgid "Move down"
+msgstr "下移"
+
+#: ui/pages/context-menus.slint:519 ui/pages/context-menus.slint:592 ui/pages/context-menus.slint:519 ui/pages/context-menus.slint:592
+msgid "Remove"
+msgstr "移除"
+
+#: ui/pages/context-menus.slint:524 ui/pages/context-menus.slint:850 ui/pages/context-menus.slint:524 ui/pages/context-menus.slint:850
+msgid "Open in the Config Editor"
+msgstr "在設定檔編輯器中開啟"
+
+#: ui/pages/context-menus.slint:565
+msgid "Remove {} from your config?"
+msgstr "要從設定中移除 {} 嗎？"
+
+#: ui/pages/context-menus.slint:573
+msgid "Its import line goes from shell.nss when you save. A snapshot is taken first, so you can bring it back on the Backups page."
+msgstr "儲存時會從 shell.nss 中刪除它的 import 行。儲存前會先建立快照，你可以在「備份」頁面還原它。"
+
+#: ui/pages/context-menus.slint:579
+msgid "Also delete the file {}"
+msgstr "同時刪除檔案 {}"
+
+#: ui/pages/context-menus.slint:659
+msgid "In the list"
+msgstr "已在清單中"
+
+#: ui/pages/context-menus.slint:709
+msgid "Add an installed app"
+msgstr "新增已安裝的應用程式"
+
+#: ui/pages/context-menus.slint:723
+msgid "Search"
+msgstr "搜尋"
+
+#: ui/pages/context-menus.slint:732
+msgid "Looking for apps…"
+msgstr "正在尋找應用程式…"
+
+#: ui/pages/context-menus.slint:739
+msgid "No app matches."
+msgstr "沒有符合的應用程式。"
+
+#: ui/pages/context-menus.slint:763
+msgid "Turn the bundled menus on or off, add your own files, choose the taskbar menu's apps, and the rules that hide, move or rename Windows' own items."
+msgstr "開啟或關閉內建選單，新增你自己的檔案，選擇工作列選單中的應用程式，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+
+#: ui/pages/context-menus.slint:765 ui/pages/menu-builder.slint:405 ui/pages/context-menus.slint:765 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625 ui/pages/context-menus.slint:765 ui/pages/menu-builder.slint:405 ui/pages/openwith.slint:625
 msgid "Checking and saving…"
 msgstr "正在檢查並儲存…"
 
-#: ui/pages/context-menus.slint:210
+#: ui/pages/context-menus.slint:768
 msgid "{n} file changed"
 msgid_plural "{n} files changed"
 msgstr[0] "已變更 {n} 個檔案"
 
-#: ui/pages/context-menus.slint:220 ui/pages/editor.slint:311 ui/pages/context-menus.slint:220 ui/pages/editor.slint:311 ui/pages/openwith.slint:632
+#: ui/pages/context-menus.slint:778 ui/pages/editor.slint:311 ui/pages/context-menus.slint:778 ui/pages/editor.slint:311 ui/pages/openwith.slint:632
 msgid "Save"
 msgstr "儲存"
 
-#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:196
+#: ui/pages/context-menus.slint:787 ui/pages/editor.slint:202 ui/pages/context-menus.slint:787 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:787 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:196
 msgid "This is the shared config in the install folder"
 msgstr "這是安裝資料夾中的共用設定檔"
 
-#: ui/pages/context-menus.slint:230
+#: ui/pages/context-menus.slint:788
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
 msgstr "此設定檔在這裡為唯讀，且本應用程式絕不會寫入 Program Files。請在 %APPDATA% 中建立個人複本，以開啟或關閉選單與規則。"
 
-#: ui/pages/context-menus.slint:237 ui/pages/snippets.slint:204
+#: ui/pages/context-menus.slint:795 ui/pages/snippets.slint:204
 msgid "Couldn't read the config"
 msgstr "無法讀取設定檔"
 
-#: ui/pages/context-menus.slint:242
+#: ui/pages/context-menus.slint:800
 msgid "Modules"
 msgstr "模組"
 
-#: ui/pages/context-menus.slint:243
-msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+#: ui/pages/context-menus.slint:801
+msgid "Each module is an import line in shell.nss. Turning one off comments the line out. Add your own .nss files here instead of editing shell.nss."
+msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。你可以在這裡新增自己的 .nss 檔案，不必編輯 shell.nss。"
 
-#: ui/pages/context-menus.slint:246
+#: ui/pages/context-menus.slint:803
+msgid "Add a file…"
+msgstr "新增檔案…"
+
+#: ui/pages/context-menus.slint:809
 msgid "shell.nss doesn't import any files."
 msgstr "shell.nss 未匯入任何檔案。"
 
-#: ui/pages/context-menus.slint:262
+#: ui/pages/context-menus.slint:826
+msgid "Taskbar menu"
+msgstr "工作列選單"
+
+#: ui/pages/context-menus.slint:828
+msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. Saved in imports\\settings-app-taskbar.nss; you can edit that file by hand too."
+msgstr "在工作列空白處按一下滑鼠右鍵時出現的「應用程式」子選單。儲存在 imports\\settings-app-taskbar.nss 中；你也可以手動編輯該檔案。"
+
+#: ui/pages/context-menus.slint:829
+msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. These are Shell's own four apps; your changes are saved in imports\\settings-app-taskbar.nss."
+msgstr "在工作列空白處按一下滑鼠右鍵時出現的「應用程式」子選單。這裡是 Shell 內建的四個應用程式；你的變更會儲存在 imports\\settings-app-taskbar.nss 中。"
+
+#: ui/pages/context-menus.slint:831
+msgid "Add a program…"
+msgstr "新增程式…"
+
+#: ui/pages/context-menus.slint:836
+msgid "Add an installed app…"
+msgstr "新增已安裝的應用程式…"
+
+#: ui/pages/context-menus.slint:841
+msgid "Add a separator"
+msgstr "新增分隔線"
+
+#: ui/pages/context-menus.slint:848
+msgid "settings-app-taskbar.nss has an error, so it isn't changed here"
+msgstr "settings-app-taskbar.nss 有錯誤，因此此頁面不會修改它"
+
+#: ui/pages/context-menus.slint:855
+msgid "The taskbar's menu doesn't show this list yet"
+msgstr "工作列選單尚未顯示此清單"
+
+#: ui/pages/context-menus.slint:857
+msgid "Open taskbar.nss"
+msgstr "開啟 taskbar.nss"
+
+#: ui/pages/context-menus.slint:861
+msgid "No apps: the Apps submenu is empty."
+msgstr "沒有應用程式：「應用程式」子選單是空的。"
+
+#: ui/pages/context-menus.slint:882
+msgid "Put back Shell's four apps"
+msgstr "還原 Shell 內建的四個應用程式"
+
+#: ui/pages/context-menus.slint:889
 msgid "Rules for Windows items"
 msgstr "Windows 選單項目規則"
 
@@ -1233,14 +1369,6 @@ msgstr "檔案的部分內容無法在此顯示"
 msgid "Couldn't read your menus"
 msgstr "無法讀取你的選單"
 
-#: ui/pages/menu-builder.slint:484 ui/pages/openwith.slint:379
-msgid "Move up"
-msgstr "上移"
-
-#: ui/pages/menu-builder.slint:490 ui/pages/openwith.slint:384
-msgid "Move down"
-msgstr "下移"
-
 #: ui/pages/menu-builder.slint:496
 msgid "Outdent: move out of its menu"
 msgstr "減少縮排：移出所在選單"
@@ -1417,10 +1545,6 @@ msgstr "命令"
 msgid "A program or file, like notepad.exe or code"
 msgstr "程式或檔案，例如 notepad.exe 或 code"
 
-#: ui/pages/menu-builder.slint:740 ui/pages/openwith.slint:297
-msgid "Arguments"
-msgstr "引數"
-
 #: ui/pages/menu-builder.slint:741
 msgid "@sel.path is the selected path; quote it: \"@sel.path\""
 msgstr "@sel.path 是選取的路徑；請用引號括住：\"@sel.path\""
@@ -1449,15 +1573,11 @@ msgctxt "Window state"
 msgid "Maximized"
 msgstr "最大化"
 
-#: ui/pages/menu-builder.slint:762 ui/pages/openwith.slint:362
-msgid "Run as administrator"
-msgstr "以系統管理員身分執行"
-
 #: ui/pages/menu-builder.slint:772
 msgid "LOOK"
 msgstr "外觀"
 
-#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:348 src/MenuMapController.cpp:758
+#: ui/pages/menu-builder.slint:774 src/MenuBuilderController.cpp:348 src/MenuMapController.cpp:758 src/TaskbarApps.cpp:561
 msgid "Separator"
 msgstr "分隔線"
 
@@ -1561,10 +1681,6 @@ msgstr "選單中"
 msgid "Shown"
 msgstr "顯示"
 
-#: ui/pages/menu-map.slint:451 ui/pages/openwith.slint:247 ui/pages/menu-map.slint:451 ui/pages/openwith.slint:247
-msgid "Show {} in the menu"
-msgstr "在選單中顯示 {}"
-
 #: ui/pages/menu-map.slint:463 ui/pages/menu-map.slint:472 src/AppearanceController.cpp:90
 msgid "Rename"
 msgstr "重新命名"
@@ -1592,10 +1708,6 @@ msgstr "程式碼"
 #: ui/pages/menu-map.slint:512
 msgid "Edit code"
 msgstr "編輯程式碼"
-
-#: ui/pages/menu-map.slint:519
-msgid "Open in the Config Editor"
-msgstr "在設定檔編輯器中開啟"
 
 #: ui/pages/menu-map.slint:562
 msgid "Edit code: {}"
@@ -1811,10 +1923,6 @@ msgstr "由你新增"
 msgid "Locate…"
 msgstr "尋找…"
 
-#: ui/pages/openwith.slint:267 src/AppearanceController.cpp:77
-msgid "Name"
-msgstr "名稱"
-
 #: ui/pages/openwith.slint:268
 msgid "Shown in the submenu as is."
 msgstr "依原樣顯示在子選單中。"
@@ -1822,14 +1930,6 @@ msgstr "依原樣顯示在子選單中。"
 #: ui/pages/openwith.slint:268
 msgid "Shown as \"Open in {}\"."
 msgstr "顯示為「在 {} 中開啟」。"
-
-#: ui/pages/openwith.slint:278
-msgid "Program"
-msgstr "程式"
-
-#: ui/pages/openwith.slint:290 ui/pages/openwith.slint:320
-msgid "Browse…"
-msgstr "瀏覽…"
 
 #: ui/pages/openwith.slint:298
 msgid "{{path}} the selected item, quoted · {{paths}} every selected item · {{dir}} its folder · {{name}} its name"
@@ -1875,10 +1975,6 @@ msgstr "關閉時保留應用程式內建選單項目"
 msgctxt "Button"
 msgid "Test"
 msgstr "測試"
-
-#: ui/pages/openwith.slint:389
-msgid "Remove"
-msgstr "移除"
 
 #: ui/pages/openwith.slint:404
 msgid "Clicking the item would run (nothing was started):"
@@ -2217,10 +2313,6 @@ msgstr "協力廠商軟體"
 #: ui/pages/preferences.slint:292
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "使用 Slint 建置 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
-
-#: ui/pages/rules.slint:43
-msgid "Remove {}"
-msgstr "移除 {}"
 
 #: ui/pages/rules.slint:113
 msgid "Add"
@@ -2658,7 +2750,7 @@ msgstr "項目類型"
 msgid "Date modified"
 msgstr "修改日期"
 
-#: src/AppearanceController.cpp:78
+#: src/AppearanceController.cpp:78 src/TaskbarApps.cpp:750
 msgid "Command prompt"
 msgstr "命令提示字元"
 
@@ -2694,7 +2786,7 @@ msgstr "文字文件"
 msgid "Shortcut"
 msgstr "捷徑"
 
-#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:203 src/ContextMenusController.cpp:226 src/EditorController.cpp:307
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:337 src/ContextMenusController.cpp:362 src/EditorController.cpp:307
 msgid "Read-only"
 msgstr "唯讀"
 
@@ -2767,7 +2859,7 @@ msgstr "將從磁碟刪除 {} 的快照（「{}」）。此動作無法復原。
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr "目前使用的是安裝資料夾中的共用設定檔，本應用程式從不寫入它。請建立個人設定檔以取得快照。"
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:46 src/ContextMenusController.cpp:94 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:387 src/SnippetsController.cpp:49 src/SnippetsController.cpp:148
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:87 src/ContextMenusController.cpp:174 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:387 src/SnippetsController.cpp:49 src/SnippetsController.cpp:148
 msgid "The config file doesn't exist: {}"
 msgstr "設定檔不存在：{}"
 
@@ -3478,30 +3570,30 @@ msgid "Anything"
 msgstr "任何類型"
 
 #: src/ConfigRules.cpp:832
-msgid "Imported from {}."
-msgstr "從 {} 匯入。"
+msgid "Your own file, imported from {}."
+msgstr "你自己的檔案，從 {} 匯入。"
 
-#: src/ConfigRules.cpp:844
+#: src/ConfigRules.cpp:846
 msgid "The import spans several lines"
 msgstr "此匯入跨越多行"
 
-#: src/ConfigRules.cpp:845
+#: src/ConfigRules.cpp:847
 msgid "Locked: the import spans several lines."
 msgstr "已鎖定：此匯入跨越多行。"
 
-#: src/ConfigRules.cpp:849
+#: src/ConfigRules.cpp:851
 msgid "Something else shares its line"
 msgstr "所在行還有其他內容"
 
-#: src/ConfigRules.cpp:850
+#: src/ConfigRules.cpp:852
 msgid "Locked: something else shares its line."
 msgstr "已鎖定：所在行還有其他內容。"
 
-#: src/ConfigRules.cpp:885
+#: src/ConfigRules.cpp:973
 msgid "Inside a menu"
 msgstr "位於選單內"
 
-#: src/ConfigRules.cpp:888
+#: src/ConfigRules.cpp:976
 msgid "Shares a line with other code"
 msgstr "與其他程式碼共用一行"
 
@@ -3555,78 +3647,166 @@ msgstr "已改用 {} 的新版本"
 msgid "Your copy is saved in Backups."
 msgstr "你的副本已儲存在「備份」中。"
 
-#: src/ContextMenusController.cpp:125
+#: src/ContextMenusController.cpp:207
 msgid "The config couldn't be read."
 msgstr "無法讀取設定檔。"
 
-#: src/ContextMenusController.cpp:228
+#: src/ContextMenusController.cpp:364
 msgid "Complex: edit it in the Config Editor"
 msgstr "較複雜：請在設定檔編輯器中編輯"
 
-#: src/ContextMenusController.cpp:230
+#: src/ContextMenusController.cpp:366
 msgid "{} (outside your config)"
 msgstr "{}（不在你的設定檔中）"
 
-#: src/ContextMenusController.cpp:240
+#: src/ContextMenusController.cpp:376
 msgid "No modify or remove rules in your config."
 msgstr "你的設定檔中沒有 modify 或 remove 規則。"
 
-#: src/ContextMenusController.cpp:241
+#: src/ContextMenusController.cpp:377
 msgid "{n} rule in {0}. Turning one off comments it out; turning it back on restores it."
 msgid_plural "{n} rules in {0}. Turning one off comments it out; turning it back on restores it."
 msgstr[0] "{0} 中有 {n} 項規則。關閉某項規則會將其標為註解；重新開啟即可還原。"
 
-#: src/ContextMenusController.cpp:255
+#: src/ContextMenusController.cpp:392
 msgid "Couldn't change {}"
 msgstr "無法變更 {}"
 
-#: src/ContextMenusController.cpp:255
+#: src/ContextMenusController.cpp:392 src/ContextMenusController.cpp:689
 msgid "Edit the import line in the Config Editor instead."
 msgstr "請改在設定檔編輯器中編輯該 import 行。"
 
-#: src/ContextMenusController.cpp:268
+#: src/ContextMenusController.cpp:405
 msgid "Couldn't change this rule"
 msgstr "無法變更此規則"
 
-#: src/ContextMenusController.cpp:268
+#: src/ContextMenusController.cpp:405
 msgid "Edit it in the Config Editor instead."
 msgstr "請改在設定檔編輯器中編輯。"
 
-#: src/ContextMenusController.cpp:284 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
+#: src/ContextMenusController.cpp:427 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
 msgid "Can't check the config"
 msgstr "無法檢查設定檔"
 
-#: src/ContextMenusController.cpp:284 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
+#: src/ContextMenusController.cpp:427 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1079 src/SnippetsController.cpp:360
 msgid "shell.exe was not found, so nothing was saved."
 msgstr "找不到 shell.exe，因此未儲存任何內容。"
 
-#: src/ContextMenusController.cpp:317 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
+#: src/ContextMenusController.cpp:472 src/ContextMenusController.cpp:481 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1084 src/SnippetsController.cpp:364
 msgid "Not saved"
 msgstr "未儲存"
 
-#: src/ContextMenusController.cpp:317
+#: src/ContextMenusController.cpp:472 src/ContextMenusController.cpp:481
 msgid "{} is read-only here."
 msgstr "{} 在此為唯讀。"
 
-#: src/ContextMenusController.cpp:335 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145
+#: src/ContextMenusController.cpp:511
+msgid "Saved, but a file couldn't be deleted"
+msgstr "已儲存，但有一個檔案無法刪除"
+
+#: src/ContextMenusController.cpp:513 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145
 msgid "Saved"
 msgstr "已儲存"
 
-#: src/ContextMenusController.cpp:335 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145 src/OpenWithController.cpp:1187
+#: src/ContextMenusController.cpp:513 src/EditorController.cpp:748 src/MenuBuilderController.cpp:555 src/MenuMapController.cpp:1036 src/MenuMapController.cpp:1145 src/OpenWithController.cpp:1187
 msgid "No changes were needed."
 msgstr "不需要變更。"
 
-#: src/ContextMenusController.cpp:336 src/EditorController.cpp:749 src/MenuMapController.cpp:1037 src/MenuMapController.cpp:1146
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:749 src/MenuMapController.cpp:1037 src/MenuMapController.cpp:1146
 msgid "Snapshot {} was taken first."
 msgstr "已先建立快照 {}。"
 
-#: src/ContextMenusController.cpp:350 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:477
+#: src/ContextMenusController.cpp:528 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:477
 msgid "Not saved: the config would fail to load"
 msgstr "未儲存：設定檔將無法載入"
 
-#: src/ContextMenusController.cpp:353 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1202 src/SnippetsController.cpp:480
+#: src/ContextMenusController.cpp:531 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1202 src/SnippetsController.cpp:480
 msgid "Couldn't save"
 msgstr "無法儲存"
+
+#: src/ContextMenusController.cpp:556 src/OpenWithController.cpp:1041
+msgid "All files"
+msgstr "所有檔案"
+
+#: src/ContextMenusController.cpp:596
+msgid "Choose a .nss file to add"
+msgstr "選擇要新增的 .nss 檔案"
+
+#: src/ContextMenusController.cpp:596
+msgid "Shell config files"
+msgstr "Shell 設定檔"
+
+#: src/ContextMenusController.cpp:602
+msgid "That's your shell.nss"
+msgstr "這是你的 shell.nss"
+
+#: src/ContextMenusController.cpp:602
+msgid "Pick another .nss file to add to it."
+msgstr "請選擇另一個 .nss 檔案新增到其中。"
+
+#: src/ContextMenusController.cpp:608
+msgid "Couldn't read the file"
+msgstr "無法讀取該檔案"
+
+#: src/ContextMenusController.cpp:644
+msgid "Already in your config"
+msgstr "已在你的設定中"
+
+#: src/ContextMenusController.cpp:644
+msgid "shell.nss already imports {}."
+msgstr "shell.nss 已匯入 {}。"
+
+#: src/ContextMenusController.cpp:647
+msgid "{} added"
+msgstr "已新增 {}"
+
+#: src/ContextMenusController.cpp:647
+msgid "Save to check it and use it. Nothing is written until then."
+msgstr "儲存後會檢查並使用它。在此之前不會寫入任何內容。"
+
+#: src/ContextMenusController.cpp:689
+msgid "Couldn't remove {}"
+msgstr "無法移除 {}"
+
+#: src/ContextMenusController.cpp:779
+msgid "Written by hand"
+msgstr "手動撰寫"
+
+#: src/ContextMenusController.cpp:789
+msgid "Choose a program for it"
+msgstr "請為它選擇一個程式"
+
+#: src/ContextMenusController.cpp:791 src/OpenWithController.cpp:654
+msgid "Not found: {}"
+msgstr "找不到：{}"
+
+#: src/ContextMenusController.cpp:825 src/MenuMapController.cpp:1157 src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
+msgid "Line {}: {}"
+msgstr "第 {} 行：{}"
+
+#: src/ContextMenusController.cpp:832
+msgid "The Taskbar module is off, so the taskbar's menu doesn't show these apps. Turn it on under Modules."
+msgstr "「工作列」模組已關閉，因此工作列選單不會顯示這些應用程式。請在「模組」中開啟它。"
+
+#: src/ContextMenusController.cpp:834
+msgid "Your imports\\taskbar.nss doesn't read this list: it was changed by hand, or it comes from an older version. Take the new taskbar.nss on the Home page (your copy goes into a backup), or open it in the Config Editor."
+msgstr "你的 imports\\taskbar.nss 不會讀取此清單：它被手動修改過，或是來自舊版本。請在首頁採用新的 taskbar.nss（你的副本會放入備份），或在設定檔編輯器中開啟它。"
+
+#: src/ContextMenusController.cpp:953
+msgid "Choose a program or shortcut"
+msgstr "選擇程式或捷徑"
+
+#: src/ContextMenusController.cpp:953
+msgid "Programs and shortcuts"
+msgstr "程式和捷徑"
+
+#: src/ContextMenusController.cpp:1018 src/MenuMapController.cpp:547 src/Snippets.cpp:648
+msgid "Windows"
+msgstr "Windows"
+
+#: src/ContextMenusController.cpp:1018
+msgid "Installed apps"
+msgstr "已安裝的應用程式"
 
 #: src/EditorController.cpp:275
 msgid "Nothing to show."
@@ -3868,10 +4048,6 @@ msgstr "規則可能會變更它"
 msgid "{}:{}"
 msgstr "{}:{}"
 
-#: src/MenuMapController.cpp:547 src/Snippets.cpp:648
-msgid "Windows"
-msgstr "Windows"
-
 #: src/MenuMapController.cpp:549 src/MenuMapController.cpp:795
 msgid "A program"
 msgstr "某個程式"
@@ -4035,10 +4211,6 @@ msgstr "開啟這段程式碼後檔案已被變更。請取消後重新開啟。
 msgid "Not saved: {}"
 msgstr "未儲存：{}"
 
-#: src/MenuMapController.cpp:1157 src/MenuModel.cpp:460 src/OpenWithModel.cpp:1368
-msgid "line {}: {}"
-msgstr "第 {} 行：{}"
-
 #: src/MenuMapController.cpp:1160
 msgid "Not saved: the config would fail to load. {}"
 msgstr "未儲存：設定檔將無法載入。{}"
@@ -4082,10 +4254,6 @@ msgstr "未選擇程式"
 #: src/OpenWithController.cpp:652
 msgid "Not found on this PC"
 msgstr "在此電腦上找不到"
-
-#: src/OpenWithController.cpp:654
-msgid "Not found: {}"
-msgstr "找不到：{}"
 
 #: src/OpenWithController.cpp:657
 msgid "Doesn't show: the menu isn't on the places it's for."
@@ -4202,10 +4370,6 @@ msgstr "以 @ 開頭的部分會在選單開啟時由 Shell 填入。"
 #: src/OpenWithController.cpp:932
 msgid "It runs as administrator; Windows asks first."
 msgstr "將以系統管理員身分執行；Windows 會先要求確認。"
-
-#: src/OpenWithController.cpp:1041
-msgid "All files"
-msgstr "所有檔案"
 
 #: src/OpenWithController.cpp:1153
 msgid "Couldn't change the Editors submenu in {}."
@@ -4615,6 +4779,58 @@ msgstr "你正在使用共用設定檔"
 #: src/Status.cpp:192
 msgid "A personal copy in %APPDATA% is kept per user and survives updates."
 msgstr "%APPDATA% 中的個人複本依使用者分別保存，更新後也會保留。"
+
+#: src/TaskbarApps.cpp:575 src/TaskbarApps.cpp:747
+msgid "Registry Editor"
+msgstr "登錄編輯程式"
+
+#: src/TaskbarApps.cpp:577 src/TaskbarApps.cpp:744
+msgid "Paint"
+msgstr "小畫家"
+
+#: src/TaskbarApps.cpp:579 src/TaskbarApps.cpp:746
+msgid "Calculator"
+msgstr "小算盤"
+
+#: src/TaskbarApps.cpp:748
+msgid "Notepad"
+msgstr "記事本"
+
+#: src/TaskbarApps.cpp:749
+msgid "File Explorer"
+msgstr "檔案總管"
+
+#: src/TaskbarApps.cpp:751
+msgid "Windows PowerShell"
+msgstr "Windows PowerShell"
+
+#: src/TaskbarApps.cpp:752
+msgid "Control Panel"
+msgstr "控制台"
+
+#: src/TaskbarApps.cpp:753
+msgid "Character Map"
+msgstr "字元對應表"
+
+#: src/TaskbarApps.cpp:754
+msgid "Remote Desktop Connection"
+msgstr "遠端桌面連線"
+
+#: src/TaskbarApps.cpp:755
+msgid "Device Manager"
+msgstr "裝置管理員"
+
+#: src/TaskbarApps.cpp:756
+msgid "Services"
+msgstr "服務"
+
+#: src/TaskbarApps.cpp:757
+msgid "Disk Management"
+msgstr "磁碟管理"
+
+#: src/TaskbarApps.cpp:758
+msgid "Event Viewer"
+msgstr "事件檢視器"
 
 #: src/ThemePresets.cpp:26
 msgid "Default"
@@ -5145,86 +5361,92 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "Rename to {}"
-#~ msgstr "重新命名為 {}"
-
-#~ msgid "multiple selection"
-#~ msgstr "多重選取"
-
-#~ msgid "Change command"
-#~ msgstr "變更命令"
-
-#~ msgid "Add separators"
-#~ msgstr "新增分隔線"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前方新增分隔線"
-
-#~ msgid "Change state"
-#~ msgstr "變更狀態"
-
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "符合運算式的項目"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在後方新增分隔線"
-
 #~ msgid "Add a separator {}"
 #~ msgstr "新增分隔線（{}）"
-
-#~ msgid "Change icon"
-#~ msgstr "變更圖示"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "Change visibility"
-#~ msgstr "變更可見度"
-
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
-
-#~ msgid "Disable"
-#~ msgstr "停用"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移至 {} 中間"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
-
-#~ msgid "Move to {}"
-#~ msgstr "移至 {}"
 
 #~ msgid "Move to the middle"
 #~ msgstr "移至中間"
 
-#~ msgid "Move to the bottom"
-#~ msgstr "移至底端"
+#~ msgid "no selection"
+#~ msgstr "未選取"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
+
+#~ msgid "Change visibility"
+#~ msgstr "變更可見度"
+
+#~ msgid "multiple selection"
+#~ msgstr "多重選取"
+
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重新命名為 {}"
+
+#~ msgid "Disable"
+#~ msgstr "停用"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
 
 #~ msgid "on the edit"
 #~ msgstr "在編輯方塊中"
 
-#~ msgid "File Explorer"
-#~ msgstr "檔案總管"
-
-#~ msgid "no selection"
-#~ msgstr "未選取"
-
 #~ msgid "Move to {}, at the bottom"
 #~ msgstr "移至 {} 底端"
+
+#~ msgid "Change icon"
+#~ msgstr "變更圖示"
+
+#~ msgid "Add separators"
+#~ msgstr "新增分隔線"
+
+#~ msgid "Move to {}"
+#~ msgstr "移至 {}"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移至底端"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "符合運算式的項目"
+
+#~ msgid "Change state"
+#~ msgstr "變更狀態"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移至 {} 中間"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
+
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前方新增分隔線"
+
+#~ msgid "Imported from {}."
+#~ msgstr "從 {} 匯入。"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在後方新增分隔線"
