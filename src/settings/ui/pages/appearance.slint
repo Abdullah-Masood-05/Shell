@@ -16,6 +16,7 @@ import { PreviewPane, MiniMenu } from "../preview/menu-preview.slint";
 import { AppearanceState, ThemeField, K } from "appearance-state.slint";
 import { PresetGallery, PresetConfirm } from "../components/preset-gallery.slint";
 import { PresetsState } from "presets-state.slint";
+import { ActionHeader } from "../components/action-header.slint";
 
 export { AppearanceState, K }
 
@@ -46,12 +47,115 @@ component TabSection inherits VerticalLayout {
     }
 }
 
+// The live preview: Desktop or File Explorer, light or dark.
+component PreviewCard inherits Rectangle {
+    in property <length> pane-height: 280px;
+
+    background: Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    VerticalLayout {
+        padding: Tokens.s4;
+        spacing: Tokens.s3;
+        HorizontalLayout {
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                Image {
+                    source: Icons.eye;
+                    width: 20px;
+                    height: 20px;
+                    colorize: Tokens.text-2;
+                }
+            }
+            Text {
+                horizontal-stretch: 1;
+                text: @tr("Live preview");
+                font-size: Tokens.heading;
+                font-weight: 600;
+                color: Tokens.text;
+                vertical-alignment: center;
+            }
+        }
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            Segmented {
+                horizontal-stretch: 1;
+                min-option-width: 88px;
+                options: [@tr("Desktop"), @tr("Preview tab" => "File Explorer")];
+                selected: AppearanceState.preview-context;
+                changed(i) => { AppearanceState.preview-context = i; }
+            }
+            Segmented {
+                horizontal-stretch: 0;
+                width: 116px;
+                min-option-width: 52px;
+                options: [@tr("Light"), @tr("Dark")];
+                selected: AppearanceState.preview-dark ? 1 : 0;
+                changed(i) => { AppearanceState.set-preview-dark(i == 1); }
+            }
+        }
+        PreviewPane {
+            vertical-stretch: 1;
+            min-height: root.pane-height;
+            t: AppearanceState.preview;
+            context: AppearanceState.preview-context;
+            menu: AppearanceState.preview-context == 0 ? AppearanceState.menu-desktop : AppearanceState.menu-explorer;
+            subs: AppearanceState.preview-context == 0 ? AppearanceState.subs-desktop : AppearanceState.subs-explorer;
+            wallpaper: AppearanceState.wallpaper;
+            blurred: AppearanceState.wallpaper-blurred;
+            icon-font: AppearanceState.icon-font;
+            dark: AppearanceState.preview-dark;
+        }
+        Text {
+            text: @tr("This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu.");
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+    }
+}
+
+// Where to go for the keys this page doesn't have. The button goes under the text
+// when the card is narrow.
+component FurtherCard inherits Rectangle {
+    background: Tokens.layer;
+    border-radius: Tokens.radius-lg;
+    border-width: 1px;
+    border-color: Tokens.stroke;
+    VerticalLayout {
+        padding: Tokens.s4;
+        ActionHeader {
+            icon: Icons.editor;
+            icon-color: Tokens.accent;
+            title: @tr("Want to go further?");
+            title-size: Tokens.body;
+            description: @tr("Gradients, image colours and per-item rules are in shell.nss and its imports.");
+            min-text-width: 200px;
+            AppButton {
+                text: @tr("Config Editor");
+                icon: Icons.arrow-right;
+                icon-after: true;
+                colorize-icon: true;
+                clicked => { AppState.page = Pages.editor; }
+            }
+        }
+    }
+}
+
 export component AppearancePage inherits Rectangle {
     property <[ThemeField]> f: AppearanceState.fields;
     property <bool> ready: AppearanceState.loaded && f.length > K.image-gap;
-    property <length> preview-width: clamp((root.width - 72px) * 0.4, 310px, 520px);
+    // The width inside the page's padding.
+    property <length> inner-width: root.width - 2 * (Tokens.s8 + Tokens.s1);
+    // Settings and preview side by side only when the settings keep a sensible width
+    // next to the preview; otherwise one column, with the preview in it.
+    property <bool> stacked: root.inner-width < 440px + Tokens.s4 + 300px;
+    property <length> preview-width: clamp((root.width - 72px) * 0.4, 300px, 520px);
     // The left column's inner width (page padding, gap, scroll gutter, card padding).
-    property <length> body-width: root.width - 2 * (Tokens.s8 + Tokens.s1) - Tokens.s4 - root.preview-width - Tokens.s3 - 2 * Tokens.s5;
+    property <length> body-width: root.inner-width - (root.stacked ? 0px : Tokens.s4 + root.preview-width) - Tokens.s3 - 2 * Tokens.s5;
     property <int> swatch;   // the palette entry the row under the palette edits
     property <int> theme-index: f.length > K.name ? clamp(f[K.name].index, 0, 4) : 0;
 
@@ -123,6 +227,11 @@ export component AppearancePage inherits Rectangle {
                         enabled: root.ready;
                         picked(i) => { AppearanceState.set-index(K.name, i); }
                     }
+                }
+
+                // A narrow window: the preview above the keys it shows.
+                if root.stacked: PreviewCard {
+                    pane-height: 300px;
                 }
 
                 // The theme in use and its keys, by tab.
@@ -633,129 +742,22 @@ export component AppearancePage inherits Rectangle {
                         }
                     }
                 }
+
+                if root.stacked: FurtherCard { }
             }
 
-            // Live preview, and where to go for the keys this page doesn't have.
-            VerticalLayout {
+            // Live preview, and where to go for the keys this page doesn't have. In a
+            // narrow window they are in the column above instead.
+            if !root.stacked: VerticalLayout {
                 width: root.preview-width;
                 padding-bottom: Tokens.s6;
                 spacing: Tokens.s4;
-                Rectangle {
+                PreviewCard {
                     vertical-stretch: 1;
-                    background: Tokens.layer;
-                    border-radius: Tokens.radius-lg;
-                    border-width: 1px;
-                    border-color: Tokens.stroke;
-                    VerticalLayout {
-                        padding: Tokens.s4;
-                        spacing: Tokens.s3;
-                        HorizontalLayout {
-                            spacing: Tokens.s3;
-                            VerticalLayout {
-                                alignment: center;
-                                Image {
-                                    source: Icons.eye;
-                                    width: 20px;
-                                    height: 20px;
-                                    colorize: Tokens.text-2;
-                                }
-                            }
-                            Text {
-                                horizontal-stretch: 1;
-                                text: @tr("Live preview");
-                                font-size: Tokens.heading;
-                                font-weight: 600;
-                                color: Tokens.text;
-                                vertical-alignment: center;
-                            }
-                        }
-                        HorizontalLayout {
-                            spacing: Tokens.s2;
-                            Segmented {
-                                horizontal-stretch: 1;
-                                min-option-width: 88px;
-                                options: [@tr("Desktop"), @tr("Preview tab" => "File Explorer")];
-                                selected: AppearanceState.preview-context;
-                                changed(i) => { AppearanceState.preview-context = i; }
-                            }
-                            Segmented {
-                                horizontal-stretch: 0;
-                                width: 116px;
-                                min-option-width: 52px;
-                                options: [@tr("Light"), @tr("Dark")];
-                                selected: AppearanceState.preview-dark ? 1 : 0;
-                                changed(i) => { AppearanceState.set-preview-dark(i == 1); }
-                            }
-                        }
-                        PreviewPane {
-                            vertical-stretch: 1;
-                            min-height: 280px;
-                            t: AppearanceState.preview;
-                            context: AppearanceState.preview-context;
-                            menu: AppearanceState.preview-context == 0 ? AppearanceState.menu-desktop : AppearanceState.menu-explorer;
-                            subs: AppearanceState.preview-context == 0 ? AppearanceState.subs-desktop : AppearanceState.subs-explorer;
-                            wallpaper: AppearanceState.wallpaper;
-                            blurred: AppearanceState.wallpaper-blurred;
-                            icon-font: AppearanceState.icon-font;
-                            dark: AppearanceState.preview-dark;
-                        }
-                        Text {
-                            text: @tr("This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu.");
-                            font-size: Tokens.caption;
-                            color: Tokens.text-2;
-                            wrap: word-wrap;
-                            min-height: self.preferred-height;
-                        }
-                    }
                 }
-                Rectangle {
-                    background: Tokens.layer;
-                    border-radius: Tokens.radius-lg;
-                    border-width: 1px;
-                    border-color: Tokens.stroke;
-                    HorizontalLayout {
-                        padding: Tokens.s4;
-                        spacing: Tokens.s3;
-                        VerticalLayout {
-                            alignment: start;
-                            Image {
-                                source: Icons.editor;
-                                width: 20px;
-                                height: 20px;
-                                colorize: Tokens.accent;
-                            }
-                        }
-                        VerticalLayout {
-                            horizontal-stretch: 1;
-                            spacing: 2px;
-                            Text {
-                                text: @tr("Want to go further?");
-                                font-weight: 600;
-                                color: Tokens.text;
-                            }
-                            Text {
-                                text: @tr("Gradients, image colours and per-item rules are in shell.nss and its imports.");
-                                font-size: Tokens.caption;
-                                color: Tokens.text-2;
-                                wrap: word-wrap;
-                                min-height: self.preferred-height;
-                            }
-                        }
-                        VerticalLayout {
-                            alignment: center;
-                            AppButton {
-                                text: @tr("Config Editor");
-                                icon: Icons.arrow-right;
-                                icon-after: true;
-                                colorize-icon: true;
-                                clicked => { AppState.page = Pages.editor; }
-                            }
-                        }
-                    }
-                }
+                FurtherCard { }
             }
         }
     }
-
     if PresetsState.confirm >= 0: PresetConfirm { }
 }
