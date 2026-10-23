@@ -30,12 +30,22 @@ struct Module
     bool enabled = true;
     bool locked = false;      // can't be toggled here (see lockReason)
     std::string lockReason;
+    bool own = false;         // not a file Shell ships or the app writes: the user's own, can be removed
 };
 
 // Config imports at the top level of the root (not `import lang`, not
 // imports/settings-app.nss).
 std::vector<Module> listModules(const nss::NssDocument &root);
 bool setModuleEnabled(nss::NssDocument &root, size_t importIndex, bool enabled);
+
+// Whether the root imports `path` ("imports/mine.nss"; either slash, any case), on or off.
+bool hasModule(const nss::NssDocument &root, std::string_view path);
+// Adds `import '<path>'` (relative to the root's folder) on its own line: before the
+// app's own imports at the end (imports/settings-app*.nss, so settings-app.nss stays
+// last), else at the end. False when it's already imported.
+bool addModule(nss::NssDocument &root, std::string_view path);
+// Removes the import line (on or off). False when it shares its line with something else.
+bool removeModule(nss::NssDocument &root, size_t importIndex);
 
 enum class RuleKind
 {
