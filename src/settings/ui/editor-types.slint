@@ -21,7 +21,7 @@ export struct EditorFile {
     label: string,             // relative to the config folder
     name: string,
     depth: int,
-    managed: bool,             // imports/settings-app*.nss: owned by the app
+    managed: bool,             // imports/settings-app*.nss: the app writes it too (still editable)
     missing: bool,
     unresolved: bool,
     outside: bool,             // outside the config folder: read-only
@@ -69,6 +69,7 @@ export global EditorState {
     in property <int> dirty-count;         // all files
     in property <bool> read-only;
     in property <string> read-only-reason;
+    in property <bool> current-managed;    // an imports/settings-app*.nss file: the app writes it too
     in property <bool> shared-config;      // the install folder's config is active
 
     // Diagnostics

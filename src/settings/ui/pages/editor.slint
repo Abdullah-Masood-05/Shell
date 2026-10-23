@@ -315,6 +315,14 @@ export component EditorPage inherits Rectangle {
                     }
                 }
 
+                if EditorState.current-managed && !EditorState.read-only: Text {
+                    text: @tr("Managed by Nilesoft Shell Pro. You can edit it; the app keeps your changes.");
+                    font-size: Tokens.caption;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                }
+
                 // Code
                 Rectangle {
                     vertical-stretch: 1;
