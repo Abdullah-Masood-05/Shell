@@ -10,7 +10,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:54
+#: ui/app.slint:55
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Segoe UI Variable Text"
@@ -84,7 +84,7 @@ msgstr "Sin diferencias."
 msgid "OK"
 msgstr "Aceptar"
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:231
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:262
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -236,7 +236,7 @@ msgstr "Avanzado"
 msgid "Backups"
 msgstr "Copias de seguridad"
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:269
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:300
 msgid "Version {}"
 msgstr "Versión {}"
 
@@ -244,7 +244,7 @@ msgstr "Versión {}"
 msgid "Checking status…"
 msgstr "Comprobando el estado…"
 
-#: ui/components/sidebar.slint:181 ui/pages/preferences.slint:48
+#: ui/components/sidebar.slint:181 ui/pages/preferences.slint:51
 msgid "Preferences"
 msgstr "Preferencias"
 
@@ -425,11 +425,11 @@ msgstr "Notas de la versión"
 msgid "Skip this version"
 msgstr "Omitir esta versión"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:255
 msgid "Restart to update"
 msgstr "Reiniciar para actualizar"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:224
+#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:255
 msgid "Download and install"
 msgstr "Descargar e instalar"
 
@@ -710,11 +710,11 @@ msgctxt "Preview tab"
 msgid "File Explorer"
 msgstr "Explorador de archivos"
 
-#: ui/pages/appearance.slint:685 ui/pages/preferences.slint:62 ui/pages/appearance.slint:685 ui/pages/preferences.slint:62
+#: ui/pages/appearance.slint:685 ui/pages/preferences.slint:65 ui/pages/appearance.slint:685 ui/pages/preferences.slint:65
 msgid "Light"
 msgstr "Claro"
 
-#: ui/pages/appearance.slint:685 ui/pages/preferences.slint:62 ui/pages/appearance.slint:685 ui/pages/preferences.slint:62
+#: ui/pages/appearance.slint:685 ui/pages/preferences.slint:65 ui/pages/appearance.slint:685 ui/pages/preferences.slint:65
 msgid "Dark"
 msgstr "Oscuro"
 
@@ -1237,7 +1237,7 @@ msgstr "Nilesoft Shell de un vistazo: registro, la configuración activa y diagn
 msgid "Refresh"
 msgstr "Actualizar"
 
-#: ui/pages/home.slint:108 ui/pages/home.slint:280 ui/pages/home.slint:108 ui/pages/home.slint:280
+#: ui/pages/home.slint:108 ui/pages/home.slint:280 ui/pages/home.slint:108 ui/pages/home.slint:280 src/TrayController.cpp:135
 msgid "Restart Explorer"
 msgstr "Reiniciar el Explorador"
 
@@ -1257,7 +1257,7 @@ msgstr "Menú de Windows 11"
 msgid "Shell DLL"
 msgstr "DLL de Shell"
 
-#: ui/pages/home.slint:206 ui/pages/preferences.slint:133
+#: ui/pages/home.slint:206 ui/pages/preferences.slint:164
 msgid "Version"
 msgstr "Versión"
 
@@ -2192,179 +2192,211 @@ msgstr "develop.nss tiene sus propios elementos de VS Code y Bloc de notas, que 
 msgid "develop.nss has its own VS Code and Notepad items. They only show while Shift is held, so they're left alone by default. Turn this on to keep your editors in one place; the lines are commented out, not deleted."
 msgstr "develop.nss tiene sus propios elementos de VS Code y Bloc de notas. Solo se muestran mientras se mantiene presionada la tecla Mayús, por lo que se dejan como están de forma predeterminada. Activa esto para tener tus editores en un solo lugar; las líneas se comentan, no se eliminan."
 
-#: ui/pages/preferences.slint:49
+#: ui/pages/preferences.slint:52
 msgid "How this app looks, updates, machine-wide registration, and about."
 msgstr "Cómo se ve esta aplicación, las actualizaciones, el registro para todo el equipo y la información acerca de ella."
 
-#: ui/pages/preferences.slint:56
+#: ui/pages/preferences.slint:59
 msgid "App theme"
 msgstr "Tema de la aplicación"
 
-#: ui/pages/preferences.slint:57
+#: ui/pages/preferences.slint:60
 msgid "System follows the Windows app mode and changes with it."
 msgstr "Sistema sigue el modo de aplicaciones de Windows y cambia con él."
 
-#: ui/pages/preferences.slint:62
+#: ui/pages/preferences.slint:65
 msgid "System"
 msgstr "Sistema"
 
-#: ui/pages/preferences.slint:71
+#: ui/pages/preferences.slint:74
 msgid "Language"
 msgstr "Idioma"
 
-#: ui/pages/preferences.slint:72
+#: ui/pages/preferences.slint:75
 msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
 msgstr "Auto sigue el idioma de visualización de Windows, que ahora es {}. Un cambio se aplica de inmediato."
 
-#: ui/pages/preferences.slint:89
+#: ui/pages/preferences.slint:92
 msgid "Test a translation file…"
 msgstr ""
 
-#: ui/pages/preferences.slint:93
+#: ui/pages/preferences.slint:96
 msgid "For translators: shows the app in a .po file until you stop it or close the app."
 msgstr ""
 
-#: ui/pages/preferences.slint:105
+#: ui/pages/preferences.slint:108
+msgid "Startup and tray"
+msgstr "Inicio y bandeja del sistema"
+
+#: ui/pages/preferences.slint:109
+msgid "The app can wait in the notification area next to the clock, so it opens at once and can tell you when an update is out."
+msgstr "La aplicación puede esperar en el área de notificación, junto al reloj, para abrirse al instante y avisarte cuando haya una actualización."
+
+#: ui/pages/preferences.slint:111
+msgid "Keep Nilesoft Shell Pro in the system tray"
+msgstr "Mantener Nilesoft Shell Pro en la bandeja del sistema"
+
+#: ui/pages/preferences.slint:112
+msgid "Closing the window leaves the app running there. Turn this off to end the app when you close its window."
+msgstr "Al cerrar la ventana, la aplicación sigue funcionando allí. Desactívalo para cerrar la aplicación al cerrar su ventana."
+
+#: ui/pages/preferences.slint:117
+msgid "Start with Windows"
+msgstr "Iniciar con Windows"
+
+#: ui/pages/preferences.slint:119
+msgid "When you sign in, the app starts in the tray without opening its window."
+msgstr "Al iniciar sesión, la aplicación se inicia en la bandeja sin abrir su ventana."
+
+#: ui/pages/preferences.slint:120
+msgid "Works only while the app is kept in the system tray."
+msgstr "Solo funciona si la aplicación se mantiene en la bandeja del sistema."
+
+#: ui/pages/preferences.slint:126
+msgid "Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on."
+msgstr "Windows tiene la aplicación desactivada en su lista de aplicaciones de inicio. Activa el interruptor aquí para volver a activarla."
+
+#: ui/pages/preferences.slint:136
 msgid "All users on this PC"
 msgstr "Todos los usuarios de este equipo"
 
-#: ui/pages/preferences.slint:106
+#: ui/pages/preferences.slint:137
 msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
 msgstr "Registrar Shell para todos en este equipo requiere derechos de administrador. Todo lo demás en esta aplicación funciona sin ellos."
 
-#: ui/pages/preferences.slint:108
+#: ui/pages/preferences.slint:139
 msgid "All users"
 msgstr "Todos los usuarios"
 
-#: ui/pages/preferences.slint:109 ui/pages/preferences.slint:113
+#: ui/pages/preferences.slint:140 ui/pages/preferences.slint:144
 msgid "Registered"
 msgstr "Registrado"
 
-#: ui/pages/preferences.slint:109 ui/pages/preferences.slint:113 src/AppController.cpp:123
+#: ui/pages/preferences.slint:140 ui/pages/preferences.slint:144 src/AppController.cpp:123
 msgid "Not registered"
 msgstr "No registrado"
 
-#: ui/pages/preferences.slint:112
+#: ui/pages/preferences.slint:143
 msgid "Just you"
 msgstr "Solo tú"
 
-#: ui/pages/preferences.slint:119
+#: ui/pages/preferences.slint:150
 msgid "Unregister for all users"
 msgstr "Anular el registro para todos los usuarios"
 
-#: ui/pages/preferences.slint:119
+#: ui/pages/preferences.slint:150
 msgid "Register for all users"
 msgstr "Registrar para todos los usuarios"
 
-#: ui/pages/preferences.slint:130
+#: ui/pages/preferences.slint:161
 msgid "Updates"
 msgstr "Actualizaciones"
 
-#: ui/pages/preferences.slint:131
+#: ui/pages/preferences.slint:162
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
 msgstr "Las nuevas versiones provienen de las versiones publicadas en GitHub de este proyecto y se comprueban con sus sumas SHA-256 antes de instalar nada."
 
-#: ui/pages/preferences.slint:134
+#: ui/pages/preferences.slint:165
 msgid "{}  ·  installed for all users (MSI)"
 msgstr "{}  ·  instalado para todos los usuarios (MSI)"
 
-#: ui/pages/preferences.slint:135
+#: ui/pages/preferences.slint:166
 msgid "{}  ·  portable copy"
 msgstr "{}  ·  copia portátil"
 
-#: ui/pages/preferences.slint:141
+#: ui/pages/preferences.slint:172
 msgid "Channel"
 msgstr "Canal"
 
-#: ui/pages/preferences.slint:150
+#: ui/pages/preferences.slint:181
 msgid "Stable"
 msgstr "Estable"
 
-#: ui/pages/preferences.slint:150
+#: ui/pages/preferences.slint:181
 msgid "Beta"
 msgstr "Beta"
 
-#: ui/pages/preferences.slint:156
+#: ui/pages/preferences.slint:187
 msgid "Pre-releases too"
 msgstr "También versiones preliminares"
 
-#: ui/pages/preferences.slint:156
+#: ui/pages/preferences.slint:187
 msgid "Releases only"
 msgstr "Solo versiones finales"
 
-#: ui/pages/preferences.slint:164
+#: ui/pages/preferences.slint:195
 msgid "Check for updates automatically"
 msgstr "Buscar actualizaciones automáticamente"
 
-#: ui/pages/preferences.slint:165
-msgid "When the app starts, at most once a day."
-msgstr "Al iniciar la aplicación, como máximo una vez al día."
+#: ui/pages/preferences.slint:196
+msgid "When the app starts, at most once a day, and every few hours while it is in the system tray."
+msgstr "Al iniciar la aplicación, como máximo una vez al día, y cada pocas horas mientras está en la bandeja del sistema."
 
-#: ui/pages/preferences.slint:170
+#: ui/pages/preferences.slint:201
 msgid "Download and install updates automatically"
 msgstr "Descargar e instalar actualizaciones automáticamente"
 
-#: ui/pages/preferences.slint:171
+#: ui/pages/preferences.slint:202
 msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
 
-#: ui/pages/preferences.slint:194 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:225 src/UpdateController.cpp:536
 msgid "Checking for updates…"
 msgstr "Buscando actualizaciones…"
 
-#: ui/pages/preferences.slint:195
+#: ui/pages/preferences.slint:226
 msgid "Version {} is available"
 msgstr "La versión {} está disponible"
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:227
 msgid "Downloading {}…  {}"
 msgstr "Descargando {}…  {}"
 
-#: ui/pages/preferences.slint:197
+#: ui/pages/preferences.slint:228
 msgid "Version {} is downloaded and verified"
 msgstr "La versión {} está descargada y verificada"
 
-#: ui/pages/preferences.slint:198
+#: ui/pages/preferences.slint:229
 msgid "Installing {}…"
 msgstr "Instalando {}…"
 
-#: ui/pages/preferences.slint:200
+#: ui/pages/preferences.slint:231
 msgid "Not checked yet"
 msgstr "Aún sin comprobar"
 
-#: ui/pages/preferences.slint:214
+#: ui/pages/preferences.slint:245
 msgid "Last checked: {}"
 msgstr "Última comprobación: {}"
 
-#: ui/pages/preferences.slint:235
+#: ui/pages/preferences.slint:266
 msgid "Check now"
 msgstr "Buscar ahora"
 
-#: ui/pages/preferences.slint:251
+#: ui/pages/preferences.slint:282
 msgid "About"
 msgstr "Acerca de"
 
-#: ui/pages/preferences.slint:273
+#: ui/pages/preferences.slint:304
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr "© Nilesoft Ltd. y colaboradores. Licencia MIT."
 
-#: ui/pages/preferences.slint:287
+#: ui/pages/preferences.slint:318
 msgid "Documentation"
 msgstr "Documentación"
 
-#: ui/pages/preferences.slint:292
+#: ui/pages/preferences.slint:323
 msgid "Source code"
 msgstr "Código fuente"
 
-#: ui/pages/preferences.slint:296
+#: ui/pages/preferences.slint:327
 msgid "Report an issue"
 msgstr "Informar de un problema"
 
-#: ui/pages/preferences.slint:305
+#: ui/pages/preferences.slint:336
 msgid "Third-party software"
 msgstr "Software de terceros"
 
-#: ui/pages/preferences.slint:310
+#: ui/pages/preferences.slint:341
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "Creado con Slint (licencia libre de regalías 2.0). JSON for Modern C++ de Niels Lohmann (MIT). Fluent UI System Icons de Microsoft (MIT)."
 
@@ -5095,6 +5127,34 @@ msgstr ""
 msgid "The file can't be opened."
 msgstr ""
 
+#: src/TrayController.cpp:131
+msgid "Open Nilesoft Shell Pro"
+msgstr "Abrir Nilesoft Shell Pro"
+
+#: src/TrayController.cpp:133
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+#: src/TrayController.cpp:137
+msgid "Quit"
+msgstr "Salir"
+
+#: src/TrayController.cpp:222
+msgid "Update available"
+msgstr "Actualización disponible"
+
+#: src/TrayController.cpp:223
+msgid "Nilesoft Shell Pro {} is available. Click to see what's new."
+msgstr "Nilesoft Shell Pro {} está disponible. Haz clic para ver las novedades."
+
+#: src/TrayController.cpp:232
+msgid "Couldn't check for updates"
+msgstr "No se pudieron buscar actualizaciones"
+
+#: src/TrayController.cpp:234 src/UpdateController.cpp:585
+msgid "You have the latest version."
+msgstr "Tienes la última versión."
+
 #: src/UpdateController.cpp:86
 msgid "Couldn't find this app's own file or the temporary folder."
 msgstr "No se encontró el archivo de esta aplicación ni la carpeta temporal."
@@ -5219,10 +5279,6 @@ msgstr "Se alcanzó el límite de GitHub para comprobar actualizaciones. Intént
 #: src/UpdateController.cpp:560
 msgid "Couldn't check for updates: {}"
 msgstr "No se pudieron buscar actualizaciones: {}"
-
-#: src/UpdateController.cpp:585
-msgid "You have the latest version."
-msgstr "Tienes la última versión."
 
 #: src/UpdateController.cpp:590 src/UpdateController.cpp:605
 msgid "This release has no download for this kind of install. Get it from the release page."
@@ -5503,3 +5559,6 @@ msgstr "Establecer como fondo de escritorio"
 #: src/WindowsTitles.cpp:117
 msgid "Restore previous versions"
 msgstr "Restaurar versiones anteriores"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "Al iniciar la aplicación, como máximo una vez al día."

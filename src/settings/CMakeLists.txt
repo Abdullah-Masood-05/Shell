@@ -85,6 +85,7 @@ add_executable(settings WIN32
     src/main.cpp
     src/AppController.cpp
     src/AppearanceController.cpp
+    src/Background.cpp
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
@@ -129,6 +130,8 @@ add_executable(settings WIN32
     src/ThemeModel.cpp
     src/ThemePresets.cpp
     src/Tr.cpp
+    src/TrayController.cpp
+    src/TrayIcon.cpp
     src/UpdateController.cpp
     src/Updater.cpp
     src/Wallpaper.cpp
@@ -205,6 +208,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp
         tests/test_taskbar.cpp
+        tests/test_background.cpp
+        src/Background.cpp
         src/BackupsModel.cpp
         src/CodeDocument.cpp
         src/ConfigRules.cpp

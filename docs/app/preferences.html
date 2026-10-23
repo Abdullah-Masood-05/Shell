@@ -1,7 +1,7 @@
 <h4>Preferences &amp; Updates</h4>
 <br>
-<p>Preferences is about the app itself: how it looks, registering Shell for everyone on this PC, keeping the app up to
-	date, and version and licence information.</p>
+<p>Preferences is about the app itself: how it looks, whether it stays in the system tray and starts with Windows,
+	registering Shell for everyone on this PC, keeping the app up to date, and version and licence information.</p>
 
 <figure class="screenshot my-5">
 	<img class="preview" src="/docs/images/settings-app/preferences-dark.png" width="1120" height="760"
@@ -79,6 +79,45 @@
 	<code>msgstr</code> in the same way. For developers, <i>Translations</i> in <code>src/settings/README.md</code>
 	explains how the files are built into the app.</p>
 
+<h5 id="startup-and-tray">Startup and tray</h5>
+<p>The app can keep running in the system tray, the area next to the clock on the taskbar, so it opens at once and can
+	tell you when a new version is out. Its icon is the Nilesoft Shell Pro logo. If you don't see it, click the small
+	arrow next to the clock: Windows hides some tray icons there.</p>
+<ul>
+	<li><strong>Keep Nilesoft Shell Pro in the system tray</strong> (on by default): closing the window leaves the app
+		running in the tray. Click the icon to open the window again. Turn this off and the app works as before: closing
+		the window ends it, and there is no tray icon.</li>
+	<li><strong>Start with Windows</strong> (on by default): when you sign in to Windows, the app starts in the tray
+		without opening its window. It only works while the first setting is on, so the switch is greyed out when the
+		app isn't kept in the tray. It only applies to your Windows account, and it doesn't need administrator rights.</li>
+</ul>
+<p>Right-click the tray icon for a menu:</p>
+<ul>
+	<li><strong>Open Nilesoft Shell Pro</strong> opens the window (clicking the icon does the same).</li>
+	<li><strong>Check for updates</strong> checks right away and tells you the result in a notification.</li>
+	<li><strong>Restart Explorer</strong> is the same as the button on <a href="/docs/app/home#quick-actions">Home</a>.</li>
+	<li><strong>Quit</strong> ends the app until you start it again (or until you next sign in, if <i>Start with
+		Windows</i> is on).</li>
+</ul>
+<p>While the app is in the tray it checks for updates a minute or two after Windows starts and then about every eight
+	hours, if <a href="#update-settings">Check for updates automatically</a> is on. When it finds a new version you get a
+	Windows notification, <i>Nilesoft Shell Pro 2.x is available. Click to see what's new.</i> Clicking it opens the app
+	on Home, where the update banner is. You are told once about each version, and never about a version you skipped. If
+	<i>Download and install updates automatically</i> is on, the update is also downloaded in the background, as
+	before.</p>
+<p>The app runs only once. Starting it from the Start menu while it is in the tray opens the window you already have.
+	In the tray it uses very little: it draws nothing while the window is closed, and it wakes up only for its icon and
+	the update checks.</p>
+<p>How Windows starts it: an entry named <code>NilesoftShellPro</code> under
+	<code>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run</code>, which runs
+	<code>NilesoftShellPro.exe --background</code>. The app adds it the first time you run version 2.2.0 or later, and
+	never again on its own, so if you remove it another way it stays removed. Turning off either setting removes it.
+	It also shows in <i>Settings &rarr; Apps &rarr; Startup</i> and in Task Manager, where you can turn it off too; the
+	card then says so, and turning <i>Start with Windows</i> on in the app turns it back on there. Uninstalling the MSI
+	closes the app and removes the entry. For a portable copy, turn off <i>Keep Nilesoft Shell Pro in the system
+	tray</i> before you delete the folder. The settings are stored as <code>KeepInTray</code> and
+	<code>StartWithWindows</code> under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>.</p>
+
 <h5 id="all-users">All users on this PC</h5>
 <p>This card shows whether Shell is registered for <i>All users</i> and for <i>Just you</i>, and has the one button in
 	the app that needs administrator rights.</p>
@@ -105,7 +144,8 @@
 <h5 id="update-settings">Update settings</h5>
 <ul>
 	<li><strong>Check for updates automatically</strong> (on by default): when the app starts, at most once a day, and
-		once a day while it stays open. A failed automatic check (offline, or GitHub's request limit) stays quiet and is
+		once a day while it stays open; about every eight hours while it is in the <a href="#startup-and-tray">system
+		tray</a>. A failed automatic check (offline, or GitHub's request limit) stays quiet and is
 		tried again later; <i>Check now</i> says what went wrong.</li>
 	<li><strong>Download and install updates automatically</strong> (off by default): the update is downloaded and
 		verified in the background, then the banner offers <i>Restart to update</i>. Nothing is installed without that

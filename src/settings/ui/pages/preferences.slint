@@ -7,6 +7,7 @@ import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Link, Segmented } from "../components/controls.slint";
 import { PageFrame } from "page-frame.slint";
 import { UpdateState } from "../update-state.slint";
+import { TrayState } from "../tray-state.slint";
 import { ProgressBar } from "../components/update-banner.slint";
 import { ToggleSwitch, RowDivider } from "../components/theme-controls.slint";
 
@@ -15,6 +16,7 @@ component PrefSwitch inherits HorizontalLayout {
     in property <string> label;
     in property <string> hint;
     in property <bool> on;
+    in property <bool> enabled: true;
     callback toggled(on: bool);
     spacing: Tokens.s4;
     VerticalLayout {
@@ -24,7 +26,7 @@ component PrefSwitch inherits HorizontalLayout {
         Text {
             text: root.label;
             font-size: Tokens.body;
-            color: Tokens.text;
+            color: root.enabled ? Tokens.text : Tokens.text-3;
             wrap: word-wrap;
             min-height: self.preferred-height;
         }
@@ -38,6 +40,7 @@ component PrefSwitch inherits HorizontalLayout {
     }
     ToggleSwitch {
         on: root.on;
+        enabled: root.enabled;
         label: root.label;
         toggled(v) => { root.toggled(v); }
     }
@@ -97,6 +100,34 @@ export component PreferencesPage inherits PageFrame {
                 wrap: word-wrap;
                 horizontal-stretch: 1;
             }
+        }
+    }
+
+    Card {
+        icon: Icons.window;
+        heading: @tr("Startup and tray");
+        description: @tr("The app can wait in the notification area next to the clock, so it opens at once and can tell you when an update is out.");
+        PrefSwitch {
+            label: @tr("Keep Nilesoft Shell Pro in the system tray");
+            hint: @tr("Closing the window leaves the app running there. Turn this off to end the app when you close its window.");
+            on: TrayState.keep-in-tray;
+            toggled(v) => { TrayState.set-keep-in-tray(v); }
+        }
+        PrefSwitch {
+            label: @tr("Start with Windows");
+            hint: TrayState.keep-in-tray
+                ? @tr("When you sign in, the app starts in the tray without opening its window.")
+                : @tr("Works only while the app is kept in the system tray.");
+            on: TrayState.keep-in-tray && TrayState.start-with-windows;
+            enabled: TrayState.keep-in-tray;
+            toggled(v) => { TrayState.set-start-with-windows(v); }
+        }
+        if TrayState.off-in-windows: Text {
+            text: @tr("Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on.");
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 
@@ -162,7 +193,7 @@ export component PreferencesPage inherits PageFrame {
         RowDivider { }
         PrefSwitch {
             label: @tr("Check for updates automatically");
-            hint: @tr("When the app starts, at most once a day.");
+            hint: @tr("When the app starts, at most once a day, and every few hours while it is in the system tray.");
             on: UpdateState.auto-check;
             toggled(v) => { UpdateState.set-auto-check(v); }
         }
