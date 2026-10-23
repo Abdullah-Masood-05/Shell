@@ -439,9 +439,14 @@ TEST_CASE("handoff: which per-user copy the installed exe starts")
 
 TEST_CASE("handoff: the arguments are passed on unchanged")
 {
-    CHECK(appchannel::argumentsOf(LR"("C:\Program Files\Nilesoft Shell\NilesoftShellPro.exe" --page home)") == L"--page home");
-    CHECK(appchannel::argumentsOf(LR"("C:\x y\a.exe")") == L"");
-    CHECK(appchannel::argumentsOf(LR"(a.exe   --lang "zh-CN" --po "C:\a b\x.po")") == LR"(--lang "zh-CN" --po "C:\a b\x.po")");
+    // Not raw strings inside CHECK(): MSVC's preprocessor mangles them in macro arguments.
+    const std::wstring quoted = L"\"C:\\Program Files\\Nilesoft Shell\\NilesoftShellPro.exe\" --page home";
+    const std::wstring alone = L"\"C:\\x y\\a.exe\"";
+    const std::wstring spaced = L"a.exe   --lang \"zh-CN\" --po \"C:\\a b\\x.po\"";
+    const std::wstring spacedArgs = L"--lang \"zh-CN\" --po \"C:\\a b\\x.po\"";
+    CHECK(appchannel::argumentsOf(quoted) == L"--page home");
+    CHECK(appchannel::argumentsOf(alone) == L"");
+    CHECK(appchannel::argumentsOf(spaced) == spacedArgs);
     CHECK(appchannel::argumentsOf(L"a.exe") == L"");
     CHECK(appchannel::argumentsOf(L"") == L"");
 }

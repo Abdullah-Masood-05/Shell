@@ -1279,8 +1279,21 @@ ApplyResult installAppPackage(const fs::path &staging, const Manifest &manifest,
         if (ec)
             return fail(nsp::trf("Couldn't replace {}.", narrow(target.wstring())));
     }
-    if (!MoveFileExW(partial.c_str(), target.c_str(), 0))
-        return fail(nsp::trf("Couldn't create {}: {}.", narrow(target.wstring()), winError(GetLastError())));
+    // A virus scanner may still have a just-written file open, and a folder with an open
+    // file can't be renamed: a few tries.
+    DWORD moveError = 0;
+    for (int attempt = 0; attempt < 20; ++attempt) {
+        if (MoveFileExW(partial.c_str(), target.c_str(), 0)) {
+            moveError = 0;
+            break;
+        }
+        moveError = GetLastError();
+        if (moveError != ERROR_ACCESS_DENIED && moveError != ERROR_SHARING_VIOLATION)
+            break;
+        Sleep(250);
+    }
+    if (moveError)
+        return fail(nsp::trf("Couldn't create {}: {}.", narrow(target.wstring()), winError(moveError)));
     if (installedDir)
         *installedDir = target;
     r.ok = true;
