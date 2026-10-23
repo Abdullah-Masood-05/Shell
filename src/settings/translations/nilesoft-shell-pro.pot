@@ -191,7 +191,7 @@ msgstr ""
 msgid "Open with"
 msgstr ""
 
-#: ui/components/sidebar.slint:21 ui/pages/snippets.slint:372 src/ConfigRules.cpp:59
+#: ui/components/sidebar.slint:21 ui/pages/snippets.slint:366 src/ConfigRules.cpp:59
 msgid "Snippets"
 msgstr ""
 
@@ -745,7 +745,7 @@ msgstr ""
 msgid "No personal config to back up"
 msgstr ""
 
-#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:415 src/Status.cpp:189
+#: ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/backups.slint:219 ui/pages/context-menus.slint:231 ui/pages/menu-builder.slint:423 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:408 src/Status.cpp:189
 msgid "Create personal config"
 msgstr ""
 
@@ -934,7 +934,7 @@ msgstr[0] ""
 msgid "Save"
 msgstr ""
 
-#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:413
+#: ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/context-menus.slint:229 ui/pages/editor.slint:202 ui/pages/menu-map.slint:659 ui/pages/snippets.slint:406
 msgid "This is the shared config in the install folder"
 msgstr ""
 
@@ -942,7 +942,7 @@ msgstr ""
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
 msgstr ""
 
-#: ui/pages/context-menus.slint:237 ui/pages/snippets.slint:421
+#: ui/pages/context-menus.slint:237 ui/pages/snippets.slint:414
 msgid "Couldn't read the config"
 msgstr ""
 
@@ -1000,7 +1000,7 @@ msgstr ""
 msgid "Couldn't open the config"
 msgstr ""
 
-#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:754 src/MenuModel.cpp:162 src/OtherApps.cpp:268 src/Snippets.cpp:638
+#: ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 ui/pages/editor.slint:242 ui/pages/menu-builder.slint:671 src/ConfigRules.cpp:754 src/MenuModel.cpp:162 src/OtherApps.cpp:268 src/Snippets.cpp:576
 msgid "Files"
 msgstr ""
 
@@ -1320,7 +1320,7 @@ msgstr ""
 msgid "Everywhere"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:750 src/MenuModel.cpp:163 src/OtherApps.cpp:269 src/Snippets.cpp:640
+#: ui/pages/menu-builder.slint:671 ui/pages/openwith.slint:769 src/ConfigRules.cpp:750 src/MenuModel.cpp:163 src/OtherApps.cpp:269 src/Snippets.cpp:578
 msgid "Folders"
 msgstr ""
 
@@ -1929,7 +1929,7 @@ msgstr ""
 msgid "Couldn't read the Open with items"
 msgstr ""
 
-#: ui/pages/openwith.slint:676 src/Snippets.cpp:650
+#: ui/pages/openwith.slint:676 src/Snippets.cpp:588
 msgid "Apps"
 msgstr ""
 
@@ -2327,23 +2327,23 @@ msgstr ""
 msgid "Show code"
 msgstr ""
 
-#: ui/pages/snippets.slint:373
+#: ui/pages/snippets.slint:367
 msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
 msgstr ""
 
-#: ui/pages/snippets.slint:395
-msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#: ui/pages/snippets.slint:376
+msgid "RubicBG's snippets are CC0, shared with his permission."
 msgstr ""
 
-#: ui/pages/snippets.slint:404
-msgid "RubicBG's snippet collection"
+#: ui/pages/snippets.slint:384
+msgid "His collection on GitHub"
 msgstr ""
 
-#: ui/pages/snippets.slint:414
+#: ui/pages/snippets.slint:407
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
 msgstr ""
 
-#: ui/pages/snippets.slint:430
+#: ui/pages/snippets.slint:423
 msgid "Search snippets"
 msgstr ""
 
@@ -2495,7 +2495,7 @@ msgctxt "Language"
 msgid "Auto"
 msgstr ""
 
-#: src/AppController.cpp:405 src/SnippetsController.cpp:191
+#: src/AppController.cpp:405 src/SnippetsController.cpp:183
 msgid "shell.exe was not found"
 msgstr ""
 
@@ -2611,7 +2611,7 @@ msgstr ""
 msgid "Undo Rename"
 msgstr ""
 
-#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:644 src/WindowsTitles.cpp:125
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:582 src/WindowsTitles.cpp:125
 msgid "Terminal"
 msgstr ""
 
@@ -2772,7 +2772,7 @@ msgstr ""
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr ""
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:46 src/ContextMenusController.cpp:94 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:340 src/SnippetsController.cpp:139 src/SnippetsController.cpp:560
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:46 src/ContextMenusController.cpp:94 src/EditorController.cpp:204 src/MenuBuilderController.cpp:217 src/OpenWithController.cpp:340 src/SnippetsController.cpp:139 src/SnippetsController.cpp:507
 msgid "The config file doesn't exist: {}"
 msgstr ""
 
@@ -3544,7 +3544,7 @@ msgstr ""
 msgid "Red lines are only in your copy. Green lines are in the new version."
 msgstr ""
 
-#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:787
+#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:767
 msgid "Couldn't read {}."
 msgstr ""
 
@@ -3597,15 +3597,15 @@ msgstr ""
 msgid "Edit it in the Config Editor instead."
 msgstr ""
 
-#: src/ContextMenusController.cpp:284 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1032 src/SnippetsController.cpp:780
+#: src/ContextMenusController.cpp:284 src/EditorController.cpp:702 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1032 src/SnippetsController.cpp:701
 msgid "Can't check the config"
 msgstr ""
 
-#: src/ContextMenusController.cpp:284 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1032 src/SnippetsController.cpp:780
+#: src/ContextMenusController.cpp:284 src/MenuBuilderController.cpp:516 src/OpenWithController.cpp:1032 src/SnippetsController.cpp:701
 msgid "shell.exe was not found, so nothing was saved."
 msgstr ""
 
-#: src/ContextMenusController.cpp:317 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1037 src/SnippetsController.cpp:784
+#: src/ContextMenusController.cpp:317 src/MenuBuilderController.cpp:521 src/MenuMapController.cpp:1016 src/OpenWithController.cpp:1037 src/SnippetsController.cpp:705
 msgid "Not saved"
 msgstr ""
 
@@ -3625,11 +3625,11 @@ msgstr ""
 msgid "Snapshot {} was taken first."
 msgstr ""
 
-#: src/ContextMenusController.cpp:350 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:897
+#: src/ContextMenusController.cpp:350 src/MenuMapController.cpp:1049 src/SnippetsController.cpp:794
 msgid "Not saved: the config would fail to load"
 msgstr ""
 
-#: src/ContextMenusController.cpp:353 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1155 src/SnippetsController.cpp:900
+#: src/ContextMenusController.cpp:353 src/EditorController.cpp:771 src/MenuBuilderController.cpp:570 src/MenuMapController.cpp:1052 src/OpenWithController.cpp:1155 src/SnippetsController.cpp:797
 msgid "Couldn't save"
 msgstr ""
 
@@ -3753,11 +3753,11 @@ msgstr ""
 msgid "The file has a syntax problem at line {}: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:492 src/OpenWithController.cpp:1097 src/PendingChanges.cpp:192 src/PendingChanges.cpp:204 src/SnippetsController.cpp:846
+#: src/MenuBuilderController.cpp:295 src/MenuBuilderController.cpp:535 src/OpenWithController.cpp:492 src/OpenWithController.cpp:1097 src/PendingChanges.cpp:192 src/PendingChanges.cpp:204 src/SnippetsController.cpp:743
 msgid "Couldn't read {}: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1037 src/SnippetsController.cpp:784
+#: src/MenuBuilderController.cpp:521 src/OpenWithController.cpp:1037 src/SnippetsController.cpp:705
 msgid "Program Files is never written to."
 msgstr ""
 
@@ -3813,11 +3813,11 @@ msgstr ""
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr ""
 
-#: src/MenuMapController.cpp:304 src/SnippetsController.cpp:275
+#: src/MenuMapController.cpp:304 src/SnippetsController.cpp:267
 msgid "shell.exe took too long to read the menu and was stopped."
 msgstr ""
 
-#: src/MenuMapController.cpp:309 src/SnippetsController.cpp:280
+#: src/MenuMapController.cpp:309 src/SnippetsController.cpp:272
 msgid "shell.exe gave no menu ({}). It may be older than this app."
 msgstr ""
 
@@ -3873,7 +3873,7 @@ msgstr ""
 msgid "{}:{}"
 msgstr ""
 
-#: src/MenuMapController.cpp:547 src/Snippets.cpp:648
+#: src/MenuMapController.cpp:547 src/Snippets.cpp:586
 msgid "Windows"
 msgstr ""
 
@@ -4456,148 +4456,108 @@ msgstr ""
 msgid "Name from the selection"
 msgstr ""
 
-#: src/Snippets.cpp:332
-msgid "{} can't be downloaded from this address."
-msgstr ""
-
-#: src/Snippets.cpp:339
-msgid "Couldn't download the snippet. Check your internet connection and try again."
-msgstr ""
-
-#: src/Snippets.cpp:341
-msgid "Couldn't download the snippet: {}"
-msgstr ""
-
-#: src/Snippets.cpp:346
-msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-msgstr ""
-
-#: src/Snippets.cpp:549
+#: src/Snippets.cpp:494
 msgid "There is no snippet called {}."
 msgstr ""
 
-#: src/Snippets.cpp:553
-msgid "{} isn't downloaded yet."
-msgstr ""
-
-#: src/Snippets.cpp:642
+#: src/Snippets.cpp:580
 msgid "Archives"
 msgstr ""
 
-#: src/Snippets.cpp:646
+#: src/Snippets.cpp:584
 msgid "Security"
 msgstr ""
 
-#: src/SnippetsController.cpp:229
+#: src/SnippetsController.cpp:221
 msgid "Couldn't write {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:307
+#: src/SnippetsController.cpp:299
 msgid "shell.exe couldn't load the snippet"
 msgstr ""
 
-#: src/SnippetsController.cpp:388
-msgid "No preview: the snippet couldn't be downloaded. {}"
-msgstr ""
-
-#: src/SnippetsController.cpp:390
-msgid "Downloading the snippet…"
-msgstr ""
-
-#: src/SnippetsController.cpp:395
+#: src/SnippetsController.cpp:377
 msgid "Loading preview…"
 msgstr ""
 
-#: src/SnippetsController.cpp:400
+#: src/SnippetsController.cpp:382
 msgid "No preview ({}). This is the snippet's code."
 msgstr ""
 
-#: src/SnippetsController.cpp:404
+#: src/SnippetsController.cpp:386
 msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
 msgstr ""
 
-#: src/SnippetsController.cpp:425
+#: src/SnippetsController.cpp:407
 msgid "Shown for a {} file."
 msgstr ""
 
-#: src/SnippetsController.cpp:680
+#: src/SnippetsController.cpp:608
 msgid "All"
 msgstr ""
 
-#: src/SnippetsController.cpp:713
+#: src/SnippetsController.cpp:641
 msgid "Needs Shell {} or later"
 msgstr ""
 
-#: src/SnippetsController.cpp:717
+#: src/SnippetsController.cpp:645
 msgid " and "
 msgstr ""
 
-#: src/SnippetsController.cpp:718
+#: src/SnippetsController.cpp:646
 msgid "Needs {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:724
+#: src/SnippetsController.cpp:652
 msgid "You changed this copy, so newer versions aren't applied to it."
 msgstr ""
 
-#: src/SnippetsController.cpp:727
+#: src/SnippetsController.cpp:655
 msgid "The copy in {} is missing. Turn the snippet off and on again."
 msgstr ""
 
-#: src/SnippetsController.cpp:730
+#: src/SnippetsController.cpp:658
 msgid "A newer version is applied the next time the app starts."
 msgstr ""
 
-#: src/SnippetsController.cpp:744
-msgid "Downloading the code…"
-msgstr ""
-
-#: src/SnippetsController.cpp:763
+#: src/SnippetsController.cpp:684
 msgid "{n} of {0} on"
 msgid_plural "{n} of {0} on"
 msgstr[0] ""
 
-#: src/SnippetsController.cpp:764
+#: src/SnippetsController.cpp:685
 msgid "Loading…"
 msgstr ""
 
-#: src/SnippetsController.cpp:765
+#: src/SnippetsController.cpp:686
 msgid "No snippets are available."
 msgstr ""
 
-#: src/SnippetsController.cpp:766
+#: src/SnippetsController.cpp:687
 msgid "No snippet matches the search."
 msgstr ""
 
-#: src/SnippetsController.cpp:800
-msgid "Couldn't turn on {}"
-msgstr ""
-
-#: src/SnippetsController.cpp:800 src/UpdateController.cpp:455
-msgid "Nothing was changed."
-msgstr ""
-
-#: src/SnippetsController.cpp:821
+#: src/SnippetsController.cpp:718
 msgid "Couldn't change this snippet"
 msgstr ""
 
-#: src/SnippetsController.cpp:876
+#: src/SnippetsController.cpp:773
 msgid "Turned on {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:877
+#: src/SnippetsController.cpp:774
 msgid "It's in the menu the next time you right-click."
 msgstr ""
 
-#: src/SnippetsController.cpp:879
+#: src/SnippetsController.cpp:776
 msgid "Turned off {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:881
+#: src/SnippetsController.cpp:778
 msgid "Snapshot {} has it if you want it back."
 msgstr ""
 
-#: src/SnippetsController.cpp:896
+#: src/SnippetsController.cpp:793
 msgid "Shell rejected the change, so it was undone"
 msgstr ""
 
@@ -4894,6 +4854,10 @@ msgstr ""
 msgid "The update was cancelled"
 msgstr ""
 
+#: src/UpdateController.cpp:455
+msgid "Nothing was changed."
+msgstr ""
+
 #: src/UpdateController.cpp:558
 msgid "You seem to be offline, so updates couldn't be checked."
 msgstr ""
@@ -4994,103 +4958,103 @@ msgstr ""
 msgid "The list of releases couldn't be read."
 msgstr ""
 
-#: src/Updater.cpp:679
+#: src/Updater.cpp:659
 msgid "The download address is not a release of Nilesoft Shell Pro: {}"
 msgstr ""
 
-#: src/Updater.cpp:686 src/Updater.cpp:699
+#: src/Updater.cpp:666 src/Updater.cpp:679
 msgid "Couldn't write {}."
 msgstr ""
 
-#: src/Updater.cpp:707
+#: src/Updater.cpp:687
 msgid "Couldn't save {}."
 msgstr ""
 
-#: src/Updater.cpp:738
+#: src/Updater.cpp:718
 msgid "NSP_UPDATE_FEED: couldn't read {}."
 msgstr ""
 
-#: src/Updater.cpp:767
+#: src/Updater.cpp:747
 msgid "The release lists an asset with an unusable name."
 msgstr ""
 
-#: src/Updater.cpp:772
+#: src/Updater.cpp:752
 msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
 msgstr ""
 
-#: src/Updater.cpp:778
+#: src/Updater.cpp:758
 msgid "Couldn't create {}."
 msgstr ""
 
-#: src/Updater.cpp:792
+#: src/Updater.cpp:772
 msgid "SHA256SUMS.txt is not served from this project's releases."
 msgstr ""
 
-#: src/Updater.cpp:797
+#: src/Updater.cpp:777
 msgid "Couldn't download SHA256SUMS.txt: {}"
 msgstr ""
 
-#: src/Updater.cpp:805
+#: src/Updater.cpp:785
 msgid "SHA256SUMS.txt has no entry for {}."
 msgstr ""
 
-#: src/Updater.cpp:818
+#: src/Updater.cpp:798
 msgid "Couldn't copy {}."
 msgstr ""
 
-#: src/Updater.cpp:827
+#: src/Updater.cpp:807
 msgid "The download failed: {}"
 msgstr ""
 
-#: src/Updater.cpp:835
+#: src/Updater.cpp:815
 msgid "nothing"
 msgstr ""
 
-#: src/Updater.cpp:836
+#: src/Updater.cpp:816
 msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
 msgstr ""
 
-#: src/Updater.cpp:851
+#: src/Updater.cpp:831
 msgid "The staging folder is not empty."
 msgstr ""
 
-#: src/Updater.cpp:858
+#: src/Updater.cpp:838
 msgid "tar.exe (part of Windows 10 and later) was not found."
 msgstr ""
 
-#: src/Updater.cpp:866
+#: src/Updater.cpp:846
 msgid "Couldn't start tar.exe: {}."
 msgstr ""
 
-#: src/Updater.cpp:878
+#: src/Updater.cpp:858
 msgid "The zip couldn't be extracted (tar.exe exit code {})."
 msgstr ""
 
-#: src/Updater.cpp:886
+#: src/Updater.cpp:866
 msgid "The zip contains a link, which an update never does."
 msgstr ""
 
-#: src/Updater.cpp:891
+#: src/Updater.cpp:871
 msgid "The zip contains a file outside its folder."
 msgstr ""
 
-#: src/Updater.cpp:936
+#: src/Updater.cpp:916
 msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
 msgstr ""
 
-#: src/Updater.cpp:940
+#: src/Updater.cpp:920
 msgid "The install folder {} doesn't exist."
 msgstr ""
 
-#: src/Updater.cpp:950
+#: src/Updater.cpp:930
 msgid "Couldn't read the update's files."
 msgstr ""
 
-#: src/Updater.cpp:992
+#: src/Updater.cpp:972
 msgid "Couldn't replace {}: {}."
 msgstr ""
 
-#: src/Updater.cpp:1002
+#: src/Updater.cpp:982
 msgid "Couldn't write {}: {}."
 msgstr ""
 
