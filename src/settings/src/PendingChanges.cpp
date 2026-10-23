@@ -1,5 +1,6 @@
 #include "PendingChanges.h"
 
+#include "MenuWriter.h"
 #include "Tr.h"
 
 #include "nss/Literal.h"
@@ -195,18 +196,25 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
     plan.overridesPath = (root.parent_path() / fs::path(nss::widen(nss::OverridesWriter::relativePath))).lexically_normal();
     plan.mapPath = (root.parent_path() / fs::path(nss::widen(maprules::relativePath))).lexically_normal();
 
+    // The file as it is now. One the user edited by hand so that it doesn't
+    // parse is left alone: the save stops with a message saying so.
     auto loadExisting = [&](const fs::path &path, std::optional<nss::NssDocument> &out) {
         std::error_code ec;
         if (!fs::is_regular_file(path, ec))
             return true;
         out = nss::NssDocument::load(path, nss::ParseContext{}, &error);
-        if (!out)
+        if (!out) {
             plan.error = nsp::trf("Couldn't read {}: {}", nss::narrow(path.wstring()), error);
-        return bool(out);
+            return false;
+        }
+        plan.error = menus::handEditProblem(*out, nss::narrow(path.filename().wstring()));
+        return plan.error.empty();
     };
 
     // Theme and settings values: imports/settings-app.nss, imported last. Only
     // written when one of them changed (the Menu map's rules alone don't need it).
+    // Values edited by hand are read back (`before`), and only the changed ones
+    // are replaced: the rest of the file stays as the user wrote it.
     if (!pending.items().empty() || pending.rules().empty()) {
         std::optional<nss::NssDocument> existing;
         if (!loadExisting(plan.overridesPath, existing))
@@ -215,7 +223,8 @@ SavePlan planSave(const fs::path &root, const PendingChanges &pending)
             plan.before = nss::OverridesWriter::read(*existing);
         plan.after = pending.apply(plan.before);
 
-        auto doc = nss::OverridesWriter::generateDocument(plan.after, existing ? &*existing : nullptr);
+        auto doc = existing ? nss::OverridesWriter::merge(*existing, plan.after)
+                            : nss::OverridesWriter::generateDocument(plan.after);
         if (!doc.diagnostics().empty()) {
             plan.error = nsp::trf("The generated settings-app.nss doesn't parse: {}", doc.diagnostics().front().message);
             return plan;
