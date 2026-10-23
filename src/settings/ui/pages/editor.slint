@@ -169,10 +169,21 @@ export component EditorPage inherits Rectangle {
         }
     }
 
-    // C++ bumps caret-serial after loading a file into the edit view.
+    // C++ bumps caret-serial after loading a file into the edit view: its caret,
+    // and the scroll position it had when the user left it.
     property <int> caret-serial: EditorState.caret-serial;
     changed caret-serial => {
         te.set-selection-offsets(EditorState.caret-anchor, EditorState.caret-offset);
+        if (EditorState.caret-scroll) {
+            te.scroll-to(EditorState.caret-scroll-x, EditorState.caret-scroll-y);
+        }
+    }
+
+    // --editor-find (screenshots): the find box open with a query.
+    property <int> find-serial: EditorState.find-serial;
+    changed find-serial => {
+        te.find-text = EditorState.find-query;
+        te.open-find();
     }
 
     VerticalLayout {
@@ -350,8 +361,10 @@ export component EditorPage inherits Rectangle {
                         font: EditorState.mono-font;
                         read-only: EditorState.read-only;
                         debug-overlay: EditorState.debug-overlay;
-                        edited(t) => { return EditorState.edited(t); }
-                        copied => { EditorState.fix-clipboard(); }
+                        edited(t, c, ba, bc) => { return EditorState.edited(t, c, ba, bc); }
+                        command(name, a, c) => { return EditorState.command(name, a, c); }
+                        find(q, a, c, back, inc) => { return EditorState.find(q, a, c, back, inc); }
+                        selected-text(a, c) => { return EditorState.selected-text(a, c); }
                         key-pressed(event) => {
                             if (event.modifiers.control && (event.text == "s" || event.text == "S")) {
                                 EditorState.save();
@@ -359,6 +372,11 @@ export component EditorPage inherits Rectangle {
                             }
                             return reject;
                         }
+                        // C++ keeps each file's caret and scroll position from these.
+                        changed anchor => { EditorState.view-anchor = self.anchor; }
+                        changed cursor => { EditorState.view-cursor = self.cursor; }
+                        changed scroll-x => { EditorState.view-x = self.scroll-x; }
+                        changed scroll-y => { EditorState.view-y = self.scroll-y; }
                     }
                 }
 

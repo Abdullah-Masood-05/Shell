@@ -1,6 +1,6 @@
 // Menu map data shared with C++ (src/MenuMapController.cpp).
 
-import { CodeLine } from "editor-types.slint";
+import { CodeLine, EditResult, FindResult } from "editor-types.slint";
 
 // One row of the outline, or of a panel in the node view.
 export struct MapRow {
@@ -113,7 +113,11 @@ export global MenuMapState {
     callback open-rule();
     callback open-context-menus();
     callback create-user-config();
-    callback edit-edited(text: string) -> int;
+    // The CodeEditor's callbacks (ui/components/code.slint).
+    callback edit-edited(text: string, cursor: int, before-anchor: int, before-cursor: int) -> EditResult;
+    callback edit-command(name: string, anchor: int, cursor: int) -> EditResult;
+    callback edit-find(query: string, anchor: int, cursor: int, backwards: bool, incremental: bool) -> FindResult;
+    callback edit-selected-text(anchor: int, cursor: int) -> string;
     callback edit-save();
     callback edit-cancel();
 }

@@ -7,6 +7,8 @@
 //                          with --snapshot, the tour starts with that step and the ones after it
 //   --editor-edit      open the Config Editor in its edit view
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
+//   --editor-select <first>-<last>, --editor-find <text>    select those lines, or open the
+//                          find box with that text, in the Config Editor's edit view (screenshots)
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,

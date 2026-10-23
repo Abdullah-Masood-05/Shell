@@ -88,6 +88,8 @@ add_executable(settings WIN32
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
+    src/CodeDocument.cpp
+    src/CodeEditorBridge.cpp
     src/ConfigRules.cpp
     src/ConfigUpdate.cpp
     src/ConfigUpdateController.cpp
@@ -185,7 +187,9 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_config_upgrade.cpp
         tests/test_menumap.cpp
         tests/test_snippets.cpp
+        tests/test_code_document.cpp
         src/BackupsModel.cpp
+        src/CodeDocument.cpp
         src/ConfigRules.cpp
         src/ConfigUpdate.cpp
         src/Diff.cpp

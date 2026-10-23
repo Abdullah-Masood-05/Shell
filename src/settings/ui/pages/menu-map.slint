@@ -1,4 +1,5 @@
-import { ComboBox, LineEdit, ListView, ScrollView } from "std-widgets.slint";
+import { ComboBox, ListView, ScrollView } from "std-widgets.slint";
+import { AppLineEdit as LineEdit } from "../components/line-edit.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
@@ -587,7 +588,10 @@ component EditCodeDialog inherits Rectangle {
                     lines: MenuMapState.edit-lines;
                     text <=> MenuMapState.edit-text;
                     font: EditorState.mono-font;
-                    edited(t) => { return MenuMapState.edit-edited(t); }
+                    edited(t, c, ba, bc) => { return MenuMapState.edit-edited(t, c, ba, bc); }
+                    command(name, a, c) => { return MenuMapState.edit-command(name, a, c); }
+                    find(q, a, c, back, inc) => { return MenuMapState.edit-find(q, a, c, back, inc); }
+                    selected-text(a, c) => { return MenuMapState.edit-selected-text(a, c); }
                     key-pressed(event) => {
                         if (event.modifiers.control && (event.text == "s" || event.text == "S")) {
                             MenuMapState.edit-save();
