@@ -168,6 +168,30 @@ namespace nss
 					auto name = toLower(text(t));
 					if(t.kind == TokenKind::Variable)
 						name.erase(0, 1);
+					// path.location(x) / path.parent(x): the folder of a simple x, as
+					// taskbar.nss builds the Apps list's path from app.cfg.
+					if(toks[i + 1].kind == TokenKind::LParen && (name == "path.location" || name == "path.parent"))
+					{
+						size_t close = i + 2;
+						int depth = 1;
+						for(; toks[close].kind != TokenKind::Eof; close++)
+						{
+							if(toks[close].kind == TokenKind::LParen)
+								depth++;
+							else if(toks[close].kind == TokenKind::RParen && --depth == 0)
+								break;
+						}
+						if(depth != 0 || close == i + 2)
+							return fail("function call '" + name + "(...)'");
+						auto inner = expression.substr(toks[i + 2].begin, toks[close].begin - toks[i + 2].begin);
+						auto arg = evaluate(inner, vars, reason);
+						if(!arg)
+							return std::nullopt;
+						auto cut = arg->find_last_of("\\/");
+						out += cut == std::string::npos ? std::string() : arg->substr(0, cut);
+						i = close;
+						break;
+					}
 					if(toks[i + 1].kind == TokenKind::LParen || toks[i + 1].kind == TokenKind::LBracket)
 						return fail("function call '" + name + "(...)'");
 					auto it = vars.find(name);
@@ -253,12 +277,17 @@ namespace nss
 			return;
 		}
 
+		std::error_code ec;
+		// As Shell does: one of the app's files (imports\settings-app*.nss) that isn't
+		// written yet is no missing file, just nothing yet (taskbar.nss's Apps list).
+		if(!fs::is_regular_file(path, ec) && toLower(narrow(path.filename().wstring())).rfind("settings-app", 0) == 0)
+			return;
+
 		GraphFile f;
 		f.path = path;
 		f.context = context;
 		f.parent = parent;
 		f.importLine = line;
-		std::error_code ec;
 		if(!fs::is_regular_file(path, ec))
 			f.error = "file not found";
 		else if(auto doc = NssDocument::load(path, context, &f.error))
