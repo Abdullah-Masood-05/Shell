@@ -620,26 +620,6 @@ bool splitHttpsUrl(std::string_view url, std::string &host, std::string_view &pa
 
 } // namespace
 
-bool isAllowedSnippetUrl(std::string_view url)
-{
-    std::string host;
-    std::string_view pathOnly;
-    if (!splitHttpsUrl(url, host, pathOnly) || host != "raw.githubusercontent.com" ||
-        url.find_first_of("?#") != std::string_view::npos)
-        return false;
-    constexpr std::string_view prefix = "/Abdullah-Masood-05/Nilesoft-Shell-Snippets/";
-    if (!startsWithI(pathOnly, prefix))
-        return false;
-    // A full commit SHA, never a branch, then a file.
-    auto rest = pathOnly.substr(prefix.size());
-    if (rest.size() < 42 || rest[40] != '/')
-        return false;
-    for (size_t i = 0; i < 40; ++i)
-        if (!std::isxdigit(static_cast<unsigned char>(rest[i])))
-            return false;
-    return rest.size() > 41 && rest.find("//") == std::string_view::npos && rest.back() != '/';
-}
-
 bool isAllowedDownloadUrl(std::string_view url)
 {
     std::string host;

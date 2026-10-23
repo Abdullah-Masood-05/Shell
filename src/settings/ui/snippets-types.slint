@@ -10,7 +10,6 @@ export struct SnippetRow {
     description: string,       // one line
     author: string,
     author-url: string,        // the "by ..." link, "" for none
-    remote: bool,              // downloaded when turned on (RubicBG's)
     category: string,          // the category's label
     enabled: bool,             // turned on in the config
     available: bool,           // its requirements are met: the switch works
@@ -20,7 +19,6 @@ export struct SnippetRow {
     expanded: bool,            // showing its code
     code: [CodeLine],          // the .nss, highlighted (only while expanded)
     code-columns: int,
-    code-status: string,       // a remote snippet's code: downloading, or why it couldn't be
     selected: bool,            // the one the preview shows
 }
 

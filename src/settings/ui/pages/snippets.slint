@@ -327,15 +327,7 @@ component SnippetItem inherits Rectangle {
             }
         }
 
-        // A remote snippet's code while it downloads, or why it couldn't be.
-        if root.entry.expanded && root.entry.code-status != "": Text {
-            text: root.entry.code-status;
-            font-size: Tokens.caption + 1px;
-            color: Tokens.text-3;
-            wrap: word-wrap;
-            min-height: self.preferred-height;
-        }
-        if root.entry.expanded && root.entry.code-status == "": CodeView {
+        if root.entry.expanded: CodeView {
             lines: root.entry.code;
             columns: root.entry.code-columns;
         }
@@ -368,11 +360,32 @@ export component SnippetsPage inherits Rectangle {
         padding-top: Tokens.s6 + Tokens.s1;
         spacing: Tokens.s5;
 
-        PageHeader {
-            title: @tr("Snippets");
-            description: @tr("Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved.");
-            busy: SnippetsState.busy;
-            busy-label: @tr("Checking and saving…");
+        VerticalLayout {
+            spacing: Tokens.s2;
+            PageHeader {
+                title: @tr("Snippets");
+                description: @tr("Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved.");
+                busy: SnippetsState.busy;
+                busy-label: @tr("Checking and saving…");
+            }
+            // The credit for RubicBG's snippets, which come with the app.
+            HorizontalLayout {
+                alignment: start;
+                spacing: Tokens.s2;
+                Text {
+                    text: @tr("RubicBG's snippets are CC0, shared with his permission.");
+                    font-size: Tokens.caption + 1px;
+                    color: Tokens.text-2;
+                    wrap: word-wrap;
+                    min-height: self.preferred-height;
+                    vertical-alignment: center;
+                }
+                Link {
+                    text: @tr("His collection on GitHub");
+                    font-size: Tokens.caption + 1px;
+                    activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
+                }
+            }
         }
 
         HorizontalLayout {
@@ -387,26 +400,6 @@ export component SnippetsPage inherits Rectangle {
                 inset-right: Tokens.s3;
                 inset-bottom: Tokens.s6;
                 spacing: Tokens.s4;
-
-                // Where the snippets by RubicBG come from.
-                VerticalLayout {
-                    spacing: 2px;
-                    Text {
-                        text: @tr("The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with.");
-                        font-size: Tokens.caption + 1px;
-                        color: Tokens.text-2;
-                        wrap: word-wrap;
-                        min-height: self.preferred-height;
-                    }
-                    HorizontalLayout {
-                        alignment: start;
-                        Link {
-                            text: @tr("RubicBG's snippet collection");
-                            font-size: Tokens.caption + 1px;
-                            activated => { AppState.open-url("https://github.com/RubicBG/Nilesoft-Shell-Snippets"); }
-                        }
-                    }
-                }
 
                 if SnippetsState.shared-config: Banner {
                     kind: "info";
@@ -425,19 +418,25 @@ export component SnippetsPage inherits Rectangle {
                 // Search, the count, then the categories.
                 HorizontalLayout {
                     spacing: Tokens.s3;
+                    // Narrower before anything overflows (the count in Chinese is longer).
                     LineEdit {
-                        width: list.tabs-fit ? 280px : 200px;
+                        horizontal-stretch: 1;
+                        min-width: 120px;
+                        max-width: list.tabs-fit ? 280px : 200px;
                         placeholder-text: @tr("Search snippets");
                         edited(text) => { SnippetsState.search(text); }
                     }
                     if !list.tabs-fit: ComboBox {
-                        width: 170px;
+                        horizontal-stretch: 1;
+                        min-width: 110px;
+                        max-width: 170px;
                         model: SnippetsState.categories;
                         current-index: SnippetsState.category;
                         selected => { SnippetsState.set-category(self.current-index); }
                     }
                     Rectangle { horizontal-stretch: 1; }
                     Text {
+                        min-width: self.preferred-width;
                         text: SnippetsState.summary;
                         font-size: Tokens.caption + 1px;
                         color: Tokens.text-2;
