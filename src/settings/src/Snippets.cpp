@@ -516,6 +516,80 @@ std::string generateList(const std::vector<Entry> &entries)
     return out;
 }
 
+std::string updateList(const std::optional<std::string> &existing, const std::vector<Entry> &entries)
+{
+    if (!existing)
+        return generateList(entries);
+    auto find = [&](std::string_view id) {
+        return std::find_if(entries.begin(), entries.end(), [&](const Entry &e) { return e.id == id; });
+    };
+    // "// snippet <id> sha256=<hex>" -> id, else "".
+    auto hashLineId = [](std::string_view t) {
+        if (!startsWith(t, "// snippet "))
+            return std::string();
+        auto rest = t.substr(11);
+        return nss::toLower(rest.substr(0, rest.find(' ')));
+    };
+    auto hashLine = [](const Entry &e) { return "// snippet " + e.id + " sha256=" + e.sha256; };
+
+    const auto normalized = normalize(*existing);
+    std::vector<std::string> out;
+    std::set<std::string> listed, hashed;
+    bool first = true, removed = false;
+    for (auto line : lines(normalized)) {
+        auto t = trim(line);
+        if (first && nss::OverridesWriter::isHeader(t)) {
+            out.emplace_back(kListHeader);
+            first = false;
+            continue;
+        }
+        first = false;
+        if (auto id = hashLineId(t); !id.empty()) {
+            auto e = find(id);
+            if (e == entries.end()) {
+                removed = true; // the snippet went off
+                continue;
+            }
+            hashed.insert(id);
+            out.push_back(t == hashLine(*e) ? std::string(line) : hashLine(*e));
+            continue;
+        }
+        if (auto id = importedId(t); !id.empty()) {
+            auto e = find(id);
+            if (e == entries.end()) {
+                removed = true;
+                continue;
+            }
+            if (!hashed.count(id) && !listed.count(id))
+                out.push_back(hashLine(*e));
+            hashed.insert(id);
+            listed.insert(id);
+        }
+        out.emplace_back(line);
+    }
+    // Blank lines a removed snippet left behind: no more than one in a row, none at the end.
+    std::vector<std::string> tidy;
+    for (auto &l : out) {
+        bool blank = trim(l).empty();
+        if (removed && blank && (tidy.empty() || trim(tidy.back()).empty()))
+            continue;
+        tidy.push_back(std::move(l));
+    }
+    while (!tidy.empty() && trim(tidy.back()).empty())
+        tidy.pop_back();
+
+    std::string text;
+    for (const auto &l : tidy)
+        text += l + "\r\n";
+    for (const auto &e : entries) {
+        if (listed.count(e.id))
+            continue;
+        text += "\r\n" + hashLine(e) + "\r\n";
+        text += "import 'snippets/" + e.id + ".nss'\r\n";
+    }
+    return text;
+}
+
 std::string copyPath(std::string_view id) { return std::string(kCopyDir) + "/" + std::string(id) + ".nss"; }
 
 CopyState copyState(const Snippet &snippet, const ConfigFiles &files)
@@ -538,9 +612,20 @@ CopyState copyState(const Snippet &snippet, const ConfigFiles &files)
     return CopyState::Edited;
 }
 
+std::string listProblem(const ConfigFiles &files)
+{
+    if (!files.list)
+        return {};
+    auto doc = nss::NssDocument::fromText(normalize(*files.list));
+    return menus::handEditProblem(doc, "settings-app-snippets.nss");
+}
+
 Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view id, bool on)
 {
     Plan plan;
+    plan.error = listProblem(files);
+    if (!plan.error.empty())
+        return plan;
     auto entries = files.list ? parseList(*files.list) : std::vector<Entry>{};
     auto it = std::find_if(entries.begin(), entries.end(), [&](const Entry &e) { return e.id == id; });
     if (on) {
@@ -564,7 +649,7 @@ Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view 
             entries.push_back(Entry{ s->id, s->sha256 });
         else if (!keepCopy)
             it->sha256 = s->sha256;
-        plan.writes.push_back(Write{ std::string(kListPath), generateList(entries) });
+        plan.writes.push_back(Write{ std::string(kListPath), updateList(files.list, entries) });
         plan.needsImport = true;
         plan.changes.push_back("turn on " + s->id);
         return plan;
@@ -577,7 +662,7 @@ Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view 
         return plan;
     }
     entries.erase(it);
-    plan.writes.push_back(Write{ std::string(kListPath), generateList(entries) });
+    plan.writes.push_back(Write{ std::string(kListPath), updateList(files.list, entries) });
     plan.removes.push_back(copyPath(id));
     plan.changes.push_back("turn off " + std::string(id));
     return plan;
@@ -586,8 +671,8 @@ Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view 
 Plan planRefresh(const Catalog &catalog, const ConfigFiles &files)
 {
     Plan plan;
-    if (!files.list)
-        return plan;
+    if (!files.list || !listProblem(files).empty())
+        return plan; // a list that doesn't parse waits until the user fixes it
     auto entries = parseList(*files.list);
     bool listChanged = false;
     for (auto &e : entries) {
@@ -609,7 +694,7 @@ Plan planRefresh(const Catalog &catalog, const ConfigFiles &files)
         }
     }
     if (listChanged || !plan.writes.empty())
-        plan.writes.push_back(Write{ std::string(kListPath), generateList(entries) });
+        plan.writes.push_back(Write{ std::string(kListPath), updateList(files.list, entries) });
     return plan;
 }
 
