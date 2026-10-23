@@ -2187,8 +2187,8 @@ msgid "develop.nss has its own VS Code and Notepad items. They only show while S
 msgstr "develop.nss 已內建 VS Code 和記事本項目。它們只在按住 Shift 時才會顯示，因此預設保持不變。開啟此項可將編輯器集中在同一處；相關行會被註解掉，而不是刪除。"
 
 #: ui/pages/preferences.slint:52
-msgid "How this app looks, updates, machine-wide registration, and about."
-msgstr "此應用程式的外觀、更新、為所有使用者註冊及關於資訊。"
+msgid "How this app looks and starts, updates, machine-wide registration, and about."
+msgstr "此應用程式的外觀、啟動與系統匣、更新、為所有使用者註冊及關於資訊。"
 
 #: ui/pages/preferences.slint:59
 msgid "App theme"

@@ -2188,7 +2188,7 @@ msgid "develop.nss has its own VS Code and Notepad items. They only show while S
 msgstr ""
 
 #: ui/pages/preferences.slint:52
-msgid "How this app looks, updates, machine-wide registration, and about."
+msgid "How this app looks and starts, updates, machine-wide registration, and about."
 msgstr ""
 
 #: ui/pages/preferences.slint:59

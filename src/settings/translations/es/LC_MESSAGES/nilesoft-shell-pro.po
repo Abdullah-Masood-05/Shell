@@ -2193,8 +2193,8 @@ msgid "develop.nss has its own VS Code and Notepad items. They only show while S
 msgstr "develop.nss tiene sus propios elementos de VS Code y Bloc de notas. Solo se muestran mientras se mantiene presionada la tecla Mayús, por lo que se dejan como están de forma predeterminada. Activa esto para tener tus editores en un solo lugar; las líneas se comentan, no se eliminan."
 
 #: ui/pages/preferences.slint:52
-msgid "How this app looks, updates, machine-wide registration, and about."
-msgstr "Cómo se ve esta aplicación, las actualizaciones, el registro para todo el equipo y la información acerca de ella."
+msgid "How this app looks and starts, updates, machine-wide registration, and about."
+msgstr "Cómo se ve y se inicia esta aplicación, las actualizaciones, el registro para todo el equipo y la información acerca de ella."
 
 #: ui/pages/preferences.slint:59
 msgid "App theme"
