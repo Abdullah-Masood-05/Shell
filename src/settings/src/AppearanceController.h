@@ -21,6 +21,7 @@
 #include "Wallpaper.h"
 
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -34,6 +35,10 @@ public:
 
     // Once the window exists: loads the wallpaper, fonts and the config.
     void start();
+
+    // Called with the theme the preview is drawn with, now and each time it changes (an
+    // edit, the config, Light/Dark): the Snippets page draws its preview with it.
+    void onPreview(std::function<void(const theme::Resolved &)> fn);
 
     // The field table (exposed for tests and the dev switches).
     enum class Kind
@@ -72,6 +77,8 @@ private:
     std::map<int, std::string> errors_;
     theme::SystemInfo system_;
     bool previewDark_ = false;
+    theme::Resolved resolved_;
+    std::function<void(const theme::Resolved &)> previewListener_;
     bool devApplied_ = false;
     std::shared_ptr<slint::VectorModel<ThemeField>> fields_;
     PresetsController presets_;

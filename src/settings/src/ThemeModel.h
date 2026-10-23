@@ -148,6 +148,14 @@ EffectChoice effectChoice(int choice, const nss::Literal *effect, const nss::Lit
 // The gradient's colour at `t` (0..1) between its stops; transparent without one.
 uint32_t gradientAt(const Resolved &r, double t);
 
+// The heights the preview lays a menu out with, in DIPs with the font scale applied:
+// the space above the first row and below the last, an item row and a separator.
+struct RowMetrics
+{
+    float scale = 1, top = 0, bottom = 0, row = 0, sep = 0;
+};
+RowMetrics rowMetrics(const Resolved &r);
+
 // The default font size (lfHeight) the core uses on this Windows version.
 double defaultFontSize(const SystemInfo &sys);
 

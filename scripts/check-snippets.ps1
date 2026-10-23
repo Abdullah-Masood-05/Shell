@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
 	Checks every snippet of the app's Snippets page with shell.exe -config:check: the bundled
-	ones (src\bin\snippets\*.nss) and RubicBG's (src\settings\snippets\rubicbg-catalog.json).
+	ones (src\bin\snippets\*.nss) and RubicBG's (src\bin\snippets\rubicbg\*.nss).
 
 .DESCRIPTION
 	Copies the shipped configuration (shell.nss and imports\) from BinDir to a temporary
@@ -10,26 +10,26 @@
 	shell.nss imports) and runs shell.exe -config:check: once per snippet, then with all of
 	them. Any error or warning fails the check.
 
-	RubicBG's snippets are downloaded the way the app downloads them: from
-	raw.githubusercontent.com at the commit rubicbg-catalog.json names, each checked against
-	its sha256 first. -RubicBGDir uses a local checkout of that commit instead, and
-	-NoRubicBG skips them (no network).
+	RubicBG's snippets come with the app (CC0-1.0). Each file in src\bin\snippets\rubicbg must
+	be in its catalog.json and match its sha256 there (no UTF-8 BOM, LF line endings), and
+	every entry must have its file. -Upstream also downloads each one from his repository at
+	the commit catalog.json names and fails when it differs from ours.
 
 	settings_tests runs the same check when src\bin\shell.exe exists; this script is for
 	CI, where the app's tests run before the core is built.
 
 .PARAMETER BinDir
-	The build output folder with shell.exe, shell.dll, shell.nss, imports\ and snippets\.
+	The build output folder with shell.exe, shell.dll, shell.nss and imports\.
 	Default: src\bin in this repository.
 
-.PARAMETER RubicBGDir
-	A checkout of the fork at the pinned commit, read instead of downloading.
+.PARAMETER Upstream
+	Also compare RubicBG's files with his repository at the pinned commit (needs the network).
 
 .PARAMETER NoRubicBG
 	Only the bundled snippets.
 #>
 [CmdletBinding()]
-param([string]$BinDir, [string]$RubicBGDir, [switch]$NoRubicBG)
+param([string]$BinDir, [switch]$Upstream, [switch]$NoRubicBG)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -55,28 +55,33 @@ try {
 	if (-not $files.Count) { throw "no snippets in $snippets" }
 
 	if (-not $NoRubicBG) {
-		$catalog = Get-Content -LiteralPath (Join-Path $repo 'src\settings\snippets\rubicbg-catalog.json') -Raw -Encoding utf8 | ConvertFrom-Json
-		$header = Get-Content -LiteralPath (Join-Path $repo 'src\settings\src\Snippets.h') -Raw
-		if ($header -notmatch "kRubicCommit = `"$($catalog.commit)`"") { throw "rubicbg-catalog.json's commit is not kRubicCommit in src\settings\src\Snippets.h" }
-		$remote = Join-Path $dir 'rubicbg'
-		New-Item -ItemType Directory -Path $remote | Out-Null
+		$rubic = Join-Path $snippets 'rubicbg'
+		$catalog = Get-Content -LiteralPath (Join-Path $rubic 'catalog.json') -Raw -Encoding utf8 | ConvertFrom-Json
+		if ($catalog.license -ne 'CC0-1.0') { throw "rubicbg\catalog.json: the license is not CC0-1.0" }
+		if ($catalog.commit -notmatch '^[0-9a-f]{40}$') { throw "rubicbg\catalog.json: commit is not a full SHA" }
 		$sha = [Security.Cryptography.SHA256]::Create()
-		foreach ($e in $catalog.snippets) {
-			$file = Join-Path $remote "$($e.id).nss"
-			if ($RubicBGDir) {
-				Copy-Item -LiteralPath (Join-Path $RubicBGDir $e.path) -Destination $file
-			} else {
-				$url = "https://raw.githubusercontent.com/$($catalog.repository)/$($catalog.commit)/$($e.path)"
-				Invoke-WebRequest -Uri $url -OutFile $file -UseBasicParsing
-			}
+		function Get-TextHash([byte[]]$bytes) {
 			# The app's hash: no UTF-8 BOM, LF line endings.
-			$bytes = [IO.File]::ReadAllBytes($file)
 			$text = [Text.Encoding]::UTF8.GetString($bytes)
 			if ($text.Length -and $text[0] -eq [char]0xFEFF) { $text = $text.Substring(1) }
 			$text = $text.Replace("`r`n", "`n").Replace("`r", "`n")
-			$hash = -join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)) | ForEach-Object { $_.ToString('x2') })
-			if ($hash -ne $e.sha256) { throw "$($e.id) ($($e.path)) doesn't match its sha256 in rubicbg-catalog.json" }
+			-join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)) | ForEach-Object { $_.ToString('x2') })
+		}
+		foreach ($e in $catalog.snippets) {
+			$file = Join-Path $rubic "$($e.id).nss"
+			if (-not (Test-Path -LiteralPath $file)) { throw "rubicbg\catalog.json lists $($e.id) but $file doesn't exist" }
+			$hash = Get-TextHash ([IO.File]::ReadAllBytes($file))
+			if ($hash -ne $e.sha256) { throw "$($e.id).nss doesn't match its sha256 in rubicbg\catalog.json" }
+			if ($Upstream) {
+				$url = "https://raw.githubusercontent.com/$($catalog.repository)/$($catalog.commit)/$($e.path)"
+				$theirs = (Invoke-WebRequest -Uri $url -UseBasicParsing).Content
+				if ($theirs -is [string]) { $theirs = [Text.Encoding]::UTF8.GetBytes($theirs) }
+				if ((Get-TextHash $theirs) -ne $hash) { throw "$($e.id).nss is not $($e.path) at $($catalog.commit)" }
+			}
 			$files[$e.id] = $file
+		}
+		foreach ($f in Get-ChildItem -LiteralPath $rubic -Filter *.nss) {
+			if (-not ($catalog.snippets | Where-Object id -eq $f.BaseName)) { throw "rubicbg\$($f.Name) is not in rubicbg\catalog.json" }
 		}
 	}
 	$ids = @($files.Keys)

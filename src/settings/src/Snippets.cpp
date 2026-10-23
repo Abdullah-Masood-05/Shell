@@ -56,10 +56,11 @@ std::string str(const nlohmann::json &j, const char *key)
     return it != j.end() && it->is_string() ? it->get<std::string>() : std::string();
 }
 
-bool isHex64(std::string_view s)
+bool isHex(std::string_view s, size_t size)
 {
-    return s.size() == 64 && std::all_of(s.begin(), s.end(), [](char c) { return std::isxdigit(static_cast<unsigned char>(c)); });
+    return s.size() == size && std::all_of(s.begin(), s.end(), [](char c) { return std::isxdigit(static_cast<unsigned char>(c)); });
 }
+bool isHex64(std::string_view s) { return isHex(s, 64); }
 
 // `import 'snippets/<id>.nss'` (either quote or slash, any case) -> id, else "".
 std::string importedId(std::string_view line)
@@ -237,14 +238,29 @@ Catalog parseCatalog(std::string_view json, const std::function<std::optional<st
         out.errors.push_back("catalog.json: not a catalog (no \"snippets\" list)");
         return out;
     }
+    const auto author = str(j, "author");
+    const auto authorUrl = str(j, "author_url");
+    const auto license = str(j, "license");
+    const auto repository = str(j, "repository");
+    const auto commit = nss::toLower(str(j, "commit"));
     std::set<std::string> seen;
     for (const auto &e : j["snippets"]) {
         Snippet s;
         if (!readEntry(e, s, seen, out.errors))
             continue;
-        s.author = str(e, "author");
-        s.license = str(e, "license");
+        auto either = [&](const char *key, const std::string &fallback) {
+            auto v = str(e, key);
+            return v.empty() ? fallback : v;
+        };
+        s.author = either("author", author);
+        s.authorUrl = either("author_url", authorUrl);
+        s.license = either("license", license);
         s.source = str(e, "source");
+        if (s.source.empty() && !repository.empty() && isHex(commit, 40)) {
+            const auto path = str(e, "path");
+            if (validRepoPath(path))
+                s.source = "https://github.com/" + repository + "/blob/" + commit + "/" + path;
+        }
         s.origin = std::string(origin);
         auto bytes = file ? file(s.id) : std::nullopt;
         if (!bytes) {
@@ -261,7 +277,7 @@ Catalog parseCatalog(std::string_view json, const std::function<std::optional<st
     return out;
 }
 
-bool validRemotePath(std::string_view path)
+bool validRepoPath(std::string_view path)
 {
     if (path.size() < 5 || path.size() > 200 || path.substr(path.size() - 4) != ".nss")
         return false;
@@ -280,77 +296,6 @@ bool validRemotePath(std::string_view path)
     }
 }
 
-std::string rawUrl(std::string_view repository, std::string_view commit, std::string_view path)
-{
-    return "https://raw.githubusercontent.com/" + std::string(repository) + "/" + std::string(commit) + "/" +
-           std::string(path);
-}
-
-Catalog parseRemoteCatalog(std::string_view json, std::string_view origin, std::string_view repository,
-                           std::string_view commit)
-{
-    Catalog out;
-    auto j = nlohmann::json::parse(json, nullptr, false);
-    if (!j.is_object() || !j.contains("snippets") || !j["snippets"].is_array()) {
-        out.errors.push_back("remote catalog: not a catalog (no \"snippets\" list)");
-        return out;
-    }
-    if (str(j, "repository") != repository || nss::toLower(str(j, "commit")) != commit) {
-        out.errors.push_back("remote catalog: not for " + std::string(repository) + " at " + std::string(commit));
-        return out;
-    }
-    const auto author = str(j, "author");
-    const auto authorUrl = str(j, "author_url");
-    std::set<std::string> seen, paths;
-    for (const auto &e : j["snippets"]) {
-        Snippet s;
-        if (!readEntry(e, s, seen, out.errors))
-            continue;
-        const auto path = str(e, "path");
-        if (!validRemotePath(path) || !paths.insert(path).second) {
-            out.errors.push_back(s.id + ": invalid path '" + path + "'");
-            continue;
-        }
-        s.author = author;
-        s.authorUrl = authorUrl;
-        s.source = authorUrl;
-        s.origin = std::string(origin);
-        s.url = rawUrl(repository, commit, path);
-        if (!updater::isAllowedSnippetUrl(s.url)) {
-            out.errors.push_back(s.id + ": not an allowed address: " + s.url);
-            continue;
-        }
-        out.snippets.push_back(std::move(s));
-    }
-    return out;
-}
-
-Fetched fetchText(const Snippet &snippet, const HttpGet &get)
-{
-    Fetched f;
-    if (!snippet.remote() || !updater::isAllowedSnippetUrl(snippet.url)) {
-        f.error = nsp::trf("{} can't be downloaded from this address.", snippet.title);
-        return f;
-    }
-    auto res = get ? get(snippet.url)
-                   : updater::httpGet(snippet.url, [](std::string_view u) { return updater::isAllowedSnippetUrl(u); });
-    if (!res.ok) {
-        if (res.offline)
-            f.error = nsp::tr("Couldn't download the snippet. Check your internet connection and try again.");
-        else
-            f.error = nsp::trf("Couldn't download the snippet: {}",
-                               res.error.empty() ? "HTTP " + std::to_string(res.status) : res.error);
-        return f;
-    }
-    if (hashText(res.body) != snippet.sha256) {
-        f.error = nsp::tr("The downloaded file isn't the version this app checked, so it wasn't used.");
-        return f;
-    }
-    f.ok = true;
-    f.text = normalize(res.body);
-    return f;
-}
-
 Catalog BundledSource::load() const
 {
     auto json = embedded("catalog.json");
@@ -364,13 +309,13 @@ Catalog BundledSource::load() const
 
 Catalog RubicSource::load() const
 {
-    auto json = embedded("rubicbg-catalog.json");
+    auto json = embedded("rubicbg/catalog.json");
     if (!json) {
         Catalog c;
-        c.errors.push_back("rubicbg-catalog.json is not embedded");
+        c.errors.push_back("rubicbg/catalog.json is not embedded");
         return c;
     }
-    return parseRemoteCatalog(*json, id(), kRubicRepository, kRubicCommit);
+    return parseCatalog(*json, [&](const std::string &id) { return embedded("rubicbg/" + id + ".nss"); }, id());
 }
 
 Catalog loadAll()
@@ -549,10 +494,6 @@ Plan planSet(const Catalog &catalog, const ConfigFiles &files, std::string_view 
             plan.error = nsp::trf("There is no snippet called {}.", std::string(id));
             return plan;
         }
-        if (s->text.empty()) {
-            plan.error = nsp::trf("{} isn't downloaded yet.", s->title);
-            return plan;
-        }
         const bool listed = it != entries.end();
         // A copy already there that the user edited (from an earlier time on) is kept.
         auto copy = files.copies.find(s->id);
@@ -595,9 +536,6 @@ Plan planRefresh(const Catalog &catalog, const ConfigFiles &files)
         if (!s)
             continue;
         auto state = copyState(*s, files);
-        // A remote snippet not downloaded: nothing to write it with yet.
-        if (s->text.empty() && (state == CopyState::Outdated || state == CopyState::Missing))
-            continue;
         if (state == CopyState::Outdated || state == CopyState::Missing) {
             plan.writes.push_back(Write{ copyPath(s->id), toCrlf(s->text) });
             plan.changes.push_back((state == CopyState::Missing ? "restore " : "update ") + s->id);

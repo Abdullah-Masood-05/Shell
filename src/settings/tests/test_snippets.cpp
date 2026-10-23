@@ -1,9 +1,7 @@
-// Snippets (src/Snippets.h): the bundled catalog, the RubicBG catalog and its downloads,
-// catalog parsing, the app-owned list file and the import line in shell.nss, requirement
-// checks, refreshing unedited copies, and every bundled snippet through
-// `shell.exe -config:check` (skipped without shell.exe). RubicBG's snippets go through the
-// same check when NSP_RUBICBG_DIR names a checkout of the pinned commit
-// (scripts/check-snippets.ps1 downloads them instead).
+// Snippets (src/Snippets.h): the bundled catalogs (ours and RubicBG's), catalog parsing,
+// the app-owned list file and the import line in shell.nss, requirement checks, refreshing
+// unedited copies, and every snippet through `shell.exe -config:check` (skipped without
+// shell.exe).
 
 #include "doctest.h"
 
@@ -500,36 +498,7 @@ TEST_CASE("snippets: every bundled snippet passes shell.exe -config:check")
 
 // --- RubicBG's snippets ------------------------------------------------------------------
 
-namespace {
-
-const std::string kCommit(40, 'a');
-const std::string kRepo = "Abdullah-Masood-05/Nilesoft-Shell-Snippets";
-
-std::string remoteCatalog(const std::string &entries, const std::string &commit = kCommit)
-{
-    return "{\"format\":1,\"repository\":\"" + kRepo + "\",\"commit\":\"" + commit +
-           "\",\"author\":\"RubicBG\",\"author_url\":\"https://github.com/RubicBG/Nilesoft-Shell-Snippets\","
-           "\"snippets\":[" + entries + "]}";
-}
-
-std::string remoteEntry(const std::string &id, const std::string &path, const std::string &text)
-{
-    return "{\"id\":\"" + id + "\",\"path\":\"" + path + "\",\"title\":\"T " + id +
-           "\",\"description\":\"D\",\"category\":\"files\",\"risk\":\"none\",\"sha256\":\"" + hashText(text) + "\"}";
-}
-
-updater::HttpResult served(const std::string &body)
-{
-    updater::HttpResult r;
-    r.ok = true;
-    r.status = 200;
-    r.body = body;
-    return r;
-}
-
-} // namespace
-
-TEST_CASE("snippets: the RubicBG catalog")
+TEST_CASE("snippets: RubicBG's snippets are bundled from src/bin/snippets/rubicbg")
 {
     auto rubic = RubicSource{}.load();
     for (const auto &e : rubic.errors)
@@ -537,26 +506,37 @@ TEST_CASE("snippets: the RubicBG catalog")
     CHECK(rubic.errors.empty());
     CHECK(rubic.snippets.size() >= 10);
 
-    // The catalog names the commit the code pins.
+    // The catalog names his repository at a full commit, and the license.
+    const auto dir = binDir() / "snippets" / "rubicbg";
     std::string json;
-    REQUIRE(nss::readFile(fs::path(SETTINGS_SOURCE_DIR) / "snippets" / "rubicbg-catalog.json", json));
+    REQUIRE(nss::readFile(dir / "catalog.json", json));
     auto j = nlohmann::json::parse(json);
-    CHECK(j["commit"].get<std::string>() == kRubicCommit);
-    CHECK(j["repository"].get<std::string>() == kRubicRepository);
-    CHECK(kRubicCommit.size() == 40);
+    CHECK(j["repository"].get<std::string>() == "RubicBG/Nilesoft-Shell-Snippets");
+    const auto commit = j["commit"].get<std::string>();
+    CHECK(commit.size() == 40);
+    CHECK(j["license"].get<std::string>() == "CC0-1.0");
+    CHECK(j["snippets"].size() == rubic.snippets.size());
+    // His license text ships with them.
+    CHECK(readBytes(dir / "LICENSE.txt").find("CC0 1.0 Universal") != std::string::npos);
 
     auto bundled = BundledSource{}.load();
+    std::set<std::string> ids;
     for (const auto &s : rubic.snippets) {
         CAPTURE(s.id);
+        ids.insert(s.id);
         CHECK(s.id.rfind("rubicbg-", 0) == 0);
         CHECK(bundled.find(s.id) == nullptr);
-        CHECK(s.remote());
-        CHECK(s.text.empty()); // nothing of it is in the exe
+        // The embedded copy is the file in the repository, and the hash is current.
+        auto onDisk = readBytes(dir / (s.id + ".nss"));
+        CHECK(!s.text.empty());
+        CHECK(normalize(onDisk) == s.text);
+        CHECK(hashText(onDisk) == s.sha256);
         CHECK(s.author == "RubicBG");
         CHECK(s.authorUrl == kRubicUrl);
+        CHECK(s.license == "CC0-1.0");
+        // The source is the file in his repository at that commit.
+        CHECK(s.source.rfind("https://github.com/RubicBG/Nilesoft-Shell-Snippets/blob/" + commit + "/", 0) == 0);
         CHECK(s.origin == "rubicbg");
-        CHECK(updater::isAllowedSnippetUrl(s.url));
-        CHECK(s.url.find(std::string(kRubicCommit)) != std::string::npos);
         CHECK(s.risk != Risk::Admin);
         CHECK(categoryLabel(s.category) != nullptr);
         CHECK(!s.description.empty());
@@ -572,6 +552,10 @@ TEST_CASE("snippets: the RubicBG catalog")
         for (const auto &n : s.needs)
             CHECK(!checkRequirement(n, fakeProbe({}, {})).name.empty());
     }
+    // Every file in the folder is in the catalog.
+    for (const auto &f : fs::directory_iterator(dir))
+        if (f.path().extension() == ".nss")
+            CHECK_MESSAGE(ids.count(f.path().stem().string()) == 1, f.path().filename().string());
 
     // Every source together: bundled first, no id twice.
     auto all = loadAll();
@@ -581,157 +565,53 @@ TEST_CASE("snippets: the RubicBG catalog")
     CHECK(all.snippets.back().origin == "rubicbg");
 }
 
-TEST_CASE("snippets: remote catalog parsing")
+TEST_CASE("snippets: catalog-wide author, license and source")
 {
     const std::string text = "item(title='x' cmd='a')\n";
-    auto c = parseRemoteCatalog(remoteCatalog(remoteEntry("rubicbg-a", "ex1/a.b.nss", text) + "," +
-                                              remoteEntry("rubicbg-up", "../x.nss", text) + "," +
-                                              remoteEntry("rubicbg-abs", "/x.nss", text) + "," +
-                                              remoteEntry("rubicbg-bs", "ex1\\\\x.nss", text) + "," +
-                                              remoteEntry("rubicbg-q", "x.nss?y", text) + "," +
-                                              remoteEntry("rubicbg-txt", "x.txt", text) + "," +
-                                              remoteEntry("rubicbg-dup", "ex1/a.b.nss", text) + "," +
-                                              "{\"id\":\"rubicbg-nohash\",\"path\":\"n.nss\",\"title\":\"N\"}"),
-                                "rubicbg", kRepo, kCommit);
-    REQUIRE(c.snippets.size() == 1);
-    const auto &s = c.snippets[0];
-    CHECK(s.url == "https://raw.githubusercontent.com/" + kRepo + "/" + kCommit + "/ex1/a.b.nss");
-    CHECK(s.author == "RubicBG");
-    CHECK(s.text.empty());
-    CHECK(c.errors.size() == 7);
+    const std::string commit(40, 'a');
+    auto entry = [&](const std::string &id, const std::string &path, const std::string &extra = {}) {
+        return "{\"id\":\"" + id + "\",\"path\":\"" + path + "\",\"title\":\"T\",\"category\":\"files\",\"sha256\":\"" +
+               hashText(text) + "\"" + extra + "}";
+    };
+    auto parse = [&](const std::string &entries, const std::string &c) {
+        return parseCatalog("{\"repository\":\"someone/repo\",\"commit\":\"" + c +
+                                "\",\"author\":\"Someone\",\"author_url\":\"https://example.com\",\"license\":\"CC0-1.0\","
+                                "\"snippets\":[" + entries + "]}",
+                            [&](const std::string &) { return std::optional<std::string>(text); }, "x");
+    };
+    auto c = parse(entry("a", "ex1/a.b.nss") + "," + entry("up", "../x.nss") + "," +
+                       entry("own", "a.nss", ",\"author\":\"Other\",\"license\":\"MIT\",\"source\":\"https://x\""),
+                   commit);
+    REQUIRE(c.snippets.size() == 3);
+    CHECK(c.snippets[0].author == "Someone");
+    CHECK(c.snippets[0].authorUrl == "https://example.com");
+    CHECK(c.snippets[0].license == "CC0-1.0");
+    CHECK(c.snippets[0].source == "https://github.com/someone/repo/blob/" + commit + "/ex1/a.b.nss");
+    CHECK(c.snippets[0].text == text);
+    CHECK(c.snippets[1].source.empty()); // a path outside the repository links nowhere
+    CHECK(c.snippets[2].author == "Other");
+    CHECK(c.snippets[2].license == "MIT");
+    CHECK(c.snippets[2].source == "https://x");
+    // A branch instead of a commit: no link.
+    CHECK(parse(entry("a", "a.nss"), "main").snippets.at(0).source.empty());
 
-    // Another commit or repository: refused whole.
-    CHECK(parseRemoteCatalog(remoteCatalog(remoteEntry("rubicbg-a", "a.nss", text), std::string(40, 'b')), "r", kRepo,
-                             kCommit)
-              .snippets.empty());
-    CHECK(parseRemoteCatalog(remoteCatalog(remoteEntry("rubicbg-a", "a.nss", text)), "r", "someone/else", kCommit)
-              .snippets.empty());
-
-    CHECK(validRemotePath("ex3.multifunction/all.copy.hash.cmd.nss"));
-    CHECK(validRemotePath("a.nss"));
-    CHECK_FALSE(validRemotePath("a/../b.nss"));
-    CHECK_FALSE(validRemotePath("a//b.nss"));
-    CHECK_FALSE(validRemotePath("a/./b.nss"));
-    CHECK_FALSE(validRemotePath("a b.nss"));
-    CHECK_FALSE(validRemotePath("a.nss/"));
-    CHECK_FALSE(validRemotePath(".nss"));
-}
-
-TEST_CASE("snippets: download addresses")
-{
-    const std::string base = "https://raw.githubusercontent.com/Abdullah-Masood-05/Nilesoft-Shell-Snippets/";
-    CHECK(updater::isAllowedSnippetUrl(base + kCommit + "/ex1/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("https://raw.githubusercontent.com:8443/Abdullah-Masood-05/Nilesoft-Shell-Snippets/" +
-                                             kCommit + "/a.nss"));
-    CHECK(updater::isAllowedSnippetUrl("https://RAW.githubusercontent.com:443/Abdullah-Masood-05/Nilesoft-Shell-Snippets/" +
-                                       kCommit + "/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl(base + "main/ex1/a.nss"));         // a branch
-    CHECK_FALSE(updater::isAllowedSnippetUrl(base + kCommit.substr(1) + "/a.nss")); // not a full SHA
-    CHECK_FALSE(updater::isAllowedSnippetUrl(base + kCommit + "/"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl(base + kCommit + "/a.nss?x=1"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl(base + kCommit + "/../a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("http://raw.githubusercontent.com/Abdullah-Masood-05/Nilesoft-Shell-Snippets/" +
-                                             kCommit + "/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("https://raw.githubusercontent.com/RubicBG/Nilesoft-Shell-Snippets/" + kCommit +
-                                             "/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("https://evil.com/Abdullah-Masood-05/Nilesoft-Shell-Snippets/" + kCommit + "/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("https://x@raw.githubusercontent.com/Abdullah-Masood-05/Nilesoft-Shell-Snippets/" +
-                                             kCommit + "/a.nss"));
-    // The release allow-list doesn't take snippet addresses, nor the other way round.
-    CHECK_FALSE(updater::isAllowedDownloadUrl(base + kCommit + "/a.nss"));
-    CHECK_FALSE(updater::isAllowedSnippetUrl("https://github.com/Abdullah-Masood-05/Shell/releases/download/v2.1.0/setup-x64.msi"));
-}
-
-TEST_CASE("snippets: a remote snippet is downloaded, checked, then written")
-{
-    const std::string text = "item(title='remote' cmd='a')\n";
-    auto catalog = parseRemoteCatalog(remoteCatalog(remoteEntry("rubicbg-a", "ex1/a.nss", text)), "rubicbg", kRepo, kCommit);
-    REQUIRE(catalog.snippets.size() == 1);
-    const auto &s = catalog.snippets[0];
-
-    // Not downloaded: nothing can be planned.
-    auto plan = planSet(catalog, {}, "rubicbg-a", true);
-    CHECK_FALSE(plan.error.empty());
-    CHECK(plan.writes.empty());
-
-    std::string asked;
-    auto ok = fetchText(s, [&](const std::string &url) {
-        asked = url;
-        return served("\xEF\xBB\xBFitem(title='remote' cmd='a')\r\n"); // a BOM and CRLF are fine
-    });
-    CHECK(ok.ok);
-    CHECK(ok.text == text);
-    CHECK(asked == s.url);
-
-    // A different file, a failed request, no connection: an error and no text.
-    auto wrong = fetchText(s, [](const std::string &) { return served("item(title='evil' cmd='b')\n"); });
-    CHECK_FALSE(wrong.ok);
-    CHECK(wrong.text.empty());
-    CHECK_FALSE(wrong.error.empty());
-    auto notFound = fetchText(s, [](const std::string &) {
-        updater::HttpResult r;
-        r.status = 404;
-        return r;
-    });
-    CHECK_FALSE(notFound.ok);
-    CHECK(notFound.error.find("404") != std::string::npos);
-    auto offline = fetchText(s, [](const std::string &) {
-        updater::HttpResult r;
-        r.offline = true;
-        return r;
-    });
-    CHECK_FALSE(offline.ok);
-    CHECK_FALSE(offline.error.empty());
-
-    // A snippet whose address isn't allowed is never requested.
-    auto other = s;
-    other.url = "https://example.com/a.nss";
-    bool called = false;
-    CHECK_FALSE(fetchText(other, [&](const std::string &) {
-                    called = true;
-                    return served(text);
-                }).ok);
-    CHECK_FALSE(called);
-
-    // Downloaded: planned like a bundled one.
-    auto withText = catalog;
-    withText.snippets[0].text = ok.text;
-    plan = planSet(withText, {}, "rubicbg-a", true);
-    CHECK(plan.error.empty());
-    REQUIRE(plan.writes.size() == 2);
-    CHECK(plan.writes[0].path == "imports/snippets/rubicbg-a.nss");
-    CHECK(plan.writes[0].text == toCrlf(text));
-
-    // The refresh leaves a missing copy alone until the text is there.
-    ConfigFiles files;
-    files.list = generateList({ { "rubicbg-a", s.sha256 } });
-    files.copies["rubicbg-a"] = std::nullopt;
-    CHECK(copyState(s, files) == CopyState::Missing);
-    CHECK(planRefresh(catalog, files).empty());
-    CHECK_FALSE(planRefresh(withText, files).empty());
+    CHECK(validRepoPath("ex3.multifunction/all.copy.hash.cmd.nss"));
+    CHECK(validRepoPath("a.nss"));
+    CHECK_FALSE(validRepoPath("a/../b.nss"));
+    CHECK_FALSE(validRepoPath("a//b.nss"));
+    CHECK_FALSE(validRepoPath("a/./b.nss"));
+    CHECK_FALSE(validRepoPath("a b.nss"));
+    CHECK_FALSE(validRepoPath("a.nss/"));
+    CHECK_FALSE(validRepoPath("/a.nss"));
+    CHECK_FALSE(validRepoPath(".nss"));
 }
 
 TEST_CASE("snippets: every RubicBG snippet passes shell.exe -config:check")
 {
     const auto shellExe = binDir() / "shell.exe";
-    wchar_t dir[MAX_PATH]{};
-    if (!fs::exists(shellExe) || GetEnvironmentVariableW(L"NSP_RUBICBG_DIR", dir, MAX_PATH) == 0) {
-        MESSAGE("skipped: needs shell.exe in src/bin and NSP_RUBICBG_DIR (a checkout of the pinned commit)");
+    if (!fs::exists(shellExe)) {
+        MESSAGE("skipped: no shell.exe in src/bin (build src/Shell.sln first)");
         return;
     }
-    auto catalog = RubicSource{}.load();
-    std::string json;
-    REQUIRE(nss::readFile(fs::path(SETTINGS_SOURCE_DIR) / "snippets" / "rubicbg-catalog.json", json));
-    auto j = nlohmann::json::parse(json);
-    for (const auto &e : j["snippets"]) {
-        auto id = e["id"].get<std::string>();
-        auto bytes = readBytes(fs::path(dir) / nss::widen(e["path"].get<std::string>()));
-        CAPTURE(id);
-        for (auto &s : catalog.snippets)
-            if (s.id == id) {
-                REQUIRE(hashText(bytes) == s.sha256);
-                s.text = normalize(bytes);
-            }
-    }
-    checkWithShell(catalog, shellExe);
+    checkWithShell(RubicSource{}.load(), shellExe);
 }
