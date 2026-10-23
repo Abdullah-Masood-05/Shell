@@ -24,6 +24,10 @@ namespace Nilesoft
 			if(root && *root)
 			{
 				m_path = root;
+				// app.cfg is the checked root, as it is the loaded config in
+				// Explorer: paths built from it (taskbar.nss's Apps list) then
+				// point into the tree being checked.
+				context.Application->Config = m_path;
 				add_source(m_path);
 				if(!ConfigLocation::IsFile(m_path))
 				{
@@ -1206,8 +1210,25 @@ namespace Nilesoft
 					path = alias.move();
 			}
 
+			// Nilesoft Shell Pro writes its own files (imports\settings-app*.nss)
+			// only once they hold something, so an import of one that isn't
+			// there yet is no error and needs no warning. It is still watched:
+			// when the app writes it, the config reloads.
+			if(!Path::IsFileExists(path))
+			{
+				const wchar_t *name = path.c_str();
+				for(auto p = name; *p; p++)
+					if(*p == L'\\' || *p == L'/')
+						name = p + 1;
+				if(::_wcsnicmp(name, L"settings-app", 12) == 0)
+				{
+					add_source(path);
+					return 0;
+				}
+			}
+
 			auto hash = path.hash();
-			
+
 			if(hash)
 			{
 				for(auto &h : m_imports)
