@@ -9,6 +9,8 @@
 //   --editor-open <file> [--editor-line <n>]    open a file (and line) in the Config Editor
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
+//   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
+//                          list, or its installed apps list
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.

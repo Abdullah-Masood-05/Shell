@@ -14,6 +14,39 @@ export struct ModuleRow {
     lock-reason: string,
     path: string,              // absolute path of the root (for "open")
     line: int,
+    own: bool,                 // the user's own file (not shipped): can be removed
+}
+
+// One entry of the taskbar menu's Apps submenu (imports/settings-app-taskbar.nss).
+export struct TaskbarRow {
+    kind: string,              // app | sep | other (written by hand, kept as is)
+    title: string,
+    detail: string,            // the program and its arguments, or the hand-written text
+    enabled: bool,
+    changed: bool,
+    icon: image,
+    has-icon: bool,
+    problem: string,           // "The program isn't there", or ""
+}
+
+// The selected app, for the form under the list.
+export struct TaskbarForm {
+    kind: string,              // app | sep | other | "" (nothing selected)
+    title: string,
+    program: string,
+    args: string,
+    admin: bool,
+    builtin: bool,             // one of the four apps Shell ships
+}
+
+// One app in the "Add an installed app" list.
+export struct InstalledRow {
+    name: string,
+    detail: string,
+    section: string,           // a heading to show above this row, or ""
+    icon: image,
+    has-icon: bool,
+    added: bool,               // already in the list
 }
 
 // One modify(...)/remove(...) rule. `group` starts a new file section.
@@ -40,6 +73,31 @@ export global MenusState {
     in property <int> dirty-count;
     in property <bool> saving;
 
+    // Removing one of your own modules: the question.
+    in property <int> remove-index: -1;    // the module asked about, -1 = no question
+    in property <string> remove-title;
+    in property <string> remove-file;      // "" = the file can't be deleted from here
+    in-out property <bool> remove-delete;  // also delete the file
+
+    // The taskbar menu's Apps submenu.
+    in property <[TaskbarRow]> taskbar-rows;
+    in property <int> taskbar-selected: -1;
+    in property <TaskbarForm> taskbar-form;
+    in property <int> taskbar-serial;      // bumped when the form must reload its fields
+    in property <bool> taskbar-can-up;
+    in property <bool> taskbar-can-down;
+    in property <bool> taskbar-custom;     // the list is saved in its file (else: Shell's four)
+    in property <bool> taskbar-is-default; // the list is Shell's four, as shipped
+    in property <bool> taskbar-locked;     // read-only here
+    in property <string> taskbar-error;    // the file doesn't read: it isn't written over
+    in property <string> taskbar-notice;   // the taskbar menu doesn't use the list, and why
+    in property <string> taskbar-file;     // the file's path, for "open"
+    in property <string> taskbar-nss;      // imports/taskbar.nss's path, for "open"
+    in property <[InstalledRow]> installed;
+    in property <bool> installed-loading;
+    in-out property <bool> picker-shown;
+    in property <string> picker-filter;
+
     callback activated();
     callback toggle-module(index: int, on: bool);
     callback toggle-rule(index: int, on: bool);
@@ -47,6 +105,25 @@ export global MenusState {
     callback save();
     callback discard();
     callback create-user-config();
+
+    callback add-module();
+    callback ask-remove-module(index: int);
+    callback remove-module();              // the one asked about (remove-index)
+    callback cancel-remove-module();
+
+    callback taskbar-select(index: int);
+    callback taskbar-toggle(index: int, on: bool);
+    callback taskbar-move(delta: int);
+    callback taskbar-remove();
+    callback taskbar-set-text(field: string, value: string);
+    callback taskbar-set-admin(on: bool);
+    callback taskbar-browse();             // a new app from a file
+    callback taskbar-browse-program();     // another program for the selected app
+    callback taskbar-add-separator();
+    callback taskbar-open-picker();
+    callback taskbar-filter(text: string);
+    callback taskbar-pick(index: int);
+    callback taskbar-reset();              // back to Shell's four apps
 }
 
 // One row of the builder tree.

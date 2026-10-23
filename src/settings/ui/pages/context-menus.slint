@@ -1,12 +1,22 @@
+import { CheckBox, LineEdit, ListView } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
 import { AppState } from "../types.slint";
 import { EditorState } from "../editor-types.slint";
-import { MenusState, ModuleRow, RuleRow } from "../menus-types.slint";
-import { Banner } from "../components/banner.slint";
+import { MenusState, ModuleRow, RuleRow, TaskbarRow, InstalledRow } from "../menus-types.slint";
+import { Banner, CloseGlyph } from "../components/banner.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { Toggle } from "../components/toggle.slint";
 import { PageFrame } from "page-frame.slint";
-import { AppButton } from "../components/controls.slint";
+import { AppButton, Link } from "../components/controls.slint";
+
+global Mdl {
+    // Segoe MDL2 Assets (on every Windows 10/11)
+    out property <string> family: "Segoe MDL2 Assets";
+    out property <string> app: "\u{E7AC}";      // OpenWith
+    out property <string> code: "\u{E70F}";     // Edit: written by hand
+    out property <string> search: "\u{E721}";
+}
 
 // "Unsaved" dot next to a changed row.
 component ChangedDot inherits Rectangle {
@@ -16,23 +26,36 @@ component ChangedDot inherits Rectangle {
     background: Tokens.accent;
 }
 
-component SectionHead inherits VerticalLayout {
+// A section title with its caption, and buttons on the right.
+component SectionHead inherits HorizontalLayout {
     in property <string> title;
     in property <string> caption;
-    spacing: 2px;
+    spacing: Tokens.s3;
     padding-top: Tokens.s2;
-    Text {
-        text: root.title;
-        font-size: Tokens.heading;
-        font-weight: 600;
-        color: Tokens.text;
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: 2px;
+        alignment: end;
+        Text {
+            text: root.title;
+            font-size: Tokens.heading;
+            font-weight: 600;
+            color: Tokens.text;
+        }
+        if root.caption != "": Text {
+            text: root.caption;
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
     }
-    if root.caption != "": Text {
-        text: root.caption;
-        font-size: Tokens.caption + 1px;
-        color: Tokens.text-2;
-        wrap: word-wrap;
-        min-height: self.preferred-height;
+    VerticalLayout {
+        alignment: end;
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            @children
+        }
     }
 }
 
@@ -75,12 +98,42 @@ component FileLink inherits Rectangle {
     }
 }
 
-// One import line: name, what it adds, the file (opens it), the switch.
+// A small square icon button ("remove this module").
+component IconButton inherits Rectangle {
+    in property <image> icon;
+    in property <string> label;
+    in property <bool> enabled: true;
+    callback clicked;
+    width: 28px;
+    height: 28px;
+    border-radius: Tokens.radius-sm;
+    background: ta.has-hover && root.enabled ? Tokens.hover : transparent;
+    opacity: root.enabled ? 1 : 0.45;
+    animate background { duration: Tokens.fast; }
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+    Image {
+        source: root.icon;
+        width: 12px;
+        height: 12px;
+        colorize: ta.has-hover && root.enabled ? Tokens.text : Tokens.text-2;
+    }
+    ta := TouchArea {
+        mouse-cursor: root.enabled ? pointer : default;
+        clicked => { if (root.enabled) { root.clicked(); } }
+    }
+}
+
+// One import line: name, what it adds, the file (opens it), Remove for your
+// own files, the switch.
 component ModuleItem inherits HorizontalLayout {
     in property <ModuleRow> entry;
     in property <bool> read-only;
     callback toggled(on: bool);
     callback open();
+    callback remove();
 
     padding-left: Tokens.s4;
     padding-right: Tokens.s4;
@@ -115,6 +168,15 @@ component ModuleItem inherits HorizontalLayout {
         FileLink {
             text: root.entry.file;
             activated => { root.open(); }
+        }
+    }
+    if root.entry.own: VerticalLayout {
+        alignment: center;
+        IconButton {
+            icon: Icons.close;
+            label: @tr("Remove {}", root.entry.title);
+            enabled: !MenusState.saving;
+            clicked => { root.remove(); }
         }
     }
     VerticalLayout {
@@ -197,98 +259,673 @@ component RuleItem inherits HorizontalLayout {
     }
 }
 
-export component ContextMenusPage inherits PageFrame {
-    init => { MenusState.activated(); }
+// The program's icon, or a neutral glyph when it has none we can read.
+component AppIcon inherits Rectangle {
+    in property <image> icon;
+    in property <bool> has-icon;
+    in property <string> glyph: Mdl.app;
+    in property <bool> dim;
+    width: 20px;
+    height: 20px;
+    if root.has-icon: Image {
+        source: root.icon;
+        width: 20px;
+        height: 20px;
+        opacity: root.dim ? 0.45 : 1;
+    }
+    if !root.has-icon: Text {
+        text: root.glyph;
+        font-family: Mdl.family;
+        font-size: 16px;
+        color: root.dim ? Tokens.text-3 : Tokens.text-2;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
 
-    PageHeader {
-        title: @tr("Context Menus");
-        description: @tr("Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items.");
-        busy: MenusState.saving;
-        busy-label: @tr("Checking and saving…");
-        if MenusState.dirty-count > 0: Text {
-            vertical-alignment: center;
-            text: @tr("{n} file changed" | "{n} files changed" % MenusState.dirty-count);
-            font-size: Tokens.caption + 1px;
-            color: Tokens.text-2;
-        }
-        AppButton {
-            text: @tr("Discard");
-            enabled: MenusState.dirty-count > 0 && !MenusState.saving;
-            clicked => { MenusState.discard(); }
-        }
-        AppButton {
-            text: @tr("Save");
-            primary: true;
-            enabled: MenusState.dirty-count > 0 && !MenusState.saving;
-            clicked => { MenusState.save(); }
-        }
-    }
+// One entry of the Apps submenu: icon, name, the program; the switch. A
+// separator is a line; something written by hand shows its text.
+component TaskbarItem inherits Rectangle {
+    in property <TaskbarRow> entry;
+    in property <bool> selected;
+    in property <bool> locked;
+    callback clicked();
+    callback toggled(on: bool);
 
-    if MenusState.shared-config: Banner {
-        kind: "info";
-        title: @tr("This is the shared config in the install folder");
-        text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off.");
-        action-label: @tr("Create personal config");
-        action-enabled: !AppState.busy && AppState.cli-available;
-        action => { MenusState.create-user-config(); }
-    }
-    if MenusState.load-error != "": Banner {
-        kind: "error";
-        title: @tr("Couldn't read the config");
-        text: MenusState.load-error;
-    }
+    height: root.entry.kind == "sep" ? 40px : 52px;
+    background: root.selected ? Tokens.selected : ta.has-hover ? Tokens.hover : transparent;
+    animate background { duration: Tokens.fast; }
+    accessible-role: list-item;
+    accessible-label: root.entry.title;
+    accessible-description: root.entry.detail;
+    accessible-item-selected: root.selected;
 
-    SectionHead {
-        title: @tr("Modules");
-        caption: @tr("Each module is an import line in shell.nss. Turning one off comments the line out.");
+    if root.selected: Rectangle {
+        x: 0;
+        width: 3px;
+        height: 18px;
+        border-radius: 1.5px;
+        background: Tokens.accent;
     }
-    if MenusState.modules.length == 0 && MenusState.loaded: Text {
-        text: @tr("shell.nss doesn't import any files.");
-        color: Tokens.text-3;
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
     }
-    if MenusState.modules.length > 0: ListSurface {
-        for m[i] in MenusState.modules: VerticalLayout {
-            if i > 0: Hairline { }
-            ModuleItem {
-                entry: m;
-                read-only: MenusState.shared-config;
-                toggled(on) => { MenusState.toggle-module(i, on); }
-                open => { MenusState.open-in-editor(m.path, m.line); }
-            }
-        }
-    }
-
-    SectionHead {
-        title: @tr("Rules for Windows items");
-        caption: MenusState.rules-caption;
-    }
-    if MenusState.rules.length > 0: ListSurface {
-        for r[i] in MenusState.rules: VerticalLayout {
-            if r.group != "": VerticalLayout {
-                if i > 0: Hairline { }
-                HorizontalLayout {
-                    padding-left: Tokens.s4;
-                    padding-right: Tokens.s4;
-                    padding-top: Tokens.s2;
-                    padding-bottom: Tokens.s1;
-                    Text {
-                        text: r.group;
-                        font-family: EditorState.mono-font;
-                        font-size: Tokens.caption;
-                        color: Tokens.text-3;
-                    }
+    HorizontalLayout {
+        padding-left: Tokens.s4;
+        padding-right: Tokens.s4;
+        spacing: Tokens.s3;
+        if root.entry.kind == "sep": HorizontalLayout {
+            horizontal-stretch: 1;
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 20px;
+                    height: 1px;
+                    background: Tokens.text-3;
                 }
             }
-            if r.group == "" && i > 0: HorizontalLayout {
-                padding-left: Tokens.s4;
-                Hairline { }
+            Text {
+                text: root.entry.title;
+                font-size: Tokens.caption + 1px;
+                color: root.entry.enabled ? Tokens.text-2 : Tokens.text-3;
+                vertical-alignment: center;
             }
-            RuleItem {
-                entry: r;
-                read-only: MenusState.shared-config;
-                toggled(on) => { MenusState.toggle-rule(i, on); }
-                open => { MenusState.open-in-editor(r.path, r.line); }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                Rectangle {
+                    height: 1px;
+                    background: Tokens.stroke-strong;
+                    opacity: root.entry.enabled ? 1 : 0.5;
+                }
             }
         }
+        if root.entry.kind != "sep": VerticalLayout {
+            alignment: center;
+            AppIcon {
+                icon: root.entry.icon;
+                has-icon: root.entry.has-icon;
+                glyph: root.entry.kind == "other" ? Mdl.code : Mdl.app;
+                dim: !root.entry.enabled;
+            }
+        }
+        if root.entry.kind != "sep": VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 1px;
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                Text {
+                    text: root.entry.title;
+                    font-weight: root.entry.kind == "app" ? 600 : 400;
+                    color: root.entry.enabled ? Tokens.text : Tokens.text-3;
+                    overflow: elide;
+                }
+                if root.entry.changed: VerticalLayout {
+                    alignment: center;
+                    ChangedDot { }
+                }
+                Rectangle { horizontal-stretch: 1; }
+            }
+            if root.entry.problem != "": Text {
+                text: root.entry.problem;
+                font-size: Tokens.caption;
+                color: Tokens.warning;
+                overflow: elide;
+            }
+            if root.entry.problem == "": Text {
+                text: root.entry.detail;
+                font-family: EditorState.mono-font;
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                overflow: elide;
+            }
+        }
+        if root.entry.kind != "other": VerticalLayout {
+            alignment: center;
+            Toggle {
+                on: root.entry.enabled;
+                enabled: !root.locked;
+                label: @tr("Show {} in the menu", root.entry.title);
+                toggled(on) => { root.toggled(on); }
+            }
+        }
+    }
+}
+
+// Label on the left, control on the right.
+component FormRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> hint;
+    spacing: Tokens.s3;
+    VerticalLayout {
+        width: 112px;
+        alignment: start;
+        padding-top: 7px;
+        Text {
+            text: root.label;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+    }
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: 3px;
+        @children
+        if root.hint != "": Text {
+            text: root.hint;
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+    }
+}
+
+// Fields reload from the model only when the serial changes (a new selection),
+// so typing is never fought by the round trip to C++.
+component TaskbarField inherits LineEdit {
+    in property <string> value;
+    in property <string> field;
+    changed value => { if (!self.has-focus) { self.text = root.value; } }
+    property <int> serial: MenusState.taskbar-serial;
+    changed serial => { self.text = root.value; }
+    init => { self.text = root.value; }
+    edited(t) => { MenusState.taskbar-set-text(root.field, t); }
+}
+
+// The selected entry's settings, under its row.
+component TaskbarEditor inherits Rectangle {
+    in property <bool> locked;
+    background: Tokens.layer-2;
+
+    VerticalLayout {
+        padding-left: Tokens.s4 + 20px + Tokens.s3;
+        padding-right: Tokens.s4;
+        padding-top: Tokens.s3;
+        padding-bottom: Tokens.s4;
+        spacing: Tokens.s3;
+
+        if MenusState.taskbar-form.kind == "app": FormRow {
+            label: @tr("Name");
+            hint: MenusState.taskbar-form.builtin ? @tr("Left as it is, the name follows the language of your Windows.") : "";
+            TaskbarField {
+                field: "title";
+                value: MenusState.taskbar-form.title;
+                enabled: !root.locked;
+            }
+        }
+        if MenusState.taskbar-form.kind == "app": FormRow {
+            label: @tr("Program");
+            hint: @tr("A program, a shortcut, a document, a web address, or a command such as calc.exe.");
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                TaskbarField {
+                    horizontal-stretch: 1;
+                    field: "program";
+                    value: MenusState.taskbar-form.program;
+                    enabled: !root.locked;
+                    placeholder-text: "C:\\Program Files\\App\\app.exe";
+                }
+                AppButton {
+                    text: @tr("Browse…");
+                    enabled: !root.locked;
+                    clicked => { MenusState.taskbar-browse-program(); }
+                }
+            }
+        }
+        if MenusState.taskbar-form.kind == "app": FormRow {
+            label: @tr("Arguments");
+            TaskbarField {
+                field: "args";
+                value: MenusState.taskbar-form.args;
+                enabled: !root.locked;
+                placeholder-text: @tr("None");
+            }
+        }
+        if MenusState.taskbar-form.kind == "app": FormRow {
+            label: "";
+            CheckBox {
+                text: @tr("Run as administrator");
+                enabled: !root.locked;
+                checked: MenusState.taskbar-form.admin;
+                toggled => { MenusState.taskbar-set-admin(self.checked); }
+            }
+        }
+        if MenusState.taskbar-form.kind == "other": Text {
+            text: @tr("Written by hand in the file. The page keeps it as it is; change it in the Config Editor.");
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+
+        HorizontalLayout {
+            spacing: Tokens.s2;
+            padding-left: MenusState.taskbar-form.kind == "app" ? 112px + Tokens.s3 : 0px;
+            AppButton {
+                text: @tr("Move up");
+                enabled: MenusState.taskbar-can-up && !root.locked;
+                clicked => { MenusState.taskbar-move(-1); }
+            }
+            AppButton {
+                text: @tr("Move down");
+                enabled: MenusState.taskbar-can-down && !root.locked;
+                clicked => { MenusState.taskbar-move(1); }
+            }
+            AppButton {
+                text: @tr("Remove");
+                enabled: !root.locked;
+                clicked => { MenusState.taskbar-remove(); }
+            }
+            if MenusState.taskbar-form.kind == "other": AppButton {
+                text: @tr("Open in the Config Editor");
+                clicked => { MenusState.open-in-editor(MenusState.taskbar-file, 0); }
+            }
+            Rectangle { horizontal-stretch: 1; }
+        }
+    }
+}
+
+// The question before one of your own modules goes.
+component RemoveModuleDialog inherits Rectangle {
+    background: Tokens.scrim;
+
+    // Swallow clicks outside the card.
+    TouchArea { }
+
+    FocusScope {
+        init => { self.focus(); }
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                MenusState.cancel-remove-module();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    Rectangle {
+        width: min(460px, root.width - 64px);
+        height: body.preferred-height;
+        background: Tokens.layer;
+        border-radius: Tokens.radius-lg;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: Tokens.shadow;
+        drop-shadow-offset-y: 8px;
+
+        body := VerticalLayout {
+            padding: Tokens.s6;
+            spacing: Tokens.s3;
+            Text {
+                text: @tr("Remove {} from your config?", MenusState.remove-title);
+                font-size: Tokens.subtitle;
+                font-weight: 600;
+                color: Tokens.text;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+            Text {
+                text: @tr("Its import line goes from shell.nss when you save. A snapshot is taken first, so you can bring it back on the Backups page.");
+                color: Tokens.text-2;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+            if MenusState.remove-file != "": CheckBox {
+                text: @tr("Also delete the file {}", MenusState.remove-file);
+                checked: MenusState.remove-delete;
+                toggled => { MenusState.remove-delete = self.checked; }
+            }
+            Rectangle { height: Tokens.s2; }
+            HorizontalLayout {
+                alignment: end;
+                spacing: Tokens.s2;
+                AppButton {
+                    text: @tr("Cancel");
+                    clicked => { MenusState.cancel-remove-module(); }
+                }
+                AppButton {
+                    text: @tr("Remove");
+                    primary: true;
+                    clicked => { MenusState.remove-module(); }
+                }
+            }
+        }
+    }
+}
+
+// One app in the picker; a section heading above the first of a group.
+component InstalledItem inherits VerticalLayout {
+    in property <InstalledRow> entry;
+    callback picked();
+
+    if root.entry.section != "": HorizontalLayout {
+        padding-left: Tokens.s4;
+        padding-top: Tokens.s3;
+        padding-bottom: Tokens.s1;
+        Text {
+            text: root.entry.section;
+            font-size: Tokens.caption;
+            font-weight: 600;
+            color: Tokens.text-3;
+        }
+    }
+    Rectangle {
+        height: 44px;
+        background: ta.has-hover && !root.entry.added ? Tokens.hover : transparent;
+        animate background { duration: Tokens.fast; }
+        accessible-role: button;
+        accessible-label: root.entry.name;
+        accessible-description: root.entry.detail;
+        accessible-enabled: !root.entry.added;
+        accessible-action-default => { if (!root.entry.added) { root.picked(); } }
+        ta := TouchArea {
+            mouse-cursor: root.entry.added ? default : pointer;
+            clicked => { if (!root.entry.added) { root.picked(); } }
+        }
+        HorizontalLayout {
+            padding-left: Tokens.s4;
+            padding-right: Tokens.s4;
+            spacing: Tokens.s3;
+            VerticalLayout {
+                alignment: center;
+                AppIcon {
+                    icon: root.entry.icon;
+                    has-icon: root.entry.has-icon;
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                spacing: 1px;
+                Text {
+                    text: root.entry.name;
+                    color: root.entry.added ? Tokens.text-3 : Tokens.text;
+                    overflow: elide;
+                }
+                Text {
+                    text: root.entry.detail;
+                    font-family: EditorState.mono-font;
+                    font-size: Tokens.caption;
+                    color: Tokens.text-3;
+                    overflow: elide;
+                }
+            }
+            if root.entry.added: Text {
+                text: @tr("In the list");
+                font-size: Tokens.caption;
+                color: Tokens.text-3;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
+
+// "Add an installed app": Windows' own apps and the Start menu's, with a search box.
+component AppPicker inherits Rectangle {
+    background: Tokens.scrim;
+
+    TouchArea {
+        clicked => { MenusState.picker-shown = false; }
+    }
+
+    card := Rectangle {
+        width: min(560px, root.width - 64px);
+        height: min(600px, root.height - 64px);
+        background: Tokens.layer;
+        border-radius: Tokens.radius-lg;
+        border-width: 1px;
+        border-color: Tokens.stroke-strong;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: Tokens.shadow;
+        drop-shadow-offset-y: 8px;
+
+        // Clicks on the card stay on the card.
+        TouchArea { }
+
+        // Esc closes it (key presses the search box doesn't use come up to here).
+        FocusScope {
+            key-pressed(event) => {
+                if (event.text == Key.Escape) {
+                    MenusState.picker-shown = false;
+                    return accept;
+                }
+                return reject;
+            }
+        VerticalLayout {
+            padding-top: Tokens.s5;
+            padding-bottom: Tokens.s4;
+            spacing: Tokens.s3;
+            HorizontalLayout {
+                padding-left: Tokens.s6;
+                padding-right: Tokens.s4;
+                spacing: Tokens.s3;
+                Text {
+                    horizontal-stretch: 1;
+                    text: @tr("Add an installed app");
+                    font-size: Tokens.subtitle;
+                    font-weight: 600;
+                    color: Tokens.text;
+                    vertical-alignment: center;
+                }
+                CloseGlyph {
+                    clicked => { MenusState.picker-shown = false; }
+                }
+            }
+            HorizontalLayout {
+                padding-left: Tokens.s6;
+                padding-right: Tokens.s6;
+                search := LineEdit {
+                    placeholder-text: @tr("Search");
+                    init => {
+                        self.text = MenusState.picker-filter;
+                        self.focus();
+                    }
+                    edited(t) => { MenusState.taskbar-filter(t); }
+                }
+            }
+            if MenusState.installed-loading: Text {
+                text: @tr("Looking for apps…");
+                color: Tokens.text-2;
+                horizontal-alignment: center;
+                vertical-stretch: 1;
+                vertical-alignment: center;
+            }
+            if !MenusState.installed-loading && MenusState.installed.length == 0: Text {
+                text: @tr("No app matches.");
+                color: Tokens.text-2;
+                horizontal-alignment: center;
+                vertical-stretch: 1;
+                vertical-alignment: center;
+            }
+            if !MenusState.installed-loading && MenusState.installed.length > 0: ListView {
+                vertical-stretch: 1;
+                for a[i] in MenusState.installed: InstalledItem {
+                    entry: a;
+                    picked => { MenusState.taskbar-pick(i); }
+                }
+            }
+        }
+        }
+    }
+}
+
+export component ContextMenusPage inherits Rectangle {
+    PageFrame {
+        init => { MenusState.activated(); }
+
+        PageHeader {
+            title: @tr("Context Menus");
+            description: @tr("Turn the bundled menus on or off, add your own files, choose the taskbar menu's apps, and the rules that hide, move or rename Windows' own items.");
+            busy: MenusState.saving;
+            busy-label: @tr("Checking and saving…");
+            if MenusState.dirty-count > 0: Text {
+                vertical-alignment: center;
+                text: @tr("{n} file changed" | "{n} files changed" % MenusState.dirty-count);
+                font-size: Tokens.caption + 1px;
+                color: Tokens.text-2;
+            }
+            AppButton {
+                text: @tr("Discard");
+                enabled: MenusState.dirty-count > 0 && !MenusState.saving;
+                clicked => { MenusState.discard(); }
+            }
+            AppButton {
+                text: @tr("Save");
+                primary: true;
+                enabled: MenusState.dirty-count > 0 && !MenusState.saving;
+                clicked => { MenusState.save(); }
+            }
+        }
+
+        if MenusState.shared-config: Banner {
+            kind: "info";
+            title: @tr("This is the shared config in the install folder");
+            text: @tr("It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off.");
+            action-label: @tr("Create personal config");
+            action-enabled: !AppState.busy && AppState.cli-available;
+            action => { MenusState.create-user-config(); }
+        }
+        if MenusState.load-error != "": Banner {
+            kind: "error";
+            title: @tr("Couldn't read the config");
+            text: MenusState.load-error;
+        }
+
+        SectionHead {
+            title: @tr("Modules");
+            caption: @tr("Each module is an import line in shell.nss. Turning one off comments the line out. Add your own .nss files here instead of editing shell.nss.");
+            AppButton {
+                text: @tr("Add a file…");
+                enabled: MenusState.loaded && !MenusState.shared-config && MenusState.load-error == "" && !MenusState.saving;
+                clicked => { MenusState.add-module(); }
+            }
+        }
+        if MenusState.modules.length == 0 && MenusState.loaded: Text {
+            text: @tr("shell.nss doesn't import any files.");
+            color: Tokens.text-3;
+        }
+        if MenusState.modules.length > 0: ListSurface {
+            for m[i] in MenusState.modules: VerticalLayout {
+                if i > 0: Hairline { }
+                ModuleItem {
+                    entry: m;
+                    read-only: MenusState.shared-config;
+                    toggled(on) => { MenusState.toggle-module(i, on); }
+                    open => { MenusState.open-in-editor(m.path, m.line); }
+                    remove => { MenusState.ask-remove-module(i); }
+                }
+            }
+        }
+
+        SectionHead {
+            title: @tr("Taskbar menu");
+            caption: MenusState.taskbar-custom
+                ? @tr("The Apps submenu you get when you right-click an empty spot on the taskbar. Saved in imports\\settings-app-taskbar.nss; you can edit that file by hand too.")
+                : @tr("The Apps submenu you get when you right-click an empty spot on the taskbar. These are Shell's own four apps; your changes are saved in imports\\settings-app-taskbar.nss.");
+            AppButton {
+                text: @tr("Add a program…");
+                enabled: !MenusState.taskbar-locked;
+                clicked => { MenusState.taskbar-browse(); }
+            }
+            AppButton {
+                text: @tr("Add an installed app…");
+                enabled: !MenusState.taskbar-locked;
+                clicked => { MenusState.taskbar-open-picker(); }
+            }
+            AppButton {
+                text: @tr("Add a separator");
+                enabled: !MenusState.taskbar-locked;
+                clicked => { MenusState.taskbar-add-separator(); }
+            }
+        }
+        if MenusState.taskbar-error != "": Banner {
+            kind: "error";
+            title: @tr("settings-app-taskbar.nss has an error, so it isn't changed here");
+            text: MenusState.taskbar-error;
+            action-label: @tr("Open in the Config Editor");
+            action => { MenusState.open-in-editor(MenusState.taskbar-file, 0); }
+        }
+        if MenusState.taskbar-notice != "": Banner {
+            kind: "warning";
+            title: @tr("The taskbar's menu doesn't show this list yet");
+            text: MenusState.taskbar-notice;
+            action-label: MenusState.taskbar-nss != "" ? @tr("Open taskbar.nss") : "";
+            action => { MenusState.open-in-editor(MenusState.taskbar-nss, 0); }
+        }
+        if MenusState.taskbar-error == "" && MenusState.taskbar-rows.length == 0 && MenusState.loaded: Text {
+            text: @tr("No apps: the Apps submenu is empty.");
+            color: Tokens.text-3;
+        }
+        if MenusState.taskbar-rows.length > 0: ListSurface {
+            for t[i] in MenusState.taskbar-rows: VerticalLayout {
+                if i > 0: Hairline { }
+                TaskbarItem {
+                    entry: t;
+                    selected: i == MenusState.taskbar-selected;
+                    locked: MenusState.taskbar-locked;
+                    clicked => { MenusState.taskbar-select(i); }
+                    toggled(on) => { MenusState.taskbar-toggle(i, on); }
+                }
+                if i == MenusState.taskbar-selected: TaskbarEditor {
+                    locked: MenusState.taskbar-locked;
+                }
+            }
+        }
+        if !MenusState.taskbar-is-default && !MenusState.taskbar-locked: HorizontalLayout {
+            alignment: end;
+            Link {
+                text: @tr("Put back Shell's four apps");
+                font-size: Tokens.caption + 1px;
+                activated => { MenusState.taskbar-reset(); }
+            }
+        }
+
+        SectionHead {
+            title: @tr("Rules for Windows items");
+            caption: MenusState.rules-caption;
+        }
+        if MenusState.rules.length > 0: ListSurface {
+            for r[i] in MenusState.rules: VerticalLayout {
+                if r.group != "": VerticalLayout {
+                    if i > 0: Hairline { }
+                    HorizontalLayout {
+                        padding-left: Tokens.s4;
+                        padding-right: Tokens.s4;
+                        padding-top: Tokens.s2;
+                        padding-bottom: Tokens.s1;
+                        Text {
+                            text: r.group;
+                            font-family: EditorState.mono-font;
+                            font-size: Tokens.caption;
+                            color: Tokens.text-3;
+                        }
+                    }
+                }
+                if r.group == "" && i > 0: HorizontalLayout {
+                    padding-left: Tokens.s4;
+                    Hairline { }
+                }
+                RuleItem {
+                    entry: r;
+                    read-only: MenusState.shared-config;
+                    toggled(on) => { MenusState.toggle-rule(i, on); }
+                    open => { MenusState.open-in-editor(r.path, r.line); }
+                }
+            }
+        }
+    }
+
+    if MenusState.remove-index >= 0: RemoveModuleDialog {
+        width: 100%;
+        height: 100%;
+    }
+    if MenusState.picker-shown: AppPicker {
+        width: 100%;
+        height: 100%;
     }
 }
