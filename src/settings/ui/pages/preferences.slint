@@ -162,7 +162,8 @@ export component PreferencesPage inherits PageFrame {
         description: @tr("New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed.");
         KeyValue {
             key: @tr("Version");
-            value: UpdateState.install-kind == "msi" ? @tr("{}  ·  installed for all users (MSI)", UpdateState.current-version)
+            value: UpdateState.per-user-app ? @tr("{}  ·  app updated for you; Shell core {} for all users", UpdateState.current-version, UpdateState.installed-release)
+                : UpdateState.install-kind == "msi" ? @tr("{}  ·  installed for all users (MSI)", UpdateState.current-version)
                 : UpdateState.install-kind == "portable" ? @tr("{}  ·  portable copy", UpdateState.current-version)
                 : UpdateState.current-version;
         }
@@ -199,7 +200,7 @@ export component PreferencesPage inherits PageFrame {
         }
         PrefSwitch {
             label: @tr("Download and install updates automatically");
-            hint: @tr("Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt.");
+            hint: @tr("Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval.");
             on: UpdateState.auto-install;
             toggled(v) => { UpdateState.set-auto-install(v); }
         }
@@ -252,7 +253,9 @@ export component PreferencesPage inherits PageFrame {
                 HorizontalLayout {
                     spacing: Tokens.s2;
                     if UpdateState.state == "available" || UpdateState.state == "ready": AppButton {
-                        text: UpdateState.state == "ready" ? @tr("Restart to update") : @tr("Download and install");
+                        text: UpdateState.needs-admin ? @tr("Install with administrator approval")
+                            : UpdateState.state == "ready" ? (UpdateState.update-path == "app" ? @tr("Restart now") : @tr("Restart to update"))
+                            : @tr("Download and install");
                         primary: true;
                         icon: UpdateState.needs-admin ? AppState.shield-icon : Icons.download;
                         colorize-icon: !UpdateState.needs-admin;

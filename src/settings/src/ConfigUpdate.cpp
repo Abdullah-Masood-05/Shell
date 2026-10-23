@@ -1,6 +1,13 @@
 #include "ConfigUpdate.h"
 
+#include "AppChannel.h"
+
+// The one place the app itself runs src/shared code: the upgrade of a per-user copy.
+#include "../../shared/ConfigUpgrade.h"
+
 #include <nlohmann/json.hpp>
+
+#include <filesystem>
 
 namespace config_update {
 
@@ -55,6 +62,45 @@ std::optional<Report> parseReport(std::string_view text)
     r.failed = list(j, "failed");
     r.error = str(j, "error");
     return r;
+}
+
+Report runLocal(const std::wstring &shippedDir, const std::wstring &configRoot, const std::vector<std::string> &take)
+{
+    std::wstring configDir, rootName = L"shell.nss";
+    auto slash = configRoot.find_last_of(L"\\/");
+    if (slash != std::wstring::npos) {
+        configDir = configRoot.substr(0, slash);
+        rootName = configRoot.substr(slash + 1);
+    }
+    config_upgrade::Result result;
+    if (!configDir.empty() && !config_upgrade::same_path(configDir, shippedDir)) {
+        config_upgrade::Options options;
+        options.root_name = rootName;
+        options.take = take;
+        result = config_upgrade::run(shippedDir, configDir, options);
+    } else {
+        configDir.clear();
+        if (!take.empty()) {
+            result.ok = false;
+            result.error = "there is no per-user config";
+        }
+    }
+    auto report = parseReport(config_upgrade::to_json(result, shippedDir, configDir));
+    if (!report) {
+        Report r;
+        r.error = "the upgrade report couldn't be read";
+        return r;
+    }
+    return *report;
+}
+
+std::wstring localShippedDir()
+{
+    if (!appchannel::isPerUserCopy())
+        return {};
+    auto dir = appchannel::selfPath().parent_path();
+    std::error_code ec;
+    return std::filesystem::is_regular_file(dir / L"shell.nss", ec) ? dir.wstring() : std::wstring{};
 }
 
 } // namespace config_update

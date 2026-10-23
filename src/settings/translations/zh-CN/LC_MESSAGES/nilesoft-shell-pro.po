@@ -19,7 +19,7 @@ msgstr "Microsoft YaHei UI"
 msgid "Close"
 msgstr "关闭"
 
-#: ui/components/code.slint:330 src/UpdateController.cpp:618 src/UpdateController.cpp:634
+#: ui/components/code.slint:330 src/UpdateController.cpp:760 src/UpdateController.cpp:785
 msgid "{} of {}"
 msgstr "{} / {}"
 
@@ -84,7 +84,7 @@ msgstr "没有差异。"
 msgid "OK"
 msgstr "确定"
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:262
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:595 ui/pages/preferences.slint:265
 msgid "Cancel"
 msgstr "取消"
 
@@ -234,7 +234,7 @@ msgstr "高级"
 msgid "Backups"
 msgstr "备份"
 
-#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:300
+#: ui/components/sidebar.slint:108 ui/pages/preferences.slint:303
 msgid "Version {}"
 msgstr "版本 {}"
 
@@ -379,71 +379,99 @@ msgstr "重新加载"
 msgid "Stop"
 msgstr "停止"
 
-#: ui/components/update-banner.slint:59
+#: ui/components/update-banner.slint:60
 msgid "Downloading Nilesoft Shell Pro {}…"
 msgstr "正在下载 Nilesoft Shell Pro {}…"
 
-#: ui/components/update-banner.slint:60
+#: ui/components/update-banner.slint:61
 msgid "Update ready: Nilesoft Shell Pro {}"
 msgstr "更新已就绪：Nilesoft Shell Pro {}"
 
-#: ui/components/update-banner.slint:61
+#: ui/components/update-banner.slint:62
 msgid "Installing Nilesoft Shell Pro {}…"
 msgstr "正在安装 Nilesoft Shell Pro {}…"
 
-#: ui/components/update-banner.slint:62
+#: ui/components/update-banner.slint:63
 msgid "Nilesoft Shell Pro {} is available"
 msgstr "Nilesoft Shell Pro {} 现已推出"
 
-#: ui/components/update-banner.slint:70
+#: ui/components/update-banner.slint:71
 msgid "You have {}."
 msgstr "当前版本：{}。"
 
-#: ui/components/update-banner.slint:71
+#: ui/components/update-banner.slint:72
 msgid "Released {}."
 msgstr "发布于 {}。"
 
-#: ui/components/update-banner.slint:80
+#: ui/components/update-banner.slint:74
+msgid "It installs for you only, without administrator rights."
+msgstr "此更新只为你安装，不需要管理员权限。"
+
+#: ui/components/update-banner.slint:83
+msgid "This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval."
+msgstr "此更新还会更改为所有用户安装的 Shell 核心。安装它需要管理员批准。"
+
+#: ui/components/update-banner.slint:84
+msgid "This update can only be installed with its installer, which installs for all users and needs administrator approval."
+msgstr "此更新只能用其安装程序安装，安装程序会为所有用户安装，并需要管理员批准。"
+
+#: ui/components/update-banner.slint:92
+msgid "Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts."
+msgstr "已为你安装，不需要管理员权限。重启应用即可立即使用；否则会在下次启动应用时使用。"
+
+#: ui/components/update-banner.slint:94
 msgid "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
 msgstr "已下载并验证。应用将关闭，Windows 会请求一次管理员批准，然后应用将重新打开。"
 
-#: ui/components/update-banner.slint:81
+#: ui/components/update-banner.slint:95
 msgid "Downloaded and verified. The app closes for a moment and opens again."
 msgstr "已下载并验证。应用将短暂关闭，然后重新打开。"
 
-#: ui/components/update-banner.slint:94
+#: ui/components/update-banner.slint:108
 msgid "{} · checked against SHA256SUMS.txt when done"
 msgstr "{} · 完成后将根据 SHA256SUMS.txt 进行校验"
 
-#: ui/components/update-banner.slint:116
+#: ui/components/update-banner.slint:130
 msgid "Release notes"
 msgstr "发行说明"
 
-#: ui/components/update-banner.slint:121
+#: ui/components/update-banner.slint:135
 msgid "Skip this version"
 msgstr "跳过此版本"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:255
+#: ui/components/update-banner.slint:139
+msgid "Later"
+msgstr "稍后"
+
+#: ui/components/update-banner.slint:143 ui/pages/preferences.slint:256
+msgid "Install with administrator approval"
+msgstr "经管理员批准后安装"
+
+#: ui/components/update-banner.slint:144 ui/pages/preferences.slint:257
+msgid "Restart now"
+msgstr "立即重启"
+
+#: ui/components/update-banner.slint:144 ui/pages/preferences.slint:257
 msgid "Restart to update"
 msgstr "重启以更新"
 
-#: ui/components/update-banner.slint:125 ui/pages/preferences.slint:255
+#: ui/components/update-banner.slint:145 ui/pages/preferences.slint:258
 msgid "Download and install"
 msgstr "下载并安装"
 
-#: ui/components/update-banner.slint:168
+#: ui/components/update-banner.slint:188
 msgid "Downloading update… {}%"
 msgstr "正在下载更新… {}%"
 
-#: ui/components/update-banner.slint:169
+#: ui/components/update-banner.slint:189
 msgid "Update ready: restart to update"
 msgstr "更新已就绪：重启以完成更新"
 
-#: ui/components/update-banner.slint:170
+#: ui/components/update-banner.slint:190
 msgid "Installing update…"
 msgstr "正在安装更新…"
 
-#: ui/components/update-banner.slint:171
+#: ui/components/update-banner.slint:191
 msgid "Update available: {}"
 msgstr "有可用更新：{}"
 
@@ -772,7 +800,7 @@ msgstr "每次保存前都会先为你的配置创建快照。你可以将快照
 msgid "Working…"
 msgstr "正在处理…"
 
-#: ui/pages/backups.slint:200 ui/pages/home.slint:262
+#: ui/pages/backups.slint:200 ui/pages/home.slint:265
 msgid "Open folder"
 msgstr "打开文件夹"
 
@@ -1229,11 +1257,11 @@ msgstr "第 {} 行，第 {} 列"
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr "Nilesoft Shell 概览：注册状态、当前使用的配置和最近的诊断信息。"
 
-#: ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:655 ui/pages/home.slint:94 ui/pages/home.slint:305 ui/pages/menu-map.slint:655 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
+#: ui/pages/home.slint:94 ui/pages/home.slint:308 ui/pages/menu-map.slint:655 ui/pages/home.slint:94 ui/pages/home.slint:308 ui/pages/menu-map.slint:655 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
 msgid "Refresh"
 msgstr "刷新"
 
-#: ui/pages/home.slint:108 ui/pages/home.slint:280 ui/pages/home.slint:108 ui/pages/home.slint:280 src/TrayController.cpp:135
+#: ui/pages/home.slint:108 ui/pages/home.slint:283 ui/pages/home.slint:108 ui/pages/home.slint:283 src/TrayController.cpp:135
 msgid "Restart Explorer"
 msgstr "重启资源管理器"
 
@@ -1257,94 +1285,98 @@ msgstr "Shell DLL"
 msgid "Version"
 msgstr "版本"
 
-#: ui/pages/home.slint:207
+#: ui/pages/home.slint:209
+msgid "Shell core {}  ·  app {}"
+msgstr "Shell 核心 {}  ·  应用 {}"
+
+#: ui/pages/home.slint:210
 msgid "{}  (running as administrator)"
 msgstr "{}（以管理员身份运行）"
 
-#: ui/pages/home.slint:218
+#: ui/pages/home.slint:221
 msgid "Active config"
 msgstr "当前配置"
 
-#: ui/pages/home.slint:219
+#: ui/pages/home.slint:222
 msgid "The shell.nss Shell builds its menu from, and the files it imports."
 msgstr "Shell 用来构建菜单的 shell.nss，以及它导入的文件。"
 
-#: ui/pages/home.slint:245
+#: ui/pages/home.slint:248
 msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
 msgstr "这是安装文件夹中的共享配置。%APPDATA% 中的个人副本按用户单独保存，更新后也会保留。"
 
-#: ui/pages/home.slint:256 src/Status.cpp:193
+#: ui/pages/home.slint:259 src/Status.cpp:193
 msgid "Use per-user config"
 msgstr "使用个人配置"
 
-#: ui/pages/home.slint:273
+#: ui/pages/home.slint:276
 msgid "Quick actions"
 msgstr "快速操作"
 
-#: ui/pages/home.slint:281
+#: ui/pages/home.slint:284
 msgid "Reload the shell and the menu"
 msgstr "重新加载资源管理器与菜单"
 
-#: ui/pages/home.slint:288 src/Status.cpp:185
+#: ui/pages/home.slint:291 src/Status.cpp:185
 msgid "Unregister for me"
 msgstr "为当前用户取消注册"
 
-#: ui/pages/home.slint:288
+#: ui/pages/home.slint:291
 msgid "Also register for me"
 msgstr "为当前用户注册"
 
-#: ui/pages/home.slint:288 src/Status.cpp:180
+#: ui/pages/home.slint:291 src/Status.cpp:180
 msgid "Register for me"
 msgstr "为当前用户注册"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "Remove it from your account"
 msgstr "从你的账户中移除"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "Overrides the all-users copy"
 msgstr "优先于所有用户配置"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
-#: ui/pages/home.slint:290
+#: ui/pages/home.slint:293
 msgid "No administrator rights needed"
 msgstr "无需管理员权限"
 
-#: ui/pages/home.slint:297
+#: ui/pages/home.slint:300
 msgid "Open config folder"
 msgstr "打开配置文件夹"
 
-#: ui/pages/home.slint:298
+#: ui/pages/home.slint:301
 msgid "Show shell.nss in Explorer"
 msgstr "在资源管理器中显示 shell.nss"
 
-#: ui/pages/home.slint:306
+#: ui/pages/home.slint:309
 msgid "Check the status again"
 msgstr "重新检查状态"
 
-#: ui/pages/home.slint:315
+#: ui/pages/home.slint:318
 msgid "Diagnostics"
 msgstr "诊断"
 
-#: ui/pages/home.slint:319
+#: ui/pages/home.slint:322
 msgid "· newest first, from shell.log"
 msgstr "· 最新在前，来自 shell.log"
 
-#: ui/pages/home.slint:326
+#: ui/pages/home.slint:329
 msgid "Open shell.log"
 msgstr "打开 shell.log"
 
-#: ui/pages/home.slint:343
+#: ui/pages/home.slint:346
 msgid "No shell.log found next to the active shell.dll."
 msgstr "当前 shell.dll 所在文件夹中未找到 shell.log。"
 
-#: ui/pages/home.slint:343
+#: ui/pages/home.slint:346
 msgid "No errors or warnings in shell.log."
 msgstr "shell.log 中没有错误或警告。"
 
-#: ui/pages/home.slint:366
+#: ui/pages/home.slint:369
 msgid "Run first-time setup again"
 msgstr "重新运行首次设置"
 
@@ -2291,106 +2323,110 @@ msgid "New versions come from this project's GitHub releases and are checked aga
 msgstr "新版本来自此项目在 GitHub 上的发布，安装前会先核对 SHA-256 校验和。"
 
 #: ui/pages/preferences.slint:165
+msgid "{}  ·  app updated for you; Shell core {} for all users"
+msgstr "{}  ·  应用已为你更新；所有用户的 Shell 核心为 {}"
+
+#: ui/pages/preferences.slint:166
 msgid "{}  ·  installed for all users (MSI)"
 msgstr "{}  ·  已为所有用户安装 (MSI)"
 
-#: ui/pages/preferences.slint:166
+#: ui/pages/preferences.slint:167
 msgid "{}  ·  portable copy"
 msgstr "{}  ·  便携版"
 
-#: ui/pages/preferences.slint:172
+#: ui/pages/preferences.slint:173
 msgid "Channel"
 msgstr "频道"
 
-#: ui/pages/preferences.slint:181
+#: ui/pages/preferences.slint:182
 msgid "Stable"
 msgstr "稳定版"
 
-#: ui/pages/preferences.slint:181
+#: ui/pages/preferences.slint:182
 msgid "Beta"
 msgstr "测试版"
 
-#: ui/pages/preferences.slint:187
+#: ui/pages/preferences.slint:188
 msgid "Pre-releases too"
 msgstr "包括预发布版本"
 
-#: ui/pages/preferences.slint:187
+#: ui/pages/preferences.slint:188
 msgid "Releases only"
 msgstr "仅发布版本"
 
-#: ui/pages/preferences.slint:195
+#: ui/pages/preferences.slint:196
 msgid "Check for updates automatically"
 msgstr "自动检查更新"
 
-#: ui/pages/preferences.slint:196
+#: ui/pages/preferences.slint:197
 msgid "When the app starts, at most once a day, and every few hours while it is in the system tray."
 msgstr "在应用启动时检查（每天最多一次）；应用在系统托盘中运行时，每隔几小时检查一次。"
 
-#: ui/pages/preferences.slint:201
+#: ui/pages/preferences.slint:202
 msgid "Download and install updates automatically"
 msgstr "自动下载并安装更新"
 
-#: ui/pages/preferences.slint:202
-msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+#: ui/pages/preferences.slint:203
+msgid "Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval."
+msgstr "更新会在后台下载、验证并安装，不需要管理员权限；由你决定何时重启。更改所有用户 Shell 核心的更新只会提示，因为它需要管理员批准。"
 
-#: ui/pages/preferences.slint:225 src/UpdateController.cpp:536
+#: ui/pages/preferences.slint:226 src/UpdateController.cpp:616 src/UpdateController.cpp:645
 msgid "Checking for updates…"
 msgstr "正在检查更新…"
 
-#: ui/pages/preferences.slint:226
+#: ui/pages/preferences.slint:227
 msgid "Version {} is available"
 msgstr "版本 {} 可用"
 
-#: ui/pages/preferences.slint:227
+#: ui/pages/preferences.slint:228
 msgid "Downloading {}…  {}"
 msgstr "正在下载 {}…  {}"
 
-#: ui/pages/preferences.slint:228
+#: ui/pages/preferences.slint:229
 msgid "Version {} is downloaded and verified"
 msgstr "版本 {} 已下载并验证"
 
-#: ui/pages/preferences.slint:229
+#: ui/pages/preferences.slint:230
 msgid "Installing {}…"
 msgstr "正在安装 {}…"
 
-#: ui/pages/preferences.slint:231
+#: ui/pages/preferences.slint:232
 msgid "Not checked yet"
 msgstr "尚未检查"
 
-#: ui/pages/preferences.slint:245
+#: ui/pages/preferences.slint:246
 msgid "Last checked: {}"
 msgstr "上次检查时间：{}"
 
-#: ui/pages/preferences.slint:266
+#: ui/pages/preferences.slint:269
 msgid "Check now"
 msgstr "立即检查"
 
-#: ui/pages/preferences.slint:282
+#: ui/pages/preferences.slint:285
 msgid "About"
 msgstr "关于"
 
-#: ui/pages/preferences.slint:304
+#: ui/pages/preferences.slint:307
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr "© Nilesoft Ltd. 及贡献者。MIT 许可证。"
 
-#: ui/pages/preferences.slint:318
+#: ui/pages/preferences.slint:321
 msgid "Documentation"
 msgstr "文档"
 
-#: ui/pages/preferences.slint:323
+#: ui/pages/preferences.slint:326
 msgid "Source code"
 msgstr "源代码"
 
-#: ui/pages/preferences.slint:327
+#: ui/pages/preferences.slint:330
 msgid "Report an issue"
 msgstr "报告问题"
 
-#: ui/pages/preferences.slint:336
+#: ui/pages/preferences.slint:339
 msgid "Third-party software"
 msgstr "第三方软件"
 
-#: ui/pages/preferences.slint:341
+#: ui/pages/preferences.slint:344
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "使用 Slint 构建 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
 
@@ -2777,7 +2813,7 @@ msgstr "已创建个人配置"
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr "Shell 现在从 %APPDATA%\\Nilesoft\\Shell 读取配置。"
 
-#: src/AppController.cpp:632 src/AppController.cpp:637 src/AppController.cpp:642 src/UpdateController.cpp:731
+#: src/AppController.cpp:632 src/AppController.cpp:637 src/AppController.cpp:642 src/UpdateController.cpp:932
 msgid "Waiting for administrator approval…"
 msgstr "正在等待管理员批准…"
 
@@ -2805,7 +2841,7 @@ msgstr "已注册，但资源管理器未能重启：{}"
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr "另一份仍处于注册状态：{}。请在“设置 > 应用”中将其卸载，然后重试。"
 
-#: src/AppController.cpp:678 src/UpdateController.cpp:758
+#: src/AppController.cpp:678 src/UpdateController.cpp:959
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr "管理员提示已取消。未进行任何更改。"
 
@@ -3081,7 +3117,7 @@ msgstr "3月"
 msgid "Apr"
 msgstr "4月"
 
-#: src/BackupsModel.cpp:141 src/UpdateController.cpp:149
+#: src/BackupsModel.cpp:141 src/UpdateController.cpp:153
 msgid "May"
 msgstr "5月"
 
@@ -3732,45 +3768,45 @@ msgstr "更新菜单文件前"
 msgid "Before using the new version of a menu file"
 msgstr "改用菜单文件的新版本前"
 
-#: src/ConfigUpdateController.cpp:132
+#: src/ConfigUpdateController.cpp:165
 msgid "Updated {n} configuration file to this version"
 msgid_plural "Updated {n} configuration files to this version"
 msgstr[0] "已将 {n} 个配置文件更新到此版本"
 
-#: src/ConfigUpdateController.cpp:134
+#: src/ConfigUpdateController.cpp:167
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
 msgstr "这些文件随 Nilesoft Shell 一起提供，你没有改动过。旧的副本已保存在“备份”中。"
 
-#: src/ConfigUpdateController.cpp:135
+#: src/ConfigUpdateController.cpp:168
 msgid "{n} configuration file wasn't updated because you changed it"
 msgid_plural "{n} configuration files weren't updated because you changed them"
 msgstr[0] "{n} 个配置文件你改动过，因此没有更新"
 
-#: src/ConfigUpdateController.cpp:138
+#: src/ConfigUpdateController.cpp:171
 msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
 msgstr "你的改动已保留。你可以将文件与新版本比较，或改用新版本。改用前会先把你的副本保存到“备份”中。"
 
-#: src/ConfigUpdateController.cpp:144
+#: src/ConfigUpdateController.cpp:177
 msgid "{}: your copy and the new version"
 msgstr "{}：你的副本与新版本"
 
-#: src/ConfigUpdateController.cpp:145
+#: src/ConfigUpdateController.cpp:178
 msgid "Red lines are only in your copy. Green lines are in the new version."
 msgstr "红色行只在你的副本中，绿色行是新版本中的内容。"
 
-#: src/ConfigUpdateController.cpp:175 src/Updater.cpp:767
+#: src/ConfigUpdateController.cpp:208 src/Updater.cpp:886
 msgid "Couldn't read {}."
 msgstr "无法读取 {}。"
 
-#: src/ConfigUpdateController.cpp:210
+#: src/ConfigUpdateController.cpp:244
 msgid "Couldn't use the new version"
 msgstr "无法改用新版本"
 
-#: src/ConfigUpdateController.cpp:223
+#: src/ConfigUpdateController.cpp:257
 msgid "Now using the new version of {}"
 msgstr "已改用 {} 的新版本"
 
-#: src/ConfigUpdateController.cpp:223
+#: src/ConfigUpdateController.cpp:257
 msgid "Your copy is saved in Backups."
 msgstr "你的副本已保存在“备份”中。"
 
@@ -3985,7 +4021,7 @@ msgstr "没有需要保存的内容"
 msgid "These files are read-only here."
 msgstr "这些文件在此处为只读。"
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:203
+#: src/EditorController.cpp:740 src/ShellCli.cpp:209
 msgid "shell.exe was not found."
 msgstr "未找到 shell.exe。"
 
@@ -4095,7 +4131,7 @@ msgstr "音乐 (.mp3)"
 msgid "The config file doesn't exist. Create a personal config from Home first."
 msgstr "配置文件不存在。请先在“主页”创建个人配置。"
 
-#: src/MenuMapController.cpp:284 src/ShellCli.cpp:118
+#: src/MenuMapController.cpp:284 src/ShellCli.cpp:124
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr "NilesoftShellPro.exe 和已注册的 shell.dll 所在文件夹中均未找到 shell.exe。"
 
@@ -4694,19 +4730,19 @@ msgstr "shell.exe 未能及时完成。"
 msgid "Couldn't create the personal config: {}"
 msgstr "无法创建个人配置：{}"
 
-#: src/ShellCli.cpp:125
+#: src/ShellCli.cpp:131
 msgid "CreatePipe failed."
 msgstr "CreatePipe 失败。"
 
-#: src/ShellCli.cpp:164
+#: src/ShellCli.cpp:170
 msgid "Could not start shell.exe (error {})."
 msgstr "无法启动 shell.exe（错误 {}）。"
 
-#: src/ShellCli.cpp:219
+#: src/ShellCli.cpp:225
 msgid "The administrator prompt was cancelled."
 msgstr "管理员权限提示已取消。"
 
-#: src/ShellCli.cpp:220
+#: src/ShellCli.cpp:226
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr "无法以管理员身份启动 shell.exe（错误 {}）。"
 
@@ -5099,314 +5135,370 @@ msgstr "Nilesoft Shell Pro {} 已发布。点击查看新内容。"
 msgid "Couldn't check for updates"
 msgstr "无法检查更新"
 
-#: src/TrayController.cpp:234 src/UpdateController.cpp:585
+#: src/TrayController.cpp:234 src/UpdateController.cpp:727
 msgid "You have the latest version."
 msgstr "你使用的已是最新版本。"
 
-#: src/UpdateController.cpp:86
+#: src/UpdateController.cpp:87
 msgid "Couldn't find this app's own file or the temporary folder."
 msgstr "找不到此应用自身的文件或临时文件夹。"
 
-#: src/UpdateController.cpp:91
+#: src/UpdateController.cpp:92
 msgid "Couldn't copy the app to the temporary folder."
 msgstr "无法将应用复制到临时文件夹。"
 
-#: src/UpdateController.cpp:142
+#: src/UpdateController.cpp:146
 msgid "{} MB"
 msgstr "{} MB"
 
-#: src/UpdateController.cpp:145
+#: src/UpdateController.cpp:149
 msgid "{} KB"
 msgstr "{} KB"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "January"
 msgstr "1月"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "February"
 msgstr "2月"
 
-#: src/UpdateController.cpp:148
+#: src/UpdateController.cpp:152
 msgid "March"
 msgstr "3月"
 
-#: src/UpdateController.cpp:149
+#: src/UpdateController.cpp:153
 msgid "April"
 msgstr "4月"
 
-#: src/UpdateController.cpp:149
+#: src/UpdateController.cpp:153
 msgid "June"
 msgstr "6月"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "July"
 msgstr "7月"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "August"
 msgstr "8月"
 
-#: src/UpdateController.cpp:150
+#: src/UpdateController.cpp:154
 msgid "September"
 msgstr "9月"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "October"
 msgstr "10月"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "November"
 msgstr "11月"
 
-#: src/UpdateController.cpp:151
+#: src/UpdateController.cpp:155
 msgid "December"
 msgstr "12月"
 
-#: src/UpdateController.cpp:157
+#: src/UpdateController.cpp:161
 msgctxt "date: day, month name, year"
 msgid "{0} {1} {2}"
 msgstr "{2}年{1}{0}日"
 
-#: src/UpdateController.cpp:172
+#: src/UpdateController.cpp:176
 msgid "Never"
 msgstr "从未"
 
-#: src/UpdateController.cpp:183
+#: src/UpdateController.cpp:187
 msgid "Today at {}"
 msgstr "今天 {}"
 
-#: src/UpdateController.cpp:185
+#: src/UpdateController.cpp:189
 msgid "Yesterday at {}"
 msgstr "昨天 {}"
 
-#: src/UpdateController.cpp:358
+#: src/UpdateController.cpp:339
+msgid "The update's files are missing."
+msgstr "更新的文件丢失了。"
+
+#: src/UpdateController.cpp:373
 msgid "msiexec.exe couldn't be started."
 msgstr "无法启动 msiexec.exe。"
 
-#: src/UpdateController.cpp:361
+#: src/UpdateController.cpp:376
 msgid "Another installation is in progress. Try again when it has finished."
 msgstr "另一项安装正在进行。请等待完成后重试。"
 
-#: src/UpdateController.cpp:363
+#: src/UpdateController.cpp:378
 msgid "The installer stopped with code {}. Its log is {}.log."
 msgstr "安装程序已停止（代码 {}）。日志文件：{}.log。"
 
-#: src/UpdateController.cpp:446 src/UpdateController.cpp:450
+#: src/UpdateController.cpp:479 src/UpdateController.cpp:488 src/UpdateController.cpp:492
 msgid "Updated to {}"
 msgstr "已更新到 {}"
 
-#: src/UpdateController.cpp:447
-msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
-msgstr "重启资源管理器以加载新的 shell.dll；在此之前仍会使用旧版本。"
+#: src/UpdateController.cpp:480
+msgid "The app was updated for you, without administrator rights."
+msgstr "应用已为你更新，未使用管理员权限。"
 
-#: src/UpdateController.cpp:451
-msgid "Nilesoft Shell Pro {} is installed."
-msgstr "Nilesoft Shell Pro {} 已安装。"
-
-#: src/UpdateController.cpp:453
+#: src/UpdateController.cpp:482 src/UpdateController.cpp:495
 msgid "The update wasn't installed"
 msgstr "未安装更新"
 
-#: src/UpdateController.cpp:455
+#: src/UpdateController.cpp:484
+msgid "Version {} couldn't start, so {} is running. Check for updates to try again."
+msgstr "版本 {} 无法启动，因此正在运行 {}。请检查更新以重试。"
+
+#: src/UpdateController.cpp:489
+msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
+msgstr "重启资源管理器以加载新的 shell.dll；在此之前仍会使用旧版本。"
+
+#: src/UpdateController.cpp:493
+msgid "Nilesoft Shell Pro {} is installed."
+msgstr "Nilesoft Shell Pro {} 已安装。"
+
+#: src/UpdateController.cpp:497
 msgid "The update was cancelled"
 msgstr "更新已取消"
 
-#: src/UpdateController.cpp:455
+#: src/UpdateController.cpp:497
 msgid "Nothing was changed."
 msgstr "未做任何更改。"
 
-#: src/UpdateController.cpp:558
+#: src/UpdateController.cpp:680
 msgid "You seem to be offline, so updates couldn't be checked."
 msgstr "你似乎处于离线状态，因此无法检查更新。"
 
-#: src/UpdateController.cpp:559 src/Updater.cpp:261
+#: src/UpdateController.cpp:681 src/Updater.cpp:262
 msgid "GitHub's limit for update checks was reached. Try again in an hour."
 msgstr "已达到 GitHub 的更新检查次数限制。请一小时后重试。"
 
-#: src/UpdateController.cpp:560
+#: src/UpdateController.cpp:682
 msgid "Couldn't check for updates: {}"
 msgstr "无法检查更新：{}"
 
-#: src/UpdateController.cpp:590 src/UpdateController.cpp:605
+#: src/UpdateController.cpp:732 src/UpdateController.cpp:747
 msgid "This release has no download for this kind of install. Get it from the release page."
 msgstr "此版本没有适用于当前安装类型的下载文件。请从发布页面下载。"
 
-#: src/UpdateController.cpp:611
+#: src/UpdateController.cpp:753 src/Updater.cpp:1209
 msgid "Couldn't find %LOCALAPPDATA%."
 msgstr "找不到 %LOCALAPPDATA%。"
 
-#: src/UpdateController.cpp:619
+#: src/UpdateController.cpp:761
 msgid "Starting…"
 msgstr "正在开始…"
 
-#: src/UpdateController.cpp:660
+#: src/UpdateController.cpp:804
+msgid "The app package doesn't match update.json."
+msgstr "应用包与 update.json 不符。"
+
+#: src/UpdateController.cpp:828
 msgid "Download cancelled."
 msgstr "下载已取消。"
 
-#: src/UpdateController.cpp:666
+#: src/UpdateController.cpp:834
 msgid "The update couldn't be downloaded in the background: {}"
 msgstr "无法在后台下载更新：{}"
 
-#: src/UpdateController.cpp:685 src/UpdateController.cpp:697
+#: src/UpdateController.cpp:853 src/UpdateController.cpp:894
 msgid "Save or discard your changes first: the app closes to install the update."
 msgstr "请先保存或放弃你的更改：应用将关闭以安装更新。"
 
-#: src/UpdateController.cpp:718
+#: src/UpdateController.cpp:881 src/UpdateController.cpp:919
 msgid "Couldn't start the update helper."
 msgstr "无法启动更新辅助程序。"
 
-#: src/UpdateController.cpp:724 src/UpdateController.cpp:755
+#: src/UpdateController.cpp:887
+msgid "Restarting…"
+msgstr "正在重启…"
+
+#: src/UpdateController.cpp:925 src/UpdateController.cpp:956
 msgid "Installing the update…"
 msgstr "正在安装更新…"
 
-#: src/UpdateController.cpp:760
+#: src/UpdateController.cpp:961
 msgid "Couldn't start the installer (error {})."
 msgstr "无法启动安装程序（错误 {}）。"
 
-#: src/UpdateController.cpp:778
+#: src/UpdateController.cpp:980
 msgid "Version {} is skipped. Newer versions will still show up."
 msgstr "已跳过版本 {}。更高版本仍会显示。"
 
-#: src/Updater.cpp:114
+#: src/Updater.cpp:115
 msgid "error {}"
 msgstr "错误 {}"
 
-#: src/Updater.cpp:215
+#: src/Updater.cpp:216
 msgid "Only https addresses are used for updates."
 msgstr "更新仅使用 https 地址。"
 
-#: src/Updater.cpp:249
+#: src/Updater.cpp:250
 msgid "The download was redirected to an unexpected address."
 msgstr "下载被重定向到意外的地址。"
 
-#: src/Updater.cpp:250
+#: src/Updater.cpp:251
 msgid "The download was redirected to an unexpected address: {}"
 msgstr "下载被重定向到意外的地址：{}"
 
-#: src/Updater.cpp:262
+#: src/Updater.cpp:263
 msgid "The server answered HTTP {}."
 msgstr "服务器返回 HTTP {}。"
 
-#: src/Updater.cpp:285
+#: src/Updater.cpp:286
 msgid "Writing the download failed."
 msgstr "写入下载内容失败。"
 
-#: src/Updater.cpp:295
+#: src/Updater.cpp:296
 msgid "The download was cut off."
 msgstr "下载被中断。"
 
-#: src/Updater.cpp:302
+#: src/Updater.cpp:303
 msgid "Too many redirects."
 msgstr "重定向次数过多。"
 
-#: src/Updater.cpp:407
+#: src/Updater.cpp:408
 msgid "GitHub: {}"
 msgstr "GitHub：{}"
 
-#: src/Updater.cpp:408
+#: src/Updater.cpp:409
 msgid "The list of releases couldn't be read."
 msgstr "无法读取发布版本列表。"
 
-#: src/Updater.cpp:659
+#: src/Updater.cpp:799
 msgid "The download address is not a release of Nilesoft Shell Pro: {}"
 msgstr "下载地址不是 Nilesoft Shell Pro 的发布版本：{}"
 
-#: src/Updater.cpp:666 src/Updater.cpp:679
+#: src/Updater.cpp:806 src/Updater.cpp:819 src/Updater.cpp:1273
 msgid "Couldn't write {}."
 msgstr "无法写入 {}。"
 
-#: src/Updater.cpp:687
+#: src/Updater.cpp:827
 msgid "Couldn't save {}."
 msgstr "无法保存 {}。"
 
-#: src/Updater.cpp:718
+#: src/Updater.cpp:858
 msgid "NSP_UPDATE_FEED: couldn't read {}."
 msgstr "NSP_UPDATE_FEED：无法读取 {}。"
 
-#: src/Updater.cpp:747
-msgid "The release lists an asset with an unusable name."
-msgstr "该发布版本中有一个文件的名称不可用。"
+#: src/Updater.cpp:892
+msgid "{} is not served from this project's releases."
+msgstr "{} 不是来自本项目的发布版本。"
 
-#: src/Updater.cpp:752
+#: src/Updater.cpp:897
+msgid "Couldn't download {}: {}"
+msgstr "无法下载 {}：{}"
+
+#: src/Updater.cpp:916 src/Updater.cpp:957
 msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
 msgstr "此发布版本没有 SHA256SUMS.txt，因此无法验证下载内容。"
 
-#: src/Updater.cpp:758
-msgid "Couldn't create {}."
-msgstr "无法创建 {}。"
-
-#: src/Updater.cpp:772
-msgid "SHA256SUMS.txt is not served from this project's releases."
-msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
-
-#: src/Updater.cpp:777
-msgid "Couldn't download SHA256SUMS.txt: {}"
-msgstr "无法下载 SHA256SUMS.txt：{}"
-
-#: src/Updater.cpp:785
+#: src/Updater.cpp:925 src/Updater.cpp:974
 msgid "SHA256SUMS.txt has no entry for {}."
 msgstr "SHA256SUMS.txt 中没有 {} 的条目。"
 
-#: src/Updater.cpp:798
+#: src/Updater.cpp:929
+msgid "update.json doesn't match SHA256SUMS.txt."
+msgstr "update.json 与 SHA256SUMS.txt 不符。"
+
+#: src/Updater.cpp:939
+msgid "update.json is for another version."
+msgstr "update.json 属于另一个版本。"
+
+#: src/Updater.cpp:952
+msgid "The release lists an asset with an unusable name."
+msgstr "该发布版本中有一个文件的名称不可用。"
+
+#: src/Updater.cpp:963 src/Updater.cpp:1252
+msgid "Couldn't create {}."
+msgstr "无法创建 {}。"
+
+#: src/Updater.cpp:987
 msgid "Couldn't copy {}."
 msgstr "无法复制 {}。"
 
-#: src/Updater.cpp:807
+#: src/Updater.cpp:996
 msgid "The download failed: {}"
 msgstr "下载失败：{}"
 
-#: src/Updater.cpp:815
+#: src/Updater.cpp:1004
 msgid "nothing"
 msgstr "空"
 
-#: src/Updater.cpp:816
+#: src/Updater.cpp:1005
 msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
 msgstr "下载内容与 SHA256SUMS.txt 不符，已被删除。应为 {}…，实际为 {}。"
 
-#: src/Updater.cpp:831
+#: src/Updater.cpp:1020
 msgid "The staging folder is not empty."
 msgstr "暂存文件夹不是空的。"
 
-#: src/Updater.cpp:838
+#: src/Updater.cpp:1027
 msgid "tar.exe (part of Windows 10 and later) was not found."
 msgstr "找不到 tar.exe（Windows 10 及更高版本自带）。"
 
-#: src/Updater.cpp:846
+#: src/Updater.cpp:1035
 msgid "Couldn't start tar.exe: {}."
 msgstr "无法启动 tar.exe：{}。"
 
-#: src/Updater.cpp:858
+#: src/Updater.cpp:1047
 msgid "The zip couldn't be extracted (tar.exe exit code {})."
 msgstr "无法解压 zip 文件（tar.exe 退出代码 {}）。"
 
-#: src/Updater.cpp:866
+#: src/Updater.cpp:1055
 msgid "The zip contains a link, which an update never does."
 msgstr "zip 文件中包含链接，而正常的更新不会包含链接。"
 
-#: src/Updater.cpp:871
+#: src/Updater.cpp:1060
 msgid "The zip contains a file outside its folder."
 msgstr "zip 文件中有文件位于解压文件夹之外。"
 
-#: src/Updater.cpp:916
+#: src/Updater.cpp:1105
 msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
 msgstr "更新中不包含 NilesoftShellPro.exe 和 shell.dll。"
 
-#: src/Updater.cpp:920
+#: src/Updater.cpp:1109
 msgid "The install folder {} doesn't exist."
 msgstr "安装文件夹 {} 不存在。"
 
-#: src/Updater.cpp:930
+#: src/Updater.cpp:1119 src/Updater.cpp:1223
 msgid "Couldn't read the update's files."
 msgstr "无法读取更新文件。"
 
-#: src/Updater.cpp:972
+#: src/Updater.cpp:1161
 msgid "Couldn't replace {}: {}."
 msgstr "无法替换 {}：{}。"
 
-#: src/Updater.cpp:982
+#: src/Updater.cpp:1171 src/Updater.cpp:1264
 msgid "Couldn't write {}: {}."
 msgstr "无法写入 {}：{}。"
+
+#: src/Updater.cpp:1205
+msgid "This release has no app package."
+msgstr "此发布版本没有应用包。"
+
+#: src/Updater.cpp:1229
+msgid "The app package has no {}."
+msgstr "应用包中没有 {}。"
+
+#: src/Updater.cpp:1233
+msgid "{} in the app package doesn't match update.json."
+msgstr "应用包中的 {} 与 update.json 不符。"
+
+#: src/Updater.cpp:1241
+msgid "The app package has a file update.json doesn't list: {}."
+msgstr "应用包中有一个 update.json 未列出的文件：{}。"
+
+#: src/Updater.cpp:1266
+msgid "{} was not written correctly."
+msgstr "{} 未正确写入。"
+
+#: src/Updater.cpp:1280
+msgid "Couldn't replace {}."
+msgstr "无法替换 {}。"
+
+#: src/Updater.cpp:1296
+msgid "Couldn't create {}: {}."
+msgstr "无法创建 {}：{}。"
 
 #: src/WindowsTitles.cpp:33
 msgid "Give access to"
@@ -5508,107 +5600,119 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下载。"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载扩展功能…"
-
-#~ msgid "on the start"
-#~ msgstr "在“开始”菜单中"
-
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
-#~ msgid "Move to the top"
-#~ msgstr "移到顶部"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "无法开启“{}”"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载扩展功能：{}"
-
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "无法预览：未能下载此扩展功能。{}"
-
-#~ msgid "Change command"
-#~ msgstr "更改命令"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的扩展功能合集"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移到中间"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下载代码…"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移到第 {} 个位置"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
-
-#~ msgid "Change icon"
-#~ msgstr "更改图标"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本应用管理"
+#~ msgid "No visible change"
+#~ msgstr "无可见更改"
 
 #~ msgid "Move to {}"
 #~ msgstr "移到 {}"
 
-#~ msgid "no selection"
-#~ msgstr "未选择"
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
 
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
+#~ msgid "Move to the middle"
+#~ msgstr "移到中间"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移到 {} 的第 {} 个位置"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下载扩展功能…"
+
+#~ msgid "Change icon"
+#~ msgstr "更改图标"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "无法开启“{}”"
 
 #~ msgid "Add a separator before"
 #~ msgstr "在前面添加分隔线"
 
-#~ msgid "No visible change"
-#~ msgstr "无可见更改"
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在应用启动时检查，每天最多一次。"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "无法下载扩展功能：{}"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
 
 #~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
 #~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
 
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的扩展功能合集"
 
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移到 {} 底部"
 
-#~ msgid "Add a tip"
-#~ msgstr "添加提示"
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "无法从此地址下载 {}。"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
 
 #~ msgid "Items matching an expression"
 #~ msgstr "与表达式匹配的项"
 
+#~ msgid "Add a tip"
+#~ msgstr "添加提示"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "无法下载 SHA256SUMS.txt：{}"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "文件第 {} 行存在语法问题：{}"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
+
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+
+#~ msgid "Imported from {}."
+#~ msgstr "从 {} 导入。"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
+
 #~ msgid "Change visibility"
 #~ msgstr "更改可见性"
 
-#~ msgid "Add a separator after"
-#~ msgstr "在后面添加分隔线"
+#~ msgid "Move to the top"
+#~ msgstr "移到顶部"
+
+#~ msgid "Change command"
+#~ msgstr "更改命令"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重命名为 {}"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下载。"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本应用管理"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "on the start"
+#~ msgstr "在“开始”菜单中"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下载代码…"
 
 #~ msgid "Change state"
 #~ msgstr "更改状态"
@@ -5616,35 +5720,32 @@ msgstr "还原以前的版本"
 #~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
 #~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
 
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在应用启动时检查，每天最多一次。"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "文件第 {} 行存在语法问题：{}"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重命名为 {}"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "无法从此地址下载 {}。"
-
 #~ msgid "The file doesn't start with the generated header."
 #~ msgstr "文件开头不是自动生成的文件头。"
 
-#~ msgid "Imported from {}."
-#~ msgstr "从 {} 导入。"
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
 
 #~ msgid "Move to {}, at the top"
 #~ msgstr "移到 {} 顶部"
 
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移到 {} 的第 {} 个位置"
+#~ msgid "Add a separator after"
+#~ msgstr "在后面添加分隔线"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
 
 #~ msgid "Move to the bottom"
 #~ msgstr "移到底部"
 
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移到 {} 底部"
+#~ msgid "multiple selection"
+#~ msgstr "多选"
 
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
+#~ msgid "Move to position {}"
+#~ msgstr "移到第 {} 个位置"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "无法预览：未能下载此扩展功能。{}"

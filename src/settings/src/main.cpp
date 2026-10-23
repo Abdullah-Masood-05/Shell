@@ -38,15 +38,20 @@
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
 //   --check-updates-now    check for updates right away (with NSP_UPDATE_FEED=<https URL or
 //                          local JSON file> instead of the GitHub API, for tests)
+//   --install-update-now   the same, then download and install an update that needs no
+//                          administrator rights, as the automatic install does (tests; with a
+//                          local feed, NSP_UPDATE_INSTALL_TYPE=msi|portable sets the install kind)
 //
 // Update helper (UpdateController.h; started from a copy in %TEMP%, never by hand):
-//   --apply-update <staging> <installdir> <pid>, --apply-msi <msi> <installdir> <pid>
+//   --apply-update <staging> <installdir> <pid>, --apply-app <appdir> <installdir> <pid>,
+//   --apply-msi <msi> <installdir> <pid>
 // and what it passes back when it starts the app again:
-//   --updated <msi|portable>, --update-failed <message>, --update-cancelled,
+//   --updated <msi|portable|app:<version>>, --update-failed <message>, --update-cancelled,
 //   and --ui-lang <en|zh-CN|...>: the language the app was showing
 
 #include "app.h"
 
+#include "AppChannel.h"
 #include "AppController.h"
 #include "AppearanceController.h"
 #include "BackupsController.h"
@@ -158,6 +163,9 @@ AppOptions parseArgs()
             o.testPo = argv[++i];
         } else if (_wcsicmp(argv[i], L"--check-updates-now") == 0) {
             g_update.checkNow = true;
+        } else if (_wcsicmp(argv[i], L"--install-update-now") == 0) {
+            g_update.checkNow = true;
+            g_update.installNow = true;
         } else if (_wcsicmp(argv[i], L"--ui-lang") == 0 && i + 1 < argc) {
             o.shownLanguage = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--updated") == 0 && i + 1 < argc) {
@@ -249,6 +257,11 @@ int main()
     if (int rc = runUpdateHelper(); rc >= 0)
         return rc;
 
+    // An app update installed for this user only (AppChannel.h): the installed exe starts
+    // the newer per-user copy with the same arguments, or carries on itself.
+    if (int rc = appchannel::handOff(updater::Version::parse(SETTINGS_VERSION).value_or(updater::Version{})); rc >= 0)
+        return rc;
+
     auto options = parseArgs();
     const bool snapshot = !g_snapshotPath.empty();
     // Snapshots write nothing and check only when asked to.
@@ -260,14 +273,17 @@ int main()
     // Snapshots never touch a running window of the app (no single-instance check).
     HANDLE mutex = nullptr;
     const bool background = g_background && !snapshot;
-    if (!snapshot && activateExistingInstance(mutex, background))
+    if (!snapshot && activateExistingInstance(mutex, background)) {
+        appchannel::signalStarted(); // a per-user copy: the running one took over, handOff() can end
         return 0;
+    }
     // A start with Windows while the tray setting is off: nothing to do. (Turning the
     // setting off removes the Run entry, so this is only a leftover one.)
     if (background) {
         startup::RegistryStore store;
         if (!startup::load(store).keepInTray) {
             CloseHandle(mutex);
+            appchannel::signalStarted();
             return 0;
         }
     }
@@ -364,8 +380,14 @@ int main()
     if (!snapshot) {
         tray->start(background);
         // An installer that closes the app (Restart Manager) starts it again, in the tray.
-        if (tray->keepRunning())
+        // Not a per-user copy (AppChannel.h): Windows would start that exe itself, also
+        // after a newer MSI made it outdated; the Run entry starts the installed one.
+        if (tray->keepRunning() && !appchannel::isPerUserCopy())
             RegisterApplicationRestart(L"--background", RESTART_NO_CRASH | RESTART_NO_HANG | RESTART_NO_REBOOT);
+        // Started in the tray, so no window will say so: the tray icon is up, handOff()
+        // in the installed exe can end.
+        if (background)
+            appchannel::signalStarted();
     }
 
     // Closing the window: the app stays in the tray when that setting is on, else it ends.
@@ -414,6 +436,7 @@ int main()
         if (HWND hwnd = ui->window().win32_hwnd()) {
             hwndPoll.stop();
             windowAttached = true;
+            appchannel::signalStarted(); // the window is up: handOff() in the installed exe can end
             controller->attachWindow(hwnd);
             saveService->attachWindow(hwnd);
             updates->attachWindow(hwnd);

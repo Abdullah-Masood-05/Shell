@@ -1,7 +1,7 @@
 name: Release
 
 # Builds everything with build.yml and publishes a GitHub Release for a v* tag with the
-# MSIs, the portable zip and SHA256SUMS.txt. A tag with a "-" (v2.0.0-beta.1) is
+# MSIs, the portable zip, the app-only update zip with its update.json, and SHA256SUMS.txt. A tag with a "-" (v2.0.0-beta.1) is
 # published as a pre-release. Run it by hand for an existing tag with workflow_dispatch.
 
 on:
@@ -86,9 +86,11 @@ jobs:
       TAG: ${{ needs.meta.outputs.tag }}
       VERSION: ${{ needs.meta.outputs.version }}
     steps:
+      # The whole history and the tags: update.json compares this release with the one before.
       - uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ needs.meta.outputs.tag }}
+          fetch-depth: 0
 
       - name: Download the MSIs
         uses: actions/download-artifact@v8
@@ -103,18 +105,81 @@ jobs:
           name: portable-x64
           path: dist
 
+      # update.json tells the app what this release changes, so an all-users install can
+      # update without administrator rights (src/settings/src/Updater.h, AppChannel.h):
+      #   app     the app-only zip and the SHA-256 of every file in it;
+      #   core    since: the release whose shell.dll and shell.exe sources this one still has
+      #           (src/dll, src/exe, src/lib, src/3rdparty, src/shared, version numbers and
+      #           the shipped-config hash list aside); the app installs the app-only zip only
+      #           over a core at least that new, else it offers the MSI (administrator approval);
+      #   config  the same for shell.nss and imports\ (delivered per user by the app).
+      # "since" carries over from the previous release's update.json; a previous release
+      # without one counts as its own "since" (it may have changed things: the safe side).
+      - name: update.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          app_zip="NilesoftShellPro-$VERSION-x64-app.zip"
+          [[ -f "dist/$app_zip" ]] || { echo "::error::$app_zip is missing"; exit 1; }
+
+          prev="$(git -c versionsort.suffix=- tag --list 'v*' --sort=-v:refname \
+                  | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' \
+                  | awk -v cur="$TAG" 'found { print; exit } $0 == cur { found = 1 }')"
+          core_changed=true
+          config_changed=true
+          core_since="$VERSION"
+          config_since="$VERSION"
+          if [[ -n "$prev" ]]; then
+            echo "Previous release: $prev"
+            resource="$(git diff "$prev" "$TAG" -- src/shared/Resource.h | grep -E '^[-+][^-+]' | grep -vE 'VERSION' || true)"
+            if git diff --quiet "$prev" "$TAG" -- src/dll src/exe src/lib src/3rdparty src/shared \
+                 ':(exclude)src/shared/Resource.h' ':(exclude)src/shared/ShippedConfigHashes.inc' \
+               && [[ -z "$resource" ]]; then
+              core_changed=false
+            fi
+            git diff --quiet "$prev" "$TAG" -- src/bin/shell.nss src/bin/imports && config_changed=false
+            rm -rf prev-release
+            gh release download "$prev" --repo "$GITHUB_REPOSITORY" -p update.json -D prev-release 2>/dev/null || true
+            prev_json="$(cat prev-release/update.json 2>/dev/null || true)"
+            rm -rf prev-release
+            prev_core="$(jq -r '.core.since // empty' <<<"$prev_json" 2>/dev/null || true)"
+            prev_config="$(jq -r '.config.since // empty' <<<"$prev_json" 2>/dev/null || true)"
+            [[ "$core_changed" == false ]] && core_since="${prev_core:-${prev#v}}"
+            [[ "$config_changed" == false ]] && config_since="${prev_config:-${prev#v}}"
+          fi
+          echo "core: changed=$core_changed since=$core_since; config: changed=$config_changed since=$config_since"
+
+          rm -rf app-files && mkdir app-files
+          unzip -q "dist/$app_zip" -d app-files
+          files="$(cd app-files && find . -type f | sed 's|^\./||' | LC_ALL=C sort \
+                   | while IFS= read -r f; do printf '%s\t%s\n' "$f" "$(sha256sum "$f" | cut -d' ' -f1)"; done \
+                   | jq -Rn '[inputs | split("\t") | { (.[0]): .[1] }] | add')"
+          jq -e '."NilesoftShellPro.exe"' <<<"$files" > /dev/null || { echo "::error::$app_zip has no NilesoftShellPro.exe"; exit 1; }
+          jq -n --arg version "$VERSION" --arg package "$app_zip" \
+                --arg sha "$(sha256sum "dist/$app_zip" | cut -d' ' -f1)" --argjson files "$files" \
+                --arg core_since "$core_since" --argjson core_changed "$core_changed" \
+                --arg config_since "$config_since" --argjson config_changed "$config_changed" \
+            '{ schema: 1, version: $version,
+               app: { package: $package, sha256: $sha, minCore: $core_since, files: $files },
+               core: { since: $core_since, changed: $core_changed },
+               config: { since: $config_since, changed: $config_changed } }' > dist/update.json
+          rm -rf app-files
+          cat dist/update.json
+
       - name: SHA256SUMS.txt and release notes
         run: |
           set -euo pipefail
           cd dist
           ls -l
-          for f in setup-x64.msi setup-arm64.msi setup-x86.msi "NilesoftShellPro-$VERSION-x64-portable.zip"; do
+          for f in setup-x64.msi setup-arm64.msi setup-x86.msi "NilesoftShellPro-$VERSION-x64-portable.zip" \
+                   "NilesoftShellPro-$VERSION-x64-app.zip" update.json; do
             [[ -f "$f" ]] || { echo "::error::$f is missing"; exit 1; }
           done
           # A copy under a fixed name, so releases/latest/download/NilesoftShellPro-x64-portable.zip
           # always serves the newest portable build (the docs and README link to it).
           cp "NilesoftShellPro-$VERSION-x64-portable.zip" NilesoftShellPro-x64-portable.zip
-          sha256sum setup-*.msi NilesoftShellPro-*.zip > SHA256SUMS.txt
+          sha256sum setup-*.msi NilesoftShellPro-*.zip update.json > SHA256SUMS.txt
           cat SHA256SUMS.txt
           cd ..
           # Each release lists only its own changes: .github/changes/<X.Y.Z>.md (betas of a
@@ -140,4 +205,6 @@ jobs:
             dist/setup-x86.msi
             dist/NilesoftShellPro-${{ needs.meta.outputs.version }}-x64-portable.zip
             dist/NilesoftShellPro-x64-portable.zip
+            dist/NilesoftShellPro-${{ needs.meta.outputs.version }}-x64-app.zip
+            dist/update.json
             dist/SHA256SUMS.txt

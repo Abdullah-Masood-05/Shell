@@ -1,5 +1,6 @@
 #include "UpdateController.h"
 
+#include "AppChannel.h"
 #include "Registry.h"
 #include "ShellCli.h"
 #include "Status.h"
@@ -113,14 +114,17 @@ struct Detected
 {
     updater::InstallType type = updater::InstallType::Portable;
     fs::path installDir;
+    std::optional<updater::Version> installedRelease;
 };
 
-// MSI or portable, from where this exe is and where the all-users registration points.
+// MSI or portable, from where the installed exe is (for a per-user copy of the app, the
+// install it belongs to) and where the all-users registration points.
 Detected detectInstall()
 {
     Detected d;
-    auto self = selfPath();
+    auto self = appchannel::launcherPath();
     d.installDir = self.parent_path();
+    d.installedRelease = appchannel::installedRelease();
     std::string machineDll;
     ShellCli cli(ShellCli::locate());
     if (cli.available()) {
@@ -302,7 +306,8 @@ int runUpdateHelper()
         return -1;
     const bool portable = _wcsicmp(argv[1], L"--apply-update") == 0;
     const bool msi = _wcsicmp(argv[1], L"--apply-msi") == 0;
-    if (!portable && !msi)
+    const bool appOnly = _wcsicmp(argv[1], L"--apply-app") == 0;
+    if (!portable && !msi && !appOnly)
         return -1;
 
     const fs::path source = argv[2];
@@ -325,6 +330,16 @@ int runUpdateHelper()
     const std::wstring lang = L" --ui-lang " + widen(shown.empty() ? std::string("en") : shown);
 
     waitForExit(pid);
+
+    if (appOnly) {
+        // Installed for this user already (no administrator rights): the installed exe
+        // hands off to the newest per-user copy when it starts (AppChannel.h).
+        auto rec = appchannel::readRecord(source);
+        std::wstring args = rec ? L"--updated app:" + widen(rec->version.str())
+                                : L"--update-failed " + ShellCli::quote(widen(nsp::tr("The update's files are missing.")));
+        relaunch(app, args + lang);
+        return rec ? 0 : 1;
+    }
 
     if (portable) {
         auto r = updater::applyPortable(source, installDir);
@@ -382,6 +397,11 @@ UpdateController::UpdateController(slint::ComponentHandle<AppWindow> ui, UpdateO
 
     const auto &st = ui_->global<UpdateState>();
     st.set_current_version(ss(current_.str()));
+    if (appchannel::isPerUserCopy()) {
+        st.set_per_user_app(true);
+        if (auto installed = appchannel::installedRelease())
+            st.set_installed_release(ss(installed->str()));
+    }
     st.set_channel(channel_ == updater::Channel::Beta ? 1 : 0);
     st.set_auto_check(autoCheck_);
     st.set_auto_install(autoInstall_);
@@ -425,24 +445,46 @@ void UpdateController::bindCallbacks()
         ui_->global<UpdateState>().set_auto_install(on);
         if (options_.persist)
             registry::app::set(L"UpdateAutoInstall", on ? 1 : 0);
-        if (on && found_ && !working_ && ready_.empty())
-            download(false, true);
+        if (on) {
+            autoPending_ = true;
+            maybeAutoInstall();
+        }
     });
     st.on_dismiss_notice([this] { ui_->global<UpdateState>().set_notice_shown(false); });
+    // "Later" on an update that needs administrator approval: Home stops showing it until
+    // the next check finds something new. Nothing is downloaded or installed.
+    st.on_later([this] {
+        ui_->global<UpdateState>().set_deferred(true);
+        changed();
+    });
 }
 
 void UpdateController::start()
 {
     const auto current = current_;
-    const auto dir = selfPath().parent_path();
-    worker_.post([current, dir] {
+    const auto dir = appchannel::baseDir();
+    const bool perUser = appchannel::isPerUserCopy();
+    worker_.post([current, dir, perUser] {
         updater::cleanupDownloads(current);
-        updater::cleanupOldFiles(dir);
+        if (!perUser)
+            updater::cleanupOldFiles(dir); // a portable folder; Program Files isn't this user's
         cleanupHelpers();
+        appchannel::cleanup(current);
     });
 
     // What the helper that just ran has to say.
-    if (options_.updated == L"portable")
+    if (options_.updated.rfind(L"app:", 0) == 0) {
+        auto wanted = updater::Version::parse(narrow(options_.updated.substr(4)));
+        if (!wanted || updater::compare(current_, *wanted) >= 0)
+            notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
+                   later(nsp::mark("The app was updated for you, without administrator rights.")), "");
+        else
+            notice("error", later(nsp::mark("The update wasn't installed")),
+                   [w = wanted->str(), v = current_.str()] {
+                       return nsp::trf("Version {} couldn't start, so {} is running. Check for updates to try again.", w, v);
+                   },
+                   "");
+    } else if (options_.updated == L"portable")
         notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
                later(nsp::mark("Restart Explorer to load the new shell.dll; until then it keeps using the old one.")),
                "restart");
@@ -478,6 +520,38 @@ void UpdateController::setState(const std::string &state, Text message, const st
     st.set_state(ss(state));
     st.set_message(ss(message_ ? message_() : std::string{}));
     st.set_message_kind(ss(kind));
+    changed();
+}
+
+void UpdateController::changed()
+{
+    for (auto &fn : changed_)
+        fn();
+}
+
+UpdateSummary UpdateController::summary() const
+{
+    const auto &st = ui_->global<UpdateState>();
+    UpdateSummary s;
+    s.state = std::string(st.get_state().data(), st.get_state().size());
+    if (found_) {
+        s.version = found_->version.str();
+        s.appOnly = plan_.path == updater::UpdatePath::AppOnly;
+        s.portable = plan_.path == updater::UpdatePath::Portable;
+        s.needsElevation = plan_.needsElevation;
+        s.readyForRestart = !ready_.empty() && readyVersion_ == s.version;
+    }
+    return s;
+}
+
+bool UpdateController::downloadInBackground()
+{
+    if (working_ || !found_ || !manifestLoading_.empty() || plan_.needsElevation || !plan_.asset)
+        return false;
+    if (!ready_.empty() && readyVersion_ == found_->version.str())
+        return false;
+    download(false, true);
+    return true;
 }
 
 void UpdateController::notice(const std::string &kind, Text title, Text body, const std::string &action)
@@ -515,7 +589,14 @@ void UpdateController::showRelease()
 {
     const auto &st = ui_->global<UpdateState>();
     st.set_install_kind(installType_ == updater::InstallType::Msi ? "msi" : "portable");
-    st.set_needs_admin(installType_ == updater::InstallType::Msi);
+    st.set_needs_admin(found_ && plan_.needsElevation);
+    st.set_update_path(!found_                                          ? ""
+                       : plan_.path == updater::UpdatePath::AppOnly     ? "app"
+                       : plan_.path == updater::UpdatePath::Portable    ? "portable"
+                                                                        : "installer");
+    st.set_elevation_reason(!found_ || !plan_.needsElevation                        ? ""
+                            : plan_.reason == updater::ElevationReason::CoreChanged ? "core"
+                                                                                    : "installer-only");
     if (!found_) {
         st.set_latest_version("");
         st.set_released("");
@@ -524,8 +605,7 @@ void UpdateController::showRelease()
     }
     st.set_latest_version(ss(found_->version.str()));
     st.set_released(ss(formatDate(found_->publishedAt)));
-    const auto *asset = updater::chooseAsset(*found_, installType_, updater::nativeArch());
-    st.set_asset_size(ss(asset && asset->size ? formatSize(asset->size) : std::string{}));
+    st.set_asset_size(ss(plan_.asset && plan_.asset->size ? formatSize(plan_.asset->size) : std::string{}));
 }
 
 void UpdateController::check(bool manual)
@@ -538,13 +618,55 @@ void UpdateController::check(bool manual)
     worker_.post([this, manual, feed] {
         auto detected = detectInstall();
         auto result = updater::fetchReleases(feed);
+        // Test hook, with a local NSP_UPDATE_FEED only: NSP_UPDATE_INSTALL_TYPE=msi|portable
+        // treats this copy as that kind of install (a scratch folder is never under Program Files).
+        if (result.local) {
+            wchar_t type[16];
+            DWORD n = GetEnvironmentVariableW(L"NSP_UPDATE_INSTALL_TYPE", type, 16);
+            if (n > 0 && n < 16)
+                detected.type = _wcsicmp(type, L"msi") == 0 ? updater::InstallType::Msi : updater::InstallType::Portable;
+        }
         slint::invoke_from_event_loop([this, manual, detected, result = std::move(result)]() mutable {
             working_ = false;
             installType_ = detected.type;
             installDir_ = detected.installDir;
+            installedRelease_ = detected.installedRelease;
             applyCheck(std::move(result), detected.type, manual);
         });
     });
+}
+
+void UpdateController::loadManifest(const updater::Release &release)
+{
+    const std::string version = release.version.str();
+    if (manifestLoading_ == version)
+        return;
+    manifestLoading_ = version;
+    setState("checking", later(nsp::mark("Checking for updates…")));
+    const bool allowLocal = localFeed_;
+    worker_.post([this, release, version, allowLocal] {
+        auto m = updater::fetchManifest(release, allowLocal);
+        slint::invoke_from_event_loop([this, version, m = std::move(m)]() mutable {
+            if (manifestLoading_ == version)
+                manifestLoading_.clear();
+            // A manifest that couldn't be fetched counts as none: the installer path,
+            // which is only ever offered, never started without the user.
+            manifests_[version] = std::move(m);
+            reselect();
+            maybeAutoInstall();
+        });
+    });
+}
+
+// An automatic install (the setting, or a caller) only for an update that needs no
+// administrator rights; one that does is only shown (and notified through onChanged).
+void UpdateController::maybeAutoInstall()
+{
+    if (!autoPending_ || !manifestLoading_.empty() || working_)
+        return;
+    autoPending_ = false;
+    if ((autoInstall_ || options_.installNow) && found_ && ready_.empty() && !plan_.needsElevation && plan_.asset)
+        download(false, true);
 }
 
 void UpdateController::applyCheck(updater::FeedResult feed, updater::InstallType, bool manual)
@@ -567,9 +689,12 @@ void UpdateController::applyCheck(updater::FeedResult feed, updater::InstallType
     showLastChecked();
     releases_ = std::move(feed.releases);
     localFeed_ = feed.local;
+    // A new check: a manifest that failed to load is tried again.
+    for (auto it = manifests_.begin(); it != manifests_.end();)
+        it = it->second.ok || it->second.missing ? std::next(it) : manifests_.erase(it);
+    autoPending_ = true;
     reselect();
-    if (found_ && autoInstall_ && ready_.empty())
-        download(false, true);
+    maybeAutoInstall();
 }
 
 void UpdateController::reselect()
@@ -578,14 +703,31 @@ void UpdateController::reselect()
     if (!next || !found_ || found_->version.str() != next->version.str()) {
         ready_.clear();
         readyVersion_.clear();
+        ui_->global<UpdateState>().set_deferred(false);
     }
     found_ = std::move(next);
+    plan_ = {};
+    if (found_) {
+        // An all-users install looks at update.json first: it says whether the app package
+        // can be installed for this user alone, without administrator rights.
+        std::optional<updater::Manifest> manifest;
+        if (installType_ == updater::InstallType::Msi) {
+            auto m = manifests_.find(found_->version.str());
+            if (m == manifests_.end()) {
+                showRelease();
+                loadManifest(*found_);
+                return;
+            }
+            manifest = m->second.manifest;
+        }
+        plan_ = updater::choosePlan(*found_, installType_, updater::nativeArch(), manifest, installedRelease_);
+    }
     showRelease();
     if (!found_) {
         setState("up-to-date", later(nsp::mark("You have the latest version.")));
         return;
     }
-    if (!updater::chooseAsset(*found_, installType_, updater::nativeArch()))
+    if (!plan_.asset)
         setState("available",
                  later(nsp::mark("This release has no download for this kind of install. Get it from the release page.")),
                  "error");
@@ -597,9 +739,9 @@ void UpdateController::reselect()
 
 void UpdateController::download(bool thenInstall, bool quiet)
 {
-    if (working_ || !found_)
+    if (working_ || !found_ || !manifestLoading_.empty())
         return;
-    const auto *asset = updater::chooseAsset(*found_, installType_, updater::nativeArch());
+    const auto *asset = plan_.asset;
     if (!asset) {
         setState("available",
                  later(nsp::mark("This release has no download for this kind of install. Get it from the release page.")),
@@ -622,9 +764,18 @@ void UpdateController::download(bool thenInstall, bool quiet)
     auto release = *found_;
     auto chosen = *asset;
     auto dir = root / widen(release.version.str());
-    const bool portable = installType_ == updater::InstallType::Portable;
+    const bool portable = plan_.path == updater::UpdatePath::Portable;
+    const bool appOnly = plan_.path == updater::UpdatePath::AppOnly;
+    std::optional<updater::Manifest> manifest;
+    if (auto m = manifests_.find(release.version.str()); m != manifests_.end())
+        manifest = m->second.manifest;
+    if (appOnly && !manifest)
+        return;
+    const auto appRoot = appchannel::appRoot();
+    const auto baseDir = installDir_;
     const bool allowLocal = localFeed_;
-    worker_.post([this, release, chosen, dir, portable, allowLocal, thenInstall, quiet] {
+    worker_.post([this, release, chosen, dir, portable, appOnly, manifest, appRoot, baseDir, allowLocal, thenInstall,
+                  quiet] {
         auto last = std::chrono::steady_clock::now() - 1s;
         auto progress = [this, &last](uint64_t done, uint64_t total) {
             auto now = std::chrono::steady_clock::now();
@@ -643,7 +794,24 @@ void UpdateController::download(bool thenInstall, bool quiet)
         auto r = updater::downloadAndVerify(release, chosen, dir, progress, allowLocal);
         fs::path ready;
         std::string error = r.error;
-        if (r.ok && portable) {
+        if (r.ok && appOnly) {
+            // Checked against SHA256SUMS.txt above and against update.json here, then every
+            // file once more as it is installed for this user (no administrator rights).
+            auto staging = dir / L"app-staging";
+            std::error_code ec;
+            fs::remove_all(staging, ec);
+            if (updater::sha256File(r.file) != manifest->appSha256) {
+                error = nsp::tr("The app package doesn't match update.json.");
+            } else if (updater::extractZip(r.file, staging, error)) {
+                fs::path installed;
+                auto applied = updater::installAppPackage(staging, *manifest, appRoot, baseDir, &installed);
+                if (applied.ok)
+                    ready = installed;
+                else
+                    error = applied.error;
+            }
+            fs::remove_all(staging, ec);
+        } else if (r.ok && portable) {
             auto staging = dir / L"staging";
             std::error_code ec;
             fs::remove_all(staging, ec);
@@ -691,11 +859,44 @@ void UpdateController::install()
         download(true, false);
 }
 
+// App only: the new version is installed for this user already. The helper waits for this
+// app to close and starts the installed exe again, which hands off to the new copy.
+void UpdateController::handOverApp()
+{
+    std::string error;
+    auto helper = copySelfToTemp(error);
+    if (helper.empty()) {
+        setState("ready", as(error), "error");
+        return;
+    }
+    const std::string shown = nsp::currentLanguage();
+    std::wstring cmd = ShellCli::quote(helper.wstring()) + L" --apply-app " + ShellCli::quote(ready_.wstring()) + L" " +
+                       ShellCli::quote(installDir_.wstring()) + L" " + std::to_wstring(GetCurrentProcessId()) + L" " +
+                       widen(shown.empty() ? std::string("en") : shown);
+    STARTUPINFOW si{ sizeof si };
+    PROCESS_INFORMATION pi{};
+    if (!CreateProcessW(helper.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, helper.parent_path().c_str(),
+                        &si, &pi)) {
+        DeleteFileW(helper.c_str());
+        setState("ready", later(nsp::mark("Couldn't start the update helper.")), "error");
+        return;
+    }
+    AllowSetForegroundWindow(pi.dwProcessId);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    setState("installing", later(nsp::mark("Restarting…")));
+    quit_();
+}
+
 void UpdateController::handOver()
 {
     if (ui_->global<SaveState>().get_unsaved() > 0) {
         setState("ready", later(nsp::mark("Save or discard your changes first: the app closes to install the update.")),
                  "error");
+        return;
+    }
+    if (plan_.path == updater::UpdatePath::AppOnly) {
+        handOverApp();
         return;
     }
     std::string error;
@@ -772,6 +973,7 @@ void UpdateController::skip()
         registry::app::setString(L"UpdateSkipVersion", widen(skipped_));
     auto version = skipped_;
     found_.reset();
+    plan_ = {};
     ready_.clear();
     readyVersion_.clear();
     showRelease();
