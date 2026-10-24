@@ -1,9 +1,14 @@
 #include "AppController.h"
 
 #include "Dwm.h"
+#include "MenuWriter.h"
+#include "OpenWithModel.h"
 #include "Registry.h"
 #include "Text.h"
 #include "Tr.h"
+
+#include "nss/ConfigStore.h"
+#include "nss/OverridesWriter.h"
 
 #include <nlohmann/json.hpp>
 
@@ -581,6 +586,10 @@ void AppController::runAction(const std::string &id)
         refresh(false);
         return;
     }
+    if (id == "config-reset") {
+        resetConfig();
+        return;
+    }
     if (id == "open-config-folder") {
         std::string target = status_ ? status_->configPath : std::string{};
         if (target.empty() && status_)
@@ -686,6 +695,64 @@ void AppController::runAction(const std::string &id)
             bool configChanged = failure.empty() && !cancelled && st.get_action_id() == "config-init";
             applySnapshot(std::move(snap), true);
             if (configChanged)
+                for (auto &fn : configChanged_)
+                    fn();
+        });
+    });
+}
+
+void AppController::resetConfig()
+{
+    // shell.exe -config:reset works on the personal folder in %APPDATA%, so only that
+    // config can be reset from here (Preferences says why the button is off otherwise).
+    if (busy_ || !status_ || status_->configSource != "appdata" || !cli_.available())
+        return;
+    const fs::path root = fs::path(widen(status_->configPath)).lexically_normal();
+    const bool exists = status_->configExists;
+    setBusy(true, nsp::tr("Putting the default files back…"));
+    const auto &state = ui_->global<AppState>();
+    state.set_action_id("config-reset");
+    state.set_action_error("");
+    state.set_reset_done(false);
+    worker_.post([this, root, exists, cli = cli_] {
+        std::string failure;
+        // Your files first, as a snapshot Backups can restore.
+        if (exists) {
+            nss::ConfigStore store(root);
+            std::string error;
+            if (!store.snapshot(nsp::mark("Before reset to defaults"), &error)) // stored in English, shown with nsp::tr
+                failure = nsp::trf("Your current files couldn't be saved in Backups, so nothing was reset: {}", error);
+        }
+        if (failure.empty()) {
+            // Copies the files of the install folder over the personal ones (shell.exe
+            // keeps its own copy in a backup-<time> folder there too).
+            auto r = cli.run({ L"-config:reset" }, 60000);
+            if (!r.ok())
+                failure = describeFailure(r);
+        }
+        if (failure.empty()) {
+            // The files this app writes: the default shell.nss doesn't import them, and a
+            // later save would bring their old settings back. They are in the snapshot.
+            for (std::string_view rel : { nss::OverridesWriter::relativePath, menus::MenuWriter::relativePath,
+                                          openwith::kRelativePath }) {
+                std::error_code ec;
+                fs::remove(root.parent_path() / fs::path(widen(std::string(rel))).make_preferred(), ec);
+            }
+        }
+        auto snap = collect();
+        slint::invoke_from_event_loop([this, failure, snap = std::move(snap)]() mutable {
+            setBusy(false);
+            const auto &st = ui_->global<AppState>();
+            if (failure.empty()) {
+                st.set_reset_done(true);
+                showToast("ok", nsp::tr("The default files are back"), nsp::tr("Your previous files are saved in Backups."));
+            } else {
+                st.set_action_error(ss(failure));
+                showToast("error", nsp::tr("The reset didn't work"), failure);
+            }
+            applySnapshot(std::move(snap), true);
+            // Pages read the files again (as after a new personal config).
+            if (failure.empty())
                 for (auto &fn : configChanged_)
                     fn();
         });

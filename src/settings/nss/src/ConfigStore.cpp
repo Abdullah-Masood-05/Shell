@@ -239,7 +239,10 @@ namespace nss
 			auto &p = it->path();
 			if(it->is_directory(ec))
 			{
-				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups))
+				// Also the backup-<time> folders `shell.exe -config:reset` leaves next to
+				// shell.nss: copies, not part of the config.
+				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups) ||
+				   (it.depth() == 0 && narrow(p.filename().wstring()).starts_with("backup-")))
 					it.disable_recursion_pending();
 				continue;
 			}

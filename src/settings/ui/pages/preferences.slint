@@ -1,7 +1,8 @@
 import { AboutSlint } from "std-widgets.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
-import { AppState } from "../types.slint";
+import { AppState, Pages } from "../types.slint";
+import { Banner } from "../components/banner.slint";
 import { Card, KeyValue } from "../components/card.slint";
 import { PageHeader } from "../components/page-header.slint";
 import { AppButton, Link, Segmented } from "../components/controls.slint";
@@ -47,6 +48,9 @@ component PrefSwitch inherits HorizontalLayout {
 }
 
 export component PreferencesPage inherits PageFrame {
+    // Reset configuration: shell.exe -config:reset works on the personal folder in %APPDATA%.
+    property <bool> can-reset: AppState.status.loaded && AppState.status.config-source == "appdata";
+
     PageHeader {
         title: @tr("Preferences");
         description: @tr("How this app looks and starts, updates, machine-wide registration, and about.");
@@ -277,6 +281,41 @@ export component PreferencesPage inherits PageFrame {
         }
         if UpdateState.state == "downloading": ProgressBar {
             value: UpdateState.progress;
+        }
+    }
+
+    Card {
+        icon: Icons.backups;
+        heading: @tr("Reset configuration");
+        description: @tr("Puts the default menu files back. Your current files are saved in Backups first, so you can undo it.");
+        if AppState.reset-done: Banner {
+            kind: "ok";
+            title: @tr("The default files are back");
+            text: @tr("Your previous files are saved in Backups. Restore that snapshot there to undo the reset.");
+            action-label: @tr("Open Backups");
+            closable: true;
+            action => {
+                AppState.reset-done = false;
+                AppState.page = Pages.backups;
+            }
+            close => { AppState.reset-done = false; }
+        }
+        HorizontalLayout {
+            alignment: start;
+            AppButton {
+                text: @tr("Reset to defaults…");
+                enabled: root.can-reset && !AppState.busy && AppState.cli-available;
+                clicked => { AppState.reset-confirm-shown = true; }
+            }
+        }
+        if AppState.status.loaded && !root.can-reset: Text {
+            text: AppState.status.config-source == "install"
+                ? @tr("Shell uses the shared config in the install folder, which this app never changes. Create a personal config on Home first; then it can be reset here.")
+                : @tr("Your config is in a folder you chose ({}). Only the personal config in %APPDATA%\\Nilesoft\\Shell can be reset here.", AppState.status.config-path);
+            font-size: Tokens.caption;
+            color: Tokens.text-3;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
         }
     }
 
