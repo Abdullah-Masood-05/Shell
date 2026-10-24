@@ -30,21 +30,41 @@ export component NavItem inherits Rectangle {
         animate height { duration: Tokens.normal; easing: ease-out; }
     }
 
+    // The icon sits on whole physical pixels wherever the row is (the list scrolls, and
+    // at 125 % or 175 % a logical pixel isn't a whole one), and its colour never changes:
+    // the accent copy fades in over the plain one. Icons drawn at fractional positions
+    // and recoloured on every frame of a fade came out in pieces after hovering
+    // (2.2.0, 2.2.1).
+    property <length> icon-size: round(20px / 1phx) * 1phx;
+    property <length> icon-x: round((root.absolute-position.x + Tokens.s3) / 1phx) * 1phx - root.absolute-position.x;
+    property <length> icon-y: round((root.absolute-position.y + (root.height - 20px) / 2) / 1phx) * 1phx - root.absolute-position.y;
+    Image {
+        x: root.icon-x;
+        y: root.icon-y;
+        width: root.icon-size;
+        height: root.icon-size;
+        source: root.icon;
+        colorize: Tokens.text-2;
+        opacity: root.selected ? 0 : 1;
+        animate opacity { duration: Tokens.fast; }
+    }
+    Image {
+        x: root.icon-x;
+        y: root.icon-y;
+        width: root.icon-size;
+        height: root.icon-size;
+        source: root.icon;
+        colorize: Tokens.accent;
+        opacity: root.selected ? 1 : 0;
+        animate opacity { duration: Tokens.fast; }
+    }
+
     HorizontalLayout {
         padding-left: Tokens.s3;
         padding-right: Tokens.s3;
         spacing: Tokens.s3;
 
-        VerticalLayout {
-            alignment: center;
-            Image {
-                source: root.icon;
-                width: 20px;
-                height: 20px;
-                colorize: root.selected ? Tokens.accent : Tokens.text-2;
-                animate colorize { duration: Tokens.fast; }
-            }
-        }
+        Rectangle { width: 20px; } // the icon's place
         Text {
             text: root.label;
             vertical-alignment: center;
