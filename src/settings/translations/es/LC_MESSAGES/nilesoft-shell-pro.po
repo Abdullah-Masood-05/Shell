@@ -25,15 +25,15 @@ msgstr "{} de {}"
 
 #: ui/components/code.slint:332
 msgid "No results"
-msgstr ""
+msgstr "Sin resultados"
 
 #: ui/components/code.slint:342 ui/components/line-edit.slint:57
 msgid "Undo"
-msgstr ""
+msgstr "Deshacer"
 
 #: ui/components/code.slint:347 ui/components/line-edit.slint:62
 msgid "Redo"
-msgstr ""
+msgstr "Rehacer"
 
 #: ui/components/code.slint:353 ui/components/line-edit.slint:68 src/AppearanceController.cpp:88 src/OpenWithController.cpp:774
 msgid "Cut"
@@ -57,11 +57,11 @@ msgstr "Buscar"
 
 #: ui/components/code.slint:606
 msgid "Previous match"
-msgstr ""
+msgstr "Coincidencia anterior"
 
 #: ui/components/code.slint:613
 msgid "Next match"
-msgstr ""
+msgstr "Coincidencia siguiente"
 
 #: ui/components/config-update.slint:72
 msgid "Compare"
@@ -210,7 +210,7 @@ msgstr "Menús"
 
 #: ui/components/sidebar.slint:18 ui/pages/menu-map.slint:650 src/ConfigRules.cpp:57
 msgid "Menu map"
-msgstr ""
+msgstr "Mapa de menús"
 
 #: ui/components/sidebar.slint:19 ui/pages/menu-builder.slint:403
 msgid "Menu Builder"
@@ -222,7 +222,7 @@ msgstr "Abrir con"
 
 #: ui/components/sidebar.slint:21 ui/pages/snippets.slint:367 src/ConfigRules.cpp:59
 msgid "Snippets"
-msgstr ""
+msgstr "Snippets"
 
 #: ui/components/sidebar.slint:22 ui/pages/appearance.slint:747 ui/components/sidebar.slint:22 ui/pages/appearance.slint:747
 msgid "Config Editor"
@@ -371,15 +371,15 @@ msgstr "Tema"
 
 #: ui/components/translation-banner.slint:41
 msgid "Showing translations from {}. Untranslated text stays in English."
-msgstr ""
+msgstr "Mostrando traducciones de {}. El texto sin traducir queda en inglés."
 
 #: ui/components/translation-banner.slint:61
 msgid "Reload"
-msgstr ""
+msgstr "Recargar"
 
 #: ui/components/translation-banner.slint:67
 msgid "Stop"
-msgstr ""
+msgstr "Detener"
 
 #: ui/components/update-banner.slint:60
 msgid "Downloading Nilesoft Shell Pro {}…"
@@ -635,7 +635,7 @@ msgstr "Transparente"
 
 #: ui/pages/appearance.slint:394
 msgid "Blur"
-msgstr "Desenfoque"
+msgstr "Blur"
 
 #: ui/pages/appearance.slint:394 src/ThemePresets.cpp:30
 msgid "Acrylic"
@@ -1001,7 +1001,7 @@ msgstr "Nombre"
 
 #: ui/pages/context-menus.slint:461
 msgid "Left as it is, the name follows the language of your Windows."
-msgstr ""
+msgstr "Si se deja así, el nombre sigue el idioma de tu Windows."
 
 #: ui/pages/context-menus.slint:469 ui/pages/openwith.slint:279
 msgid "Program"
@@ -1009,7 +1009,7 @@ msgstr "Programa"
 
 #: ui/pages/context-menus.slint:470
 msgid "A program, a shortcut, a document, a web address, or a command such as calc.exe."
-msgstr ""
+msgstr "Un programa, un acceso directo, un documento, una dirección web o un comando como calc.exe."
 
 #: ui/pages/context-menus.slint:481 ui/pages/openwith.slint:291 ui/pages/context-menus.slint:481 ui/pages/openwith.slint:291
 msgid "Browse…"
@@ -1025,7 +1025,7 @@ msgstr "Ejecutar como administrador"
 
 #: ui/pages/context-menus.slint:506
 msgid "Written by hand in the file. The page keeps it as it is; change it in the Config Editor."
-msgstr ""
+msgstr "Escrito a mano en el archivo. La página lo deja como está; cámbialo en el Editor de configuración."
 
 #: ui/pages/context-menus.slint:516 ui/pages/menu-builder.slint:485 ui/pages/context-menus.slint:516 ui/pages/menu-builder.slint:485
 msgid "Move up"
@@ -1041,43 +1041,43 @@ msgstr "Quitar"
 
 #: ui/pages/context-menus.slint:531 ui/pages/context-menus.slint:857 ui/pages/context-menus.slint:531 ui/pages/context-menus.slint:857
 msgid "Open in the Config Editor"
-msgstr ""
+msgstr "Abrir en el Editor de configuración"
 
 #: ui/pages/context-menus.slint:572
 msgid "Remove {} from your config?"
-msgstr ""
+msgstr "¿Quitar {} de tu configuración?"
 
 #: ui/pages/context-menus.slint:580
 msgid "Its import line goes from shell.nss when you save. A snapshot is taken first, so you can bring it back on the Backups page."
-msgstr ""
+msgstr "Su línea de importación se quita de shell.nss al guardar. Antes se toma una instantánea, así que puedes recuperarlo en la página Copias de seguridad."
 
 #: ui/pages/context-menus.slint:586
 msgid "Also delete the file {}"
-msgstr ""
+msgstr "Eliminar también el archivo {}"
 
 #: ui/pages/context-menus.slint:666
 msgid "In the list"
-msgstr ""
+msgstr "En la lista"
 
 #: ui/pages/context-menus.slint:716
 msgid "Add an installed app"
-msgstr ""
+msgstr "Agregar una aplicación instalada"
 
 #: ui/pages/context-menus.slint:730
 msgid "Search"
-msgstr ""
+msgstr "Buscar"
 
 #: ui/pages/context-menus.slint:739
 msgid "Looking for apps…"
-msgstr ""
+msgstr "Buscando aplicaciones…"
 
 #: ui/pages/context-menus.slint:746
 msgid "No app matches."
-msgstr ""
+msgstr "Ninguna aplicación coincide."
 
 #: ui/pages/context-menus.slint:770
 msgid "Turn the bundled menus on or off, add your own files, choose the taskbar menu's apps, and the rules that hide, move or rename Windows' own items."
-msgstr ""
+msgstr "Activa o desactiva los menús incluidos, agrega tus propios archivos, elige las aplicaciones del menú de la barra de tareas y las reglas que ocultan, mueven o renombran los elementos propios de Windows."
 
 #: ui/pages/context-menus.slint:772 ui/pages/menu-builder.slint:406 ui/pages/context-menus.slint:772 ui/pages/menu-builder.slint:406 ui/pages/openwith.slint:626 ui/pages/context-menus.slint:772 ui/pages/menu-builder.slint:406 ui/pages/openwith.slint:626
 msgid "Checking and saving…"
@@ -1111,11 +1111,11 @@ msgstr "Módulos"
 
 #: ui/pages/context-menus.slint:808
 msgid "Each module is an import line in shell.nss. Turning one off comments the line out. Add your own .nss files here instead of editing shell.nss."
-msgstr ""
+msgstr "Cada módulo es una línea de importación en shell.nss. Desactivar uno comenta la línea. Agrega aquí tus propios archivos .nss en lugar de editar shell.nss."
 
 #: ui/pages/context-menus.slint:810
 msgid "Add a file…"
-msgstr ""
+msgstr "Agregar un archivo…"
 
 #: ui/pages/context-menus.slint:816
 msgid "shell.nss doesn't import any files."
@@ -1123,47 +1123,47 @@ msgstr "shell.nss no importa ningún archivo."
 
 #: ui/pages/context-menus.slint:833
 msgid "Taskbar menu"
-msgstr ""
+msgstr "Menú de la barra de tareas"
 
 #: ui/pages/context-menus.slint:835
 msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. Saved in imports\\settings-app-taskbar.nss; you can edit that file by hand too."
-msgstr ""
+msgstr "El submenú Aplicaciones que aparece al hacer clic derecho en un espacio vacío de la barra de tareas. Se guarda en imports\\settings-app-taskbar.nss; también puedes editar ese archivo a mano."
 
 #: ui/pages/context-menus.slint:836
 msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. These are Shell's own four apps; your changes are saved in imports\\settings-app-taskbar.nss."
-msgstr ""
+msgstr "El submenú Aplicaciones que aparece al hacer clic derecho en un espacio vacío de la barra de tareas. Son las cuatro aplicaciones propias de Shell; tus cambios se guardan en imports\\settings-app-taskbar.nss."
 
 #: ui/pages/context-menus.slint:838
 msgid "Add a program…"
-msgstr ""
+msgstr "Agregar un programa…"
 
 #: ui/pages/context-menus.slint:843
 msgid "Add an installed app…"
-msgstr ""
+msgstr "Agregar una aplicación instalada…"
 
 #: ui/pages/context-menus.slint:848
 msgid "Add a separator"
-msgstr ""
+msgstr "Agregar un separador"
 
 #: ui/pages/context-menus.slint:855
 msgid "settings-app-taskbar.nss has an error, so it isn't changed here"
-msgstr ""
+msgstr "settings-app-taskbar.nss tiene un error, así que no se modifica aquí"
 
 #: ui/pages/context-menus.slint:862
 msgid "The taskbar's menu doesn't show this list yet"
-msgstr ""
+msgstr "El menú de la barra de tareas aún no muestra esta lista"
 
 #: ui/pages/context-menus.slint:864
 msgid "Open taskbar.nss"
-msgstr ""
+msgstr "Abrir taskbar.nss"
 
 #: ui/pages/context-menus.slint:868
 msgid "No apps: the Apps submenu is empty."
-msgstr ""
+msgstr "Sin aplicaciones: el submenú Aplicaciones está vacío."
 
 #: ui/pages/context-menus.slint:889
 msgid "Put back Shell's four apps"
-msgstr ""
+msgstr "Restaurar las cuatro aplicaciones de Shell"
 
 #: ui/pages/context-menus.slint:896
 msgid "Rules for Windows items"
@@ -1218,12 +1218,12 @@ msgstr "Sin guardar"
 #: ui/pages/editor.slint:312
 msgctxt "Editor mode"
 msgid "Read"
-msgstr "Lectura"
+msgstr "Ver"
 
 #: ui/pages/editor.slint:312
 msgctxt "Editor mode"
 msgid "Edit"
-msgstr "Edición"
+msgstr "Editar"
 
 #: ui/pages/editor.slint:322
 msgid "Save {} files"
@@ -1231,7 +1231,7 @@ msgstr "Guardar {} archivos"
 
 #: ui/pages/editor.slint:330
 msgid "Managed by Nilesoft Shell Pro. You can edit it; the app keeps your changes."
-msgstr ""
+msgstr "Administrado por Nilesoft Shell Pro. Puedes editarlo; la aplicación conserva tus cambios."
 
 #: ui/pages/editor.slint:407
 msgid "Problems"
@@ -1509,7 +1509,7 @@ msgstr "Icono"
 #: ui/pages/menu-builder.slint:642
 msgctxt "No icon"
 msgid "none"
-msgstr "ninguno"
+msgstr "X"
 
 #: ui/pages/menu-builder.slint:653
 msgctxt "Icon"
@@ -1724,19 +1724,19 @@ msgstr "Oculto"
 
 #: ui/pages/menu-map.slint:246
 msgid "Moved"
-msgstr ""
+msgstr "Movido"
 
 #: ui/pages/menu-map.slint:346
 msgid "Select an item to see where it comes from and what you can do with it."
-msgstr ""
+msgstr "Selecciona un elemento para ver de dónde viene y qué puedes hacer con él."
 
 #: ui/pages/menu-map.slint:378
 msgid "Comes from"
-msgstr ""
+msgstr "Proviene de"
 
 #: ui/pages/menu-map.slint:412
 msgid "Shows when"
-msgstr ""
+msgstr "Se muestra cuando"
 
 #: ui/pages/menu-map.slint:421 src/BehaviorController.cpp:24
 msgid "Rules"
@@ -1744,11 +1744,11 @@ msgstr "Reglas"
 
 #: ui/pages/menu-map.slint:427
 msgid "Open {}"
-msgstr ""
+msgstr "Abrir {}"
 
 #: ui/pages/menu-map.slint:432
 msgid "Context Menus page"
-msgstr ""
+msgstr "Página Menús contextuales"
 
 #: ui/pages/menu-map.slint:440 ui/pages/openwith.slint:726
 msgid "In the menu"
@@ -1756,7 +1756,7 @@ msgstr "En el menú"
 
 #: ui/pages/menu-map.slint:445
 msgid "Shown"
-msgstr ""
+msgstr "Visible"
 
 #: ui/pages/menu-map.slint:464 ui/pages/menu-map.slint:473 src/AppearanceController.cpp:90
 msgid "Rename"
@@ -1764,11 +1764,11 @@ msgstr "Cambiar nombre"
 
 #: ui/pages/menu-map.slint:479
 msgid "Use the original title"
-msgstr ""
+msgstr "Usar el título original"
 
 #: ui/pages/menu-map.slint:486
 msgid "Move to"
-msgstr ""
+msgstr "Mover a"
 
 #: ui/pages/menu-map.slint:494
 msgid "Move"
@@ -1776,67 +1776,67 @@ msgstr "Mover"
 
 #: ui/pages/menu-map.slint:500
 msgid "Put it back where Windows has it"
-msgstr ""
+msgstr "Devolverlo a donde lo tiene Windows"
 
 #: ui/pages/menu-map.slint:508
 msgid "Code"
-msgstr ""
+msgstr "Código"
 
 #: ui/pages/menu-map.slint:513
 msgid "Edit code"
-msgstr ""
+msgstr "Editar código"
 
 #: ui/pages/menu-map.slint:563
 msgid "Edit code: {}"
-msgstr ""
+msgstr "Editar código: {}"
 
 #: ui/pages/menu-map.slint:570
 msgid "{} · only this declaration changes; the rest of the file stays as it is."
-msgstr ""
+msgstr "{} · solo cambia esta declaración; el resto del archivo se queda como está."
 
 #: ui/pages/menu-map.slint:623
 msgid "Check and save"
-msgstr ""
+msgstr "Comprobar y guardar"
 
 #: ui/pages/menu-map.slint:651
 msgid "The menu as it opens for a file, a folder or the desktop: your Shell items with the line that adds each one, and the items Windows and other programs add."
-msgstr ""
+msgstr "El menú tal como se abre para un archivo, una carpeta o el escritorio: tus elementos de Shell con la línea que agrega cada uno y los elementos que agregan Windows y otros programas."
 
 #: ui/pages/menu-map.slint:653
 msgid "Reading the menu…"
-msgstr ""
+msgstr "Leyendo el menú…"
 
 #: ui/pages/menu-map.slint:664
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to hide, rename or move items."
-msgstr ""
+msgstr "Aquí es de solo lectura y nunca se escribe en Program Files. Crea una copia personal en %APPDATA% para ocultar, renombrar o mover elementos."
 
 #: ui/pages/menu-map.slint:671
 msgid "Couldn't read the menu"
-msgstr ""
+msgstr "No se pudo leer el menú"
 
 #: ui/pages/menu-map.slint:676
 msgid "Your config doesn't load"
-msgstr ""
+msgstr "Tu configuración no se carga"
 
 #: ui/pages/menu-map.slint:699
 msgid "Outline"
-msgstr ""
+msgstr "Esquema"
 
 #: ui/pages/menu-map.slint:699
 msgid "Nodes"
-msgstr ""
+msgstr "Nodos"
 
 #: ui/pages/menu-map.slint:717
 msgid "Expand all"
-msgstr ""
+msgstr "Expandir todo"
 
 #: ui/pages/menu-map.slint:722
 msgid "Collapse all"
-msgstr ""
+msgstr "Contraer todo"
 
 #: ui/pages/menu-map.slint:780
 msgid "Nothing to show yet."
-msgstr ""
+msgstr "Aún no hay nada que mostrar."
 
 #: ui/pages/onboarding.slint:149
 msgid "Set up Nilesoft Shell Pro"
@@ -2250,11 +2250,11 @@ msgstr "Auto sigue el idioma de visualización de Windows, que ahora es {}. Un c
 
 #: ui/pages/preferences.slint:92
 msgid "Test a translation file…"
-msgstr ""
+msgstr "Probar un archivo de traducción…"
 
 #: ui/pages/preferences.slint:96
 msgid "For translators: shows the app in a .po file until you stop it or close the app."
-msgstr ""
+msgstr "Para traductores: muestra la aplicación con un archivo .po hasta que lo detengas o cierres la aplicación."
 
 #: ui/pages/preferences.slint:108
 msgid "Startup and tray"
@@ -2518,47 +2518,47 @@ msgstr "Sin clases de ventana."
 
 #: ui/pages/snippets.slint:84
 msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-msgstr ""
+msgstr "Los elementos del snippet aparecen marcados en azul; los atenuados ya están en el menú."
 
 #: ui/pages/snippets.slint:274
 msgid "Runs as administrator"
-msgstr ""
+msgstr "Se ejecuta como administrador"
 
 #: ui/pages/snippets.slint:278
 msgid "Uses the internet"
-msgstr ""
+msgstr "Usa internet"
 
 #: ui/pages/snippets.slint:293 ui/pages/snippets.slint:300
 msgid "by {}"
-msgstr ""
+msgstr "por {}"
 
 #: ui/pages/snippets.slint:305
 msgid "Hide code"
-msgstr ""
+msgstr "Ocultar código"
 
 #: ui/pages/snippets.slint:305
 msgid "Show code"
-msgstr ""
+msgstr "Mostrar código"
 
 #: ui/pages/snippets.slint:368
 msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
-msgstr ""
+msgstr "Pequeñas adiciones ya hechas para el menú de clic derecho. Activa una y estará ahí la próxima vez que hagas clic derecho; desactívala y desaparece. Shell comprueba cada cambio antes de guardarlo."
 
 #: ui/pages/snippets.slint:377
 msgid "RubicBG's snippets are CC0, shared with his permission."
-msgstr ""
+msgstr "Los snippets de RubicBG son CC0 y se comparten con su permiso."
 
 #: ui/pages/snippets.slint:385
 msgid "His collection on GitHub"
-msgstr ""
+msgstr "Su colección en GitHub"
 
 #: ui/pages/snippets.slint:408
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
-msgstr ""
+msgstr "Aquí es de solo lectura y nunca se escribe en Program Files. Crea una copia personal en %APPDATA% para activar snippets."
 
 #: ui/pages/snippets.slint:427
 msgid "Search snippets"
-msgstr ""
+msgstr "Buscar snippets"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
 #: ui/preview/menu-preview.slint:29 ui/preview/menu-preview.slint:198
@@ -2705,11 +2705,11 @@ msgstr "Activo para todos los usuarios de este equipo."
 
 #: src/AppController.cpp:269
 msgid "Test a translation file"
-msgstr ""
+msgstr "Probar un archivo de traducción"
 
 #: src/AppController.cpp:270
 msgid "Translation files"
-msgstr ""
+msgstr "Archivos de traducción"
 
 #: src/AppController.cpp:271 src/ContextMenusController.cpp:557 src/OpenWithController.cpp:992
 msgid "All files"
@@ -2717,37 +2717,37 @@ msgstr "Todos los archivos"
 
 #: src/AppController.cpp:305
 msgid "The translation file can't be reloaded"
-msgstr ""
+msgstr "No se puede recargar el archivo de traducción"
 
 #: src/AppController.cpp:305
 msgid "The translation file can't be used"
-msgstr ""
+msgstr "No se puede usar el archivo de traducción"
 
 #: src/AppController.cpp:315
 msgid "{} of {} strings translated"
-msgstr ""
+msgstr "{} de {} cadenas traducidas"
 
 #: src/AppController.cpp:317
 msgid "{n} missing"
 msgid_plural "{n} missing"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} sin traducir"
+msgstr[1] "{n} sin traducir"
 
 #: src/AppController.cpp:319
 msgid "{n} fuzzy, not shown"
 msgid_plural "{n} fuzzy, not shown"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} dudosa, no se muestra"
+msgstr[1] "{n} dudosas, no se muestran"
 
 #: src/AppController.cpp:321
 msgid "{n} not in this version of the app"
 msgid_plural "{n} not in this version of the app"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} no está en esta versión de la aplicación"
+msgstr[1] "{n} no están en esta versión de la aplicación"
 
 #: src/AppController.cpp:329
 msgid "Translation file reloaded"
-msgstr ""
+msgstr "Archivo de traducción recargado"
 
 #: src/AppController.cpp:372
 msgctxt "Language"
@@ -2988,7 +2988,7 @@ msgstr "Auto es acrílico en Windows 11, incluso con los efectos de transparenci
 
 #: src/AppearanceController.cpp:644
 msgid "Auto is blur on Windows 10, even with Windows Transparency effects off."
-msgstr "Auto es desenfoque en Windows 10, incluso con los efectos de transparencia de Windows desactivados."
+msgstr "Auto es blur en Windows 10, incluso con los efectos de transparencia de Windows desactivados."
 
 #: src/AppearanceController.cpp:646
 msgid "Not set: acrylic while Windows Transparency effects is on, none while it is off."
@@ -2996,11 +2996,11 @@ msgstr "Sin definir: acrílico mientras los efectos de transparencia de Windows 
 
 #: src/AppearanceController.cpp:648
 msgid "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger look, raise the tint's alpha."
-msgstr "El escritorio desenfocado con el tinte encima, como lo da Auto en Windows 11. Para un aspecto más marcado, sube el alfa del tinte."
+msgstr "El escritorio con blur y el tinte encima, como lo da Auto en Windows 11. Para un aspecto más marcado, sube el alfa del tinte."
 
 #: src/AppearanceController.cpp:650
 msgid "Alpha sets the strength: 40 light, FF hides the blur."
-msgstr "El alfa define la intensidad: 40 suave, FF oculta el desenfoque."
+msgstr "El alfa define la intensidad: 40 suave, FF oculta el blur."
 
 #: src/AppearanceController.cpp:652
 msgid "From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
@@ -3267,7 +3267,7 @@ msgstr "Los menús y elementos que creaste en la página Creador de menús."
 
 #: src/ConfigRules.cpp:57
 msgid "The Windows items you hid, renamed or moved on the Menu map page."
-msgstr ""
+msgstr "Los elementos de Windows que ocultaste, renombraste o moviste en la página Mapa de menús."
 
 #: src/ConfigRules.cpp:58
 msgid "Editors and terminals you picked on the Open with page."
@@ -3275,7 +3275,7 @@ msgstr "Editores y terminales que elegiste en la página Abrir con."
 
 #: src/ConfigRules.cpp:59
 msgid "The snippets you turned on on the Snippets page."
-msgstr ""
+msgstr "Los snippets que activaste en la página Snippets."
 
 #: src/ConfigRules.cpp:215
 msgctxt "quote"
@@ -3775,7 +3775,7 @@ msgstr "Cualquier cosa"
 
 #: src/ConfigRules.cpp:832
 msgid "Your own file, imported from {}."
-msgstr ""
+msgstr "Tu propio archivo, importado desde {}."
 
 #: src/ConfigRules.cpp:846
 msgid "The import spans several lines"
@@ -3909,7 +3909,7 @@ msgstr "{} es de solo lectura aquí."
 
 #: src/ContextMenusController.cpp:512
 msgid "Saved, but a file couldn't be deleted"
-msgstr ""
+msgstr "Guardado, pero no se pudo eliminar un archivo"
 
 #: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1034 src/MenuMapController.cpp:1141
 msgid "Saved"
@@ -3933,51 +3933,51 @@ msgstr "No se pudo guardar"
 
 #: src/ContextMenusController.cpp:597
 msgid "Choose a .nss file to add"
-msgstr ""
+msgstr "Elegir un archivo .nss para agregar"
 
 #: src/ContextMenusController.cpp:597
 msgid "Shell config files"
-msgstr ""
+msgstr "Archivos de configuración de Shell"
 
 #: src/ContextMenusController.cpp:603
 msgid "That's your shell.nss"
-msgstr ""
+msgstr "Ese es tu shell.nss"
 
 #: src/ContextMenusController.cpp:603
 msgid "Pick another .nss file to add to it."
-msgstr ""
+msgstr "Elige otro archivo .nss para agregarlo."
 
 #: src/ContextMenusController.cpp:609
 msgid "Couldn't read the file"
-msgstr ""
+msgstr "No se pudo leer el archivo"
 
 #: src/ContextMenusController.cpp:645
 msgid "Already in your config"
-msgstr ""
+msgstr "Ya está en tu configuración"
 
 #: src/ContextMenusController.cpp:645
 msgid "shell.nss already imports {}."
-msgstr ""
+msgstr "shell.nss ya importa {}."
 
 #: src/ContextMenusController.cpp:648
 msgid "{} added"
-msgstr ""
+msgstr "{} agregado"
 
 #: src/ContextMenusController.cpp:648
 msgid "Save to check it and use it. Nothing is written until then."
-msgstr ""
+msgstr "Guarda para comprobarlo y usarlo. No se escribe nada hasta entonces."
 
 #: src/ContextMenusController.cpp:690
 msgid "Couldn't remove {}"
-msgstr ""
+msgstr "No se pudo quitar {}"
 
 #: src/ContextMenusController.cpp:780
 msgid "Written by hand"
-msgstr ""
+msgstr "Escrito a mano"
 
 #: src/ContextMenusController.cpp:790
 msgid "Choose a program for it"
-msgstr ""
+msgstr "Elegir un programa para este elemento"
 
 #: src/ContextMenusController.cpp:792 src/OpenWithController.cpp:605
 msgid "Not found: {}"
@@ -3985,31 +3985,31 @@ msgstr "No encontrado: {}"
 
 #: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1153 src/MenuModel.cpp:536 src/OpenWithModel.cpp:1433
 msgid "Line {}: {}"
-msgstr ""
+msgstr "Línea {}: {}"
 
 #: src/ContextMenusController.cpp:833
 msgid "The Taskbar module is off, so the taskbar's menu doesn't show these apps. Turn it on under Modules."
-msgstr ""
+msgstr "El módulo Barra de tareas está desactivado, así que el menú de la barra de tareas no muestra estas aplicaciones. Actívalo en Módulos."
 
 #: src/ContextMenusController.cpp:835
 msgid "Your imports\\taskbar.nss doesn't read this list: it was changed by hand, or it comes from an older version. Take the new taskbar.nss on the Home page (your copy goes into a backup), or open it in the Config Editor."
-msgstr ""
+msgstr "Tu imports\\taskbar.nss no lee esta lista: se modificó a mano o proviene de una versión anterior. Usa el nuevo taskbar.nss en la página Inicio (tu copia se guarda en una copia de seguridad) o ábrelo en el Editor de configuración."
 
 #: src/ContextMenusController.cpp:954
 msgid "Choose a program or shortcut"
-msgstr ""
+msgstr "Elegir un programa o acceso directo"
 
 #: src/ContextMenusController.cpp:954
 msgid "Programs and shortcuts"
-msgstr ""
+msgstr "Programas y accesos directos"
 
 #: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:545 src/Snippets.cpp:671
 msgid "Windows"
-msgstr ""
+msgstr "Windows"
 
 #: src/ContextMenusController.cpp:1019
 msgid "Installed apps"
-msgstr ""
+msgstr "Aplicaciones instaladas"
 
 #: src/EditorController.cpp:312
 msgid "Nothing to show."
@@ -4149,35 +4149,35 @@ msgstr "No guardado: Shell rechazaría estos menús"
 
 #: src/MenuMapController.cpp:36 src/SnippetPreview.cpp:340
 msgid "Drive"
-msgstr ""
+msgstr "Unidad"
 
 #: src/MenuMapController.cpp:39
 msgid "Text file (.txt)"
-msgstr ""
+msgstr "Archivo de texto (.txt)"
 
 #: src/MenuMapController.cpp:39
 msgid "Image (.png)"
-msgstr ""
+msgstr "Imagen (.png)"
 
 #: src/MenuMapController.cpp:40
 msgid "Program (.exe)"
-msgstr ""
+msgstr "Programa (.exe)"
 
 #: src/MenuMapController.cpp:40
 msgid "Archive (.zip)"
-msgstr ""
+msgstr "Archivo comprimido (.zip)"
 
 #: src/MenuMapController.cpp:41
 msgid "PDF (.pdf)"
-msgstr ""
+msgstr "PDF (.pdf)"
 
 #: src/MenuMapController.cpp:41
 msgid "Music (.mp3)"
-msgstr ""
+msgstr "Música (.mp3)"
 
 #: src/MenuMapController.cpp:279
 msgid "The config file doesn't exist. Create a personal config from Home first."
-msgstr ""
+msgstr "El archivo de configuración no existe. Crea primero una configuración personal desde Inicio."
 
 #: src/MenuMapController.cpp:284 src/ShellCli.cpp:124
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
@@ -4185,121 +4185,121 @@ msgstr "No se encontró shell.exe junto a NilesoftShellPro.exe ni al shell.dll r
 
 #: src/MenuMapController.cpp:302 src/SnippetsController.cpp:267
 msgid "shell.exe took too long to read the menu and was stopped."
-msgstr ""
+msgstr "shell.exe tardó demasiado en leer el menú y se detuvo."
 
 #: src/MenuMapController.cpp:307 src/SnippetsController.cpp:272
 msgid "shell.exe gave no menu ({}). It may be older than this app."
-msgstr ""
+msgstr "shell.exe no devolvió ningún menú ({}). Puede ser más antiguo que esta aplicación."
 
 #: src/MenuMapController.cpp:379
 msgid "{} (Windows)"
-msgstr ""
+msgstr "{} (Windows)"
 
 #: src/MenuMapController.cpp:442 src/MenuMapController.cpp:478 src/MenuMapController.cpp:843
 msgid "The shared config is read-only here."
-msgstr ""
+msgstr "La configuración compartida es de solo lectura aquí."
 
 #: src/MenuMapController.cpp:444
 msgid "This file is read-only here."
-msgstr ""
+msgstr "Este archivo es de solo lectura aquí."
 
 #: src/MenuMapController.cpp:446
 msgid "It has its own vis= setting; change it with Edit code."
-msgstr ""
+msgstr "Tiene su propio ajuste vis=; cámbialo con Editar código."
 
 #: src/MenuMapController.cpp:467
 msgid "A rule in your config hides it. Turn that rule off on the Context Menus page."
-msgstr ""
+msgstr "Una regla de tu configuración lo oculta. Desactiva esa regla en la página Menús contextuales."
 
 #: src/MenuMapController.cpp:475 src/MenuMapController.cpp:844
 msgid "Its title changes with the selection, so a rule can't name it. Use the Config Editor."
-msgstr ""
+msgstr "Su título cambia con la selección, así que una regla no puede nombrarlo. Usa el Editor de configuración."
 
 #: src/MenuMapController.cpp:501
 msgid "Disabled"
-msgstr ""
+msgstr "Deshabilitado"
 
 #: src/MenuMapController.cpp:508
 msgid "Shows only sometimes"
-msgstr ""
+msgstr "Solo se muestra a veces"
 
 #: src/MenuMapController.cpp:518
 msgid "Moved to {}"
-msgstr ""
+msgstr "Movido a {}"
 
 #: src/MenuMapController.cpp:522
 msgid "Renamed to {}"
-msgstr ""
+msgstr "Renombrado a {}"
 
 #: src/MenuMapController.cpp:526
 msgid "May be hidden"
-msgstr ""
+msgstr "Puede estar oculto"
 
 #: src/MenuMapController.cpp:530
 msgid "A rule may change it"
-msgstr ""
+msgstr "Una regla puede cambiarlo"
 
 #: src/MenuMapController.cpp:541
 msgid "{}:{}"
-msgstr ""
+msgstr "{}:{}"
 
 #: src/MenuMapController.cpp:547 src/MenuMapController.cpp:793
 msgid "A program"
-msgstr ""
+msgstr "Un programa"
 
 #: src/MenuMapController.cpp:573
 msgid "Windows builds the taskbar's menu itself, so only Shell's items are listed here."
-msgstr ""
+msgstr "Windows crea por sí mismo el menú de la barra de tareas, así que aquí solo aparecen los elementos de Shell."
 
 #: src/MenuMapController.cpp:575
 msgid "Windows' items couldn't be read: {}"
-msgstr ""
+msgstr "No se pudieron leer los elementos de Windows: {}"
 
 #: src/MenuMapController.cpp:583
 msgid "{} · {}"
-msgstr ""
+msgstr "{} · {}"
 
 #: src/MenuMapController.cpp:583
 msgid "{n} of your items"
 msgid_plural "{n} of your items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} de tus elementos"
+msgstr[1] "{n} de tus elementos"
 
 #: src/MenuMapController.cpp:584
 msgid "{n} from Windows and programs"
 msgid_plural "{n} from Windows and programs"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} de Windows y programas"
+msgstr[1] "{n} de Windows y programas"
 
 #: src/MenuMapController.cpp:619 src/MenuMapController.cpp:683
 msgid "Your Shell items"
-msgstr ""
+msgstr "Tus elementos de Shell"
 
 #: src/MenuMapController.cpp:619 src/MenuMapController.cpp:683
 msgid "Windows and other programs"
-msgstr ""
+msgstr "Windows y otros programas"
 
 #: src/MenuMapController.cpp:622
 msgid "{n} item"
 msgid_plural "{n} items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} elemento"
+msgstr[1] "{n} elementos"
 
 #: src/MenuMapController.cpp:629
 msgid "(drawn by its program)"
-msgstr ""
+msgstr "(lo dibuja su programa)"
 
 #: src/MenuMapController.cpp:630 src/MenuMapController.cpp:696
 msgid "(set when the menu opens)"
-msgstr ""
+msgstr "(se define al abrir el menú)"
 
 #: src/MenuMapController.cpp:756
 msgid "Submenu"
-msgstr ""
+msgstr "Submenú"
 
 #: src/MenuMapController.cpp:756
 msgid "Item"
-msgstr ""
+msgstr "Elemento"
 
 #: src/MenuMapController.cpp:767 src/MenuMapController.cpp:773 src/MenuMapController.cpp:814 src/MenuMapController.cpp:1077 src/SaveService.cpp:203
 msgid "{}, line {}"
@@ -4307,103 +4307,103 @@ msgstr "{}, línea {}"
 
 #: src/MenuMapController.cpp:772
 msgid "From your config"
-msgstr ""
+msgstr "De tu configuración"
 
 #: src/MenuMapController.cpp:777
 msgid "Title from {}"
-msgstr ""
+msgstr "Título de {}"
 
 #: src/MenuMapController.cpp:781
 msgid "Hidden by vis= in its own line."
-msgstr ""
+msgstr "Oculto por vis= en su propia línea."
 
 #: src/MenuMapController.cpp:784
 msgid "To move one of your items, use Edit code or the Menu Builder."
-msgstr ""
+msgstr "Para mover uno de tus elementos, usa Editar código o el Creador de menús."
 
 #: src/MenuMapController.cpp:787
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
-msgstr ""
+msgstr "Desactivarlo agrega vis=vis.remove a su línea. Se guarda de inmediato, con una instantánea antes."
 
 #: src/MenuMapController.cpp:791
 msgid "Added by Windows"
-msgstr ""
+msgstr "Agregado por Windows"
 
 #: src/MenuMapController.cpp:793
 msgid "Added by {}"
-msgstr ""
+msgstr "Agregado por {}"
 
 #: src/MenuMapController.cpp:795
 msgid "Added by Windows or an installed app; Shell couldn't tell which."
-msgstr ""
+msgstr "Agregado por Windows o por una aplicación instalada; Shell no pudo saber cuál."
 
 #: src/MenuMapController.cpp:804
 msgid "verb {}"
-msgstr ""
+msgstr "verbo {}"
 
 #: src/MenuMapController.cpp:813
 msgid "a rule made here"
-msgstr ""
+msgstr "una regla creada aquí"
 
 #: src/MenuMapController.cpp:817
 msgid "Hidden by {}."
-msgstr ""
+msgstr "Oculto por {}."
 
 #: src/MenuMapController.cpp:819
 msgid "Moved to {} by {}."
-msgstr ""
+msgstr "Movido a {} por {}."
 
 #: src/MenuMapController.cpp:821
 msgid "Renamed to {} by {}."
-msgstr ""
+msgstr "Renombrado a {} por {}."
 
 #: src/MenuMapController.cpp:823
 msgid "Changed by {}."
-msgstr ""
+msgstr "Cambiado por {}."
 
 #: src/MenuMapController.cpp:833
 msgid "{}, line {} may change it, depending on what is selected."
-msgstr ""
+msgstr "{}, línea {}, puede cambiarlo según lo que esté seleccionado."
 
 #: src/MenuMapController.cpp:846
 msgid "Turning it off adds a rule that removes it from the menu. Save to apply."
-msgstr ""
+msgstr "Desactivarlo agrega una regla que lo quita del menú. Guarda para aplicar."
 
 #: src/MenuMapController.cpp:847
 msgid "Hidden by a rule made here. Turning it on removes that rule."
-msgstr ""
+msgstr "Oculto por una regla creada aquí. Activarlo quita esa regla."
 
 #: src/MenuMapController.cpp:856
 msgid "Shown again once you save."
-msgstr ""
+msgstr "Volverá a mostrarse al guardar."
 
 #: src/MenuMapController.cpp:857
 msgid "Hidden once you save."
-msgstr ""
+msgstr "Se ocultará al guardar."
 
 #: src/MenuMapController.cpp:858
 msgid "Changes once you save."
-msgstr ""
+msgstr "Cambiará al guardar."
 
 #: src/MenuMapController.cpp:1014
 msgid "{} couldn't be read."
-msgstr ""
+msgstr "No se pudo leer {}."
 
 #: src/MenuMapController.cpp:1019
 msgid "Not changed"
-msgstr ""
+msgstr "Sin cambios"
 
 #: src/MenuMapController.cpp:1066
 msgid "Couldn't open the code"
-msgstr ""
+msgstr "No se pudo abrir el código"
 
 #: src/MenuMapController.cpp:1066
 msgid "{} has no declaration on line {}."
-msgstr ""
+msgstr "{} no tiene ninguna declaración en la línea {}."
 
 #: src/MenuMapController.cpp:1121
 msgid "The file changed since this code was opened. Cancel, then open it again."
-msgstr ""
+msgstr "El archivo cambió desde que se abrió este código. Cancela y ábrelo de nuevo."
 
 #: src/MenuMapController.cpp:1125 src/SaveService.cpp:458
 msgid "Not saved: {}"
@@ -4411,15 +4411,15 @@ msgstr "No guardado: {}"
 
 #: src/MenuMapController.cpp:1156
 msgid "Not saved: the config would fail to load. {}"
-msgstr ""
+msgstr "No guardado: la configuración no se cargaría. {}"
 
 #: src/MenuMapController.cpp:1159
 msgid "Couldn't save: {}"
-msgstr ""
+msgstr "No se pudo guardar: {}"
 
 #: src/MenuWriter.cpp:154
 msgid "{} was edited by hand, and line {} can't be read ({}). The app didn't change the file, so your edit is safe. Fix it in the Config Editor, then try again."
-msgstr ""
+msgstr "{} se editó a mano y la línea {} no se puede leer ({}). La aplicación no cambió el archivo, así que tu edición está a salvo. Corrígela en el Editor de configuración y vuelve a intentarlo."
 
 #: src/OpenWithController.cpp:84 src/OtherApps.cpp:282
 msgid "{} and {}"
@@ -4655,7 +4655,7 @@ msgstr "El settings-app.nss generado no se puede analizar: {}"
 
 #: src/PendingChanges.cpp:249
 msgid "The generated settings-app-map.nss doesn't parse: {}"
-msgstr ""
+msgstr "El settings-app-map.nss generado no se puede analizar: {}"
 
 #: src/PresetsController.cpp:139
 msgid "Saving"
@@ -4799,121 +4799,121 @@ msgstr "No se pudo iniciar shell.exe como administrador (error {})."
 
 #: src/SnippetPreview.cpp:727
 msgid "Task Manager"
-msgstr ""
+msgstr "Administrador de tareas"
 
 #: src/SnippetPreview.cpp:727
 msgid "Taskbar settings"
-msgstr ""
+msgstr "Configuración de la barra de tareas"
 
 #: src/SnippetPreview.cpp:781
 msgid "Name from the selection"
-msgstr ""
+msgstr "Nombre según la selección"
 
 #: src/Snippets.cpp:579
 msgid "There is no snippet called {}."
-msgstr ""
+msgstr "No hay ningún snippet llamado {}."
 
 #: src/Snippets.cpp:665
 msgid "Archives"
-msgstr ""
+msgstr "Archivos comprimidos"
 
 #: src/Snippets.cpp:669
 msgid "Security"
-msgstr ""
+msgstr "Seguridad"
 
 #: src/SnippetsController.cpp:221
 msgid "Couldn't write {}"
-msgstr ""
+msgstr "No se pudo escribir {}"
 
 #: src/SnippetsController.cpp:299
 msgid "shell.exe couldn't load the snippet"
-msgstr ""
+msgstr "shell.exe no pudo cargar el snippet"
 
 #: src/SnippetsController.cpp:377
 msgid "Loading preview…"
-msgstr ""
+msgstr "Cargando vista previa…"
 
 #: src/SnippetsController.cpp:382
 msgid "No preview ({}). This is the snippet's code."
-msgstr ""
+msgstr "Sin vista previa ({}). Este es el código del snippet."
 
 #: src/SnippetsController.cpp:386
 msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-msgstr ""
+msgstr "Este snippet no agrega elementos propios: cambia u oculta otros elementos, o funciona en otro lugar. Este es su código."
 
 #: src/SnippetsController.cpp:407
 msgid "Shown for a {} file."
-msgstr ""
+msgstr "Se muestra para un archivo {}."
 
 #: src/SnippetsController.cpp:608
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 #: src/SnippetsController.cpp:641
 msgid "Needs Shell {} or later"
-msgstr ""
+msgstr "Requiere Shell {} o posterior"
 
 #: src/SnippetsController.cpp:645
 msgid " and "
-msgstr ""
+msgstr " y "
 
 #: src/SnippetsController.cpp:646
 msgid "Needs {}"
-msgstr ""
+msgstr "Requiere {}"
 
 #: src/SnippetsController.cpp:652
 msgid "You changed this copy, so newer versions aren't applied to it."
-msgstr ""
+msgstr "Cambiaste esta copia, así que no se le aplican las versiones más nuevas."
 
 #: src/SnippetsController.cpp:655
 msgid "The copy in {} is missing. Turn the snippet off and on again."
-msgstr ""
+msgstr "Falta la copia en {}. Desactiva y vuelve a activar el snippet."
 
 #: src/SnippetsController.cpp:658
 msgid "A newer version is applied the next time the app starts."
-msgstr ""
+msgstr "Una versión más nueva se aplica la próxima vez que se inicie la aplicación."
 
 #: src/SnippetsController.cpp:684
 msgid "{n} of {0} on"
 msgid_plural "{n} of {0} on"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} de {0} activados"
+msgstr[1] "{n} de {0} activados"
 
 #: src/SnippetsController.cpp:685
 msgid "Loading…"
-msgstr ""
+msgstr "Cargando…"
 
 #: src/SnippetsController.cpp:686
 msgid "No snippets are available."
-msgstr ""
+msgstr "No hay snippets disponibles."
 
 #: src/SnippetsController.cpp:687
 msgid "No snippet matches the search."
-msgstr ""
+msgstr "Ningún snippet coincide con la búsqueda."
 
 #: src/SnippetsController.cpp:718
 msgid "Couldn't change this snippet"
-msgstr ""
+msgstr "No se pudo cambiar este snippet"
 
 #: src/SnippetsController.cpp:773
 msgid "Turned on {}"
-msgstr ""
+msgstr "Se activó {}"
 
 #: src/SnippetsController.cpp:774
 msgid "It's in the menu the next time you right-click."
-msgstr ""
+msgstr "Estará en el menú la próxima vez que hagas clic derecho."
 
 #: src/SnippetsController.cpp:776
 msgid "Turned off {}"
-msgstr ""
+msgstr "Se desactivó {}"
 
 #: src/SnippetsController.cpp:778
 msgid "Snapshot {} has it if you want it back."
-msgstr ""
+msgstr "La instantánea {} lo tiene si quieres recuperarlo."
 
 #: src/SnippetsController.cpp:793
 msgid "Shell rejected the change, so it was undone"
-msgstr ""
+msgstr "Shell rechazó el cambio, así que se deshizo"
 
 #: src/Status.cpp:97
 msgid "shell.exe printed nothing."
@@ -4981,55 +4981,55 @@ msgstr "Una copia personal en %APPDATA% se conserva por usuario y sobrevive a la
 
 #: src/TaskbarApps.cpp:575 src/TaskbarApps.cpp:747
 msgid "Registry Editor"
-msgstr ""
+msgstr "Editor del Registro"
 
 #: src/TaskbarApps.cpp:577 src/TaskbarApps.cpp:744
 msgid "Paint"
-msgstr ""
+msgstr "Paint"
 
 #: src/TaskbarApps.cpp:579 src/TaskbarApps.cpp:746
 msgid "Calculator"
-msgstr ""
+msgstr "Calculadora"
 
 #: src/TaskbarApps.cpp:748
 msgid "Notepad"
-msgstr ""
+msgstr "Bloc de notas"
 
 #: src/TaskbarApps.cpp:749
 msgid "File Explorer"
-msgstr ""
+msgstr "Explorador de archivos"
 
 #: src/TaskbarApps.cpp:751
 msgid "Windows PowerShell"
-msgstr ""
+msgstr "Windows PowerShell"
 
 #: src/TaskbarApps.cpp:752
 msgid "Control Panel"
-msgstr ""
+msgstr "Panel de control"
 
 #: src/TaskbarApps.cpp:753
 msgid "Character Map"
-msgstr ""
+msgstr "Mapa de caracteres"
 
 #: src/TaskbarApps.cpp:754
 msgid "Remote Desktop Connection"
-msgstr ""
+msgstr "Conexión a Escritorio remoto"
 
 #: src/TaskbarApps.cpp:755
 msgid "Device Manager"
-msgstr ""
+msgstr "Administrador de dispositivos"
 
 #: src/TaskbarApps.cpp:756
 msgid "Services"
-msgstr ""
+msgstr "Servicios"
 
 #: src/TaskbarApps.cpp:757
 msgid "Disk Management"
-msgstr ""
+msgstr "Administración de discos"
 
 #: src/TaskbarApps.cpp:758
 msgid "Event Viewer"
-msgstr ""
+msgstr "Visor de eventos"
 
 #: src/ThemePresets.cpp:26
 msgid "Default"
@@ -5045,7 +5045,7 @@ msgstr "Shell 1.8"
 
 #: src/ThemePresets.cpp:29
 msgid "The 2023 default: modern, without the blur effect."
-msgstr "El aspecto predeterminado de 2023: moderno, sin el efecto de desenfoque."
+msgstr "El aspecto predeterminado de 2023: moderno, sin el efecto blur."
 
 #: src/ThemePresets.cpp:31
 msgid "Acrylic tinted with the accent colour (README screenshot)."
@@ -5153,15 +5153,15 @@ msgstr "Shell 1.x"
 
 #: src/Tr.cpp:245
 msgid "The file is saved as {}. Save it as UTF-8 and try again."
-msgstr ""
+msgstr "El archivo está guardado como {}. Guárdalo como UTF-8 e inténtalo de nuevo."
 
 #: src/Tr.cpp:252
 msgid "The Plural-Forms line in the file's header can't be read: {}"
-msgstr ""
+msgstr "No se puede leer la línea Plural-Forms de la cabecera del archivo: {}"
 
 #: src/Tr.cpp:309
 msgid "The file can't be opened."
-msgstr ""
+msgstr "No se puede abrir el archivo."
 
 #: src/TrayController.cpp:119
 msgid "Open Nilesoft Shell Pro"
