@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/Abdullah-Masood-05/Shell/discussions
+    about: Ask how to do something, share a menu or talk about an idea in Discussions.
+  - name: Documentation
+    url: https://abdullah-masood-05.github.io/Shell/
+    about: How to install, set up and configure Nilesoft Shell Pro.
