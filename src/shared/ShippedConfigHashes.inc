@@ -101,6 +101,7 @@
 { "imports/taskbar.nss", 0x99e087f28d4784c6ull },
 { "imports/taskbar.nss", 0xa3fc3a961a5e8e9bull },
 { "imports/taskbar.nss", 0xaa58272b97fb3ba1ull },
+{ "imports/taskbar.nss", 0xd52b1b48aba74d41ull },
 { "imports/taskbar.nss", 0xf8bfe8fca601e025ull },
 { "imports/terminal.nss", 0x1897f7a70df8e7f7ull },
 { "imports/terminal.nss", 0x39bee1d0c5f65225ull },
