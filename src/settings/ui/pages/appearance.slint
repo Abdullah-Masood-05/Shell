@@ -82,15 +82,17 @@ component PreviewCard inherits Rectangle {
             spacing: Tokens.s2;
             Segmented {
                 horizontal-stretch: 1;
-                min-option-width: 88px;
+                // Small enough that this row never overflows the card; the labels
+                // elide only when the card is at its narrowest.
+                min-option-width: 64px;
                 options: [@tr("Desktop"), @tr("Preview tab" => "File Explorer")];
                 selected: AppearanceState.preview-context;
                 changed(i) => { AppearanceState.preview-context = i; }
             }
             Segmented {
                 horizontal-stretch: 0;
-                width: 116px;
-                min-option-width: 52px;
+                width: 104px;
+                min-option-width: 46px;
                 options: [@tr("Light"), @tr("Dark")];
                 selected: AppearanceState.preview-dark ? 1 : 0;
                 changed(i) => { AppearanceState.set-preview-dark(i == 1); }
