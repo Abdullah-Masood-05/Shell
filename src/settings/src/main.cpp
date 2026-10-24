@@ -230,11 +230,26 @@ constexpr const wchar_t *appUserModelId = L"Nilesoft.ShellPro";
 // One copy per user session: a second start shows the first one's window (from the tray
 // too) and brings it forward; a second --background start just ends. The mutex name
 // predates the rename and stays, so an older build that is still open counts too.
+//
+// Unless the running copy is an older version: after an update it may still sit in the
+// tray (closing the window keeps it there), and showing it would offer the same update
+// again. It is asked to quit, as the installer does, and this start carries on in its place.
 bool activateExistingInstance(HANDLE &mutex, bool background)
 {
     mutex = CreateMutexW(nullptr, TRUE, (L"Local\\Nilesoft.Shell.Settings" + appchannel::instanceSuffix()).c_str());
     if (GetLastError() != ERROR_ALREADY_EXISTS)
         return false;
+    if (HWND other = TrayIcon::findRunning()) {
+        const auto self = updater::Version::parse(SETTINGS_VERSION).value_or(updater::Version{});
+        const auto running = appchannel::instanceVersion(TrayIcon::titleOf(other));
+        if (mutex && appchannel::onExisting(self, running, true) == appchannel::Existing::Replace &&
+            TrayIcon::quitRunning(other, 15000)) {
+            // Its process ended, so the mutex is free (abandoned): this copy takes it.
+            const DWORD w = WaitForSingleObject(mutex, 5000);
+            if (w == WAIT_OBJECT_0 || w == WAIT_ABANDONED)
+                return false;
+        }
+    }
     if (TrayIcon::signalRunning(!background) || background || !appchannel::instanceSuffix().empty())
         return true;
     // A version before the tray: its window, by title.

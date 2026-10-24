@@ -103,6 +103,34 @@ Decision decide(const updater::Version &running, const std::filesystem::path &ba
                 const std::vector<Candidate> &candidates,
                 const std::function<std::string(const std::filesystem::path &)> &hashOf);
 
+// An app update for `offered` that is installed for this user already and only waits for a
+// restart: the folder of the per-user copy a restart would run (`pending` is decide() for
+// this process, without elevation), if it is that version or newer. Nothing to download.
+std::optional<std::filesystem::path> installedFor(const updater::Version &offered, const Decision &pending);
+
+// The per-user copy a restart of this app would hand off to (decide() for the version
+// `running` and the install folder `baseDir`; nothing is removed). Hashes that copy's exe.
+Decision pendingCopy(const updater::Version &running, const std::filesystem::path &baseDir);
+
+// --- one copy of the app at a time ---------------------------------------------------------
+//
+// The running copy's hidden instance window (TrayIcon.h) has its version in its title, so a
+// newer copy that starts (after an update, the installed exe hands off to it) can tell the
+// older one to quit instead of showing it again. 2.2.0 to 2.2.1 have no version there.
+std::wstring instanceTitle(const updater::Version &v);
+// The version in an instance window's title, nullopt when it has none.
+std::optional<updater::Version> instanceVersion(const std::wstring &title);
+
+enum class Existing
+{
+    Activate, // show the running copy (as before) and end this start
+    Replace,  // ask the running copy to quit, then carry on as the only one
+};
+// A start of `self` found the app running: `running` is its version (nullopt when its
+// instance window doesn't say), `instanceWindow` whether it has that window at all (a
+// version from before the tray has none, and no quit message).
+Existing onExisting(const updater::Version &self, const std::optional<updater::Version> &running, bool instanceWindow);
+
 // The arguments of a command line without the program name (CommandLineToArgvW rules for
 // the first argument), unchanged, so they can be passed on as they are.
 std::wstring argumentsOf(const std::wstring &commandLine);

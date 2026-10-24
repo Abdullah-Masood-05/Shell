@@ -91,7 +91,8 @@ bool TrayController::start(bool background)
     h.label = [this](TrayIcon::Command c) { return label(c); };
     h.quit = [this] { slint::invoke_from_event_loop([this] { hooks_.quit(); }); };
     icon_ = std::make_unique<TrayIcon>(std::move(h));
-    if (!icon_->create()) {
+    // The title says which version runs: a newer copy that starts asks this one to quit.
+    if (!icon_->create(appchannel::instanceTitle(updater::Version::parse(SETTINGS_VERSION).value_or(updater::Version{})))) {
         icon_.reset();
         return false;
     }

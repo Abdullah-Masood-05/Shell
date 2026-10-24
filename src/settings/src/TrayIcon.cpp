@@ -54,7 +54,7 @@ TrayIcon::~TrayIcon()
         DestroyIcon(large_);
 }
 
-bool TrayIcon::create()
+bool TrayIcon::create(const std::wstring &title)
 {
     if (hwnd_)
         return true;
@@ -66,7 +66,7 @@ bool TrayIcon::create()
     wc.lpszClassName = cls.c_str();
     RegisterClassExW(&wc);
     // Not "Nilesoft Shell Pro": older versions look for the main window by that title.
-    hwnd_ = CreateWindowExW(WS_EX_TOOLWINDOW, cls.c_str(), L"Nilesoft Shell Pro background", WS_POPUP, 0, 0, 0, 0,
+    hwnd_ = CreateWindowExW(WS_EX_TOOLWINDOW, cls.c_str(), title.c_str(), WS_POPUP, 0, 0, 0, 0,
                             nullptr, nullptr, inst, this);
     if (!hwnd_)
         return false;
@@ -153,9 +153,34 @@ bool TrayIcon::notify(const std::wstring &title, const std::wstring &text)
 
 std::wstring TrayIcon::windowClass() { return kWindowClass + appchannel::instanceSuffix(); }
 
+HWND TrayIcon::findRunning() { return FindWindowW(windowClass().c_str(), nullptr); }
+
+std::wstring TrayIcon::titleOf(HWND other)
+{
+    // For another process's window this reads the stored title without sending it a
+    // message, so a copy that hangs can't hang this start.
+    wchar_t buf[256]{};
+    int n = GetWindowTextW(other, buf, int(std::size(buf)));
+    return std::wstring(buf, n > 0 ? size_t(n) : 0);
+}
+
+bool TrayIcon::quitRunning(HWND other, DWORD timeoutMs)
+{
+    DWORD pid = 0;
+    GetWindowThreadProcessId(other, &pid);
+    HANDLE process = pid ? OpenProcess(SYNCHRONIZE, FALSE, pid) : nullptr;
+    if (!process)
+        return false;
+    bool ended = false;
+    if (PostMessageW(other, kMsgQuit, 0, 0))
+        ended = WaitForSingleObject(process, timeoutMs) == WAIT_OBJECT_0;
+    CloseHandle(process);
+    return ended;
+}
+
 bool TrayIcon::signalRunning(bool show)
 {
-    HWND other = FindWindowW(windowClass().c_str(), nullptr);
+    HWND other = findRunning();
     if (!other)
         return false;
     if (show) {

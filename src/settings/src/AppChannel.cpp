@@ -224,6 +224,42 @@ Decision decide(const Version &running, const fs::path &baseDir, bool elevated, 
     return d;
 }
 
+std::optional<fs::path> installedFor(const Version &offered, const Decision &pending)
+{
+    if (!pending.exe || updater::compare(pending.version, offered) < 0)
+        return std::nullopt;
+    return pending.exe->parent_path();
+}
+
+Decision pendingCopy(const Version &running, const fs::path &baseDir)
+{
+    return decide(running, baseDir, false, scan(appRoot()), [](const fs::path &p) { return updater::sha256File(p); });
+}
+
+namespace {
+constexpr const wchar_t *kInstanceTitle = L"Nilesoft Shell Pro background";
+}
+
+std::wstring instanceTitle(const Version &v) { return std::wstring(kInstanceTitle) + L" " + widen(v.str()); }
+
+std::optional<Version> instanceVersion(const std::wstring &title)
+{
+    const std::wstring prefix = std::wstring(kInstanceTitle) + L" ";
+    if (title.size() <= prefix.size() || title.compare(0, prefix.size(), prefix) != 0)
+        return std::nullopt;
+    return Version::parse(narrow(title.substr(prefix.size())));
+}
+
+Existing onExisting(const Version &self, const std::optional<Version> &running, bool instanceWindow)
+{
+    if (!instanceWindow)
+        return Existing::Activate;
+    // No version in the title: 2.2.0 to 2.2.1, older than any copy that asks.
+    if (!running || updater::compare(self, *running) > 0)
+        return Existing::Replace;
+    return Existing::Activate;
+}
+
 std::wstring argumentsOf(const std::wstring &cmd)
 {
     size_t i = 0;

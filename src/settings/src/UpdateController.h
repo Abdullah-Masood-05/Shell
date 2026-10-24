@@ -14,6 +14,7 @@
 
 #include "app.h"
 
+#include "AppChannel.h"
 #include "Updater.h"
 #include "Worker.h"
 
@@ -123,6 +124,7 @@ private:
     updater::InstallType installType_ = updater::InstallType::Portable;
     std::filesystem::path installDir_;               // the install folder (AppChannel baseDir())
     std::optional<updater::Version> installedRelease_; // the release of the installed core
+    appchannel::Decision pending_;                    // the per-user copy a restart would run
     std::map<std::string, updater::ManifestResult> manifests_; // by version
     std::string manifestLoading_;                   // the version whose update.json is on its way
     updater::UpdatePlan plan_;
