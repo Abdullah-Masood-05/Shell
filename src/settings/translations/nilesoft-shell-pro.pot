@@ -32,7 +32,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: ui/components/code.slint:330 src/UpdateController.cpp:760 src/UpdateController.cpp:785
+#: ui/components/code.slint:330 src/UpdateController.cpp:771 src/UpdateController.cpp:796
 msgid "{} of {}"
 msgstr ""
 
@@ -97,7 +97,7 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/pages/preferences.slint:269
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/pages/preferences.slint:270
 msgid "Cancel"
 msgstr ""
 
@@ -247,7 +247,7 @@ msgstr ""
 msgid "Backups"
 msgstr ""
 
-#: ui/components/sidebar.slint:116 ui/pages/preferences.slint:342
+#: ui/components/sidebar.slint:116 ui/pages/preferences.slint:343
 msgid "Version {}"
 msgstr ""
 
@@ -400,19 +400,19 @@ msgstr ""
 msgid "Later"
 msgstr ""
 
-#: ui/components/update-banner.slint:47 ui/pages/preferences.slint:260
+#: ui/components/update-banner.slint:47 ui/pages/preferences.slint:261
 msgid "Install with administrator approval"
 msgstr ""
 
-#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:261
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
 msgid "Restart now"
 msgstr ""
 
-#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:261
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
 msgid "Restart to update"
 msgstr ""
 
-#: ui/components/update-banner.slint:49 ui/pages/preferences.slint:262
+#: ui/components/update-banner.slint:49 ui/pages/preferences.slint:263
 msgid "Download and install"
 msgstr ""
 
@@ -421,66 +421,74 @@ msgid "Downloading Nilesoft Shell Pro {}…"
 msgstr ""
 
 #: ui/components/update-banner.slint:103
-msgid "Update ready: Nilesoft Shell Pro {}"
+msgid "Nilesoft Shell Pro {} is installed: restart to finish updating"
 msgstr ""
 
 #: ui/components/update-banner.slint:104
-msgid "Installing Nilesoft Shell Pro {}…"
+msgid "Update ready: Nilesoft Shell Pro {}"
 msgstr ""
 
 #: ui/components/update-banner.slint:105
+msgid "Installing Nilesoft Shell Pro {}…"
+msgstr ""
+
+#: ui/components/update-banner.slint:106
 msgid "Nilesoft Shell Pro {} is available"
 msgstr ""
 
-#: ui/components/update-banner.slint:113
+#: ui/components/update-banner.slint:114
 msgid "You have {}."
 msgstr ""
 
-#: ui/components/update-banner.slint:114
+#: ui/components/update-banner.slint:115
 msgid "Released {}."
 msgstr ""
 
-#: ui/components/update-banner.slint:116
+#: ui/components/update-banner.slint:117
 msgid "It installs for you only, without administrator rights."
 msgstr ""
 
-#: ui/components/update-banner.slint:125
+#: ui/components/update-banner.slint:126
 msgid "This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval."
 msgstr ""
 
-#: ui/components/update-banner.slint:126
+#: ui/components/update-banner.slint:127
 msgid "This update can only be installed with its installer, which installs for all users and needs administrator approval."
 msgstr ""
 
-#: ui/components/update-banner.slint:134
+#: ui/components/update-banner.slint:135
 msgid "Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts."
 msgstr ""
 
-#: ui/components/update-banner.slint:136
+#: ui/components/update-banner.slint:137
 msgid "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
 msgstr ""
 
-#: ui/components/update-banner.slint:137
+#: ui/components/update-banner.slint:138
 msgid "Downloaded and verified. The app closes for a moment and opens again."
 msgstr ""
 
-#: ui/components/update-banner.slint:150
+#: ui/components/update-banner.slint:151
 msgid "{} · checked against SHA256SUMS.txt when done"
 msgstr ""
 
-#: ui/components/update-banner.slint:205
+#: ui/components/update-banner.slint:206
 msgid "Downloading update… {}%"
 msgstr ""
 
-#: ui/components/update-banner.slint:206
-msgid "Update ready: restart to update"
-msgstr ""
-
-#: ui/components/update-banner.slint:207
-msgid "Installing update…"
+#: ui/components/update-banner.slint:207 src/TrayController.cpp:214
+msgid "Restart to finish updating"
 msgstr ""
 
 #: ui/components/update-banner.slint:208
+msgid "Update ready: restart to update"
+msgstr ""
+
+#: ui/components/update-banner.slint:209
+msgid "Installing update…"
+msgstr ""
+
+#: ui/components/update-banner.slint:210
 msgid "Update available: {}"
 msgstr ""
 
@@ -1270,11 +1278,11 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
-#: ui/pages/home.slint:110 ui/pages/home.slint:287 ui/pages/home.slint:110 ui/pages/home.slint:287 src/TrayController.cpp:123
+#: ui/pages/home.slint:110 ui/pages/home.slint:287 ui/pages/home.slint:110 ui/pages/home.slint:287 src/TrayController.cpp:124
 msgid "Restart Explorer"
 msgstr ""
 
-#: ui/pages/home.slint:130 ui/pages/preferences.slint:295
+#: ui/pages/home.slint:130 ui/pages/preferences.slint:296
 msgid "Open Backups"
 msgstr ""
 
@@ -2379,7 +2387,7 @@ msgstr ""
 msgid "Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval."
 msgstr ""
 
-#: ui/pages/preferences.slint:230 src/UpdateController.cpp:616 src/UpdateController.cpp:645
+#: ui/pages/preferences.slint:230 src/UpdateController.cpp:616 src/UpdateController.cpp:649
 msgid "Checking for updates…"
 msgstr ""
 
@@ -2392,78 +2400,82 @@ msgid "Downloading {}…  {}"
 msgstr ""
 
 #: ui/pages/preferences.slint:233
-msgid "Version {} is downloaded and verified"
+msgid "Version {} is installed: restart to finish updating"
 msgstr ""
 
 #: ui/pages/preferences.slint:234
+msgid "Version {} is downloaded and verified"
+msgstr ""
+
+#: ui/pages/preferences.slint:235
 msgid "Installing {}…"
 msgstr ""
 
-#: ui/pages/preferences.slint:236
+#: ui/pages/preferences.slint:237
 msgid "Not checked yet"
 msgstr ""
 
-#: ui/pages/preferences.slint:250
+#: ui/pages/preferences.slint:251
 msgid "Last checked: {}"
 msgstr ""
 
-#: ui/pages/preferences.slint:273
+#: ui/pages/preferences.slint:274
 msgid "Check now"
 msgstr ""
 
-#: ui/pages/preferences.slint:289
+#: ui/pages/preferences.slint:290
 msgid "Reset configuration"
 msgstr ""
 
-#: ui/pages/preferences.slint:290
+#: ui/pages/preferences.slint:291
 msgid "Puts the default menu files back. Your current files are saved in Backups first, so you can undo it."
 msgstr ""
 
-#: ui/pages/preferences.slint:293 src/AppController.cpp:748
+#: ui/pages/preferences.slint:294 src/AppController.cpp:748
 msgid "The default files are back"
 msgstr ""
 
-#: ui/pages/preferences.slint:294
+#: ui/pages/preferences.slint:295
 msgid "Your previous files are saved in Backups. Restore that snapshot there to undo the reset."
 msgstr ""
 
-#: ui/pages/preferences.slint:306
+#: ui/pages/preferences.slint:307
 msgid "Reset to defaults…"
 msgstr ""
 
-#: ui/pages/preferences.slint:313
+#: ui/pages/preferences.slint:314
 msgid "Shell uses the shared config in the install folder, which this app never changes. Create a personal config on Home first; then it can be reset here."
 msgstr ""
 
-#: ui/pages/preferences.slint:314
+#: ui/pages/preferences.slint:315
 msgid "Your config is in a folder you chose ({}). Only the personal config in %APPDATA%\\Nilesoft\\Shell can be reset here."
 msgstr ""
 
-#: ui/pages/preferences.slint:324
+#: ui/pages/preferences.slint:325
 msgid "About"
 msgstr ""
 
-#: ui/pages/preferences.slint:346
+#: ui/pages/preferences.slint:347
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr ""
 
-#: ui/pages/preferences.slint:360
+#: ui/pages/preferences.slint:361
 msgid "Documentation"
 msgstr ""
 
-#: ui/pages/preferences.slint:365
+#: ui/pages/preferences.slint:366
 msgid "Source code"
 msgstr ""
 
-#: ui/pages/preferences.slint:369
+#: ui/pages/preferences.slint:370
 msgid "Report an issue"
 msgstr ""
 
-#: ui/pages/preferences.slint:378
+#: ui/pages/preferences.slint:379
 msgid "Third-party software"
 msgstr ""
 
-#: ui/pages/preferences.slint:383
+#: ui/pages/preferences.slint:384
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr ""
 
@@ -2850,7 +2862,7 @@ msgstr ""
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr ""
 
-#: src/AppController.cpp:641 src/AppController.cpp:646 src/AppController.cpp:651 src/UpdateController.cpp:932
+#: src/AppController.cpp:641 src/AppController.cpp:646 src/AppController.cpp:651 src/UpdateController.cpp:943
 msgid "Waiting for administrator approval…"
 msgstr ""
 
@@ -2878,7 +2890,7 @@ msgstr ""
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr ""
 
-#: src/AppController.cpp:687 src/UpdateController.cpp:959
+#: src/AppController.cpp:687 src/UpdateController.cpp:970
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr ""
 
@@ -5183,35 +5195,39 @@ msgstr ""
 msgid "The file can't be opened."
 msgstr ""
 
-#: src/TrayController.cpp:119
+#: src/TrayController.cpp:120
 msgid "Open Nilesoft Shell Pro"
 msgstr ""
 
-#: src/TrayController.cpp:121
+#: src/TrayController.cpp:122
 msgid "Check for updates"
 msgstr ""
 
-#: src/TrayController.cpp:125
+#: src/TrayController.cpp:126
 msgid "Quit"
 msgstr ""
 
-#: src/TrayController.cpp:214
+#: src/TrayController.cpp:213
+msgid "Nilesoft Shell Pro {} is installed for you. Restart the app to start using it."
+msgstr ""
+
+#: src/TrayController.cpp:223
 msgid "Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new."
 msgstr ""
 
-#: src/TrayController.cpp:216
+#: src/TrayController.cpp:225
 msgid "Nilesoft Shell Pro {} is available. Click to see what's new."
 msgstr ""
 
-#: src/TrayController.cpp:217
+#: src/TrayController.cpp:226
 msgid "Update available"
 msgstr ""
 
-#: src/TrayController.cpp:226
+#: src/TrayController.cpp:235
 msgid "Couldn't check for updates"
 msgstr ""
 
-#: src/TrayController.cpp:228 src/UpdateController.cpp:727
+#: src/TrayController.cpp:237 src/UpdateController.cpp:738
 msgid "You have the latest version."
 msgstr ""
 
@@ -5340,63 +5356,63 @@ msgstr ""
 msgid "Nothing was changed."
 msgstr ""
 
-#: src/UpdateController.cpp:680
+#: src/UpdateController.cpp:684
 msgid "You seem to be offline, so updates couldn't be checked."
 msgstr ""
 
-#: src/UpdateController.cpp:681 src/Updater.cpp:262
+#: src/UpdateController.cpp:685 src/Updater.cpp:262
 msgid "GitHub's limit for update checks was reached. Try again in an hour."
 msgstr ""
 
-#: src/UpdateController.cpp:682
+#: src/UpdateController.cpp:686
 msgid "Couldn't check for updates: {}"
 msgstr ""
 
-#: src/UpdateController.cpp:732 src/UpdateController.cpp:747
+#: src/UpdateController.cpp:743 src/UpdateController.cpp:758
 msgid "This release has no download for this kind of install. Get it from the release page."
 msgstr ""
 
-#: src/UpdateController.cpp:753 src/Updater.cpp:1209
+#: src/UpdateController.cpp:764 src/Updater.cpp:1209
 msgid "Couldn't find %LOCALAPPDATA%."
 msgstr ""
 
-#: src/UpdateController.cpp:761
+#: src/UpdateController.cpp:772
 msgid "Starting…"
 msgstr ""
 
-#: src/UpdateController.cpp:804
+#: src/UpdateController.cpp:815
 msgid "The app package doesn't match update.json."
 msgstr ""
 
-#: src/UpdateController.cpp:828
+#: src/UpdateController.cpp:839
 msgid "Download cancelled."
 msgstr ""
 
-#: src/UpdateController.cpp:834
+#: src/UpdateController.cpp:845
 msgid "The update couldn't be downloaded in the background: {}"
 msgstr ""
 
-#: src/UpdateController.cpp:853 src/UpdateController.cpp:894
+#: src/UpdateController.cpp:864 src/UpdateController.cpp:905
 msgid "Save or discard your changes first: the app closes to install the update."
 msgstr ""
 
-#: src/UpdateController.cpp:881 src/UpdateController.cpp:919
+#: src/UpdateController.cpp:892 src/UpdateController.cpp:930
 msgid "Couldn't start the update helper."
 msgstr ""
 
-#: src/UpdateController.cpp:887
+#: src/UpdateController.cpp:898
 msgid "Restarting…"
 msgstr ""
 
-#: src/UpdateController.cpp:925 src/UpdateController.cpp:956
+#: src/UpdateController.cpp:936 src/UpdateController.cpp:967
 msgid "Installing the update…"
 msgstr ""
 
-#: src/UpdateController.cpp:961
+#: src/UpdateController.cpp:972
 msgid "Couldn't start the installer (error {})."
 msgstr ""
 
-#: src/UpdateController.cpp:980
+#: src/UpdateController.cpp:991
 msgid "Version {} is skipped. Newer versions will still show up."
 msgstr ""
 

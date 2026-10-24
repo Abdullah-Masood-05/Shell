@@ -230,6 +230,7 @@ export component PreferencesPage inherits PageFrame {
                     text: UpdateState.state == "checking" ? @tr("Checking for updates…")
                         : UpdateState.state == "available" ? @tr("Version {} is available", UpdateState.latest-version)
                         : UpdateState.state == "downloading" ? @tr("Downloading {}…  {}", UpdateState.latest-version, UpdateState.progress-text)
+                        : UpdateState.state == "ready" && UpdateState.update-path == "app" ? @tr("Version {} is installed: restart to finish updating", UpdateState.latest-version)
                         : UpdateState.state == "ready" ? @tr("Version {} is downloaded and verified", UpdateState.latest-version)
                         : UpdateState.state == "installing" ? @tr("Installing {}…", UpdateState.latest-version)
                         : UpdateState.message != "" ? UpdateState.message

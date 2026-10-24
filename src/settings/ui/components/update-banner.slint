@@ -100,6 +100,7 @@ export component UpdateBanner inherits Rectangle {
                 spacing: 2px;
                 Text {
                     text: root.st == "downloading" ? @tr("Downloading Nilesoft Shell Pro {}…", root.version)
+                        : root.st == "ready" && UpdateState.update-path == "app" ? @tr("Nilesoft Shell Pro {} is installed: restart to finish updating", root.version)
                         : root.st == "ready" ? @tr("Update ready: Nilesoft Shell Pro {}", root.version)
                         : root.st == "installing" ? @tr("Installing Nilesoft Shell Pro {}…", root.version)
                         : @tr("Nilesoft Shell Pro {} is available", root.version);
@@ -203,6 +204,7 @@ export component UpdateNavHint inherits Rectangle {
         label := Text {
             horizontal-stretch: 1;
             text: root.st == "downloading" ? @tr("Downloading update… {}%", round(UpdateState.progress * 100))
+                : root.st == "ready" && UpdateState.update-path == "app" ? @tr("Restart to finish updating")
                 : root.st == "ready" ? @tr("Update ready: restart to update")
                 : root.st == "installing" ? @tr("Installing update…")
                 : @tr("Update available: {}", UpdateState.latest-version);
