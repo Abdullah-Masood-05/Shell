@@ -715,3 +715,23 @@ TEST_CASE("menu builder: a hand edit that doesn't parse is left alone")
     CHECK(problem.find("Config Editor") != std::string::npos);
     CHECK(menus::handEditProblem(nss::NssDocument::fromText(menus::MenuWriter::generate(sampleTree())), "x").empty());
 }
+
+TEST_CASE("menu builder: a new entry starts with a title in the UI language")
+{
+    using namespace menus;
+    EnglishAfter english;
+    CHECK(makeNode(Kind::Menu).title == "New menu");
+    CHECK(makeNode(Kind::Item).title == "New item");
+    CHECK(makeNode(Kind::Separator).title.empty());
+    REQUIRE(nsp::setLanguage("zh-CN"));
+    CHECK(makeNode(Kind::Menu).title == "新菜单");
+    CHECK(makeNode(Kind::Item).title == "新菜单项");
+    REQUIRE(nsp::setLanguage("es"));
+    CHECK(makeNode(Kind::Menu).title == "Nuevo menú");
+    CHECK(makeNode(Kind::Item).title == "Nuevo elemento");
+
+    // Titles already in the file stay as they are, whatever the language.
+    auto parsed = parse(nss::NssDocument::fromText("item(title=\"New item\" cmd=\"notepad.exe\")\n"));
+    REQUIRE(parsed.tree.size() == 1);
+    CHECK(parsed.tree[0].title == "New item");
+}

@@ -148,7 +148,7 @@ void OpenWithController::bindCallbacks()
             return;
         openwith::App a;
         a.id = "custom";
-        a.name = "New app";
+        a.name = nsp::trc("Default name of a new app in Open with", "New app");
         a.args = "{path}";
         a.enabled = true;
         model_.apps.push_back(a);
