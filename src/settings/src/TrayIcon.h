@@ -33,6 +33,8 @@ public:
     static constexpr const wchar_t *kWindowClass = L"Nilesoft.ShellPro.Instance";
     static constexpr UINT kMsgShow = WM_APP + 2; // wParam 1: show the window, 0: just be there
     static constexpr UINT kMsgQuit = WM_APP + 3;
+    // kWindowClass, with AppChannel's instanceSuffix() (tests).
+    static std::wstring windowClass();
 
     explicit TrayIcon(Handlers handlers);
     ~TrayIcon();

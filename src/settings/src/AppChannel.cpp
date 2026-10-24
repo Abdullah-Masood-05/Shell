@@ -72,6 +72,12 @@ fs::path localAppData()
     return out;
 }
 
+std::wstring instanceSuffix()
+{
+    auto id = env(kInstanceEnv);
+    return id.empty() ? std::wstring() : L"." + id;
+}
+
 fs::path appRoot()
 {
     auto local = localAppData();

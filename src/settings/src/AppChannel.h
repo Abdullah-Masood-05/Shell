@@ -40,6 +40,13 @@ inline constexpr const wchar_t *kFailedName = L"failed-to-start.txt";
 inline constexpr const wchar_t *kHandoffEnv = L"NSP_HANDOFF_EVENT";
 // Set (to anything) to never hand off: for tests and troubleshooting.
 inline constexpr const wchar_t *kNoHandoffEnv = L"NSP_NO_HANDOFF";
+// Set (to a short name) to run apart from the copy of the app that is open: its own
+// single-instance mutex and instance window class. For tests only.
+inline constexpr const wchar_t *kInstanceEnv = L"NSP_INSTANCE_ID";
+
+// "" normally; "." + NSP_INSTANCE_ID when that is set. Appended to the single-instance
+// mutex name and the instance window class.
+std::wstring instanceSuffix();
 
 // %LOCALAPPDATA% (the environment variable first, so tests can point it elsewhere).
 std::filesystem::path localAppData();

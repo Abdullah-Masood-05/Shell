@@ -1,5 +1,7 @@
 #include "TrayIcon.h"
 
+#include "AppChannel.h"
+
 #include <commctrl.h>
 #include <shellapi.h>
 
@@ -60,10 +62,11 @@ bool TrayIcon::create()
     WNDCLASSEXW wc{ sizeof wc };
     wc.lpfnWndProc = &TrayIcon::wndProc;
     wc.hInstance = inst;
-    wc.lpszClassName = kWindowClass;
+    const std::wstring cls = windowClass();
+    wc.lpszClassName = cls.c_str();
     RegisterClassExW(&wc);
     // Not "Nilesoft Shell Pro": older versions look for the main window by that title.
-    hwnd_ = CreateWindowExW(WS_EX_TOOLWINDOW, kWindowClass, L"Nilesoft Shell Pro background", WS_POPUP, 0, 0, 0, 0,
+    hwnd_ = CreateWindowExW(WS_EX_TOOLWINDOW, cls.c_str(), L"Nilesoft Shell Pro background", WS_POPUP, 0, 0, 0, 0,
                             nullptr, nullptr, inst, this);
     if (!hwnd_)
         return false;
@@ -148,9 +151,11 @@ bool TrayIcon::notify(const std::wstring &title, const std::wstring &text)
     return Shell_NotifyIconW(NIM_MODIFY, &nid) != FALSE;
 }
 
+std::wstring TrayIcon::windowClass() { return kWindowClass + appchannel::instanceSuffix(); }
+
 bool TrayIcon::signalRunning(bool show)
 {
-    HWND other = FindWindowW(kWindowClass, nullptr);
+    HWND other = FindWindowW(windowClass().c_str(), nullptr);
     if (!other)
         return false;
     if (show) {

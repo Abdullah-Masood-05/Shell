@@ -232,10 +232,10 @@ constexpr const wchar_t *appUserModelId = L"Nilesoft.ShellPro";
 // predates the rename and stays, so an older build that is still open counts too.
 bool activateExistingInstance(HANDLE &mutex, bool background)
 {
-    mutex = CreateMutexW(nullptr, TRUE, L"Local\\Nilesoft.Shell.Settings");
+    mutex = CreateMutexW(nullptr, TRUE, (L"Local\\Nilesoft.Shell.Settings" + appchannel::instanceSuffix()).c_str());
     if (GetLastError() != ERROR_ALREADY_EXISTS)
         return false;
-    if (TrayIcon::signalRunning(!background) || background)
+    if (TrayIcon::signalRunning(!background) || background || !appchannel::instanceSuffix().empty())
         return true;
     // A version before the tray: its window, by title.
     HWND hwnd = FindWindowW(nullptr, L"Nilesoft Shell Pro");
