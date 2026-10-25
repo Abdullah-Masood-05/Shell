@@ -521,3 +521,86 @@ TEST_CASE("config upgrade from a per-user copy's own shipped files")
     auto none = config_update::runLocal(shipped.wstring(), (shipped / "shell.nss").wstring());
     CHECK(none.configDir.empty());
 }
+// --- a start that finds the app running already --------------------------------------------
+
+TEST_CASE("instance window title: carries the running version")
+{
+    using namespace appchannel;
+    CHECK(instanceTitle(V("2.2.2-beta.1")) == L"Nilesoft Shell Pro background 2.2.2-beta.1");
+    CHECK(instanceVersion(instanceTitle(V("2.2.2"))).value().str() == "2.2.2");
+    CHECK(instanceVersion(instanceTitle(V("2.3.0-rc.2"))).value().str() == "2.3.0-rc.2");
+    // 2.2.0 to 2.2.1: no version in the title
+    CHECK_FALSE(instanceVersion(L"Nilesoft Shell Pro background").has_value());
+    CHECK_FALSE(instanceVersion(L"Nilesoft Shell Pro background ").has_value());
+    CHECK_FALSE(instanceVersion(L"Nilesoft Shell Pro background x.y").has_value());
+    CHECK_FALSE(instanceVersion(L"").has_value());
+}
+
+TEST_CASE("single instance: a newer start replaces an older running copy, never the other way")
+{
+    using appchannel::Existing;
+    using appchannel::onExisting;
+    // the user's case: 2.2.1-beta.1 kept in the tray, 2.2.1 (and later) started from the Start menu
+    CHECK(onExisting(V("2.2.2"), V("2.2.1-beta.1"), true) == Existing::Replace);
+    CHECK(onExisting(V("2.2.2"), V("2.2.2-beta.1"), true) == Existing::Replace); // pre-release is older
+    CHECK(onExisting(V("2.3.0"), V("2.2.9"), true) == Existing::Replace);
+    // the same version, or a newer one running: show that one, as before
+    CHECK(onExisting(V("2.2.2"), V("2.2.2"), true) == Existing::Activate);
+    CHECK(onExisting(V("2.2.2-beta.1"), V("2.2.2"), true) == Existing::Activate);
+    CHECK(onExisting(V("2.2.1"), V("2.2.2"), true) == Existing::Activate);
+    // an instance window without a version: 2.2.0 to 2.2.1, older than any build that asks
+    CHECK(onExisting(V("2.2.2-beta.1"), std::nullopt, true) == Existing::Replace);
+    // no instance window: a version from before the tray (or still starting): leave it
+    CHECK(onExisting(V("2.2.2"), std::nullopt, false) == Existing::Activate);
+}
+
+TEST_CASE("an app update installed for the user and waiting for a restart is not offered again")
+{
+    TempDir tmp;
+    const fs::path base = tmp.path / "Program Files" / "Nilesoft Shell";
+    auto copy = [&](const char *version) {
+        appchannel::Candidate c;
+        c.dir = tmp.path / "app" / version;
+        appchannel::Record r;
+        r.version = V(version);
+        r.base = base;
+        r.files["NilesoftShellPro.exe"] = std::string("hash-") + version;
+        c.record = r;
+        return c;
+    };
+    auto hashOf = [](const fs::path &exe) { return "hash-" + text::narrow(exe.parent_path().filename().wstring()); };
+    auto pending = [&](const char *running, std::vector<appchannel::Candidate> cs) {
+        return appchannel::decide(V(running), base, false, cs, hashOf);
+    };
+
+    // 2.2.1-beta.1 runs (in the tray), 2.2.1 is installed for the user: Restart, no download
+    {
+        auto d = pending("2.2.1-beta.1", { copy("2.2.1") });
+        auto dir = appchannel::installedFor(V("2.2.1"), d);
+        REQUIRE(dir.has_value());
+        CHECK(dir->filename() == "2.2.1");
+    }
+    // a newer copy than the offer counts too (the restart runs the newest)
+    CHECK(appchannel::installedFor(V("2.2.1"), pending("2.2.0", { copy("2.2.2") })).has_value());
+    // an older copy than the offer: download the offer
+    CHECK_FALSE(appchannel::installedFor(V("2.2.2"), pending("2.2.0", { copy("2.2.1") })).has_value());
+    // nothing installed for the user
+    CHECK_FALSE(appchannel::installedFor(V("2.2.1"), pending("2.2.1-beta.1", {})).has_value());
+    // the running version itself (this is the per-user copy): nothing pending
+    CHECK_FALSE(appchannel::installedFor(V("2.2.1"), pending("2.2.1", { copy("2.2.1") })).has_value());
+    // a damaged copy (the exe's hash differs) or one that failed to start: download again
+    {
+        auto c = copy("2.2.1");
+        c.record->files["NilesoftShellPro.exe"] = "other";
+        CHECK_FALSE(appchannel::installedFor(V("2.2.1"), pending("2.2.1-beta.1", { c })).has_value());
+        auto f = copy("2.2.1");
+        f.failed = true;
+        CHECK_FALSE(appchannel::installedFor(V("2.2.1"), pending("2.2.1-beta.1", { f })).has_value());
+    }
+    // a copy that belongs to another install folder
+    {
+        auto c = copy("2.2.1");
+        c.record->base = tmp.path / "elsewhere";
+        CHECK_FALSE(appchannel::installedFor(V("2.2.1"), pending("2.2.1-beta.1", { c })).has_value());
+    }
+}

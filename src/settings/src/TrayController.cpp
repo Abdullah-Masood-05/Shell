@@ -91,7 +91,8 @@ bool TrayController::start(bool background)
     h.label = [this](TrayIcon::Command c) { return label(c); };
     h.quit = [this] { slint::invoke_from_event_loop([this] { hooks_.quit(); }); };
     icon_ = std::make_unique<TrayIcon>(std::move(h));
-    if (!icon_->create()) {
+    // The title says which version runs: a newer copy that starts asks this one to quit.
+    if (!icon_->create(appchannel::instanceTitle(updater::Version::parse(SETTINGS_VERSION).value_or(updater::Version{})))) {
         icon_.reset();
         return false;
     }
@@ -207,6 +208,14 @@ void TrayController::afterCheck(bool manual)
             return;
         // With the window open, the banner on Home says it already.
         const bool windowOpen = ui_->window().is_visible() && !manual;
+        // Installed for this user already (in the background): only a restart is missing.
+        if (sum.appOnly && sum.readyForRestart) {
+            const std::string body = nsp::trf("Nilesoft Shell Pro {} is installed for you. Restart the app to start using it.", version);
+            if (windowOpen || icon_->notify(widen(nsp::tr("Restart to finish updating")), widen(body)))
+                if (persist_)
+                    registry::app::setString(kNotified, widen(version));
+            return;
+        }
         // A core update is only installed with the user's click on Home (it asks for
         // administrator approval there); the notification says so up front.
         const std::string body =

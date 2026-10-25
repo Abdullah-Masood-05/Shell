@@ -1,0 +1,51 @@
+name: Bug report
+description: Something in Nilesoft Shell Pro or its app doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Questions and ideas are welcome in Discussions instead.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The app shows it in Preferences > About, for example 2.2.2.
+      placeholder: "2.2.2"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Press Win+R, type winver and press Enter. For example Windows 11 24H2.
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect to see?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen
+      description: What did you click or do, one step per line?
+      placeholder: |
+        1. Open the app
+        2. Go to ...
+        3. Click ...
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If you can, add a screenshot or a short video. You can drag the files into this box.
+  - type: textarea
+    id: log
+    attributes:
+      label: Log file
+      description: |
+        If Shell or the context menu misbehaves, the log can help. Paste %LOCALAPPDATA%\Nilesoft\Shell\shell.log into the address bar of File Explorer, then drag the file into this box or paste the last lines here.

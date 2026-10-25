@@ -615,9 +615,12 @@ void UpdateController::check(bool manual)
     working_ = true;
     setState("checking", later(nsp::mark("Checking for updates…")));
     auto feed = updater::feedOverride();
-    worker_.post([this, manual, feed] {
+    const auto current = current_;
+    worker_.post([this, manual, feed, current] {
         auto detected = detectInstall();
         auto result = updater::fetchReleases(feed);
+        // An app update installed for this user already, used from the next start.
+        auto pending = appchannel::pendingCopy(current, detected.installDir);
         // Test hook, with a local NSP_UPDATE_FEED only: NSP_UPDATE_INSTALL_TYPE=msi|portable
         // treats this copy as that kind of install (a scratch folder is never under Program Files).
         if (result.local) {
@@ -626,11 +629,12 @@ void UpdateController::check(bool manual)
             if (n > 0 && n < 16)
                 detected.type = _wcsicmp(type, L"msi") == 0 ? updater::InstallType::Msi : updater::InstallType::Portable;
         }
-        slint::invoke_from_event_loop([this, manual, detected, result = std::move(result)]() mutable {
+        slint::invoke_from_event_loop([this, manual, detected, pending, result = std::move(result)]() mutable {
             working_ = false;
             installType_ = detected.type;
             installDir_ = detected.installDir;
             installedRelease_ = detected.installedRelease;
+            pending_ = std::move(pending);
             applyCheck(std::move(result), detected.type, manual);
         });
     });
@@ -721,6 +725,13 @@ void UpdateController::reselect()
             manifest = m->second.manifest;
         }
         plan_ = updater::choosePlan(*found_, installType_, updater::nativeArch(), manifest, installedRelease_);
+        // Installed for this user already (in the background, or by a copy of the app that
+        // has quit since): only a restart is missing. Nothing is downloaded again.
+        if (ready_.empty() && plan_.path == updater::UpdatePath::AppOnly)
+            if (auto dir = appchannel::installedFor(found_->version, pending_)) {
+                ready_ = *dir;
+                readyVersion_ = found_->version.str();
+            }
     }
     showRelease();
     if (!found_) {

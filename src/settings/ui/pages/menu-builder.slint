@@ -630,21 +630,26 @@ export component MenuBuilderPage inherits Rectangle {
                             label: @tr("Icon");
                             HorizontalLayout {
                                 spacing: Tokens.s2;
+                                // The preview: the glyph, or a word when there is none. The box
+                                // grows with the word, so a longer translation needs no shortening.
                                 Rectangle {
-                                    width: 32px;
+                                    width: max(32px, ceil((no-icon.preferred-width + 12px) / 1px) * 1px);
                                     height: 32px;
                                     border-radius: Tokens.radius-sm;
                                     background: Tokens.layer-2;
                                     border-width: 1px;
                                     border-color: Tokens.stroke-strong;
+                                    accessible-role: text;
+                                    accessible-label: BuilderState.node.glyph != "" ? BuilderState.node.image
+                                        : BuilderState.node.image == "" ? @tr("No icon" => "none") : BuilderState.node.image;
                                     Text {
                                         text: BuilderState.node.glyph;
                                         font-family: Glyphs.family;
                                         font-size: 18px;
                                         color: Tokens.text;
                                     }
-                                    if BuilderState.node.glyph == "": Text {
-                                        text: BuilderState.node.image == "" ? @tr("No icon" => "none") : "…";
+                                    no-icon := Text {
+                                        text: BuilderState.node.glyph != "" ? "" : BuilderState.node.image == "" ? @tr("No icon" => "none") : "…";
                                         font-size: Tokens.caption - 1px;
                                         color: Tokens.text-3;
                                     }
@@ -754,8 +759,11 @@ export component MenuBuilderPage inherits Rectangle {
                         }
                         if BuilderState.node.kind == "item": FormRow {
                             label: @tr("Window");
-                            HorizontalLayout {
-                                spacing: Tokens.s4;
+                            // One above the other: side by side, a longer translation of the
+                            // check box pushed the whole form past the panel's edge.
+                            VerticalLayout {
+                                spacing: Tokens.s2;
+                                alignment: start;
                                 ChoiceField {
                                     width: 160px;
                                     field: "window";

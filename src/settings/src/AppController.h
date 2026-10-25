@@ -54,6 +54,8 @@ private:
     void bindCallbacks();
     void refresh(bool quiet);
     void runAction(const std::string &id);
+    // Preferences > Reset configuration: a snapshot in Backups, then `shell.exe -config:reset`.
+    void resetConfig();
     void applyTheme();
     void setTheme(int mode);
     // The Language setting: "" (Windows), "en" or a bundled code. Switches Slint's and the

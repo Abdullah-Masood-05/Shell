@@ -98,6 +98,10 @@ export global AppState {
 
     // Preferences
     in-out property <int> theme-mode;  // 0 system, 1 light, 2 dark
+    // Reset configuration: the confirmation shows; the last reset worked (a banner
+    // links to Backups until it is closed). action("config-reset") runs it.
+    in-out property <bool> reset-confirm-shown;
+    in-out property <bool> reset-done;
     in property <image> shield-icon;   // the Windows UAC shield (stock icon)
     // Language: "Auto", "English", then each bundled language in its own name.
     in property <[string]> language-options;

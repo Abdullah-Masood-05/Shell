@@ -25,6 +25,7 @@ import { SnippetsPage } from "pages/snippets.slint";
 import { UpdateState } from "update-state.slint";
 import { ConfigUpdateState } from "config-update-state.slint";
 import { CompareDialog } from "components/config-update.slint";
+import { ConfirmDialog } from "components/dialog.slint";
 import { MenusState, BuilderState } from "menus-types.slint";
 import { OpenWithState } from "openwith-types.slint";
 import { EditorState } from "editor-types.slint";
@@ -172,6 +173,20 @@ export component AppWindow inherits Window {
         title: AppState.toast-title;
         text: AppState.toast-text;
         close => { AppState.dismiss-toast(); }
+    }
+
+    if AppState.reset-confirm-shown: ConfirmDialog {
+        width: 100%;
+        height: 100%;
+        kind: "warning";
+        title: @tr("Put the default menu files back?");
+        text: @tr("Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups.");
+        confirm-label: @tr("Reset");
+        confirmed => {
+            AppState.reset-confirm-shown = false;
+            AppState.action("config-reset");
+        }
+        cancelled => { AppState.reset-confirm-shown = false; }
     }
 
     if ConfigUpdateState.compare-shown: CompareDialog {

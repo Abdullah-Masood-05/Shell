@@ -264,7 +264,18 @@
 		(see <a href="/docs/installation">Installation</a>).</td></tr>
 </table>
 
+<h5 id="reset">Reset configuration</h5>
+<p><kbd>Reset to defaults…</kbd> puts the default menu files back: your <code>shell.nss</code> and the files in its
+	<code>imports</code> folder are replaced by the ones that came with Shell, and the changes made in this app are
+	undone. Before anything changes, the app saves a snapshot of your current files in <i>Backups</i>; to undo the
+	reset, restore the snapshot named <i>Before reset to defaults</i> there. Files you added yourself are left alone.</p>
+<p>The button works on the personal config in <code>%APPDATA%\Nilesoft\Shell</code>. It is off while Shell uses the
+	shared config in the install folder (create a personal config on <i>Home</i> first) or a config in a folder you
+	chose.</p>
+
 <h5 id="about">About</h5>
 <p>The About card shows the app's version (and the version of <code>shell.exe</code> if it differs), the licence, links
 	to nilesoft.org, the documentation, this fork's source code and its issue tracker (<i>Report an issue</i>), and the
-	third-party software the app uses: Slint, JSON for Modern C++ and Fluent UI System Icons.</p>
+	third-party software the app uses: Slint, JSON for Modern C++ and Fluent UI System Icons. Bug reports go in
+	<a href="https://github.com/Abdullah-Masood-05/Shell/issues/new/choose">Issues</a>; questions and ideas are welcome in
+	<a href="https://github.com/Abdullah-Masood-05/Shell/discussions">Discussions</a>.</p>

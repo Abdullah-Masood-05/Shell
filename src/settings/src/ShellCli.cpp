@@ -159,15 +159,31 @@ CliResult ShellCli::run(const std::vector<std::wstring> &args, DWORD timeoutMs) 
     auto cmd = commandLine(args, true);
     auto dir = exe_.parent_path().wstring();
     PROCESS_INFORMATION pi{};
-    BOOL ok = CreateProcessW(exe_.c_str(), cmd.data(), nullptr, nullptr, TRUE,
-                             CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT |
-                                 (haveAttrs ? EXTENDED_STARTUPINFO_PRESENT : 0),
-                             nullptr, dir.c_str(), &si.StartupInfo, &pi);
+    auto start = [&] {
+        return CreateProcessW(exe_.c_str(), cmd.data(), nullptr, nullptr, TRUE,
+                              CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT |
+                                  (haveAttrs ? EXTENDED_STARTUPINFO_PRESENT : 0),
+                              nullptr, dir.c_str(), &si.StartupInfo, &pi);
+    };
+    BOOL ok = start();
+    DWORD err = ok ? 0 : GetLastError();
+    if (!ok && err == ERROR_ELEVATION_REQUIRED) {
+        // shell.exe asks for no elevation itself, so this is a "Run this program as an
+        // administrator" compatibility flag on it (often left from the original Nilesoft
+        // Shell, keyed by path, so it outlives a reinstall). RunAsInvoker overrides the
+        // flag for this child only; commands that need administrator use runElevated().
+        wchar_t prev[256]{};
+        const DWORD had = GetEnvironmentVariableW(L"__COMPAT_LAYER", prev, 256);
+        SetEnvironmentVariableW(L"__COMPAT_LAYER", L"RunAsInvoker");
+        ok = start();
+        err = ok ? 0 : GetLastError();
+        SetEnvironmentVariableW(L"__COMPAT_LAYER", had > 0 && had < 256 ? prev : nullptr);
+    }
     if (haveAttrs)
         DeleteProcThreadAttributeList(attrs);
     writeEnd.reset(); // the child holds the only write end now
     if (!ok) {
-        r.error = text::widen(nsp::trf("Could not start shell.exe (error {}).", GetLastError()));
+        r.error = text::widen(nsp::trf("Could not start shell.exe (error {}).", err));
         return r;
     }
     r.started = true;

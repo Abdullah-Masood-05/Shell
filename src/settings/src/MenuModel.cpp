@@ -232,10 +232,11 @@ Node makeNode(Kind kind)
 {
     Node n;
     n.kind = kind;
+    // A starting title in the UI language; titles already in the file are never changed.
     if (kind == Kind::Menu)
-        n.title = "New menu";
+        n.title = nsp::trc("Default title of a new menu", "New menu");
     else if (kind == Kind::Item)
-        n.title = "New item";
+        n.title = nsp::trc("Default title of a new item", "New item");
     return n;
 }
 

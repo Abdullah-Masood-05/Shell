@@ -130,7 +130,10 @@ TEST_CASE("store: save writes imports first, keeps encodings, makes .bak and a s
 	CHECK(test::readBytes(snaps[0].dir / "shell.nss") == oldRoot);
 	CHECK(countFiles(dir.path, L".tmp") == 0);
 
-	// Backups are not part of the tree.
+	// Backups are not part of the tree, nor the backup-<time> folders of shell.exe -config:reset.
+	CHECK(store.treeFiles().size() == 3);
+	test::writeBytes(dir / "backup-20261024-120000/shell.nss", "// old\n");
+	test::writeBytes(dir / "backup-20261024-120000/imports/theme.nss", "// old\n");
 	CHECK(store.treeFiles().size() == 3);
 
 	// Restore puts the old files back and snapshots the current state first.
