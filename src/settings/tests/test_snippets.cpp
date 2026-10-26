@@ -103,7 +103,7 @@ TEST_CASE("snippets: the bundled catalog matches src/bin/snippets")
         MESSAGE(e);
     CHECK(catalog.errors.empty());
     CHECK(catalog.snippets.size() >= 8);
-    CHECK(catalog.snippets.size() <= 12);
+    CHECK(catalog.snippets.size() <= 20);
 
     std::set<std::string> ids;
     for (const auto &s : catalog.snippets) {

@@ -205,6 +205,24 @@
 				"zh-CN": { "title": "在 VirusTotal 上查询", "description": "打开文件的 VirusTotal 报告。只发送哈希值，从不上传文件。" },
 				"zh-TW": { "title": "在 VirusTotal 上查詢", "description": "開啟檔案的 VirusTotal 報告。只傳送雜湊值，絕不上傳檔案。" }
 			}
+		},
+		{
+			"id": "quick-tools",
+			"title": "Quick tools",
+			"description": "Copy details about this PC, bookmark a folder and open it again from any right-click, and copy a path with forward slashes, in quotes or as a file URL.",
+			"category": "files",
+			"author": "Nilesoft Shell Pro",
+			"license": "MIT",
+			"source": "https://github.com/Abdullah-Masood-05/Shell/blob/main/src/bin/snippets/quick-tools.nss",
+			"requires": [],
+			"risk": "none",
+			"min_version": "2.3.0",
+			"sha256": "feb9219d0fdbc015244408d23ba35607fa123e8b871622372f33abacc255a88f",
+			"translations": {
+				"zh-CN": { "title": "快捷工具", "description": "复制这台电脑的信息，为文件夹添加书签并可在任意右键菜单中再次打开，以及以正斜杠、带引号或文件 URL 的形式复制路径。" },
+				"zh-TW": { "title": "快速工具", "description": "複製這台電腦的資訊，將資料夾加入書籤並可從任何右鍵選單再次開啟，以及以正斜線、加上引號或檔案 URL 的形式複製路徑。" },
+				"es": { "title": "Herramientas rápidas", "description": "Copia datos de este equipo, guarda una carpeta como marcador para abrirla desde cualquier clic derecho y copia rutas con barras normales, entre comillas o como URL de archivo." }
+			}
 		}
 	]
 }
