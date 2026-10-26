@@ -1346,24 +1346,19 @@ namespace Nilesoft
 						}
 						case IDENT_ITEM:
 						{
-							//theme.item.back.normal.disable
-							if(Id.equals(4, { IDENT_NORMAL, IDENT_SELECT }))
+							// theme.item.{back,text,border}.{normal,select}[.disabled]
+							if(Id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 							{
+								auto &state = Id[2] == IDENT_BACK ? context->theme->back.color
+									: Id[2] == IDENT_BORDER ? context->theme->back.border
+									: context->theme->text.color;
+								// .disable was the old spelling; keep it working.
+								bool dis = Id.equals(4, { IDENT_DISABLED, IDENT_DISABLE });
 								Color color;
 								if(Id[3] == IDENT_NORMAL)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor_dis : context->theme->text.color.nor_dis;
-									else 
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor : context->theme->text.color.nor;
-								}
-								else if(Id[3] == IDENT_SELECT)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel_dis : context->theme->text.color.sel_dis;
-									else
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel : context->theme->text.color.sel;
-								}
+									color = dis ? state.nor_dis : state.nor;
+								else
+									color = dis ? state.sel_dis : state.sel;
 
 								_result = Object(color).move();
 							}

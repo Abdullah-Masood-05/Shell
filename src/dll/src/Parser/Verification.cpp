@@ -1691,11 +1691,11 @@ namespace Nilesoft
 							return check(argc == 0, 1);
 						case IDENT_ITEM:
 						{
-							if(id.equals(2, { IDENT_BACK, IDENT_TEXT }))
+							if(id.equals(2, { IDENT_BACK, IDENT_TEXT, IDENT_BORDER }))
 							{
 								if(id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 								{
-									if(id[4] == IDENT_DISABLE)
+									if(id.equals(4, { IDENT_DISABLED, IDENT_DISABLE }))
 										return check(argc == 0, 4);
 									return check(argc == 0, 3);
 								}
