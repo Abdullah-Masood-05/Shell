@@ -7,7 +7,15 @@
 	<p>Show the input box with the window title and call parameter passed.<br>
 The function returns a non-zero value if the OK button is pressed. Otherwise, it returns zero.</p>
 	<p>Syntax</p>
-	<code>input("Title", "Prompt")</code>
+	<code>input("Title", "Prompt")</code><br>
+	<code>input("Title", "Prompt", "default text")</code>
+	<p>With a list as the fourth argument, the box shows a drop-down list to pick from instead of a text box. The
+		fifth argument is the position of the item picked at first, counting from 0. Without it, or when it is outside
+		the list, the item equal to the default text is picked, else the first one.</p>
+	<code>input("Title", "Pick a size", "", ['Small', 'Medium', 'Large'])</code><br>
+	<code>input("Title", "Pick a size", "Medium", ['Small', 'Medium', 'Large'])</code><br>
+	<code>input("Title", "Pick a size", "", ['Small', 'Medium', 'Large'], 2)</code>
+	<p>When the prompt is empty, the box shows "Prompt:".</p>
 </section>
 
 <section id="input.result" class="my-5">
@@ -15,4 +23,14 @@ The function returns a non-zero value if the OK button is pressed. Otherwise, it
 	<p>Returns the input value resulting from the input box.</p>
 	<p>Syntax</p>
 	<code>input.result</code>
+</section>
+
+<section id="input.selected" class="my-5">
+	<h5>input.selected</h5>
+	<p>Returns the position of the item picked from the drop-down list, counting from 0. It is -1 after a box with a
+		text box, or when the box was cancelled.</p>
+	<p>Syntax</p>
+	<code>input.selected</code>
+	<p>Example</p>
+	<code>item(title='Size' cmd=if(input('Size', 'Pick a size', '', ['Small', 'Medium', 'Large']), msg(input.result + ' is item ' + input.selected)))</code>
 </section>

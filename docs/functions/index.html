@@ -11,9 +11,11 @@
 		menu, the item goes at the first item whose title matches <i>pattern</i>, plus <i>offset</i> (0 = before it,
 		1 = right after it). Patterns separated with <code>|</code> are tried in order; a quoted one
 		(<code>'"WinRAR"'</code>) matches the whole title, in any case, with <code>&amp;</code> ignored. When nothing
-		matches, the item goes to the <i>default position</i> (<code>'top'</code>, <code>'middle'</code>, else the
-		end). Items with the same <code>indexof()</code> keep their order in the file.</p>
-	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code>
+		matches, the item goes to the <i>default position</i>: <code>'top'</code>, <code>'middle'</code>, a number
+		(the position in the menu, counting from 0; past the end means the end), else the end. Items with the same
+		<code>indexof()</code> keep their order in the file.</p>
+	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code><br>
+	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"', 1, 3))</code>
 </section>
 
 <section id="if" class="my-5">
