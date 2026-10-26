@@ -4090,7 +4090,7 @@ msgstr ""
 msgid "These files are read-only here."
 msgstr ""
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:209
+#: src/EditorController.cpp:740 src/ShellCli.cpp:225
 msgid "shell.exe was not found."
 msgstr ""
 
@@ -4818,15 +4818,15 @@ msgstr ""
 msgid "CreatePipe failed."
 msgstr ""
 
-#: src/ShellCli.cpp:170
+#: src/ShellCli.cpp:186
 msgid "Could not start shell.exe (error {})."
 msgstr ""
 
-#: src/ShellCli.cpp:225
+#: src/ShellCli.cpp:241
 msgid "The administrator prompt was cancelled."
 msgstr ""
 
-#: src/ShellCli.cpp:226
+#: src/ShellCli.cpp:242
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr ""
 

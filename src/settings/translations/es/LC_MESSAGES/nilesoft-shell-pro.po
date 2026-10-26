@@ -4135,7 +4135,7 @@ msgstr "Nada que guardar"
 msgid "These files are read-only here."
 msgstr "Estos archivos son de solo lectura aquí."
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:209
+#: src/EditorController.cpp:740 src/ShellCli.cpp:225
 msgid "shell.exe was not found."
 msgstr "No se encontró shell.exe."
 
@@ -4868,15 +4868,15 @@ msgstr "No se pudo crear la configuración personal: {}"
 msgid "CreatePipe failed."
 msgstr "CreatePipe falló."
 
-#: src/ShellCli.cpp:170
+#: src/ShellCli.cpp:186
 msgid "Could not start shell.exe (error {})."
 msgstr "No se pudo iniciar shell.exe (error {})."
 
-#: src/ShellCli.cpp:225
+#: src/ShellCli.cpp:241
 msgid "The administrator prompt was cancelled."
 msgstr "Se canceló la solicitud de administrador."
 
-#: src/ShellCli.cpp:226
+#: src/ShellCli.cpp:242
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr "No se pudo iniciar shell.exe como administrador (error {})."
 
@@ -5746,11 +5746,11 @@ msgstr "Restaurar versiones anteriores"
 #~ msgid "When the app starts, at most once a day."
 #~ msgstr "Al iniciar la aplicación, como máximo una vez al día."
 
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
+
 #~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 #~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
 
 #~ msgid "Couldn't download SHA256SUMS.txt: {}"
 #~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
