@@ -565,6 +565,11 @@ namespace Nilesoft
 		constexpr auto IDENT_UWP = 0x0B88B461U;
 		constexpr auto IDENT_APPX = 0x7C942B9EU;
 		constexpr auto IDENT_FAMILY = 0xFCE61027U;
+		constexpr auto IDENT_LOGO = 0x7C9A2E56U;
+		constexpr auto IDENT_EXECUTABLE = 0x7C422127U;
+		constexpr auto IDENT_ENTRYPOINT = 0x52FECB81U;
+		constexpr auto IDENT_SQUARE150 = 0xA7FB91CCU;
+		constexpr auto IDENT_SQUARE44 = 0xAFC1CE7EU;
 		//
 		// datetime
 		constexpr auto IDENT_DATETIME = 0x0636F3F2U;
@@ -733,6 +738,7 @@ namespace Nilesoft
 		constexpr auto IDENT_TYPE_FIXED = 0x0F706335U;
 		constexpr auto IDENT_TYPE_VHD = 0x0B88B6A7U;
 		constexpr auto IDENT_TYPE_DVD = 0x0B886BE3U;
+		constexpr auto IDENT_TYPE_CD = 0x0059776CU;
 		constexpr auto IDENT_TYPE_USB = 0x0B88B3CFU;
 		constexpr auto IDENT_TYPE_REMOVABLE = 0xD9868142U;
 		constexpr auto IDENT_TYPE_NAMESPACE = 0x3F0BBE32U;
@@ -1403,6 +1409,17 @@ namespace Nilesoft
 		constexpr auto IDENT_DECODE = 0xF87EBD89U;
 		constexpr auto IDENT_ENCODE = 0xFB76C2B3U;
 		constexpr auto IDENT_URL = 0x0B88B3B8U;
+
+		// sys.power / sys.screen / sys.memory / sys.cpu
+		constexpr auto IDENT_POWER = 0x10289E52U;
+		constexpr auto IDENT_BATTERY = 0x6643B780U;
+		constexpr auto IDENT_IS_CHARGING = 0x3708D8E3U;
+		constexpr auto IDENT_IS_AC = 0x0FABBDA4U;
+		constexpr auto IDENT_SCREEN = 0x1B5FFD45U;
+		constexpr auto IDENT_MEMORY = 0x0D82A8DEU;
+		constexpr auto IDENT_TOTAL = 0x1070F309U;
+		constexpr auto IDENT_FREE = 0x7C96F087U;
+		constexpr auto IDENT_CPU = 0x0B8866EDU;
 
 		// End constants
 

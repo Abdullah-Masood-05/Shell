@@ -283,7 +283,7 @@ namespace Nilesoft
 				return {};
 			}
 
-			static bool GetLinkInfo(const std::wstring_view &linkFile, string *path, string *workingDirectory, string *iconLocation = nullptr, int *piicon = nullptr)
+			static bool GetLinkInfo(const std::wstring_view &linkFile, string *path, string *workingDirectory, string *iconLocation = nullptr, int *piicon = nullptr, string *arguments = nullptr)
 			{
 				IComPtr<IShellLinkW> sl;
 				auto hres = ::CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, sl);
@@ -332,6 +332,18 @@ namespace Nilesoft
 									}
 									else
 										iconLocation->release(0);
+								}
+
+								if(arguments)
+								{
+									// Arguments can be far longer than MAX_PATH (INFOTIPSIZE is 1024,
+									// and newer shortcuts go past that); GetArguments truncates.
+									constexpr int cch = 32768;
+									hres = sl->GetArguments(arguments->buffer(cch), cch);
+									if(SUCCEEDED(hres))
+										arguments->release();
+									else
+										arguments->release(0);
 								}
 							}
 						}
