@@ -1868,7 +1868,6 @@ namespace Nilesoft
 						case IDENT_COMMAND_SWITCHER:
 						case IDENT_COMMAND_SEARCH:
 						case IDENT_COMMAND_CASCADE_WINDOWS:
-						case IDENT_COMMAND_REFRESH:
 						case IDENT_COMMAND_TOGGLEEXT:
 						case IDENT_COMMAND_TOGGLEHIDDEN:
 						case IDENT_COMMAND_RESTART_EXPLORER:
@@ -1885,6 +1884,8 @@ namespace Nilesoft
 						case IDENT_COMMAND_GOFORWARD:
 						case IDENT_COMMAND_GOHOME:
 							return check(argc == 0, 1);
+						case IDENT_COMMAND_REFRESH:
+							return check(argc <= 1, 1);
 						case IDENT_COMMAND_COPY:
 						case IDENT_COMMAND_COPY_TO_CLIPBOARD:
 						case IDENT_COMMAND_SLEEP:

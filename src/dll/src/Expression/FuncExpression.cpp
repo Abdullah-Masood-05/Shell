@@ -1760,7 +1760,20 @@ namespace Nilesoft
 							//	Explorer::Refresh();
 							// if(shelldisp())
 							//	shellDisp->RefreshMenu();
-							SendCommand(28931);
+						{
+							// command.refresh(1): straight to the window the menu opened on.
+							// command.refresh(2): also rebuild the icon cache (ie4uinit -show).
+							auto mode = Arguments.size() > 0 ? eval_arg(0).to_number<int>() : 0;
+							if(mode == 1 && context->wnd.owner)
+								::PostMessageW(context->wnd.owner, WM_COMMAND, 28931, 0);
+							else
+								SendCommand(28931);
+							if(mode == 2)
+							{
+								auto ie4uinit = Path::GetKnownFolder(FOLDERID_System).trim_end(L"\\/").append(L"\\ie4uinit.exe").move();
+								::ShellExecuteW(nullptr, nullptr, ie4uinit.c_str(), L"-show", nullptr, SW_HIDE);
+							}
+						}
 							// press DOWN "Alt-Tab"
 
 							//Sendkey(VK_F5);
