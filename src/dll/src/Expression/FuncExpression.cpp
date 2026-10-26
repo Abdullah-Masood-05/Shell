@@ -1026,38 +1026,38 @@ namespace Nilesoft
 					switch(Id[1])
 					{
 						case IDENT_TYPE_FILE:
-							_result = IO::PathType::File; 
+							_result = (int32_t)IO::PathType::File;
 							break;
 						case IDENT_TYPE_DIR:
 						case IDENT_TYPE_DIRECTORY:
-							_result = IO::PathType::Directory;
+							_result = (int32_t)IO::PathType::Directory;
 							break;
 						case IDENT_TYPE_DRIVE:
-							_result = IO::PathType::Drive;
+							_result = (int32_t)IO::PathType::Drive;
 							break;
 						case IDENT_TYPE_NAMESPACE:
-							_result = IO::PathType::Namespace;
+							_result = (int32_t)IO::PathType::Namespace;
 							break;
 						case IDENT_TYPE_DESKTOP:
-							_result = IO::PathType::Desktop;
+							_result = (int32_t)IO::PathType::Desktop;
 							break;
 						case IDENT_TYPE_FIXED:
-							_result = IO::PathType::Fixed;
+							_result = (int32_t)IO::PathType::Fixed;
 							break;
 						case IDENT_TYPE_DVD:
-							_result = IO::PathType::DVD;
+							_result = (int32_t)IO::PathType::DVD;
 							break;
 						case IDENT_TYPE_USB:
-							_result = IO::PathType::USB;
+							_result = (int32_t)IO::PathType::USB;
 							break;
 						case IDENT_TYPE_VHD:
-							_result = IO::PathType::VHD;
+							_result = (int32_t)IO::PathType::VHD;
 							break; 
 						case IDENT_TYPE_REMOTE:
-							_result = IO::PathType::Remote;
+							_result = (int32_t)IO::PathType::Remote;
 							break;
 						case IDENT_TYPE_TASKBAR:
-							_result = IO::PathType::Taskbar;
+							_result = (int32_t)IO::PathType::Taskbar;
 							break;
 						case IDENT_TYPE_BACK:
 						{
@@ -1065,40 +1065,52 @@ namespace Nilesoft
 							{
 								case IDENT_TYPE_DIR:
 								case IDENT_TYPE_DIRECTORY:
-									_result = IO::PathType::Back_Directory;
+									_result = (int32_t)IO::PathType::Back_Directory;
 									break;
 								case IDENT_TYPE_DRIVE:
-									_result = IO::PathType::Back_Drive;
+									_result = (int32_t)IO::PathType::Back_Drive;
 									break;
 								case IDENT_TYPE_NAMESPACE:
-									_result = IO::PathType::Back_Namespace;
+									_result = (int32_t)IO::PathType::Back_Namespace;
 									break;
 								case IDENT_TYPE_FIXED:
-									_result = IO::PathType::Back_Fixed;
+									_result = (int32_t)IO::PathType::Back_Fixed;
 									break;
 								case IDENT_TYPE_DVD:
-									_result = IO::PathType::Back_DVD;
+									_result = (int32_t)IO::PathType::Back_DVD;
 									break;
 								case IDENT_TYPE_USB:
-									_result = IO::PathType::Back_USB;
+									_result = (int32_t)IO::PathType::Back_USB;
 									break;
 								case IDENT_TYPE_VHD:
-									_result = IO::PathType::Back_VHD;
+									_result = (int32_t)IO::PathType::Back_VHD;
 									break;
 								case IDENT_TYPE_REMOTE:
-									_result = IO::PathType::Back_Remote;
+									_result = (int32_t)IO::PathType::Back_Remote;
+									break;
+								case IDENT_TYPE_REMOVABLE:
+									_result = (int32_t)IO::PathType::Back_Removable;
 									break;
 								case IDENT_ZERO:
-									_result = IO::PathType::Back;
+									_result = (int32_t)IO::PathType::Back;
 									break;
 								default:
-									_result = IO::PathType::Unknown;
+									_result = (int32_t)IO::PathType::Unknown;
 									break;
 							}
 							break;
 						}
+						case IDENT_TYPE_COMPUTER:
+							_result = (int32_t)IO::PathType::Computer;
+							break;
+						case IDENT_TYPE_RECYCLEBIN:
+							_result = (int32_t)IO::PathType::Recyclebin;
+							break;
+						case IDENT_TYPE_REMOVABLE:
+							_result = (int32_t)IO::PathType::Removable;
+							break;
 						default:
-							_result = IO::PathType::Unknown;
+							_result = (int32_t)IO::PathType::Unknown;
 							break;
 					}
 					return _result.move();
