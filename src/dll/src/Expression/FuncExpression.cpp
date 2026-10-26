@@ -514,6 +514,8 @@ namespace Nilesoft
 							case IDENT_WINDOW_HIDDEN:
 								_result = SW_HIDE;
 								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
 							case IDENT_NORMAL:
 								_result = SW_SHOWNORMAL;
 								break;
@@ -553,7 +555,31 @@ namespace Nilesoft
 				}
 				case IDENT_SHELL:
 				{
-					if(context->Runtime && argc > 0)
+					if(Id.length() > 1)
+					{
+						// shell.invoked and the shell.* window constants, same as cmd.*.
+						switch(Id[1])
+						{
+							case IDENT_CMD_INVOKED:
+								_result = context->invoked;
+								break;
+							case IDENT_WINDOW_HIDDEN:
+								_result = SW_HIDE;
+								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
+							case IDENT_NORMAL:
+								_result = SW_SHOWNORMAL;
+								break;
+							case IDENT_MINIMIZED:
+								_result = SW_SHOWMINIMIZED;
+								break;
+							case IDENT_MAXIMIZED:
+								_result = SW_SHOWMAXIMIZED;
+								break;
+						}
+					}
+					else if(context->Runtime && argc > 0)
 					{
 						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
 						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
@@ -1026,38 +1052,38 @@ namespace Nilesoft
 					switch(Id[1])
 					{
 						case IDENT_TYPE_FILE:
-							_result = IO::PathType::File; 
+							_result = (int32_t)IO::PathType::File;
 							break;
 						case IDENT_TYPE_DIR:
 						case IDENT_TYPE_DIRECTORY:
-							_result = IO::PathType::Directory;
+							_result = (int32_t)IO::PathType::Directory;
 							break;
 						case IDENT_TYPE_DRIVE:
-							_result = IO::PathType::Drive;
+							_result = (int32_t)IO::PathType::Drive;
 							break;
 						case IDENT_TYPE_NAMESPACE:
-							_result = IO::PathType::Namespace;
+							_result = (int32_t)IO::PathType::Namespace;
 							break;
 						case IDENT_TYPE_DESKTOP:
-							_result = IO::PathType::Desktop;
+							_result = (int32_t)IO::PathType::Desktop;
 							break;
 						case IDENT_TYPE_FIXED:
-							_result = IO::PathType::Fixed;
+							_result = (int32_t)IO::PathType::Fixed;
 							break;
 						case IDENT_TYPE_DVD:
-							_result = IO::PathType::DVD;
+							_result = (int32_t)IO::PathType::DVD;
 							break;
 						case IDENT_TYPE_USB:
-							_result = IO::PathType::USB;
+							_result = (int32_t)IO::PathType::USB;
 							break;
 						case IDENT_TYPE_VHD:
-							_result = IO::PathType::VHD;
+							_result = (int32_t)IO::PathType::VHD;
 							break; 
 						case IDENT_TYPE_REMOTE:
-							_result = IO::PathType::Remote;
+							_result = (int32_t)IO::PathType::Remote;
 							break;
 						case IDENT_TYPE_TASKBAR:
-							_result = IO::PathType::Taskbar;
+							_result = (int32_t)IO::PathType::Taskbar;
 							break;
 						case IDENT_TYPE_BACK:
 						{
@@ -1065,40 +1091,52 @@ namespace Nilesoft
 							{
 								case IDENT_TYPE_DIR:
 								case IDENT_TYPE_DIRECTORY:
-									_result = IO::PathType::Back_Directory;
+									_result = (int32_t)IO::PathType::Back_Directory;
 									break;
 								case IDENT_TYPE_DRIVE:
-									_result = IO::PathType::Back_Drive;
+									_result = (int32_t)IO::PathType::Back_Drive;
 									break;
 								case IDENT_TYPE_NAMESPACE:
-									_result = IO::PathType::Back_Namespace;
+									_result = (int32_t)IO::PathType::Back_Namespace;
 									break;
 								case IDENT_TYPE_FIXED:
-									_result = IO::PathType::Back_Fixed;
+									_result = (int32_t)IO::PathType::Back_Fixed;
 									break;
 								case IDENT_TYPE_DVD:
-									_result = IO::PathType::Back_DVD;
+									_result = (int32_t)IO::PathType::Back_DVD;
 									break;
 								case IDENT_TYPE_USB:
-									_result = IO::PathType::Back_USB;
+									_result = (int32_t)IO::PathType::Back_USB;
 									break;
 								case IDENT_TYPE_VHD:
-									_result = IO::PathType::Back_VHD;
+									_result = (int32_t)IO::PathType::Back_VHD;
 									break;
 								case IDENT_TYPE_REMOTE:
-									_result = IO::PathType::Back_Remote;
+									_result = (int32_t)IO::PathType::Back_Remote;
+									break;
+								case IDENT_TYPE_REMOVABLE:
+									_result = (int32_t)IO::PathType::Back_Removable;
 									break;
 								case IDENT_ZERO:
-									_result = IO::PathType::Back;
+									_result = (int32_t)IO::PathType::Back;
 									break;
 								default:
-									_result = IO::PathType::Unknown;
+									_result = (int32_t)IO::PathType::Unknown;
 									break;
 							}
 							break;
 						}
+						case IDENT_TYPE_COMPUTER:
+							_result = (int32_t)IO::PathType::Computer;
+							break;
+						case IDENT_TYPE_RECYCLEBIN:
+							_result = (int32_t)IO::PathType::Recyclebin;
+							break;
+						case IDENT_TYPE_REMOVABLE:
+							_result = (int32_t)IO::PathType::Removable;
+							break;
 						default:
-							_result = IO::PathType::Unknown;
+							_result = (int32_t)IO::PathType::Unknown;
 							break;
 					}
 					return _result.move();
@@ -1308,24 +1346,19 @@ namespace Nilesoft
 						}
 						case IDENT_ITEM:
 						{
-							//theme.item.back.normal.disable
-							if(Id.equals(4, { IDENT_NORMAL, IDENT_SELECT }))
+							// theme.item.{back,text,border}.{normal,select}[.disabled]
+							if(Id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 							{
+								auto &state = Id[2] == IDENT_BACK ? context->theme->back.color
+									: Id[2] == IDENT_BORDER ? context->theme->back.border
+									: context->theme->text.color;
+								// .disable was the old spelling; keep it working.
+								bool dis = Id.equals(4, { IDENT_DISABLED, IDENT_DISABLE });
 								Color color;
 								if(Id[3] == IDENT_NORMAL)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor_dis : context->theme->text.color.nor_dis;
-									else 
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor : context->theme->text.color.nor;
-								}
-								else if(Id[3] == IDENT_SELECT)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel_dis : context->theme->text.color.sel_dis;
-									else
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel : context->theme->text.color.sel;
-								}
+									color = dis ? state.nor_dis : state.nor;
+								else
+									color = dis ? state.sel_dis : state.sel;
 
 								_result = Object(color).move();
 							}
@@ -2722,13 +2755,24 @@ namespace Nilesoft
 					auto t = PathType::Unknown;
 
 					if(argc == 0)
-						t = sel->Get(ii)->Type;
+					{
+						if(auto p = sel->Get(ii); p)
+							t = p->Type;
+					}
 					else if(argc > 0)
 					{
 						Object a1 = eval_arg(0);
 
+						// sel.type(n): the type of item n; type.unknown past the end of the selection.
 						if(a1.is_number())
-							t = sel->Get(a1.to_number<size_t>())->Type;
+						{
+							auto n = a1.to_number<int64_t>();
+							if(n >= 0)
+							{
+								if(auto p = sel->Get(static_cast<size_t>(n)); p)
+									t = p->Type;
+							}
+						}
 
 						switch(t)
 						{
@@ -3098,6 +3142,61 @@ namespace Nilesoft
 				case IDENT_ISNAMESPACE:
 					_result = Path::IsNameSpace(arg0);
 					break;
+				case IDENT_TYPE:
+				{
+					// Same numbers as sel.type (and the type.* constants).
+					auto t = IO::PathType::Unknown;
+					auto len = arg0.length();
+					if(len >= 2 && len <= 3 && arg0[1] == L':' && std::iswalpha(arg0[0]) &&
+					   (len == 2 || arg0[2] == L'\\' || arg0[2] == L'/'))
+					{
+						string root = arg0.substr(0, 2).append(L"\\").move();
+						switch(::GetDriveTypeW(root))
+						{
+							case DRIVE_NO_ROOT_DIR:
+							case DRIVE_UNKNOWN:
+								break;
+							case DRIVE_FIXED:
+								t = IO::PathType::Fixed;
+								break;
+							case DRIVE_CDROM:
+								t = IO::PathType::DVD;
+								break;
+							case DRIVE_REMOTE:
+								t = IO::PathType::Remote;
+								break;
+							case DRIVE_REMOVABLE:
+								switch(IO::GetTypeOfDrive(root))
+								{
+									case BusTypeVirtual:
+									case BusTypeFileBackedVirtual:
+										t = IO::PathType::VHD;
+										break;
+									case BusTypeUsb:
+										t = IO::PathType::USB;
+										break;
+									default:
+										t = IO::PathType::Removable;
+										break;
+								}
+								break;
+							default:
+								t = IO::PathType::Drive;
+								break;
+						}
+					}
+					else if(!arg0.empty())
+					{
+						if(Path::IsNameSpace(arg0))
+							t = IO::PathType::Namespace;
+						else if(Path::IsDirectoryExists(arg0))
+							t = IO::PathType::Directory;
+						else if(Path::IsFileExists(arg0))
+							t = IO::PathType::File;
+					}
+					_result = (int32_t)t;
+					break;
+				}
 				case IDENT_ISEXE:
 					_result = Path::IsExe(arg0);
 					break;
@@ -4268,13 +4367,13 @@ namespace Nilesoft
 					break;
 				}
 				case IDENT_IS7ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 1;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 1);
 					break;
 				case IDENT_IS8ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 2;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 2);
 					break;
 				case IDENT_IS81ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 3;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 3);
 					break;
 				case IDENT_IS10ORGREATER:
 					_result = ver->Major >= 10;
@@ -4930,8 +5029,26 @@ namespace Nilesoft
 				}
 				case IDENT_SPLIT:
 				{
+					// Each item is trimmed; empty items (as in 'a,,b') are skipped.
+					// string::split treats a doubled delimiter as an escaped one, so
+					// 'a,,b' used to come back as the single item 'a,b'.
 					std::vector<string> list;
-					str.split(list, eval_arg(1).to_string()[0]);
+					string delim = eval_arg(1).to_string().move();
+					string value;
+					auto push = [&]()
+					{
+						if(!value.trim().empty())
+							list.emplace_back(value.move());
+						value = nullptr;
+					};
+					for(size_t i = 0; i < str.length(); i++)
+					{
+						if(!delim.empty() && str[i] == delim[0])
+							push();
+						else
+							value += str[i];
+					}
+					push();
 					if(!list.empty())
 						_result.from(list);
 					break;
@@ -5314,6 +5431,25 @@ namespace Nilesoft
 							if(key.get_value(name, &dwtype, &cbdata, &value))
 								_result = value;
 						}
+						else if(dwtype == REG_BINARY)
+						{
+							// The bytes as a hex string, two digits per byte ("0A1B").
+							uint32_t type = REG_NONE;
+							if(argc == 3 && !key.get_value(name, &type, &cbdata))
+								return;
+							std::vector<uint8_t> bytes(cbdata);
+							if(key.get_value(name, &type, &cbdata, bytes.empty() ? nullptr : bytes.data()))
+							{
+								constexpr wchar_t digits[] = L"0123456789ABCDEF";
+								string hex;
+								for(uint32_t i = 0; i < cbdata && i < bytes.size(); i++)
+								{
+									hex += digits[bytes[i] >> 4];
+									hex += digits[bytes[i] & 0x0F];
+								}
+								_result = hex.move();
+							}
+						}
 					}
 				}
 				else if(Id[1] == IDENT_SET)
@@ -5346,6 +5482,39 @@ namespace Nilesoft
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint32_t>());
 					else if(dwtype == REG_QWORD)
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint64_t>());
+					else if(dwtype == REG_BINARY)
+					{
+						// A hex string, two digits per byte; spaces, commas and dashes
+						// between bytes are ignored. Anything else writes nothing.
+						string hex = value.to_string().move();
+						std::vector<uint8_t> bytes;
+						int hi = -1;
+						bool ok = true;
+						for(size_t i = 0; ok && i < hex.length(); i++)
+						{
+							auto ch = hex[i];
+							int d = -1;
+							if(ch >= L'0' && ch <= L'9') d = ch - L'0';
+							else if(ch >= L'a' && ch <= L'f') d = ch - L'a' + 10;
+							else if(ch >= L'A' && ch <= L'F') d = ch - L'A' + 10;
+							else if(hi < 0 && (ch == L' ' || ch == L',' || ch == L'-'))
+								continue;
+							else
+								ok = false;
+							if(d < 0)
+								continue;
+							if(hi < 0)
+								hi = d;
+							else
+							{
+								bytes.push_back(static_cast<uint8_t>((hi << 4) | d));
+								hi = -1;
+							}
+						}
+						if(ok && hi < 0)
+							_result = Registry::SetKeyValue(root_key, sub_key, name, REG_BINARY,
+															  bytes.empty() ? nullptr : bytes.data(), bytes.size());
+					}
 					else if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
 					{
 						string v = value.to_string().move();
@@ -5370,19 +5539,37 @@ namespace Nilesoft
 					{
 						std::vector<string> list;
 
+						// Names can be longer than MAX_PATH (values up to 16383
+						// characters), so size the buffer from the key, 260 at least.
+						DWORD max_key_name = 0, max_value_name = 0;
+						::RegQueryInfoKeyW(key, nullptr, nullptr, nullptr, nullptr, &max_key_name,
+										   nullptr, nullptr, &max_value_name, nullptr, nullptr, nullptr);
+						DWORD capacity = std::max<DWORD>(260, (Id[1] == IDENT_KEYS ? max_key_name : max_value_name) + 1);
+
 						LSTATUS retCode = ERROR_SUCCESS;
 						for(auto i = 0u; retCode == ERROR_SUCCESS; i++)
 						{
-							DWORD name_length = 260;
-							string name(name_length);
+							for(;;)
+							{
+								DWORD name_length = capacity;
+								string name(name_length);
 
-							if(Id[1] == IDENT_KEYS)
-								retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							else
-								retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							
-							if(retCode == ERROR_SUCCESS)
-								list.push_back(name.release(name_length).move());
+								if(Id[1] == IDENT_KEYS)
+									retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+								else
+									retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+
+								// A longer name was added while listing: grow and retry once more.
+								if(retCode == ERROR_MORE_DATA && capacity < 32768)
+								{
+									capacity = 32768;
+									continue;
+								}
+
+								if(retCode == ERROR_SUCCESS)
+									list.push_back(name.release(name_length).move());
+								break;
+							}
 						}
 
 						key.Close();
@@ -5679,8 +5866,9 @@ namespace Nilesoft
 					uint8_t r = eval_arg(0);
 					uint8_t g = eval_arg(1);
 					uint8_t b = eval_arg(2);
-					uint8_t a = argc == 4 ? 0xff : eval_arg(3).to_number<uint8_t>();
-					color = Color(r, g, b, a).to_ARGB();
+					uint8_t a = argc >= 4 ? eval_arg(3).to_number<uint8_t>() : 0xff;
+					// Same byte order as color.rgba (0xAABBGGRR).
+					color = Color(r, g, b, a).to_ABGR();
 				}
 				return color.inner(PrimitiveType::Color).move();
 			}
@@ -5710,14 +5898,15 @@ namespace Nilesoft
 			}
 			else if(Id[1] == IDENT_COLOR_RANDOM)
 			{
-				uint8_t min = argc == 1 ? 0 : eval_arg(0).to_number<uint8_t>();
-				uint8_t max = eval_arg(argc == 1 ? 0 : 1).to_number<uint8_t>();
+				// color.random = any color, color.random(max), color.random(min, max).
+				uint8_t min = argc >= 2 ? eval_arg(0).to_number<uint8_t>() : 0;
+				uint8_t max = argc == 0 ? 255 : eval_arg(argc >= 2 ? 1 : 0).to_number<uint8_t>();
 
-				auto r = Environment::RandomNumber(min, max);
-				auto g = Environment::RandomNumber(min, max);
-				auto b = Environment::RandomNumber(min, max);
+				auto r = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto g = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto b = static_cast<uint8_t>(Environment::RandomNumber(min, max));
 
-				Object color = RGB(r, g, b);
+				Object color = Color(r, g, b, 255).to_ABGR();
 				return color.inner(PrimitiveType::Color).move();
 			}
 			else if(Id[1] == IDENT_COLOR_INVERT)
@@ -5885,30 +6074,10 @@ namespace Nilesoft
 			if(var)
 			{
 				obj = context->Eval(var).move();
-				/*if(obj)
-				{
-					if(Array && !obj.is_default())
-					{
-						MB(0);
-						if(Object oa = context->Eval(Array).move(); oa.is_number())
-						{
-							int ai = oa;
-							if(ai >= 0)
-							{
-								if(obj.is_array(true))
-								{
-									Object obj_ret2;
-									obj.get(ai + 1, obj_ret2);
-									obj = obj_ret2.move();
-								}
-								else
-								{
-									obj = obj.to_string()[ai];
-								}
-							}
-						}
-					}
-				}*/
+				// $var[N] on a runtime or local variable: element N of an array,
+				// or character N of a string (null when N is past the end).
+				if(Array)
+					context->eval_object(Array, obj);
 			}
 			return var != nullptr;
 		}

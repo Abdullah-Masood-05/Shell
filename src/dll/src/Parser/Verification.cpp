@@ -715,13 +715,18 @@ namespace Nilesoft
 							{
 								case IDENT_TIME_MS:
 								case IDENT_TIME_MILLISECONDS:
+								case IDENT_TIME_S:
 								case IDENT_TIME_SECOND:
 								case IDENT_TIME_MIN:
 								case IDENT_TIME_MINUTE:
+								case IDENT_TIME_H:
 								case IDENT_TIME_HOUR:
 								case IDENT_TIME_PM:
+								case IDENT_DATE_D:
 								case IDENT_DATE_DAY:
+								case IDENT_DATE_DW:
 								case IDENT_DATE_DAYOFWEEK:
+								case IDENT_DATE_M:
 								case IDENT_DATE_MONTH:
 								case IDENT_DATE_Y:
 								case IDENT_DATE_YEAR:
@@ -1691,11 +1696,11 @@ namespace Nilesoft
 							return check(argc == 0, 1);
 						case IDENT_ITEM:
 						{
-							if(id.equals(2, { IDENT_BACK, IDENT_TEXT }))
+							if(id.equals(2, { IDENT_BACK, IDENT_TEXT, IDENT_BORDER }))
 							{
 								if(id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 								{
-									if(id[4] == IDENT_DISABLE)
+									if(id.equals(4, { IDENT_DISABLED, IDENT_DISABLE }))
 										return check(argc == 0, 4);
 									return check(argc == 0, 3);
 								}

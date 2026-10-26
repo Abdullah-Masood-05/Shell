@@ -378,7 +378,13 @@ namespace Nilesoft
 						}
 						else
 						{
-							obj = obj.to_string()[ai];
+							// Character ai of the string; null past the end (this used to
+							// read past the end of the buffer).
+							string str = obj.to_string().move();
+							if(static_cast<size_t>(ai) < str.length())
+								obj = str.substr(static_cast<size_t>(ai), 1).move();
+							else
+								obj = nullptr;
 						}
 					}
 				}

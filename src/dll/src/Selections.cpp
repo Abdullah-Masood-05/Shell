@@ -441,6 +441,7 @@ namespace Nilesoft
 				drives += types[FSO_DRIVE_FIXED];
 				drives += types[FSO_DRIVE_USB];
 				drives += types[FSO_DRIVE_VHD];
+				drives += types[FSO_DRIVE_DVD];
 				drives += types[FSO_DRIVE_REMOVABLE];
 				drives += types[FSO_DRIVE_REMOTE];
 			}
