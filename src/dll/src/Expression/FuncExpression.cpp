@@ -3110,6 +3110,61 @@ namespace Nilesoft
 				case IDENT_ISNAMESPACE:
 					_result = Path::IsNameSpace(arg0);
 					break;
+				case IDENT_TYPE:
+				{
+					// Same numbers as sel.type (and the type.* constants).
+					auto t = IO::PathType::Unknown;
+					auto len = arg0.length();
+					if(len >= 2 && len <= 3 && arg0[1] == L':' && std::iswalpha(arg0[0]) &&
+					   (len == 2 || arg0[2] == L'\\' || arg0[2] == L'/'))
+					{
+						string root = arg0.substr(0, 2).append(L"\\").move();
+						switch(::GetDriveTypeW(root))
+						{
+							case DRIVE_NO_ROOT_DIR:
+							case DRIVE_UNKNOWN:
+								break;
+							case DRIVE_FIXED:
+								t = IO::PathType::Fixed;
+								break;
+							case DRIVE_CDROM:
+								t = IO::PathType::DVD;
+								break;
+							case DRIVE_REMOTE:
+								t = IO::PathType::Remote;
+								break;
+							case DRIVE_REMOVABLE:
+								switch(IO::GetTypeOfDrive(root))
+								{
+									case BusTypeVirtual:
+									case BusTypeFileBackedVirtual:
+										t = IO::PathType::VHD;
+										break;
+									case BusTypeUsb:
+										t = IO::PathType::USB;
+										break;
+									default:
+										t = IO::PathType::Removable;
+										break;
+								}
+								break;
+							default:
+								t = IO::PathType::Drive;
+								break;
+						}
+					}
+					else if(!arg0.empty())
+					{
+						if(Path::IsNameSpace(arg0))
+							t = IO::PathType::Namespace;
+						else if(Path::IsDirectoryExists(arg0))
+							t = IO::PathType::Directory;
+						else if(Path::IsFileExists(arg0))
+							t = IO::PathType::File;
+					}
+					_result = (int32_t)t;
+					break;
+				}
 				case IDENT_ISEXE:
 					_result = Path::IsExe(arg0);
 					break;
