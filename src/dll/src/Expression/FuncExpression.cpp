@@ -3111,11 +3111,22 @@ namespace Nilesoft
 						_result = Path::GetKnownFolder(id).move();
 					break;
 				case IDENT_ABSOLUTE:
-					//std::filesystem::path(arg0.c_str()).absolute_path();
-					break;
 				case IDENT_RELATIVE:
-				//	std::filesystem::path(arg0.c_str()).relative_path();
+				{
+					// path.absolute(path[, base]) / path.relative(path[, base]): base is
+					// the folder the menu was opened in, or the second argument (itself
+					// relative to that folder).
+					std::wstring base;
+					if(auto sel = context->Selections; sel)
+						base = as_wstring(sel->Directory);
+					if(argc > 1)
+						base = PathResolve::absolute(as_wstring(eval_arg(1).to_string().trim(L"\"'")), base);
+
+					auto path = as_wstring(arg0.trim(L"\"'"));
+					auto ret = Id[1] == IDENT_ABSOLUTE ? PathResolve::absolute(path, base) : PathResolve::relative(path, base);
+					_result = string(ret.c_str()).move();
 					break;
+				}
 				case IDENT_LNK:
 				case IDENT_LNKTARGET:
 				{

@@ -4,6 +4,7 @@
 // standalone test can check them.
 
 #include <windows.h>
+#include <shlwapi.h>
 
 #include <cstddef>
 #include <string>
@@ -176,6 +177,97 @@ namespace Nilesoft
 				if(ext.find_first_of(L"*?.\\/") != std::wstring_view::npos)
 					return {};
 				return std::wstring(ext);
+			}
+		}
+
+		// path.absolute / path.relative, rooted at a base folder (the folder the
+		// menu was opened in) instead of the process working directory, which is
+		// Explorer's and means nothing to a menu.
+		namespace PathResolve
+		{
+			inline std::wstring full(const std::wstring &path)
+			{
+				if(path.empty())
+					return {};
+				std::wstring buffer(MAX_PATH, L'\0');
+				for(int attempt = 0; attempt < 3; attempt++)
+				{
+					auto n = ::GetFullPathNameW(path.c_str(), DWORD(buffer.size()), buffer.data(), nullptr);
+					if(n == 0)
+						return path;
+					if(n < buffer.size())
+					{
+						buffer.resize(n);
+						return buffer;
+					}
+					buffer.assign(n, L'\0');	// n is the size needed, terminator included
+				}
+				return path;
+			}
+
+			// A relative path joined to base, then normalized ('..', '/'). A path
+			// that starts with one backslash goes on base's drive. Without a base, a
+			// relative path comes back as it is.
+			inline std::wstring absolute(const std::wstring &path, const std::wstring &base)
+			{
+				if(path.empty())
+					return {};
+
+				auto slash = [](wchar_t c) { return c == L'\\' || c == L'/'; };
+				std::wstring combined;
+				if(slash(path[0]) && !(path.size() > 1 && slash(path[1])))
+				{
+					if(base.size() >= 2 && base[1] == L':')
+						combined = base.substr(0, 2) + path;
+					else
+						combined = path;
+				}
+				else if(::PathIsRelativeW(path.c_str()))
+				{
+					if(base.empty())
+						return path;
+					combined = base;
+					if(!slash(combined.back()))
+						combined += L'\\';
+					combined += path;
+				}
+				else
+					combined = path;
+
+				return full(combined);
+			}
+
+			// The path as seen from base ('..\docs\a.txt'). When there is no way
+			// there from base (another drive, a path too long for the API), the
+			// full path; without a base, the path as it is.
+			inline std::wstring relative(const std::wstring &path, const std::wstring &base)
+			{
+				if(path.empty() || base.empty())
+					return path;
+
+				auto to = absolute(path, base);
+				auto from = full(base);
+				if(to.size() >= MAX_PATH || from.size() >= MAX_PATH)
+					return to;
+
+				// The base folder itself (the API would treat it as a file next to itself).
+				auto trimmed = [](std::wstring s) {
+					while(s.size() > 3 && (s.back() == L'\\' || s.back() == L'/'))
+						s.pop_back();
+					return s;
+				};
+				auto a = trimmed(to), b = trimmed(from);
+				if(::CompareStringOrdinal(a.c_str(), int(a.size()), b.c_str(), int(b.size()), TRUE) == CSTR_EQUAL)
+					return L".";
+
+				wchar_t out[MAX_PATH]{};
+				if(!::PathRelativePathToW(out, from.c_str(), FILE_ATTRIBUTE_DIRECTORY, to.c_str(), FILE_ATTRIBUTE_NORMAL))
+					return to;
+
+				std::wstring result(out);
+				if(result.size() > 2 && result[0] == L'.' && result[1] == L'\\')
+					result.erase(0, 2);
+				return result;
 			}
 		}
 	}

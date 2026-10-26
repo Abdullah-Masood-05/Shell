@@ -1055,10 +1055,11 @@ namespace Nilesoft
 						case IDENT_ISEXE:
 						case IDENT_REMOVEEXTENSION:
 						case IDENT_GETKNOWNFOLDER:
-						case IDENT_ABSOLUTE:
-						case IDENT_RELATIVE:
 						case IDENT_WSL:
 							return check(argc == 1, 1);
+						case IDENT_ABSOLUTE:
+						case IDENT_RELATIVE:
+							return check(argc == 1 || argc == 2, 1);
 						case IDENT_REFRESH:
 							return check(argc <= 1, 1);
 						case IDENT_ZERO:
