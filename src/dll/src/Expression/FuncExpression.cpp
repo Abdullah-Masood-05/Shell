@@ -4367,13 +4367,13 @@ namespace Nilesoft
 					break;
 				}
 				case IDENT_IS7ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 1;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 1);
 					break;
 				case IDENT_IS8ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 2;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 2);
 					break;
 				case IDENT_IS81ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 3;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 3);
 					break;
 				case IDENT_IS10ORGREATER:
 					_result = ver->Major >= 10;
