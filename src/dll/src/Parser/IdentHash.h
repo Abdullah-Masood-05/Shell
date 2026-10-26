@@ -511,6 +511,7 @@ namespace Nilesoft
 		constexpr auto IDENT_LNK_TARGET = 0x1D90FD6CU;
 		constexpr auto IDENT_LNKTARGET = 0xDD2F0D11U;
 		constexpr auto IDENT_BOX = 0x0B88628EU;
+		constexpr auto IDENT_SAVE_BOX = 0xE2B11CFCU;
 		constexpr auto IDENT_CHANGE = 0xF65EC1CBU;
 		constexpr auto IDENT_EMPTY = 0x0F605C34U;
 		constexpr auto IDENT_EXISTS = 0xFC2F1525U;
@@ -597,6 +598,7 @@ namespace Nilesoft
 		constexpr auto IDENT_SUB = 0x0B88AB8FU;
 		constexpr auto IDENT_LEFT = 0x7C9A03B0U;
 		constexpr auto IDENT_RIGHT = 0x10494163U;
+		constexpr auto IDENT_FMT = 0x0B88734CU;
 		constexpr auto IDENT_FORMAT = 0xFDE634AEU;
 		constexpr auto IDENT_TAG = 0x0B88AD41U;
 		constexpr auto IDENT_EQ = 0x005977BBU;

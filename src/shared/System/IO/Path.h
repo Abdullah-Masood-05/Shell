@@ -87,6 +87,12 @@ namespace Nilesoft
 
 			static string OpenFolderDialog(const std::wstring_view &title, HWND hWndOwner = nullptr)
 			{
+				return OpenFolderDialog(title, hWndOwner, nullptr).move();
+			}
+
+			// initialDir: the folder the box opens in (null or empty: Windows decides).
+			static string OpenFolderDialog(const std::wstring_view &title, HWND hWndOwner, const wchar_t *initialDir)
+			{
 				string res = nullptr;
 				IFileDialog *pfd = nullptr;
 
@@ -97,9 +103,19 @@ namespace Nilesoft
 				{
 					DWORD dwOptions;
 					if(S_OK == pfd->GetOptions(&dwOptions))
-						pfd->SetOptions(dwOptions | FOS_PICKFOLDERS);
-					
+						pfd->SetOptions(dwOptions | FOS_PICKFOLDERS | FOS_NOCHANGEDIR);
+
 					pfd->SetTitle(title.data());
+
+					if(initialDir && *initialDir)
+					{
+						IShellItem *folder = nullptr;
+						if(S_OK == ::SHCreateItemFromParsingName(initialDir, nullptr, IID_PPV_ARGS(&folder)))
+						{
+							pfd->SetFolder(folder);
+							folder->Release();
+						}
+					}
 
 					if(S_OK == pfd->Show(hWndOwner))
 					{
@@ -127,8 +143,19 @@ namespace Nilesoft
 			{
 				if(ofn) {
 					if(!ofn->Flags)
-						ofn->Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+						ofn->Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 					if(DLL::Invoke<int>(L"COMDLG32.DLL", "GetOpenFileNameW", ofn) == IDOK)
+						return ofn->lpstrFile;
+				}
+				return nullptr;
+			}
+
+			static string SaveFileDialog(OPENFILENAMEW *ofn)
+			{
+				if(ofn) {
+					if(!ofn->Flags)
+						ofn->Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+					if(DLL::Invoke<int>(L"COMDLG32.DLL", "GetSaveFileNameW", ofn) == IDOK)
 						return ofn->lpstrFile;
 				}
 				return nullptr;
@@ -151,7 +178,7 @@ namespace Nilesoft
 				ofn.hwndOwner = hwndOwner;
 				ofn.lpstrFile = szFile;
 				ofn.nMaxFile = MAX_PATH;
-				ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+				ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 				return OpenFileDialog(&ofn).move();
 			}
 

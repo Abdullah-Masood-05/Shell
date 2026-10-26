@@ -25,9 +25,12 @@
 
 <section id="path.directory.box" class="my-5">
 	<h5>path.directory.box (path.dir.box)</h5>
-	<p>Shows the directory selection box and returns the path of the specified directory.</p>
+	<p>Shows the folder selection box and returns the path of the chosen folder, or nothing when it is cancelled.
+		Both arguments are optional: the folder the box opens in, and the text in its title bar.</p>
 	<p>Syntax</p>
-	<code>path.directory.box</code>
+	<code>path.directory.box</code><br>
+	<code>path.dir.box(sel.dir)</code><br>
+	<code>path.dir.box('C:\Projects', 'Pick a project folder')</code>
 </section>
 
 <section id="path.empty" class="my-5">
@@ -44,6 +47,29 @@
 	<p>Syntax</p>
 	<code>path.exists(path)</code><br>
 	<code>path.exists(path1, path2, ...)</code>
+</section>
+
+<section id="path.absolute" class="my-5">
+	<h5>path.absolute</h5>
+	<p>Returns the full path for a relative one, starting from the folder the menu was opened in.
+		It also tidies <code>..</code> and <code>/</code>. A path that is already full is only tidied.
+		A second argument sets another folder to start from.
+		With no folder to start from (the taskbar menu), a relative path is returned as it is.</p>
+	<p>Syntax</p>
+	<code>path.absolute('notes.txt')</code> return "C:\Users\me\Documents\notes.txt" in C:\Users\me\Documents <br>
+	<code>path.absolute('..\backup')</code> return "C:\Users\me\backup" in C:\Users\me\Documents <br>
+	<code>path.absolute('notes.txt', 'D:\Work')</code> return "D:\Work\notes.txt" <br>
+</section>
+
+<section id="path.relative" class="my-5">
+	<h5>path.relative</h5>
+	<p>Returns how to get to a path from the folder the menu was opened in, such as <code>..\Pictures\a.png</code>,
+		or <code>.</code> for that folder itself. A second argument sets another folder to start from.
+		When there is no relative way (the path is on another drive, or longer than 260 characters), the full path is returned.</p>
+	<p>Syntax</p>
+	<code>path.relative(sel.path)</code> return "report.docx" for C:\Users\me\Documents\report.docx <br>
+	<code>path.relative('C:\Users\me\Pictures\a.png')</code> return "..\Pictures\a.png" in C:\Users\me\Documents <br>
+	<code>path.relative('C:\Windows\System32', 'C:\Windows')</code> return "System32" <br>
 </section>
 
 <section id="path.full" class="my-5">
@@ -125,12 +151,29 @@
 
 <section id="path.file.box" class="my-5">
 	<h5>path.file.box</h5>
-	<p>Shows the file selection box and returns the path of the specified file.</p>
+	<p>Shows the Open box and returns the path of the chosen file, or nothing when it is cancelled.
+		The arguments are optional: the file types to offer, the folder the box opens in, and a file name to fill in.</p>
+	<p>File types are pairs of a label and a pattern, separated by <code>|</code>, such as <code>'Text|*.txt|All|*.*'</code>.
+		Several patterns go in one pair with <code>;</code>, as in <code>'Images|*.png;*.jpg'</code>.
+		They can also be given as an array, such as <code>['Text|*.txt', 'All|*.*']</code>.</p>
 	<p>Syntax</p>
 	<code>path.file.box</code><br>
 	<code>path.file.box('All|*.*|Text|*.txt')</code><br>
 	<code>path.file.box('exe|*.exe', 'c:\windows')</code><br>
-	<code>path.file.box('exe|*.exe', 'c:\windows', 'explorer.exe')</code>
+	<code>path.file.box('exe|*.exe', 'c:\windows', 'explorer.exe')</code><br>
+	<code>path.file.box(['Text|*.txt', 'All|*.*'], sel.dir)</code>
+</section>
+
+<section id="path.file.save_box" class="my-5">
+	<h5>path.file.save_box</h5>
+	<p>Shows the Save As box and returns the path the user chose, or nothing when it is cancelled.
+		It asks before replacing a file that is already there. It doesn't create or write the file itself.</p>
+	<p>The arguments are the same as for <a href="#path.file.box">path.file.box</a>: the file types, the folder the box opens in, and a suggested file name.
+		When the user types a name without an extension, the extension of the first file type is added (<code>.txt</code> for <code>'Text|*.txt'</code>).</p>
+	<p>Syntax</p>
+	<code>path.file.save_box</code><br>
+	<code>path.file.save_box('Text|*.txt|All|*.*')</code><br>
+	<code>path.file.save_box('Text|*.txt', user.desktop, 'list.txt')</code>
 </section>
 
 <section id="path.files" class="my-5">

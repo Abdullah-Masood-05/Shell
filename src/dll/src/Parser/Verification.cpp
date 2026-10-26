@@ -425,6 +425,7 @@ namespace Nilesoft
 						return check(argc == 1 || argc == 2);
 					case IDENT_REPLACE:
 						return check(argc == 2 || argc == 3);
+					case IDENT_FMT:
 					case IDENT_FORMAT:
 						return check(argc > 0);
 					default:
@@ -778,6 +779,13 @@ namespace Nilesoft
 								default:
 									return error_at(1);
 							}
+						case IDENT_SET:
+							return check(argc == 2, 1);
+						case IDENT_GET:
+						case IDENT_REMOVE:
+						case IDENT_DELETE:
+						case IDENT_EXISTS:
+							return check(argc == 1, 1);
 						case IDENT_ZERO:
 							return error_at(0);
 						default:
@@ -827,8 +835,8 @@ namespace Nilesoft
 						case IDENT_DELETE:
 							return check(argc == 1 || argc == 2, 1);
 						case IDENT_COPY:
-							return check(argc == 2 || argc == 3, 1);
 						case IDENT_MOVE:
+							return check(argc == 2 || argc == 3, 1);
 						case IDENT_RENAME:
 							return check(argc == 2, 1);
 						case IDENT_FILE:
@@ -994,6 +1002,8 @@ namespace Nilesoft
 									return check(argc == 1, 2);
 								case IDENT_BOX:
 									return check(argc <= 4, 2);
+								case IDENT_SAVE_BOX:
+									return check(argc <= 3, 2);
 								case IDENT_ZERO:
 									return check(argc == 1, 1);
 								default:
@@ -1050,10 +1060,11 @@ namespace Nilesoft
 						case IDENT_ISEXE:
 						case IDENT_REMOVEEXTENSION:
 						case IDENT_GETKNOWNFOLDER:
-						case IDENT_ABSOLUTE:
-						case IDENT_RELATIVE:
 						case IDENT_WSL:
 							return check(argc == 1, 1);
+						case IDENT_ABSOLUTE:
+						case IDENT_RELATIVE:
+							return check(argc == 1 || argc == 2, 1);
 						case IDENT_REFRESH:
 							return check(argc <= 1, 1);
 						case IDENT_ZERO:
@@ -1120,6 +1131,7 @@ namespace Nilesoft
 							return check(argc == 2 || argc == 3, 1);
 						case IDENT_REPLACE:
 							return check(argc == 3 || argc == 4, 1);
+						case IDENT_FMT:
 						case IDENT_FORMAT:
 							return check(argc > 0, 1);
 						case IDENT_GUID:
@@ -2043,6 +2055,7 @@ namespace Nilesoft
 					return check(argc == 1 || argc == 2, 1);
 				case IDENT_REPLACE:
 					return check(argc == 2 || argc == 3, 1);
+				case IDENT_FMT:
 				case IDENT_FORMAT:
 					return check(argc > 0, 1);
 				case IDENT_ZERO:

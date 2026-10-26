@@ -2,6 +2,7 @@
 #include "Resource.h"
 #include "Expression\Constants.h"
 #include "Expression\Variable.h"
+#include "Include\NssFunctions.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
@@ -3209,11 +3210,22 @@ namespace Nilesoft
 						_result = Path::GetKnownFolder(id).move();
 					break;
 				case IDENT_ABSOLUTE:
-					//std::filesystem::path(arg0.c_str()).absolute_path();
-					break;
 				case IDENT_RELATIVE:
-				//	std::filesystem::path(arg0.c_str()).relative_path();
+				{
+					// path.absolute(path[, base]) / path.relative(path[, base]): base is
+					// the folder the menu was opened in, or the second argument (itself
+					// relative to that folder).
+					std::wstring base;
+					if(auto sel = context->Selections; sel)
+						base = as_wstring(sel->Directory);
+					if(argc > 1)
+						base = PathResolve::absolute(as_wstring(eval_arg(1).to_string().trim(L"\"'")), base);
+
+					auto path = as_wstring(arg0.trim(L"\"'"));
+					auto ret = Id[1] == IDENT_ABSOLUTE ? PathResolve::absolute(path, base) : PathResolve::relative(path, base);
+					_result = string(ret.c_str()).move();
 					break;
+				}
 				case IDENT_LNK:
 				case IDENT_LNKTARGET:
 				{
@@ -3321,41 +3333,76 @@ namespace Nilesoft
 							_result = Path::Extension(arg0);
 							break;
 						case IDENT_BOX:
+						case IDENT_SAVE_BOX:
 						{
+							// path.file.box(filter, initialDir, fileName) and
+							// path.file.save_box(filter, initialDir, defaultName). The filter is
+							// 'Text|*.txt|All|*.*' or an array of such parts, joined with '|'.
+							string filter = arg0;
+							// An array reads as empty text; only then is it evaluated again.
+							if(argc > 0 && filter.empty())
+							{
+								auto obj = eval_arg(0).move();
+								if(obj.is_array(true))
+								{
+									auto ptr = obj.get_pointer();
+									auto count = (uint32_t)ptr[0];
+									for(auto i = 0u; i < count; i++)
+									{
+										auto part = ptr[i + 1].to_string().move();
+										if(part.empty())
+											continue;
+										if(!filter.empty())
+											filter.append(L'|');
+										filter.append(part);
+									}
+								}
+							}
 
-							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							if(filter.empty())
+								filter = L"All Files (*.*)|*.*";
+
+							std::vector<wchar_t> flt;
+							for(auto c : filter)
+								flt.push_back(c == L'|' ? L'\0' : c);
+							flt.push_back(0);
+							flt.push_back(0);
 
 							string initialDir;
-							std::vector<wchar_t> flt;
-							wchar_t szFile[MAX_PATH]{ };
+							if(argc > 1)
+								initialDir = eval_arg(1).to_string().trim(L"\"'").move();
 
-							if(argc == 0)
+							// Room for long paths; the suggested name is cut to fit.
+							std::vector<wchar_t> file(4096, L'\0');
+							if(argc > 2)
 							{
-								for(auto c : L"All Files (*.*)\0*.*\0")
-									flt.push_back(c);
+								auto name = as_wstring(eval_arg(2).to_string());
+								::wcsncpy_s(file.data(), file.size(), name.c_str(), _TRUNCATE);
+							}
+
+							// Save: the first filter's extension is added when the user types none.
+							std::wstring defExt = FileDialog::default_extension(filter.c_str());
+
+							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
+							ofn.lpstrFilter = flt.data();
+							ofn.lpstrInitialDir = initialDir.empty() ? nullptr : initialDir.c_str();
+							ofn.lpstrFile = file.data();
+							ofn.nMaxFile = (DWORD)file.size();
+
+							// OFN_NOCHANGEDIR: the dialog would otherwise move the working
+							// directory of the whole process (Explorer) to the chosen folder.
+							if(Id[2] == IDENT_SAVE_BOX)
+							{
+								ofn.lpstrDefExt = defExt.empty() ? nullptr : defExt.c_str();
+								ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::SaveFileDialog(&ofn).move();
 							}
 							else
 							{
-								for(auto c : arg0)
-									flt.push_back(c == L'|' ? L'\0' : c);
-
-								if(argc == 2)
-									initialDir = eval_arg(1).to_string().move();
-
-								if(argc == 3)
-									string::Copy(szFile, eval_arg(2).to_string());
+								ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::OpenFileDialog(&ofn).move();
 							}
-
-							flt.push_back(0);
-							flt.push_back(0);
-
-							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
-							ofn.lpstrFilter = flt.data();
-							ofn.lpstrInitialDir = initialDir;
-							ofn.lpstrFile = szFile;
-							ofn.nMaxFile = MAX_PATH;
-							_result = Path::OpenFileDialog(&ofn).move();
-
 							break;
 						}
 						case IDENT_ZERO:
@@ -3376,8 +3423,13 @@ namespace Nilesoft
 							break;
 						case IDENT_BOX:
 						{
+							// path.dir.box(initialDir, title); both optional.
 							auto hwnd = context->Runtime ? context->wnd.active : nullptr;
-							_result = Path::OpenFolderDialog(string::Extract(IDS_SELECT_FOLDER), hwnd).move();
+							string initialDir = argc > 0 ? arg0.trim(L"\"'").move() : string();
+							string title = argc > 1 ? eval_arg(1).to_string().move() : string();
+							if(title.empty())
+								title = string::Extract(IDS_SELECT_FOLDER).move();
+							_result = Path::OpenFolderDialog(title, hwnd, initialDir.c_str()).move();
 							break;
 						}
 						case IDENT_ZERO:
@@ -3837,8 +3889,16 @@ namespace Nilesoft
 						break;
 					}
 					case IDENT_MOVE:
-						_result = ::MoveFileW(arg0.c_str(), full(eval_arg(1).to_string()).c_str());
+					{
+						// io.move(src, dst[, flags]): MOVEFILE_COPY_ALLOWED by default, so a
+						// file can go to another drive; an existing dst is kept unless the
+						// flags include MOVEFILE_REPLACE_EXISTING (1).
+						auto flags = DWORD(MOVEFILE_COPY_ALLOWED);
+						if(argc > 2)
+							flags = eval_arg(2).to_number<DWORD>();
+						_result = ::MoveFileExW(arg0.c_str(), full(eval_arg(1).to_string()).c_str(), flags);
 						break;
+					}
 					case IDENT_RENAME:
 						_result = ::_wrename(arg0.c_str(), full(eval_arg(1).to_string()).c_str()) == 0;
 						break;
@@ -4746,6 +4806,25 @@ namespace Nilesoft
 					_result = proc.move();
 					break;
 				}
+				// app.set(name, value) and friends: text kept between menus, under
+				// HKCU\Software\Nilesoft\Shell\Variables. An empty name is refused.
+				case IDENT_SET:
+					_result = AppVariables::set(as_wstring(eval_arg(0).to_string()), as_wstring(eval_arg(1).to_string()));
+					break;
+				case IDENT_GET:
+				{
+					std::wstring value;
+					if(AppVariables::get(as_wstring(eval_arg(0).to_string()), value))
+						_result = string(value.c_str()).move();
+					break;
+				}
+				case IDENT_REMOVE:
+				case IDENT_DELETE:
+					_result = AppVariables::remove(as_wstring(eval_arg(0).to_string()));
+					break;
+				case IDENT_EXISTS:
+					_result = AppVariables::exists(as_wstring(eval_arg(0).to_string()));
+					break;
 			}
 		}
 
@@ -5059,8 +5138,16 @@ namespace Nilesoft
 					_result = (tag + str + ((argc == 3) ? eval_arg(2).to_string() : tag)).move();
 					break;
 				}
+				case IDENT_FMT:
 				case IDENT_FORMAT:
+				{
+					// str.fmt('{0}-{1}', a, b): {N} is argument N after the format.
+					std::vector<std::wstring> args;
+					for(size_t i = 1; i < argc + a; i++)
+						args.push_back(as_wstring(eval_arg(i).to_string()));
+					_result = string(StrFormat::format(as_wstring(str), args).c_str()).move();
 					break;
+				}
 				case IDENT_DECODE:
 				{
 					if(Id[2] == IDENT_URL)
