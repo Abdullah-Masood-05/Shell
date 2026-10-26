@@ -102,3 +102,73 @@
 // shell:appsFolder\Microsoft.WindowsTerminal_8wekyb3d8bbwe!App
 </code></pre>
 </section>
+
+<section id="appx.property" class="my-5">
+	<h5>appx(packageName, property)</h5>
+	<p>Returns one value of the Package, named by the second argument. Without it, appx(packageName) is the path, as before. Returns nothing when the package or the value is not found.</p>
+	<p>Syntax</p>
+	<code>appx(packageName, property)</code>
+	<p>Parameters</p>
+	<dl>
+		<dt>packageName</dt>
+		<dd>can be passed in full name or part of name.</dd>
+		<dt>property</dt>
+		<dd>one of these (upper or lower case):
+			<ul>
+				<li><code>'path'</code>, <code>'name'</code>, <code>'id'</code>, <code>'family'</code>, <code>'version'</code>, <code>'shell'</code>: the same as the functions above.</li>
+				<li><code>'executable'</code>: the full path of the app's program file.</li>
+				<li><code>'entrypoint'</code>: the app's entry point, as written in its manifest.</li>
+				<li><code>'logo'</code>: the package logo (the one the Store shows).</li>
+				<li><code>'square150'</code> (or <code>'square150x150logo'</code>): the app's medium tile image.</li>
+				<li><code>'square44'</code> (or <code>'square44x44logo'</code>): the app's small icon, the one in the Start menu's list.</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>The values other than path, name, id, family, version and shell come from the package's AppxManifest.xml, read once per package.</p>
+	<p>Example</p>
+	<pre><code>appx("WindowsTerminal", "executable")
+// result:
+// C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\WindowsTerminal.exe
+</code></pre>
+</section>
+
+<section id="appx.executable" class="my-5">
+	<h5>appx.executable</h5>
+	<p>Returns the full path of the app's program file. The same as <code>appx(packageName, 'executable')</code>.</p>
+	<p>Syntax</p>
+	<code>appx.executable(packageName)</code>
+	<p>Parameters</p>
+	<dl>
+		<dt>packageName</dt>
+		<dd>can be passed in full name or part of name.</dd>
+	</dl>
+	<p>Example</p>
+	<pre><code>item(title='Terminal' image=appx.executable("WindowsTerminal") cmd=appx.shell("WindowsTerminal"))</code></pre>
+</section>
+
+<section id="appx.entrypoint" class="my-5">
+	<h5>appx.entrypoint</h5>
+	<p>Returns the app's entry point, as written in its manifest.</p>
+	<p>Syntax</p>
+	<code>appx.entrypoint(packageName)</code>
+	<p>Example</p>
+	<pre><code>appx.entrypoint("WindowsTerminal")
+// result:
+// Windows.FullTrustApplication
+</code></pre>
+</section>
+
+<section id="appx.logo" class="my-5">
+	<h5>appx.logo, appx.square150, appx.square44</h5>
+	<p>Return the path of the package logo, the medium tile image and the small icon.</p>
+	<p>A manifest names an image as <code>Images\StoreLogo.png</code>, while the package installs it as <code>Images\StoreLogo.scale-200.png</code>, <code>Images\StoreLogo.targetsize-48.png</code> and so on. These functions return the installed file that best fits the screen scale (high contrast versions last). When no such file is there, they return the image's folder.</p>
+	<p>Syntax</p>
+	<code>appx.logo(packageName)<br/>
+		appx.square150(packageName)<br/>
+		appx.square44(packageName)</code>
+	<p>Example</p>
+	<pre><code>appx.square44("WindowsTerminal")
+// result at 100% scale:
+// C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\Images\Square44x44Logo.scale-100.png
+</code></pre>
+</section>

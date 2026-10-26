@@ -232,6 +232,23 @@ path.files(sys.dir, '*', 8|16)
 	<p>Syntax</p>
 	<code>path.lnk.icon(path)</code>
 </section>
+<section id="path.lnk.args" class="my-5">
+	<h5>path.lnk.args</h5>
+	<p>Returns the arguments of the shortcut, or nothing when it has none.</p>
+	<p>Syntax</p>
+	<code>path.lnk.args(path)</code>
+</section>
+<section id="path.lnk.raw" class="my-5">
+	<h5>path.lnk.raw</h5>
+	<p>Returns the target of the shortcut followed by its arguments, as one command line. The target is put in quotes when it has spaces.</p>
+	<p>Syntax</p>
+	<code>path.lnk.raw(path)</code>
+	<p>Example</p>
+	<pre><code>path.lnk.raw('C:\Users\Public\Desktop\App.lnk')
+// result:
+// "C:\Program Files\App\app.exe" --profile work
+</code></pre>
+</section>
 <section id="path.getknownfolder" class="my-5">
 	<h5>path.getknownfolder</h5>
 	<p>Retrieves the full path of a known folder identified.</p>
