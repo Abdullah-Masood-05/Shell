@@ -774,6 +774,13 @@ namespace Nilesoft
 								default:
 									return error_at(1);
 							}
+						case IDENT_SET:
+							return check(argc == 2, 1);
+						case IDENT_GET:
+						case IDENT_REMOVE:
+						case IDENT_DELETE:
+						case IDENT_EXISTS:
+							return check(argc == 1, 1);
 						case IDENT_ZERO:
 							return error_at(0);
 						default:

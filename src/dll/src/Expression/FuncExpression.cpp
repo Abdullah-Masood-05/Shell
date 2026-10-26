@@ -4648,6 +4648,25 @@ namespace Nilesoft
 					_result = proc.move();
 					break;
 				}
+				// app.set(name, value) and friends: text kept between menus, under
+				// HKCU\Software\Nilesoft\Shell\Variables. An empty name is refused.
+				case IDENT_SET:
+					_result = AppVariables::set(as_wstring(eval_arg(0).to_string()), as_wstring(eval_arg(1).to_string()));
+					break;
+				case IDENT_GET:
+				{
+					std::wstring value;
+					if(AppVariables::get(as_wstring(eval_arg(0).to_string()), value))
+						_result = string(value.c_str()).move();
+					break;
+				}
+				case IDENT_REMOVE:
+				case IDENT_DELETE:
+					_result = AppVariables::remove(as_wstring(eval_arg(0).to_string()));
+					break;
+				case IDENT_EXISTS:
+					_result = AppVariables::exists(as_wstring(eval_arg(0).to_string()));
+					break;
 			}
 		}
 
