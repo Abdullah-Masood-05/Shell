@@ -735,6 +735,7 @@ namespace Nilesoft
 		constexpr auto IDENT_TYPE_FIXED = 0x0F706335U;
 		constexpr auto IDENT_TYPE_VHD = 0x0B88B6A7U;
 		constexpr auto IDENT_TYPE_DVD = 0x0B886BE3U;
+		constexpr auto IDENT_TYPE_CD = 0x0059776CU;
 		constexpr auto IDENT_TYPE_USB = 0x0B88B3CFU;
 		constexpr auto IDENT_TYPE_REMOVABLE = 0xD9868142U;
 		constexpr auto IDENT_TYPE_NAMESPACE = 0x3F0BBE32U;

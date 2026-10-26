@@ -1099,6 +1099,7 @@ namespace Nilesoft
 						case IDENT_TYPE_FIXED:
 							_result = IO::PathType::Fixed;
 							break;
+						case IDENT_TYPE_CD:
 						case IDENT_TYPE_DVD:
 							_result = IO::PathType::DVD;
 							break;
@@ -1131,6 +1132,7 @@ namespace Nilesoft
 								case IDENT_TYPE_FIXED:
 									_result = IO::PathType::Back_Fixed;
 									break;
+								case IDENT_TYPE_CD:
 								case IDENT_TYPE_DVD:
 									_result = IO::PathType::Back_DVD;
 									break;
