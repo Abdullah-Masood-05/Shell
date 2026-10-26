@@ -387,7 +387,11 @@ namespace Nilesoft
 								indexof = ptr[2].to_string().move();
 								indexof_pos = ptr[3];
 								if(ac == 3)
-									indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+								{
+									// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+									int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+									indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+								}
 								position = (Shell::Position)indexof.trim().hash();
 							}
 						}
@@ -761,7 +765,11 @@ namespace Nilesoft
 							indexof = ptr[2].to_string().move();
 							indexof_pos = ptr[3];
 							if(ac == 3)
-								indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+							{
+								// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+								int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+								indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+							}
 							position = (Position)indexof.trim().hash();
 						}
 					}
