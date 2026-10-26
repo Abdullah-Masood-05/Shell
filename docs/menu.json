@@ -1,6 +1,7 @@
 [
 	{"title":"Introduction", "link":"/docs"},
 	{"title":"Installation", "link":"/docs/installation"},
+	{"title":"Troubleshooting and FAQ", "link":"/docs/troubleshooting"},
 	{"title":"Command line", "link":"/docs/command-line"},
 	{"title":"Get Started", "link":"/docs/get-started"},
 	{

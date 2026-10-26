@@ -1,0 +1,336 @@
+<h4>Troubleshooting and FAQ</h4>
+<br>
+<p>Each section starts with what you see, then says why it happens and how to fix it. Where a version of Nilesoft Shell
+	Pro fixed the problem, the section says which one. Your version is shown in <i>Preferences &rarr; About</i>.</p>
+<p>If your problem isn't here, see <a href="#bug-report">Where is the log, and what to put in a bug report</a>.</p>
+<br>
+<p>The context menu</p>
+<ul>
+	<li><a href="#app-cant-run">"This app can't run on your PC" from another program's menu item</a></li>
+	<li><a href="#menu-missing">The menu is missing, shows twice, or only Windows' menu appears</a></li>
+	<li><a href="#windows11-menu">Windows 11's short menu still appears first</a></li>
+	<li><a href="#config-error">My change in shell.nss doesn't show, or the whole menu disappeared</a></li>
+	<li><a href="#mixed-languages">The menu mixes two languages</a></li>
+	<li><a href="#pin-not-grouped">Pin to Start and Pin to Quick access aren't in Pin/Unpin</a></li>
+	<li><a href="#black-block">A black block appears where the item was after clicking</a></li>
+	<li><a href="#coloured-square">A small coloured square appears in the corner after right-clicking</a></li>
+</ul>
+<p>The taskbar</p>
+<ul>
+	<li><a href="#taskbar-empty">Right-clicking the taskbar shows nothing after excluding the taskbar</a></li>
+	<li><a href="#taskbar-windows-menu">How do I keep Windows' own taskbar menu?</a></li>
+</ul>
+<p>The app, installing and updating</p>
+<ul>
+	<li><a href="#error-740">Home shows "Could not start shell.exe (error 740)"</a></li>
+	<li><a href="#update-loop">The app keeps offering the same update</a></li>
+	<li><a href="#update-admin">Updating asks for administrator approval</a></li>
+	<li><a href="#smartscreen">Windows says "Windows protected your PC"</a></li>
+	<li><a href="#snippet-needs">A snippet's switch is greyed out with "Needs ..."</a></li>
+	<li><a href="#bug-report">Where is the log, and what to put in a bug report</a></li>
+	<li><a href="#translate">How do I translate the app or check a translation?</a></li>
+</ul>
+<br>
+
+<div id="error-740">
+	<h5>Home shows "Couldn't read the Shell status. Could not start shell.exe (error 740)."</h5>
+	<p>Windows is set to always run <code>shell.exe</code> as administrator. This setting is often left over from the
+		original Nilesoft Shell. Windows stores it by file path, so it stays after you uninstall and reinstall.</p>
+	<p>Nilesoft Shell Pro 2.2.2 works around it, so updating is enough. To remove the setting yourself:</p>
+	<ol>
+		<li>Open <code>C:\Program Files\Nilesoft Shell</code> in File Explorer.</li>
+		<li>Right-click <code>shell.exe</code> and choose <i>Properties</i>.</li>
+		<li>Open the <i>Compatibility</i> tab and untick <i>Run this program as an administrator</i>.</li>
+		<li>Click <i>Change settings for all users</i>, approve the administrator prompt, and untick
+			<i>Run this program as an administrator</i> there too.</li>
+		<li>Click <i>OK</i>, then <kbd>Try again</kbd> on Home.</li>
+	</ol>
+	<p>Fixed in 2.2.2.</p>
+</div>
+<hr>
+
+<div id="app-cant-run">
+	<h5>A menu item from another program shows "This app can't run on your PC", or does nothing</h5>
+	<p>The program that added the item saved its command without quotes around a path that has spaces in it, for
+		example <code>C:\Users\First Last\AppData\Local\App\App.exe</code>. If a file named like the first part of that
+		path exists, here <code>C:\Users\First</code>, Windows tries to run that file instead. It is often a leftover
+		installer log with no file extension. This is not caused by Shell; Windows' own menu does the same.</p>
+	<p>An example is File Pilot's <i>File Pilot here</i> and <i>Open in File Pilot</i> on accounts whose user name has a
+		space.</p>
+	<ol>
+		<li>Open <code>C:\Users</code> in File Explorer.</li>
+		<li>Look for a file with no extension whose name is the first part of your user name, for example
+			<code>First</code> next to the folder <code>First Last</code>.</li>
+		<li>Rename it (for example to <code>First.old</code>) or delete it. Windows asks for administrator approval,
+			because <code>C:\Users</code> belongs to the system.</li>
+		<li>Right-click again and try the item.</li>
+		<li>Tell the program's maker that its menu command needs quotes around the path, so it works on every PC.</li>
+	</ol>
+	<p>If you are comfortable with the registry, you can add the quotes yourself:</p>
+	<ol>
+		<li>Press <kbd>Win</kbd>+<kbd>R</kbd>, type <code>regedit</code> and press <kbd>Enter</kbd>.</li>
+		<li>Go to <code>HKEY_CURRENT_USER\Software\Classes</code> and find the item's key, for example
+			<code>Directory\Background\shell\&lt;item&gt;\command</code> or <code>Directory\shell\&lt;item&gt;\command</code>.</li>
+		<li>Right-click the <code>shell\&lt;item&gt;</code> key and choose <i>Export</i> to save a backup first.</li>
+		<li>Double-click <i>(Default)</i> under <code>command</code> and put quotes around the program's path, for example
+			<code>"C:\Users\First Last\AppData\Local\App\App.exe" "%V"</code>.</li>
+	</ol>
+	<p>The program may write its unquoted command again when it updates.</p>
+</div>
+<hr>
+
+<div id="update-loop">
+	<h5>The app keeps offering the same update after updating</h5>
+	<p>Before 2.2.2, when the app was kept in the system tray, the old version stayed running after an update and offered
+		the same update again.</p>
+	<p>This only affects the update from an older version to 2.2.2 or later. For that one update:</p>
+	<ol>
+		<li>Right-click the Nilesoft Shell Pro icon in the tray, next to the clock. If you don't see it, click the small
+			arrow there first.</li>
+		<li>Choose <i>Quit</i>.</li>
+		<li>Open Nilesoft Shell Pro again from the Start menu. It starts the new version.</li>
+	</ol>
+	<p>Fixed in 2.2.2.</p>
+</div>
+<hr>
+
+<div id="taskbar-empty">
+	<h5>Right-clicking the taskbar shows nothing after excluding the taskbar</h5>
+	<p>When the taskbar is excluded, for example with
+		<code>exclude.where = !process.is_explorer or window.is_taskbar</code>, Shell leaves the taskbar's right-click
+		to Windows. Windows 11 has no classic taskbar menu for Shell to hand over, so before 2.1.0 the menu was
+		empty.</p>
+	<p>Since 2.1.0 that line gives Windows 11's own taskbar menu, with Task Manager and Taskbar settings. On an older
+		version:</p>
+	<ol>
+		<li>Update Nilesoft Shell Pro (see <a href="/docs/app/preferences#updates">Preferences: Updates</a>), or open
+			<code>shell.nss</code> in the <a href="/docs/app/config-editor">Config Editor</a>.</li>
+		<li>If you don't update, change the line back to <code>exclude.where = !process.is_explorer</code> and save.</li>
+		<li>Right-click the taskbar again.</li>
+	</ol>
+	<p>Fixed in 2.1.0.</p>
+</div>
+<hr>
+
+<div id="taskbar-windows-menu">
+	<h5>How do I keep Windows' own taskbar menu?</h5>
+	<p>If you use a taskbar tool that adds its own items to Windows' taskbar menu, you may want Shell's menu everywhere
+		except the taskbar. Shell then leaves the taskbar's right-click to Windows. This needs 2.1.0 or later.</p>
+	<ol>
+		<li>Open <i>Config Editor</i> in the app and choose <code>shell.nss</code>.</li>
+		<li>In the <code>settings</code> block at the top, change the line
+			<code>exclude.where = !process.is_explorer</code> so the block reads:
+<pre><code class="lang-shell">settings
+{
+	priority=1
+	exclude.where = !process.is_explorer or window.is_taskbar
+	...
+}</code></pre></li>
+		<li>Save with <kbd>Ctrl</kbd>+<kbd>S</kbd>.</li>
+		<li>Right-click the taskbar. You get Windows' menu; File Explorer and the desktop still get Shell's menu.</li>
+	</ol>
+	<p>To undo it, remove <code> or window.is_taskbar</code> again. See
+		<a href="/docs/configuration/settings#exclude-taskbar">Settings: The taskbar</a>.</p>
+</div>
+<hr>
+
+<div id="menu-missing">
+	<h5>The menu is missing, shows twice, or only Windows' menu appears</h5>
+	<p>Usually another copy of Nilesoft Shell is registered with File Explorer as well. Nilesoft Shell Pro does not
+		replace the original Nilesoft Shell, so both stay registered and get in each other's way. An old manual install,
+		for example in <code>C:\Windows\nilesoft</code>, can also leave a registration behind after its files are
+		gone.</p>
+	<ol>
+		<li>If the original Nilesoft Shell is installed, open <i>Settings &rarr; Apps &rarr; Installed apps</i>, choose
+			<i>Nilesoft Shell</i> and <i>Uninstall</i>. Back up your <code>shell.nss</code> and <code>imports</code>
+			folder first if you want to keep them.</li>
+		<li>For a portable copy of the original, open a command prompt in its folder, run
+			<code>shell -unregister -restart</code>, then delete the folder.</li>
+		<li>Open Nilesoft Shell Pro. If Home shows <i>Another copy of Nilesoft Shell is registered</i>, press
+			<kbd>Fix (needs administrator)</kbd> and approve the prompt. See
+			<a href="/docs/app/home#conflict">Home: Another copy is registered</a>.</li>
+		<li>Press <kbd>Restart Explorer</kbd> on Home and right-click again.</li>
+	</ol>
+	<p>For advanced users: <code>shell -status</code> lists registrations that point at another <code>shell.dll</code>
+		under <code>conflicts</code>, and <code>scripts\repair-stale-registration.ps1</code> in the source repository
+		finds and repairs registrations left by an old manual install.</p>
+</div>
+<hr>
+
+<div id="mixed-languages">
+	<h5>The menu mixes two languages</h5>
+	<p>Before 2.0.6, Shell's own items followed the Windows regional format (dates and numbers) instead of the Windows
+		display language. When the two were different, Shell's items and Windows' items came out in different
+		languages.</p>
+	<p>Since 2.0.6 Shell's items follow the display language. If the menu still mixes languages:</p>
+	<ol>
+		<li>Open <i>Settings &rarr; Time &amp; language &rarr; Language &amp; region</i> and check the
+			<i>Windows display language</i>. Windows' items always use it.</li>
+		<li>Sign out and back in if you changed it.</li>
+		<li>The app's own window has a separate setting: <i>Preferences &rarr; Language</i>. It changes only the app,
+			not the menu. See <a href="/docs/app/preferences#language">Preferences: Language</a>.</li>
+	</ol>
+	<p>Fixed in 2.0.6.</p>
+</div>
+<hr>
+
+<div id="black-block">
+	<h5>A black block appears where the item was after clicking</h5>
+	<p>Windows fades out the clicked menu item, and with Shell's menu that fade came out as a black block.</p>
+	<p>Update Nilesoft Shell Pro. On an older version, turn the fade off in Windows:</p>
+	<ol>
+		<li>Press <kbd>Win</kbd>+<kbd>R</kbd>, type <code>SystemPropertiesPerformance</code> and press
+			<kbd>Enter</kbd>.</li>
+		<li>On the <i>Visual Effects</i> tab, untick <i>Fade out menu items after clicking</i>.</li>
+		<li>Click <i>OK</i>.</li>
+	</ol>
+	<p>Fixed in 2.0.5.</p>
+</div>
+<hr>
+
+<div id="coloured-square">
+	<h5>A small coloured square appears in the top-left corner after right-clicking</h5>
+	<p>On recent Windows 11 builds, right-clicking left a small coloured square in the corner of the desktop or the
+		folder view.</p>
+	<ol>
+		<li>Update Nilesoft Shell Pro (see <a href="/docs/app/preferences#updates">Preferences: Updates</a>).</li>
+		<li>Press <kbd>Restart Explorer</kbd> on Home, so File Explorer loads the new <code>shell.dll</code>.</li>
+	</ol>
+	<p>Fixed in 2.1.0.</p>
+</div>
+<hr>
+
+<div id="pin-not-grouped">
+	<h5>Pin to Start and Pin to Quick access aren't grouped into Pin/Unpin</h5>
+	<p>On Windows 11 in a language other than English, Shell didn't recognise <i>Pin to Start</i>, <i>Unpin from
+		Start</i> and <i>Pin to Quick access</i>, so they stayed outside the <i>Pin/Unpin</i> submenu. That was fixed in
+		2.0.6, in the file <code>imports\modify.nss</code>.</p>
+	<p>A personal configuration in <code>%APPDATA%\Nilesoft\Shell</code> has its own copy of <code>modify.nss</code>.
+		Since 2.0.6, the app replaces copies you never edited with the new version after an update. A copy you edited is
+		kept as it is.</p>
+	<ol>
+		<li>Open Nilesoft Shell Pro and look at Home.</li>
+		<li>If it lists <code>modify.nss</code> as edited, press <kbd>Compare</kbd> to see the differences.</li>
+		<li>Press <kbd>Use the new version</kbd>. Your copy is saved in <a href="/docs/app/backups">Backups</a> first.</li>
+		<li>Right-click a file again.</li>
+	</ol>
+	<p>Fixed in 2.0.6. See <a href="/docs/app/home#after-update">Home: After an update</a>.</p>
+</div>
+<hr>
+
+<div id="config-error">
+	<h5>My change in shell.nss doesn't show, or the whole menu disappeared after editing</h5>
+	<p>Shell reads <code>shell.nss</code> again on the next right-click after you save it, so no restart is needed. A
+		mistake anywhere in the file stops Shell from loading it, and you get Windows' menu instead.</p>
+	<ol>
+		<li>Open <i>Config Editor</i> in the app. The <i>Problems</i> list shows each error with its file and line number.
+			Click one to jump to it, fix it and save.</li>
+		<li>Or open Home: <i>Diagnostics</i> lists the errors from <code>shell.log</code>. Click one to open it in the
+			Config Editor.</li>
+		<li>If you can't find the mistake, open <a href="/docs/app/backups">Backups</a> and restore the snapshot from
+			before your change.</li>
+		<li>To start over, use <i>Preferences &rarr; Reset configuration &rarr; Reset to defaults…</i> (2.2.2 and later).
+			Your files are saved in Backups first.</li>
+		<li>If the menu still doesn't change, use <i>Restart Explorer</i> on Home or in the tray icon's menu.</li>
+	</ol>
+	<p>Also check that you edited the file Shell reads: Home shows it under <i>Active config</i>.</p>
+</div>
+<hr>
+
+<div id="windows11-menu">
+	<h5>Windows 11's short menu ("Show more options") still appears first</h5>
+	<p>On Windows 11, Shell's menu opens straight away only when the classic menu is turned on for your account or for
+		all users. Home shows this on the <i>Windows 11 menu</i> line. <i>Windows 11 menu; Shell is under "Show more
+		options"</i> means it is off.</p>
+	<ol>
+		<li>Open <i>Behavior</i> in the app, turn on <i>Open Shell's menu instead of the Windows 11 menu</i> and
+			save.</li>
+		<li>If Home still says <i>Shell is under "Show more options"</i>, register Shell again with the classic menu.
+			The MSI does this for all users. For a portable copy, run
+			<code>shell -register -user -treat -restart</code> from its folder.</li>
+		<li>Press <kbd>Restart Explorer</kbd> on Home and right-click again.</li>
+	</ol>
+	<p>If the line says <i>Set by another app</i>, another program changed the classic menu setting.</p>
+</div>
+<hr>
+
+<div id="update-admin">
+	<h5>Updating asks for administrator approval</h5>
+	<p>Since 2.2.0, most updates install without administrator approval, because they only change the app and its menu
+		files. An update that also changes the Shell core (<code>shell.dll</code> or <code>shell.exe</code>), which an
+		install for all users shares with everyone on the PC, uses the installer, and that needs approval.</p>
+	<ol>
+		<li>When Home says the update changes the Shell core, press <i>Install with administrator approval</i>.</li>
+		<li>Choose <i>Yes</i> in the Windows prompt.</li>
+		<li>To wait, choose <i>Later</i>. You keep the version you have.</li>
+	</ol>
+	<p>A portable copy never needs approval to update. See
+		<a href="/docs/installation#updates">How updates work</a>.</p>
+</div>
+<hr>
+
+<div id="smartscreen">
+	<h5>Windows says "Windows protected your PC"</h5>
+	<p>The installer and the portable files are not code-signed, so Windows SmartScreen doesn't know them and asks
+		first.</p>
+	<ol>
+		<li>Download <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>
+			from the same release.</li>
+		<li>Open a command prompt in your Downloads folder and run
+			<code>certutil -hashfile setup-x64.msi SHA256</code> (use the name of the file you downloaded).</li>
+		<li>Check that the result matches the line for that file in <code>SHA256SUMS.txt</code>. If it doesn't, delete
+			the file and download it again.</li>
+		<li>Run the file, click <i>More info</i>, then <i>Run anyway</i>.</li>
+	</ol>
+</div>
+<hr>
+
+<div id="snippet-needs">
+	<h5>A snippet's switch is greyed out with "Needs ..."</h5>
+	<p>The snippet uses a program that isn't installed, for example <i>Needs 7-Zip</i>. The switch stays off until the
+		program is there.</p>
+	<ol>
+		<li>Install the program named in the label.</li>
+		<li>Come back to the <i>Snippets</i> page. The label is gone and you can turn the switch on.</li>
+	</ol>
+	<p>The snippets <i>by RubicBG</i> come from RubicBG's collection, which is CC0, and are credited to him. See
+		<a href="/docs/app/snippets">Snippets</a>.</p>
+</div>
+<hr>
+
+<div id="bug-report">
+	<h5>Where is the log, and what to put in a bug report</h5>
+	<p>Shell writes errors to <code>shell.log</code>. For an installed copy it is
+		<code>%LOCALAPPDATA%\Nilesoft\Shell\shell.log</code>; a portable copy writes it next to its
+		<code>shell.dll</code>. Home lists its errors under <i>Diagnostics</i>, and <i>Open shell.log</i> there opens the
+		whole file.</p>
+	<p>To report a problem:</p>
+	<ol>
+		<li>Note your version from <i>Preferences &rarr; About</i>.</li>
+		<li>Note your Windows version: press <kbd>Win</kbd>+<kbd>R</kbd>, type <code>winver</code> and press
+			<kbd>Enter</kbd>.</li>
+		<li>Open a command prompt in the program folder (<code>C:\Program Files\Nilesoft Shell</code> for the installer)
+			and run <code>shell -status</code>. Copy what it prints.</li>
+		<li>Copy the errors from Diagnostics or from <code>shell.log</code>, and say what you did and what you saw.</li>
+		<li>Open a <a href="https://github.com/Abdullah-Masood-05/Shell/issues/new/choose">new issue</a> and paste it all
+			in.</li>
+	</ol>
+	<p>Questions and ideas are welcome in
+		<a href="https://github.com/Abdullah-Masood-05/Shell/discussions">Discussions</a>.</p>
+</div>
+<hr>
+
+<div id="translate">
+	<h5>How do I translate the app or check a translation?</h5>
+	<p>All the app's text is in one <code>.po</code> file per language, and you can test a file in the app without
+		building anything.</p>
+	<ol>
+		<li>Open <i>Preferences &rarr; Language</i>.</li>
+		<li>Click <kbd>Test a translation file…</kbd> and choose your <code>.po</code> file. The app switches to it right
+			away.</li>
+		<li>After editing the file, press <kbd>Reload</kbd> in the bar at the top. <kbd>Stop</kbd> goes back to your
+			usual language.</li>
+	</ol>
+	<p>Where to get the file and how to share it is in
+		<a href="/docs/app/preferences#translate">Preferences: Translating the app</a>.</p>
+</div>
