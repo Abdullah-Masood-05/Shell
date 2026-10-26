@@ -740,6 +740,7 @@ namespace Nilesoft
 						case MENU_COLUMN:
 						case MENU_COL:
 							menu->column = id.signer ? expr.release() : new NumberExpression(1);
+							break;
 						case MENU_KEYS:
 							menu->keys = expr.release();
 							break;
