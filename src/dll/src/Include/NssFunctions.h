@@ -153,5 +153,30 @@ namespace Nilesoft
 				return ok;
 			}
 		}
+
+		namespace FileDialog
+		{
+			// path.file.save_box: the extension a typed name gets when it has none,
+			// from the first pattern of the first filter ('Text|*.txt;*.text|...'
+			// gives "txt"). Empty for '*.*' or anything that is not a plain '*.ext'.
+			inline std::wstring default_extension(std::wstring_view filter)
+			{
+				auto bar = filter.find(L'|');
+				if(bar == std::wstring_view::npos)
+					return {};
+				auto pattern = filter.substr(bar + 1);
+				pattern = pattern.substr(0, pattern.find_first_of(L"|;"));
+				while(!pattern.empty() && pattern.front() == L' ')
+					pattern.remove_prefix(1);
+				while(!pattern.empty() && pattern.back() == L' ')
+					pattern.remove_suffix(1);
+				if(pattern.size() < 3 || pattern[0] != L'*' || pattern[1] != L'.')
+					return {};
+				auto ext = pattern.substr(2);
+				if(ext.find_first_of(L"*?.\\/") != std::wstring_view::npos)
+					return {};
+				return std::wstring(ext);
+			}
+		}
 	}
 }

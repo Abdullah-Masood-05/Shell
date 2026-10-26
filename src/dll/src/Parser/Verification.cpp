@@ -997,6 +997,8 @@ namespace Nilesoft
 									return check(argc == 1, 2);
 								case IDENT_BOX:
 									return check(argc <= 4, 2);
+								case IDENT_SAVE_BOX:
+									return check(argc <= 3, 2);
 								case IDENT_ZERO:
 									return check(argc == 1, 1);
 								default:

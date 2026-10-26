@@ -3223,41 +3223,76 @@ namespace Nilesoft
 							_result = Path::Extension(arg0);
 							break;
 						case IDENT_BOX:
+						case IDENT_SAVE_BOX:
 						{
+							// path.file.box(filter, initialDir, fileName) and
+							// path.file.save_box(filter, initialDir, defaultName). The filter is
+							// 'Text|*.txt|All|*.*' or an array of such parts, joined with '|'.
+							string filter = arg0;
+							// An array reads as empty text; only then is it evaluated again.
+							if(argc > 0 && filter.empty())
+							{
+								auto obj = eval_arg(0).move();
+								if(obj.is_array(true))
+								{
+									auto ptr = obj.get_pointer();
+									auto count = (uint32_t)ptr[0];
+									for(auto i = 0u; i < count; i++)
+									{
+										auto part = ptr[i + 1].to_string().move();
+										if(part.empty())
+											continue;
+										if(!filter.empty())
+											filter.append(L'|');
+										filter.append(part);
+									}
+								}
+							}
 
-							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							if(filter.empty())
+								filter = L"All Files (*.*)|*.*";
+
+							std::vector<wchar_t> flt;
+							for(auto c : filter)
+								flt.push_back(c == L'|' ? L'\0' : c);
+							flt.push_back(0);
+							flt.push_back(0);
 
 							string initialDir;
-							std::vector<wchar_t> flt;
-							wchar_t szFile[MAX_PATH]{ };
+							if(argc > 1)
+								initialDir = eval_arg(1).to_string().trim(L"\"'").move();
 
-							if(argc == 0)
+							// Room for long paths; the suggested name is cut to fit.
+							std::vector<wchar_t> file(4096, L'\0');
+							if(argc > 2)
 							{
-								for(auto c : L"All Files (*.*)\0*.*\0")
-									flt.push_back(c);
+								auto name = as_wstring(eval_arg(2).to_string());
+								::wcsncpy_s(file.data(), file.size(), name.c_str(), _TRUNCATE);
+							}
+
+							// Save: the first filter's extension is added when the user types none.
+							std::wstring defExt = FileDialog::default_extension(filter.c_str());
+
+							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
+							ofn.lpstrFilter = flt.data();
+							ofn.lpstrInitialDir = initialDir.empty() ? nullptr : initialDir.c_str();
+							ofn.lpstrFile = file.data();
+							ofn.nMaxFile = (DWORD)file.size();
+
+							// OFN_NOCHANGEDIR: the dialog would otherwise move the working
+							// directory of the whole process (Explorer) to the chosen folder.
+							if(Id[2] == IDENT_SAVE_BOX)
+							{
+								ofn.lpstrDefExt = defExt.empty() ? nullptr : defExt.c_str();
+								ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::SaveFileDialog(&ofn).move();
 							}
 							else
 							{
-								for(auto c : arg0)
-									flt.push_back(c == L'|' ? L'\0' : c);
-
-								if(argc == 2)
-									initialDir = eval_arg(1).to_string().move();
-
-								if(argc == 3)
-									string::Copy(szFile, eval_arg(2).to_string());
+								ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::OpenFileDialog(&ofn).move();
 							}
-
-							flt.push_back(0);
-							flt.push_back(0);
-
-							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
-							ofn.lpstrFilter = flt.data();
-							ofn.lpstrInitialDir = initialDir;
-							ofn.lpstrFile = szFile;
-							ofn.nMaxFile = MAX_PATH;
-							_result = Path::OpenFileDialog(&ofn).move();
-
 							break;
 						}
 						case IDENT_ZERO:
