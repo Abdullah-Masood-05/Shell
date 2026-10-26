@@ -5789,14 +5789,15 @@ namespace Nilesoft
 			}
 			else if(Id[1] == IDENT_COLOR_RANDOM)
 			{
-				uint8_t min = argc == 1 ? 0 : eval_arg(0).to_number<uint8_t>();
-				uint8_t max = eval_arg(argc == 1 ? 0 : 1).to_number<uint8_t>();
+				// color.random = any color, color.random(max), color.random(min, max).
+				uint8_t min = argc >= 2 ? eval_arg(0).to_number<uint8_t>() : 0;
+				uint8_t max = argc == 0 ? 255 : eval_arg(argc >= 2 ? 1 : 0).to_number<uint8_t>();
 
-				auto r = Environment::RandomNumber(min, max);
-				auto g = Environment::RandomNumber(min, max);
-				auto b = Environment::RandomNumber(min, max);
+				auto r = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto g = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto b = static_cast<uint8_t>(Environment::RandomNumber(min, max));
 
-				Object color = RGB(r, g, b);
+				Object color = Color(r, g, b, 255).to_ABGR();
 				return color.inner(PrimitiveType::Color).move();
 			}
 			else if(Id[1] == IDENT_COLOR_INVERT)
