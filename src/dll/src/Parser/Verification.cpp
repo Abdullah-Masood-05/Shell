@@ -613,6 +613,8 @@ namespace Nilesoft
 								case IDENT_LNK_TARGET:
 								case IDENT_ICON:
 								case IDENT_TYPE:
+								case IDENT_ARGS:
+								case IDENT_RAW:
 									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc == 0, 1);
@@ -968,6 +970,8 @@ namespace Nilesoft
 								case IDENT_LNK_TARGET:
 								case IDENT_TYPE:
 								case IDENT_ICON:
+								case IDENT_ARGS:
+								case IDENT_RAW:
 									return check(argc == 1, 2);
 								case IDENT_CREATE:
 									return check(argc >= 2 && argc <= 8, 2);

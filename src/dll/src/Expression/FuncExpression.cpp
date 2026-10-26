@@ -2888,6 +2888,24 @@ namespace Nilesoft
 						if(Path::GetLinkInfo(p->get(), nullptr, nullptr, &icon) && !icon.empty())
 							_result = icon.move();
 					}
+					else if(Id[2] == IDENT_ARGS)
+					{
+						string args;
+						if(Path::GetLinkInfo(p->get(), nullptr, nullptr, nullptr, nullptr, &args))
+							_result = args.move();
+					}
+					else if(Id[2] == IDENT_RAW)
+					{
+						// The target and its arguments as one command line.
+						string target, args;
+						if(Path::GetLinkInfo(p->get(), &target, nullptr, nullptr, nullptr, &args) && !target.empty())
+						{
+							string raw = target.contains(L' ') ? L"\"" + target + L"\"" : target;
+							if(!args.empty())
+								raw.append(L" ").append(args);
+							_result = raw.move();
+						}
+					}
 					else
 					{
 						string target;
@@ -3184,6 +3202,24 @@ namespace Nilesoft
 						string icon;
 						if(Path::GetLinkInfo(arg0, nullptr, nullptr, &icon) && !icon.empty())
 							_result = icon.move();
+					}
+					else if(Id[2] == IDENT_ARGS)
+					{
+						string args;
+						if(Path::GetLinkInfo(arg0, nullptr, nullptr, nullptr, nullptr, &args))
+							_result = args.move();
+					}
+					else if(Id[2] == IDENT_RAW)
+					{
+						// The target and its arguments as one command line.
+						string target, args;
+						if(Path::GetLinkInfo(arg0, &target, nullptr, nullptr, nullptr, &args) && !target.empty())
+						{
+							string raw = target.contains(L' ') ? L"\"" + target + L"\"" : target;
+							if(!args.empty())
+								raw.append(L" ").append(args);
+							_result = raw.move();
+						}
 					}
 					else if(Id[2] == IDENT_CREATE)
 					{
