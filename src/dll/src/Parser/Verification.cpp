@@ -425,6 +425,7 @@ namespace Nilesoft
 						return check(argc == 1 || argc == 2);
 					case IDENT_REPLACE:
 						return check(argc == 2 || argc == 3);
+					case IDENT_FMT:
 					case IDENT_FORMAT:
 						return check(argc > 0);
 					default:
@@ -1115,6 +1116,7 @@ namespace Nilesoft
 							return check(argc == 2 || argc == 3, 1);
 						case IDENT_REPLACE:
 							return check(argc == 3 || argc == 4, 1);
+						case IDENT_FMT:
 						case IDENT_FORMAT:
 							return check(argc > 0, 1);
 						case IDENT_GUID:
@@ -2038,6 +2040,7 @@ namespace Nilesoft
 					return check(argc == 1 || argc == 2, 1);
 				case IDENT_REPLACE:
 					return check(argc == 2 || argc == 3, 1);
+				case IDENT_FMT:
 				case IDENT_FORMAT:
 					return check(argc > 0, 1);
 				case IDENT_ZERO:

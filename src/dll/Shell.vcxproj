@@ -182,6 +182,7 @@
     <ClInclude Include="src\Include\FindPattern.h" />
     <ClInclude Include="src\Include\IdNames.h" />
     <ClInclude Include="src\Include\IndexOf.h" />
+    <ClInclude Include="src\Include\NssFunctions.h" />
     <ClCompile Include="src\Parser\Lexer.cpp" />
     <ClCompile Include="src\Parser\Properties.cpp" />
     <ClCompile Include="src\Parser\Verification.cpp" />

@@ -2,6 +2,7 @@
 #include "Resource.h"
 #include "Expression\Constants.h"
 #include "Expression\Variable.h"
+#include "Include\NssFunctions.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
@@ -4942,8 +4943,16 @@ namespace Nilesoft
 					_result = (tag + str + ((argc == 3) ? eval_arg(2).to_string() : tag)).move();
 					break;
 				}
+				case IDENT_FMT:
 				case IDENT_FORMAT:
+				{
+					// str.fmt('{0}-{1}', a, b): {N} is argument N after the format.
+					std::vector<std::wstring> args;
+					for(size_t i = 1; i < argc + a; i++)
+						args.push_back(as_wstring(eval_arg(i).to_string()));
+					_result = string(StrFormat::format(as_wstring(str), args).c_str()).move();
 					break;
+				}
 				case IDENT_DECODE:
 				{
 					if(Id[2] == IDENT_URL)
