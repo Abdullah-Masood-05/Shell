@@ -2502,7 +2502,7 @@ namespace Nilesoft
 					if(Id.is_length(2))
 						_result = sel->Path(ii).length();
 					else
-						_result = L"@sel.item";
+						_result = sel->Path(ii).move();
 					break;
 				}
 				case IDENT_NAME:
