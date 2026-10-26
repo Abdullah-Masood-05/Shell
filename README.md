@@ -16,6 +16,7 @@
 
 <p align="center">
   <a href="https://abdullah-masood-05.github.io/Shell/"><b>Documentation</b></a> &middot;
+  <a href="https://abdullah-masood-05.github.io/Shell/troubleshooting/">Troubleshooting</a> &middot;
   <a href="https://github.com/Abdullah-Masood-05/Shell/releases"><b>Download</b></a> &middot;
   <a href="https://github.com/Abdullah-Masood-05/Shell/issues">Issues</a> &middot;
   <a href="https://github.com/moudey/Shell">Original project</a> &middot;
