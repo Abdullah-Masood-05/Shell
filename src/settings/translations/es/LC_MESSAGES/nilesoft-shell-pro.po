@@ -2477,10 +2477,18 @@ msgid "Report an issue"
 msgstr "Informar de un problema"
 
 #: ui/pages/preferences.slint:379
+msgid "Thanks"
+msgstr "Agradecimientos"
+
+#: ui/pages/preferences.slint:384
+msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
+msgstr "A RubicBG, por sus snippets y las correcciones del motor de ReShell. A Deliond, que tradujo la aplicación al español por su cuenta. A zhonglixun, por revisar la traducción al chino y por muchos informes e ideas. A advanced03, TheDoctor121 y FroztySeven, por sus informes de errores. Y a todas las personas cuyas correcciones y traducciones se trajeron de los issues, pull requests y forks de Nilesoft Shell."
+
+#: ui/pages/preferences.slint:395
 msgid "Third-party software"
 msgstr "Software de terceros"
 
-#: ui/pages/preferences.slint:384
+#: ui/pages/preferences.slint:400
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "Creado con Slint (licencia libre de regalías 2.0). JSON for Modern C++ de Niels Lohmann (MIT). Fluent UI System Icons de Microsoft (MIT)."
 
@@ -5743,14 +5751,14 @@ msgstr "Establecer como fondo de escritorio"
 msgid "Restore previous versions"
 msgstr "Restaurar versiones anteriores"
 
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "Al iniciar la aplicación, como máximo una vez al día."
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
 
 #~ msgid "SHA256SUMS.txt is not served from this project's releases."
 #~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
 
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
-
 #~ msgid "Couldn't download SHA256SUMS.txt: {}"
 #~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "Al iniciar la aplicación, como máximo una vez al día."

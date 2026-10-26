@@ -376,6 +376,22 @@ export component PreferencesPage inherits PageFrame {
             background: Tokens.stroke;
         }
         Text {
+            text: @tr("Thanks");
+            font-weight: 600;
+            color: Tokens.text;
+        }
+        Text {
+            text: @tr("RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks.");
+            font-size: Tokens.caption + 1px;
+            color: Tokens.text-2;
+            wrap: word-wrap;
+            min-height: self.preferred-height;
+        }
+        Rectangle {
+            height: 1px;
+            background: Tokens.stroke;
+        }
+        Text {
             text: @tr("Third-party software");
             font-weight: 600;
             color: Tokens.text;

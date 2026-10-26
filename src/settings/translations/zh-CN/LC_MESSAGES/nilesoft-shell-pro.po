@@ -2471,10 +2471,18 @@ msgid "Report an issue"
 msgstr "报告问题"
 
 #: ui/pages/preferences.slint:379
+msgid "Thanks"
+msgstr "致谢"
+
+#: ui/pages/preferences.slint:384
+msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
+msgstr "感谢 RubicBG 提供的扩展功能和来自 ReShell 的引擎修复。感谢 Deliond 独自将应用翻译成西班牙语。感谢 zhonglixun 审校中文翻译，并提出了许多问题报告和建议。感谢 advanced03、TheDoctor121 和 FroztySeven 的问题报告。也感谢所有修复和翻译从 Nilesoft Shell 的问题、拉取请求和分支中移植过来的贡献者。"
+
+#: ui/pages/preferences.slint:395
 msgid "Third-party software"
 msgstr "第三方软件"
 
-#: ui/pages/preferences.slint:384
+#: ui/pages/preferences.slint:400
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr "使用 Slint 构建 (Royalty-free license 2.0)。JSON for Modern C++，作者 Niels Lohmann (MIT)。Fluent UI System Icons，作者 Microsoft (MIT)。"
 
@@ -5691,152 +5699,152 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "文件开头不是自动生成的文件头。"
-
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
-
-#~ msgid "Move to {}"
-#~ msgstr "移到 {}"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "无法从此地址下载 {}。"
 
 #~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
 #~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
 
-#~ msgid "Add a separator after"
-#~ msgstr "在后面添加分隔线"
+#~ msgid "Change visibility"
+#~ msgstr "更改可见性"
 
 #~ msgid "{} isn't downloaded yet."
 #~ msgstr "{} 尚未下载。"
 
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "无法下载 SHA256SUMS.txt：{}"
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
 
 #~ msgid "Add a separator before"
 #~ msgstr "在前面添加分隔线"
 
-#~ msgid "no selection"
-#~ msgstr "未选择"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
 #~ msgid "Change icon"
 #~ msgstr "更改图标"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移到中间"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移到底部"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
-
-#~ msgid "on the start"
-#~ msgstr "在“开始”菜单中"
 
 #~ msgid "Move to {}, position {}"
 #~ msgstr "移到 {} 的第 {} 个位置"
 
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
-
 #~ msgid "Change state"
 #~ msgstr "更改状态"
 
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载扩展功能：{}"
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "无法下载 SHA256SUMS.txt：{}"
 
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
-
-#~ msgid "Change visibility"
-#~ msgstr "更改可见性"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移到 {} 顶部"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重命名为 {}"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
-
-#~ msgid "No visible change"
-#~ msgstr "无可见更改"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移到第 {} 个位置"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下载代码…"
-
-#~ msgid "Imported from {}."
-#~ msgstr "从 {} 导入。"
-
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在应用启动时检查，每天最多一次。"
-
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
-
-#~ msgid "Move to the top"
-#~ msgstr "移到顶部"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "无法预览：未能下载此扩展功能。{}"
-
-#~ msgid "Change command"
-#~ msgstr "更改命令"
-
-#~ msgid "Add a tip"
-#~ msgstr "添加提示"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移到 {} 底部"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "无法开启“{}”"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的扩展功能合集"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载扩展功能…"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "与表达式匹配的项"
-
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本应用管理"
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
 
 #~ msgid "The file has a syntax problem at line {}: {}"
 #~ msgstr "文件第 {} 行存在语法问题：{}"
 
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "无法从此地址下载 {}。"
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "multiple selection"
+#~ msgstr "多选"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "无法下载扩展功能：{}"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在应用启动时检查，每天最多一次。"
+
+#~ msgid "Move to the top"
+#~ msgstr "移到顶部"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移到 {} 顶部"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在后面添加分隔线"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "无法开启“{}”"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
+
+#~ msgid "Move to {}"
+#~ msgstr "移到 {}"
+
+#~ msgid "Add a tip"
+#~ msgstr "添加提示"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "与表达式匹配的项"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
+
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "无法预览：未能下载此扩展功能。{}"
+
+#~ msgid "Imported from {}."
+#~ msgstr "从 {} 导入。"
+
+#~ msgid "No visible change"
+#~ msgstr "无可见更改"
+
+#~ msgid "Change command"
+#~ msgstr "更改命令"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重命名为 {}"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本应用管理"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移到中间"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "文件开头不是自动生成的文件头。"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的扩展功能合集"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
+
+#~ msgid "on the start"
+#~ msgstr "在“开始”菜单中"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下载代码…"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下载扩展功能…"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移到第 {} 个位置"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移到 {} 底部"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移到底部"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"

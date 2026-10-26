@@ -2472,10 +2472,18 @@ msgid "Report an issue"
 msgstr ""
 
 #: ui/pages/preferences.slint:379
-msgid "Third-party software"
+msgid "Thanks"
 msgstr ""
 
 #: ui/pages/preferences.slint:384
+msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
+msgstr ""
+
+#: ui/pages/preferences.slint:395
+msgid "Third-party software"
+msgstr ""
+
+#: ui/pages/preferences.slint:400
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr ""
 
