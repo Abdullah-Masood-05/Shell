@@ -514,6 +514,8 @@ namespace Nilesoft
 							case IDENT_WINDOW_HIDDEN:
 								_result = SW_HIDE;
 								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
 							case IDENT_NORMAL:
 								_result = SW_SHOWNORMAL;
 								break;
@@ -553,7 +555,31 @@ namespace Nilesoft
 				}
 				case IDENT_SHELL:
 				{
-					if(context->Runtime && argc > 0)
+					if(Id.length() > 1)
+					{
+						// shell.invoked and the shell.* window constants, same as cmd.*.
+						switch(Id[1])
+						{
+							case IDENT_CMD_INVOKED:
+								_result = context->invoked;
+								break;
+							case IDENT_WINDOW_HIDDEN:
+								_result = SW_HIDE;
+								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
+							case IDENT_NORMAL:
+								_result = SW_SHOWNORMAL;
+								break;
+							case IDENT_MINIMIZED:
+								_result = SW_SHOWMINIMIZED;
+								break;
+							case IDENT_MAXIMIZED:
+								_result = SW_SHOWMAXIMIZED;
+								break;
+						}
+					}
+					else if(context->Runtime && argc > 0)
 					{
 						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
 						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
