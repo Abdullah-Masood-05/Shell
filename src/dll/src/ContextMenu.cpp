@@ -309,7 +309,7 @@ namespace Nilesoft
 					_context._this = &_this;
 					_this.level = (int)parent_level.size();
 
-					_this.type = not_sep ? (item->is_menu() ? 2 : 1) : 0;
+					_this.type = not_sep ? (item->is_menu() ? 1 : 0) : 2;
 					_this.pos = _this_index++;
 
 					if(!Selected.verify_types(item->fso))
@@ -5068,7 +5068,7 @@ namespace Nilesoft
 			auto invoke_item = cm->invoke_item;
 
 			this_item _this;
-			_this.type = (int)invoke_item->type;
+			_this.type = invoke_item->is_separator() ? 2 : (invoke_item->is_popup() ? 1 : 0);
 			_this.pos = static_cast<int>(invoke_item->position);
 			_this.checked = invoke_item->is_checked() ? (invoke_item->is_radiocheck() ? 2 : 1) : 0;
 			_this.disabled = invoke_item->is_disabled();
