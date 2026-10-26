@@ -48,6 +48,9 @@ constexpr auto APP_WEBSITELINK	= L"https://nilesoft.org";
 	#define IDD_INPUTBOX			103
 	#define IDC_INPUTBOX_PROMPT		1000
 	#define IDC_INPUTBOX_EDIT		1001
+	#define IDD_COMBOBOX			104
+	#define IDC_COMBOBOX_PROMPT		1002
+	#define IDC_COMBOBOX_COMBO		1003
 	
 #else
 	#define APP_FILENAME		APP_FILENAME_TITLE L".exe"

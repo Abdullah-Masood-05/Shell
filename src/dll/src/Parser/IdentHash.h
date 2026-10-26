@@ -682,6 +682,7 @@ namespace Nilesoft
 		constexpr auto IDENT_INI = 0x0B888025U;
 		constexpr auto IDENT_INPUT = 0x0FA94AB5U;
 		constexpr auto IDENT_INPUT_RESULT = 0x192FD704U;
+		constexpr auto IDENT_INPUT_SELECTED = 0xFF48F66EU;
 
 		/////////////////////
 		// Constants

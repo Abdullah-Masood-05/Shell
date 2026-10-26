@@ -105,3 +105,13 @@ TEST_CASE("indexof: the previous item of the group is gone")
     IndexOf::insert(menu, std::string("B"), &ghost, 1, 1, IndexOf::Top);
     CHECK(menu == Menu{ "Open", "WinRAR", "B" });
 }
+
+TEST_CASE("indexof: a number as the default position")
+{
+    // No match: the item goes at that index, kept inside the menu.
+    CHECK(place({ "a", "b", "c" }, { "X" }, 1, 0) == Menu{ "X", "a", "b", "c" });
+    CHECK(place({ "a", "b", "c" }, { "X", "Y" }, 1, 2) == Menu{ "a", "b", "X", "Y", "c" });
+    CHECK(place({ "a", "b" }, { "X" }, 1, 40) == Menu{ "a", "b", "X" });
+    // A match still wins over the number.
+    CHECK(place({ "Open", "WinRAR", "Copy" }, { "X" }, 1, 0) == Menu{ "Open", "WinRAR", "X", "Copy" });
+}

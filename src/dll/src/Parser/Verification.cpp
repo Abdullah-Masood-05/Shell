@@ -1235,9 +1235,10 @@ namespace Nilesoft
 					switch(id[1])
 					{
 						case IDENT_INPUT_RESULT:
+						case IDENT_INPUT_SELECTED:
 							return check(argc == 0, 1);
 						case IDENT_ZERO:
-							return check(argc <= 3, 0);
+							return check(argc <= 5, 0);
 						default:
 							return error_at(1);
 					}

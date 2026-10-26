@@ -309,7 +309,7 @@ namespace Nilesoft
 					_context._this = &_this;
 					_this.level = (int)parent_level.size();
 
-					_this.type = not_sep ? (item->is_menu() ? 2 : 1) : 0;
+					_this.type = not_sep ? (item->is_menu() ? 1 : 0) : 2;
 					_this.pos = _this_index++;
 
 					if(!Selected.verify_types(item->fso))
@@ -387,7 +387,11 @@ namespace Nilesoft
 								indexof = ptr[2].to_string().move();
 								indexof_pos = ptr[3];
 								if(ac == 3)
-									indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+								{
+									// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+									int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+									indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+								}
 								position = (Shell::Position)indexof.trim().hash();
 							}
 						}
@@ -761,7 +765,11 @@ namespace Nilesoft
 							indexof = ptr[2].to_string().move();
 							indexof_pos = ptr[3];
 							if(ac == 3)
-								indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+							{
+								// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+								int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+								indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+							}
 							position = (Position)indexof.trim().hash();
 						}
 					}
@@ -5060,7 +5068,7 @@ namespace Nilesoft
 			auto invoke_item = cm->invoke_item;
 
 			this_item _this;
-			_this.type = (int)invoke_item->type;
+			_this.type = invoke_item->is_separator() ? 2 : (invoke_item->is_popup() ? 1 : 0);
 			_this.pos = static_cast<int>(invoke_item->position);
 			_this.checked = invoke_item->is_checked() ? (invoke_item->is_radiocheck() ? 2 : 1) : 0;
 			_this.disabled = invoke_item->is_disabled();
@@ -5758,11 +5766,16 @@ namespace Nilesoft
 				}
 				else if(_theme.gradient.radial[0] == 1.0)
 				{
-					double cx = to_size(_theme.gradient.radial[1], w / 2 + fxx);
-					double cy = to_size(_theme.gradient.radial[2], h / 2 + fyy);
+					// The layer window starts `margin` px left of and above the menu, so the
+					// menu's own area begins at back_rect (margin + border) on both axes.
+					// cx, cy, fx and fy are in percent of half the width or height, from
+					// there: 100 is the centre. (X used to start at the border only, which
+					// put the centre `margin` px left of the menu's centre.)
+					double cx = back_rect.left + to_size(_theme.gradient.radial[1], w / 2);
+					double cy = back_rect.top + to_size(_theme.gradient.radial[2], h / 2);
 					double r  = to_size(_theme.gradient.radial[3], ((h >= w ? w : h) / 2));
-					double fx = to_size(_theme.gradient.radial[4], w / 2 + fxx);
-					double fy = to_size(_theme.gradient.radial[5], h / 2 + fyy);
+					double fx = back_rect.left + to_size(_theme.gradient.radial[4], w / 2);
+					double fy = back_rect.top + to_size(_theme.gradient.radial[5], h / 2);
 
 					render = cx != 0.0 || cy != 0.0 || r != 0.0 || fx != 0.0 || fy != 0.0;
 					if(render)

@@ -827,15 +827,25 @@ namespace Nilesoft
 				}
 				case IDENT_INPUT:
 				{
+					// input(title, prompt, default) asks for text; input(title, prompt, default,
+					// array, index) offers the array's items in a drop-down list, with the
+					// item at index, else the one equal to default, else the first, selected.
+					// input.result is the text, input.selected the list item's index (-1 for
+					// the text box or when cancelled).
 					static string input_result;
+					static int input_selected = -1;
 
 					if(Id.length() > 1)
 					{
-						_result = input_result;
+						if(Id[1] == IDENT_INPUT_SELECTED)
+							_result = input_selected;
+						else
+							_result = input_result;
 						return _result.move();
 					}
 
 					input_result.clear();
+					input_selected = -1;
 					_result = false;
 
 					struct INPUT_PARAM
@@ -844,13 +854,47 @@ namespace Nilesoft
 						string prompt;
 						string result;
 						bool ret = false;
+						bool list = false;
+						std::vector<string> items;
+						int selected = -1;
 					} input_param;
 
 					input_param.title = eval_arg(0).to_string().move();
 					input_param.prompt = eval_arg(1).to_string().move();
 					input_param.result = eval_arg(2).to_string().move();
 
-					auto hWnd = ::CreateDialogParamW(Path::GetCurrentModule(), MAKEINTRESOURCEW(IDD_INPUTBOX), NULL, 
+					if(Arguments.size() >= 4)
+					{
+						if(Object arr = eval_arg(3).move(); arr.is_array(true))
+						{
+							auto ptr = arr.get_pointer();
+							auto count = (uint32_t)ptr[0];
+							for(auto i = 0u; i < count; i++)
+								input_param.items.push_back(ptr[i + 1].to_string().move());
+						}
+
+						input_param.list = !input_param.items.empty();
+						if(input_param.list)
+						{
+							auto count = static_cast<int>(input_param.items.size());
+							int index = Arguments.size() >= 5 ? eval_arg(4).to_number<int>() : -1;
+							if(index < 0 || index >= count)
+							{
+								index = 0;
+								for(int i = 0; i < count; i++)
+								{
+									if(input_param.items[i].equals(input_param.result))
+									{
+										index = i;
+										break;
+									}
+								}
+							}
+							input_param.selected = index;
+						}
+					}
+
+					auto hWnd = ::CreateDialogParamW(Path::GetCurrentModule(), MAKEINTRESOURCEW(input_param.list ? IDD_COMBOBOX : IDD_INPUTBOX), NULL, 
 													 [](HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)->INT_PTR
 					{
 						switch(Msg)
@@ -864,8 +908,15 @@ namespace Nilesoft
 								if(!input_param->title.empty())
 									::SetWindowTextW(hDlg, input_param->title);
 								if(!input_param->prompt.empty())
-									::SetDlgItemTextW(hDlg, IDC_INPUTBOX_PROMPT, input_param->prompt);
-								if(!input_param->result.empty())
+									::SetDlgItemTextW(hDlg, input_param->list ? IDC_COMBOBOX_PROMPT : IDC_INPUTBOX_PROMPT, input_param->prompt);
+								if(input_param->list)
+								{
+									auto hCombo = ::GetDlgItem(hDlg, IDC_COMBOBOX_COMBO);
+									for(auto &item : input_param->items)
+										::SendMessageW(hCombo, CB_ADDSTRING, 0, (LPARAM)item.c_str());
+									::SendMessageW(hCombo, CB_SETCURSEL, (WPARAM)input_param->selected, 0);
+								}
+								else if(!input_param->result.empty())
 									::SetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_param->result);
 								return TRUE;
 							}
@@ -874,9 +925,20 @@ namespace Nilesoft
 								auto input_param = (INPUT_PARAM *)::GetPropW(hDlg, L"INPUT-PARAM");
 								if(LOWORD(wParam) == IDOK)
 								{
-									wchar_t input_string[1024]{};
-									::GetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_string, 1024);
-									input_param->result = input_string;
+									if(input_param->list)
+									{
+										auto index = (int)::SendDlgItemMessageW(hDlg, IDC_COMBOBOX_COMBO, CB_GETCURSEL, 0, 0);
+										input_param->selected = index;
+										input_param->result.clear();
+										if(index >= 0 && index < (int)input_param->items.size())
+											input_param->result = input_param->items[index];
+									}
+									else
+									{
+										wchar_t input_string[1024]{};
+										::GetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_string, 1024);
+										input_param->result = input_string;
+									}
 									::EndDialog(hDlg, IDOK);
 									input_param->ret = true;
 								}
@@ -911,6 +973,8 @@ namespace Nilesoft
 						{
 							_result = true;
 							input_result = input_param.result.move();
+							if(input_param.list)
+								input_selected = input_param.selected;
 						}
 					}
 					return _result.move();
