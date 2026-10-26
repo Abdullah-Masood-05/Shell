@@ -6074,30 +6074,10 @@ namespace Nilesoft
 			if(var)
 			{
 				obj = context->Eval(var).move();
-				/*if(obj)
-				{
-					if(Array && !obj.is_default())
-					{
-						MB(0);
-						if(Object oa = context->Eval(Array).move(); oa.is_number())
-						{
-							int ai = oa;
-							if(ai >= 0)
-							{
-								if(obj.is_array(true))
-								{
-									Object obj_ret2;
-									obj.get(ai + 1, obj_ret2);
-									obj = obj_ret2.move();
-								}
-								else
-								{
-									obj = obj.to_string()[ai];
-								}
-							}
-						}
-					}
-				}*/
+				// $var[N] on a runtime or local variable: element N of an array,
+				// or character N of a string (null when N is past the end).
+				if(Array)
+					context->eval_object(Array, obj);
 			}
 			return var != nullptr;
 		}
