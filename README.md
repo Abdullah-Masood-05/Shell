@@ -239,6 +239,11 @@ bun run serve   # http://127.0.0.1:4000/Shell/
 - Upstream pull requests ported here: moudey/Shell#834 by MissinLinkk05551 (menus on monitors with negative
   coordinates), #836 by loliri (leading separators), #842 by jtabox (recovering from a broken configuration) and #846
   by v4806 (*Send to* and *New* submenus).
+- [RubicBG](https://github.com/RubicBG): the snippet collection the app includes (CC0) and the engine fixes and
+  functions ported from his ReShell in 2.3.0, with his permission.
+- [Deliond](https://github.com/Deliond) translated the app into Spanish on his own;
+  [zhonglixun](https://github.com/zhonglixun) reviewed the Chinese translation and reported many issues;
+  advanced03, TheDoctor121 and FroztySeven sent bug reports that led to fixes.
 - The default menus come from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config) (MIT).
 
