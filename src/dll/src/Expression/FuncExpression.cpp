@@ -3790,8 +3790,16 @@ namespace Nilesoft
 						break;
 					}
 					case IDENT_MOVE:
-						_result = ::MoveFileW(arg0.c_str(), full(eval_arg(1).to_string()).c_str());
+					{
+						// io.move(src, dst[, flags]): MOVEFILE_COPY_ALLOWED by default, so a
+						// file can go to another drive; an existing dst is kept unless the
+						// flags include MOVEFILE_REPLACE_EXISTING (1).
+						auto flags = DWORD(MOVEFILE_COPY_ALLOWED);
+						if(argc > 2)
+							flags = eval_arg(2).to_number<DWORD>();
+						_result = ::MoveFileExW(arg0.c_str(), full(eval_arg(1).to_string()).c_str(), flags);
 						break;
+					}
 					case IDENT_RENAME:
 						_result = ::_wrename(arg0.c_str(), full(eval_arg(1).to_string()).c_str()) == 0;
 						break;
