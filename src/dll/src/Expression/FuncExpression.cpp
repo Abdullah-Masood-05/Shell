@@ -4501,25 +4501,38 @@ namespace Nilesoft
 				case IDENT_LOC:
 				{
 					wchar_t szISOLang[51] = { };
-					if(Id.length() == 2)
+
+					// The Windows display language, which Windows' own menu items
+					// follow. The regional format (GetUserDefaultLocaleName) can differ,
+					// and picking the language file from it mixed two languages in one
+					// menu.
+					auto display_language = [&]() -> std::wstring
 					{
-						// The Windows display language, which Windows' own menu items
-						// follow. The regional format (GetUserDefaultLocaleName) can differ,
-						// and picking the language file from it mixed two languages in one
-						// menu.
 						ULONG count = 0, size = 0;
 						if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, nullptr, &size) && size > 0)
 						{
 							std::wstring langs(size, L'\0');
 							if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, langs.data(), &size) && langs[0])
-								_result = langs.c_str();
+								return langs.c_str();
 						}
-						if(_result.is_null())
-						{
-							auto len = ::GetUserDefaultLocaleName(szISOLang, 50);
-							if(len > 0)
-								_result = szISOLang;
-						}
+						if(::GetUserDefaultLocaleName(szISOLang, 50) > 0)
+							return szISOLang;
+						return {};
+					};
+
+					if(Id.length() == 2)
+					{
+						auto lang = display_language();
+						if(!lang.empty())
+							_result = lang.c_str();
+					}
+					else if(Id[2] == IDENT_FULL)
+					{
+						// The display language's name as Windows shows it, e.g. "English (United States)".
+						auto lang = display_language();
+						wchar_t full[LOCALE_NAME_MAX_LENGTH * 4] = { };
+						if(!lang.empty() && ::GetLocaleInfoEx(lang.c_str(), LOCALE_SLOCALIZEDDISPLAYNAME, full, _countof(full)) > 0)
+							_result = full;
 					}
 					else if(Id.length() == 3)
 					{
@@ -4579,6 +4592,78 @@ namespace Nilesoft
 					
 					break;
 				}
+				case IDENT_POWER:
+				{
+					SYSTEM_POWER_STATUS sps = { };
+					if(!::GetSystemPowerStatus(&sps))
+						break;
+					switch(Id[2])
+					{
+						case IDENT_BATTERY:
+							// Percent, or -1 when unknown (or there is no battery).
+							_result = (sps.BatteryLifePercent > 100 || (sps.BatteryFlag & 128)) ? -1 : (int)sps.BatteryLifePercent;
+							break;
+						case IDENT_IS_CHARGING:
+							// BatteryFlag 255 is "unknown", which has the charging bit set too.
+							_result = sps.BatteryFlag != 255 && (sps.BatteryFlag & 8) != 0;
+							break;
+						case IDENT_IS_AC:
+							_result = sps.ACLineStatus == 1;
+							break;
+						case IDENT_ZERO:
+							_result = sps.ACLineStatus == 0 ? L"battery" : L"ac";
+							break;
+					}
+					break;
+				}
+				case IDENT_SCREEN:
+				{
+					switch(Id[2])
+					{
+						case IDENT_COUNT:
+							_result = ::GetSystemMetrics(SM_CMONITORS);
+							break;
+						case IDENT_WIDTH:
+							_result = ::GetSystemMetrics(SM_CXSCREEN);
+							break;
+						case IDENT_HEIGHT:
+							_result = ::GetSystemMetrics(SM_CYSCREEN);
+							break;
+						case IDENT_PRIMARY:
+							// Same as sys.is_primary_monitor.
+							_result = context->helper.is_primary_monitor;
+							break;
+						case IDENT_ZERO:
+							_result = string::ToString(L"%dx%d", ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN)).move();
+							break;
+					}
+					break;
+				}
+				case IDENT_MEMORY:
+				{
+					MEMORYSTATUSEX mse = { sizeof(mse) };
+					if(!::GlobalMemoryStatusEx(&mse))
+						break;
+					switch(Id[2])
+					{
+						case IDENT_USED:
+						case IDENT_ZERO:
+							// Percent in use.
+							_result = (int)mse.dwMemoryLoad;
+							break;
+						case IDENT_TOTAL:
+							_result = (int)(mse.ullTotalPhys / (1024 * 1024));
+							break;
+						case IDENT_FREE:
+							_result = (int)(mse.ullAvailPhys / (1024 * 1024));
+							break;
+					}
+					break;
+				}
+				case IDENT_CPU:
+					// Logical processors in all processor groups.
+					_result = (int)::GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+					break;
 				case IDENT_DATETIME:
 				{
 					SYSTEMTIME lt = { };

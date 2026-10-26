@@ -680,6 +680,7 @@ namespace Nilesoft
 								case IDENT_ID:
 								case IDENT_NAME:
 								case IDENT_COUNTRY:
+								case IDENT_FULL:
 									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc == 0, 1);
@@ -687,6 +688,61 @@ namespace Nilesoft
 									return error_at(2);
 							}
 							return check(argc == 0, 1);
+						}
+						case IDENT_POWER:
+						{
+							switch(id[2])
+							{
+								case IDENT_BATTERY:
+								case IDENT_IS_CHARGING:
+								case IDENT_IS_AC:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_SCREEN:
+						{
+							switch(id[2])
+							{
+								case IDENT_COUNT:
+								case IDENT_WIDTH:
+								case IDENT_HEIGHT:
+								case IDENT_PRIMARY:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_MEMORY:
+						{
+							switch(id[2])
+							{
+								case IDENT_USED:
+								case IDENT_TOTAL:
+								case IDENT_FREE:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_CPU:
+						{
+							switch(id[2])
+							{
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
 						}
 						case IDENT_ISOREARLIER:
 						case IDENT_ISORGREATER:

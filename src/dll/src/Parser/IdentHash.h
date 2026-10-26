@@ -1406,6 +1406,17 @@ namespace Nilesoft
 		constexpr auto IDENT_ENCODE = 0xFB76C2B3U;
 		constexpr auto IDENT_URL = 0x0B88B3B8U;
 
+		// sys.power / sys.screen / sys.memory / sys.cpu
+		constexpr auto IDENT_POWER = 0x10289E52U;
+		constexpr auto IDENT_BATTERY = 0x6643B780U;
+		constexpr auto IDENT_IS_CHARGING = 0x3708D8E3U;
+		constexpr auto IDENT_IS_AC = 0x0FABBDA4U;
+		constexpr auto IDENT_SCREEN = 0x1B5FFD45U;
+		constexpr auto IDENT_MEMORY = 0x0D82A8DEU;
+		constexpr auto IDENT_TOTAL = 0x1070F309U;
+		constexpr auto IDENT_FREE = 0x7C96F087U;
+		constexpr auto IDENT_CPU = 0x0B8866EDU;
+
 		// End constants
 
 
