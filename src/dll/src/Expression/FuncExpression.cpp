@@ -2734,13 +2734,24 @@ namespace Nilesoft
 					auto t = PathType::Unknown;
 
 					if(argc == 0)
-						t = sel->Get(ii)->Type;
+					{
+						if(auto p = sel->Get(ii); p)
+							t = p->Type;
+					}
 					else if(argc > 0)
 					{
 						Object a1 = eval_arg(0);
 
+						// sel.type(n): the type of item n; type.unknown past the end of the selection.
 						if(a1.is_number())
-							t = sel->Get(a1.to_number<size_t>())->Type;
+						{
+							auto n = a1.to_number<int64_t>();
+							if(n >= 0)
+							{
+								if(auto p = sel->Get(static_cast<size_t>(n)); p)
+									t = p->Type;
+							}
+						}
 
 						switch(t)
 						{
