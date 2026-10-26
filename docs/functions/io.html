@@ -56,9 +56,18 @@ default = update_existing | recursive<br><br>
 
 <section id="io.move" class="my-5">
 	<h5>io.move</h5>
-	<p>Moves an existing file or a directory, including its children..</p>
+	<p>Moves an existing file or a directory, including its children. Returns true when it was moved.
+		A relative path starts from the folder the menu was opened in.</p>
+	<p>By default a file can move to another drive, and a file already at the new path is kept (the move fails).
+		A directory can only move within its drive.</p>
 	<p>Syntax</p>
-	<code>io.move(oldPath, newPath)</code>
+	<code>io.move(oldPath, newPath)</code><br>
+	<code>io.move(oldPath, newPath, flags)</code><br>
+	flags:<br>
+	1 = replace an existing file, 2 = allow a move to another drive, 8 = finish writing to the disk before returning<br>
+	default = 2<br><br>
+	Example:<br>
+	<code>io.move(sel.path, path.combine('D:\backup', sel.name), 1 | 2)</code>
 </section>
 
 <section id="io.rename" class="my-5">
