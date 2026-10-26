@@ -5431,6 +5431,25 @@ namespace Nilesoft
 							if(key.get_value(name, &dwtype, &cbdata, &value))
 								_result = value;
 						}
+						else if(dwtype == REG_BINARY)
+						{
+							// The bytes as a hex string, two digits per byte ("0A1B").
+							uint32_t type = REG_NONE;
+							if(argc == 3 && !key.get_value(name, &type, &cbdata))
+								return;
+							std::vector<uint8_t> bytes(cbdata);
+							if(key.get_value(name, &type, &cbdata, bytes.empty() ? nullptr : bytes.data()))
+							{
+								constexpr wchar_t digits[] = L"0123456789ABCDEF";
+								string hex;
+								for(uint32_t i = 0; i < cbdata && i < bytes.size(); i++)
+								{
+									hex += digits[bytes[i] >> 4];
+									hex += digits[bytes[i] & 0x0F];
+								}
+								_result = hex.move();
+							}
+						}
 					}
 				}
 				else if(Id[1] == IDENT_SET)
@@ -5463,6 +5482,39 @@ namespace Nilesoft
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint32_t>());
 					else if(dwtype == REG_QWORD)
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint64_t>());
+					else if(dwtype == REG_BINARY)
+					{
+						// A hex string, two digits per byte; spaces, commas and dashes
+						// between bytes are ignored. Anything else writes nothing.
+						string hex = value.to_string().move();
+						std::vector<uint8_t> bytes;
+						int hi = -1;
+						bool ok = true;
+						for(size_t i = 0; ok && i < hex.length(); i++)
+						{
+							auto ch = hex[i];
+							int d = -1;
+							if(ch >= L'0' && ch <= L'9') d = ch - L'0';
+							else if(ch >= L'a' && ch <= L'f') d = ch - L'a' + 10;
+							else if(ch >= L'A' && ch <= L'F') d = ch - L'A' + 10;
+							else if(hi < 0 && (ch == L' ' || ch == L',' || ch == L'-'))
+								continue;
+							else
+								ok = false;
+							if(d < 0)
+								continue;
+							if(hi < 0)
+								hi = d;
+							else
+							{
+								bytes.push_back(static_cast<uint8_t>((hi << 4) | d));
+								hi = -1;
+							}
+						}
+						if(ok && hi < 0)
+							_result = Registry::SetKeyValue(root_key, sub_key, name, REG_BINARY,
+															  bytes.empty() ? nullptr : bytes.data(), bytes.size());
+					}
 					else if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
 					{
 						string v = value.to_string().move();
@@ -5487,19 +5539,37 @@ namespace Nilesoft
 					{
 						std::vector<string> list;
 
+						// Names can be longer than MAX_PATH (values up to 16383
+						// characters), so size the buffer from the key, 260 at least.
+						DWORD max_key_name = 0, max_value_name = 0;
+						::RegQueryInfoKeyW(key, nullptr, nullptr, nullptr, nullptr, &max_key_name,
+										   nullptr, nullptr, &max_value_name, nullptr, nullptr, nullptr);
+						DWORD capacity = std::max<DWORD>(260, (Id[1] == IDENT_KEYS ? max_key_name : max_value_name) + 1);
+
 						LSTATUS retCode = ERROR_SUCCESS;
 						for(auto i = 0u; retCode == ERROR_SUCCESS; i++)
 						{
-							DWORD name_length = 260;
-							string name(name_length);
+							for(;;)
+							{
+								DWORD name_length = capacity;
+								string name(name_length);
 
-							if(Id[1] == IDENT_KEYS)
-								retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							else
-								retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							
-							if(retCode == ERROR_SUCCESS)
-								list.push_back(name.release(name_length).move());
+								if(Id[1] == IDENT_KEYS)
+									retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+								else
+									retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+
+								// A longer name was added while listing: grow and retry once more.
+								if(retCode == ERROR_MORE_DATA && capacity < 32768)
+								{
+									capacity = 32768;
+									continue;
+								}
+
+								if(retCode == ERROR_SUCCESS)
+									list.push_back(name.release(name_length).move());
+								break;
+							}
 						}
 
 						key.Close();
