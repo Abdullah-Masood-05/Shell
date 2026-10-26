@@ -5766,11 +5766,16 @@ namespace Nilesoft
 				}
 				else if(_theme.gradient.radial[0] == 1.0)
 				{
-					double cx = to_size(_theme.gradient.radial[1], w / 2 + fxx);
-					double cy = to_size(_theme.gradient.radial[2], h / 2 + fyy);
+					// The layer window starts `margin` px left of and above the menu, so the
+					// menu's own area begins at back_rect (margin + border) on both axes.
+					// cx, cy, fx and fy are in percent of half the width or height, from
+					// there: 100 is the centre. (X used to start at the border only, which
+					// put the centre `margin` px left of the menu's centre.)
+					double cx = back_rect.left + to_size(_theme.gradient.radial[1], w / 2);
+					double cy = back_rect.top + to_size(_theme.gradient.radial[2], h / 2);
 					double r  = to_size(_theme.gradient.radial[3], ((h >= w ? w : h) / 2));
-					double fx = to_size(_theme.gradient.radial[4], w / 2 + fxx);
-					double fy = to_size(_theme.gradient.radial[5], h / 2 + fyy);
+					double fx = back_rect.left + to_size(_theme.gradient.radial[4], w / 2);
+					double fy = back_rect.top + to_size(_theme.gradient.radial[5], h / 2);
 
 					render = cx != 0.0 || cy != 0.0 || r != 0.0 || fx != 0.0 || fy != 0.0;
 					if(render)
