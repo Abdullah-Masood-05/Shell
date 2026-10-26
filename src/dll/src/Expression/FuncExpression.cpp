@@ -5029,8 +5029,26 @@ namespace Nilesoft
 				}
 				case IDENT_SPLIT:
 				{
+					// Each item is trimmed; empty items (as in 'a,,b') are skipped.
+					// string::split treats a doubled delimiter as an escaped one, so
+					// 'a,,b' used to come back as the single item 'a,b'.
 					std::vector<string> list;
-					str.split(list, eval_arg(1).to_string()[0]);
+					string delim = eval_arg(1).to_string().move();
+					string value;
+					auto push = [&]()
+					{
+						if(!value.trim().empty())
+							list.emplace_back(value.move());
+						value = nullptr;
+					};
+					for(size_t i = 0; i < str.length(); i++)
+					{
+						if(!delim.empty() && str[i] == delim[0])
+							push();
+						else
+							value += str[i];
+					}
+					push();
 					if(!list.empty())
 						_result.from(list);
 					break;
