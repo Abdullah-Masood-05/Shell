@@ -564,6 +564,11 @@ namespace Nilesoft
 		constexpr auto IDENT_UWP = 0x0B88B461U;
 		constexpr auto IDENT_APPX = 0x7C942B9EU;
 		constexpr auto IDENT_FAMILY = 0xFCE61027U;
+		constexpr auto IDENT_LOGO = 0x7C9A2E56U;
+		constexpr auto IDENT_EXECUTABLE = 0x7C422127U;
+		constexpr auto IDENT_ENTRYPOINT = 0x52FECB81U;
+		constexpr auto IDENT_SQUARE150 = 0xA7FB91CCU;
+		constexpr auto IDENT_SQUARE44 = 0xAFC1CE7EU;
 		//
 		// datetime
 		constexpr auto IDENT_DATETIME = 0x0636F3F2U;

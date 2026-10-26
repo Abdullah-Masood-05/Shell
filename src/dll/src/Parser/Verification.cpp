@@ -1243,11 +1243,16 @@ namespace Nilesoft
 						case IDENT_VERSION:
 						case IDENT_VER:
 						case IDENT_EXISTS:
+						case IDENT_LOGO:
+						case IDENT_EXECUTABLE:
+						case IDENT_ENTRYPOINT:
+						case IDENT_SQUARE150:
+						case IDENT_SQUARE44:
 							return check(argc == 1, 1);
 						case IDENT_LIST:
 							return check(argc <= 1, 1);
 						case IDENT_ZERO:
-							return check(argc == 1);
+							return check(argc == 1 || argc == 2);
 						default:
 							return error_at(1);
 					}

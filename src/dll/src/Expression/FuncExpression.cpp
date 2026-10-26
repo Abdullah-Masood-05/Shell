@@ -247,7 +247,6 @@ namespace Nilesoft
 							_result = package->version;
 							break;
 						case IDENT_PATH:
-						case IDENT_ZERO:
 							_result = package->path;
 							break;
 						case IDENT_RUN:
@@ -255,6 +254,62 @@ namespace Nilesoft
 						case IDENT_SHELL:
 							_result = LR"(shell:appsFolder\)" + package->family + L"!App";
 							break;
+						case IDENT_TITLE:
+						case IDENT_ZERO:
+						case IDENT_LOGO:
+						case IDENT_EXECUTABLE:
+						case IDENT_ENTRYPOINT:
+						case IDENT_SQUARE150:
+						case IDENT_SQUARE44:
+						{
+							// appx(id) is the path; appx(id, 'property') and appx.<property>(id)
+							// return one value, the manifest ones read once per package.
+							string prop;
+							switch(Id[1])
+							{
+								case IDENT_TITLE: prop = L"name"; break;
+								case IDENT_LOGO: prop = L"logo"; break;
+								case IDENT_EXECUTABLE: prop = L"executable"; break;
+								case IDENT_ENTRYPOINT: prop = L"entrypoint"; break;
+								case IDENT_SQUARE150: prop = L"square150"; break;
+								case IDENT_SQUARE44: prop = L"square44"; break;
+								default:
+									prop = Arguments.size() > 1 ? eval_arg(1).to_string().trim().move() : string(L"path");
+									break;
+							}
+
+							if(prop.equals(L"path"))
+								_result = package->path;
+							else if(prop.equals({ L"name", L"title" }))
+								_result = package->name;
+							else if(prop.equals(L"id"))
+								_result = package->id;
+							else if(prop.equals(L"family"))
+								_result = package->family;
+							else if(prop.equals({ L"version", L"ver" }))
+								_result = package->version;
+							else if(prop.equals({ L"run", L"launch", L"shell" }))
+								_result = LR"(shell:appsFolder\)" + package->family + L"!App";
+							else
+							{
+								auto &manifest = package->get_manifest();
+								const std::wstring *value = nullptr;
+								if(prop.equals({ L"executable", L"exe" }))
+									value = &manifest.executable;
+								else if(prop.equals(L"entrypoint"))
+									value = &manifest.entrypoint;
+								else if(prop.equals(L"logo"))
+									value = &manifest.logo;
+								else if(prop.equals({ L"square150", L"square150x150logo" }))
+									value = &manifest.square150;
+								else if(prop.equals({ L"square44", L"square44x44logo" }))
+									value = &manifest.square44;
+
+								if(value && !value->empty())
+									_result = value->c_str();
+							}
+							break;
+						}
 						}
 					}
 				}
