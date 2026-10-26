@@ -450,6 +450,30 @@
 					"description": "加入「Search Everything...」選單，開啟 Everything 搜尋工具並預先限定在選取的資料夾、磁碟機或檔案類型，或用來尋找重複檔案、大型檔案和最近修改的檔案。"
 				}
 			}
+		},
+		{
+			"id": "rubicbg-play-in-mpc-be",
+			"path": "ex2.user.my/app.mpc.be.nss",
+			"title": "Play in MPC-BE",
+			"description": "Adds Open in MPC to video and music files, and to folders that contain them, to play them in MPC-BE, or add them to its playlist when you hold Shift. Needs MPC-BE from the Microsoft Store.",
+			"category": "tools",
+			"requires": [],
+			"risk": "none",
+			"sha256": "53efe779c8f5dc5e8314f914400b2235a748f4e11131891ec96bcbd6192f333c",
+			"translations": {
+				"zh-CN": {
+					"title": "用 MPC-BE 播放",
+					"description": "在视频和音乐文件，以及包含它们的文件夹上添加“Open in MPC”，用 MPC-BE 播放，按住 Shift 时改为加入它的播放列表。需要从 Microsoft Store 安装的 MPC-BE。"
+				},
+				"zh-TW": {
+					"title": "用 MPC-BE 播放",
+					"description": "在影片和音樂檔案，以及包含它們的資料夾上加入「Open in MPC」，用 MPC-BE 播放，按住 Shift 時改為加入它的播放清單。需要從 Microsoft Store 安裝的 MPC-BE。"
+				},
+				"es": {
+					"title": "Reproducir en MPC-BE",
+					"description": "Añade Open in MPC a los archivos de vídeo y música, y a las carpetas que los contienen, para reproducirlos en MPC-BE, o añadirlos a su lista de reproducción si mantienes pulsada la tecla Mayús. Necesita MPC-BE de Microsoft Store."
+				}
+			}
 		}
 	]
 }
