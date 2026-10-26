@@ -3313,8 +3313,13 @@ namespace Nilesoft
 							break;
 						case IDENT_BOX:
 						{
+							// path.dir.box(initialDir, title); both optional.
 							auto hwnd = context->Runtime ? context->wnd.active : nullptr;
-							_result = Path::OpenFolderDialog(string::Extract(IDS_SELECT_FOLDER), hwnd).move();
+							string initialDir = argc > 0 ? arg0.trim(L"\"'").move() : string();
+							string title = argc > 1 ? eval_arg(1).to_string().move() : string();
+							if(title.empty())
+								title = string::Extract(IDS_SELECT_FOLDER).move();
+							_result = Path::OpenFolderDialog(title, hwnd, initialDir.c_str()).move();
 							break;
 						}
 						case IDENT_ZERO:
