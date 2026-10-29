@@ -888,6 +888,8 @@ namespace Nilesoft
 							case IDENT_VIS:
 							case IDENT_MODE:
 							case IDENT_POS:
+							case IDENT_INDEXOF:
+							case IDENT_QUOTE:
 							case IDENT_SEP:
 							case IDENT_TRUE:
 							case IDENT_FALSE:
@@ -983,20 +985,286 @@ namespace Nilesoft
 			};
 
 			// --- Shell's own items ---
-			std::wstring shell;
-			std::function<void(std::vector<NativeMenu *> &, uint32_t)> walk = [&](std::vector<NativeMenu *> &items, uint32_t depth)
+			// Read first into a tree, so menu= and pos= can be applied as the menu
+			// applies them: an item with menu='Title' (or 'A/B') goes into that menu
+			// of this tree ('/' is the main menu), then each menu's items are put in
+			// the order pos= gives them (MenuPlacement.h).
+			struct ShellNode
 			{
-				bool first = true;
+				NativeMenu *item{};
+				uint32_t depth{};
+				TitleInfo title;
+				string normalized;			// the title as indexof() matches it
+				std::wstring menu;			// a constant menu=, without the outer '/'
+				bool menu_dynamic = false;
+				bool to_root = false;		// menu='/'
+				bool moved = false;			// placed in another menu than its own here
+				std::wstring moved_from;	// the menu it is written in ("" the main menu)
+				std::wstring pos;			// top, bottom, middle, N, before:<title>, after:<title>, indexof
+				Placement::Spec spec;
+				string indexof;				// the pattern of pos=indexof()
+				std::vector<std::unique_ptr<ShellNode>> children;
+			};
+			using ShellList = std::vector<std::unique_ptr<ShellNode>>;
+
+			auto position_of = [&](ShellNode &n)
+			{
+				auto e = n.item->position.get();
+				if(!e)
+					return;
+				if(!is_safe(e))
+				{
+					n.pos = L"dynamic";
+					return;
+				}
+				try
+				{
+					Object obj = context.Eval(e).move();
+					if(obj.is_array(true))
+					{
+						auto ptr = obj.get_pointer();
+						if((uint32_t)ptr[0] != IDENT_INDEXOF)
+							return;
+						int ac = ptr[1];
+						n.indexof = ptr[2].to_string().move();
+						n.spec.kind = Placement::Kind::IndexOf;
+						n.spec.offset = ptr[3];
+						n.spec.def = -1;
+						if(ac == 3)
+						{
+							int d = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+							n.spec.def = d >= 0 ? d : (int)context.parse_pos(ptr[4], Position::Auto);
+						}
+						// '"Title"' with offset 0 or 1: right before or right after that item.
+						std::wstring pattern = n.indexof.c_str();
+						if(pattern.size() >= 2 && pattern.front() == L'"' && pattern.back() == L'"' &&
+						   pattern.find(L'|') == std::wstring::npos && (n.spec.offset == 0 || n.spec.offset == 1))
+							n.pos = (n.spec.offset == 0 ? L"before:" : L"after:") + pattern.substr(1, pattern.size() - 2);
+						else
+							n.pos = L"indexof";
+						return;
+					}
+					if(obj.is_null())
+						return;
+					auto p = context.parse_pos(obj, Position::Auto);
+					switch(p)
+					{
+						case Position::Top: n.spec.kind = Placement::Kind::Top; n.pos = L"top"; break;
+						case Position::Bottom: n.spec.kind = Placement::Kind::Bottom; n.pos = L"bottom"; break;
+						case Position::Middle: n.spec.kind = Placement::Kind::Middle; n.pos = L"middle"; break;
+						case Position::Auto:
+						case Position::None: n.pos = L"auto"; break;
+						default:
+							n.spec.kind = Placement::Kind::Index;
+							n.spec.index = static_cast<int>(p);
+							n.pos = std::to_wstring(static_cast<int>(p));
+							break;
+					}
+				}
+				catch(...)
+				{
+					n.pos = L"dynamic";
+				}
+			};
+
+			std::function<void(std::vector<NativeMenu *> &, uint32_t, ShellList &)> read =
+				[&](std::vector<NativeMenu *> &items, uint32_t depth, ShellList &out)
+			{
 				for(auto item : items)
 				{
 					if(!item)
 						continue;
 					if(!Selections::match_types(item->fso, types, back, count))
 						continue;
+					auto n = std::make_unique<ShellNode>();
+					n->item = item;
+					n->depth = depth;
+					auto kind = item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item;
+					n->title = DescribeTitle(item, depth, kind);
+					string t = n->title.text.c_str();
+					MenuItemInfo::normalize(t, &n->normalized);
+					if(!item->is_separator())
+					{
+						if(item->moveto.get())
+						{
+							auto all = text_of(item->moveto, n->menu_dynamic);
+							std::wstring m = all;
+							while(!m.empty() && (m.front() == L'/' || iswspace(m.front())))
+								m.erase(0, 1);
+							while(!m.empty() && (m.back() == L'/' || iswspace(m.back())))
+								m.pop_back();
+							n->menu = m;
+							n->to_root = !n->menu_dynamic && m.empty() && all.find(L'/') != std::wstring::npos;
+						}
+					}
+					position_of(*n);
+					read(item->items, depth + 1, n->children);
+					out.push_back(std::move(n));
+				}
+			};
+			ShellList shell_root;
+			read(context.Cache->dynamic.items, 0, shell_root);
+
+			// The menu each item is written in, as a path of titles.
+			std::function<void(ShellList &, const std::wstring &)> origin = [&](ShellList &list, const std::wstring &path)
+			{
+				for(auto &n : list)
+				{
+					n->moved_from = path;
+					std::wstring title = n->title.text.c_str();
+					origin(n->children, path.empty() ? title : path + L"/" + title);
+				}
+			};
+			origin(shell_root, L"");
+
+			// menu=: the item leaves its menu for the end of the one it names, found by
+			// its titles as the menu matches them (any case, '&' left out). When that
+			// menu isn't in this context the item stays where it is written (in the real
+			// menu it doesn't show).
+			auto find_menu = [&](const std::wstring &path, const ShellNode *self) -> ShellList *
+			{
+				std::vector<std::wstring> parts;
+				size_t at = 0;
+				while(at <= path.size())
+				{
+					auto slash = path.find(L'/', at);
+					auto part = path.substr(at, slash == std::wstring::npos ? std::wstring::npos : slash - at);
+					while(!part.empty() && iswspace(part.front()))
+						part.erase(0, 1);
+					while(!part.empty() && iswspace(part.back()))
+						part.pop_back();
+					if(!part.empty())
+						parts.push_back(part);
+					if(slash == std::wstring::npos)
+						break;
+					at = slash + 1;
+				}
+				if(parts.empty())
+					return nullptr;
+				auto *list = &shell_root;
+				for(auto &part : parts)
+				{
+					auto h = MenuItemInfo::hashing(part.c_str());
+					ShellNode *hit = nullptr;
+					for(auto &c : *list)
+					{
+						if(c.get() == self || !c->item->is_menu() || c->title.state != TitleInfo::Text)
+							continue;
+						if(MenuItemInfo::hashing(c->title.text) == h)
+						{
+							hit = c.get();
+							break;
+						}
+					}
+					if(!hit)
+						return nullptr;
+					list = &hit->children;
+				}
+				return list;
+			};
+			std::function<bool(const ShellNode *, const ShellList *)> inside = [&](const ShellNode *n, const ShellList *list) -> bool
+			{
+				if(list == &n->children)
+					return true;
+				for(auto &c : n->children)
+				{
+					if(inside(c.get(), list))
+						return true;
+				}
+				return false;
+			};
+			struct Move { ShellList *from; ShellNode *node; };
+			std::vector<Move> moves;
+			std::function<void(ShellList &, bool)> collect = [&](ShellList &list, bool top)
+			{
+				for(auto &n : list)
+				{
+					if(!n->menu.empty() || (n->to_root && !top))
+						moves.push_back({ &list, n.get() });
+					collect(n->children, false);
+				}
+			};
+			collect(shell_root, true);
+			for(auto &m : moves)
+			{
+				auto target = m.node->to_root ? &shell_root : find_menu(m.node->menu, m.node);
+				if(!target || target == m.from || inside(m.node, target))
+					continue;
+				auto it = std::find_if(m.from->begin(), m.from->end(), [&](const auto &x) { return x.get() == m.node; });
+				if(it == m.from->end())
+					continue;
+				auto owned = std::move(*it);
+				m.from->erase(it);
+				owned->moved = true;
+				// The items inside it now live in the target's tree: moves listed for them
+				// still point at their own lists, which moved with it.
+				target->push_back(std::move(owned));
+			}
+
+			// pos=: each menu in the order it shows.
+			std::function<void(ShellList &)> arrange = [&](ShellList &list)
+			{
+				for(auto &n : list)
+					arrange(n->children);
+				bool any = false;
+				std::vector<ShellNode *> plain;
+				for(auto &n : list)
+				{
+					plain.push_back(n.get());
+					any |= n->spec.kind != Placement::Kind::Auto;
+				}
+				if(!any)
+					return;
+				auto order = Placement::arrange(plain,
+					[](ShellNode *n) -> const Placement::Spec & { return n->spec; },
+					[](const std::vector<ShellNode *> &items, ShellNode *n) -> std::ptrdiff_t
+					{
+						// The patterns in order ("a|b": b only when nothing matches a).
+						FindPattern fp;
+						if(!fp.split(n->indexof, L'|'))
+							return -1;
+						for(const auto &pat : fp.matches)
+						{
+							for(size_t i = 0; i < items.size(); i++)
+							{
+								if(fp.find(pat, &items[i]->normalized))
+									return static_cast<std::ptrdiff_t>(i);
+							}
+						}
+						return -1;
+					},
+					[](ShellNode *a, ShellNode *b)
+					{
+						return a->spec.offset == b->spec.offset && a->spec.def == b->spec.def &&
+							a->indexof.equals(b->indexof, false);
+					});
+				ShellList sorted;
+				for(auto p : order)
+				{
+					for(auto &n : list)
+					{
+						if(n.get() == p)
+						{
+							sorted.push_back(std::move(n));
+							break;
+						}
+					}
+				}
+				list = std::move(sorted);
+			};
+			arrange(shell_root);
+
+			std::wstring shell;
+			std::function<void(ShellList &)> walk = [&](ShellList &list)
+			{
+				bool first = true;
+				for(auto &np : list)
+				{
+					auto &n = *np;
+					auto item = n.item;
+					auto &title = n.title;
 					shell += first ? L"{" : L",{";
 					first = false;
-					auto kind = item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item;
-					auto title = DescribeTitle(item, depth, kind);
 					jtext(shell, L"kind", item->is_separator() ? L"separator" : item->type == NativeMenuType::Menu ? L"menu" : L"item");
 					jkey(shell, L"title");
 					jstr(shell, title.text);
@@ -1025,13 +1293,20 @@ namespace Nilesoft
 					jkey(shell, L"conditions");
 					shell += L"[" + conds + L"]";
 					jbool(shell, L"dynamic", item->for_each != 0 || (item->title.get() && title.state == TitleInfo::Dynamic));
+					// menu= and pos= as written (menu "/" is the main menu), whether menu=
+					// put it in another menu here, and the menu it is written in.
+					jtext(shell, L"menu", n.to_root ? std::wstring(L"/") : n.menu);
+					jbool(shell, L"menu_dynamic", n.menu_dynamic);
+					jbool(shell, L"moved", n.moved);
+					jtext(shell, L"moved_from", n.moved_from);
+					jtext(shell, L"pos", n.pos);
 					jkey(shell, L"items");
 					shell += L"[";
-					walk(item->items, depth + 1);
+					walk(n.children);
 					shell += L"]}";
 				}
 			};
-			walk(context.Cache->dynamic.items, 0);
+			walk(shell_root);
 
 			// --- The rules ---
 			auto &statics = context.Cache->statics;

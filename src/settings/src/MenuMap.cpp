@@ -8,6 +8,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
+#include <cctype>
+
 namespace fs = std::filesystem;
 
 namespace menumap {
@@ -66,6 +69,11 @@ Node readNode(const json &j, Origin origin)
                 if (c.is_string())
                     n.conditions.push_back(c.get<std::string>());
         n.dynamic = getBool(j, "dynamic");
+        n.menu = getString(j, "menu");
+        n.menuDynamic = getBool(j, "menu_dynamic");
+        n.relocated = getBool(j, "moved");
+        n.movedFrom = getString(j, "moved_from");
+        n.pos = getString(j, "pos");
     } else {
         n.name = getString(j, "name");
         n.path = getString(j, "path");
@@ -435,6 +443,269 @@ std::string conditionText(const nss::NssDocument &doc, size_t line, size_t colum
         }
     }
     return out;
+}
+
+namespace {
+
+// The names Shell reads for the same property (Properties.cpp).
+std::vector<std::string_view> aliasesOf(std::string_view name)
+{
+    if (name == "menu")
+        return { "menu", "parent", "sub", "move" };
+    if (name == "pos")
+        return { "pos", "position" };
+    return { name };
+}
+
+const nss::MenuProp *findAnyProp(const nss::Node &n, std::string_view name)
+{
+    for (auto alias : aliasesOf(name))
+        if (const auto *p = findProp(n, alias))
+            return p;
+    return nullptr;
+}
+
+bool isTitleSource(std::string_view s)
+{
+    if (s.rfind("loc.", 0) != 0 && s.rfind("title.", 0) != 0)
+        return false;
+    for (char c : s)
+        if (!(std::isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '.'))
+            return false;
+    return true;
+}
+
+// The list of declarations that holds `target`: a menu's, or the file's top level.
+const std::vector<nss::Node> *siblingsOf(const std::vector<nss::Node> &list, const nss::Node *target)
+{
+    for (const auto &n : list)
+        if (&n == target)
+            return &list;
+    for (const auto &n : list)
+        if (const auto *found = siblingsOf(n.children, target))
+            return found;
+    return nullptr;
+}
+
+} // namespace
+
+std::optional<std::string> shellItemProp(const nss::NssDocument &doc, size_t line, size_t column, std::string_view name)
+{
+    const auto *n = findDecl(doc, line, column);
+    if (!n)
+        return std::nullopt;
+    const auto *p = findAnyProp(*n, name);
+    if (!p)
+        return std::nullopt;
+    return p->hasValue ? std::string(nss::trim(doc.slice(p->valueSpan))) : std::string();
+}
+
+bool setShellItemProp(nss::NssDocument &doc, size_t line, size_t column, std::string_view name, std::string_view value,
+                      std::string *error)
+{
+    auto fail = [&](std::string why) {
+        if (error)
+            *error = std::move(why);
+        return false;
+    };
+    auto v = nss::trim(value);
+    if (v.find_first_of("\r\n") != std::string_view::npos)
+        return fail("the value must be one line");
+    const auto *n = findDecl(doc, line, column);
+    if (!n || n->propsSpan.empty())
+        return fail("the declaration wasn't found");
+    const auto *prop = findAnyProp(*n, name);
+    std::string_view text = doc.text();
+    const std::string saved = doc.text();
+    const auto before = doc.diagnostics().size();
+    if (v.empty()) {
+        if (!prop)
+            return true;
+        // The property and one space next to it.
+        size_t begin = prop->nameSpan.begin, end = prop->hasValue ? prop->valueSpan.end : prop->nameSpan.end;
+        if (begin > 0 && text[begin - 1] == ' ')
+            --begin;
+        else if (end < text.size() && text[end] == ' ')
+            ++end;
+        doc.replace({ begin, end }, "");
+    } else if (prop && prop->hasValue) {
+        doc.replace(prop->valueSpan, v);
+    } else if (prop) {
+        doc.replace({ prop->nameSpan.end, prop->nameSpan.end }, "=" + std::string(v));
+    } else {
+        // After the last property, on its line; right after '(' when there is none.
+        size_t at = n->propsSpan.begin + 1;
+        for (const auto &p : n->props)
+            at = std::max(at, p.hasValue ? p.valueSpan.end : p.nameSpan.end);
+        std::string add = std::string(name) + "=" + std::string(v);
+        if (at > n->propsSpan.begin + 1)
+            add = " " + add;
+        else if (at < n->propsSpan.end - 1)
+            add += " ";
+        doc.replace({ at, at }, add);
+    }
+    if (doc.diagnostics().size() > before) {
+        doc.setText(saved);
+        return fail("the file wouldn't parse with this change");
+    }
+    return true;
+}
+
+std::string menuValue(const std::vector<MenuStep> &path)
+{
+    if (path.empty())
+        return nss::quoteString("/");
+    std::string out;
+    std::string literal; // plain titles next to each other go in one string
+    auto join = [&](const std::string &part) { out += (out.empty() ? "" : " + ") + part; };
+    for (size_t i = 0; i < path.size(); ++i) {
+        const auto &s = path[i];
+        if (i > 0)
+            literal += "/";
+        if (isTitleSource(s.titleSource)) {
+            if (!literal.empty())
+                join(nss::quoteString(literal));
+            literal.clear();
+            join(s.titleSource);
+        } else {
+            literal += s.rawTitle;
+        }
+    }
+    if (!literal.empty())
+        join(nss::quoteString(literal));
+    return out;
+}
+
+std::string posValue(const MenuStep &sibling, bool after)
+{
+    const char *offset = after ? "1" : "0";
+    if (isTitleSource(sibling.titleSource))
+        return "indexof(quote(" + sibling.titleSource + "), " + offset + ")";
+    auto title = stripAccelerators(sibling.rawTitle);
+    while (!title.empty() && title.back() == '.')
+        title.pop_back(); // Shell matches titles without the dots at the end
+    if (title.empty() || title.find_first_of("\"|\r\n\t") != std::string::npos)
+        return {};
+    return "indexof(" + nss::quoteString("\"" + title + "\"") + ", " + offset + ")";
+}
+
+Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
+{
+    Reorder r;
+    if (index >= siblings.size())
+        return r;
+    const auto &self = siblings[index];
+    if (!self.own || self.separator)
+        return r;
+    if (up ? index == 0 : index + 1 >= siblings.size())
+        return r;
+    const size_t next = up ? index - 1 : index + 1;
+    const auto &other = siblings[next];
+
+    if (other.own && !self.fixed && !other.fixed && !self.file.empty() && self.file == other.file && self.line > 0 &&
+        other.line > 0) {
+        r.possible = r.text = true;
+        r.anchor = next;
+        r.after = !up;
+    }
+
+    // pos=: right before the item above (right after the one below); past a
+    // separator, right after the item above it (right before the one below it).
+    std::string pos;
+    if (!other.separator) {
+        if (other.titled)
+            pos = posValue(other.step, !up);
+    } else {
+        const bool beyond = up ? next > 0 : next + 1 < siblings.size();
+        if (!beyond)
+            pos = nss::quoteString(up ? "top" : "bottom");
+        else if (const auto &b = siblings[up ? next - 1 : next + 1]; b.titled && !b.separator)
+            pos = posValue(b.step, up);
+    }
+    if (!pos.empty()) {
+        r.possible = true;
+        r.pos = pos;
+    }
+    return r;
+}
+
+bool moveDeclaration(nss::NssDocument &doc, size_t line, size_t column, size_t anchorLine, size_t anchorColumn,
+                     bool after, std::string *error, size_t *newLine)
+{
+    auto fail = [&](std::string why) {
+        if (error)
+            *error = std::move(why);
+        return false;
+    };
+    const auto *n = findDecl(doc, line, column);
+    const auto *a = findDecl(doc, anchorLine, anchorColumn);
+    if (!n || !a || n == a)
+        return fail("the declarations weren't found");
+    const auto *list = siblingsOf(doc.nodes(), n);
+    if (!list || list != siblingsOf(doc.nodes(), a))
+        return fail("they aren't in the same menu of the file");
+
+    // Work on the text with a line end at the end (the file's kind), so every chunk
+    // ends with one.
+    std::string text = doc.text();
+    const std::string eol = text.find("\r\n") != std::string::npos ? "\r\n" : "\n";
+    const bool added = text.empty() || text.back() != '\n';
+    if (added)
+        text += eol;
+
+    // The lines of a declaration, with the comment lines right above it.
+    auto chunk = [&](const nss::Node &d, nss::Span &out) {
+        size_t begin = lineStart(text, d.span.begin);
+        if (!nss::trim(std::string_view(text).substr(begin, d.span.begin - begin)).empty())
+            return false;
+        size_t end = text.find('\n', d.span.end);
+        if (end == std::string::npos)
+            return false;
+        // Nothing after it on its last line but spaces or a // comment.
+        auto rest = nss::trim(std::string_view(text).substr(d.span.end, end - d.span.end));
+        if (!rest.empty() && rest.rfind("//", 0) != 0)
+            return false;
+        ++end;
+        while (begin > 0) {
+            size_t prev = lineStart(text, begin - 1);
+            auto l = nss::trim(std::string_view(text).substr(prev, begin - prev));
+            if (l.rfind("//", 0) != 0)
+                break;
+            begin = prev;
+        }
+        out = { begin, end };
+        return true;
+    };
+    nss::Span cn, ca;
+    if (!chunk(*n, cn) || !chunk(*a, ca))
+        return fail("another declaration or code is on the same line");
+    if (cn.begin < ca.end && ca.begin < cn.end)
+        return fail("the declarations overlap");
+
+    const std::string moved = text.substr(cn.begin, cn.size());
+    const size_t at = after ? ca.end : ca.begin;
+    const size_t start = (at > cn.begin ? at - cn.size() : at) + (n->span.begin - cn.begin);
+    std::string out = text;
+    if (at > cn.begin) {
+        out.insert(at, moved);
+        out.erase(cn.begin, cn.size());
+    } else {
+        out.erase(cn.begin, cn.size());
+        out.insert(at, moved);
+    }
+    if (added && out.size() >= eol.size() && out.compare(out.size() - eol.size(), eol.size(), eol) == 0)
+        out.erase(out.size() - eol.size());
+
+    const std::string saved = doc.text();
+    const auto before = doc.diagnostics().size();
+    doc.setText(out);
+    if (doc.diagnostics().size() > before) {
+        doc.setText(saved);
+        return fail("the file wouldn't parse with this change");
+    }
+    if (newLine)
+        *newLine = size_t(std::count(out.begin(), out.begin() + std::ptrdiff_t(std::min(start, out.size())), '\n')) + 1;
+    return true;
 }
 
 } // namespace menumap

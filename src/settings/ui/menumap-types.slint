@@ -19,6 +19,8 @@ export struct MapRow {
     changed: bool,             // a change not saved yet
     dim: bool,                 // hidden, or hidden once saved
     selected: bool,
+    can-up: bool,              // the selected one of your items: Move up / Move down
+    can-down: bool,
 }
 
 // One menu in the node view: a panel at (x, y) with its items.
@@ -59,6 +61,11 @@ export struct MapDetail {
     can-move: bool,
     move-note: string,
     can-reset-menu: bool,
+    can-place: bool,           // your items: a place in their menu (pos=)
+    can-reset-position: bool,
+    can-up: bool,
+    can-down: bool,
+    edit-note: string,         // the file came with Shell: what changing it means for updates
     can-edit-code: bool,
     can-open: bool,
 }
@@ -84,6 +91,7 @@ export global MenuMapState {
     in property <MapDetail> detail;
     in property <int> detail-serial;           // bumped when the rename field must reload
     in property <[string]> move-targets;
+    in property <[string]> positions;          // your items: At the top, Before X, After X, At the bottom
     in property <bool> busy;                   // saving one of your items
 
     // "Edit code": one declaration in its file.
@@ -108,6 +116,9 @@ export global MenuMapState {
     callback reset-title();
     callback move-to(index: int);
     callback reset-menu();
+    callback place(index: int);
+    callback reset-position();
+    callback reorder(key: int, up: bool);      // Move up / Move down, Alt+Up / Alt+Down
     callback edit-code();
     callback open-in-editor();
     callback open-rule();

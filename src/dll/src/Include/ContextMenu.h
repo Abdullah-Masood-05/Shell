@@ -726,6 +726,10 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			void init_cfg();
 			bool prepare_new_items(PositionList &posList, const std::vector<NativeMenu *> &list, MenuItemInfo *owner, menu_t *menu, bool moved = false);
+			// menu= on an item inside one of Shell's submenus: listed when the main menu opens,
+			// so the menu it names shows it even when its own submenu was never opened.
+			void collect_moved_items(const std::vector<NativeMenu *> &list, int depth);
+			bool add_moved_item(NativeMenu *item, string &value, bool in_main);
 			bool prepare_system_items(PositionList &list, menu_t *menu);
 			bool prepare_system_items2(PositionList &list, menu_t *menu);
 

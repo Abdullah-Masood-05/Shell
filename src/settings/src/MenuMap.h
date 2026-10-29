@@ -41,6 +41,12 @@ struct Node
     std::string vis;           // a constant vis=: hidden | disabled | static | label | enabled; dynamic; ""
     std::vector<std::string> conditions; // where, find, mode, vis, type
     bool dynamic = false;      // the title or the item list depends on the selection
+    std::string menu;          // its menu= as the menu reads it ("System", "A/B", "/" the main menu)
+    bool menuDynamic = false;  // menu= depends on the selection
+    bool relocated = false;    // menu= put it in another menu here
+    std::string movedFrom;     // the menu it is written in, as a path of titles ("" the main menu)
+    std::string pos;           // its pos=: top, bottom, middle, N, before:<title>, after:<title>,
+                               // indexof, dynamic, auto; "" without one
 
     // Windows' items
     std::string name;          // normalized title, what find= and this.name see
@@ -149,5 +155,75 @@ bool setShellItemTitle(nss::NssDocument &doc, size_t line, size_t column, std::s
 
 // "where=sel.count>1  find='.txt'": the properties that decide when the item shows.
 std::string conditionText(const nss::NssDocument &doc, size_t line, size_t column);
+
+// --- Moving and ordering Shell's items ---
+//
+// An item goes into another menu with menu= on its own declaration, and to another
+// place in its menu with pos=: the declaration stays where it is written, so taking
+// the property out again puts the item back. (Both work the same as in a file
+// written by hand; see docs/configuration/properties.)
+
+// The text of a property of the declaration (menu= also under its other names
+// parent=, sub= and move=; pos= also as position=), or nullopt without one.
+std::optional<std::string> shellItemProp(const nss::NssDocument &doc, size_t line, size_t column, std::string_view name);
+
+// Sets the property to `value` (an expression, as written): the value of the one
+// it has is replaced, else ` name=value` goes after its last property. An empty
+// `value` takes the property out, with the space before it.
+bool setShellItemProp(nss::NssDocument &doc, size_t line, size_t column, std::string_view name, std::string_view value,
+                      std::string *error = nullptr);
+
+// One menu on the way to a target: its title as written and where that comes from.
+struct MenuStep
+{
+    std::string rawTitle;      // "File &manage"
+    std::string titleSource;   // "loc.file_manage", or "" for a plain title
+};
+
+// The value of menu= for a menu path: loc.tools_system, "Tools", or
+// loc.develop + "/" + "Tools" for a submenu; "/" (the main menu) for an empty path.
+std::string menuValue(const std::vector<MenuStep> &path);
+
+// The value of pos= that puts an item right before (after == false) or right after
+// the item titled `title`: indexof(quote(loc.x), 1), or indexof("\"Title\"", 0) for
+// a plain title. "" when the title can't be matched that way.
+std::string posValue(const MenuStep &sibling, bool after);
+
+// One item of a menu as the map lists it, for planning a move up or down.
+struct Sibling
+{
+    bool own = false;          // one of Shell's items with a file and line
+    bool separator = false;
+    bool titled = false;       // a plain title or loc.*: pos=indexof() can name it
+    MenuStep step;
+    std::filesystem::path file;
+    int line = 0;
+    int column = 0;
+    bool fixed = false;        // has menu= or pos=, or was moved here: its text order
+                               // doesn't decide where it shows
+};
+
+// How to move siblings[index] one place up or down among its siblings.
+struct Reorder
+{
+    bool possible = false;
+    // First choice: move the declaration's text right before (or after) that of
+    // siblings[anchor] in the same file, when both are written there one after
+    // the other's block, have no menu= or pos=, and nothing else is on their lines.
+    bool text = false;
+    size_t anchor = 0;
+    bool after = false;
+    // Else: the pos= value that puts it there.
+    std::string pos;
+};
+Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up);
+
+// Moves the declaration at (line, column) right before (or after) the one at
+// (anchorLine, anchorColumn): both must be declarations of the same menu (or of
+// the file's top level) and alone on their lines. Comment lines right above a
+// declaration go with it. Only those lines move; every byte stays as it is.
+// `newLine`: the line the declaration starts on afterwards.
+bool moveDeclaration(nss::NssDocument &doc, size_t line, size_t column, size_t anchorLine, size_t anchorColumn,
+                     bool after, std::string *error = nullptr, size_t *newLine = nullptr);
 
 } // namespace menumap

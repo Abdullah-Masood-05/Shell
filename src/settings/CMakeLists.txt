@@ -206,6 +206,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_pofile.cpp
         tests/test_config_upgrade.cpp
         tests/test_menumap.cpp
+        tests/test_menumove.cpp
         tests/test_snippets.cpp
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp

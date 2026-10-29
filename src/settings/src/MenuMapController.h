@@ -10,8 +10,10 @@
 //  - Windows' items: hide, rename and move are rules in imports/settings-app-map.nss,
 //    staged in SaveService like every other page's changes (the footer saves them,
 //    checked by shell.exe, snapshot first), so they show on the Context Menus page.
-//  - Shell's own items: the switch (vis=vis.remove), Rename and Edit code change the
-//    item's own declaration in its file, saved right away the same way.
+//  - Shell's own items: the switch (vis=vis.remove), Rename, Move to (menu=), the
+//    place in its menu (pos=, or its declaration moved up or down in the file) and
+//    Edit code change the item's own declaration in its file, saved right away the
+//    same way.
 
 #include "app.h"
 
@@ -57,6 +59,7 @@ private:
         std::vector<int> kids;
         std::string key;                     // stable across reloads, for expansion and selection
         std::string menuPath;                // for "Move to": the path rules name this menu by
+        std::vector<menumap::MenuStep> steps; // Shell's menus: the path menu= names it by
     };
 
     struct ItemState
@@ -72,6 +75,13 @@ private:
     {
         std::string label;
         std::string path;
+    };
+
+    // "Move to" and the place in its menu for one of Shell's items.
+    struct Choice
+    {
+        std::string label;
+        std::string value;    // the value of menu= or pos=; "" takes it out
     };
 
     void bindCallbacks();
@@ -90,6 +100,17 @@ private:
     void resetTitle();
     void moveTo(int index);
     void resetMenu();
+    void place(int index);
+    void resetPosition();
+    void reorder(int key, bool up);
+    // The items of the menu `e` is in, as planReorder() takes them.
+    std::vector<menumap::Sibling> siblingsOf(const Entry &e, size_t *index) const;
+    menumap::Reorder reorderOf(const Entry &e, bool up) const;
+    bool canMoveOwn(const menumap::Node &n) const;
+    // The note for a file that came with Shell: changing it makes it "edited by you"
+    // for config updates.
+    std::string shippedNote(const std::filesystem::path &file) const;
+    static std::string shellKey(const std::filesystem::path &file, int line, int column);
     void editCode();
     void editChanged(const code::Result &r);
     void editSave();
@@ -125,6 +146,10 @@ private:
     int selected_ = -1;
     std::string selectedKey_;
     std::vector<MoveTarget> targets_;
+    std::vector<Choice> ownTargets_;      // for the selected Shell item
+    std::vector<Choice> positions_;       // the same
+    std::string pendingSelect_;           // the key a moved declaration gets, once saved
+    bool reveal_ = false;                 // open the menus the selected item is in, on the next read
     int context_ = 0;
     int sample_ = 0;
     int view_ = 0;

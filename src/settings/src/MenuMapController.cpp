@@ -5,7 +5,10 @@
 #include "Tr.h"
 
 #include "nss/ConfigStore.h"
+#include "nss/Literal.h"
 #include "nss/Text.h"
+
+#include "../../shared/ConfigUpgrade.h"
 
 #include <windows.h>
 
@@ -210,6 +213,9 @@ void MenuMapController::bindCallbacks()
     st.on_reset_title([this] { resetTitle(); });
     st.on_move_to([this](int i) { moveTo(i); });
     st.on_reset_menu([this] { resetMenu(); });
+    st.on_place([this](int i) { place(i); });
+    st.on_reset_position([this] { resetPosition(); });
+    st.on_reorder([this](int key, bool up) { reorder(key, up); });
     st.on_edit_code([this] { editCode(); });
     st.on_edit_edited([this](slint::SharedString t, int cursor, int beforeAnchor, int beforeCursor) {
         auto r = editDoc_.input(str(t), size_t(std::max(0, cursor)), codeui::selection(beforeAnchor, beforeCursor));
@@ -363,13 +369,22 @@ void MenuMapController::buildEntries()
                 e.group = entries_[size_t(parent)].group;
                 e.depth = depth;
                 e.parent = parent;
-                std::string name = n.origin == Origin::System ? lower(n.name) : n.title + "@" + std::to_string(n.line);
-                e.key = prefix + "/" + std::to_string(i) + ":" + name;
+                if (n.origin == Origin::System)
+                    e.key = prefix + "/" + std::to_string(i) + ":" + lower(n.name);
+                else {
+                    // Its declaration: the same wherever menu= and pos= put it.
+                    e.key = shellKey(n.file, n.line, n.column);
+                    for (int k = 2; std::any_of(entries_.begin(), entries_.end(), [&](const Entry &x) { return x.key == e.key; }); ++k)
+                        e.key = shellKey(n.file, n.line, n.column) + "#" + std::to_string(k);
+                }
                 if (n.kind == "menu") {
                     if (n.origin == Origin::System)
                         e.menuPath = n.path.empty() ? lower(n.name) : n.path + "/" + lower(n.name);
-                    else if (n.state == "text")
+                    else if (n.state == "text") {
                         e.menuPath = menuPath.empty() ? n.rawTitle : menuPath + "/" + n.rawTitle;
+                        e.steps = entries_[size_t(parent)].steps;
+                        e.steps.push_back(menumap::MenuStep{ n.rawTitle, n.titleSource });
+                    }
                 }
                 int idx = int(entries_.size());
                 entries_.push_back(e);
@@ -394,6 +409,69 @@ void MenuMapController::buildEntries()
     for (size_t i = 0; i < entries_.size(); ++i)
         if (!selectedKey_.empty() && entries_[i].key == selectedKey_)
             selected_ = int(i);
+    // After a move: the menus it is in open, so it stays in view.
+    if (reveal_ && selected_ >= 0) {
+        for (int p = entries_[size_t(selected_)].parent; p >= 0; p = entries_[size_t(p)].parent)
+            if (entries_[size_t(p)].node)
+                expanded_.insert(entries_[size_t(p)].key);
+            else
+                collapsed_.erase(entries_[size_t(p)].key);
+    }
+    reveal_ = false;
+}
+
+std::string MenuMapController::shellKey(const fs::path &file, int line, int column)
+{
+    return "s|" + lower(nss::narrow(file.wstring())) + "|" + std::to_string(line) + "|" + std::to_string(column);
+}
+
+bool MenuMapController::canMoveOwn(const Node &n) const
+{
+    return n.origin == Origin::Shell && n.kind != "separator" && writable(n.file) && n.line > 0 && !n.menuDynamic;
+}
+
+std::string MenuMapController::shippedNote(const fs::path &file) const
+{
+    auto rel = lower(fileLabel(file));
+    for (const auto &k : config_upgrade::known_hashes)
+        if (rel == k.path)
+            return nsp::trf("{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one.",
+                            fileLabel(file));
+    return {};
+}
+
+std::vector<menumap::Sibling> MenuMapController::siblingsOf(const Entry &e, size_t *index) const
+{
+    std::vector<menumap::Sibling> out;
+    if (e.parent < 0)
+        return out;
+    for (int k : entries_[size_t(e.parent)].kids) {
+        const auto &ke = entries_[size_t(k)];
+        if (&ke == &e && index)
+            *index = out.size();
+        menumap::Sibling s;
+        if (const auto *n = ke.node) {
+            s.own = n->origin == Origin::Shell && n->line > 0;
+            s.separator = n->kind == "separator";
+            s.titled = n->origin == Origin::Shell ? n->state == "text" : !n->title.empty();
+            s.step = { n->rawTitle, n->titleSource };
+            s.file = n->file;
+            s.line = n->line;
+            s.column = n->column;
+            s.fixed = !n->menu.empty() || (!n->pos.empty() && n->pos != "auto") || n->relocated;
+        }
+        out.push_back(std::move(s));
+    }
+    return out;
+}
+
+menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
+{
+    if (!e.node || !canMoveOwn(*e.node))
+        return {};
+    size_t index = 0;
+    auto siblings = siblingsOf(e, &index);
+    return menumap::planReorder(siblings, index, up);
 }
 
 std::string MenuMapController::fileLabel(const fs::path &file) const
@@ -496,6 +574,15 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
             *kind = "hidden";
             return nsp::tr("Hidden");
         }
+        if (n.relocated) {
+            *kind = "moved";
+            return n.movedFrom.empty() ? std::string(nsp::tr("Moved from the main menu"))
+                                       : nsp::trf("Moved from {}", menumap::stripAccelerators(n.movedFrom));
+        }
+        if (!n.menu.empty()) {
+            *kind = "maybe";
+            return nsp::trf("Moved to {}", n.menu == "/" ? std::string(nsp::tr("the main menu")) : menumap::stripAccelerators(n.menu));
+        }
         if (n.vis == "disabled") {
             *kind = "maybe";
             return nsp::tr("Disabled");
@@ -585,11 +672,6 @@ void MenuMapController::push()
                                                     (long long)systemCount))
                                 : std::string{}));
 
-    std::vector<slint::SharedString> targets;
-    for (const auto &t : targets_)
-        targets.push_back(ss(t.label));
-    st.set_move_targets(std::make_shared<slint::VectorModel<slint::SharedString>>(targets));
-
     pushRows();
     pushPanels();
     pushDetail();
@@ -641,8 +723,12 @@ void MenuMapController::pushRows()
         r.shown = s.shown;
         r.can_toggle = s.canToggle && n.kind != "separator";
         r.changed = s.changed;
-        r.dim = !s.shown;
+        r.dim = !s.shown || (n.origin == Origin::Shell && !n.menu.empty() && !n.relocated);
         r.selected = idx == selected_;
+        if (r.selected && !shared_) {
+            r.can_up = reorderOf(e, true).possible;
+            r.can_down = reorderOf(e, false).possible;
+        }
         return r;
     };
     std::function<void(int, int)> add = [&](int idx, int depth) {
@@ -775,13 +861,81 @@ void MenuMapController::pushDetail()
         d.line = n.line;
         if (!n.titleSource.empty())
             d.facts = ss(nsp::trf("Title from {}", n.titleSource));
-        if (auto doc = loadDecls(n.file, nullptr))
+        std::optional<std::string> menuProp, posProp;
+        if (auto doc = loadDecls(n.file, nullptr)) {
             d.conditions = ss(menumap::conditionText(*doc, size_t(n.line), size_t(n.column)));
+            menuProp = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "menu");
+            posProp = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "pos");
+        }
+        auto line = [&](const std::string &s) { status += (status.empty() ? "" : "\n") + s; };
         if (n.vis == "hidden")
-            status = nsp::tr("Hidden by vis= in its own line.");
+            line(nsp::tr("Hidden by vis= in its own line."));
+        if (n.relocated)
+            line(nsp::trf("Moved here from {} by menu= in its own line.",
+                          n.movedFrom.empty() ? std::string(nsp::tr("the main menu")) : menumap::stripAccelerators(n.movedFrom)));
+        else if (!n.menu.empty())
+            line(nsp::trf("Its menu= names {}, which isn't in this menu, so it doesn't show here.",
+                          n.menu == "/" ? std::string(nsp::tr("the main menu")) : menumap::stripAccelerators(n.menu)));
+        else if (n.menuDynamic)
+            line(nsp::tr("Its menu= depends on the selection, so the map shows it where it is written."));
+        if (posProp && !posProp->empty())
+            line(nsp::trf("Placed by pos={} in its own line.", *posProp));
         d.can_rename = writable(n.file) && n.kind != "separator";
         d.rename_value = ss(n.title);
-        d.move_note = ss(nsp::tr("To move one of your items, use Edit code or the Menu Builder."));
+
+        // Move to: the main menu and Shell's menus, but not its own menu, itself or
+        // the menus inside it.
+        ownTargets_.clear();
+        positions_.clear();
+        const bool canMove = canMoveOwn(n) && !shared_;
+        if (canMove) {
+            std::string here = e.parent >= 0 ? entries_[size_t(e.parent)].key : std::string();
+            auto writtenIn = lower(menumap::stripAccelerators(n.movedFrom));
+            auto add = [&](const std::string &label, const std::vector<menumap::MenuStep> &steps, const std::string &path) {
+                // Its own menu, where it is written: taking menu= out puts it there.
+                bool home = lower(menumap::stripAccelerators(path)) == writtenIn;
+                ownTargets_.push_back(Choice{ label, home ? std::string() : menumap::menuValue(steps) });
+            };
+            if (e.depth > 1)
+                add(nsp::tr("Main menu"), {}, "");
+            for (size_t i = 0; i < entries_.size(); ++i) {
+                const auto &t = entries_[i];
+                if (!t.node || t.group != 0 || t.node->kind != "menu" || t.steps.empty() || entries_[i].key == here)
+                    continue;
+                bool inside = false;
+                for (int p = int(i); p >= 0 && !inside; p = entries_[size_t(p)].parent)
+                    inside = p == selected_;
+                if (!inside)
+                    add(menumap::stripAccelerators(t.menuPath), t.steps, t.menuPath);
+            }
+            // Its place in the menu it is in.
+            positions_.push_back(Choice{ nsp::tr("At the top"), nss::quoteString("top") });
+            size_t index = 0;
+            auto siblings = siblingsOf(e, &index);
+            for (size_t i = 0; i < siblings.size(); ++i) {
+                const auto &sib = siblings[i];
+                if (i == index || sib.separator || !sib.titled)
+                    continue;
+                auto title = menumap::stripAccelerators(sib.step.rawTitle);
+                if (auto v = menumap::posValue(sib.step, false); !v.empty())
+                    positions_.push_back(Choice{ nsp::trf("Before {}", title), v });
+                if (auto v = menumap::posValue(sib.step, true); !v.empty())
+                    positions_.push_back(Choice{ nsp::trf("After {}", title), v });
+            }
+            positions_.push_back(Choice{ nsp::tr("At the bottom"), nss::quoteString("bottom") });
+            d.can_up = reorderOf(e, true).possible;
+            d.can_down = reorderOf(e, false).possible;
+        }
+        d.can_move = canMove && !ownTargets_.empty();
+        d.can_reset_menu = canMove && menuProp.has_value();
+        d.can_place = canMove;
+        d.can_reset_position = canMove && posProp.has_value();
+        if (!canMove && n.kind != "separator" && n.line > 0)
+            d.move_note = ss(shared_ ? std::string(nsp::tr("The shared config is read-only here."))
+                             : n.menuDynamic ? std::string(nsp::tr("Its menu= depends on the selection; change it with Edit code."))
+                                             : std::string(nsp::tr("This file is read-only here.")));
+        if (canMove)
+            d.edit_note = ss(shippedNote(n.file));
         d.can_edit_code = writable(n.file) && n.line > 0;
         d.can_open = n.line > 0;
         d.toggle_note = ss(s.canToggle ? std::string(nsp::tr("Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."))
@@ -848,6 +1002,20 @@ void MenuMapController::pushDetail()
         else
             d.toggle_note = ss(s.note);
     }
+    // The lists "Move to" and "Place" show for this item.
+    std::vector<slint::SharedString> targets, positions;
+    if (n.origin == Origin::Shell) {
+        for (const auto &t : ownTargets_)
+            targets.push_back(ss(t.label));
+        for (const auto &p : positions_)
+            positions.push_back(ss(p.label));
+    } else {
+        for (const auto &t : targets_)
+            targets.push_back(ss(t.label));
+    }
+    st.set_move_targets(std::make_shared<slint::VectorModel<slint::SharedString>>(targets));
+    st.set_positions(std::make_shared<slint::VectorModel<slint::SharedString>>(positions));
+
     d.status = ss(status);
     d.rule_label = ss(ruleLabel);
     d.rule_path = ss(rulePath);
@@ -973,12 +1141,33 @@ void MenuMapController::resetTitle()
         stageRule(line, false, "original title for " + n.title);
 }
 
+namespace {
+
+// pos= that names an item of the menu it leaves: it means nothing in another one.
+bool relativePos(const std::string &pos) { return pos.rfind("before:", 0) == 0 || pos.rfind("after:", 0) == 0; }
+
+} // namespace
+
 void MenuMapController::moveTo(int index)
 {
-    if (selected_ < 0 || !entries_[size_t(selected_)].node || index < 0 || index >= int(targets_.size()) || save_.saving())
+    if (selected_ < 0 || !entries_[size_t(selected_)].node || index < 0 || save_.saving())
         return;
     const auto &n = *entries_[size_t(selected_)].node;
-    if (n.origin == Origin::Shell)
+    if (n.origin == Origin::Shell) {
+        if (index >= int(ownTargets_.size()) || !canMoveOwn(n) || ui_->global<MenuMapState>().get_busy())
+            return;
+        const auto target = ownTargets_[size_t(index)];
+        const bool dropPos = relativePos(n.pos);
+        reveal_ = true;
+        saveShellEdit(n, "Menu map: move " + n.title + " to " + target.label,
+                      [&n, target, dropPos](nss::NssDocument &doc, std::string &error) {
+                          if (!menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "menu", target.value, &error))
+                              return false;
+                          return !dropPos || menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "pos", "", &error);
+                      });
+        return;
+    }
+    if (index >= int(targets_.size()))
         return;
     const auto &target = targets_[size_t(index)];
     const std::string label = "move " + n.title + " to " + menumap::stripAccelerators(target.path);
@@ -999,8 +1188,87 @@ void MenuMapController::resetMenu()
     if (selected_ < 0 || !entries_[size_t(selected_)].node)
         return;
     const auto &n = *entries_[size_t(selected_)].node;
+    if (n.origin == Origin::Shell) {
+        if (!canMoveOwn(n) || save_.saving() || ui_->global<MenuMapState>().get_busy())
+            return;
+        const bool dropPos = relativePos(n.pos);
+        reveal_ = true;
+        saveShellEdit(n, "Menu map: put " + n.title + " back", [&n, dropPos](nss::NssDocument &doc, std::string &error) {
+            if (!menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "menu", "", &error))
+                return false;
+            return !dropPos || menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "pos", "", &error);
+        });
+        return;
+    }
     for (const auto &line : mapLinesOf(n.rules, "menu"))
         stageRule(line, false, "put " + n.title + " back");
+}
+
+void MenuMapController::place(int index)
+{
+    if (selected_ < 0 || !entries_[size_t(selected_)].node || index < 0 || index >= int(positions_.size()) || save_.saving() ||
+        ui_->global<MenuMapState>().get_busy())
+        return;
+    const auto &n = *entries_[size_t(selected_)].node;
+    if (!canMoveOwn(n))
+        return;
+    const auto choice = positions_[size_t(index)];
+    reveal_ = true;
+    saveShellEdit(n, "Menu map: place " + n.title + " " + choice.label, [&n, choice](nss::NssDocument &doc, std::string &error) {
+        return menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "pos", choice.value, &error);
+    });
+}
+
+void MenuMapController::resetPosition()
+{
+    if (selected_ < 0 || !entries_[size_t(selected_)].node || save_.saving() || ui_->global<MenuMapState>().get_busy())
+        return;
+    const auto &n = *entries_[size_t(selected_)].node;
+    if (!canMoveOwn(n))
+        return;
+    reveal_ = true;
+    saveShellEdit(n, "Menu map: put " + n.title + " in its written order", [&n](nss::NssDocument &doc, std::string &error) {
+        return menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "pos", "", &error);
+    });
+}
+
+void MenuMapController::reorder(int key, bool up)
+{
+    if (key < 0 || key >= int(entries_.size()) || !entries_[size_t(key)].node || save_.saving() ||
+        ui_->global<MenuMapState>().get_busy() || shared_)
+        return;
+    const auto &e = entries_[size_t(key)];
+    const auto &n = *e.node;
+    auto plan = reorderOf(e, up);
+    if (!plan.possible)
+        return;
+    size_t index = 0;
+    auto siblings = siblingsOf(e, &index);
+    menumap::Sibling anchor = plan.text ? siblings[plan.anchor] : menumap::Sibling{};
+    if (key != selected_) {
+        selected_ = key;
+        selectedKey_ = e.key;
+    }
+    reveal_ = true;
+    std::string *select = &pendingSelect_;
+    saveShellEdit(n, std::string("Menu map: move ") + n.title + (up ? " up" : " down"),
+                  [&n, plan, anchor, select](nss::NssDocument &doc, std::string &error) {
+                      if (plan.text) {
+                          // Its declaration moves past the other one; it keeps its column.
+                          size_t line = 0;
+                          std::string why;
+                          if (menumap::moveDeclaration(doc, size_t(n.line), size_t(n.column), size_t(anchor.line),
+                                                       size_t(anchor.column), plan.after, &why, &line)) {
+                              *select = shellKey(n.file, int(line), n.column);
+                              return true;
+                          }
+                          if (plan.pos.empty()) {
+                              error = why;
+                              return false;
+                          }
+                      }
+                      return menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "pos", plan.pos, &error);
+                  });
 }
 
 void MenuMapController::saveShellEdit(const Node &n, const std::string &reason,
@@ -1015,22 +1283,27 @@ void MenuMapController::saveShellEdit(const Node &n, const std::string &reason,
         return;
     }
     auto before = doc->text();
+    pendingSelect_.clear();
     if (!edit(*doc, error)) {
+        reveal_ = false;
         toast("error", nsp::tr("Not changed"), error);
         return;
     }
+    std::string select = std::exchange(pendingSelect_, {});
     if (doc->text() == before)
         return;
     ui_->global<MenuMapState>().set_busy(true);
-    worker_.post([this, write = nss::FileWrite{ n.file, doc->text(), doc->format() }, reason, root = root_, exe = shellExe_] {
+    worker_.post([this, write = nss::FileWrite{ n.file, doc->text(), doc->format() }, reason, root = root_, exe = shellExe_, select] {
         nss::ConfigStore store(root);
         nss::SaveOptions options;
         options.reason = reason;
         options.validator = nss::makeShellCheckValidator(exe);
         auto result = store.save({ write }, options);
-        slint::invoke_from_event_loop([this, result = std::move(result), root] {
+        slint::invoke_from_event_loop([this, result = std::move(result), root, select] {
             ui_->global<MenuMapState>().set_busy(false);
             if (result.ok) {
+                if (!select.empty())
+                    selectedKey_ = select;
                 toast("ok", nsp::tr("Saved"), result.snapshotId.empty() ? std::string(nsp::tr("No changes were needed."))
                                                                          : nsp::trf("Snapshot {} was taken first.", result.snapshotId));
                 save_.reloadConfig(); // the pages that read the config, this one too

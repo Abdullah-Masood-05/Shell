@@ -262,6 +262,69 @@ namespace Nilesoft
 			}
 		}
 
+		// Lists `item` as moved by menu=`value` (already evaluated): once only, with the
+		// path of the menu it goes to ('A/B'), or none for the main menu ('/', as for
+		// modify()). False when the value names no menu, or the main menu for an item
+		// that is already in it: the item stays where it is.
+		bool ContextMenu::add_moved_item(NativeMenu *item, string &value, bool in_main)
+		{
+			const bool root = value.contains(L'/');
+			value.trim(L'/');
+			if(value.empty() && (!root || in_main))
+				return false;
+			for(auto x : _moved_items.dynamics)
+			{
+				if(x->owner_dynamic == item)
+					return true;
+			}
+			auto mii = _gc.push();
+			mii->dynamic = true;
+			mii->owner_dynamic = item;
+			if(value.empty() || mii->parse_parent(value))
+				_moved_items.dynamics.push_back(mii);
+			return true;
+		}
+
+		void ContextMenu::collect_moved_items(const std::vector<NativeMenu *> &list, int depth)
+		{
+			if(depth > 8)
+				return;
+			for(auto item : list)
+			{
+				if(!item || item->properties == 0 || item->is_separator())
+					continue;
+				try
+				{
+					this_item _this{};
+					_context._this = &_this;
+					_this.level = depth;
+					_this.type = item->is_menu() ? 1 : 0;
+					_context.variables.local = &item->owner->variables;
+
+					if(!Selected.verify_types(item->fso))
+						continue;
+					if(item->where && !_context.eval_bool(item->where))
+						continue;
+
+					// The main menu's own items are moved when it is prepared.
+					if(depth > 0 && item->moveto)
+					{
+						string value;
+						if(_context.Eval(item->moveto, value, true) && add_moved_item(item, value, false))
+							continue;
+					}
+
+					if(item->is_menu() && !item->items.empty() &&
+					   _context.parse_visibility(item->visibility) != Visibility::Hidden)
+						collect_moved_items(item->items, depth + 1);
+				}
+				catch(...)
+				{
+				}
+			}
+			_context._this = nullptr;
+		}
+
 		bool ContextMenu::prepare_new_items(PositionList &posList,
 										  const std::vector<NativeMenu *> &list,
 										  MenuItemInfo *owner,
@@ -336,15 +399,8 @@ namespace Nilesoft
 					{
 						if(item->owner != menu->parent)
 						{
-							if(_context.Eval(item->moveto, value, true) && !value.trim(L'/').empty())
-							{
-								auto mii = _gc.push();
-								mii->dynamic = true;
-								mii->owner_dynamic = item;
-								if(mii->parse_parent(value))
-									_moved_items.dynamics.push_back(mii);
+							if(_context.Eval(item->moveto, value, true) && add_moved_item(item, value, menu->is_main))
 								continue;
-							}
 						}
 					}
 
@@ -1145,13 +1201,16 @@ namespace Nilesoft
 			{
 				if(!(owner && owner->is_disabled()))
 				{
+					if(menu->is_main)
+						collect_moved_items(menu->dynamics, 0);
+
 					prepare_new_items(_new_items, menu->dynamics, owner, menu);
 
-					// add moved dynamic items
+					// add moved dynamic items (an empty parent: menu='/', the main menu)
 					std::vector<NativeMenu*> mdi;
 					for(auto item : _moved_items.dynamics)
 					{
-						if(item->is_parent(parent_level))
+						if(item->parent.empty() ? menu->is_main : item->is_parent(parent_level))
 							mdi.push_back(item->owner_dynamic);
 					}
 
@@ -1381,7 +1440,7 @@ namespace Nilesoft
 						cp += x->path.equals((item->path + L"/" + item->title.normalize).trim(L'/'));
 					
 					for(auto x : _moved_items.dynamics)
-						cp += item->id == x->parent.front();
+						cp += !x->parent.empty() && item->id == x->parent.front();
 
 					if(cp == 0)
 					{

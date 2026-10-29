@@ -164,6 +164,9 @@
     <ClInclude Include="src\Include\IndexOf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Include\MenuPlacement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Include\NssFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>

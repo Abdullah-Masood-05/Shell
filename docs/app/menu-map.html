@@ -28,8 +28,9 @@
 <h5 id="groups">What the page lists</h5>
 <p>The menu is shown in two groups:</p>
 <ul>
-	<li><strong>Your Shell items</strong>: the items and submenus from your configuration, in the order they are written.
-		Each one shows its file and line, for example <code>imports/file-manage.nss:12</code>.</li>
+	<li><strong>Your Shell items</strong>: the items and submenus from your configuration, in the order they show:
+		the order they are written in, with <code>pos</code> and <code>menu</code> applied. Each one shows its file and
+		line, for example <code>imports/file-manage.nss:12</code>.</li>
 	<li><strong>Windows and other programs</strong>: the items Windows and your installed programs add. Each one is
 		labelled with who added it: <i>Windows</i>, or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means
 		Shell couldn't tell.</li>
@@ -44,7 +45,10 @@
 <p>Small tags next to an item show what your rules do to it:</p>
 <table class="table">
 	<tr><td class="w-25">Hidden</td><td>A rule hides it, so it isn't in the menu.</td></tr>
-	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>.</td></tr>
+	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>. On one of
+		your items it means its <code>menu</code> names a menu that isn't there for this place, so it doesn't show.</td></tr>
+	<tr><td>Moved from …</td><td>One of your items that its <code>menu</code> puts here, for example <i>Moved from
+		System</i>.</td></tr>
 	<tr><td>Renamed to …</td><td>A rule shows it under another title.</td></tr>
 	<tr><td>May be hidden, A rule may change it</td><td>A rule applies only for some selections or windows, such as
 		<code>where=sel.count&gt;1</code> or <code>window.is_desktop</code>. Without a real selection the page can't know,
@@ -57,7 +61,9 @@
 <p>Two views show the same menu:</p>
 <ul>
 	<li><strong>Outline</strong> (the default) is a list. Click a submenu to expand or collapse it, or use
-		<kbd>Expand all</kbd> and <kbd>Collapse all</kbd>. Each item has its switch on the row.</li>
+		<kbd>Expand all</kbd> and <kbd>Collapse all</kbd>. Each item has its switch on the row. When one of your items
+		is selected, its row also has up and down arrows, and <kbd>Alt</kbd>+<kbd>Up</kbd> and
+		<kbd>Alt</kbd>+<kbd>Down</kbd> do the same.</li>
 	<li><strong>Nodes</strong> shows each open menu as a panel, from left to right, with a line from the item that opens a
 		submenu to that submenu's panel. Click a submenu item to open its panel. Drag or scroll to move around.</li>
 </ul>
@@ -73,7 +79,10 @@
 		Editor and a link to the <a href="/docs/app/context-menus">Context Menus</a> page.</td></tr>
 	<tr><td>In the menu</td><td>The switch that hides or shows the item.</td></tr>
 	<tr><td>Rename</td><td>A new title for the item.</td></tr>
-	<tr><td>Move to</td><td>Another menu to put it in (Windows and program items only).</td></tr>
+	<tr><td>Move to</td><td>Another menu to put it in. For Windows and program items: your Shell menus and Windows
+		submenus. For your own items: the main menu and your Shell menus.</td></tr>
+	<tr><td>Place in this menu</td><td>Your own items only: where the item goes in its menu (at the top, before or
+		after another item, at the bottom), and <kbd>Move up</kbd> and <kbd>Move down</kbd>.</td></tr>
 	<tr><td>Code</td><td>The code behind the item.</td></tr>
 </table>
 
@@ -106,12 +115,28 @@
 		line; turning the switch back on removes exactly that. If the item already has its own <code>vis</code>, the
 		switch can't be used and the panel suggests <kbd>Edit code</kbd>.</li>
 	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
+	<li><strong>Move to</strong> puts the item in another menu: the main menu or one of your Shell menus for this
+		place, for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The page adds
+		<code>menu=</code> to the item's line, such as <code>menu=loc.file_manage</code>. The item stays written where it
+		is, so <kbd>Put it back where it is written</kbd> only takes that out again.</li>
+	<li><strong>Place in this menu</strong> sets where the item goes in its menu: <i>At the top</i>, <i>Before …</i> or
+		<i>After …</i> another item, or <i>At the bottom</i>. The page adds <code>pos=</code> to the item's line, such as
+		<code>pos=indexof(quote(loc.tools_lock), 1)</code> for "after Lock". <kbd>Use the order in the file</kbd> takes
+		it out.</li>
+	<li><kbd>Move up</kbd> and <kbd>Move down</kbd> (also the arrows on the selected row of the outline, and
+		<kbd>Alt</kbd>+<kbd>Up</kbd> and <kbd>Alt</kbd>+<kbd>Down</kbd>) move the item one place. When the item and
+		the one next to it are written one after the other in the same file, the item's lines move in the file, with the
+		comment lines right above it. Otherwise the page adds <code>pos=</code> as above.</li>
 	<li><kbd>Edit code</kbd> opens a small editor with just that item's code, or the whole <code>menu</code> block for a
 		submenu, with syntax colours. <kbd>Check and save</kbd> checks the whole configuration with Shell, takes a
 		snapshot, and changes only that part of the file. The rest of the file stays the same, byte for byte.</li>
 	<li><kbd>Open in the Config Editor</kbd> opens the file at that line.</li>
 </ul>
-<p>To move one of your items, use <kbd>Edit code</kbd> or the <a href="/docs/app/menu-builder">Menu Builder</a>.</p>
+<p>The files that came with Shell, such as <code>imports/my-tools.nss</code>, count as edited by you once one of
+	their items is changed here. When Shell updates your configuration it then keeps your copy and offers
+	<kbd>Compare</kbd> and <kbd>Use the new version</kbd>; the panel says so. Moving the items
+	inside a Windows menu, such as <i>Send to</i>, is left to <kbd>Edit code</kbd> or the
+	<a href="/docs/app/menu-builder">Menu Builder</a>.</p>
 
 <h5 id="what-it-writes">What it writes</h5>
 <p>For the curious: hiding, renaming or moving a Windows item writes a
@@ -142,8 +167,13 @@
 <ul>
 	<li>Rules that depend on the selection or the window are marked <i>may</i>. The page doesn't decide them.</li>
 	<li><code>mode</code> conditions are not tested.</li>
-	<li>Your Shell items are listed in config order, apart from Windows' items. In the real menu Shell places them with
-		<code>pos</code> when the menu opens.</li>
+	<li>Your Shell items are listed apart from Windows' items. In the main menu, Windows' items sit between them, so a
+		number in <code>pos=3</code> counts Windows' items too, and the map can only show your items in their order
+		among themselves.</li>
+	<li>A <code>menu</code> or <code>pos</code> that depends on the selection is not applied in the map: the item is
+		listed where it is written.</li>
+	<li>Dragging items to reorder them isn't supported. Use the arrows, <kbd>Alt</kbd>+<kbd>Up</kbd> and
+		<kbd>Alt</kbd>+<kbd>Down</kbd>, or <strong>Place in this menu</strong>.</li>
 	<li>The <code>modify.remove.duplicate</code> setting is not applied in the map.</li>
 </ul>
 
