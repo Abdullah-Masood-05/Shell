@@ -29,6 +29,7 @@ import { ConfirmDialog } from "components/dialog.slint";
 import { MenusState, BuilderState } from "menus-types.slint";
 import { OpenWithState } from "openwith-types.slint";
 import { EditorState } from "editor-types.slint";
+import { MenuMapState } from "menumap-types.slint";
 
 export { AppState, Tokens, StatusInfo, Diagnostic, Issue }
 export { EditorState, CodeSpan, CodeLine, EditorFile, EditorProblem, CodeText } from "editor-types.slint";
@@ -63,34 +64,50 @@ export component AppWindow inherits Window {
         Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
     }
 
-    // Ctrl+S saves the current page, whichever save it uses: the page's own Save
-    // button (Context Menus, Menu Builder, Open with, Config Editor) or the footer.
-    // Key presses nothing else handled bubble up to here.
+    // Ctrl+S: saves the current page, whichever save it uses: the page's own Save
+    // button (Context Menus with its Modules and Taskbar cards, Menu Builder, Open with,
+    // the Config Editor, Menu map's "Edit code") or the unsaved-changes footer.
+    // SaveService catches Ctrl+S on the window itself (before Slint, so it works whatever
+    // has focus, even nothing after a list rebuilt the switch that had it) and calls this.
+    public function save-page() {
+        // A question is up; it has its own buttons.
+        if (SaveState.user-config-prompt || ConfigUpdateState.compare-shown || AppState.reset-confirm-shown) {
+            return;
+        }
+        if (AppState.page == Pages.menus && MenusState.dirty-count > 0) {
+            if (!MenusState.saving) { MenusState.save(); }
+            return;
+        }
+        if (AppState.page == Pages.builder && BuilderState.dirty) {
+            if (!BuilderState.saving) { BuilderState.save(); }
+            return;
+        }
+        if (AppState.page == Pages.openwith && OpenWithState.dirty) {
+            if (!OpenWithState.saving) { OpenWithState.save(); }
+            return;
+        }
+        if (AppState.page == Pages.editor && EditorState.dirty-count > 0) {
+            if (!EditorState.saving) { EditorState.save(); }
+            return;
+        }
+        if (AppState.page == Pages.menumap && MenuMapState.editing && MenuMapState.edit-dirty) {
+            if (!MenuMapState.busy) { MenuMapState.edit-save(); }
+            return;
+        }
+        if (SaveState.unsaved > 0 && !SaveState.saving) {
+            SaveState.save();
+        }
+    }
+
+    // The same from Slint's side, for when the window hook isn't in place yet. Capture
+    // runs before the focused item, so a text box can't keep Ctrl+S for itself.
     forward-focus: keys;
     keys := FocusScope {
-        key-pressed(event) => {
-            if (!event.modifiers.control || event.modifiers.alt || (event.text != "s" && event.text != "S")) {
+        capture-key-pressed(event) => {
+            if (!event.modifiers.control || event.modifiers.alt || event.modifiers.shift || (event.text != "s" && event.text != "S")) {
                 return reject;
             }
-            if (AppState.page == Pages.menus && MenusState.dirty-count > 0) {
-                if (!MenusState.saving) { MenusState.save(); }
-                return accept;
-            }
-            if (AppState.page == Pages.builder && BuilderState.dirty) {
-                if (!BuilderState.saving) { BuilderState.save(); }
-                return accept;
-            }
-            if (AppState.page == Pages.openwith && OpenWithState.dirty) {
-                if (!OpenWithState.saving) { OpenWithState.save(); }
-                return accept;
-            }
-            if (AppState.page == Pages.editor && EditorState.dirty-count > 0) {
-                if (!EditorState.saving) { EditorState.save(); }
-                return accept;
-            }
-            if (SaveState.unsaved > 0 && !SaveState.saving) {
-                SaveState.save();
-            }
+            root.save-page();
             return accept;
         }
 

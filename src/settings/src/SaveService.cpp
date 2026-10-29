@@ -121,14 +121,9 @@ LRESULT CALLBACK SaveService::keyProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp,
 
 void SaveService::saveFromKeyboard()
 {
-    // The Config Editor has its own files and its own Save; route Ctrl+S there.
-    const int page = ui_->global<AppState>().get_page();
-    if (page == ui_->global<Pages>().get_editor())
-        ui_->global<EditorState>().invoke_save();
-    else if (page == ui_->global<Pages>().get_openwith())
-        ui_->global<OpenWithState>().invoke_save(); // its own file, like the Config Editor
-    else
-        save();
+    // AppWindow.save-page() picks the current page's save (its own Save button or the
+    // footer), so the shortcut and the buttons agree on every page.
+    ui_->invoke_save_page();
 }
 
 void SaveService::reloadConfig()
