@@ -751,6 +751,9 @@ in = "Sort By"</code></pre>
 			<td>Parent, Menu</td>
 			<td>st, nm, ni, ns</td>
 			<td><p><strong>Move current menuitem</strong> to another <a href="/docs/configuration/dynamic#menu">menu</a>.</p>
+				<p>Name the menu by its title, or a path of titles such as <code>'Tools/More'</code>. <code>'/'</code> is the
+					main menu. In <code>modify()</code>, an item that <code>menu='/'</code> puts in (or keeps in) the main
+					menu stays there: the modify rules after it don't move it again.</p>
 				Default = <span class="syntax-keyword">null</span></td>
 		</tr>
 		<tr id="checked">

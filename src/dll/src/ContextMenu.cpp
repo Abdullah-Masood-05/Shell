@@ -4427,6 +4427,14 @@ namespace Nilesoft
 							}
 						}
 
+						// Kept in the main menu by an earlier menu='/': a later rule that
+						// moves it is about another place (its pos= and sep= too), so it
+						// is left out for this item. This is how a rule imported before
+						// modify.nss (the settings app's settings-app-map.nss) takes an
+						// item back from a move modify.nss makes.
+						if(item->pinned && si->moveto && _settings.modify_items.parent)
+							goto skip;
+
 						if(si->visibility && _settings.modify_items.visibility)
 						{
 							item->visibility = _context.parse_visibility(si->visibility);
@@ -4450,7 +4458,11 @@ namespace Nilesoft
 							string moveto;
 							if(_context.Eval(si->moveto, moveto, true))
 							{
+								// menu='/': the main menu, for good.
+								const bool to_root = moveto.contains(L'/');
 								moveto.trim(L'/');
+								if(to_root && moveto.empty())
+									item->pinned = true;
 
 								// Menu paths are built from normalized titles (no '&'
 								// accelerator, no trailing dots), so menu=loc.develop

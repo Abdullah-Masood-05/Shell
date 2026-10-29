@@ -107,6 +107,9 @@ namespace Nilesoft
 			// Moved into this node's parent by a modify(menu=...) rule rather than
 			// read from the parent's native popup.
 			bool moved_in = false;
+			// A modify(menu='/') rule put it in (or kept it in) the main menu: the
+			// rules after it that move items leave it there.
+			bool pinned = false;
 			~menuitem_t()
 			{
 				for(auto item : items)

@@ -356,6 +356,7 @@ namespace Nilesoft
 				std::vector<int> maybe;	// rules that may, depending on the selection
 				bool hidden = false;
 				bool maybe_hidden = false;
+				bool pinned = false;	// menu='/' kept it in (or put it in) the main menu
 				std::wstring moved, renamed;
 				std::vector<SysItem> items;
 			};
@@ -618,8 +619,11 @@ namespace Nilesoft
 
 			// Loads each handler of the target's keys on its own, into a menu that is
 			// never shown, to learn which titles it adds.
+			// quiet: the handlers that load but add nothing here. Some add their items
+			// only inside File Explorer (or when their program's service runs), so the
+			// map can say which ones it couldn't read.
 			void read_handlers(Target &t, std::vector<std::unique_ptr<Handler>> &handlers,
-							   std::vector<std::pair<string, const Handler *>> &by_name)
+							   std::vector<std::pair<string, const Handler *>> &by_name, std::vector<Handler> &quiet)
 			{
 				std::vector<std::wstring> seen;
 				for(auto &key : t.keys)
@@ -662,7 +666,10 @@ namespace Nilesoft
 						ComPtr<IShellExtInit> init;
 						init.Attach(raw);
 						if(FAILED(seh_init(init.Get(), t.folder, background(t.where) ? nullptr : t.data.Get(), progid)))
+						{
+							quiet.push_back(describe_handler(clsid));
 							continue;
+						}
 
 						ComPtr<IContextMenu> cm;
 						if(FAILED(init.As(&cm)))
@@ -683,7 +690,11 @@ namespace Nilesoft
 									by_name.emplace_back(n, h.get());
 								handlers.push_back(std::move(h));
 							}
+							else
+								quiet.push_back(describe_handler(clsid));
 						}
+						else
+							quiet.push_back(describe_handler(clsid));
 						::DestroyMenu(menu);
 					}
 				}
@@ -774,7 +785,8 @@ namespace Nilesoft
 								}
 							}
 						}
-						if(module.empty())
+						// "%1" %*: the file runs itself (exefile, lnkfile), Windows' verb.
+						if(module.empty() || module.front() == L'%')
 							continue;
 						item.module = module;
 						item.source = under_windows(module) ? L"windows" : L"program";
@@ -975,7 +987,7 @@ namespace Nilesoft
 				{
 					string s;
 					context.Eval(e, s, true);
-					return s.c_str();
+					return s.empty() ? std::wstring() : std::wstring(s.c_str());
 				}
 				catch(...)
 				{
@@ -1036,7 +1048,7 @@ namespace Nilesoft
 							n.spec.def = d >= 0 ? d : (int)context.parse_pos(ptr[4], Position::Auto);
 						}
 						// '"Title"' with offset 0 or 1: right before or right after that item.
-						std::wstring pattern = n.indexof.c_str();
+						std::wstring pattern = n.indexof.empty() ? std::wstring() : std::wstring(n.indexof.c_str());
 						if(pattern.size() >= 2 && pattern.front() == L'"' && pattern.back() == L'"' &&
 						   pattern.find(L'|') == std::wstring::npos && (n.spec.offset == 0 || n.spec.offset == 1))
 							n.pos = (n.spec.offset == 0 ? L"before:" : L"after:") + pattern.substr(1, pattern.size() - 2);
@@ -1081,7 +1093,7 @@ namespace Nilesoft
 					n->depth = depth;
 					auto kind = item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item;
 					n->title = DescribeTitle(item, depth, kind);
-					string t = n->title.text.c_str();
+					string t = n->title.text;
 					MenuItemInfo::normalize(t, &n->normalized);
 					if(!item->is_separator())
 					{
@@ -1111,7 +1123,8 @@ namespace Nilesoft
 				for(auto &n : list)
 				{
 					n->moved_from = path;
-					std::wstring title = n->title.text.c_str();
+					// c_str() of an empty string is null (a separator's title).
+					std::wstring title = n->title.text.empty() ? std::wstring() : std::wstring(n->title.text.c_str());
 					origin(n->children, path.empty() ? title : path + L"/" + title);
 				}
 			};
@@ -1367,6 +1380,7 @@ namespace Nilesoft
 			std::wstring system, system_error;
 			std::vector<SysItem> sys;
 			std::vector<std::unique_ptr<Handler>> handlers;
+			std::vector<Handler> quiet;
 			if(where == L"taskbar")
 			{
 				system_error = L"taskbar";
@@ -1393,7 +1407,7 @@ namespace Nilesoft
 
 					association_keys(t);
 					std::vector<std::pair<string, const Handler *>> by_name;
-					read_handlers(t, handlers, by_name);
+					read_handlers(t, handlers, by_name, quiet);
 					for(auto &item : sys)
 						attribute(item, t, by_name, handlers);
 
@@ -1481,6 +1495,9 @@ namespace Nilesoft
 						self.length = item.name.length<uint32_t>();
 						context._this = &self;
 						context.menu_count = static_cast<uint32_t>(items.size());
+						// The menu it is in for the rules: the main menu once menu='/'
+						// takes it there (to the end of the main menu's list).
+						std::wstring path = item.path;
 
 						for(size_t i = 0; i < statics.size(); i++)
 						{
@@ -1504,20 +1521,20 @@ namespace Nilesoft
 										loc.pop_back();
 									bool ok;
 									if(loc.empty())
-										ok = item.path.empty();
+										ok = path.empty();
 									else if(loc == L"*")
 										ok = true;
 									else
 									{
 										if(loc.rfind(L"**", 0) == 0)
 											loc.erase(0, 1);
-										ok = !item.path.empty() && ::_wcsicmp(loc.c_str(), item.path.c_str()) == 0;
+										ok = !path.empty() && ::_wcsicmp(loc.c_str(), path.c_str()) == 0;
 									}
 									if(!ok)
 										continue;
 								}
 							}
-							else if(!item.path.empty())
+							else if(!path.empty())
 								continue;
 
 							bool where_defined = si->where.get() != nullptr;
@@ -1549,19 +1566,39 @@ namespace Nilesoft
 							else if(!where_defined)
 								continue;
 
+							// Kept in the main menu by menu='/': a later rule that moves
+							// items is left out for it (ContextMenu.cpp).
+							if(item.pinned && si->moveto)
+								continue;
+
 							if(m == Tri::Yes)
 							{
 								item.rules.push_back(static_cast<int>(i));
 								if(ri.vis == L"hidden")
 									item.hidden = true;
-								if(!ri.menu.empty() && item.moved.empty())
+								// The menu it names, as the menu compares it: no '/' around.
+								std::wstring target = ri.menu;
+								while(!target.empty() && (target.front() == L'/' || iswspace(target.front())))
+									target.erase(0, 1);
+								while(!target.empty() && (target.back() == L'/' || iswspace(target.back())))
+									target.pop_back();
+								const bool to_root = !ri.menu_dynamic && target.empty() && ri.menu.find(L'/') != std::wstring::npos;
+								if(to_root)
+								{
+									// "/" in "moved": the main menu, also when it already is there.
+									item.pinned = true;
+									if(item.moved.empty())
+										item.moved = L"/";
+									path.clear();
+								}
+								else if(!target.empty() && item.moved.empty())
 									item.moved = ri.menu;
 								if(!ri.title.empty() && item.renamed.empty())
 									item.renamed = ri.title;
 								// Hidden or moved: the item leaves this menu, so the rules
 								// after this one don't see it here (as in ContextMenu.cpp).
 								if(ri.vis == L"hidden" ||
-								   (!ri.menu.empty() && ::_wcsicmp(ri.menu.c_str(), item.path.c_str()) != 0))
+								   (!target.empty() && ::_wcsicmp(target.c_str(), path.c_str()) != 0))
 									break;
 							}
 							else
@@ -1627,7 +1664,20 @@ namespace Nilesoft
 			};
 			write(sys);
 
-			json = L"{\"shell\":[" + shell + L"],\"system\":[" + system + L"],\"rules\":[" + rules + L"]";
+			// The handlers that loaded but added nothing for this sample.
+			std::wstring quiet_json;
+			for(auto &h : quiet)
+			{
+				quiet_json += quiet_json.empty() ? L"{" : L",{";
+				jtext(quiet_json, L"clsid", h.clsid);
+				jtext(quiet_json, L"name", h.name);
+				jtext(quiet_json, L"module", h.module);
+				jtext(quiet_json, L"program", h.program);
+				jbool(quiet_json, L"windows", h.windows);
+				quiet_json += L"}";
+			}
+
+			json = L"{\"shell\":[" + shell + L"],\"system\":[" + system + L"],\"rules\":[" + rules + L"],\"quiet\":[" + quiet_json + L"]";
 			jtext(json, L"system_error", system_error);
 			json += L"}";
 			return true;
