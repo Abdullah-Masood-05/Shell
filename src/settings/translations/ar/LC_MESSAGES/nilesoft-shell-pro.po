@@ -22,7 +22,7 @@ msgstr "هل تريد إرجاع ملفات القوائم الافتراضية�
 
 #: ui/app.slint:200
 msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
-msgstr "سيتم استبدال الملف shell.nss والملفات الموجودة في مجلد imports الخاص به بالملفات التي جاءت مع Shell، وسيتم التراجع عن التغييرات التي أُجريت في هذا التطبيق. تُلتقط أولًا لقطة من ملفاتك الحالية، لذا يمكنك استعادتها من النسخ الاحتياطية."
+msgstr "سيتم استبدال ملف shell.nss والملفات الموجودة في مجلد imports بالملفات التي جاءت مع برنامج Shell، والتراجع عن جميع التغييرات التي قمت بها في هذا التطبيق. وسيتم أخذ نسخة احتياطية من ملفاتك الحالية أولاً، حتى يمكنك استعادتها من Backups."
 
 #: ui/app.slint:201 ui/components/theme-controls.slint:81 ui/app.slint:201 ui/components/theme-controls.slint:81
 msgid "Reset"
@@ -82,7 +82,7 @@ msgstr "مقارنة"
 
 #: ui/components/config-update.slint:77 ui/components/config-update.slint:168
 msgid "Use the new version"
-msgstr "استخدام الإصدار الجديد"
+msgstr "استخدم الإصدار الجديد"
 
 #: ui/components/config-update.slint:145 ui/pages/backups.slint:367
 msgid "Comparing…"
@@ -103,11 +103,11 @@ msgstr "إلغاء"
 
 #: ui/components/preset-gallery.slint:78
 msgid "{}, active"
-msgstr "‏{}، نشطة"
+msgstr "‏{}، نشط"
 
 #: ui/components/preset-gallery.slint:144
 msgid "Active"
-msgstr "نشطة"
+msgstr "نشط"
 
 #: ui/components/preset-gallery.slint:168
 msgid "More for {}"
@@ -127,7 +127,7 @@ msgstr "تطبيق"
 
 #: ui/components/preset-gallery.slint:234
 msgid "Export to clipboard"
-msgstr "تصدير إلى الحافظة"
+msgstr "نسخ إلى الحافظة"
 
 #: ui/components/preset-gallery.slint:279 ui/components/preset-gallery.slint:279
 msgid "Themes"
@@ -135,7 +135,7 @@ msgstr "السمات"
 
 #: ui/components/preset-gallery.slint:281
 msgid "The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it."
-msgstr "أمثلة مشروع Nilesoft Shell الأصلي. اختر واحدًا لرؤيته في المعاينة، واحفظه للاحتفاظ به."
+msgstr "أمثلة من مشروع Nilesoft Shell الأصلي. اختر أحدها لمعاينته، ثم احفظه للاحتفاظ به."
 
 #: ui/components/preset-gallery.slint:284
 msgid "Export current look"
@@ -160,22 +160,22 @@ msgstr "هذه السمة"
 #: ui/components/preset-gallery.slint:365
 msgid "It replaces the theme setting changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
 msgid_plural "It replaces the {n} theme settings changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
-msgstr[0] "يستبدل هذا {n} إعداد سمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
-msgstr[1] "يستبدل هذا إعداد السمة الذي تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
-msgstr[2] "يستبدل هذا إعدادَي السمة اللذين تم تغييرهما في هذا التطبيق، سواء حُفظا أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
-msgstr[3] "يستبدل هذا {n} إعدادات سمة تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
-msgstr[4] "يستبدل هذا {n} إعدادًا للسمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
-msgstr[5] "يستبدل هذا {n} إعداد سمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[0] "سيؤدي هذا إلى استبدال إعدادات (السمة) التي تم تغييرها في هذا التطبيق، سواء تم حفظها أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
+msgstr[1] "سيؤدي هذا إلى استبدال عدد {n} من إعدادات السمة التي تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
+msgstr[2] "سيؤدي هذا إلى استبدال عدد {n} من إعدادات السمة التي تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
+msgstr[3] "سيؤدي هذا إلى استبدال عدد {n} من إعدادات السمة التي تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
+msgstr[4] "سيؤدي هذا إلى استبدال عدد {n} من إعدادات السمة التي تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
+msgstr[5] "سيؤدي هذا إلى استبدال عدد {n} من إعدادات السمة التي تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. وستبقى ملفات .nss الخاصة بك كما هي دون تغيير، ولن يتم كتابة أي شيء حتى تقوم بالحفظ"
 
 #: ui/components/save-footer.slint:54
 msgid "{n} unsaved change"
 msgid_plural "{n} unsaved changes"
-msgstr[0] "‏{n} تغيير غير محفوظ"
-msgstr[1] "تغيير واحد غير محفوظ"
-msgstr[2] "تغييران غير محفوظين"
-msgstr[3] "‏{n} تغييرات غير محفوظة"
-msgstr[4] "‏{n} تغييرًا غير محفوظ"
-msgstr[5] "‏{n} تغيير غير محفوظ"
+msgstr[0] "عدد {n} تغيير غير محفوظ"
+msgstr[1] "عدد {n} تغيير غير محفوظ"
+msgstr[2] "عدد {n} تغيير غير محفوظ"
+msgstr[3] "عدد {n} تغيير غير محفوظ"
+msgstr[4] "عدد {n} تغيير غير محفوظ"
+msgstr[5] "عدد {n} تغيير غير محفوظ"
 
 #: ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/pages/editor.slint:343 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/pages/editor.slint:343 ui/pages/openwith.slint:611
 msgid "Discard"
@@ -195,7 +195,7 @@ msgstr "هل تريد استخدام تكوين شخصي؟"
 
 #: ui/components/save-footer.slint:140
 msgid "Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates."
-msgstr "يقرأ Shell التكوين المشترك الموجود في مجلد التثبيت الخاص به، وهذا التطبيق لا يغيّره أبدًا. أنشئ نسخة شخصية في %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init)؛ وستُحفظ تغييراتك فيها بعد ذلك. تُحفظ هذه النسخة لكل مستخدم على حدة وتبقى بعد التحديثات."
+msgstr "يقوم Shell بقراءة ملف التكوين المشترك من مجلد التثبيت الخاص به، وهو ما لا يغيره هذا التطبيق أبداً. أنشئ نسخة شخصية في %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); لتُحفظ تغييراتك هناك. تُحفظ هذه النسخة لكل مستخدم وتظل محفوظة عند التحديثات."
 
 #: ui/components/save-footer.slint:154
 msgid "Create and save"
@@ -223,7 +223,7 @@ msgstr "القواعد وعوامل التصفية"
 
 #: ui/components/sidebar.slint:18 ui/pages/context-menus.slint:747
 msgid "Context Menus"
-msgstr "القوائم المختصرة"
+msgstr "قوائم السياق"
 
 #: ui/components/sidebar.slint:18
 msgid "Menus"
@@ -235,7 +235,7 @@ msgstr "خريطة القوائم"
 
 #: ui/components/sidebar.slint:20 ui/pages/menu-builder.slint:403
 msgid "Menu Builder"
-msgstr "منشئ القوائم"
+msgstr "أداة إنشاء القوائم"
 
 #: ui/components/sidebar.slint:21 ui/pages/openwith.slint:606 src/AppearanceController.cpp:86 src/ConfigRules.cpp:58 src/OpenWithController.cpp:772
 msgid "Open with"
@@ -267,7 +267,7 @@ msgstr "جارٍ التحقق من الحالة…"
 
 #: ui/components/sidebar.slint:204 ui/pages/preferences.slint:55
 msgid "Preferences"
-msgstr "التفضيلات"
+msgstr "الإعدادات"
 
 #: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
 msgid "Set by this app"
@@ -275,7 +275,7 @@ msgstr "معيّن بواسطة هذا التطبيق"
 
 #: ui/components/theme-controls.slint:59
 msgid "Reset pending"
-msgstr "إعادة التعيين معلّقة"
+msgstr "إعادة الضبط قيد الانتظار"
 
 #: ui/components/theme-controls.slint:67
 msgid "Reset {} to the file's value"
@@ -299,11 +299,11 @@ msgstr "تلقائي (≈{}{})"
 
 #: ui/components/theme-controls.slint:677 ui/components/theme-controls.slint:677
 msgid "Pick a colour"
-msgstr "اختيار لون"
+msgstr "اختر لون"
 
 #: ui/components/theme-controls.slint:726
 msgid "Segoe UI (menu default)"
-msgstr "‏Segoe UI (افتراضي القائمة)"
+msgstr "‏Segoe UI (القائمة الافتراضية)"
 
 #: ui/components/theme-controls.slint:739
 msgid "Font family"
@@ -513,7 +513,7 @@ msgstr "سطح المكتب"
 #: ui/pages/appearance.slint:88
 msgctxt "Preview tab"
 msgid "File Explorer"
-msgstr "المستكشف"
+msgstr "مستكشف الملفات"
 
 #: ui/pages/appearance.slint:96 ui/pages/preferences.slint:69 ui/pages/appearance.slint:96 ui/pages/preferences.slint:69
 msgid "Light"
@@ -561,7 +561,7 @@ msgstr "الحد"
 
 #: ui/pages/appearance.slint:192
 msgid "The theme, colours, font and effects of Shell's menus. The preview updates as you change them."
-msgstr "السمة والألوان والخط والتأثيرات لقوائم Shell. تتحدث المعاينة أثناء تغييرها."
+msgstr "مظهر قوائم Shell، وألوانها، وخطوطها، وتأثيراتها. يتم تحديث المعاينة أثناء إجراء التغييرات."
 
 #: ui/pages/appearance.slint:199 ui/pages/behavior.slint:45 ui/pages/appearance.slint:199 ui/pages/behavior.slint:45
 msgid "Couldn't read your config"
@@ -593,7 +593,7 @@ msgstr "الألوان"
 
 #: ui/pages/appearance.slint:349 ui/pages/appearance.slint:433
 msgid "Typography"
-msgstr "الطباعة"
+msgstr "الخطوط"
 
 #: ui/pages/appearance.slint:350
 msgid "Effects"
@@ -898,7 +898,7 @@ msgstr "استعادة"
 
 #: ui/pages/behavior.slint:38
 msgid "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items."
-msgstr "كيف تُفتح القائمة، وتلميحاتها ولقطات الشاشة، وما تفعله بعناصر Windows نفسها."
+msgstr "كيفية فتح القائمة، وتلميحاتها، ولقطات الشاشة، وما تفعله بعناصر ويندوز نفسها"
 
 #: ui/pages/behavior.slint:53
 msgid "Opening the menu"
@@ -974,7 +974,7 @@ msgstr "اختيار…"
 
 #: ui/pages/behavior.slint:175
 msgid "Windows' own items"
-msgstr "عناصر Windows نفسها"
+msgstr "العناصر الخاصة بـ Windows"
 
 #: ui/pages/behavior.slint:176
 msgid "What Shell does to the items Windows and other apps put in the menu."
@@ -1300,7 +1300,7 @@ msgstr "تحديث"
 
 #: ui/pages/home.slint:110 ui/pages/home.slint:287 ui/pages/home.slint:110 ui/pages/home.slint:287 src/TrayController.cpp:124
 msgid "Restart Explorer"
-msgstr "إعادة تشغيل المستكشف"
+msgstr "إعادة تشغيل مستكشف الملفات"
 
 #: ui/pages/home.slint:130 ui/pages/preferences.slint:296
 msgid "Open Backups"
@@ -1360,11 +1360,11 @@ msgstr "إلغاء التسجيل لي"
 
 #: ui/pages/home.slint:295
 msgid "Also register for me"
-msgstr "التسجيل لي أيضًا"
+msgstr "سجل لي أيضًا"
 
 #: ui/pages/home.slint:295 src/Status.cpp:180
 msgid "Register for me"
-msgstr "التسجيل لي"
+msgstr "سجل لي"
 
 #. On top of the all-users registration, a per-user one takes priority over it.
 #: ui/pages/home.slint:297
@@ -1387,7 +1387,7 @@ msgstr "فتح مجلد التكوين"
 
 #: ui/pages/home.slint:305 ui/pages/home.slint:325
 msgid "Show shell.nss in Explorer"
-msgstr "إظهار shell.nss في المستكشف"
+msgstr "إظهار shell.nss في مستكشف الملفات"
 
 #: ui/pages/home.slint:313 ui/pages/home.slint:333
 msgid "Check the status again"
@@ -2603,7 +2603,7 @@ msgstr "البرامج"
 
 #: ui/pages/rules.slint:221
 msgid "By name, without .exe"
-msgstr "بالاسم، بدون ‎.exe"
+msgstr "بالاسم، بدون .exe"
 
 #: ui/pages/rules.slint:222
 msgid "notepad, or a path to an .exe"
@@ -3372,7 +3372,7 @@ msgstr "مجلد لقطات شاشة القوائم"
 
 #: src/ConfigRules.cpp:45
 msgid "Colors, fonts, spacing and effects of the menu. Off: Shell's built-in defaults."
-msgstr "ألوان القائمة وخطوطها وتباعدها وتأثيراتها. عند الإيقاف: الإعدادات الافتراضية المضمّنة في Shell."
+msgstr "ألوان القائمة وخطوطها وتباعدها وتأثيراتها. عند الإيقاف: الإعدادات الافتراضية المدمجة في Shell."
 
 #: src/ConfigRules.cpp:46
 msgid "Icons"
@@ -5119,7 +5119,7 @@ msgstr "لا يوجد ما يمكن نسخه"
 
 #: src/PresetsController.cpp:183
 msgid "Every theme setting has its built-in default."
-msgstr "كل إعدادات السمة على قيمها الافتراضية المضمنة."
+msgstr "كل إعدادات السمة على قيمها الافتراضية المدمجة."
 
 #: src/PresetsController.cpp:187
 msgid "Copied your current look"
@@ -5151,7 +5151,7 @@ msgstr "تم تعيينه بواسطة هذا التطبيق · {} يحتوي ع
 
 #: src/SaveService.cpp:215
 msgid "Built-in default"
-msgstr "الإعداد الافتراضي المضمّن"
+msgstr "الإعداد الافتراضي المدمج"
 
 #: src/SaveService.cpp:295
 msgid "shell.exe -status did not finish in time."
