@@ -396,9 +396,35 @@ component DetailPanel inherits Rectangle {
 
     if root.d.key < 0: VerticalLayout {
         padding: Tokens.s5;
+        spacing: Tokens.s5;
         alignment: start;
         Wrapped {
             text: @tr("Select an item to see where it comes from and what you can do with it.");
+        }
+
+        // An item the menu read here doesn't have: named by its title.
+        if MenuMapState.can-add-unlisted && !root.read-only: Section {
+            title: @tr("Not in the list?");
+            Wrapped { text: MenuMapState.unlisted-note; }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                unlisted := LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: @tr("Its title, as the menu shows it");
+                    accepted(t) => {
+                        MenuMapState.add-unlisted(t);
+                        self.text = "";
+                    }
+                }
+                AppButton {
+                    text: @tr("Add");
+                    enabled: unlisted.text != "";
+                    clicked => {
+                        MenuMapState.add-unlisted(unlisted.text);
+                        unlisted.text = "";
+                    }
+                }
+            }
         }
     }
 
@@ -541,6 +567,10 @@ component DetailPanel inherits Rectangle {
                 title: @tr("Move to");
                 if root.d.can-move: HorizontalLayout {
                     spacing: Tokens.s2;
+                    // Screenshots (--map-open-move): the list gets the focus, then
+                    // the app sends Enter to open it.
+                    property <int> focus-serial: MenuMapState.dev-focus-move;
+                    changed focus-serial => { target.focus(); }
                     target := ComboBox {
                         horizontal-stretch: 1;
                         model: MenuMapState.move-targets;
@@ -831,6 +861,11 @@ export component MenuMapPage inherits Rectangle {
                 color: Tokens.text-2;
                 vertical-alignment: center;
                 overflow: elide;
+            }
+            if MenuMapState.can-add-unlisted && !MenuMapState.shared-config: Link {
+                text: @tr("Item not listed?");
+                font-size: Tokens.caption + 1px;
+                activated => { MenuMapState.show-unlisted(); }
             }
             Link {
                 text: @tr("Expand all");

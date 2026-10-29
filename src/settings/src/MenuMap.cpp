@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <functional>
 
 namespace fs = std::filesystem;
 
@@ -245,6 +246,25 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
             t.rules.push_back(std::move(rule));
         }
     t.systemError = getString(*tree, "system_error");
+    if (auto it = tree->find("quiet"); it != tree->end() && it->is_array())
+        for (const auto &q : *it) {
+            if (!q.is_object() || getBool(q, "windows"))
+                continue;
+            // "Windows Desktop Gadgets (Windows Sidebar\sbdrop.dll)", or the folder and
+            // file alone ("Windows Defender\shellext.dll"): Microsoft's DLLs outside
+            // the Windows folder all have the same product name.
+            auto module = toPath(getString(q, "module"));
+            std::string file = module.filename().string();
+            if (auto folder = module.parent_path().filename().string(); !folder.empty() && !file.empty())
+                file = folder + "\\" + file;
+            auto name = getString(q, "name");
+            if (name.empty())
+                name = file;
+            else if (!file.empty())
+                name += " (" + file + ")";
+            if (!name.empty() && std::find(t.quietPrograms.begin(), t.quietPrograms.end(), name) == t.quietPrograms.end())
+                t.quietPrograms.push_back(name);
+        }
     return t;
 }
 
@@ -291,6 +311,111 @@ std::string moveRule(const Node &n, std::string_view menuPath)
     if (m.empty() || p.empty() || p.find_first_of("\r\n") != std::string_view::npos)
         return {};
     return "modify(" + m + " menu=" + nss::quoteString(p) + ")";
+}
+
+std::string itemName(std::string_view title)
+{
+    auto name = stripAccelerators(nss::trim(title));
+    while (!name.empty() && (name.back() == '.' || std::isspace(static_cast<unsigned char>(name.back()))))
+        name.pop_back();
+    return std::string(nss::trim(name));
+}
+
+namespace {
+
+std::string asciiLower(std::string s)
+{
+    for (auto &c : s)
+        if (c >= 'A' && c <= 'Z')
+            c = char(c - 'A' + 'a');
+    return s;
+}
+
+// The name a rule's find= names exactly ("\"Title\"" as evaluated), or "".
+std::string exactName(const Rule &r)
+{
+    if (r.findDynamic || !r.in.empty() || !r.where.empty() || r.find.size() < 3 || r.find.front() != '"' ||
+        r.find.back() != '"')
+        return {};
+    auto name = r.find.substr(1, r.find.size() - 2);
+    if (name.find_first_of("\"|*") != std::string::npos)
+        return {};
+    return name;
+}
+
+} // namespace
+
+void addUnlisted(Tree &tree, const std::vector<std::string> &typed)
+{
+    std::vector<bool> used(tree.rules.size(), false);
+    std::function<void(const std::vector<Node> &)> mark = [&](const std::vector<Node> &list) {
+        for (const auto &n : list) {
+            for (int i : n.rules)
+                if (i >= 0 && size_t(i) < used.size())
+                    used[size_t(i)] = true;
+            for (int i : n.maybe)
+                if (i >= 0 && size_t(i) < used.size())
+                    used[size_t(i)] = true;
+            mark(n.children);
+        }
+    };
+    mark(tree.system);
+
+    std::vector<std::string> names;
+    auto add = [&](const std::string &name) {
+        if (name.empty())
+            return;
+        auto key = asciiLower(name);
+        for (const auto &n : names)
+            if (asciiLower(n) == key)
+                return;
+        for (const auto &n : tree.system)
+            if (n.kind != "separator" && asciiLower(n.name) == key)
+                return;
+        names.push_back(name);
+    };
+    for (const auto &t : typed)
+        add(itemName(t));
+    for (size_t i = 0; i < tree.rules.size(); ++i)
+        if (!used[i] && tree.rules[i].applies && isMapFile(tree.rules[i].file))
+            add(exactName(tree.rules[i]));
+
+    for (const auto &name : names) {
+        Node n;
+        n.origin = Origin::System;
+        n.kind = "item";
+        n.title = n.rawTitle = n.name = name;
+        n.source = "unknown";
+        n.unlisted = true;
+        const auto key = asciiLower(name);
+        for (size_t i = 0; i < tree.rules.size(); ++i) {
+            const auto &r = tree.rules[i];
+            if (!r.applies || asciiLower(exactName(r)) != key)
+                continue;
+            n.rules.push_back(int(i));
+            if (r.vis == "hidden")
+                n.hidden = true;
+            if (!r.menu.empty() && !r.menuDynamic && n.moved.empty())
+                n.moved = r.menu;
+            if (!r.title.empty() && !r.titleDynamic && n.renamed.empty())
+                n.renamed = r.title;
+            if (r.vis == "hidden" || (!r.menu.empty() && !isRootPath(r.menu)))
+                break;
+        }
+        tree.system.push_back(std::move(n));
+    }
+}
+
+bool isRootPath(std::string_view menuPath)
+{
+    bool slash = false;
+    for (char c : menuPath) {
+        if (c == '/')
+            slash = true;
+        else if (!std::isspace(static_cast<unsigned char>(c)))
+            return false;
+    }
+    return slash;
 }
 
 bool isMapFile(const fs::path &file)
@@ -667,7 +792,13 @@ bool moveDeclaration(nss::NssDocument &doc, size_t line, size_t column, size_t a
             return false;
         ++end;
         while (begin > 0) {
-            size_t prev = lineStart(text, begin - 1);
+            // The line before: past its line end ("\r\n" or "\n") first.
+            size_t end = begin;
+            if (end > 0 && text[end - 1] == '\n')
+                --end;
+            if (end > 0 && text[end - 1] == '\r')
+                --end;
+            size_t prev = lineStart(text, end);
             auto l = nss::trim(std::string_view(text).substr(prev, begin - prev));
             if (l.rfind("//", 0) != 0)
                 break;

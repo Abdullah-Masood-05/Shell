@@ -93,6 +93,9 @@ export global MenuMapState {
     in property <[string]> move-targets;
     in property <[string]> positions;          // your items: At the top, Before X, After X, At the bottom
     in property <bool> busy;                   // saving one of your items
+    in property <bool> can-add-unlisted;       // an item the map can't list can be named by its title
+    in property <string> unlisted-note;        // why some aren't listed, and which programs added nothing
+    in property <int> dev-focus-move;          // screenshots: bumped to focus the Move to list
 
     // "Edit code": one declaration in its file.
     in property <bool> editing;
@@ -119,6 +122,8 @@ export global MenuMapState {
     callback place(index: int);
     callback reset-position();
     callback reorder(key: int, up: bool);      // Move up / Move down, Alt+Up / Alt+Down
+    callback add-unlisted(title: string);      // "Not in the list?": an item by its title
+    callback show-unlisted();                  // clears the selection, so the panel shows that field
     callback edit-code();
     callback open-in-editor();
     callback open-rule();

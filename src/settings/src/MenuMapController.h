@@ -46,6 +46,8 @@ public:
         int view = 0;
         bool expandAll = false;
         std::string select;
+        bool openMove = false;     // the selected item's Move to list opens (--map-open-move)
+        int sample = -1;           // the File context's sample, by index (--map-sample)
     };
     void setDevOptions(DevOptions options);
 
@@ -100,6 +102,8 @@ private:
     void resetTitle();
     void moveTo(int index);
     void resetMenu();
+    // A Windows or program item the map can't list, named by its title.
+    void addUnlisted(const std::string &title);
     void place(int index);
     void resetPosition();
     void reorder(int key, bool up);
@@ -146,6 +150,8 @@ private:
     int selected_ = -1;
     std::string selectedKey_;
     std::vector<MoveTarget> targets_;
+    std::map<int, std::vector<std::string>> typed_; // titles typed for unlisted items, by context
+    std::vector<MoveTarget> sysTargets_;  // for the selected Windows item: the main menu, then targets_
     std::vector<Choice> ownTargets_;      // for the selected Shell item
     std::vector<Choice> positions_;       // the same
     std::string pendingSelect_;           // the key a moved declaration gets, once saved

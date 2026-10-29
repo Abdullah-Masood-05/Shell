@@ -30,7 +30,8 @@
 //   --snapshot-width <px>     a narrower or wider window for the tour
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
 //   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
-//   --map-expand, --map-select <title>   how the Menu map page starts (screenshots)
+//   --map-expand, --map-select <title>, --map-open-move (its Move to list open),
+//   --map-sample <n> (the File context's sample, 0 = .txt)   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
 //   --po <file>            the translator preview: shows the app in that .po file, like
@@ -195,6 +196,12 @@ AppOptions parseArgs()
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--map-select") == 0 && i + 1 < argc) {
             g_map.select = text::narrow(argv[++i]);
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-open-move") == 0) {
+            g_map.openMove = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-sample") == 0 && i + 1 < argc) {
+            g_map.sample = _wtoi(argv[++i]);
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;

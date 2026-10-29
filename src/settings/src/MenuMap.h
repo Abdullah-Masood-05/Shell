@@ -66,6 +66,8 @@ struct Node
     bool maybeHidden = false;
     std::string moved;         // the menu a rule moves it to
     std::string renamed;       // the title a rule gives it
+    bool unlisted = false;     // not in the menu read here: a title typed on the page, or
+                               // one a rule made here names (addUnlisted)
 
     std::vector<Node> children;
 };
@@ -99,6 +101,9 @@ struct Tree
     std::vector<Node> system;
     std::vector<Rule> rules;
     std::string systemError;           // why `system` is empty ("taskbar": not built there)
+    // Programs' menu handlers that loaded but added nothing for this sample: some
+    // add their items only inside File Explorer (Windows' own are left out).
+    std::vector<std::string> quietPrograms;
 };
 
 // The output of `shell.exe -config:tree`. nullopt (and `error`) when it isn't JSON
@@ -118,6 +123,27 @@ std::string matchProps(const Node &n);
 std::string hideRule(const Node &n);                                   // remove(...)
 std::string renameRule(const Node &n, std::string_view title);         // modify(... title="...")
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
+// "/" (also " / "): the main menu as menu= names it. shell.dll keeps an item that
+// menu='/' put in the main menu there: the rules after it don't move it.
+bool isRootPath(std::string_view menuPath);
+
+// --- Items the map can't list ---
+//
+// Some programs add their items only inside File Explorer (or only for some
+// files), so the menu read off-screen doesn't have them. Rules can still name such
+// an item by its title.
+
+// The name find= and this.name see for a title typed by hand: '&' and the dots at
+// the end left out, spaces around trimmed ("Scan with Microsoft Defender...").
+std::string itemName(std::string_view title);
+
+// Adds to tree.system, at the end of the main menu, one unlisted item for each
+// name in `typed` and for each rule of settings-app-map.nss that names an item by
+// its exact title (find="\"Title\"", no in= or where=) and reaches nothing listed,
+// so its rules can be seen and taken back. Names already listed in the main menu
+// are skipped. Each one gets the rules that name it that way (hidden, moved,
+// renamed as for a listed item).
+void addUnlisted(Tree &tree, const std::vector<std::string> &typed);
 
 // True for imports/settings-app-map.nss, the file the rules above go to.
 bool isMapFile(const std::filesystem::path &file);

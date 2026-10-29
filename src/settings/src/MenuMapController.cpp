@@ -11,6 +11,7 @@
 #include "../../shared/ConfigUpgrade.h"
 
 #include <windows.h>
+#include <shlobj.h>
 
 #include <algorithm>
 #include <chrono>
@@ -38,10 +39,33 @@ constexpr const char *kContexts[] = { "file", "folder", "back", "desktop", "driv
 constexpr const char *kContextLabels[] = { nsp::mark("File"),    nsp::mark("Folder"), nsp::mark("Background"),
                                            nsp::mark("Desktop"), nsp::mark("Drive"),  nsp::mark("Taskbar") };
 // Sample files for the File context.
-constexpr const wchar_t *kSampleExt[] = { L".txt", L".png", L".exe", L".zip", L".pdf", L".mp3" };
-constexpr const char *kSampleLabels[] = { nsp::mark("Text file (.txt)"), nsp::mark("Image (.png)"),
-                                          nsp::mark("Program (.exe)"),   nsp::mark("Archive (.zip)"),
-                                          nsp::mark("PDF (.pdf)"),       nsp::mark("Music (.mp3)") };
+// The .exe and .lnk ones get "Troubleshoot compatibility" and "Run as administrator".
+constexpr const wchar_t *kSampleExt[] = { L".txt", L".png", L".exe", L".lnk", L".zip", L".pdf", L".mp3" };
+constexpr const char *kSampleLabels[] = { nsp::mark("Text file (.txt)"),   nsp::mark("Image (.png)"),
+                                          nsp::mark("Application (.exe)"), nsp::mark("Shortcut (.lnk)"),
+                                          nsp::mark("Archive (.zip)"),     nsp::mark("PDF (.pdf)"),
+                                          nsp::mark("Music (.mp3)") };
+
+// A shortcut to `target`, as Explorer makes one. False when it can't be written.
+bool writeShortcut(const fs::path &link, const fs::path &target)
+{
+    const HRESULT init = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    bool ok = false;
+    IShellLinkW *sl = nullptr;
+    if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&sl)))) {
+        sl->SetPath(target.c_str());
+        sl->SetWorkingDirectory(target.parent_path().c_str());
+        IPersistFile *pf = nullptr;
+        if (SUCCEEDED(sl->QueryInterface(IID_PPV_ARGS(&pf)))) {
+            ok = SUCCEEDED(pf->Save(link.c_str(), TRUE));
+            pf->Release();
+        }
+        sl->Release();
+    }
+    if (SUCCEEDED(init))
+        CoUninitialize();
+    return ok;
+}
 
 // The node view's geometry, in logical pixels (ui/pages/menu-map.slint draws the
 // panels this wide).
@@ -90,6 +114,16 @@ fs::path prepareSample(int context, int sample)
     if (ctx == "file") {
         fs::create_directories(dir, ec);
         auto file = dir / (std::wstring(L"Sample") + kSampleExt[sample]);
+        if (std::wstring(kSampleExt[sample]) == L".lnk") {
+            // A real shortcut, to the sample program next to it: an empty .lnk
+            // file is a broken one, with only a few of the items.
+            auto exe = dir / L"Sample.exe";
+            if (!fs::exists(exe, ec))
+                std::ofstream(exe, std::ios::binary).flush();
+            if (fs::file_size(file, ec) == 0 || ec)
+                writeShortcut(file, exe);
+            return file;
+        }
         if (!fs::exists(file, ec)) {
             std::ofstream out(file, std::ios::binary);
             if (std::wstring(kSampleExt[sample]) == L".zip") {
@@ -180,6 +214,8 @@ void MenuMapController::setDevOptions(DevOptions options)
     devPending_ = true;
     context_ = std::clamp(dev_.context, 0, int(std::size(kContexts)) - 1);
     view_ = dev_.view == 1 ? 1 : 0;
+    if (dev_.sample >= 0 && dev_.sample < int(std::size(kSampleExt)))
+        sample_ = dev_.sample;
     stale_ = true;
 }
 
@@ -216,6 +252,12 @@ void MenuMapController::bindCallbacks()
     st.on_place([this](int i) { place(i); });
     st.on_reset_position([this] { resetPosition(); });
     st.on_reorder([this](int key, bool up) { reorder(key, up); });
+    st.on_add_unlisted([this](slint::SharedString t) { addUnlisted(str(t)); });
+    st.on_show_unlisted([this] {
+        selected_ = -1;
+        selectedKey_.clear();
+        push();
+    });
     st.on_edit_code([this] { editCode(); });
     st.on_edit_edited([this](slint::SharedString t, int cursor, int beforeAnchor, int beforeCursor) {
         auto r = editDoc_.input(str(t), size_t(std::max(0, cursor)), codeui::selection(beforeAnchor, beforeCursor));
@@ -330,6 +372,8 @@ void MenuMapController::load()
             }
             tree_ = std::move(*tree);
             haveTree_ = true;
+            if (tree_.systemError.empty())
+                menumap::addUnlisted(tree_, typed_[context_]);
             mapLines_ = std::move(lines);
             buildEntries();
             if (devPending_) {
@@ -349,6 +393,17 @@ void MenuMapController::load()
                             expanded_.insert(entries_[size_t(p)].key);
                         break;
                     }
+                // The Move to list open: its focus first, then Enter, as a keyboard
+                // user would (screenshots only).
+                if (dev_.openMove && selected_ >= 0)
+                    slint::Timer::single_shot(std::chrono::milliseconds(400), [this] {
+                        const auto &st = ui_->global<MenuMapState>();
+                        st.set_dev_focus_move(st.get_dev_focus_move() + 1);
+                        slint::Timer::single_shot(std::chrono::milliseconds(150), [this] {
+                            ui_->window().dispatch_key_press_event(slint::SharedString(u8"\n"));
+                            ui_->window().dispatch_key_release_event(slint::SharedString(u8"\n"));
+                        });
+                    });
             }
             push();
         });
@@ -602,6 +657,8 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
     }
     if (!n.moved.empty()) {
         *kind = "moved";
+        if (menumap::isRootPath(n.moved))
+            return n.path.empty() ? std::string(nsp::tr("Kept in the main menu")) : std::string(nsp::tr("Moved to the main menu"));
         return nsp::trf("Moved to {}", menumap::stripAccelerators(n.moved));
     }
     if (!n.renamed.empty()) {
@@ -626,6 +683,8 @@ std::string MenuMapController::originLabel(const Entry &e) const
     const auto &n = *e.node;
     if (n.origin == Origin::Shell)
         return n.line > 0 ? nsp::trf("{}:{}", fileLabel(n.file), n.line) : fileLabel(n.file);
+    if (n.unlisted)
+        return nsp::tr("Typed by title");
     if (n.kind == "separator")
         return {};
     if (n.source == "windows")
@@ -662,6 +721,21 @@ void MenuMapController::push()
             notice = nsp::trf("Windows' items couldn't be read: {}", tree_.systemError);
     }
     st.set_notice(ss(notice));
+
+    // Items the map can't list: a note, and a field to name one by its title.
+    const bool canAdd = haveTree_ && tree_.ok && tree_.systemError.empty() && !shared_;
+    st.set_can_add_unlisted(canAdd);
+    std::string unlisted;
+    if (canAdd) {
+        unlisted = nsp::tr("Some programs add their items only inside File Explorer, so they aren't listed here. Type the item's title as the menu shows it to hide, rename or move it.");
+        if (!tree_.quietPrograms.empty()) {
+            std::string names;
+            for (const auto &p : tree_.quietPrograms)
+                names += (names.empty() ? "" : ", ") + p;
+            unlisted += "\n" + nsp::trf("Added nothing here: {}.", names);
+        }
+    }
+    st.set_unlisted_note(ss(unlisted));
 
     size_t shellCount = 0, systemCount = 0;
     for (const auto &e : entries_)
@@ -896,8 +970,9 @@ void MenuMapController::pushDetail()
                 bool home = lower(menumap::stripAccelerators(path)) == writtenIn;
                 ownTargets_.push_back(Choice{ label, home ? std::string() : menumap::menuValue(steps) });
             };
-            if (e.depth > 1)
-                add(nsp::tr("Main menu"), {}, "");
+            // Always first, as for Windows' items: for an item written in the main
+            // menu it only takes menu= out.
+            add(nsp::tr("Main menu"), {}, "");
             for (size_t i = 0; i < entries_.size(); ++i) {
                 const auto &t = entries_[i];
                 if (!t.node || t.group != 0 || t.node->kind != "menu" || t.steps.empty() || entries_[i].key == here)
@@ -941,7 +1016,9 @@ void MenuMapController::pushDetail()
         d.toggle_note = ss(s.canToggle ? std::string(nsp::tr("Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."))
                                        : s.note);
     } else {
-        if (n.source == "windows")
+        if (n.unlisted)
+            d.origin_text = ss(nsp::tr("Not in the menu read here. Rules made here name it by its title, so they work wherever the menu has it."));
+        else if (n.source == "windows")
             d.origin_text = ss(nsp::tr("Added by Windows"));
         else if (n.source == "program")
             d.origin_text = ss(nsp::trf("Added by {}", n.program.empty() ? std::string(nsp::tr("a program")) : n.program));
@@ -969,6 +1046,9 @@ void MenuMapController::pushDetail()
             std::string what;
             if (r.vis == "hidden")
                 what = nsp::trf("Hidden by {}.", where);
+            else if (menumap::isRootPath(r.menu) && !r.menuDynamic)
+                what = n.path.empty() ? nsp::trf("Kept in the main menu by {}, so later rules don't move it.", where)
+                                      : nsp::trf("Moved to the main menu by {}.", where);
             else if (!r.menu.empty())
                 what = nsp::trf("Moved to {} by {}.", menumap::stripAccelerators(r.menu), where);
             else if (!r.title.empty())
@@ -991,7 +1071,12 @@ void MenuMapController::pushDetail()
         d.can_rename = named && n.kind != "separator";
         d.rename_value = ss(n.renamed.empty() ? n.title : n.renamed);
         d.can_reset_title = !mapLinesOf(n.rules, "title").empty() && !shared_;
-        d.can_move = named && n.kind != "separator" && !targets_.empty();
+        // Move to: the main menu first ("/": out of a submenu, or back from a move
+        // a rule in another file makes), then Shell's menus and Windows' submenus.
+        sysTargets_.clear();
+        sysTargets_.push_back(MoveTarget{ nsp::tr("Main menu"), "/" });
+        sysTargets_.insert(sysTargets_.end(), targets_.begin(), targets_.end());
+        d.can_move = named && n.kind != "separator";
         d.can_reset_menu = !mapLinesOf(n.rules, "menu").empty() && !shared_;
         if (!named && n.kind != "separator")
             d.move_note = ss(shared_ ? std::string(nsp::tr("The shared config is read-only here."))
@@ -1010,7 +1095,7 @@ void MenuMapController::pushDetail()
         for (const auto &p : positions_)
             positions.push_back(ss(p.label));
     } else {
-        for (const auto &t : targets_)
+        for (const auto &t : sysTargets_)
             targets.push_back(ss(t.label));
     }
     st.set_move_targets(std::make_shared<slint::VectorModel<slint::SharedString>>(targets));
@@ -1167,10 +1252,11 @@ void MenuMapController::moveTo(int index)
                       });
         return;
     }
-    if (index >= int(targets_.size()))
+    if (index >= int(sysTargets_.size()) || menumap::matchProps(n).empty())
         return;
-    const auto &target = targets_[size_t(index)];
-    const std::string label = "move " + n.title + " to " + menumap::stripAccelerators(target.path);
+    const auto target = sysTargets_[size_t(index)];
+    const bool toMain = target.path == "/";
+    const std::string label = "move " + n.title + " to " + (toMain ? std::string("the main menu") : menumap::stripAccelerators(target.path));
     auto props = menumap::matchProps(n);
     std::vector<std::string> drop;
     for (const auto &[text, change] : save_.pending().rules())
@@ -1180,6 +1266,12 @@ void MenuMapController::moveTo(int index)
         stageRule(text, false, label);
     for (const auto &line : mapLinesOf(n.rules, "menu"))
         stageRule(line, false, label);
+    // In the main menu and no rule moves it: taking out the rules made here (and
+    // the pending ones) is all it needs. When a rule moves it, menu="/" here keeps
+    // it in the main menu even against a later file such as modify.nss (shell.dll
+    // leaves an item menu='/' put in the main menu there).
+    if (toMain && n.path.empty() && n.moved.empty())
+        return;
     stageRule(menumap::moveRule(n, target.path), true, label);
 }
 
@@ -1202,6 +1294,37 @@ void MenuMapController::resetMenu()
     }
     for (const auto &line : mapLinesOf(n.rules, "menu"))
         stageRule(line, false, "put " + n.title + " back");
+}
+
+void MenuMapController::addUnlisted(const std::string &title)
+{
+    if (!haveTree_ || !tree_.ok || !tree_.systemError.empty() || shared_)
+        return;
+    auto name = menumap::itemName(title);
+    if (name.empty())
+        return;
+    // Listed already (in the main menu, or added before): select that one.
+    auto find = [&]() -> int {
+        for (size_t i = 0; i < entries_.size(); ++i)
+            if (entries_[i].node && entries_[i].group == 1 && entries_[i].depth == 1 &&
+                lower(entries_[i].node->name) == lower(name))
+                return int(i);
+        return -1;
+    };
+    if (find() < 0) {
+        auto &typed = typed_[context_];
+        typed.push_back(name);
+        menumap::addUnlisted(tree_, { name });
+        buildEntries();
+    }
+    if (int i = find(); i >= 0) {
+        selected_ = i;
+        selectedKey_ = entries_[size_t(i)].key;
+        collapsed_.erase("w");
+        const auto &st = ui_->global<MenuMapState>();
+        st.set_detail_serial(st.get_detail_serial() + 1);
+    }
+    push();
 }
 
 void MenuMapController::place(int index)
