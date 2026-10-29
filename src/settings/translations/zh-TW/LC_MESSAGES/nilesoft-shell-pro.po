@@ -10,20 +10,20 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:56
+#: ui/app.slint:57
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Microsoft JhengHei UI"
 
-#: ui/app.slint:182
+#: ui/app.slint:199
 msgid "Put the default menu files back?"
 msgstr "還原預設選單檔案？"
 
-#: ui/app.slint:183
+#: ui/app.slint:200
 msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
 msgstr "你的 shell.nss 及其 imports 資料夾中的檔案將被替換為 Shell 隨附的檔案，在本應用程式中所做的變更也會被復原。操作前會先為目前的檔案建立快照，你可以在「備份」中還原。"
 
-#: ui/app.slint:184 ui/components/theme-controls.slint:81 ui/app.slint:184 ui/components/theme-controls.slint:81
+#: ui/app.slint:201 ui/components/theme-controls.slint:81 ui/app.slint:201 ui/components/theme-controls.slint:81
 msgid "Reset"
 msgstr "重設"
 
@@ -112,7 +112,7 @@ msgstr "使用中"
 msgid "More for {}"
 msgstr "{} 的更多選項"
 
-#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:219
+#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:214
 msgid "From {}"
 msgstr "來自 {}"
 
@@ -258,7 +258,7 @@ msgstr "正在檢查狀態…"
 msgid "Preferences"
 msgstr "偏好設定"
 
-#: ui/components/theme-controls.slint:59 src/SaveService.cpp:217
+#: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
 msgid "Set by this app"
 msgstr "由此應用程式設定"
 
@@ -2677,7 +2677,7 @@ msgstr "本機"
 msgid "shell.exe did not finish in time and was stopped."
 msgstr "shell.exe 未在時限內完成，已被停止。"
 
-#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:503
+#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:498
 msgid "shell.exe exited with code {}."
 msgstr "shell.exe 已結束，結束代碼為 {}。"
 
@@ -4398,7 +4398,7 @@ msgstr "子選單"
 msgid "Item"
 msgstr "選單項目"
 
-#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:203
+#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:198
 msgid "{}, line {}"
 msgstr "{}，第 {} 行"
 
@@ -4550,7 +4550,7 @@ msgstr "{} 的第 {} 行沒有宣告。"
 msgid "The file changed since this code was opened. Cancel, then open it again."
 msgstr "開啟這段程式碼後檔案已被變更。請取消後重新開啟。"
 
-#: src/MenuMapController.cpp:1521 src/SaveService.cpp:458
+#: src/MenuMapController.cpp:1521 src/SaveService.cpp:453
 msgid "Not saved: {}"
 msgstr "未儲存：{}"
 
@@ -4877,67 +4877,67 @@ msgstr "一個 theme{} 區塊，包含目前生效的所有主題設定（無論
 msgid "the check failed"
 msgstr "檢查失敗"
 
-#: src/SaveService.cpp:211
+#: src/SaveService.cpp:206
 msgid "Changed here · not saved yet"
 msgstr "已在此處變更 · 尚未儲存"
 
-#: src/SaveService.cpp:213
+#: src/SaveService.cpp:208
 msgid "Back to {} · not saved yet"
 msgstr "還原為 {} · 尚未儲存"
 
-#: src/SaveService.cpp:214
+#: src/SaveService.cpp:209
 msgid "Back to the built-in default · not saved yet"
 msgstr "還原為內建預設值 · 尚未儲存"
 
-#: src/SaveService.cpp:216
+#: src/SaveService.cpp:211
 msgid "Set by this app · {} has {}"
 msgstr "由此應用程式設定 · {} 中為 {}"
 
-#: src/SaveService.cpp:220
+#: src/SaveService.cpp:215
 msgid "Built-in default"
 msgstr "內建預設值"
 
-#: src/SaveService.cpp:300
+#: src/SaveService.cpp:295
 msgid "shell.exe -status did not finish in time."
 msgstr "shell.exe -status 未能及時完成。"
 
-#: src/SaveService.cpp:319
+#: src/SaveService.cpp:314
 msgid "The config file was not found. Create a personal config from Home."
 msgstr "找不到設定檔。請從「首頁」建立個人設定檔。"
 
-#: src/SaveService.cpp:343
+#: src/SaveService.cpp:338
 msgid "shell.exe was not found, so the config can't be checked before saving."
 msgstr "找不到 shell.exe，因此無法在儲存前檢查設定檔。"
 
-#: src/SaveService.cpp:349
+#: src/SaveService.cpp:344
 msgid "Checking with shell.exe…"
 msgstr "正在使用 shell.exe 檢查…"
 
-#: src/SaveService.cpp:451
+#: src/SaveService.cpp:446
 msgid "Nothing to save · the files already match"
 msgstr "沒有需要儲存的內容 · 檔案已一致"
 
-#: src/SaveService.cpp:452
+#: src/SaveService.cpp:447
 msgid "Saved · Shell reloads on next right-click"
 msgstr "已儲存 · Shell 會在下次按右鍵時重新載入"
 
-#: src/SaveService.cpp:454
+#: src/SaveService.cpp:449
 msgid "Shell rejected the config, rolled back: {}"
 msgstr "Shell 拒絕了此設定檔，已復原：{}"
 
-#: src/SaveService.cpp:456
+#: src/SaveService.cpp:451
 msgid "Shell rejected the config, nothing was written: {}"
 msgstr "Shell 拒絕了此設定檔，未寫入任何內容：{}"
 
-#: src/SaveService.cpp:487
+#: src/SaveService.cpp:482
 msgid "Creating your personal config…"
 msgstr "正在建立你的個人設定檔…"
 
-#: src/SaveService.cpp:501
+#: src/SaveService.cpp:496
 msgid "shell.exe did not finish in time."
 msgstr "shell.exe 未能及時完成。"
 
-#: src/SaveService.cpp:509
+#: src/SaveService.cpp:504
 msgid "Couldn't create the personal config: {}"
 msgstr "無法建立個人設定檔：{}"
 
@@ -5819,152 +5819,80 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "無法開啟「{}」"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移至 {} 中間"
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
 
 #~ msgid "When the app starts, at most once a day."
 #~ msgstr "在應用程式啟動時檢查，每天最多一次。"
 
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
-
-#~ msgid "Imported from {}."
-#~ msgstr "從 {} 匯入。"
-
-#~ msgid "Add separators"
-#~ msgstr "新增分隔線"
-
-#~ msgid "Program (.exe)"
-#~ msgstr "程式 (.exe)"
-
 #~ msgid "Move to the bottom"
 #~ msgstr "移至底端"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "檔案開頭不是自動產生的標頭。"
-
-#~ msgid "Change state"
-#~ msgstr "變更狀態"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "符合運算式的項目"
-
-#~ msgid "To move one of your items, use Edit code or the Menu Builder."
-#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "無法下載擴充功能：{}"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的擴充功能合集"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本應用程式管理"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "無法從此位址下載 {}。"
-
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移至 {} 底端"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下載程式碼…"
-
-#~ msgid "on the edit"
-#~ msgstr "在編輯方塊中"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移至中間"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前方新增分隔線"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在後方新增分隔線"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
-
-#~ msgid "Disable"
-#~ msgstr "停用"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下載。"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
-
-#~ msgid "Change icon"
-#~ msgstr "變更圖示"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "無法下載 SHA256SUMS.txt：{}"
-
-#~ msgid "Change command"
-#~ msgstr "變更命令"
 
 #~ msgid "Change visibility"
 #~ msgstr "變更可見度"
 
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
+#~ msgid "Add a separator before"
+#~ msgstr "在前方新增分隔線"
 
-#~ msgid "no selection"
-#~ msgstr "未選取"
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
+
+#~ msgid "Disable"
+#~ msgstr "停用"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移至 {} 底端"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
 
 #~ msgid "Downloading the snippet…"
 #~ msgstr "正在下載擴充功能…"
 
-#~ msgid "Move to {}"
-#~ msgstr "移至 {}"
+#~ msgid "Add separators"
+#~ msgstr "新增分隔線"
 
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
 
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "無法下載 SHA256SUMS.txt：{}"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
+
+#~ msgid "no selection"
+#~ msgstr "未選取"
+
+#~ msgid "Change state"
+#~ msgstr "變更狀態"
 
 #~ msgid "The file has a syntax problem at line {}: {}"
 #~ msgstr "檔案第 {} 行有語法問題：{}"
 
-#~ msgid "Add a separator {}"
-#~ msgstr "新增分隔線（{}）"
+#~ msgid "Add a separator after"
+#~ msgstr "在後方新增分隔線"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移至中間"
+
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的擴充功能合集"
+
+#~ msgid "To move one of your items, use Edit code or the Menu Builder."
+#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
+
+#~ msgid "Move to {}"
+#~ msgstr "移至 {}"
 
 #~ msgid "Rename to {}"
 #~ msgstr "重新命名為 {}"
@@ -5972,5 +5900,77 @@ msgstr "還原舊版"
 #~ msgid "multiple selection"
 #~ msgstr "多重選取"
 
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "無法從此位址下載 {}。"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下載。"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下載程式碼…"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "檔案開頭不是自動產生的標頭。"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "無法下載擴充功能：{}"
+
+#~ msgid "on the edit"
+#~ msgstr "在編輯方塊中"
+
+#~ msgid "Program (.exe)"
+#~ msgstr "程式 (.exe)"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "無法開啟「{}」"
+
 #~ msgid "No preview: the snippet couldn't be downloaded. {}"
 #~ msgstr "無法預覽：未能下載此擴充功能。{}"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
+
+#~ msgid "Change icon"
+#~ msgstr "變更圖示"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "符合運算式的項目"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本應用程式管理"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
+
+#~ msgid "Imported from {}."
+#~ msgstr "從 {} 匯入。"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移至 {} 中間"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "新增分隔線（{}）"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"

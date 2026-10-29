@@ -230,6 +230,9 @@ export component Segmented inherits Rectangle {
         width: (root.width - 6px) / max(1, root.options.length);
         height: root.height - 6px;
         border-radius: Tokens.radius-xs;
+        // Slint 1.18 doesn't elide right-to-left text (Arabic): it runs past the start
+        // edge instead. Clipping keeps a long label inside its own option.
+        clip: true;
         background: i != root.selected && ta.has-hover && root.enabled ? Tokens.hover : transparent;
         accessible-role: tab;
         accessible-label: option;

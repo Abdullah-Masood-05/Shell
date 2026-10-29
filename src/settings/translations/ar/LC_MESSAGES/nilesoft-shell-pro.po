@@ -1,0 +1,6081 @@
+# Nilesoft Shell Pro: العربية translation.
+# First draft, not yet reviewed by a native speaker; corrections welcome.
+msgid ""
+msgstr ""
+"Project-Id-Version: Nilesoft Shell Pro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+"X-Language-Name: العربية\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5);\n"
+
+#. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
+#: ui/app.slint:57
+msgctxt "UI font family"
+msgid "Segoe UI Variable Text"
+msgstr "Segoe UI"
+
+#: ui/app.slint:199
+msgid "Put the default menu files back?"
+msgstr "هل تريد إرجاع ملفات القوائم الافتراضية؟"
+
+#: ui/app.slint:200
+msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
+msgstr "سيتم استبدال الملف shell.nss والملفات الموجودة في مجلد imports الخاص به بالملفات التي جاءت مع Shell، وسيتم التراجع عن التغييرات التي أُجريت في هذا التطبيق. تُلتقط أولًا لقطة من ملفاتك الحالية، لذا يمكنك استعادتها من النسخ الاحتياطية."
+
+#: ui/app.slint:201 ui/components/theme-controls.slint:81 ui/app.slint:201 ui/components/theme-controls.slint:81
+msgid "Reset"
+msgstr "إعادة تعيين"
+
+#: ui/components/banner.slint:15 ui/components/code.slint:620 ui/components/banner.slint:15 ui/components/code.slint:620
+msgid "Close"
+msgstr "إغلاق"
+
+#: ui/components/code.slint:330 src/UpdateController.cpp:771 src/UpdateController.cpp:796
+msgid "{} of {}"
+msgstr "‏{} من {}"
+
+#: ui/components/code.slint:332
+msgid "No results"
+msgstr "لا توجد نتائج"
+
+#: ui/components/code.slint:342 ui/components/line-edit.slint:57
+msgid "Undo"
+msgstr "تراجع"
+
+#: ui/components/code.slint:347 ui/components/line-edit.slint:62
+msgid "Redo"
+msgstr "إعادة"
+
+#: ui/components/code.slint:353 ui/components/line-edit.slint:68 src/AppearanceController.cpp:88 src/OpenWithController.cpp:774
+msgid "Cut"
+msgstr "قص"
+
+#: ui/components/code.slint:358 ui/components/line-edit.slint:73 src/AppearanceController.cpp:88 src/OpenWithController.cpp:775 src/OpenWithController.cpp:781 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717
+msgid "Copy"
+msgstr "نسخ"
+
+#: ui/components/code.slint:363 ui/components/line-edit.slint:78 src/AppearanceController.cpp:66 src/AppearanceController.cpp:88 src/OpenWithController.cpp:787
+msgid "Paste"
+msgstr "لصق"
+
+#: ui/components/code.slint:368 ui/components/line-edit.slint:83
+msgid "Select all"
+msgstr "تحديد الكل"
+
+#: ui/components/code.slint:374 ui/components/code.slint:581 ui/components/code.slint:374 ui/components/code.slint:581
+msgid "Find"
+msgstr "بحث"
+
+#: ui/components/code.slint:606
+msgid "Previous match"
+msgstr "التطابق السابق"
+
+#: ui/components/code.slint:613
+msgid "Next match"
+msgstr "التطابق التالي"
+
+#: ui/components/config-update.slint:72
+msgid "Compare"
+msgstr "مقارنة"
+
+#: ui/components/config-update.slint:77 ui/components/config-update.slint:168
+msgid "Use the new version"
+msgstr "استخدام الإصدار الجديد"
+
+#: ui/components/config-update.slint:145 ui/pages/backups.slint:367
+msgid "Comparing…"
+msgstr "جارٍ المقارنة…"
+
+#: ui/components/config-update.slint:145 ui/pages/backups.slint:367
+msgid "No differences."
+msgstr "لا توجد اختلافات."
+
+#. warning | error | info
+#: ui/components/dialog.slint:11
+msgid "OK"
+msgstr "موافق"
+
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/pages/preferences.slint:270
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: ui/components/preset-gallery.slint:78
+msgid "{}, active"
+msgstr "‏{}، نشطة"
+
+#: ui/components/preset-gallery.slint:144
+msgid "Active"
+msgstr "نشطة"
+
+#: ui/components/preset-gallery.slint:168
+msgid "More for {}"
+msgstr "خيارات إضافية لـ {}"
+
+#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:214
+msgid "From {}"
+msgstr "من {}"
+
+#: ui/components/preset-gallery.slint:225
+msgid "Applied"
+msgstr "تم التطبيق"
+
+#: ui/components/preset-gallery.slint:225 ui/components/preset-gallery.slint:225 ui/pages/rules.slint:191
+msgid "Apply"
+msgstr "تطبيق"
+
+#: ui/components/preset-gallery.slint:234
+msgid "Export to clipboard"
+msgstr "تصدير إلى الحافظة"
+
+#: ui/components/preset-gallery.slint:279 ui/components/preset-gallery.slint:279
+msgid "Themes"
+msgstr "السمات"
+
+#: ui/components/preset-gallery.slint:281
+msgid "The examples of the original Nilesoft Shell project. Pick one to see it in the preview; save to keep it."
+msgstr "أمثلة مشروع Nilesoft Shell الأصلي. اختر واحدًا لرؤيته في المعاينة، واحفظه للاحتفاظ به."
+
+#: ui/components/preset-gallery.slint:284
+msgid "Export current look"
+msgstr "تصدير المظهر الحالي"
+
+#: ui/components/preset-gallery.slint:352
+msgid "Show fewer"
+msgstr "إظهار عدد أقل"
+
+#: ui/components/preset-gallery.slint:352
+msgid "Show all {} themes"
+msgstr "إظهار كل السمات ({})"
+
+#: ui/components/preset-gallery.slint:364
+msgid "Apply {}?"
+msgstr "هل تريد تطبيق {}؟"
+
+#: ui/components/preset-gallery.slint:364
+msgid "this theme"
+msgstr "هذه السمة"
+
+#: ui/components/preset-gallery.slint:365
+msgid "It replaces the theme setting changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
+msgid_plural "It replaces the {n} theme settings changed in this app, saved or not. Your own .nss files stay as they are, and nothing is written until you save."
+msgstr[0] "يستبدل هذا {n} إعداد سمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[1] "يستبدل هذا إعداد السمة الذي تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[2] "يستبدل هذا إعدادَي السمة اللذين تم تغييرهما في هذا التطبيق، سواء حُفظا أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[3] "يستبدل هذا {n} إعدادات سمة تم تغييرها في هذا التطبيق، سواء حُفظت أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[4] "يستبدل هذا {n} إعدادًا للسمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+msgstr[5] "يستبدل هذا {n} إعداد سمة تم تغييره في هذا التطبيق، سواء حُفظ أم لا. تبقى ملفات .nss الخاصة بك كما هي، ولا يُكتب شيء حتى تحفظ."
+
+#: ui/components/save-footer.slint:54
+msgid "{n} unsaved change"
+msgid_plural "{n} unsaved changes"
+msgstr[0] "‏{n} تغيير غير محفوظ"
+msgstr[1] "تغيير واحد غير محفوظ"
+msgstr[2] "تغييران غير محفوظين"
+msgstr[3] "‏{n} تغييرات غير محفوظة"
+msgstr[4] "‏{n} تغييرًا غير محفوظ"
+msgstr[5] "‏{n} تغيير غير محفوظ"
+
+#: ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/pages/editor.slint:343 ui/components/save-footer.slint:89 ui/pages/context-menus.slint:758 ui/pages/editor.slint:343 ui/pages/openwith.slint:611
+msgid "Discard"
+msgstr "تجاهل"
+
+#: ui/components/save-footer.slint:97
+msgid "Save  (Ctrl+S)"
+msgstr "حفظ  (Ctrl+S)"
+
+#: ui/components/save-footer.slint:128
+msgid "Use a personal config"
+msgstr "استخدام تكوين شخصي"
+
+#: ui/components/save-footer.slint:134
+msgid "Use a personal config?"
+msgstr "هل تريد استخدام تكوين شخصي؟"
+
+#: ui/components/save-footer.slint:140
+msgid "Shell is reading the shared config in its install folder, which this app never changes. Create a personal copy in %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init); your changes are then saved there. It is kept per user and survives updates."
+msgstr "يقرأ Shell التكوين المشترك الموجود في مجلد التثبيت الخاص به، وهذا التطبيق لا يغيّره أبدًا. أنشئ نسخة شخصية في %APPDATA%\\Nilesoft\\Shell (shell.exe -config:init)؛ وستُحفظ تغييراتك فيها بعد ذلك. تُحفظ هذه النسخة لكل مستخدم على حدة وتبقى بعد التحديثات."
+
+#: ui/components/save-footer.slint:154
+msgid "Create and save"
+msgstr "إنشاء وحفظ"
+
+#: ui/components/sidebar.slint:14 ui/pages/home.slint:91 ui/components/sidebar.slint:14 ui/pages/home.slint:91
+msgid "Home"
+msgstr "الصفحة الرئيسية"
+
+#: ui/components/sidebar.slint:15 ui/pages/appearance.slint:191 src/AppearanceController.cpp:24
+msgid "Appearance"
+msgstr "المظهر"
+
+#: ui/components/sidebar.slint:15
+msgid "Customize"
+msgstr "تخصيص"
+
+#: ui/components/sidebar.slint:16 ui/pages/behavior.slint:37 src/BehaviorController.cpp:23
+msgid "Behavior"
+msgstr "السلوك"
+
+#: ui/components/sidebar.slint:17 ui/pages/rules.slint:135
+msgid "Rules & Filters"
+msgstr "القواعد وعوامل التصفية"
+
+#: ui/components/sidebar.slint:18 ui/pages/context-menus.slint:747
+msgid "Context Menus"
+msgstr "القوائم المختصرة"
+
+#: ui/components/sidebar.slint:18
+msgid "Menus"
+msgstr "القوائم"
+
+#: ui/components/sidebar.slint:19 ui/pages/menu-map.slint:780 src/ConfigRules.cpp:57
+msgid "Menu map"
+msgstr "خريطة القوائم"
+
+#: ui/components/sidebar.slint:20 ui/pages/menu-builder.slint:403
+msgid "Menu Builder"
+msgstr "منشئ القوائم"
+
+#: ui/components/sidebar.slint:21 ui/pages/openwith.slint:606 src/AppearanceController.cpp:86 src/ConfigRules.cpp:58 src/OpenWithController.cpp:772
+msgid "Open with"
+msgstr "فتح باستخدام"
+
+#: ui/components/sidebar.slint:22 ui/pages/snippets.slint:367 src/ConfigRules.cpp:59
+msgid "Snippets"
+msgstr "المقتطفات"
+
+#: ui/components/sidebar.slint:23 ui/pages/appearance.slint:140 ui/components/sidebar.slint:23 ui/pages/appearance.slint:140
+msgid "Config Editor"
+msgstr "محرر التكوين"
+
+#: ui/components/sidebar.slint:23 ui/pages/appearance.slint:351
+msgid "Advanced"
+msgstr "خيارات متقدمة"
+
+#: ui/components/sidebar.slint:24 ui/pages/backups.slint:196
+msgid "Backups"
+msgstr "النسخ الاحتياطية"
+
+#: ui/components/sidebar.slint:116 ui/pages/preferences.slint:343
+msgid "Version {}"
+msgstr "الإصدار {}"
+
+#: ui/components/sidebar.slint:195 ui/pages/home.slint:175 src/AppController.cpp:533
+msgid "Checking status…"
+msgstr "جارٍ التحقق من الحالة…"
+
+#: ui/components/sidebar.slint:204 ui/pages/preferences.slint:55
+msgid "Preferences"
+msgstr "التفضيلات"
+
+#: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
+msgid "Set by this app"
+msgstr "معيّن بواسطة هذا التطبيق"
+
+#: ui/components/theme-controls.slint:59
+msgid "Reset pending"
+msgstr "إعادة التعيين معلّقة"
+
+#: ui/components/theme-controls.slint:67
+msgid "Reset {} to the file's value"
+msgstr "إعادة تعيين {} إلى القيمة الموجودة في الملف"
+
+#: ui/components/theme-controls.slint:94 ui/pages/appearance.slint:331
+msgid "Set by an expression ({}). Changing it here overrides it."
+msgstr "معيّن بواسطة تعبير ({}). تغييره هنا يتجاوز التعبير."
+
+#: ui/components/theme-controls.slint:103
+msgid "Edit in Config Editor"
+msgstr "تحرير في محرر التكوين"
+
+#: ui/components/theme-controls.slint:276
+msgid "{} pixels"
+msgstr "‏{} بكسل"
+
+#: ui/components/theme-controls.slint:448
+msgid "Auto (≈{}{})"
+msgstr "تلقائي (≈{}{})"
+
+#: ui/components/theme-controls.slint:677 ui/components/theme-controls.slint:677
+msgid "Pick a colour"
+msgstr "اختيار لون"
+
+#: ui/components/theme-controls.slint:726
+msgid "Segoe UI (menu default)"
+msgstr "‏Segoe UI (افتراضي القائمة)"
+
+#: ui/components/theme-controls.slint:739
+msgid "Font family"
+msgstr "عائلة الخطوط"
+
+#: ui/components/theme-controls.slint:786
+msgid "Search installed fonts"
+msgstr "البحث في الخطوط المثبتة"
+
+#: ui/components/theme-controls.slint:839
+msgid "Set by an expression"
+msgstr "معيّن بواسطة تعبير"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:114
+msgctxt "Theme name"
+msgid "Auto"
+msgstr "تلقائي"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:114
+msgctxt "Theme name"
+msgid "Modern"
+msgstr "حديث"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:114
+msgctxt "Theme name"
+msgid "Classic"
+msgstr "كلاسيكي"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:114
+msgctxt "Theme name"
+msgid "White"
+msgstr "أبيض"
+
+#: ui/components/theme-picker.slint:14 ui/pages/onboarding.slint:114
+msgctxt "Theme name"
+msgid "Black"
+msgstr "أسود"
+
+#: ui/components/theme-picker.slint:16
+msgid "Like Windows' own menu"
+msgstr "مثل قائمة Windows نفسها"
+
+#: ui/components/theme-picker.slint:17
+msgid "Rounded · roomy"
+msgstr "مستديرة · فسيحة"
+
+#: ui/components/theme-picker.slint:18
+msgid "Compact · blue highlight"
+msgstr "مضغوطة · تمييز أزرق"
+
+#: ui/components/theme-picker.slint:19
+msgid "Always light"
+msgstr "فاتح دائمًا"
+
+#: ui/components/theme-picker.slint:20
+msgid "Always dark"
+msgstr "داكن دائمًا"
+
+#: ui/components/theme-picker.slint:23
+msgid "Copies Windows' own menu, light or dark as Dark mode says."
+msgstr "تحاكي قائمة Windows نفسها، فاتحة أو داكنة حسب إعداد الوضع الداكن."
+
+#: ui/components/theme-picker.slint:24
+msgid "Rounded menu and items with roomy rows, light or dark as Dark mode says."
+msgstr "قائمة وعناصر مستديرة بصفوف فسيحة، فاتحة أو داكنة حسب إعداد الوضع الداكن."
+
+#: ui/components/theme-picker.slint:25
+msgid "Compact rows with a blue highlight, light or dark as Dark mode says."
+msgstr "صفوف مضغوطة مع تمييز أزرق، فاتحة أو داكنة حسب إعداد الوضع الداكن."
+
+#: ui/components/theme-picker.slint:26
+msgid "The Modern shape, always light."
+msgstr "شكل السمة الحديثة، فاتح دائمًا."
+
+#: ui/components/theme-picker.slint:27
+msgid "The Modern shape, always dark."
+msgstr "شكل السمة الحديثة، داكن دائمًا."
+
+#: ui/components/theme-picker.slint:121 src/ConfigRules.cpp:45
+msgid "Theme"
+msgstr "السمة"
+
+#: ui/components/translation-banner.slint:41
+msgid "Showing translations from {}. Untranslated text stays in English."
+msgstr "يتم عرض الترجمات من {}. يبقى النص غير المترجم باللغة الإنجليزية."
+
+#: ui/components/translation-banner.slint:61
+msgid "Reload"
+msgstr "إعادة تحميل"
+
+#: ui/components/translation-banner.slint:67
+msgid "Stop"
+msgstr "إيقاف"
+
+#: ui/components/update-banner.slint:34
+msgid "Release notes"
+msgstr "ملاحظات الإصدار"
+
+#: ui/components/update-banner.slint:39
+msgid "Skip this version"
+msgstr "تخطي هذا الإصدار"
+
+#: ui/components/update-banner.slint:43
+msgid "Later"
+msgstr "لاحقًا"
+
+#: ui/components/update-banner.slint:47 ui/pages/preferences.slint:261
+msgid "Install with administrator approval"
+msgstr "التثبيت بموافقة المسؤول"
+
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
+msgid "Restart now"
+msgstr "إعادة التشغيل الآن"
+
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
+msgid "Restart to update"
+msgstr "إعادة التشغيل للتحديث"
+
+#: ui/components/update-banner.slint:49 ui/pages/preferences.slint:263
+msgid "Download and install"
+msgstr "تنزيل وتثبيت"
+
+#: ui/components/update-banner.slint:102
+msgid "Downloading Nilesoft Shell Pro {}…"
+msgstr "جارٍ تنزيل Nilesoft Shell Pro {}…"
+
+#: ui/components/update-banner.slint:103
+msgid "Nilesoft Shell Pro {} is installed: restart to finish updating"
+msgstr "تم تثبيت Nilesoft Shell Pro {}: أعد التشغيل لإنهاء التحديث"
+
+#: ui/components/update-banner.slint:104
+msgid "Update ready: Nilesoft Shell Pro {}"
+msgstr "التحديث جاهز: Nilesoft Shell Pro {}"
+
+#: ui/components/update-banner.slint:105
+msgid "Installing Nilesoft Shell Pro {}…"
+msgstr "جارٍ تثبيت Nilesoft Shell Pro {}…"
+
+#: ui/components/update-banner.slint:106
+msgid "Nilesoft Shell Pro {} is available"
+msgstr "‏Nilesoft Shell Pro {} متاح"
+
+#: ui/components/update-banner.slint:114
+msgid "You have {}."
+msgstr "لديك {}."
+
+#: ui/components/update-banner.slint:115
+msgid "Released {}."
+msgstr "تاريخ الإصدار {}."
+
+#: ui/components/update-banner.slint:117
+msgid "It installs for you only, without administrator rights."
+msgstr "يُثبَّت لك فقط، دون الحاجة إلى صلاحيات المسؤول."
+
+#: ui/components/update-banner.slint:126
+msgid "This update also changes the Shell core, which is installed for all users. Installing it needs administrator approval."
+msgstr "يغيّر هذا التحديث أيضًا نواة Shell المثبتة لجميع المستخدمين. يتطلب تثبيته موافقة المسؤول."
+
+#: ui/components/update-banner.slint:127
+msgid "This update can only be installed with its installer, which installs for all users and needs administrator approval."
+msgstr "لا يمكن تثبيت هذا التحديث إلا باستخدام برنامج التثبيت الخاص به، الذي يثبّته لجميع المستخدمين ويتطلب موافقة المسؤول."
+
+#: ui/components/update-banner.slint:135
+msgid "Installed for you, without administrator rights. Restart the app to use it now; otherwise it is used the next time the app starts."
+msgstr "تم التثبيت لك، دون صلاحيات المسؤول. أعد تشغيل التطبيق لاستخدامه الآن، وإلا فسيُستخدم في المرة التالية التي يبدأ فيها التطبيق."
+
+#: ui/components/update-banner.slint:137
+msgid "Downloaded and verified. The app closes, Windows asks for administrator approval once, and the app opens again."
+msgstr "تم التنزيل والتحقق. سيُغلق التطبيق، وسيطلب Windows موافقة المسؤول مرة واحدة، ثم يُفتح التطبيق مجددًا."
+
+#: ui/components/update-banner.slint:138
+msgid "Downloaded and verified. The app closes for a moment and opens again."
+msgstr "تم التنزيل والتحقق. سيُغلق التطبيق لحظة ثم يُفتح مجددًا."
+
+#: ui/components/update-banner.slint:151
+msgid "{} · checked against SHA256SUMS.txt when done"
+msgstr "‏{} · يتم التحقق منه مقابل SHA256SUMS.txt عند الانتهاء"
+
+#: ui/components/update-banner.slint:206
+msgid "Downloading update… {}%"
+msgstr "جارٍ تنزيل التحديث… {}%"
+
+#: ui/components/update-banner.slint:207 src/TrayController.cpp:214
+msgid "Restart to finish updating"
+msgstr "أعد التشغيل لإنهاء التحديث"
+
+#: ui/components/update-banner.slint:208
+msgid "Update ready: restart to update"
+msgstr "التحديث جاهز: أعد التشغيل للتحديث"
+
+#: ui/components/update-banner.slint:209
+msgid "Installing update…"
+msgstr "جارٍ تثبيت التحديث…"
+
+#: ui/components/update-banner.slint:210
+msgid "Update available: {}"
+msgstr "يتوفر تحديث: {}"
+
+#: ui/pages/appearance.slint:74
+msgid "Live preview"
+msgstr "معاينة مباشرة"
+
+#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:339
+msgid "Desktop"
+msgstr "سطح المكتب"
+
+#: ui/pages/appearance.slint:88
+msgctxt "Preview tab"
+msgid "File Explorer"
+msgstr "المستكشف"
+
+#: ui/pages/appearance.slint:96 ui/pages/preferences.slint:69 ui/pages/appearance.slint:96 ui/pages/preferences.slint:69
+msgid "Light"
+msgstr "فاتح"
+
+#: ui/pages/appearance.slint:96 ui/pages/preferences.slint:69 ui/pages/appearance.slint:96 ui/pages/preferences.slint:69
+msgid "Dark"
+msgstr "داكن"
+
+#: ui/pages/appearance.slint:114
+msgid "This is how your theme will look in the shell, approximately. Right-click the desktop to see the real menu."
+msgstr "هكذا ستبدو السمة في Shell تقريبًا. انقر بزر الماوس الأيمن فوق سطح المكتب لرؤية القائمة الحقيقية."
+
+#: ui/pages/appearance.slint:135
+msgid "Want to go further?"
+msgstr "هل تريد المزيد؟"
+
+#: ui/pages/appearance.slint:137
+msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
+msgstr "التدرجات وألوان الصور وقواعد كل عنصر موجودة في shell.nss وملفات imports الخاصة به."
+
+#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:338
+msgid "Background"
+msgstr "الخلفية"
+
+#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:138
+msgid "Text"
+msgstr "النص"
+
+#: ui/pages/appearance.slint:169
+msgid "Highlight"
+msgstr "التمييز"
+
+#: ui/pages/appearance.slint:170
+msgid "Highlighted text"
+msgstr "النص المميز"
+
+#: ui/pages/appearance.slint:171
+msgid "Disabled text"
+msgstr "النص المعطل"
+
+#: ui/pages/appearance.slint:172 ui/pages/appearance.slint:565 src/ThemePresets.cpp:55
+msgid "Border"
+msgstr "الحد"
+
+#: ui/pages/appearance.slint:192
+msgid "The theme, colours, font and effects of Shell's menus. The preview updates as you change them."
+msgstr "السمة والألوان والخط والتأثيرات لقوائم Shell. تتحدث المعاينة أثناء تغييرها."
+
+#: ui/pages/appearance.slint:199 ui/pages/behavior.slint:45 ui/pages/appearance.slint:199 ui/pages/behavior.slint:45
+msgid "Couldn't read your config"
+msgstr "تعذرت قراءة التكوين"
+
+#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:547
+msgid "Try again"
+msgstr "إعادة المحاولة"
+
+#: ui/pages/appearance.slint:225
+msgid "Base theme"
+msgstr "السمة الأساسية"
+
+#: ui/pages/appearance.slint:226
+msgid "The built-in style under every preset: colours, corners and effects. What you change below applies on top of it."
+msgstr "النمط المضمّن الذي تقوم عليه كل الإعدادات المسبقة: الألوان والزوايا والتأثيرات. ما تغيّره أدناه يُطبَّق فوقه."
+
+#: ui/pages/appearance.slint:310
+msgid "Not saved yet"
+msgstr "لم يُحفظ بعد"
+
+#: ui/pages/appearance.slint:310
+msgid "In use"
+msgstr "قيد الاستخدام"
+
+#: ui/pages/appearance.slint:348
+msgid "Colors"
+msgstr "الألوان"
+
+#: ui/pages/appearance.slint:349 ui/pages/appearance.slint:433
+msgid "Typography"
+msgstr "الطباعة"
+
+#: ui/pages/appearance.slint:350
+msgid "Effects"
+msgstr "التأثيرات"
+
+#: ui/pages/appearance.slint:361
+msgid "Colour palette"
+msgstr "لوحة الألوان"
+
+#: ui/pages/appearance.slint:362
+msgid "The main colours of the menu. Pick one to change it; the row under the palette has its hex value and where it's set."
+msgstr "الألوان الرئيسية للقائمة. اختر لونًا لتغييره؛ ويعرض الصف أسفل اللوحة قيمته الست عشرية ومكان تعيينه."
+
+#: ui/pages/appearance.slint:415
+msgid "Dark mode"
+msgstr "الوضع الداكن"
+
+#: ui/pages/appearance.slint:417
+msgid "Auto follows the Windows app mode · {}"
+msgstr "يتبع الخيار التلقائي وضع التطبيقات في Windows · {}"
+
+#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "Auto"
+msgstr "تلقائي"
+
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "On"
+msgstr "تشغيل"
+
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+msgctxt "Setting value"
+msgid "Off"
+msgstr "إيقاف"
+
+#: ui/pages/appearance.slint:434
+msgid "A size other than the default scales the whole menu, like the core does."
+msgstr "أي حجم غير الافتراضي يغيّر مقياس القائمة بأكملها، كما تفعل النواة."
+
+#: ui/pages/appearance.slint:437
+msgid "Font"
+msgstr "الخط"
+
+#: ui/pages/appearance.slint:450 src/AppearanceController.cpp:77
+msgid "Size"
+msgstr "الحجم"
+
+#: ui/pages/appearance.slint:465
+msgid "Weight"
+msgstr "السُمك"
+
+#: ui/pages/appearance.slint:480
+msgid "Density"
+msgstr "الكثافة"
+
+#: ui/pages/appearance.slint:484
+msgctxt "Menu density"
+msgid "Compact"
+msgstr "مضغوط"
+
+#: ui/pages/appearance.slint:484
+msgctxt "Menu density"
+msgid "Small"
+msgstr "صغير"
+
+#: ui/pages/appearance.slint:484
+msgctxt "Menu density"
+msgid "Medium"
+msgstr "متوسط"
+
+#: ui/pages/appearance.slint:484
+msgctxt "Menu density"
+msgid "Large"
+msgstr "كبير"
+
+#: ui/pages/appearance.slint:484
+msgctxt "Menu density"
+msgid "Wide"
+msgstr "عريض"
+
+#: ui/pages/appearance.slint:497
+msgid "What shows behind the menu, and how much."
+msgstr "ما يظهر خلف القائمة، ومقداره."
+
+#: ui/pages/appearance.slint:500
+msgid "Effect"
+msgstr "التأثير"
+
+#: ui/pages/appearance.slint:505 ui/pages/context-menus.slint:471
+msgid "None"
+msgstr "بلا"
+
+#: ui/pages/appearance.slint:505
+msgid "Transparent"
+msgstr "شفاف"
+
+#: ui/pages/appearance.slint:505
+msgid "Blur"
+msgstr "تمويه"
+
+#: ui/pages/appearance.slint:505 src/ThemePresets.cpp:30
+msgid "Acrylic"
+msgstr "أكريليك"
+
+#: ui/pages/appearance.slint:512
+msgid "Tint"
+msgstr "صبغة"
+
+#: ui/pages/appearance.slint:526
+msgid "Opacity"
+msgstr "العتامة"
+
+#: ui/pages/appearance.slint:541
+msgid "Shape"
+msgstr "الشكل"
+
+#: ui/pages/appearance.slint:542
+msgid "Corners and border. The border's colour is in Colors."
+msgstr "الزوايا والحد. لون الحد موجود في الألوان."
+
+#: ui/pages/appearance.slint:545
+msgid "Menu corners"
+msgstr "زوايا القائمة"
+
+#: ui/pages/appearance.slint:555
+msgid "Item corners"
+msgstr "زوايا العناصر"
+
+#: ui/pages/appearance.slint:579 ui/pages/appearance.slint:585
+msgid "Shadow"
+msgstr "الظل"
+
+#: ui/pages/appearance.slint:591
+msgid "Shadow size"
+msgstr "حجم الظل"
+
+#: ui/pages/appearance.slint:604
+msgid "Shadow offset"
+msgstr "إزاحة الظل"
+
+#: ui/pages/appearance.slint:617
+msgid "Shadow opacity"
+msgstr "عتامة الظل"
+
+#: ui/pages/appearance.slint:635
+msgid "Items"
+msgstr "العناصر"
+
+#: ui/pages/appearance.slint:636
+msgid "Spacing inside and around each item, and its icon."
+msgstr "المسافات داخل كل عنصر وحوله، وأيقونته."
+
+#: ui/pages/appearance.slint:639
+msgid "Item padding"
+msgstr "الحشو الداخلي للعنصر"
+
+#: ui/pages/appearance.slint:651
+msgid "Item margin"
+msgstr "هامش العنصر"
+
+#: ui/pages/appearance.slint:663
+msgid "Image size"
+msgstr "حجم الصورة"
+
+#: ui/pages/appearance.slint:677
+msgid "Image gap"
+msgstr "المسافة بعد الصورة"
+
+#: ui/pages/appearance.slint:690
+msgid "Highlight, disabled item"
+msgstr "التمييز، العنصر المعطل"
+
+#: ui/pages/appearance.slint:704
+msgid "Separators"
+msgstr "الفواصل"
+
+#: ui/pages/appearance.slint:707
+msgid "Separator size"
+msgstr "حجم الفاصل"
+
+#: ui/pages/appearance.slint:720
+msgid "Separator colour"
+msgstr "لون الفاصل"
+
+#: ui/pages/appearance.slint:733
+msgid "Separator margin"
+msgstr "هامش الفاصل"
+
+#: ui/pages/backups.slint:79
+msgctxt "Snapshot"
+msgid "Current"
+msgstr "الحالية"
+
+#: ui/pages/backups.slint:86
+msgid "Pinned"
+msgstr "مثبتة"
+
+#: ui/pages/backups.slint:98 src/ContextMenusController.cpp:380
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "‏{n} ملف"
+msgstr[1] "ملف واحد"
+msgstr[2] "ملفان"
+msgstr[3] "‏{n} ملفات"
+msgstr[4] "‏{n} ملفًا"
+msgstr[5] "‏{n} ملف"
+
+#. status is an id from C++ (modified | added | removed | same); this is its
+#. label.
+#: ui/pages/backups.slint:120
+msgctxt "File status"
+msgid "modified"
+msgstr "معدّل"
+
+#: ui/pages/backups.slint:121
+msgctxt "File status"
+msgid "added"
+msgstr "مضاف"
+
+#: ui/pages/backups.slint:122
+msgctxt "File status"
+msgid "removed"
+msgstr "محذوف"
+
+#: ui/pages/backups.slint:123
+msgctxt "File status"
+msgid "same"
+msgstr "مطابق"
+
+#: ui/pages/backups.slint:197
+msgid "Every save takes a snapshot of your config first. Compare one with your files now, or go back to it."
+msgstr "كل عملية حفظ تلتقط أولًا لقطة من التكوين. قارن لقطة بملفاتك الحالية، أو عُد إليها."
+
+#: ui/pages/backups.slint:199
+msgid "Working…"
+msgstr "جارٍ العمل…"
+
+#: ui/pages/backups.slint:201 ui/pages/home.slint:269
+msgid "Open folder"
+msgstr "فتح المجلد"
+
+#: ui/pages/backups.slint:209
+msgid "Create snapshot now"
+msgstr "إنشاء لقطة الآن"
+
+#: ui/pages/backups.slint:218
+msgid "No personal config to back up"
+msgstr "لا يوجد تكوين شخصي لنسخه احتياطيًا"
+
+#: ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:409 src/Status.cpp:189
+msgid "Create personal config"
+msgstr "إنشاء تكوين شخصي"
+
+#: ui/pages/backups.slint:244
+msgid "Timeline"
+msgstr "المخطط الزمني"
+
+#: ui/pages/backups.slint:256
+msgid "No snapshots yet.\nOne is taken before every save."
+msgstr "لا توجد لقطات بعد.\nتُلتقط لقطة قبل كل عملية حفظ."
+
+#: ui/pages/backups.slint:296
+msgid "Select a snapshot to see what changed since."
+msgstr "حدد لقطة لرؤية ما تغيّر منذ التقاطها."
+
+#: ui/pages/backups.slint:315
+msgid "Unpin"
+msgstr "إلغاء التثبيت"
+
+#: ui/pages/backups.slint:315
+msgid "Pin"
+msgstr "تثبيت"
+
+#: ui/pages/backups.slint:320
+msgid "Delete…"
+msgstr "حذف…"
+
+#: ui/pages/backups.slint:325
+msgid "Restore…"
+msgstr "استعادة…"
+
+#: ui/pages/backups.slint:367
+msgid "No line changes in this file."
+msgstr "لا توجد تغييرات في أسطر هذا الملف."
+
+#: ui/pages/backups.slint:391
+msgid "Delete this snapshot?"
+msgstr "هل تريد حذف هذه اللقطة؟"
+
+#: ui/pages/backups.slint:391
+msgid "Restore this snapshot?"
+msgstr "هل تريد استعادة هذه اللقطة؟"
+
+#: ui/pages/backups.slint:393 ui/pages/menu-builder.slint:515 src/AppearanceController.cpp:90
+msgid "Delete"
+msgstr "حذف"
+
+#: ui/pages/backups.slint:393
+msgid "Restore"
+msgstr "استعادة"
+
+#: ui/pages/behavior.slint:38
+msgid "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items."
+msgstr "كيف تُفتح القائمة، وتلميحاتها ولقطات الشاشة، وما تفعله بعناصر Windows نفسها."
+
+#: ui/pages/behavior.slint:53
+msgid "Opening the menu"
+msgstr "فتح القائمة"
+
+#: ui/pages/behavior.slint:55
+msgid "Open Shell's menu instead of the Windows 11 menu"
+msgstr "فتح قائمة Shell بدلًا من قائمة Windows 11"
+
+#: ui/pages/behavior.slint:57
+msgid "File Explorer's compact menu is skipped · {}"
+msgstr "يتم تخطي القائمة المضغوطة لمستكشف الملفات · {}"
+
+#: ui/pages/behavior.slint:58
+msgid "Windows 11 shows its compact menu first · {}"
+msgstr "يعرض Windows 11 قائمته المضغوطة أولًا · {}"
+
+#: ui/pages/behavior.slint:64
+msgid "Custom submenu delay"
+msgstr "تأخير مخصص للقائمة الفرعية"
+
+#: ui/pages/behavior.slint:67
+msgid "Off: your Windows setting applies ({} ms) · {}"
+msgstr "إيقاف: يُطبَّق إعداد Windows لديك ({} مللي ثانية) · {}"
+
+#: ui/pages/behavior.slint:68
+msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
+msgstr "يحل محل إعداد Windows لديك ({} مللي ثانية) أثناء فتح قائمة Shell · {}"
+
+#: ui/pages/behavior.slint:90
+msgid "Tooltips"
+msgstr "التلميحات"
+
+#: ui/pages/behavior.slint:92
+msgid "Show tooltips"
+msgstr "إظهار التلميحات"
+
+#: ui/pages/behavior.slint:98
+msgid "Delay"
+msgstr "التأخير"
+
+#: ui/pages/behavior.slint:111
+msgid "Maximum width"
+msgstr "الحد الأقصى للعرض"
+
+#: ui/pages/behavior.slint:127
+msgid "The menu's background · {}"
+msgstr "خلفية القائمة · {}"
+
+#: ui/pages/behavior.slint:139
+msgid "The colour of the tooltip text"
+msgstr "لون نص التلميح"
+
+#: ui/pages/behavior.slint:152
+msgid "Screenshots"
+msgstr "لقطات الشاشة"
+
+#: ui/pages/behavior.slint:154
+msgid "Print Screen saves the open menu"
+msgstr "مفتاح Print Screen يحفظ القائمة المفتوحة"
+
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:337
+msgid "Folder"
+msgstr "المجلد"
+
+#: ui/pages/behavior.slint:162
+msgid "Screenshots folder · {}"
+msgstr "مجلد لقطات الشاشة · {}"
+
+#: ui/pages/behavior.slint:166 ui/pages/menu-builder.slint:666
+msgid "Choose…"
+msgstr "اختيار…"
+
+#: ui/pages/behavior.slint:175
+msgid "Windows' own items"
+msgstr "عناصر Windows نفسها"
+
+#: ui/pages/behavior.slint:176
+msgid "What Shell does to the items Windows and other apps put in the menu."
+msgstr "ما يفعله Shell بالعناصر التي يضعها Windows والتطبيقات الأخرى في القائمة."
+
+#: ui/pages/behavior.slint:178
+msgid "Remove duplicate items"
+msgstr "إزالة العناصر المكررة"
+
+#: ui/pages/behavior.slint:184
+msgid "Remove disabled items"
+msgstr "إزالة العناصر المعطلة"
+
+#: ui/pages/behavior.slint:190
+msgid "Remove their separators"
+msgstr "إزالة الفواصل الخاصة بها"
+
+#: ui/pages/behavior.slint:196
+msgid "Icons on Windows' items"
+msgstr "أيقونات على عناصر Windows"
+
+#: ui/pages/behavior.slint:198
+msgid "Auto adds icons to known items that have none · {}"
+msgstr "تلقائي يضيف أيقونات إلى العناصر المعروفة التي ليست لها أيقونة · {}"
+
+#: ui/pages/behavior.slint:210
+msgid "Icons on Shell's own items"
+msgstr "أيقونات على عناصر Shell الخاصة"
+
+#: ui/pages/context-menus.slint:63
+msgid "Open {} in the Config Editor"
+msgstr "فتح {} في محرر التكوين"
+
+#: ui/pages/context-menus.slint:153 ui/pages/rules.slint:43
+msgid "Remove {}"
+msgstr "إزالة {}"
+
+#: ui/pages/context-menus.slint:206
+msgid "where {}"
+msgstr "حيث {}"
+
+#: ui/pages/context-menus.slint:223 src/SaveService.cpp:72
+msgid "line {}"
+msgstr "السطر {}"
+
+#: ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:533 ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:533 ui/pages/openwith.slint:486
+msgid "Show {} in the menu"
+msgstr "إظهار {} في القائمة"
+
+#: ui/pages/context-menus.slint:438 ui/pages/openwith.slint:249 src/AppearanceController.cpp:77
+msgid "Name"
+msgstr "الاسم"
+
+#: ui/pages/context-menus.slint:439
+msgid "Left as it is, the name follows the language of your Windows."
+msgstr "إذا تُرك كما هو، يتبع الاسم لغة Windows لديك."
+
+#: ui/pages/context-menus.slint:447 ui/pages/openwith.slint:260
+msgid "Program"
+msgstr "البرنامج"
+
+#: ui/pages/context-menus.slint:448
+msgid "A program, a shortcut, a document, a web address, or a command such as calc.exe."
+msgstr "برنامج أو اختصار أو مستند أو عنوان ويب أو أمر مثل calc.exe."
+
+#: ui/pages/context-menus.slint:459 ui/pages/openwith.slint:272 ui/pages/context-menus.slint:459 ui/pages/openwith.slint:272
+msgid "Browse…"
+msgstr "استعراض…"
+
+#: ui/pages/context-menus.slint:466 ui/pages/menu-builder.slint:751 ui/pages/context-menus.slint:466 ui/pages/menu-builder.slint:751
+msgid "Arguments"
+msgstr "الوسيطات"
+
+#: ui/pages/context-menus.slint:477 ui/pages/menu-builder.slint:776 ui/pages/context-menus.slint:477 ui/pages/menu-builder.slint:776
+msgid "Run as administrator"
+msgstr "تشغيل كمسؤول"
+
+#: ui/pages/context-menus.slint:484
+msgid "Written by hand in the file. The page keeps it as it is; change it in the Config Editor."
+msgstr "مكتوب يدويًا في الملف. تحتفظ به هذه الصفحة كما هو؛ غيّره في محرر التكوين."
+
+#: ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:612 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:612
+msgid "Move up"
+msgstr "نقل لأعلى"
+
+#: ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:617 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:617
+msgid "Move down"
+msgstr "نقل لأسفل"
+
+#: ui/pages/context-menus.slint:504 ui/pages/context-menus.slint:577 ui/pages/context-menus.slint:504 ui/pages/context-menus.slint:577
+msgid "Remove"
+msgstr "إزالة"
+
+#: ui/pages/context-menus.slint:509 ui/pages/context-menus.slint:835 ui/pages/context-menus.slint:509 ui/pages/context-menus.slint:835
+msgid "Open in the Config Editor"
+msgstr "فتح في محرر التكوين"
+
+#: ui/pages/context-menus.slint:550
+msgid "Remove {} from your config?"
+msgstr "هل تريد إزالة {} من التكوين؟"
+
+#: ui/pages/context-menus.slint:558
+msgid "Its import line goes from shell.nss when you save. A snapshot is taken first, so you can bring it back on the Backups page."
+msgstr "يُحذف سطر الاستيراد الخاص به من shell.nss عند الحفظ. تُؤخذ لقطة أولًا، لذا يمكنك استعادته من صفحة النسخ الاحتياطية."
+
+#: ui/pages/context-menus.slint:564
+msgid "Also delete the file {}"
+msgstr "حذف الملف {} أيضًا"
+
+#: ui/pages/context-menus.slint:644
+msgid "In the list"
+msgstr "في القائمة"
+
+#: ui/pages/context-menus.slint:694
+msgid "Add an installed app"
+msgstr "إضافة تطبيق مثبت"
+
+#: ui/pages/context-menus.slint:708
+msgid "Search"
+msgstr "بحث"
+
+#: ui/pages/context-menus.slint:717
+msgid "Looking for apps…"
+msgstr "جارٍ البحث عن التطبيقات…"
+
+#: ui/pages/context-menus.slint:724
+msgid "No app matches."
+msgstr "لا يوجد تطبيق مطابق."
+
+#: ui/pages/context-menus.slint:748
+msgid "Turn the bundled menus on or off, add your own files, choose the taskbar menu's apps, and the rules that hide, move or rename Windows' own items."
+msgstr "يمكنك تشغيل القوائم المضمنة أو إيقافها، وإضافة ملفاتك الخاصة، واختيار تطبيقات قائمة شريط المهام، والقواعد التي تخفي عناصر Windows أو تنقلها أو تعيد تسميتها."
+
+#: ui/pages/context-menus.slint:750 ui/pages/menu-builder.slint:406 ui/pages/context-menus.slint:750 ui/pages/menu-builder.slint:406 ui/pages/openwith.slint:609 ui/pages/context-menus.slint:750 ui/pages/menu-builder.slint:406 ui/pages/openwith.slint:609
+msgid "Checking and saving…"
+msgstr "جارٍ الفحص والحفظ…"
+
+#: ui/pages/context-menus.slint:753
+msgid "{n} file changed"
+msgid_plural "{n} files changed"
+msgstr[0] "لم يتغير أي ملف"
+msgstr[1] "تغيّر ملف واحد"
+msgstr[2] "تغيّر ملفان"
+msgstr[3] "تغيّرت {n} ملفات"
+msgstr[4] "تغيّر {n} ملفًا"
+msgstr[5] "تغيّر {n} ملف"
+
+#: ui/pages/context-menus.slint:763 ui/pages/editor.slint:327 ui/pages/context-menus.slint:763 ui/pages/editor.slint:327 ui/pages/menu-builder.slint:413 ui/pages/context-menus.slint:763 ui/pages/editor.slint:327 ui/pages/menu-builder.slint:413
+msgid "Save"
+msgstr "حفظ"
+
+#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:793 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:793 ui/pages/snippets.slint:407
+msgid "This is the shared config in the install folder"
+msgstr "هذا هو التكوين المشترك في مجلد التثبيت"
+
+#: ui/pages/context-menus.slint:773
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لتشغيل القوائم والقواعد أو إيقافها."
+
+#: ui/pages/context-menus.slint:780 ui/pages/snippets.slint:415
+msgid "Couldn't read the config"
+msgstr "تعذرت قراءة التكوين"
+
+#: ui/pages/context-menus.slint:785
+msgid "Modules"
+msgstr "الوحدات"
+
+#: ui/pages/context-menus.slint:786
+msgid "Each module is an import line in shell.nss. Turning one off comments the line out. Add your own .nss files here instead of editing shell.nss."
+msgstr "كل وحدة هي سطر استيراد في shell.nss. يؤدي إيقاف إحداها إلى تحويل السطر إلى تعليق. أضف ملفات .nss الخاصة بك هنا بدلًا من تحرير shell.nss."
+
+#: ui/pages/context-menus.slint:788
+msgid "Add a file…"
+msgstr "إضافة ملف…"
+
+#: ui/pages/context-menus.slint:794
+msgid "shell.nss doesn't import any files."
+msgstr "لا يستورد shell.nss أي ملفات."
+
+#: ui/pages/context-menus.slint:811
+msgid "Taskbar menu"
+msgstr "قائمة شريط المهام"
+
+#: ui/pages/context-menus.slint:813
+msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. Saved in imports\\settings-app-taskbar.nss; you can edit that file by hand too."
+msgstr "القائمة الفرعية \"التطبيقات\" التي تظهر عند النقر بزر الماوس الأيمن فوق مكان فارغ في شريط المهام. تُحفظ في imports\\settings-app-taskbar.nss؛ ويمكنك تحرير هذا الملف يدويًا أيضًا."
+
+#: ui/pages/context-menus.slint:814
+msgid "The Apps submenu you get when you right-click an empty spot on the taskbar. These are Shell's own four apps; your changes are saved in imports\\settings-app-taskbar.nss."
+msgstr "القائمة الفرعية \"التطبيقات\" التي تظهر عند النقر بزر الماوس الأيمن فوق مكان فارغ في شريط المهام. هذه هي تطبيقات Shell الأربعة الخاصة؛ وتُحفظ تغييراتك في imports\\settings-app-taskbar.nss."
+
+#: ui/pages/context-menus.slint:816
+msgid "Add a program…"
+msgstr "إضافة برنامج…"
+
+#: ui/pages/context-menus.slint:821
+msgid "Add an installed app…"
+msgstr "إضافة تطبيق مثبت…"
+
+#: ui/pages/context-menus.slint:826
+msgid "Add a separator"
+msgstr "إضافة فاصل"
+
+#: ui/pages/context-menus.slint:833
+msgid "settings-app-taskbar.nss has an error, so it isn't changed here"
+msgstr "يحتوي settings-app-taskbar.nss على خطأ، لذا لا يتم تغييره هنا"
+
+#: ui/pages/context-menus.slint:840
+msgid "The taskbar's menu doesn't show this list yet"
+msgstr "لا تعرض قائمة شريط المهام هذه القائمة بعد"
+
+#: ui/pages/context-menus.slint:842
+msgid "Open taskbar.nss"
+msgstr "فتح taskbar.nss"
+
+#: ui/pages/context-menus.slint:846
+msgid "No apps: the Apps submenu is empty."
+msgstr "لا توجد تطبيقات: القائمة الفرعية \"التطبيقات\" فارغة."
+
+#: ui/pages/context-menus.slint:867
+msgid "Put back Shell's four apps"
+msgstr "إعادة تطبيقات Shell الأربعة"
+
+#: ui/pages/context-menus.slint:874
+msgid "Rules for Windows items"
+msgstr "قواعد عناصر Windows"
+
+#: ui/pages/editor.slint:70
+msgctxt "Managed by the app"
+msgid "app"
+msgstr "التطبيق"
+
+#: ui/pages/editor.slint:138
+msgctxt "Problem source"
+msgid "check"
+msgstr "الفحص"
+
+#: ui/pages/editor.slint:202
+msgid "Edit shell.nss and its imports. Every save is checked and snapshotted first."
+msgstr "حرّر shell.nss والملفات التي يستوردها. يتم فحص كل عملية حفظ وأخذ لقطة منها أولًا."
+
+#: ui/pages/editor.slint:204 ui/pages/onboarding.slint:386
+msgid "Saving…"
+msgstr "جارٍ الحفظ…"
+
+#: ui/pages/editor.slint:206
+msgid "Open in external editor"
+msgstr "فتح في محرر خارجي"
+
+#: ui/pages/editor.slint:218
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to edit it."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لتحريره."
+
+#: ui/pages/editor.slint:225
+msgid "Changed outside the app"
+msgstr "تم التغيير خارج التطبيق"
+
+#: ui/pages/editor.slint:227
+msgid "Reload from disk"
+msgstr "إعادة تحميل من القرص"
+
+#: ui/pages/editor.slint:234
+msgid "Couldn't open the config"
+msgstr "تعذر فتح التكوين"
+
+#: ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 src/ConfigRules.cpp:754 src/MenuModel.cpp:165 src/OtherApps.cpp:268 src/Snippets.cpp:661
+msgid "Files"
+msgstr "الملفات"
+
+#: ui/pages/editor.slint:304
+msgid "Unsaved"
+msgstr "غير محفوظ"
+
+#: ui/pages/editor.slint:317 ui/pages/editor.slint:337
+msgctxt "Editor mode"
+msgid "Read"
+msgstr "قراءة"
+
+#: ui/pages/editor.slint:317 ui/pages/editor.slint:337
+msgctxt "Editor mode"
+msgid "Edit"
+msgstr "تحرير"
+
+#: ui/pages/editor.slint:327 ui/pages/editor.slint:348
+msgid "Save {} files"
+msgstr "حفظ {} ملفات"
+
+#: ui/pages/editor.slint:356
+msgid "Managed by Nilesoft Shell Pro. You can edit it; the app keeps your changes."
+msgstr "يديره Nilesoft Shell Pro. يمكنك تحريره؛ يحتفظ التطبيق بتغييراتك."
+
+#: ui/pages/editor.slint:433
+msgid "Problems"
+msgstr "المشكلات"
+
+#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:751 src/EditorController.cpp:690
+msgid "Checking…"
+msgstr "جارٍ الفحص…"
+
+#: ui/pages/editor.slint:459
+msgid "No problems found."
+msgstr "لم يتم العثور على مشكلات."
+
+#: ui/pages/editor.slint:480
+msgid "Save with errors?"
+msgstr "هل تريد الحفظ مع وجود أخطاء؟"
+
+#: ui/pages/editor.slint:482
+msgid "Save anyway"
+msgstr "الحفظ على أي حال"
+
+#: ui/pages/home.slint:77
+msgid "line {}, column {}"
+msgstr "السطر {}، العمود {}"
+
+#: ui/pages/home.slint:92
+msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
+msgstr "نظرة سريعة على Nilesoft Shell: التسجيل والتكوين النشط والتشخيص الأخير."
+
+#: ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/preview/menu-preview.slint:204 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
+msgid "Refresh"
+msgstr "تحديث"
+
+#: ui/pages/home.slint:110 ui/pages/home.slint:287 ui/pages/home.slint:110 ui/pages/home.slint:287 src/TrayController.cpp:124
+msgid "Restart Explorer"
+msgstr "إعادة تشغيل المستكشف"
+
+#: ui/pages/home.slint:130 ui/pages/preferences.slint:296
+msgid "Open Backups"
+msgstr "فتح النسخ الاحتياطية"
+
+#: ui/pages/home.slint:196
+msgid "Registration"
+msgstr "التسجيل"
+
+#: ui/pages/home.slint:200
+msgid "Windows 11 menu"
+msgstr "قائمة Windows 11"
+
+#: ui/pages/home.slint:204
+msgid "Shell DLL"
+msgstr "ملف DLL"
+
+#: ui/pages/home.slint:210 ui/pages/preferences.slint:168
+msgid "Version"
+msgstr "الإصدار"
+
+#: ui/pages/home.slint:213
+msgid "Shell core {}  ·  app {}"
+msgstr "نواة Shell {}  ·  التطبيق {}"
+
+#: ui/pages/home.slint:214
+msgid "{}  (running as administrator)"
+msgstr "‏{}  (يعمل كمسؤول)"
+
+#: ui/pages/home.slint:225
+msgid "Active config"
+msgstr "التكوين النشط"
+
+#: ui/pages/home.slint:226
+msgid "The shell.nss Shell builds its menu from, and the files it imports."
+msgstr "ملف shell.nss الذي يبني منه Shell قائمته، والملفات التي يستوردها."
+
+#: ui/pages/home.slint:252
+msgid "This is the shared config from the install folder. A personal copy in %APPDATA% is kept per user and survives updates."
+msgstr "هذا هو التكوين المشترك من مجلد التثبيت. تُحفظ النسخة الشخصية في %APPDATA% لكل مستخدم على حدة وتبقى بعد التحديثات."
+
+#: ui/pages/home.slint:263 src/Status.cpp:193
+msgid "Use per-user config"
+msgstr "استخدام تكوين لكل مستخدم"
+
+#: ui/pages/home.slint:280
+msgid "Quick actions"
+msgstr "إجراءات سريعة"
+
+#: ui/pages/home.slint:288
+msgid "Reload the shell and the menu"
+msgstr "إعادة تحميل Shell والقائمة"
+
+#: ui/pages/home.slint:295 src/Status.cpp:185
+msgid "Unregister for me"
+msgstr "إلغاء التسجيل لي"
+
+#: ui/pages/home.slint:295
+msgid "Also register for me"
+msgstr "التسجيل لي أيضًا"
+
+#: ui/pages/home.slint:295 src/Status.cpp:180
+msgid "Register for me"
+msgstr "التسجيل لي"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:297
+msgid "Remove it from your account"
+msgstr "إزالته من حسابك"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:297
+msgid "Overrides the all-users copy"
+msgstr "يتجاوز نسخة جميع المستخدمين"
+
+#. On top of the all-users registration, a per-user one takes priority over it.
+#: ui/pages/home.slint:297
+msgid "No administrator rights needed"
+msgstr "لا يلزم الحصول على حقوق المسؤول"
+
+#: ui/pages/home.slint:304 ui/pages/home.slint:324
+msgid "Open config folder"
+msgstr "فتح مجلد التكوين"
+
+#: ui/pages/home.slint:305 ui/pages/home.slint:325
+msgid "Show shell.nss in Explorer"
+msgstr "إظهار shell.nss في المستكشف"
+
+#: ui/pages/home.slint:313 ui/pages/home.slint:333
+msgid "Check the status again"
+msgstr "التحقق من الحالة مرة أخرى"
+
+#: ui/pages/home.slint:342
+msgid "Diagnostics"
+msgstr "التشخيص"
+
+#: ui/pages/home.slint:346
+msgid "· newest first, from shell.log"
+msgstr "· الأحدث أولًا، من shell.log"
+
+#: ui/pages/home.slint:353
+msgid "Open shell.log"
+msgstr "فتح shell.log"
+
+#: ui/pages/home.slint:370
+msgid "No shell.log found next to the active shell.dll."
+msgstr "لم يتم العثور على shell.log بجوار shell.dll النشط."
+
+#: ui/pages/home.slint:370
+msgid "No errors or warnings in shell.log."
+msgstr "لا توجد أخطاء أو تحذيرات في shell.log."
+
+#: ui/pages/home.slint:393
+msgid "Run first-time setup again"
+msgstr "تشغيل الإعداد الأولي مرة أخرى"
+
+#: ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:469 ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:469
+msgctxt "Entry kind"
+msgid "Menu"
+msgstr "قائمة"
+
+#: ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:475 ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:475
+msgctxt "Entry kind"
+msgid "Separator"
+msgstr "فاصل"
+
+#: ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:463 ui/pages/menu-builder.slint:66 ui/pages/menu-builder.slint:463
+msgctxt "Entry kind"
+msgid "Item"
+msgstr "عنصر"
+
+#: ui/pages/menu-builder.slint:124
+msgctxt "Tree badge"
+msgid "menu"
+msgstr "قائمة"
+
+#: ui/pages/menu-builder.slint:317 src/OpenWithController.cpp:194
+msgid "Choose an icon"
+msgstr "اختيار أيقونة"
+
+#: ui/pages/menu-builder.slint:323
+msgid "No icon"
+msgstr "بلا أيقونة"
+
+#: ui/pages/menu-builder.slint:334
+msgid "Glyphs from Shell's own icon font, written as image=\\uXXXX. For icon.* names, colors or files, type the value in the Icon box instead."
+msgstr "رموز من خط الأيقونات الخاص بـ Shell، تُكتب بالشكل image=\\uXXXX. لأسماء icon.* أو الألوان أو الملفات، اكتب القيمة في مربع الأيقونة بدلًا من ذلك."
+
+#: ui/pages/menu-builder.slint:373
+msgid "{n} glyph"
+msgid_plural "{n} glyphs"
+msgstr[0] "‏{n} رمز"
+msgstr[1] "رمز واحد"
+msgstr[2] "رمزان"
+msgstr[3] "‏{n} رموز"
+msgstr[4] "‏{n} رمزًا"
+msgstr[5] "‏{n} رمز"
+
+#: ui/pages/menu-builder.slint:404
+msgid "Your own menus and items, kept in their own file. Shell checks them before every save."
+msgstr "قوائمك وعناصرك الخاصة، محفوظة في ملف خاص بها. يفحصها Shell قبل كل عملية حفظ."
+
+#: ui/pages/menu-builder.slint:423
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to build menus."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لإنشاء القوائم."
+
+#: ui/pages/menu-builder.slint:430
+msgid "Your menus are turned off"
+msgstr "قوائمك متوقفة"
+
+#: ui/pages/menu-builder.slint:431
+msgid "shell.nss imports this file, but the line is commented out. Turn \"Your menus\" back on in Context Menus to see them."
+msgstr "يستورد shell.nss هذا الملف، لكن السطر محوّل إلى تعليق. أعد تشغيل \"قوائمك\" في القوائم المختصرة لرؤيتها."
+
+#: ui/pages/menu-builder.slint:432 ui/pages/openwith.slint:637
+msgid "Open Context Menus"
+msgstr "فتح القوائم المختصرة"
+
+#: ui/pages/menu-builder.slint:437 ui/pages/openwith.slint:649
+msgid "Part of the file can't be shown here"
+msgstr "يتعذر عرض جزء من الملف هنا"
+
+#: ui/pages/menu-builder.slint:442
+msgid "Couldn't read your menus"
+msgstr "تعذرت قراءة قوائمك"
+
+#: ui/pages/menu-builder.slint:497
+msgid "Outdent: move out of its menu"
+msgstr "إنقاص المسافة البادئة: نقل إلى خارج القائمة"
+
+#: ui/pages/menu-builder.slint:503
+msgid "Indent: move into the menu above"
+msgstr "زيادة المسافة البادئة: نقل إلى القائمة التي أعلاه"
+
+#: ui/pages/menu-builder.slint:509
+msgid "Duplicate"
+msgstr "تكرار"
+
+#: ui/pages/menu-builder.slint:524
+msgid "Outdent"
+msgstr "إنقاص المسافة البادئة"
+
+#: ui/pages/menu-builder.slint:524
+msgid "Indent"
+msgstr "زيادة المسافة البادئة"
+
+#: ui/pages/menu-builder.slint:538
+msgid "No menus yet"
+msgstr "لا توجد قوائم بعد"
+
+#: ui/pages/menu-builder.slint:544
+msgid "Add an item or a menu. It's saved to its own file, so the rest of your config is never touched."
+msgstr "أضف عنصرًا أو قائمة. يُحفظ في ملف خاص به، لذا لا يتم المساس ببقية التكوين أبدًا."
+
+#: ui/pages/menu-builder.slint:580
+msgid "Entries you add show their properties here."
+msgstr "تظهر خصائص الإدخالات التي تضيفها هنا."
+
+#: ui/pages/menu-builder.slint:580
+msgid "Select an entry to edit it."
+msgstr "حدد إدخالًا لتحريره."
+
+#: ui/pages/menu-builder.slint:597
+msgid "A line between the entries above and below it. It has no properties."
+msgstr "خط بين الإدخالات التي فوقه وتحته. ليست له خصائص."
+
+#: ui/pages/menu-builder.slint:619
+msgid "Title"
+msgstr "العنوان"
+
+#: ui/pages/menu-builder.slint:620
+msgid "& before a letter makes it the access key."
+msgstr "وضع & قبل حرف يجعله مفتاح الوصول."
+
+#: ui/pages/menu-builder.slint:626
+msgid "Shown in the menu"
+msgstr "يظهر في القائمة"
+
+#: ui/pages/menu-builder.slint:630 ui/pages/openwith.slint:290
+msgid "Icon"
+msgstr "الأيقونة"
+
+#: ui/pages/menu-builder.slint:644 ui/pages/menu-builder.slint:652
+msgctxt "No icon"
+msgid "none"
+msgstr "بلا"
+
+#: ui/pages/menu-builder.slint:663
+msgctxt "Icon"
+msgid "None"
+msgstr "بلا"
+
+#: ui/pages/menu-builder.slint:674
+msgid "WHERE IT SHOWS"
+msgstr "مكان الظهور"
+
+#: ui/pages/menu-builder.slint:676 ui/pages/openwith.slint:742
+msgid "Shows on"
+msgstr "يظهر في"
+
+#: ui/pages/menu-builder.slint:682 src/MenuModel.cpp:164
+msgid "Everywhere"
+msgstr "في كل مكان"
+
+#: ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:754 src/ConfigRules.cpp:750 src/MenuModel.cpp:166 src/OtherApps.cpp:269 src/Snippets.cpp:663
+msgid "Folders"
+msgstr "المجلدات"
+
+#: ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:761 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:761 src/MenuModel.cpp:167 src/OtherApps.cpp:270
+msgid "Folder background"
+msgstr "خلفية المجلد"
+
+#: ui/pages/menu-builder.slint:682 src/MenuModel.cpp:169 src/OtherApps.cpp:271
+msgid "Drives"
+msgstr "محركات الأقراص"
+
+#: ui/pages/menu-builder.slint:682 src/MenuModel.cpp:170
+msgid "Files with extensions"
+msgstr "الملفات ذات الامتدادات"
+
+#: ui/pages/menu-builder.slint:682 src/MenuModel.cpp:171
+msgid "Custom"
+msgstr "مخصص"
+
+#: ui/pages/menu-builder.slint:686
+msgid "Extensions"
+msgstr "الامتدادات"
+
+#: ui/pages/menu-builder.slint:687
+msgid "Separated by spaces, like .txt .md .log"
+msgstr "مفصولة بمسافات، مثل .txt .md .log"
+
+#: ui/pages/menu-builder.slint:697
+msgctxt "Shell item type"
+msgid "Type"
+msgstr "النوع"
+
+#: ui/pages/menu-builder.slint:698
+msgid "file, dir, drive, back, desktop, taskbar…, joined with |"
+msgstr "‏file, dir, drive, back, desktop, taskbar…، مفصولة بالرمز |"
+
+#: ui/pages/menu-builder.slint:704
+msgid "Any type except the taskbar"
+msgstr "أي نوع عدا شريط المهام"
+
+#: ui/pages/menu-builder.slint:709
+msgid "Name or extension patterns, like .exe|.dll or *setup*"
+msgstr "أنماط الأسماء أو الامتدادات، مثل .exe|.dll أو *setup*"
+
+#: ui/pages/menu-builder.slint:718
+msgctxt "Condition field"
+msgid "Where"
+msgstr "الشرط"
+
+#: ui/pages/menu-builder.slint:719
+msgid "An expression, written as is. Example: sel.count > 1"
+msgstr "تعبير يُكتب كما هو. مثال: sel.count > 1"
+
+#: ui/pages/menu-builder.slint:728
+msgid "Selection"
+msgstr "التحديد"
+
+#: ui/pages/menu-builder.slint:734
+msgid "One item (default)"
+msgstr "عنصر واحد (افتراضي)"
+
+#: ui/pages/menu-builder.slint:734
+msgid "One item"
+msgstr "عنصر واحد"
+
+#: ui/pages/menu-builder.slint:734
+msgid "Any selection"
+msgstr "أي تحديد"
+
+#: ui/pages/menu-builder.slint:734
+msgid "Several of one type"
+msgstr "عدة عناصر من نوع واحد"
+
+#: ui/pages/menu-builder.slint:734
+msgid "Several with one extension"
+msgstr "عدة عناصر بامتداد واحد"
+
+#: ui/pages/menu-builder.slint:734
+msgid "Nothing selected"
+msgstr "لم يتم تحديد شيء"
+
+#: ui/pages/menu-builder.slint:739
+msgid "WHAT IT RUNS"
+msgstr "ما يتم تشغيله"
+
+#: ui/pages/menu-builder.slint:741
+msgid "Command"
+msgstr "الأمر"
+
+#: ui/pages/menu-builder.slint:742
+msgid "A program or file, like notepad.exe or code"
+msgstr "برنامج أو ملف، مثل notepad.exe أو code"
+
+#: ui/pages/menu-builder.slint:752
+msgid "@sel.path is the selected path; quote it: \"@sel.path\""
+msgstr "‏@sel.path هو المسار المحدد؛ ضعه بين علامتي اقتباس: \"@sel.path\""
+
+#: ui/pages/menu-builder.slint:761
+msgid "Window"
+msgstr "النافذة"
+
+#: ui/pages/menu-builder.slint:773
+msgctxt "Window state"
+msgid "Normal"
+msgstr "عادية"
+
+#: ui/pages/menu-builder.slint:773
+msgctxt "Window state"
+msgid "Hidden"
+msgstr "مخفية"
+
+#: ui/pages/menu-builder.slint:773
+msgctxt "Window state"
+msgid "Minimized"
+msgstr "مصغرة"
+
+#: ui/pages/menu-builder.slint:773
+msgctxt "Window state"
+msgid "Maximized"
+msgstr "مكبرة"
+
+#: ui/pages/menu-builder.slint:786
+msgid "LOOK"
+msgstr "الشكل"
+
+#: ui/pages/menu-builder.slint:788 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:916 src/TaskbarApps.cpp:561
+msgid "Separator"
+msgstr "فاصل"
+
+#: ui/pages/menu-builder.slint:794
+msgctxt "Separator position"
+msgid "None"
+msgstr "بلا"
+
+#: ui/pages/menu-builder.slint:794
+msgctxt "Separator position"
+msgid "Before"
+msgstr "قبل"
+
+#: ui/pages/menu-builder.slint:794
+msgctxt "Separator position"
+msgid "After"
+msgstr "بعد"
+
+#: ui/pages/menu-builder.slint:794
+msgctxt "Separator position"
+msgid "Before and after"
+msgstr "قبل وبعد"
+
+#: ui/pages/menu-builder.slint:798
+msgid "Shortcut text"
+msgstr "نص الاختصار"
+
+#: ui/pages/menu-builder.slint:799
+msgid "Shown on the right, like Ctrl+E. It doesn't bind the keys."
+msgstr "يظهر على اليمين، مثل Ctrl+E. لا يربط المفاتيح."
+
+#: ui/pages/menu-builder.slint:808
+msgid "Tooltip"
+msgstr "التلميح"
+
+#: ui/pages/menu-builder.slint:817
+msgid "Kept as written"
+msgstr "محفوظة كما كُتبت"
+
+#: ui/pages/menu-builder.slint:818
+msgid "Properties this page doesn't edit. They're saved unchanged."
+msgstr "خصائص لا تحررها هذه الصفحة. تُحفظ دون تغيير."
+
+#: ui/pages/menu-builder.slint:847 ui/pages/openwith.slint:804 ui/pages/menu-builder.slint:847 ui/pages/openwith.slint:804
+msgid "Preview"
+msgstr "معاينة"
+
+#: ui/pages/menu-builder.slint:847 ui/pages/openwith.slint:804
+msgid "Generated .nss"
+msgstr "ملف .nss الناتج"
+
+#: ui/pages/menu-builder.slint:854
+msgid "Approximate; right-click to see the real menu."
+msgstr "تقريبية؛ انقر بزر الماوس الأيمن لرؤية القائمة الحقيقية."
+
+#: ui/pages/menu-builder.slint:854
+msgid "Read-only. Save writes this to {}."
+msgstr "للقراءة فقط. يكتب الحفظ هذا إلى {}."
+
+#: ui/pages/menu-builder.slint:868
+msgid "Nothing to preview yet."
+msgstr "لا شيء لمعاينته بعد."
+
+#: ui/pages/menu-map.slint:301 ui/pages/menu-map.slint:526 src/AppearanceController.cpp:83 src/MenuMapController.cpp:630 src/MenuMapController.cpp:656
+msgid "Hidden"
+msgstr "مخفي"
+
+#: ui/pages/menu-map.slint:301
+msgid "Moved"
+msgstr "منقول"
+
+#: ui/pages/menu-map.slint:402
+msgid "Select an item to see where it comes from and what you can do with it."
+msgstr "حدد عنصرًا لمعرفة مصدره وما يمكنك فعله به."
+
+#: ui/pages/menu-map.slint:407
+msgid "Not in the list?"
+msgstr "ليس في القائمة؟"
+
+#: ui/pages/menu-map.slint:413
+msgid "Its title, as the menu shows it"
+msgstr "عنوانه كما يظهر في القائمة"
+
+#: ui/pages/menu-map.slint:420 ui/pages/rules.slint:113
+msgid "Add"
+msgstr "إضافة"
+
+#: ui/pages/menu-map.slint:459
+msgid "Comes from"
+msgstr "المصدر"
+
+#: ui/pages/menu-map.slint:493
+msgid "Shows when"
+msgstr "يظهر عندما"
+
+#: ui/pages/menu-map.slint:502 src/BehaviorController.cpp:24
+msgid "Rules"
+msgstr "القواعد"
+
+#: ui/pages/menu-map.slint:508
+msgid "Open {}"
+msgstr "فتح {}"
+
+#: ui/pages/menu-map.slint:513
+msgid "Context Menus page"
+msgstr "صفحة القوائم المختصرة"
+
+#: ui/pages/menu-map.slint:521 ui/pages/openwith.slint:709
+msgid "In the menu"
+msgstr "في القائمة"
+
+#: ui/pages/menu-map.slint:526
+msgid "Shown"
+msgstr "ظاهر"
+
+#: ui/pages/menu-map.slint:545 ui/pages/menu-map.slint:554 src/AppearanceController.cpp:90
+msgid "Rename"
+msgstr "إعادة تسمية"
+
+#: ui/pages/menu-map.slint:560
+msgid "Use the original title"
+msgstr "استخدام العنوان الأصلي"
+
+#: ui/pages/menu-map.slint:567
+msgid "Move to"
+msgstr "نقل إلى"
+
+#: ui/pages/menu-map.slint:579
+msgid "Move"
+msgstr "نقل"
+
+#: ui/pages/menu-map.slint:585
+msgid "Put it back where it is written"
+msgstr "إعادته إلى حيث هو مكتوب"
+
+#: ui/pages/menu-map.slint:585
+msgid "Put it back where Windows has it"
+msgstr "إعادته إلى حيث يضعه Windows"
+
+#: ui/pages/menu-map.slint:595
+msgid "Place in this menu"
+msgstr "وضع في هذه القائمة"
+
+#: ui/pages/menu-map.slint:603
+msgid "Place"
+msgstr "وضع"
+
+#: ui/pages/menu-map.slint:623
+msgid "Use the order in the file"
+msgstr "استخدام الترتيب الموجود في الملف"
+
+#: ui/pages/menu-map.slint:628
+msgid "In the outline, Alt+Up and Alt+Down move the selected item too."
+msgstr "في المخطط التفصيلي، ينقل Alt+Up وAlt+Down العنصر المحدد أيضًا."
+
+#: ui/pages/menu-map.slint:636
+msgid "Code"
+msgstr "الكود"
+
+#: ui/pages/menu-map.slint:641
+msgid "Edit code"
+msgstr "تحرير الكود"
+
+#: ui/pages/menu-map.slint:691
+msgid "Edit code: {}"
+msgstr "تحرير الكود: {}"
+
+#: ui/pages/menu-map.slint:698
+msgid "{} · only this declaration changes; the rest of the file stays as it is."
+msgstr "‏{} · يتغير هذا التعريف فقط؛ ويبقى باقي الملف كما هو."
+
+#: ui/pages/menu-map.slint:751
+msgid "Check and save"
+msgstr "فحص وحفظ"
+
+#: ui/pages/menu-map.slint:781
+msgid "The menu as it opens for a file, a folder or the desktop: your Shell items with the line that adds each one, and the items Windows and other programs add."
+msgstr "القائمة كما تُفتح لملف أو مجلد أو سطح المكتب: عناصر Shell الخاصة بك مع السطر الذي يضيف كل عنصر منها، والعناصر التي يضيفها Windows والبرامج الأخرى."
+
+#: ui/pages/menu-map.slint:783
+msgid "Reading the menu…"
+msgstr "جارٍ قراءة القائمة…"
+
+#: ui/pages/menu-map.slint:794
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to hide, rename or move items."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لإخفاء العناصر أو إعادة تسميتها أو نقلها."
+
+#: ui/pages/menu-map.slint:801
+msgid "Couldn't read the menu"
+msgstr "تعذرت قراءة القائمة"
+
+#: ui/pages/menu-map.slint:806
+msgid "Your config doesn't load"
+msgstr "لا يتم تحميل التكوين"
+
+#: ui/pages/menu-map.slint:831 ui/pages/menu-map.slint:848
+msgid "Outline"
+msgstr "مخطط"
+
+#: ui/pages/menu-map.slint:831 ui/pages/menu-map.slint:848
+msgid "Nodes"
+msgstr "عُقد"
+
+#: ui/pages/menu-map.slint:866
+msgid "Item not listed?"
+msgstr "العنصر غير مدرج؟"
+
+#: ui/pages/menu-map.slint:871
+msgid "Expand all"
+msgstr "توسيع الكل"
+
+#: ui/pages/menu-map.slint:876
+msgid "Collapse all"
+msgstr "طي الكل"
+
+#: ui/pages/menu-map.slint:955
+msgid "Nothing to show yet."
+msgstr "لا شيء لعرضه بعد."
+
+#: ui/pages/onboarding.slint:149
+msgid "Set up Nilesoft Shell Pro"
+msgstr "إعداد Nilesoft Shell Pro"
+
+#: ui/pages/onboarding.slint:165
+msgid "Welcome to Nilesoft Shell Pro"
+msgstr "مرحبًا بك في Nilesoft Shell Pro"
+
+#: ui/pages/onboarding.slint:171
+msgid "Three steps to set up your context menu."
+msgstr "ثلاث خطوات لإعداد القائمة المختصرة."
+
+#: ui/pages/onboarding.slint:180
+msgid "Personal config"
+msgstr "التكوين الشخصي"
+
+#: ui/pages/onboarding.slint:181
+msgctxt "Setup step"
+msgid "Enable"
+msgstr "التمكين"
+
+#: ui/pages/onboarding.slint:182
+msgctxt "Setup step"
+msgid "Look"
+msgstr "الشكل"
+
+#: ui/pages/onboarding.slint:192
+msgid "shell.exe wasn't found next to this app, so setup can't run. Reinstall Nilesoft Shell."
+msgstr "لم يتم العثور على shell.exe بجوار هذا التطبيق، لذا لا يمكن تشغيل الإعداد. أعد تثبيت Nilesoft Shell."
+
+#: ui/pages/onboarding.slint:198
+msgid "Create your personal config"
+msgstr "إنشاء التكوين الشخصي"
+
+#: ui/pages/onboarding.slint:200
+msgid "Shell builds its menu from shell.nss. A personal copy in %APPDATA%\\Nilesoft\\Shell is yours to change, needs no administrator rights, and is kept when Shell is updated."
+msgstr "يبني Shell قائمته من shell.nss. النسخة الشخصية في %APPDATA%\\Nilesoft\\Shell ملك لك لتغييرها، ولا تحتاج إلى حقوق المسؤول، وتبقى عند تحديث Shell."
+
+#: ui/pages/onboarding.slint:204
+msgid "Using the config at {}"
+msgstr "استخدام التكوين الموجود في {}"
+
+#: ui/pages/onboarding.slint:204
+msgid "Using your personal config: {}"
+msgstr "استخدام التكوين الشخصي: {}"
+
+#: ui/pages/onboarding.slint:212
+msgid "Couldn't create it: {}"
+msgstr "تعذر إنشاؤه: {}"
+
+#: ui/pages/onboarding.slint:228
+msgid "Enable Shell for you"
+msgstr "تمكين Shell لك"
+
+#: ui/pages/onboarding.slint:231
+msgid "Shell is already enabled for all users on this PC, which includes your account. There's nothing to do here."
+msgstr "تم تمكين Shell بالفعل لجميع المستخدمين على هذا الكمبيوتر، بما في ذلك حسابك. لا يوجد ما يجب فعله هنا."
+
+#: ui/pages/onboarding.slint:232
+msgid "Adds Shell's menu to File Explorer for your Windows account. No administrator rights are needed. To enable it for everyone on this PC, use Preferences."
+msgstr "يضيف قائمة Shell إلى مستكشف الملفات لحساب Windows الخاص بك. لا يلزم الحصول على حقوق المسؤول. لتمكينه لجميع المستخدمين على هذا الكمبيوتر، استخدم التفضيلات."
+
+#: ui/pages/onboarding.slint:240
+msgid "Enabled for all users"
+msgstr "تم التمكين لجميع المستخدمين"
+
+#: ui/pages/onboarding.slint:245
+msgid "Register it for my account as well"
+msgstr "تسجيله لحسابي أيضًا"
+
+#: ui/pages/onboarding.slint:251
+msgid "Your own registration takes priority over the all-users one, so this account stops using the all-users copy and its updates until you unregister it on Home."
+msgstr "يأخذ تسجيلك الخاص الأولوية على تسجيل جميع المستخدمين، لذا يتوقف هذا الحساب عن استخدام نسخة جميع المستخدمين وتحديثاتها حتى تلغي تسجيله من الصفحة الرئيسية."
+
+#: ui/pages/onboarding.slint:267
+msgid "Use the classic context menu on Windows 11"
+msgstr "استخدام القائمة المختصرة الكلاسيكية على Windows 11"
+
+#: ui/pages/onboarding.slint:278
+msgid "Couldn't enable it: {}"
+msgstr "تعذر التمكين: {}"
+
+#: ui/pages/onboarding.slint:283
+msgid "Enable for my account too"
+msgstr "التمكين لحسابي أيضًا"
+
+#: ui/pages/onboarding.slint:283 src/Status.cpp:177
+msgid "Enable for me"
+msgstr "التمكين لي"
+
+#: ui/pages/onboarding.slint:292
+msgid "Windows 11 menu: {}"
+msgstr "قائمة Windows 11: {}"
+
+#: ui/pages/onboarding.slint:300
+msgid "Pick a look"
+msgstr "اختر مظهرًا"
+
+#: ui/pages/onboarding.slint:302
+msgid "Auto follows the Windows menu style. Colours, fonts and corners are on the Appearance page."
+msgstr "يتبع الخيار التلقائي نمط قائمة Windows. الألوان والخطوط والزوايا موجودة في صفحة المظهر."
+
+#: ui/pages/onboarding.slint:321
+msgid "Create your personal config in step 1 to choose a theme."
+msgstr "أنشئ تكوينك الشخصي في الخطوة 1 لاختيار سمة."
+
+#: ui/pages/onboarding.slint:321
+msgid "Reading your config…"
+msgstr "جارٍ قراءة التكوين…"
+
+#: ui/pages/onboarding.slint:323
+msgid "Your config sets the theme with an expression, so it can't be changed here. Edit it in the Config Editor."
+msgstr "يعيّن تكوينك السمة بتعبير، لذا لا يمكن تغييرها هنا. عدّلها في محرر التكوين."
+
+#: ui/pages/onboarding.slint:326
+msgid "{} is saved when you press Finish, after shell.exe checks the config."
+msgstr "يتم حفظ {} عند الضغط على إنهاء، بعد أن يفحص shell.exe التكوين."
+
+#: ui/pages/onboarding.slint:327
+msgid "Finish creates your personal config, then saves {} there."
+msgstr "يُنشئ زر إنهاء تكوينك الشخصي، ثم يحفظ {} فيه."
+
+#: ui/pages/onboarding.slint:328
+msgid "In use: {0} · {1}"
+msgstr "قيد الاستخدام: {0} · {1}"
+
+#: ui/pages/onboarding.slint:333
+msgid "More themes on the Appearance page"
+msgstr "مزيد من السمات في صفحة المظهر"
+
+#: ui/pages/onboarding.slint:358
+msgid "Explorer didn't restart: {}"
+msgstr "لم تتم إعادة تشغيل المستكشف: {}"
+
+#: ui/pages/onboarding.slint:359
+msgid "Do this once after enabling Shell. Theme changes show on the next right-click."
+msgstr "نفّذ هذا مرة واحدة بعد تمكين Shell. تظهر تغييرات السمة عند النقر بزر الماوس الأيمن التالي."
+
+#: ui/pages/onboarding.slint:369
+msgid "Skip setup"
+msgstr "تخطي الإعداد"
+
+#: ui/pages/onboarding.slint:375
+msgid "Back"
+msgstr "السابق"
+
+#: ui/pages/onboarding.slint:380
+msgid "Next"
+msgstr "التالي"
+
+#: ui/pages/onboarding.slint:386
+msgid "Finish"
+msgstr "إنهاء"
+
+#: ui/pages/openwith.slint:189
+msgid "Added by you"
+msgstr "أضفته أنت"
+
+#: ui/pages/openwith.slint:219
+msgid "Locate…"
+msgstr "تحديد الموقع…"
+
+#: ui/pages/openwith.slint:250
+msgid "Shown in the submenu as is."
+msgstr "يظهر في القائمة الفرعية كما هو."
+
+#: ui/pages/openwith.slint:250
+msgid "Shown as \"Open in {}\"."
+msgstr "يظهر باسم \"فتح في {}\"."
+
+#: ui/pages/openwith.slint:280
+msgid "{{path}} the selected item, quoted · {{paths}} every selected item · {{dir}} its folder · {{name}} its name"
+msgstr "‏{{path}} العنصر المحدد بين علامتي اقتباس · {{paths}} كل العناصر المحددة · {{dir}} مجلده · {{name}} اسمه"
+
+#: ui/pages/openwith.slint:299
+msgid "The program's own icon"
+msgstr "أيقونة البرنامج نفسه"
+
+#: ui/pages/openwith.slint:309
+msgid "Shows for"
+msgstr "يظهر لـ"
+
+#: ui/pages/openwith.slint:315
+msgid "Everything the menu shows on"
+msgstr "كل ما تظهر عليه القائمة"
+
+#: ui/pages/openwith.slint:315
+msgid "Files only"
+msgstr "الملفات فقط"
+
+#: ui/pages/openwith.slint:315
+msgid "Folders only"
+msgstr "المجلدات فقط"
+
+#: ui/pages/openwith.slint:315
+msgid "Files with these extensions"
+msgstr "الملفات ذات هذه الامتدادات"
+
+#: ui/pages/openwith.slint:331
+msgid "Its own items"
+msgstr "عناصره الخاصة"
+
+#: ui/pages/openwith.slint:332
+msgid "Switched off, the app also hides {}. Tick this to hide only the item this page adds."
+msgstr "عند إيقاف التشغيل، يخفي التطبيق أيضًا {}. حدد هذا الخيار لإخفاء العنصر الذي تضيفه هذه الصفحة فقط."
+
+#: ui/pages/openwith.slint:334
+msgid "Keep the app's own menu items when it's off"
+msgstr "الإبقاء على عناصر قائمة التطبيق الخاصة عند إيقافه"
+
+#: ui/pages/openwith.slint:357
+msgctxt "Button"
+msgid "Test"
+msgstr "اختبار"
+
+#: ui/pages/openwith.slint:386
+msgid "Clicking the item would run (nothing was started):"
+msgstr "النقر على العنصر كان سيشغّل (لم يتم تشغيل أي شيء):"
+
+#: ui/pages/openwith.slint:476
+msgid "Hide"
+msgstr "إخفاء"
+
+#: ui/pages/openwith.slint:496
+msgid "Title to hide"
+msgstr "العنوان المراد إخفاؤه"
+
+#: ui/pages/openwith.slint:502
+msgid "Exactly as the menu shows it"
+msgstr "تمامًا كما يظهر في القائمة"
+
+#: ui/pages/openwith.slint:607
+msgid "Open the selected file or folder in your editor or terminal from the right-click menu."
+msgstr "افتح الملف أو المجلد المحدد في المحرر أو الوحدة الطرفية من قائمة النقر بزر الماوس الأيمن."
+
+#: ui/pages/openwith.slint:627
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to add apps to the menu."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لإضافة تطبيقات إلى القائمة."
+
+#: ui/pages/openwith.slint:635
+msgid "These items are turned off"
+msgstr "هذه العناصر متوقفة عن التشغيل"
+
+#: ui/pages/openwith.slint:636
+msgid "shell.nss imports this file, but the line is commented out. Turn \"Open with\" back on in Context Menus to see them."
+msgstr "يستورد shell.nss هذا الملف، لكن السطر معلَّق. أعد تشغيل \"فتح باستخدام\" في القوائم المختصرة لرؤيتها."
+
+#: ui/pages/openwith.slint:643
+msgid "Not in your menu yet"
+msgstr "ليست في قائمتك بعد"
+
+#: ui/pages/openwith.slint:644
+msgid "None of the listed apps were found on this PC. Use Locate… or Add app, then Save."
+msgstr "لم يُعثر على أي من التطبيقات المدرجة على هذا الكمبيوتر. استخدم تحديد الموقع… أو إضافة تطبيق، ثم احفظ."
+
+#: ui/pages/openwith.slint:644
+msgid "The editors found on this PC are switched on below; terminals and Notepad are off because the Terminal and Develop menus have them. Save to add them to the menu."
+msgstr "تم تشغيل المحررات الموجودة على هذا الكمبيوتر أدناه؛ أما الوحدات الطرفية والمفكرة فمتوقفة لأن قائمتي Terminal وDevelop تحتويان عليها. احفظ لإضافتها إلى القائمة."
+
+#: ui/pages/openwith.slint:655
+msgid "Couldn't read the Open with items"
+msgstr "تعذرت قراءة عناصر فتح باستخدام"
+
+#: ui/pages/openwith.slint:660 src/Snippets.cpp:673
+msgid "Apps"
+msgstr "التطبيقات"
+
+#: ui/pages/openwith.slint:661 ui/pages/openwith.slint:673
+msgid "Looking for installed apps…"
+msgstr "جارٍ البحث عن التطبيقات المثبتة…"
+
+#: ui/pages/openwith.slint:661
+msgid "Found {0} of {1} known apps on this PC. An item stays hidden while its program is missing."
+msgstr "تم العثور على {0} من {1} من التطبيقات المعروفة على هذا الكمبيوتر. يبقى العنصر مخفيًا ما دام برنامجه مفقودًا."
+
+#: ui/pages/openwith.slint:663
+msgid "Add app"
+msgstr "إضافة تطبيق"
+
+#: ui/pages/openwith.slint:673
+msgid "No apps."
+msgstr "لا توجد تطبيقات."
+
+#: ui/pages/openwith.slint:700
+msgid "Hide the apps that weren't found"
+msgstr "إخفاء التطبيقات التي لم يُعثر عليها"
+
+#: ui/pages/openwith.slint:700
+msgid "Show {n} more app that wasn't found on this PC"
+msgid_plural "Show {n} more apps that weren't found on this PC"
+msgstr[0] "إظهار {n} تطبيق إضافي لم يُعثر عليه على هذا الكمبيوتر"
+msgstr[1] "إظهار تطبيق إضافي واحد لم يُعثر عليه على هذا الكمبيوتر"
+msgstr[2] "إظهار تطبيقين إضافيين لم يُعثر عليهما على هذا الكمبيوتر"
+msgstr[3] "إظهار {n} تطبيقات إضافية لم يُعثر عليها على هذا الكمبيوتر"
+msgstr[4] "إظهار {n} تطبيقًا إضافيًا لم يُعثر عليها على هذا الكمبيوتر"
+msgstr[5] "إظهار {n} تطبيق إضافي لم يُعثر عليها على هذا الكمبيوتر"
+
+#: ui/pages/openwith.slint:710
+msgid "Where the items show, and whether they're grouped in a submenu."
+msgstr "مكان ظهور العناصر، وما إذا كانت مجمّعة في قائمة فرعية."
+
+#: ui/pages/openwith.slint:720
+msgid "Layout"
+msgstr "التخطيط"
+
+#: ui/pages/openwith.slint:721
+msgid "One submenu with each app inside it, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
+msgstr "قائمة فرعية واحدة تضم كل التطبيقات، أسفل WinRAR مباشرة؛ وبدون WinRAR، أسفل \"فتح في نافذة جديدة\"؛ وإلا ففي أعلى القائمة."
+
+#: ui/pages/openwith.slint:721
+msgid "Each app is its own \"Open in …\" item, in this order, right under WinRAR; without WinRAR, under \"Open in new window\"; otherwise at the top of the menu."
+msgstr "كل تطبيق عنصر مستقل \"فتح في …\"، بهذا الترتيب، أسفل WinRAR مباشرة؛ وبدون WinRAR، أسفل \"فتح في نافذة جديدة\"؛ وإلا ففي أعلى القائمة."
+
+#: ui/pages/openwith.slint:723
+msgid "Group in an \"Open in\" submenu"
+msgstr "التجميع في قائمة فرعية \"فتح في\""
+
+#: ui/pages/openwith.slint:731
+msgid "Submenu title"
+msgstr "عنوان القائمة الفرعية"
+
+#: ui/pages/openwith.slint:732
+msgid "Windows already has an \"Open with\" item on files, so a different title tells them apart."
+msgstr "يحتوي Windows بالفعل على عنصر \"فتح باستخدام\" للملفات، لذا يميّز العنوان المختلف بينهما."
+
+#: ui/pages/openwith.slint:810 ui/pages/openwith.slint:829 src/OpenWithController.cpp:863
+msgid "A file"
+msgstr "ملف"
+
+#: ui/pages/openwith.slint:810 ui/pages/openwith.slint:829 src/OpenWithController.cpp:869
+msgid "A folder"
+msgstr "مجلد"
+
+#: ui/pages/openwith.slint:810 ui/pages/openwith.slint:829
+msgctxt "Right-click target"
+msgid "Background"
+msgstr "الخلفية"
+
+#: ui/pages/openwith.slint:818
+msgid "Approximate"
+msgstr "تقريبي"
+
+#: ui/pages/openwith.slint:818
+msgid "Save writes {}"
+msgstr "الحفظ يكتب {}"
+
+#: ui/pages/openwith.slint:880
+msgid "Other apps' menu items"
+msgstr "عناصر قوائم التطبيقات الأخرى"
+
+#: ui/pages/openwith.slint:881
+msgid "Items other programs put in the menu themselves, such as VLC or 7-Zip. Switch one off to hide it in Shell's menu; the program and the registry stay as they are. The items of apps in the list above go with their app's switch, and Windows' own items aren't listed."
+msgstr "عناصر تضيفها برامج أخرى إلى القائمة بنفسها، مثل VLC أو 7-Zip. أوقف تشغيل أحدها لإخفائه في قائمة Shell؛ ويبقى البرنامج والسجل كما هما. تتبع عناصر التطبيقات المدرجة أعلاه مفتاح تطبيقها، ولا تُدرج عناصر Windows الخاصة."
+
+#: ui/pages/openwith.slint:888
+msgid "No other program adds items to the menu for files, folders or drives."
+msgstr "لا يضيف أي برنامج آخر عناصر إلى قائمة الملفات أو المجلدات أو محركات الأقراص."
+
+#: ui/pages/openwith.slint:888
+msgid "Reading the registry…"
+msgstr "جارٍ قراءة السجل…"
+
+#: ui/pages/openwith.slint:910
+msgid "Their program is gone, so these items do nothing. Hiding one adds a remove() rule; the registry stays as it is."
+msgstr "برنامجها لم يعد موجودًا، لذا لا تفعل هذه العناصر شيئًا. إخفاء أحدها يضيف قاعدة remove()؛ ويبقى السجل كما هو."
+
+#: ui/pages/openwith.slint:920
+msgid "Hide all {}"
+msgstr "إخفاء الكل ({})"
+
+#: ui/pages/openwith.slint:940
+msgid "Switched off: {0}. Each is a remove() rule in {1}, after the Open in items."
+msgstr "متوقفة: {0}. كل منها قاعدة remove() في {1}، بعد عناصر \"فتح في\"."
+
+#: ui/pages/openwith.slint:950
+msgid "Develop menu"
+msgstr "قائمة Develop"
+
+#: ui/pages/openwith.slint:964 ui/pages/openwith.slint:981
+msgid "Hide Develop › Editors"
+msgstr "إخفاء Develop › Editors"
+
+#: ui/pages/openwith.slint:969
+msgid "develop.nss has its own VS Code and Notepad items, shown while Shift is held. It's read-only here."
+msgstr "يحتوي develop.nss على عناصر VS Code والمفكرة الخاصة به، وتظهر أثناء الضغط على Shift. إنه للقراءة فقط هنا."
+
+#: ui/pages/openwith.slint:969
+msgid "develop.nss has its own VS Code and Notepad items. They only show while Shift is held, so they're left alone by default. Turn this on to keep your editors in one place; the lines are commented out, not deleted."
+msgstr "يحتوي develop.nss على عناصر VS Code والمفكرة الخاصة به. لا تظهر إلا أثناء الضغط على Shift، لذا تُترك كما هي افتراضيًا. شغّل هذا الخيار لإبقاء محرراتك في مكان واحد؛ تُعلَّق الأسطر ولا تُحذف."
+
+#: ui/pages/preferences.slint:56
+msgid "How this app looks and starts, updates, machine-wide registration, and about."
+msgstr "مظهر هذا التطبيق وبدء تشغيله، والتحديثات، والتسجيل على مستوى الجهاز، ومعلومات حول التطبيق."
+
+#: ui/pages/preferences.slint:63
+msgid "App theme"
+msgstr "سمة التطبيق"
+
+#: ui/pages/preferences.slint:64
+msgid "System follows the Windows app mode and changes with it."
+msgstr "يتبع خيار النظام وضع التطبيقات في Windows ويتغير معه."
+
+#: ui/pages/preferences.slint:69
+msgid "System"
+msgstr "النظام"
+
+#: ui/pages/preferences.slint:78
+msgid "Language"
+msgstr "اللغة"
+
+#: ui/pages/preferences.slint:79
+msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
+msgstr "يتبع الخيار التلقائي لغة عرض Windows، وهي حاليًا {}. يُطبَّق التغيير فورًا."
+
+#: ui/pages/preferences.slint:96
+msgid "Test a translation file…"
+msgstr "اختبار ملف ترجمة…"
+
+#: ui/pages/preferences.slint:100
+msgid "For translators: shows the app in a .po file until you stop it or close the app."
+msgstr "للمترجمين: يعرض التطبيق باستخدام ملف ‎.po حتى توقفه أو تغلق التطبيق."
+
+#: ui/pages/preferences.slint:112
+msgid "Startup and tray"
+msgstr "بدء التشغيل وعلبة النظام"
+
+#: ui/pages/preferences.slint:113
+msgid "The app can wait in the notification area next to the clock, so it opens at once and can tell you when an update is out."
+msgstr "يمكن أن ينتظر التطبيق في منطقة الإعلامات بجوار الساعة، فيفتح على الفور ويمكنه إعلامك عند صدور تحديث."
+
+#: ui/pages/preferences.slint:115
+msgid "Keep Nilesoft Shell Pro in the system tray"
+msgstr "إبقاء Nilesoft Shell Pro في علبة النظام"
+
+#: ui/pages/preferences.slint:116
+msgid "Closing the window leaves the app running there. Turn this off to end the app when you close its window."
+msgstr "يؤدي إغلاق النافذة إلى إبقاء التطبيق قيد التشغيل هناك. أوقف هذا الخيار لإنهاء التطبيق عند إغلاق نافذته."
+
+#: ui/pages/preferences.slint:121
+msgid "Start with Windows"
+msgstr "التشغيل مع بدء Windows"
+
+#: ui/pages/preferences.slint:123
+msgid "When you sign in, the app starts in the tray without opening its window."
+msgstr "عند تسجيل الدخول، يبدأ التطبيق في علبة النظام دون فتح نافذته."
+
+#: ui/pages/preferences.slint:124
+msgid "Works only while the app is kept in the system tray."
+msgstr "يعمل فقط عندما يكون التطبيق في علبة النظام."
+
+#: ui/pages/preferences.slint:130
+msgid "Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on."
+msgstr "التطبيق متوقف في قائمة تطبيقات بدء التشغيل في Windows. شغّل المفتاح هنا لإعادة تشغيله."
+
+#: ui/pages/preferences.slint:140
+msgid "All users on this PC"
+msgstr "جميع المستخدمين على هذا الكمبيوتر"
+
+#: ui/pages/preferences.slint:141
+msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
+msgstr "يتطلب تسجيل Shell لجميع المستخدمين على هذا الكمبيوتر صلاحيات المسؤول. كل ما عدا ذلك في هذا التطبيق يعمل بدونها."
+
+#: ui/pages/preferences.slint:143
+msgid "All users"
+msgstr "جميع المستخدمين"
+
+#: ui/pages/preferences.slint:144 ui/pages/preferences.slint:148
+msgid "Registered"
+msgstr "مسجّل"
+
+#: ui/pages/preferences.slint:144 ui/pages/preferences.slint:148 src/AppController.cpp:128
+msgid "Not registered"
+msgstr "غير مسجّل"
+
+#: ui/pages/preferences.slint:147
+msgid "Just you"
+msgstr "أنت فقط"
+
+#: ui/pages/preferences.slint:154
+msgid "Unregister for all users"
+msgstr "إلغاء التسجيل لجميع المستخدمين"
+
+#: ui/pages/preferences.slint:154
+msgid "Register for all users"
+msgstr "التسجيل لجميع المستخدمين"
+
+#: ui/pages/preferences.slint:165
+msgid "Updates"
+msgstr "التحديثات"
+
+#: ui/pages/preferences.slint:166
+msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
+msgstr "تأتي الإصدارات الجديدة من إصدارات هذا المشروع على GitHub، ويتم التحقق منها مقابل مجاميع SHA-256 الخاصة بها قبل تثبيت أي شيء."
+
+#: ui/pages/preferences.slint:169
+msgid "{}  ·  app updated for you; Shell core {} for all users"
+msgstr "‏{}  ·  تم تحديث التطبيق لك؛ نواة Shell {} لجميع المستخدمين"
+
+#: ui/pages/preferences.slint:170
+msgid "{}  ·  installed for all users (MSI)"
+msgstr "‏{}  ·  مثبت لجميع المستخدمين (MSI)"
+
+#: ui/pages/preferences.slint:171
+msgid "{}  ·  portable copy"
+msgstr "‏{}  ·  نسخة محمولة"
+
+#: ui/pages/preferences.slint:177
+msgid "Channel"
+msgstr "القناة"
+
+#: ui/pages/preferences.slint:186
+msgid "Stable"
+msgstr "مستقر"
+
+#: ui/pages/preferences.slint:186
+msgid "Beta"
+msgstr "تجريبي (بيتا)"
+
+#: ui/pages/preferences.slint:192
+msgid "Pre-releases too"
+msgstr "الإصدارات التجريبية أيضًا"
+
+#: ui/pages/preferences.slint:192
+msgid "Releases only"
+msgstr "الإصدارات النهائية فقط"
+
+#: ui/pages/preferences.slint:200
+msgid "Check for updates automatically"
+msgstr "التحقق من وجود تحديثات تلقائيًا"
+
+#: ui/pages/preferences.slint:201
+msgid "When the app starts, at most once a day, and every few hours while it is in the system tray."
+msgstr "عند بدء التطبيق، مرة واحدة يوميًا على الأكثر، وكل بضع ساعات أثناء وجوده في علبة النظام."
+
+#: ui/pages/preferences.slint:206
+msgid "Download and install updates automatically"
+msgstr "تنزيل التحديثات وتثبيتها تلقائيًا"
+
+#: ui/pages/preferences.slint:207
+msgid "Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval."
+msgstr "يتم تنزيل التحديثات والتحقق منها وتثبيتها في الخلفية دون صلاحيات المسؤول؛ وأنت تختار وقت إعادة التشغيل. أما التحديث الذي يغيّر نواة Shell لجميع المستخدمين فيُعلَن عنه فقط، لأنه يحتاج إلى موافقة المسؤول."
+
+#: ui/pages/preferences.slint:230 src/UpdateController.cpp:616 src/UpdateController.cpp:649
+msgid "Checking for updates…"
+msgstr "جارٍ التحقق من وجود تحديثات…"
+
+#: ui/pages/preferences.slint:231
+msgid "Version {} is available"
+msgstr "الإصدار {} متوفر"
+
+#: ui/pages/preferences.slint:232
+msgid "Downloading {}…  {}"
+msgstr "جارٍ تنزيل {}…  {}"
+
+#: ui/pages/preferences.slint:233
+msgid "Version {} is installed: restart to finish updating"
+msgstr "تم تثبيت الإصدار {}: أعد التشغيل لإنهاء التحديث"
+
+#: ui/pages/preferences.slint:234
+msgid "Version {} is downloaded and verified"
+msgstr "تم تنزيل الإصدار {} والتحقق منه"
+
+#: ui/pages/preferences.slint:235
+msgid "Installing {}…"
+msgstr "جارٍ تثبيت {}…"
+
+#: ui/pages/preferences.slint:237
+msgid "Not checked yet"
+msgstr "لم يتم التحقق بعد"
+
+#: ui/pages/preferences.slint:251
+msgid "Last checked: {}"
+msgstr "آخر تحقق: {}"
+
+#: ui/pages/preferences.slint:274
+msgid "Check now"
+msgstr "التحقق الآن"
+
+#: ui/pages/preferences.slint:290
+msgid "Reset configuration"
+msgstr "إعادة تعيين التكوين"
+
+#: ui/pages/preferences.slint:291
+msgid "Puts the default menu files back. Your current files are saved in Backups first, so you can undo it."
+msgstr "يعيد ملفات القائمة الافتراضية. يتم حفظ ملفاتك الحالية في النسخ الاحتياطية أولًا، لذا يمكنك التراجع عن ذلك."
+
+#: ui/pages/preferences.slint:294 src/AppController.cpp:748
+msgid "The default files are back"
+msgstr "تمت استعادة الملفات الافتراضية"
+
+#: ui/pages/preferences.slint:295
+msgid "Your previous files are saved in Backups. Restore that snapshot there to undo the reset."
+msgstr "تم حفظ ملفاتك السابقة في النسخ الاحتياطية. استعد تلك اللقطة هناك للتراجع عن إعادة التعيين."
+
+#: ui/pages/preferences.slint:307
+msgid "Reset to defaults…"
+msgstr "إعادة التعيين إلى الإعدادات الافتراضية…"
+
+#: ui/pages/preferences.slint:314
+msgid "Shell uses the shared config in the install folder, which this app never changes. Create a personal config on Home first; then it can be reset here."
+msgstr "يستخدم Shell التكوين المشترك في مجلد التثبيت، الذي لا يغيّره هذا التطبيق أبدًا. أنشئ تكوينًا شخصيًا من الصفحة الرئيسية أولًا؛ بعدها يمكن إعادة تعيينه هنا."
+
+#: ui/pages/preferences.slint:315
+msgid "Your config is in a folder you chose ({}). Only the personal config in %APPDATA%\\Nilesoft\\Shell can be reset here."
+msgstr "تكوينك موجود في مجلد اخترته ({}). يمكن إعادة تعيين التكوين الشخصي في %APPDATA%\\Nilesoft\\Shell فقط هنا."
+
+#: ui/pages/preferences.slint:325
+msgid "About"
+msgstr "حول"
+
+#: ui/pages/preferences.slint:347
+msgid "© Nilesoft Ltd. and contributors. MIT License."
+msgstr "‏© Nilesoft Ltd. والمساهمون. ترخيص MIT."
+
+#: ui/pages/preferences.slint:361
+msgid "Documentation"
+msgstr "الوثائق"
+
+#: ui/pages/preferences.slint:366
+msgid "Source code"
+msgstr "التعليمات البرمجية المصدر"
+
+#: ui/pages/preferences.slint:370
+msgid "Report an issue"
+msgstr "الإبلاغ عن مشكلة"
+
+#: ui/pages/preferences.slint:379
+msgid "Thanks"
+msgstr "شكر وتقدير"
+
+#: ui/pages/preferences.slint:384
+msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
+msgstr "‏RubicBG، على مقتطفاته وإصلاحات المحرك من ReShell. Deliond، الذي ترجم التطبيق إلى الإسبانية بمبادرة منه. zhonglixun، على مراجعة الترجمة الصينية وعلى الكثير من البلاغات والأفكار. advanced03 وTheDoctor121 وFroztySeven، على بلاغات الأخطاء. وكل من نُقلت إصلاحاته وترجماته من مشكلات Nilesoft Shell وطلبات السحب والنسخ المتفرعة الخاصة به."
+
+#: ui/pages/preferences.slint:395
+msgid "Third-party software"
+msgstr "برامج الجهات الخارجية"
+
+#: ui/pages/preferences.slint:400
+msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
+msgstr "تم الإنشاء باستخدام Slint (Royalty-free license 2.0). JSON for Modern C++ من Niels Lohmann (MIT). Fluent UI System Icons من Microsoft (MIT)."
+
+#: ui/pages/rules.slint:136
+msgid "Where Shell's menu appears. Everywhere else, Windows shows its own menu."
+msgstr "أماكن ظهور قائمة Shell. في كل مكان آخر، يعرض Windows قائمته الخاصة."
+
+#: ui/pages/rules.slint:151
+msgid "Where the menu appears"
+msgstr "مكان ظهور القائمة"
+
+#: ui/pages/rules.slint:153
+msgid "Only in File Explorer and on the desktop"
+msgstr "في مستكشف الملفات وعلى سطح المكتب فقط"
+
+#: ui/pages/rules.slint:156
+msgid "A custom condition is set below · {}"
+msgstr "تم تعيين شرط مخصص أدناه · {}"
+
+#: ui/pages/rules.slint:157
+msgid "Other programs' file dialogs keep Windows' menu · {}"
+msgstr "تحتفظ مربعات حوار الملفات في البرامج الأخرى بقائمة Windows · {}"
+
+#: ui/pages/rules.slint:170
+msgid "Custom condition"
+msgstr "شرط مخصص"
+
+#: ui/pages/rules.slint:174
+msgid "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save."
+msgstr "تعبير NSS؛ تُخفى قائمة Shell حيثما كان صحيحًا. يفحصه shell.exe عند الحفظ."
+
+#: ui/pages/rules.slint:186
+msgid "e.g. process.name == \"notepad\""
+msgstr "مثال: process.name == \"notepad\""
+
+#: ui/pages/rules.slint:206
+msgid "Show it in the Config Editor"
+msgstr "إظهاره في محرر التكوين"
+
+#: ui/pages/rules.slint:216
+msgid "Keep Windows' own menu"
+msgstr "الإبقاء على قائمة Windows الخاصة"
+
+#: ui/pages/rules.slint:217
+msgid "Shell's menu stays out of these programs and windows."
+msgstr "لا تظهر قائمة Shell في هذه البرامج والنوافذ."
+
+#: ui/pages/rules.slint:220 src/OpenWithController.cpp:171
+msgid "Programs"
+msgstr "البرامج"
+
+#: ui/pages/rules.slint:221
+msgid "By name, without .exe"
+msgstr "بالاسم، بدون ‎.exe"
+
+#: ui/pages/rules.slint:222
+msgid "notepad, or a path to an .exe"
+msgstr "‏notepad، أو مسار إلى ملف ‎.exe"
+
+#: ui/pages/rules.slint:223
+msgid "No programs."
+msgstr "لا توجد برامج."
+
+#: ui/pages/rules.slint:230
+msgid "Window classes"
+msgstr "فئات النوافذ"
+
+#: ui/pages/rules.slint:231
+msgid "The class of the top-level window, e.g. CabinetWClass for File Explorer"
+msgstr "فئة النافذة ذات المستوى الأعلى، مثل CabinetWClass لمستكشف الملفات"
+
+#: ui/pages/rules.slint:232
+msgid "Window class name"
+msgstr "اسم فئة النافذة"
+
+#: ui/pages/rules.slint:233
+msgid "No window classes."
+msgstr "لا توجد فئات نوافذ."
+
+#: ui/pages/snippets.slint:84
+msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
+msgstr "عناصر المقتطف مميزة باللون الأزرق؛ أما العناصر الرمادية فموجودة بالفعل في القائمة."
+
+#: ui/pages/snippets.slint:274
+msgid "Runs as administrator"
+msgstr "يعمل كمسؤول"
+
+#: ui/pages/snippets.slint:278
+msgid "Uses the internet"
+msgstr "يستخدم الإنترنت"
+
+#: ui/pages/snippets.slint:293 ui/pages/snippets.slint:300
+msgid "by {}"
+msgstr "بواسطة {}"
+
+#: ui/pages/snippets.slint:305
+msgid "Hide code"
+msgstr "إخفاء الكود"
+
+#: ui/pages/snippets.slint:305
+msgid "Show code"
+msgstr "إظهار الكود"
+
+#: ui/pages/snippets.slint:368
+msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
+msgstr "إضافات صغيرة جاهزة لقائمة النقر بزر الماوس الأيمن. شغّل إحداها وستجدها في المرة التالية التي تنقر فيها بزر الماوس الأيمن؛ وأوقفها فتختفي. يفحص Shell كل تغيير قبل حفظه."
+
+#: ui/pages/snippets.slint:377
+msgid "RubicBG's snippets are CC0, shared with his permission."
+msgstr "مقتطفات RubicBG مرخصة بموجب CC0، وتتم مشاركتها بإذنه."
+
+#: ui/pages/snippets.slint:385
+msgid "His collection on GitHub"
+msgstr "مجموعته على GitHub"
+
+#: ui/pages/snippets.slint:408
+msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
+msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لتشغيل المقتطفات."
+
+#: ui/pages/snippets.slint:427
+msgid "Search snippets"
+msgstr "البحث في المقتطفات"
+
+#. because Slint's fallback for Chinese text in Segoe UI misses characters.
+#: ui/preview/menu-preview.slint:31 ui/preview/menu-preview.slint:203
+msgctxt "Menu font family"
+msgid "Segoe UI"
+msgstr "Segoe UI"
+
+#: ui/preview/menu-preview.slint:204
+msgctxt "Explorer menu"
+msgid "View"
+msgstr "عرض"
+
+#: ui/preview/menu-preview.slint:204 src/AppearanceController.cpp:64 src/OpenWithController.cpp:784 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
+msgid "Sort by"
+msgstr "فرز حسب"
+
+#: ui/preview/menu-preview.slint:288 ui/preview/menu-preview.slint:319
+msgid "Documents"
+msgstr "المستندات"
+
+#: ui/preview/menu-preview.slint:288
+msgid "Pictures"
+msgstr "الصور"
+
+#: ui/preview/menu-preview.slint:288
+msgid "Projects"
+msgstr "المشاريع"
+
+#: ui/preview/menu-preview.slint:319
+msgid "This PC"
+msgstr "هذا الكمبيوتر"
+
+#: src/AppController.cpp:84 src/ConfigUpdateController.cpp:42
+msgid "shell.exe did not finish in time and was stopped."
+msgstr "لم ينتهِ shell.exe في الوقت المحدد وتم إيقافه."
+
+#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:498
+msgid "shell.exe exited with code {}."
+msgstr "خرج shell.exe بالرمز {}."
+
+#: src/AppController.cpp:122
+msgid "Registered for you"
+msgstr "مسجّل لك"
+
+#: src/AppController.cpp:124 src/AppController.cpp:642
+msgid "Registered for all users"
+msgstr "مسجّل لجميع المستخدمين"
+
+#: src/AppController.cpp:126
+msgid "Registered for you and for all users"
+msgstr "مسجّل لك ولجميع المستخدمين"
+
+#: src/AppController.cpp:132
+msgid "Not applicable on this Windows version"
+msgstr "لا ينطبق على إصدار Windows هذا"
+
+#: src/AppController.cpp:134
+msgid "Classic menu (set by another app)"
+msgstr "القائمة الكلاسيكية (عيّنها تطبيق آخر)"
+
+#: src/AppController.cpp:134
+msgid "Classic menu (set by Shell)"
+msgstr "القائمة الكلاسيكية (عيّنها Shell)"
+
+#: src/AppController.cpp:136
+msgid "Windows 11 menu; Shell is under \"Show more options\""
+msgstr "قائمة Windows 11؛ Shell ضمن \"إظهار المزيد من الخيارات\""
+
+#: src/AppController.cpp:139
+msgid "Personal (%APPDATA%)"
+msgstr "شخصي (%APPDATA%)"
+
+#: src/AppController.cpp:141
+msgid "Custom path (registry)"
+msgstr "مسار مخصص (السجل)"
+
+#: src/AppController.cpp:143
+msgid "Shared (install folder)"
+msgstr "مشترك (مجلد التثبيت)"
+
+#: src/AppController.cpp:145 src/MenuMapController.cpp:694
+msgid "Unknown"
+msgstr "غير معروف"
+
+#: src/AppController.cpp:149
+msgid "Two copies of Shell are registered"
+msgstr "توجد نسختان مسجلتان من Shell"
+
+#: src/AppController.cpp:150
+msgid "Explorer can load the other copy, and then Shell's menu doesn't appear."
+msgstr "قد يحمّل المستكشف النسخة الأخرى، وعندها لا تظهر قائمة Shell."
+
+#: src/AppController.cpp:151 src/AppController.cpp:161 src/AppController.cpp:166
+msgid "Needs attention"
+msgstr "يحتاج إلى انتباه"
+
+#: src/AppController.cpp:154
+msgid "Shell is not enabled"
+msgstr "‏Shell غير ممكَّن"
+
+#: src/AppController.cpp:155
+msgid "The context menu isn't registered for you or for all users."
+msgstr "القائمة المختصرة غير مسجلة لك أو لجميع المستخدمين."
+
+#: src/AppController.cpp:156
+msgid "Not enabled"
+msgstr "غير ممكَّن"
+
+#: src/AppController.cpp:159
+msgid "shell.dll is missing"
+msgstr "‏shell.dll مفقود"
+
+#: src/AppController.cpp:160
+msgid "The registered DLL file can't be found. Register again to fix it."
+msgstr "تعذر العثور على ملف DLL المسجل. سجّله مرة أخرى لإصلاح ذلك."
+
+#: src/AppController.cpp:164 src/Status.cpp:188
+msgid "The config file is missing"
+msgstr "ملف التكوين مفقود"
+
+#: src/AppController.cpp:165
+msgid "Shell can't build its menu without shell.nss."
+msgstr "لا يمكن لـ Shell إنشاء قائمته بدون shell.nss."
+
+#: src/AppController.cpp:169 src/AppController.cpp:171 src/AppController.cpp:174 src/AppController.cpp:178
+msgid "Shell is active"
+msgstr "‏Shell نشط"
+
+#: src/AppController.cpp:170
+msgid "Another app set the Windows 11 classic-menu switch."
+msgstr "عيّن تطبيق آخر مفتاح القائمة الكلاسيكية في Windows 11."
+
+#: src/AppController.cpp:175
+msgid "Your context menu is powered by Nilesoft Shell."
+msgstr "قائمتك المختصرة مدعومة بواسطة Nilesoft Shell."
+
+#: src/AppController.cpp:176
+msgid "Active for you and for every user on this PC."
+msgstr "نشط لك ولكل مستخدم على هذا الكمبيوتر."
+
+#: src/AppController.cpp:177
+msgid "Active for every user on this PC."
+msgstr "نشط لكل مستخدم على هذا الكمبيوتر."
+
+#: src/AppController.cpp:274
+msgid "Test a translation file"
+msgstr "اختبار ملف ترجمة"
+
+#: src/AppController.cpp:275
+msgid "Translation files"
+msgstr "ملفات الترجمة"
+
+#: src/AppController.cpp:276 src/ContextMenusController.cpp:557 src/OpenWithController.cpp:992
+msgid "All files"
+msgstr "كل الملفات"
+
+#: src/AppController.cpp:310
+msgid "The translation file can't be reloaded"
+msgstr "تتعذر إعادة تحميل ملف الترجمة"
+
+#: src/AppController.cpp:310
+msgid "The translation file can't be used"
+msgstr "يتعذر استخدام ملف الترجمة"
+
+#: src/AppController.cpp:320
+msgid "{} of {} strings translated"
+msgstr "تمت ترجمة {} من {} سلسلة"
+
+#: src/AppController.cpp:322
+msgid "{n} missing"
+msgid_plural "{n} missing"
+msgstr[0] "‏{n} مفقودة"
+msgstr[1] "واحدة مفقودة"
+msgstr[2] "اثنتان مفقودتان"
+msgstr[3] "‏{n} مفقودة"
+msgstr[4] "‏{n} مفقودة"
+msgstr[5] "‏{n} مفقودة"
+
+#: src/AppController.cpp:324
+msgid "{n} fuzzy, not shown"
+msgid_plural "{n} fuzzy, not shown"
+msgstr[0] "‏{n} غير مؤكدة، لا تُعرض"
+msgstr[1] "واحدة غير مؤكدة، لا تُعرض"
+msgstr[2] "اثنتان غير مؤكدتين، لا تُعرضان"
+msgstr[3] "‏{n} غير مؤكدة، لا تُعرض"
+msgstr[4] "‏{n} غير مؤكدة، لا تُعرض"
+msgstr[5] "‏{n} غير مؤكدة، لا تُعرض"
+
+#: src/AppController.cpp:326
+msgid "{n} not in this version of the app"
+msgid_plural "{n} not in this version of the app"
+msgstr[0] "‏{n} ليست في هذا الإصدار من التطبيق"
+msgstr[1] "واحدة ليست في هذا الإصدار من التطبيق"
+msgstr[2] "اثنتان ليستا في هذا الإصدار من التطبيق"
+msgstr[3] "‏{n} ليست في هذا الإصدار من التطبيق"
+msgstr[4] "‏{n} ليست في هذا الإصدار من التطبيق"
+msgstr[5] "‏{n} ليست في هذا الإصدار من التطبيق"
+
+#: src/AppController.cpp:334
+msgid "Translation file reloaded"
+msgstr "تمت إعادة تحميل ملف الترجمة"
+
+#: src/AppController.cpp:377
+msgctxt "Language"
+msgid "Auto"
+msgstr "تلقائي"
+
+#: src/AppController.cpp:521 src/SnippetsController.cpp:183
+msgid "shell.exe was not found"
+msgstr "لم يتم العثور على shell.exe"
+
+#: src/AppController.cpp:522
+msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
+msgstr "ثبّت Nilesoft Shell، أو ضع NilesoftShellPro.exe بجوار shell.exe."
+
+#: src/AppController.cpp:526
+msgid "Nilesoft Shell was not found"
+msgstr "لم يتم العثور على Nilesoft Shell"
+
+#: src/AppController.cpp:527
+msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
+msgstr "يبحث NilesoftShellPro.exe عن shell.exe بجواره وبجوار shell.dll المسجل."
+
+#: src/AppController.cpp:528 src/EditorController.cpp:339
+msgid "Not found"
+msgstr "غير موجود"
+
+#: src/AppController.cpp:547 src/AppController.cpp:550
+msgid "Couldn't read the Shell status"
+msgstr "تعذرت قراءة حالة Shell"
+
+#: src/AppController.cpp:628 src/AppController.cpp:670
+msgid "Restarting Explorer…"
+msgstr "جارٍ إعادة تشغيل المستكشف…"
+
+#: src/AppController.cpp:628
+msgid "Explorer restarted"
+msgstr "تمت إعادة تشغيل المستكشف"
+
+#: src/AppController.cpp:630
+msgid "Registering for you…"
+msgstr "جارٍ التسجيل لك…"
+
+#: src/AppController.cpp:630
+msgid "Shell is enabled for you"
+msgstr "تم تمكين Shell لك"
+
+#: src/AppController.cpp:631
+msgid "Restart Explorer to load it everywhere."
+msgstr "أعد تشغيل المستكشف لتحميله في كل مكان."
+
+#: src/AppController.cpp:635
+msgid "Unregistering…"
+msgstr "جارٍ إلغاء التسجيل…"
+
+#: src/AppController.cpp:635
+msgid "Shell is disabled for you"
+msgstr "تم تعطيل Shell لك"
+
+#: src/AppController.cpp:636 src/AppController.cpp:647
+msgid "Restart Explorer to unload it."
+msgstr "أعد تشغيل المستكشف لإلغاء تحميله."
+
+#: src/AppController.cpp:638
+msgid "Creating your config…"
+msgstr "جارٍ إنشاء التكوين…"
+
+#: src/AppController.cpp:638
+msgid "Personal config created"
+msgstr "تم إنشاء التكوين الشخصي"
+
+#: src/AppController.cpp:639
+msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
+msgstr "يقرأه Shell الآن من %APPDATA%\\Nilesoft\\Shell."
+
+#: src/AppController.cpp:641 src/AppController.cpp:646 src/AppController.cpp:651 src/UpdateController.cpp:943
+msgid "Waiting for administrator approval…"
+msgstr "في انتظار موافقة المسؤول…"
+
+#: src/AppController.cpp:642
+msgid "Restart Explorer to load it."
+msgstr "أعد تشغيل المستكشف لتحميله."
+
+#: src/AppController.cpp:647
+msgid "Unregistered for all users"
+msgstr "تم إلغاء التسجيل لجميع المستخدمين"
+
+#: src/AppController.cpp:652
+msgid "Only this copy is registered now"
+msgstr "هذه النسخة فقط مسجلة الآن"
+
+#: src/AppController.cpp:652
+msgid "Explorer was restarted."
+msgstr "تمت إعادة تشغيل المستكشف."
+
+#: src/AppController.cpp:673
+msgid "Registered, but Explorer didn't restart: {}"
+msgstr "تم التسجيل، لكن لم تتم إعادة تشغيل المستكشف: {}"
+
+#: src/AppController.cpp:680
+msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
+msgstr "لا تزال نسخة أخرى مسجلة: {}. ألغِ تثبيتها من الإعدادات > التطبيقات، ثم حاول مرة أخرى."
+
+#: src/AppController.cpp:687 src/UpdateController.cpp:970
+msgid "The administrator prompt was cancelled. Nothing was changed."
+msgstr "تم إلغاء مطالبة المسؤول. لم يتم تغيير أي شيء."
+
+#: src/AppController.cpp:688
+msgid "Cancelled"
+msgstr "تم الإلغاء"
+
+#: src/AppController.cpp:693
+msgid "That didn't work"
+msgstr "لم ينجح ذلك"
+
+#: src/AppController.cpp:712
+msgid "Putting the default files back…"
+msgstr "جارٍ إرجاع الملفات الافتراضية…"
+
+#: src/AppController.cpp:723
+msgid "Before reset to defaults"
+msgstr "قبل إعادة التعيين إلى الإعدادات الافتراضية"
+
+#: src/AppController.cpp:724
+msgid "Your current files couldn't be saved in Backups, so nothing was reset: {}"
+msgstr "تعذّر حفظ ملفاتك الحالية في النسخ الاحتياطية، لذا لم تتم إعادة تعيين أي شيء: {}"
+
+#: src/AppController.cpp:748
+msgid "Your previous files are saved in Backups."
+msgstr "ملفاتك السابقة محفوظة في النسخ الاحتياطية."
+
+#: src/AppController.cpp:751
+msgid "The reset didn't work"
+msgstr "لم تنجح إعادة التعيين"
+
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:719 src/SnippetPreview.cpp:722
+msgid "View"
+msgstr "عرض"
+
+#: src/AppearanceController.cpp:66
+msgid "Undo Rename"
+msgstr "تراجع عن إعادة التسمية"
+
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:49 src/Snippets.cpp:667 src/WindowsTitles.cpp:125
+msgid "Terminal"
+msgstr "Terminal"
+
+#: src/AppearanceController.cpp:68 src/AppearanceController.cpp:92 src/ConfigRules.cpp:50
+msgid "File manage"
+msgstr "إدارة الملفات"
+
+#: src/AppearanceController.cpp:68 src/ConfigRules.cpp:52
+msgid "Develop"
+msgstr "التطوير"
+
+#: src/AppearanceController.cpp:70
+msgid "New"
+msgstr "جديد"
+
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:723
+msgid "Display settings"
+msgstr "إعدادات العرض"
+
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:723
+msgid "Personalize"
+msgstr "تخصيص"
+
+#: src/AppearanceController.cpp:75
+msgid "Large icons"
+msgstr "أيقونات كبيرة"
+
+#: src/AppearanceController.cpp:75
+msgid "Medium icons"
+msgstr "أيقونات متوسطة"
+
+#: src/AppearanceController.cpp:75
+msgid "Small icons"
+msgstr "أيقونات صغيرة"
+
+#: src/AppearanceController.cpp:76
+msgid "Auto arrange icons"
+msgstr "ترتيب الأيقونات تلقائيًا"
+
+#: src/AppearanceController.cpp:76
+msgid "Show desktop icons"
+msgstr "إظهار أيقونات سطح المكتب"
+
+#: src/AppearanceController.cpp:77
+msgid "Item type"
+msgstr "نوع العنصر"
+
+#: src/AppearanceController.cpp:77
+msgid "Date modified"
+msgstr "تاريخ التعديل"
+
+#: src/AppearanceController.cpp:78 src/TaskbarApps.cpp:750
+msgid "Command prompt"
+msgstr "موجه الأوامر"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:90 src/AppearanceController.cpp:98
+msgid "Copy path"
+msgstr "نسخ المسار"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:98
+msgid "Take ownership"
+msgstr "تولي الملكية"
+
+#: src/AppearanceController.cpp:79 src/AppearanceController.cpp:98
+msgid "Attributes"
+msgstr "السمات"
+
+#: src/AppearanceController.cpp:80 src/AppearanceController.cpp:99
+msgid "New folder"
+msgstr "مجلد جديد"
+
+#: src/AppearanceController.cpp:80 src/AppearanceController.cpp:99
+msgid "New file"
+msgstr "ملف جديد"
+
+#: src/AppearanceController.cpp:81
+msgid "Open in editor"
+msgstr "فتح في المحرر"
+
+#: src/AppearanceController.cpp:82
+msgid "Text document"
+msgstr "مستند نصي"
+
+#: src/AppearanceController.cpp:82
+msgid "Shortcut"
+msgstr "اختصار"
+
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:343
+msgid "Read-only"
+msgstr "للقراءة فقط"
+
+#: src/AppearanceController.cpp:86 src/OpenWithController.cpp:771 src/OpenWithController.cpp:777 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717 src/SnippetPreview.cpp:725
+msgid "Open"
+msgstr "فتح"
+
+#: src/AppearanceController.cpp:92 src/WindowsTitles.cpp:84
+msgid "Pin to Start"
+msgstr "تثبيت في \"ابدأ\""
+
+#: src/AppearanceController.cpp:94 src/SnippetPreview.cpp:715 src/SnippetPreview.cpp:717 src/SnippetPreview.cpp:720 src/SnippetPreview.cpp:725
+msgid "Properties"
+msgstr "خصائص"
+
+#: src/AppearanceController.cpp:97
+msgid "Choose another app"
+msgstr "اختيار تطبيق آخر"
+
+#: src/AppearanceController.cpp:641
+msgid "Windows Transparency effects is off, so Shell draws this menu solid. Turn it on in Personalization > Colors, or choose Auto, which Shell applies even with it off."
+msgstr "تأثيرات الشفافية في Windows متوقفة، لذا يرسم Shell هذه القائمة بلون مصمت. شغّلها من التخصيص > الألوان، أو اختر تلقائي، الذي يطبّقه Shell حتى وهي متوقفة."
+
+#: src/AppearanceController.cpp:643
+msgid "Auto is acrylic on Windows 11, even with Windows Transparency effects off."
+msgstr "الخيار تلقائي يعني أكريليك في Windows 11، حتى مع إيقاف تأثيرات الشفافية في Windows."
+
+#: src/AppearanceController.cpp:644
+msgid "Auto is blur on Windows 10, even with Windows Transparency effects off."
+msgstr "الخيار تلقائي يعني تمويه في Windows 10، حتى مع إيقاف تأثيرات الشفافية في Windows."
+
+#: src/AppearanceController.cpp:646
+msgid "Not set: acrylic while Windows Transparency effects is on, none while it is off."
+msgstr "غير معيّن: أكريليك عندما تكون تأثيرات الشفافية في Windows قيد التشغيل، وبلا عندما تكون متوقفة."
+
+#: src/AppearanceController.cpp:648
+msgid "The blurred desktop with the tint over it, as Auto gives on Windows 11. For a stronger look, raise the tint's alpha."
+msgstr "سطح المكتب المموّه مع الصبغة فوقه، كما يعطيه الخيار تلقائي في Windows 11. للحصول على مظهر أقوى، ارفع قيمة ألفا للصبغة."
+
+#: src/AppearanceController.cpp:650
+msgid "Alpha sets the strength: 40 light, FF hides the blur."
+msgstr "تحدد قيمة ألفا القوة: 40 خفيفة، وFF تخفي التمويه."
+
+#: src/AppearanceController.cpp:652
+msgid "From effect = [n, tint, opacity]; a change here goes to background.tintcolor, which wins."
+msgstr "من effect = [n, tint, opacity]؛ أي تغيير هنا يذهب إلى background.tintcolor، الذي تكون له الأولوية."
+
+#: src/AppearanceController.cpp:655
+msgid "No effect: the menu is solid, so opacity doesn't apply."
+msgstr "بلا تأثير: القائمة مصمتة، لذا لا تنطبق العتامة."
+
+#: src/AppearanceController.cpp:656
+msgid "The background colour over the effect: 0 % shows only the effect and its tint, 100 % is solid and turns the effect off."
+msgstr "لون الخلفية فوق التأثير: 0 % يُظهر التأثير وصبغته فقط، و100 % مصمت ويوقف التأثير."
+
+#: src/BackupsController.cpp:50
+msgid "Keeps the newest {} snapshots, none older than {} days. Pinned snapshots are always kept."
+msgstr "يحتفظ بأحدث {} لقطة، ولا شيء أقدم من {} يومًا. يتم الاحتفاظ باللقطات المثبتة دائمًا."
+
+#: src/BackupsController.cpp:83
+msgid "Your config files are put back as they were on {0} ({n} file, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone."
+msgid_plural "Your config files are put back as they were on {0} ({n} files, \"{1}\").\n\nA snapshot of your current files is taken first, so you can undo this. Files added since then are left alone."
+msgstr[0] "تتم إعادة ملفات التكوين كما كانت في {0} ({n} ملف، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+msgstr[1] "تتم إعادة ملفات التكوين كما كانت في {0} (ملف واحد، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+msgstr[2] "تتم إعادة ملفات التكوين كما كانت في {0} (ملفان، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+msgstr[3] "تتم إعادة ملفات التكوين كما كانت في {0} ({n} ملفات، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+msgstr[4] "تتم إعادة ملفات التكوين كما كانت في {0} ({n} ملفًا، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+msgstr[5] "تتم إعادة ملفات التكوين كما كانت في {0} ({n} ملف، \"{1}\").\n\nيتم أخذ لقطة من ملفاتك الحالية أولاً، لذا يمكنك التراجع عن ذلك. لا يتم المساس بالملفات المضافة منذ ذلك الحين."
+
+#: src/BackupsController.cpp:94
+msgid "The snapshot from {} (\"{}\") is deleted from disk. This can't be undone."
+msgstr "يتم حذف لقطة {} (\"{}\") من القرص. لا يمكن التراجع عن ذلك."
+
+#: src/BackupsController.cpp:131
+msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
+msgstr "التكوين النشط هو التكوين المشترك في مجلد التثبيت، الذي لا يكتب إليه هذا التطبيق أبدًا. أنشئ تكوينًا شخصيًا للحصول على لقطات."
+
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:139 src/SnippetsController.cpp:507
+msgid "The config file doesn't exist: {}"
+msgstr "ملف التكوين غير موجود: {}"
+
+#: src/BackupsController.cpp:196
+msgid "Comparing with your files now…"
+msgstr "جارٍ المقارنة مع ملفاتك الحالية…"
+
+#: src/BackupsController.cpp:220
+msgid "Identical to your files now ({n} file)."
+msgid_plural "Identical to your files now ({n} files)."
+msgstr[0] "مطابقة لملفاتك الحالية ({n} ملف)."
+msgstr[1] "مطابقة لملفاتك الحالية (ملف واحد)."
+msgstr[2] "مطابقة لملفاتك الحالية (ملفان)."
+msgstr[3] "مطابقة لملفاتك الحالية ({n} ملفات)."
+msgstr[4] "مطابقة لملفاتك الحالية ({n} ملفًا)."
+msgstr[5] "مطابقة لملفاتك الحالية ({n} ملف)."
+
+#: src/BackupsController.cpp:223
+msgid "Since this snapshot: {n} file changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
+msgid_plural "Since this snapshot: {n} files changed (+{0} −{1} lines), {2} unchanged. Green lines are in your files now; red lines come back if you restore."
+msgstr[0] "منذ هذه اللقطة: تغيّر {n} ملف (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+msgstr[1] "منذ هذه اللقطة: تغيّر ملف واحد (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+msgstr[2] "منذ هذه اللقطة: تغيّر ملفان (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+msgstr[3] "منذ هذه اللقطة: تغيّرت {n} ملفات (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+msgstr[4] "منذ هذه اللقطة: تغيّر {n} ملفًا (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+msgstr[5] "منذ هذه اللقطة: تغيّر {n} ملف (+{0} −{1} سطر)، و{2} بلا تغيير. الأسطر الخضراء موجودة في ملفاتك الآن؛ والأسطر الحمراء تعود إذا قمت بالاستعادة."
+
+#: src/BackupsController.cpp:263
+msgid "Manual snapshot"
+msgstr "لقطة يدوية"
+
+#: src/BackupsController.cpp:269
+msgid "Couldn't create a snapshot"
+msgstr "تعذّر إنشاء لقطة"
+
+#: src/BackupsController.cpp:272
+msgid "Snapshot created"
+msgstr "تم إنشاء اللقطة"
+
+#: src/BackupsController.cpp:273
+msgid "{n} file saved as {0}."
+msgid_plural "{n} files saved as {0}."
+msgstr[0] "تم حفظ {n} ملف باسم {0}."
+msgstr[1] "تم حفظ ملف واحد باسم {0}."
+msgstr[2] "تم حفظ ملفين باسم {0}."
+msgstr[3] "تم حفظ {n} ملفات باسم {0}."
+msgstr[4] "تم حفظ {n} ملفًا باسم {0}."
+msgstr[5] "تم حفظ {n} ملف باسم {0}."
+
+#: src/BackupsController.cpp:289
+msgid "Couldn't pin the snapshot"
+msgstr "تعذّر تثبيت اللقطة"
+
+#: src/BackupsController.cpp:289
+msgid "Couldn't unpin the snapshot"
+msgstr "تعذّر إلغاء تثبيت اللقطة"
+
+#: src/BackupsController.cpp:314
+msgid "Restored the snapshot from {}"
+msgstr "تمت استعادة لقطة {}"
+
+#: src/BackupsController.cpp:315
+msgid "Your previous files were snapshotted first."
+msgstr "تم أخذ لقطة من ملفاتك السابقة أولاً."
+
+#: src/BackupsController.cpp:317
+msgid "Couldn't restore the snapshot"
+msgstr "تعذّرت استعادة اللقطة"
+
+#: src/BackupsController.cpp:328
+msgid "Snapshot deleted"
+msgstr "تم حذف اللقطة"
+
+#: src/BackupsController.cpp:330
+msgid "Couldn't delete the snapshot"
+msgstr "تعذّر حذف اللقطة"
+
+#: src/BackupsModel.cpp:60
+msgid "cannot read {} from the snapshot"
+msgstr "لا يمكن قراءة {} من اللقطة"
+
+#: src/BackupsModel.cpp:105
+msgid "snapshot '{}' not found"
+msgstr "اللقطة '{}' غير موجودة"
+
+#: src/BackupsModel.cpp:110
+msgid "pinned snapshots can't be deleted; unpin it first"
+msgstr "لا يمكن حذف اللقطات المثبتة؛ ألغِ تثبيتها أولاً"
+
+#: src/BackupsModel.cpp:117
+msgid "cannot delete {}: {}"
+msgstr "لا يمكن حذف {}: {}"
+
+#: src/BackupsModel.cpp:140
+msgid "Jan"
+msgstr "يناير"
+
+#: src/BackupsModel.cpp:140
+msgid "Feb"
+msgstr "فبراير"
+
+#: src/BackupsModel.cpp:140
+msgid "Mar"
+msgstr "مارس"
+
+#: src/BackupsModel.cpp:140
+msgid "Apr"
+msgstr "أبريل"
+
+#: src/BackupsModel.cpp:141 src/UpdateController.cpp:153
+msgid "May"
+msgstr "مايو"
+
+#: src/BackupsModel.cpp:141
+msgid "Jun"
+msgstr "يونيو"
+
+#: src/BackupsModel.cpp:141
+msgid "Jul"
+msgstr "يوليو"
+
+#: src/BackupsModel.cpp:141
+msgid "Aug"
+msgstr "أغسطس"
+
+#: src/BackupsModel.cpp:142
+msgid "Sep"
+msgstr "سبتمبر"
+
+#: src/BackupsModel.cpp:142
+msgid "Oct"
+msgstr "أكتوبر"
+
+#: src/BackupsModel.cpp:142
+msgid "Nov"
+msgstr "نوفمبر"
+
+#: src/BackupsModel.cpp:142
+msgid "Dec"
+msgstr "ديسمبر"
+
+#: src/BackupsModel.cpp:148
+msgctxt "date and time: short month, day, year, time"
+msgid "{0} {1}, {2}, {3}"
+msgstr "‏{1} {0} {2}، {3}"
+
+#: src/BackupsModel.cpp:161
+msgid "just now"
+msgstr "الآن"
+
+#: src/BackupsModel.cpp:163
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "منذ {n} دقيقة"
+msgstr[1] "منذ دقيقة واحدة"
+msgstr[2] "منذ دقيقتين"
+msgstr[3] "منذ {n} دقائق"
+msgstr[4] "منذ {n} دقيقة"
+msgstr[5] "منذ {n} دقيقة"
+
+#: src/BackupsModel.cpp:165
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "منذ {n} ساعة"
+msgstr[1] "منذ ساعة واحدة"
+msgstr[2] "منذ ساعتين"
+msgstr[3] "منذ {n} ساعات"
+msgstr[4] "منذ {n} ساعة"
+msgstr[5] "منذ {n} ساعة"
+
+#: src/BackupsModel.cpp:167
+msgid "yesterday"
+msgstr "أمس"
+
+#: src/BackupsModel.cpp:168
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "منذ {n} يوم"
+msgstr[1] "منذ يوم واحد"
+msgstr[2] "منذ يومين"
+msgstr[3] "منذ {n} أيام"
+msgstr[4] "منذ {n} يومًا"
+msgstr[5] "منذ {n} يوم"
+
+#: src/BehaviorController.cpp:267
+msgid "Folder for menu screenshots"
+msgstr "مجلد لقطات شاشة القوائم"
+
+#: src/ConfigRules.cpp:45
+msgid "Colors, fonts, spacing and effects of the menu. Off: Shell's built-in defaults."
+msgstr "ألوان القائمة وخطوطها وتباعدها وتأثيراتها. عند الإيقاف: الإعدادات الافتراضية المضمّنة في Shell."
+
+#: src/ConfigRules.cpp:46
+msgid "Icons"
+msgstr "الأيقونات"
+
+#: src/ConfigRules.cpp:46
+msgid "The icon.* images the other files draw with. Always on: turning it off breaks them."
+msgstr "صور icon.* التي تستخدمها الملفات الأخرى في الرسم. قيد التشغيل دائمًا: إيقافه يعطّل تلك الملفات."
+
+#: src/ConfigRules.cpp:47
+msgid "Other files use its icons; turning it off breaks them"
+msgstr "تستخدم الملفات الأخرى أيقوناته؛ إيقافه يعطّلها"
+
+#: src/ConfigRules.cpp:48
+msgid "Windows items"
+msgstr "عناصر Windows"
+
+#: src/ConfigRules.cpp:48
+msgid "Hides, moves and groups Windows' own items. Each rule is listed below."
+msgstr "يخفي عناصر Windows الخاصة وينقلها ويجمّعها. كل قاعدة مدرجة أدناه."
+
+#: src/ConfigRules.cpp:49
+msgid "Command Prompt, PowerShell and Windows Terminal, opened in the current folder."
+msgstr "موجه الأوامر وPowerShell وWindows Terminal، تُفتح في المجلد الحالي."
+
+#: src/ConfigRules.cpp:51
+msgid "Copy paths, change extension, select, take ownership, attributes, new folder and file."
+msgstr "نسخ المسارات، وتغيير الامتداد، والتحديد، وتولي الملكية، والسمات، ومجلد وملف جديدان."
+
+#: src/ConfigRules.cpp:52
+msgid "Open in an editor, dotnet commands. Shown while Shift is held."
+msgstr "الفتح في محرر، وأوامر dotnet. تظهر أثناء الضغط على Shift."
+
+#: src/ConfigRules.cpp:53 src/WindowsTitles.cpp:114
+msgid "Go to"
+msgstr "الانتقال إلى"
+
+#: src/ConfigRules.cpp:53
+msgid "Jump to common folders and Windows Settings pages."
+msgstr "الانتقال السريع إلى المجلدات الشائعة وصفحات إعدادات Windows."
+
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:341
+msgid "Taskbar"
+msgstr "شريط المهام"
+
+#: src/ConfigRules.cpp:54
+msgid "Apps, window arrangement and Task Manager on the taskbar's menu."
+msgstr "التطبيقات وترتيب النوافذ وإدارة المهام في قائمة شريط المهام."
+
+#: src/ConfigRules.cpp:55
+msgid "My tools"
+msgstr "أدواتي"
+
+#: src/ConfigRules.cpp:55
+msgid "New file and System menus from Abdullah Masood's config."
+msgstr "قائمة ملف جديد وقائمة النظام من تكوين Abdullah Masood."
+
+#: src/ConfigRules.cpp:56
+msgid "Your menus"
+msgstr "قوائمك"
+
+#: src/ConfigRules.cpp:56
+msgid "The menus and items you built on the Menu Builder page."
+msgstr "القوائم والعناصر التي أنشأتها في صفحة منشئ القوائم."
+
+#: src/ConfigRules.cpp:57
+msgid "The Windows items you hid, renamed or moved on the Menu map page."
+msgstr "عناصر Windows التي أخفيتها أو أعدت تسميتها أو نقلتها في صفحة خريطة القوائم."
+
+#: src/ConfigRules.cpp:58
+msgid "Editors and terminals you picked on the Open with page."
+msgstr "المحررات والطرفيات التي اخترتها في صفحة فتح باستخدام."
+
+#: src/ConfigRules.cpp:59
+msgid "The snippets you turned on on the Snippets page."
+msgstr "المقتطفات التي شغّلتها في صفحة المقتطفات."
+
+#: src/ConfigRules.cpp:215
+msgctxt "quote"
+msgid "“{}”"
+msgstr "“{}”"
+
+#: src/ConfigRules.cpp:352
+msgid "in File Explorer"
+msgstr "في مستكشف الملفات"
+
+#: src/ConfigRules.cpp:353
+msgid "on the desktop"
+msgstr "على سطح المكتب"
+
+#: src/ConfigRules.cpp:354
+msgid "on the taskbar"
+msgstr "على شريط المهام"
+
+#: src/ConfigRules.cpp:355
+msgid "in a text box"
+msgstr "في مربع نص"
+
+#: src/ConfigRules.cpp:356
+msgid "on the Start menu"
+msgstr "في قائمة \"ابدأ\""
+
+#: src/ConfigRules.cpp:380 src/ConfigRules.cpp:385
+msgctxt "names"
+msgid "{0}, {1}"
+msgstr "‏{0}، {1}"
+
+#: src/ConfigRules.cpp:381
+msgid "{0} and {n} more"
+msgid_plural "{0} and {n} more"
+msgstr[0] "‏{0} و{n} أخرى"
+msgstr[1] "‏{0} وواحد آخر"
+msgstr[2] "‏{0} واثنان آخران"
+msgstr[3] "‏{0} و{n} أخرى"
+msgstr[4] "‏{0} و{n} أخرى"
+msgstr[5] "‏{0} و{n} أخرى"
+
+#: src/ConfigRules.cpp:385
+msgctxt "names"
+msgid "{0} and {1}"
+msgstr "‏{0} و{1}"
+
+#: src/ConfigRules.cpp:402
+msgctxt "type"
+msgid "folder backgrounds"
+msgstr "خلفيات المجلدات"
+
+#: src/ConfigRules.cpp:404
+msgctxt "type"
+msgid "drive backgrounds"
+msgstr "خلفيات محركات الأقراص"
+
+#: src/ConfigRules.cpp:406
+msgctxt "type"
+msgid "virtual folder backgrounds"
+msgstr "خلفيات المجلدات الظاهرية"
+
+#: src/ConfigRules.cpp:408
+msgctxt "type"
+msgid "the This PC background"
+msgstr "خلفية هذا الكمبيوتر"
+
+#: src/ConfigRules.cpp:410
+msgctxt "type"
+msgid "the Recycle Bin background"
+msgstr "خلفية سلة المحذوفات"
+
+#: src/ConfigRules.cpp:412
+msgctxt "type"
+msgid "library backgrounds"
+msgstr "خلفيات المكتبات"
+
+#: src/ConfigRules.cpp:413
+msgid "{} backgrounds"
+msgstr "خلفيات {}"
+
+#: src/ConfigRules.cpp:416
+msgctxt "type"
+msgid "files"
+msgstr "الملفات"
+
+#: src/ConfigRules.cpp:418
+msgctxt "type"
+msgid "folders"
+msgstr "المجلدات"
+
+#: src/ConfigRules.cpp:420
+msgctxt "type"
+msgid "drives"
+msgstr "محركات الأقراص"
+
+#: src/ConfigRules.cpp:422
+msgctxt "type"
+msgid "USB drives"
+msgstr "محركات أقراص USB"
+
+#: src/ConfigRules.cpp:424
+msgctxt "type"
+msgid "DVD drives"
+msgstr "محركات أقراص DVD"
+
+#: src/ConfigRules.cpp:426
+msgctxt "type"
+msgid "fixed drives"
+msgstr "محركات الأقراص الثابتة"
+
+#: src/ConfigRules.cpp:428
+msgctxt "type"
+msgid "virtual hard disks"
+msgstr "الأقراص الثابتة الظاهرية"
+
+#: src/ConfigRules.cpp:430
+msgctxt "type"
+msgid "removable drives"
+msgstr "محركات الأقراص القابلة للإزالة"
+
+#: src/ConfigRules.cpp:432
+msgctxt "type"
+msgid "network drives"
+msgstr "محركات أقراص الشبكة"
+
+#: src/ConfigRules.cpp:434
+msgctxt "type"
+msgid "backgrounds"
+msgstr "الخلفيات"
+
+#: src/ConfigRules.cpp:436
+msgctxt "type"
+msgid "the desktop"
+msgstr "سطح المكتب"
+
+#: src/ConfigRules.cpp:438
+msgctxt "type"
+msgid "the Recycle Bin"
+msgstr "سلة المحذوفات"
+
+#: src/ConfigRules.cpp:440
+msgctxt "type"
+msgid "This PC"
+msgstr "هذا الكمبيوتر"
+
+#: src/ConfigRules.cpp:442
+msgctxt "type"
+msgid "virtual folders"
+msgstr "المجلدات الظاهرية"
+
+#: src/ConfigRules.cpp:444
+msgctxt "type"
+msgid "the taskbar"
+msgstr "شريط المهام"
+
+#: src/ConfigRules.cpp:446
+msgctxt "type"
+msgid "text boxes"
+msgstr "مربعات النص"
+
+#: src/ConfigRules.cpp:448
+msgctxt "type"
+msgid "the Start button"
+msgstr "زر \"ابدأ\""
+
+#: src/ConfigRules.cpp:450
+msgctxt "type"
+msgid "title bars"
+msgstr "أشرطة العنوان"
+
+#: src/ConfigRules.cpp:452
+msgctxt "type"
+msgid "compressed folders"
+msgstr "المجلدات المضغوطة"
+
+#: src/ConfigRules.cpp:454
+msgctxt "type"
+msgid "libraries"
+msgstr "المكتبات"
+
+#: src/ConfigRules.cpp:530 src/ConfigRules.cpp:665 src/ConfigRules.cpp:673
+msgid "{} or {}"
+msgstr "‏{} أو {}"
+
+#: src/ConfigRules.cpp:531
+msgid "items whose name matches {}"
+msgstr "العناصر التي يطابق اسمها {}"
+
+#: src/ConfigRules.cpp:537
+msgid "the items an expression picks"
+msgstr "العناصر التي يحددها تعبير"
+
+#: src/ConfigRules.cpp:539
+msgid "every item"
+msgstr "كل عنصر"
+
+#: src/ConfigRules.cpp:546
+msgid "Removes {0}"
+msgstr "يزيل {0}"
+
+#: src/ConfigRules.cpp:546
+msgid "removes it"
+msgid_plural "removes them"
+msgstr[0] "يزيلها"
+msgstr[1] "يزيله"
+msgstr[2] "يزيلهما"
+msgstr[3] "يزيلها"
+msgstr[4] "يزيلها"
+msgstr[5] "يزيلها"
+
+#: src/ConfigRules.cpp:550
+msgid "Hides {0}"
+msgstr "يخفي {0}"
+
+#: src/ConfigRules.cpp:550
+msgid "hides it"
+msgid_plural "hides them"
+msgstr[0] "يخفيها"
+msgstr[1] "يخفيه"
+msgstr[2] "يخفيهما"
+msgstr[3] "يخفيها"
+msgstr[4] "يخفيها"
+msgstr[5] "يخفيها"
+
+#: src/ConfigRules.cpp:552
+msgid "Disables {0}"
+msgstr "يعطّل {0}"
+
+#: src/ConfigRules.cpp:552
+msgid "disables it"
+msgid_plural "disables them"
+msgstr[0] "يعطّلها"
+msgstr[1] "يعطّله"
+msgstr[2] "يعطّلهما"
+msgstr[3] "يعطّلها"
+msgstr[4] "يعطّلها"
+msgstr[5] "يعطّلها"
+
+#: src/ConfigRules.cpp:554
+msgid "Changes when {0} is shown"
+msgstr "يغيّر متى يظهر {0}"
+
+#: src/ConfigRules.cpp:555
+msgid "changes when it is shown"
+msgid_plural "changes when they are shown"
+msgstr[0] "يغيّر متى تظهر"
+msgstr[1] "يغيّر متى يظهر"
+msgstr[2] "يغيّر متى يظهران"
+msgstr[3] "يغيّر متى تظهر"
+msgstr[4] "يغيّر متى تظهر"
+msgstr[5] "يغيّر متى تظهر"
+
+#: src/ConfigRules.cpp:569
+msgid "Moves {0} to the top of {1}"
+msgstr "ينقل {0} إلى أعلى {1}"
+
+#: src/ConfigRules.cpp:569
+msgid "moves it to the top of {0}"
+msgid_plural "moves them to the top of {0}"
+msgstr[0] "ينقلها إلى أعلى {0}"
+msgstr[1] "ينقله إلى أعلى {0}"
+msgstr[2] "ينقلهما إلى أعلى {0}"
+msgstr[3] "ينقلها إلى أعلى {0}"
+msgstr[4] "ينقلها إلى أعلى {0}"
+msgstr[5] "ينقلها إلى أعلى {0}"
+
+#: src/ConfigRules.cpp:571
+msgid "Moves {0} to the bottom of {1}"
+msgstr "ينقل {0} إلى أسفل {1}"
+
+#: src/ConfigRules.cpp:572
+msgid "moves it to the bottom of {0}"
+msgid_plural "moves them to the bottom of {0}"
+msgstr[0] "ينقلها إلى أسفل {0}"
+msgstr[1] "ينقله إلى أسفل {0}"
+msgstr[2] "ينقلهما إلى أسفل {0}"
+msgstr[3] "ينقلها إلى أسفل {0}"
+msgstr[4] "ينقلها إلى أسفل {0}"
+msgstr[5] "ينقلها إلى أسفل {0}"
+
+#: src/ConfigRules.cpp:574
+msgid "Moves {0} to the middle of {1}"
+msgstr "ينقل {0} إلى منتصف {1}"
+
+#: src/ConfigRules.cpp:575
+msgid "moves it to the middle of {0}"
+msgid_plural "moves them to the middle of {0}"
+msgstr[0] "ينقلها إلى منتصف {0}"
+msgstr[1] "ينقله إلى منتصف {0}"
+msgstr[2] "ينقلهما إلى منتصف {0}"
+msgstr[3] "ينقلها إلى منتصف {0}"
+msgstr[4] "ينقلها إلى منتصف {0}"
+msgstr[5] "ينقلها إلى منتصف {0}"
+
+#: src/ConfigRules.cpp:577
+msgid "Moves {0} into {1} at position {2}"
+msgstr "ينقل {0} إلى {1} في الموضع {2}"
+
+#: src/ConfigRules.cpp:578
+msgid "moves it into {0} at position {1}"
+msgid_plural "moves them into {0} at position {1}"
+msgstr[0] "ينقلها إلى {0} في الموضع {1}"
+msgstr[1] "ينقله إلى {0} في الموضع {1}"
+msgstr[2] "ينقلهما إلى {0} في الموضع {1}"
+msgstr[3] "ينقلها إلى {0} في الموضع {1}"
+msgstr[4] "ينقلها إلى {0} في الموضع {1}"
+msgstr[5] "ينقلها إلى {0} في الموضع {1}"
+
+#: src/ConfigRules.cpp:580
+msgid "Moves {0} into {1}"
+msgstr "ينقل {0} إلى {1}"
+
+#: src/ConfigRules.cpp:580
+msgid "moves it into {0}"
+msgid_plural "moves them into {0}"
+msgstr[0] "ينقلها إلى {0}"
+msgstr[1] "ينقله إلى {0}"
+msgstr[2] "ينقلهما إلى {0}"
+msgstr[3] "ينقلها إلى {0}"
+msgstr[4] "ينقلها إلى {0}"
+msgstr[5] "ينقلها إلى {0}"
+
+#: src/ConfigRules.cpp:583
+msgid "Moves {0} to the top of the menu"
+msgstr "ينقل {0} إلى أعلى القائمة"
+
+#: src/ConfigRules.cpp:584
+msgid "moves it to the top of the menu"
+msgid_plural "moves them to the top of the menu"
+msgstr[0] "ينقلها إلى أعلى القائمة"
+msgstr[1] "ينقله إلى أعلى القائمة"
+msgstr[2] "ينقلهما إلى أعلى القائمة"
+msgstr[3] "ينقلها إلى أعلى القائمة"
+msgstr[4] "ينقلها إلى أعلى القائمة"
+msgstr[5] "ينقلها إلى أعلى القائمة"
+
+#: src/ConfigRules.cpp:586
+msgid "Moves {0} to the bottom of the menu"
+msgstr "ينقل {0} إلى أسفل القائمة"
+
+#: src/ConfigRules.cpp:587
+msgid "moves it to the bottom of the menu"
+msgid_plural "moves them to the bottom of the menu"
+msgstr[0] "ينقلها إلى أسفل القائمة"
+msgstr[1] "ينقله إلى أسفل القائمة"
+msgstr[2] "ينقلهما إلى أسفل القائمة"
+msgstr[3] "ينقلها إلى أسفل القائمة"
+msgstr[4] "ينقلها إلى أسفل القائمة"
+msgstr[5] "ينقلها إلى أسفل القائمة"
+
+#: src/ConfigRules.cpp:589
+msgid "Moves {0} to the middle of the menu"
+msgstr "ينقل {0} إلى منتصف القائمة"
+
+#: src/ConfigRules.cpp:590
+msgid "moves it to the middle of the menu"
+msgid_plural "moves them to the middle of the menu"
+msgstr[0] "ينقلها إلى منتصف القائمة"
+msgstr[1] "ينقله إلى منتصف القائمة"
+msgstr[2] "ينقلهما إلى منتصف القائمة"
+msgstr[3] "ينقلها إلى منتصف القائمة"
+msgstr[4] "ينقلها إلى منتصف القائمة"
+msgstr[5] "ينقلها إلى منتصف القائمة"
+
+#: src/ConfigRules.cpp:592
+msgid "Moves {0} to position {1} in the menu"
+msgstr "ينقل {0} إلى الموضع {1} في القائمة"
+
+#: src/ConfigRules.cpp:593
+msgid "moves it to position {0} in the menu"
+msgid_plural "moves them to position {0} in the menu"
+msgstr[0] "ينقلها إلى الموضع {0} في القائمة"
+msgstr[1] "ينقله إلى الموضع {0} في القائمة"
+msgstr[2] "ينقلهما إلى الموضع {0} في القائمة"
+msgstr[3] "ينقلها إلى الموضع {0} في القائمة"
+msgstr[4] "ينقلها إلى الموضع {0} في القائمة"
+msgstr[5] "ينقلها إلى الموضع {0} في القائمة"
+
+#: src/ConfigRules.cpp:595
+msgid "Moves {0}"
+msgstr "ينقل {0}"
+
+#: src/ConfigRules.cpp:595
+msgid "moves it"
+msgid_plural "moves them"
+msgstr[0] "ينقلها"
+msgstr[1] "ينقله"
+msgstr[2] "ينقلهما"
+msgstr[3] "ينقلها"
+msgstr[4] "ينقلها"
+msgstr[5] "ينقلها"
+
+#: src/ConfigRules.cpp:603
+msgid "Renames {0} to {1}"
+msgstr "يعيد تسمية {0} إلى {1}"
+
+#: src/ConfigRules.cpp:603
+msgid "renames it to {0}"
+msgid_plural "renames them to {0}"
+msgstr[0] "يعيد تسميتها إلى {0}"
+msgstr[1] "يعيد تسميته إلى {0}"
+msgstr[2] "يعيد تسميتهما إلى {0}"
+msgstr[3] "يعيد تسميتها إلى {0}"
+msgstr[4] "يعيد تسميتها إلى {0}"
+msgstr[5] "يعيد تسميتها إلى {0}"
+
+#: src/ConfigRules.cpp:612
+msgid "Adds a separator above {0}"
+msgstr "يضيف فاصلاً فوق {0}"
+
+#: src/ConfigRules.cpp:612
+msgid "adds a separator above it"
+msgid_plural "adds a separator above them"
+msgstr[0] "يضيف فاصلاً فوقها"
+msgstr[1] "يضيف فاصلاً فوقه"
+msgstr[2] "يضيف فاصلاً فوقهما"
+msgstr[3] "يضيف فاصلاً فوقها"
+msgstr[4] "يضيف فاصلاً فوقها"
+msgstr[5] "يضيف فاصلاً فوقها"
+
+#: src/ConfigRules.cpp:614
+msgid "Adds a separator below {0}"
+msgstr "يضيف فاصلاً تحت {0}"
+
+#: src/ConfigRules.cpp:614
+msgid "adds a separator below it"
+msgid_plural "adds a separator below them"
+msgstr[0] "يضيف فاصلاً تحتها"
+msgstr[1] "يضيف فاصلاً تحته"
+msgstr[2] "يضيف فاصلاً تحتهما"
+msgstr[3] "يضيف فاصلاً تحتها"
+msgstr[4] "يضيف فاصلاً تحتها"
+msgstr[5] "يضيف فاصلاً تحتها"
+
+#: src/ConfigRules.cpp:616
+msgid "Adds separators above and below {0}"
+msgstr "يحيط {0} بفاصلين من أعلى وأسفل"
+
+#: src/ConfigRules.cpp:617
+msgid "adds separators above and below it"
+msgid_plural "adds separators above and below them"
+msgstr[0] "يحيطها بفاصلين من أعلى وأسفل"
+msgstr[1] "يحيطه بفاصلين من أعلى وأسفل"
+msgstr[2] "يحيطهما بفاصلين من أعلى وأسفل"
+msgstr[3] "يحيطها بفاصلين من أعلى وأسفل"
+msgstr[4] "يحيطها بفاصلين من أعلى وأسفل"
+msgstr[5] "يحيطها بفاصلين من أعلى وأسفل"
+
+#: src/ConfigRules.cpp:619
+msgid "Changes the separators around {0}"
+msgstr "يغيّر الفواصل حول {0}"
+
+#: src/ConfigRules.cpp:620
+msgid "changes the separators around it"
+msgid_plural "changes the separators around them"
+msgstr[0] "يغيّر الفواصل حولها"
+msgstr[1] "يغيّر الفواصل حوله"
+msgstr[2] "يغيّر الفواصل حولهما"
+msgstr[3] "يغيّر الفواصل حولها"
+msgstr[4] "يغيّر الفواصل حولها"
+msgstr[5] "يغيّر الفواصل حولها"
+
+#: src/ConfigRules.cpp:623
+msgid "Changes the icon of {0}"
+msgstr "يغيّر أيقونة {0}"
+
+#: src/ConfigRules.cpp:623
+msgid "changes its icon"
+msgid_plural "changes their icons"
+msgstr[0] "يغيّر أيقوناتها"
+msgstr[1] "يغيّر أيقونته"
+msgstr[2] "يغيّر أيقونتيهما"
+msgstr[3] "يغيّر أيقوناتها"
+msgstr[4] "يغيّر أيقوناتها"
+msgstr[5] "يغيّر أيقوناتها"
+
+#: src/ConfigRules.cpp:625
+msgid "Shows a shortcut key on {0}"
+msgstr "يُظهر مفتاح اختصار على {0}"
+
+#: src/ConfigRules.cpp:625
+msgid "shows a shortcut key"
+msgid_plural "shows shortcut keys"
+msgstr[0] "يُظهر مفاتيح اختصار"
+msgstr[1] "يُظهر مفتاح اختصار"
+msgstr[2] "يُظهر مفتاحي اختصار"
+msgstr[3] "يُظهر مفاتيح اختصار"
+msgstr[4] "يُظهر مفاتيح اختصار"
+msgstr[5] "يُظهر مفاتيح اختصار"
+
+#: src/ConfigRules.cpp:627
+msgid "Adds a tip to {0}"
+msgstr "يضيف تلميحًا إلى {0}"
+
+#: src/ConfigRules.cpp:627
+msgid "adds a tip"
+msgid_plural "adds tips"
+msgstr[0] "يضيف تلميحات"
+msgstr[1] "يضيف تلميحًا"
+msgstr[2] "يضيف تلميحين"
+msgstr[3] "يضيف تلميحات"
+msgstr[4] "يضيف تلميحات"
+msgstr[5] "يضيف تلميحات"
+
+#: src/ConfigRules.cpp:629
+msgid "Changes the state of {0}"
+msgstr "يغيّر حالة {0}"
+
+#: src/ConfigRules.cpp:629
+msgid "changes its state"
+msgid_plural "changes their state"
+msgstr[0] "يغيّر حالتها"
+msgstr[1] "يغيّر حالته"
+msgstr[2] "يغيّر حالتيهما"
+msgstr[3] "يغيّر حالتها"
+msgstr[4] "يغيّر حالتها"
+msgstr[5] "يغيّر حالتها"
+
+#: src/ConfigRules.cpp:631
+msgid "Changes the command of {0}"
+msgstr "يغيّر أمر {0}"
+
+#: src/ConfigRules.cpp:631
+msgid "changes its command"
+msgid_plural "changes their commands"
+msgstr[0] "يغيّر أوامرها"
+msgstr[1] "يغيّر أمره"
+msgstr[2] "يغيّر أمريهما"
+msgstr[3] "يغيّر أوامرها"
+msgstr[4] "يغيّر أوامرها"
+msgstr[5] "يغيّر أوامرها"
+
+#: src/ConfigRules.cpp:633
+msgid "Matches {0} but changes nothing"
+msgstr "يطابق {0} لكنه لا يغيّر شيئًا"
+
+#: src/ConfigRules.cpp:637
+msgctxt "actions"
+msgid "{0} and {1}"
+msgstr "‏{0} و{1}"
+
+#: src/ConfigRules.cpp:637
+msgctxt "actions"
+msgid "{0}, {1}"
+msgstr "‏{0}، {1}"
+
+#: src/ConfigRules.cpp:645
+msgid "when one or more items are selected"
+msgstr "عند تحديد عنصر واحد أو أكثر"
+
+#: src/ConfigRules.cpp:647
+msgid "when several items are selected"
+msgstr "عند تحديد عدة عناصر"
+
+#: src/ConfigRules.cpp:649
+msgid "when nothing is selected"
+msgstr "عندما لا يكون هناك شيء محدد"
+
+#: src/ConfigRules.cpp:654
+msgctxt "when"
+msgid "{0} {1}"
+msgstr "{0} {1}"
+
+#: src/ConfigRules.cpp:669
+msgid "for {0}"
+msgstr "بالنسبة إلى {0}"
+
+#: src/ConfigRules.cpp:675 src/ConfigRules.cpp:678
+msgctxt "where"
+msgid "{0} {1}"
+msgstr "{0} {1}"
+
+#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1037
+msgid "in {}"
+msgstr "في {}"
+
+#: src/ConfigRules.cpp:681
+msgctxt "where"
+msgid "{0}, {1}"
+msgstr "‏{0}، {1}"
+
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:336
+msgid "File"
+msgstr "ملف"
+
+#: src/ConfigRules.cpp:746
+msgid "{} background"
+msgstr "خلفية {}"
+
+#: src/ConfigRules.cpp:756
+msgid "Recycle bin"
+msgstr "سلة المحذوفات"
+
+#: src/ConfigRules.cpp:758
+msgid "Anything"
+msgstr "أي شيء"
+
+#: src/ConfigRules.cpp:832
+msgid "Your own file, imported from {}."
+msgstr "ملفك الخاص، مستورد من {}."
+
+#: src/ConfigRules.cpp:846
+msgid "The import spans several lines"
+msgstr "يمتد الاستيراد على عدة أسطر"
+
+#: src/ConfigRules.cpp:847
+msgid "Locked: the import spans several lines."
+msgstr "مقفل: يمتد الاستيراد على عدة أسطر."
+
+#: src/ConfigRules.cpp:851
+msgid "Something else shares its line"
+msgstr "يوجد شيء آخر على السطر نفسه"
+
+#: src/ConfigRules.cpp:852
+msgid "Locked: something else shares its line."
+msgstr "مقفل: يوجد شيء آخر على السطر نفسه."
+
+#: src/ConfigRules.cpp:973
+msgid "Inside a menu"
+msgstr "داخل قائمة"
+
+#: src/ConfigRules.cpp:976
+msgid "Shares a line with other code"
+msgstr "يشارك سطرًا مع تعليمات برمجية أخرى"
+
+#: src/ConfigUpdateController.cpp:25
+msgid "Before updating the menu files"
+msgstr "قبل تحديث ملفات القوائم"
+
+#: src/ConfigUpdateController.cpp:26
+msgid "Before using the new version of a menu file"
+msgstr "قبل استخدام الإصدار الجديد من ملف قائمة"
+
+#: src/ConfigUpdateController.cpp:165
+msgid "Updated {n} configuration file to this version"
+msgid_plural "Updated {n} configuration files to this version"
+msgstr[0] "تم تحديث {n} ملف تكوين إلى هذا الإصدار"
+msgstr[1] "تم تحديث ملف تكوين واحد إلى هذا الإصدار"
+msgstr[2] "تم تحديث ملفي تكوين إلى هذا الإصدار"
+msgstr[3] "تم تحديث {n} ملفات تكوين إلى هذا الإصدار"
+msgstr[4] "تم تحديث {n} ملفًا من ملفات التكوين إلى هذا الإصدار"
+msgstr[5] "تم تحديث {n} ملف تكوين إلى هذا الإصدار"
+
+#: src/ConfigUpdateController.cpp:167
+msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
+msgstr "جاءت مع Nilesoft Shell ولم تكن قد غيّرتها. نسخك القديمة محفوظة في النسخ الاحتياطية."
+
+#: src/ConfigUpdateController.cpp:168
+msgid "{n} configuration file wasn't updated because you changed it"
+msgid_plural "{n} configuration files weren't updated because you changed them"
+msgstr[0] "لم يتم تحديث {n} ملف تكوين لأنك غيّرتها"
+msgstr[1] "لم يتم تحديث ملف تكوين واحد لأنك غيّرته"
+msgstr[2] "لم يتم تحديث ملفي تكوين لأنك غيّرتهما"
+msgstr[3] "لم يتم تحديث {n} ملفات تكوين لأنك غيّرتها"
+msgstr[4] "لم يتم تحديث {n} ملفًا من ملفات التكوين لأنك غيّرتها"
+msgstr[5] "لم يتم تحديث {n} ملف تكوين لأنك غيّرتها"
+
+#: src/ConfigUpdateController.cpp:171
+msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+msgstr "تم الاحتفاظ بتغييراتك. قارن ملفًا بالإصدار الجديد، أو استخدم الإصدار الجديد بدلاً منه. يتم حفظ نسختك في النسخ الاحتياطية أولاً."
+
+#: src/ConfigUpdateController.cpp:177
+msgid "{}: your copy and the new version"
+msgstr "‏{}: نسختك والإصدار الجديد"
+
+#: src/ConfigUpdateController.cpp:178
+msgid "Red lines are only in your copy. Green lines are in the new version."
+msgstr "الأسطر الحمراء موجودة في نسختك فقط. الأسطر الخضراء موجودة في الإصدار الجديد."
+
+#: src/ConfigUpdateController.cpp:208 src/Updater.cpp:886
+msgid "Couldn't read {}."
+msgstr "تعذّرت قراءة {}."
+
+#: src/ConfigUpdateController.cpp:244
+msgid "Couldn't use the new version"
+msgstr "تعذّر استخدام الإصدار الجديد"
+
+#: src/ConfigUpdateController.cpp:257
+msgid "Now using the new version of {}"
+msgstr "يتم الآن استخدام الإصدار الجديد من {}"
+
+#: src/ConfigUpdateController.cpp:257
+msgid "Your copy is saved in Backups."
+msgstr "نسختك محفوظة في النسخ الاحتياطية."
+
+#: src/ContextMenusController.cpp:208
+msgid "The config couldn't be read."
+msgstr "تعذرت قراءة التكوين."
+
+#: src/ContextMenusController.cpp:365
+msgid "Complex: edit it in the Config Editor"
+msgstr "معقد: حرّره في محرر التكوين"
+
+#: src/ContextMenusController.cpp:367
+msgid "{} (outside your config)"
+msgstr "‏{} (خارج التكوين الخاص بك)"
+
+#: src/ContextMenusController.cpp:377
+msgid "No modify or remove rules in your config."
+msgstr "لا توجد قواعد تعديل أو إزالة في التكوين الخاص بك."
+
+#: src/ContextMenusController.cpp:378
+msgid "{n} rule in {0}. Turning one off comments it out; turning it back on restores it."
+msgid_plural "{n} rules in {0}. Turning one off comments it out; turning it back on restores it."
+msgstr[0] "‏{n} قاعدة في {0}. إيقاف إحداها يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+msgstr[1] "قاعدة واحدة في {0}. إيقافها يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+msgstr[2] "قاعدتان في {0}. إيقاف إحداهما يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+msgstr[3] "‏{n} قواعد في {0}. إيقاف إحداها يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+msgstr[4] "‏{n} قاعدة في {0}. إيقاف إحداها يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+msgstr[5] "‏{n} قاعدة في {0}. إيقاف إحداها يحوّلها إلى تعليق؛ وتشغيلها مرة أخرى يستعيدها."
+
+#: src/ContextMenusController.cpp:393
+msgid "Couldn't change {}"
+msgstr "تعذر تغيير {}"
+
+#: src/ContextMenusController.cpp:393 src/ContextMenusController.cpp:690
+msgid "Edit the import line in the Config Editor instead."
+msgstr "حرّر سطر الاستيراد في محرر التكوين بدلاً من ذلك."
+
+#: src/ContextMenusController.cpp:406
+msgid "Couldn't change this rule"
+msgstr "تعذر تغيير هذه القاعدة"
+
+#: src/ContextMenusController.cpp:406
+msgid "Edit it in the Config Editor instead."
+msgstr "حرّره في محرر التكوين بدلاً من ذلك."
+
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:701
+msgid "Can't check the config"
+msgstr "تعذر فحص التكوين"
+
+#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:701
+msgid "shell.exe was not found, so nothing was saved."
+msgstr "لم يتم العثور على shell.exe، لذا لم يُحفظ أي شيء."
+
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1405 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:705
+msgid "Not saved"
+msgstr "لم يتم الحفظ"
+
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482
+msgid "{} is read-only here."
+msgstr "‏{} للقراءة فقط هنا."
+
+#: src/ContextMenusController.cpp:512
+msgid "Saved, but a file couldn't be deleted"
+msgstr "تم الحفظ، لكن تعذر حذف ملف"
+
+#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1430 src/MenuMapController.cpp:1537
+msgid "Saved"
+msgstr "تم الحفظ"
+
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1430 src/MenuMapController.cpp:1537 src/OpenWithController.cpp:1145
+msgid "No changes were needed."
+msgstr "لم تكن هناك حاجة إلى أي تغييرات."
+
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:1431 src/MenuMapController.cpp:1538
+msgid "Snapshot {} was taken first."
+msgstr "تم التقاط اللقطة {} أولاً."
+
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1443 src/SnippetsController.cpp:794
+msgid "Not saved: the config would fail to load"
+msgstr "لم يتم الحفظ: سيفشل تحميل التكوين"
+
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1446 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:797
+msgid "Couldn't save"
+msgstr "تعذر الحفظ"
+
+#: src/ContextMenusController.cpp:597
+msgid "Choose a .nss file to add"
+msgstr "اختر ملف .nss لإضافته"
+
+#: src/ContextMenusController.cpp:597
+msgid "Shell config files"
+msgstr "ملفات تكوين Shell"
+
+#: src/ContextMenusController.cpp:603
+msgid "That's your shell.nss"
+msgstr "هذا هو ملف shell.nss الخاص بك"
+
+#: src/ContextMenusController.cpp:603
+msgid "Pick another .nss file to add to it."
+msgstr "اختر ملف .nss آخر لإضافته إليه."
+
+#: src/ContextMenusController.cpp:609
+msgid "Couldn't read the file"
+msgstr "تعذرت قراءة الملف"
+
+#: src/ContextMenusController.cpp:645
+msgid "Already in your config"
+msgstr "موجود بالفعل في التكوين الخاص بك"
+
+#: src/ContextMenusController.cpp:645
+msgid "shell.nss already imports {}."
+msgstr "يستورد shell.nss الملف {} بالفعل."
+
+#: src/ContextMenusController.cpp:648
+msgid "{} added"
+msgstr "تمت إضافة {}"
+
+#: src/ContextMenusController.cpp:648
+msgid "Save to check it and use it. Nothing is written until then."
+msgstr "احفظ لفحصه واستخدامه. لن تتم كتابة أي شيء قبل ذلك."
+
+#: src/ContextMenusController.cpp:690
+msgid "Couldn't remove {}"
+msgstr "تعذرت إزالة {}"
+
+#: src/ContextMenusController.cpp:780
+msgid "Written by hand"
+msgstr "مكتوب يدويًا"
+
+#: src/ContextMenusController.cpp:790
+msgid "Choose a program for it"
+msgstr "اختر برنامجًا له"
+
+#: src/ContextMenusController.cpp:792 src/OpenWithController.cpp:605
+msgid "Not found: {}"
+msgstr "غير موجود: {}"
+
+#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1549 src/MenuModel.cpp:537 src/OpenWithModel.cpp:1433
+msgid "Line {}: {}"
+msgstr "السطر {}: {}"
+
+#: src/ContextMenusController.cpp:833
+msgid "The Taskbar module is off, so the taskbar's menu doesn't show these apps. Turn it on under Modules."
+msgstr "وحدة شريط المهام متوقفة، لذا لا تعرض قائمة شريط المهام هذه التطبيقات. شغّلها ضمن الوحدات."
+
+#: src/ContextMenusController.cpp:835
+msgid "Your imports\\taskbar.nss doesn't read this list: it was changed by hand, or it comes from an older version. Take the new taskbar.nss on the Home page (your copy goes into a backup), or open it in the Config Editor."
+msgstr "لا يقرأ ملف imports\\taskbar.nss الخاص بك هذه القائمة: فقد تم تغييره يدويًا، أو أنه من إصدار أقدم. خذ ملف taskbar.nss الجديد من الصفحة الرئيسية (تُنقل نسختك إلى نسخة احتياطية)، أو افتحه في محرر التكوين."
+
+#: src/ContextMenusController.cpp:954
+msgid "Choose a program or shortcut"
+msgstr "اختر برنامجًا أو اختصارًا"
+
+#: src/ContextMenusController.cpp:954
+msgid "Programs and shortcuts"
+msgstr "البرامج والاختصارات"
+
+#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:691 src/Snippets.cpp:671
+msgid "Windows"
+msgstr "Windows"
+
+#: src/ContextMenusController.cpp:1019
+msgid "Installed apps"
+msgstr "التطبيقات المثبتة"
+
+#: src/EditorController.cpp:312
+msgid "Nothing to show."
+msgstr "لا يوجد ما يمكن عرضه."
+
+#: src/EditorController.cpp:337
+msgid "Shared config: read-only"
+msgstr "التكوين المشترك: للقراءة فقط"
+
+#: src/EditorController.cpp:341
+msgid "Outside your config folder"
+msgstr "خارج مجلد التكوين الخاص بك"
+
+#: src/EditorController.cpp:393
+msgid "Couldn't open {}"
+msgstr "تعذر فتح {}"
+
+#: src/EditorController.cpp:683
+msgid "shell.exe was not found, so the config can't be checked"
+msgstr "لم يتم العثور على shell.exe، لذا لا يمكن فحص التكوين"
+
+#: src/EditorController.cpp:690
+msgid "Checking your edits…"
+msgstr "جارٍ فحص تعديلاتك…"
+
+#: src/EditorController.cpp:706
+msgid "The check couldn't run: {}"
+msgstr "تعذر تشغيل الفحص: {}"
+
+#: src/EditorController.cpp:711 src/EditorController.cpp:803
+msgid "{n} error in your edits"
+msgid_plural "{n} errors in your edits"
+msgstr[0] "‏{n} خطأ في تعديلاتك"
+msgstr[1] "خطأ واحد في تعديلاتك"
+msgstr[2] "خطآن في تعديلاتك"
+msgstr[3] "‏{n} أخطاء في تعديلاتك"
+msgstr[4] "‏{n} خطأً في تعديلاتك"
+msgstr[5] "‏{n} خطأ في تعديلاتك"
+
+#: src/EditorController.cpp:712
+msgid "{n} error"
+msgid_plural "{n} errors"
+msgstr[0] "‏{n} خطأ"
+msgstr[1] "خطأ واحد"
+msgstr[2] "خطآن"
+msgstr[3] "‏{n} أخطاء"
+msgstr[4] "‏{n} خطأً"
+msgstr[5] "‏{n} خطأ"
+
+#: src/EditorController.cpp:717
+msgid "Your edits pass the check"
+msgstr "اجتازت تعديلاتك الفحص"
+
+#: src/EditorController.cpp:717
+msgid "The config passes the check"
+msgstr "اجتاز التكوين الفحص"
+
+#: src/EditorController.cpp:736
+msgid "Nothing to save"
+msgstr "لا يوجد ما يمكن حفظه"
+
+#: src/EditorController.cpp:736
+msgid "These files are read-only here."
+msgstr "هذه الملفات للقراءة فقط هنا."
+
+#: src/EditorController.cpp:740 src/ShellCli.cpp:225
+msgid "shell.exe was not found."
+msgstr "لم يتم العثور على shell.exe."
+
+#: src/EditorController.cpp:754
+msgid "The check found {n} error: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
+msgid_plural "The check found {n} errors: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
+msgstr[0] "عثر الفحص على {n} خطأ: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+msgstr[1] "عثر الفحص على خطأ واحد: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+msgstr[2] "عثر الفحص على خطأين: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+msgstr[3] "عثر الفحص على {n} أخطاء: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+msgstr[4] "عثر الفحص على {n} خطأً: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+msgstr[5] "عثر الفحص على {n} خطأ: {0}.\n\nيوقف Shell القائمة المختصرة بالكامل ما دام في التكوين خطأ، إلى أن يُصلَح ويُحفظ مرة أخرى. وتُلتقط لقطة أولاً في كلتا الحالتين."
+
+#: src/EditorController.cpp:757
+msgid "see Problems"
+msgstr "راجع المشكلات"
+
+#: src/EditorController.cpp:784
+msgid "Saved {}"
+msgstr "تم حفظ {}"
+
+#: src/EditorController.cpp:785
+msgid "Saved {n} file"
+msgid_plural "Saved {n} files"
+msgstr[0] "تم حفظ {n} ملف"
+msgstr[1] "تم حفظ ملف واحد"
+msgstr[2] "تم حفظ ملفين"
+msgstr[3] "تم حفظ {n} ملفات"
+msgstr[4] "تم حفظ {n} ملفًا"
+msgstr[5] "تم حفظ {n} ملف"
+
+#: src/EditorController.cpp:789
+msgid "The config has errors; Shell's menu stays off until they're fixed."
+msgstr "في التكوين أخطاء؛ وتبقى قائمة Shell متوقفة حتى يتم إصلاحها."
+
+#: src/EditorController.cpp:869
+msgid "{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours."
+msgstr "تغيّر {} على القرص بينما لديك تعديلات غير محفوظة. أعد التحميل لرؤية الإصدار الجديد (ستُفقد تعديلاتك)، أو أغلق هذا لمتابعة تحرير نسختك."
+
+#: src/EditorController.cpp:913
+msgid "That file isn't in the import tree"
+msgstr "هذا الملف ليس ضمن شجرة الاستيراد"
+
+#: src/EditorSession.cpp:224
+msgid "shell.exe -config:check gave no result"
+msgstr "لم يُرجع shell.exe -config:check أي نتيجة"
+
+#: src/EditorSession.cpp:256
+msgid "The configuration does not load."
+msgstr "لا يتم تحميل التكوين."
+
+#: src/EditorSession.cpp:314
+msgid "refusing to write under Program Files: {}"
+msgstr "تم رفض الكتابة داخل Program Files: {}"
+
+#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:787 src/MenuMapController.cpp:856 src/MenuMapController.cpp:915 src/MenuMapController.cpp:1472
+msgid "(no title)"
+msgstr "(بلا عنوان)"
+
+#: src/MenuBuilderController.cpp:77
+msgid "(title from an expression)"
+msgstr "(عنوان من تعبير)"
+
+#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:743
+msgid "Couldn't read {}: {}"
+msgstr "تعذرت قراءة {}: {}"
+
+#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:705
+msgid "Program Files is never written to."
+msgstr "لا تتم الكتابة أبدًا في Program Files."
+
+#: src/MenuBuilderController.cpp:558
+msgid "Saved your menus"
+msgstr "تم حفظ قوائمك"
+
+#: src/MenuBuilderController.cpp:561
+msgid "Snapshot {} was taken first. Right-click to see them."
+msgstr "تم التقاط اللقطة {} أولاً. انقر بزر الماوس الأيمن لرؤيتها."
+
+#: src/MenuBuilderController.cpp:569 src/OpenWithController.cpp:1154
+msgid "{} (line {})"
+msgstr "‏{} (السطر {})"
+
+#: src/MenuBuilderController.cpp:572
+msgid "Not saved: Shell would reject these menus"
+msgstr "لم يتم الحفظ: سيرفض Shell هذه القوائم"
+
+#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:340
+msgid "Drive"
+msgstr "محرك أقراص"
+
+#: src/MenuMapController.cpp:44
+msgid "Text file (.txt)"
+msgstr "ملف نصي (.txt)"
+
+#: src/MenuMapController.cpp:44
+msgid "Image (.png)"
+msgstr "صورة (.png)"
+
+#: src/MenuMapController.cpp:45
+msgid "Application (.exe)"
+msgstr "تطبيق (.exe)"
+
+#: src/MenuMapController.cpp:45
+msgid "Shortcut (.lnk)"
+msgstr "اختصار (.lnk)"
+
+#: src/MenuMapController.cpp:46
+msgid "Archive (.zip)"
+msgstr "أرشيف (.zip)"
+
+#: src/MenuMapController.cpp:46
+msgid "PDF (.pdf)"
+msgstr "PDF (.pdf)"
+
+#: src/MenuMapController.cpp:47
+msgid "Music (.mp3)"
+msgstr "موسيقى (.mp3)"
+
+#: src/MenuMapController.cpp:327
+msgid "The config file doesn't exist. Create a personal config from Home first."
+msgstr "ملف التكوين غير موجود. أنشئ تكوينًا شخصيًا من الصفحة الرئيسية أولاً."
+
+#: src/MenuMapController.cpp:332 src/ShellCli.cpp:124
+msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
+msgstr "لم يتم العثور على shell.exe بجوار NilesoftShellPro.exe أو ملف shell.dll المسجل."
+
+#: src/MenuMapController.cpp:350 src/SnippetsController.cpp:267
+msgid "shell.exe took too long to read the menu and was stopped."
+msgstr "استغرق shell.exe وقتًا طويلاً في قراءة القائمة فتم إيقافه."
+
+#: src/MenuMapController.cpp:355 src/SnippetsController.cpp:272
+msgid "shell.exe gave no menu ({}). It may be older than this app."
+msgstr "لم يُرجع shell.exe أي قائمة ({}). ربما يكون أقدم من هذا التطبيق."
+
+#: src/MenuMapController.cpp:449
+msgid "{} (Windows)"
+msgstr "{} (Windows)"
+
+#: src/MenuMapController.cpp:493
+msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+msgstr "‏{} مرفق مع Shell. بمجرد تغييره هنا، تحتفظ التحديثات بنسختك وتعرض مقارنتها بالنسخة الجديدة."
+
+#: src/MenuMapController.cpp:575 src/MenuMapController.cpp:611 src/MenuMapController.cpp:1009 src/MenuMapController.cpp:1082
+msgid "The shared config is read-only here."
+msgstr "التكوين المشترك للقراءة فقط هنا."
+
+#: src/MenuMapController.cpp:577 src/MenuMapController.cpp:1011
+msgid "This file is read-only here."
+msgstr "هذا الملف للقراءة فقط هنا."
+
+#: src/MenuMapController.cpp:579
+msgid "It has its own vis= setting; change it with Edit code."
+msgstr "له إعداد vis= خاص به؛ غيّره عبر «تحرير الكود»."
+
+#: src/MenuMapController.cpp:600
+msgid "A rule in your config hides it. Turn that rule off on the Context Menus page."
+msgstr "تخفيه قاعدة في التكوين الخاص بك. أوقف تلك القاعدة في صفحة القوائم المختصرة."
+
+#: src/MenuMapController.cpp:608 src/MenuMapController.cpp:1083
+msgid "Its title changes with the selection, so a rule can't name it. Use the Config Editor."
+msgstr "يتغير عنوانه حسب التحديد، لذا لا يمكن لقاعدة أن تشير إليه بالاسم. استخدم محرر التكوين."
+
+#: src/MenuMapController.cpp:634
+msgid "Moved from the main menu"
+msgstr "نُقل من القائمة الرئيسية"
+
+#: src/MenuMapController.cpp:635
+msgid "Moved from {}"
+msgstr "نُقل من {}"
+
+#: src/MenuMapController.cpp:639 src/MenuMapController.cpp:662
+msgid "Moved to {}"
+msgstr "نُقل إلى {}"
+
+#: src/MenuMapController.cpp:639 src/MenuMapController.cpp:949 src/MenuMapController.cpp:952
+msgid "the main menu"
+msgstr "القائمة الرئيسية"
+
+#: src/MenuMapController.cpp:643
+msgid "Disabled"
+msgstr "معطل"
+
+#: src/MenuMapController.cpp:650
+msgid "Shows only sometimes"
+msgstr "يظهر أحيانًا فقط"
+
+#: src/MenuMapController.cpp:661
+msgid "Kept in the main menu"
+msgstr "مُبقى في القائمة الرئيسية"
+
+#: src/MenuMapController.cpp:661
+msgid "Moved to the main menu"
+msgstr "نُقل إلى القائمة الرئيسية"
+
+#: src/MenuMapController.cpp:666
+msgid "Renamed to {}"
+msgstr "أُعيدت تسميته إلى {}"
+
+#: src/MenuMapController.cpp:670
+msgid "May be hidden"
+msgstr "قد يكون مخفيًا"
+
+#: src/MenuMapController.cpp:674
+msgid "A rule may change it"
+msgstr "قد تغيّره قاعدة"
+
+#: src/MenuMapController.cpp:685
+msgid "{}:{}"
+msgstr "{}:{}"
+
+#: src/MenuMapController.cpp:687
+msgid "Typed by title"
+msgstr "مُدخل بالعنوان"
+
+#: src/MenuMapController.cpp:693 src/MenuMapController.cpp:1024
+msgid "A program"
+msgstr "برنامج"
+
+#: src/MenuMapController.cpp:719
+msgid "Windows builds the taskbar's menu itself, so only Shell's items are listed here."
+msgstr "يُنشئ Windows قائمة شريط المهام بنفسه، لذا لا تُدرج هنا سوى عناصر Shell."
+
+#: src/MenuMapController.cpp:721
+msgid "Windows' items couldn't be read: {}"
+msgstr "تعذرت قراءة عناصر Windows: {}"
+
+#: src/MenuMapController.cpp:730
+msgid "Some programs add their items only inside File Explorer, so they aren't listed here. Type the item's title as the menu shows it to hide, rename or move it."
+msgstr "تضيف بعض البرامج عناصرها داخل مستكشف الملفات فقط، لذا لا تظهر في هذه القائمة. اكتب عنوان العنصر كما تعرضه القائمة لإخفائه أو إعادة تسميته أو نقله."
+
+#: src/MenuMapController.cpp:735
+msgid "Added nothing here: {}."
+msgstr "لم تتم إضافة أي شيء هنا: {}."
+
+#: src/MenuMapController.cpp:744
+msgid "{} · {}"
+msgstr "{} · {}"
+
+#: src/MenuMapController.cpp:744
+msgid "{n} of your items"
+msgid_plural "{n} of your items"
+msgstr[0] "‏{n} من عناصرك"
+msgstr[1] "عنصر واحد من عناصرك"
+msgstr[2] "عنصران من عناصرك"
+msgstr[3] "‏{n} من عناصرك"
+msgstr[4] "‏{n} من عناصرك"
+msgstr[5] "‏{n} من عناصرك"
+
+#: src/MenuMapController.cpp:745
+msgid "{n} from Windows and programs"
+msgid_plural "{n} from Windows and programs"
+msgstr[0] "‏{n} من Windows والبرامج"
+msgstr[1] "عنصر واحد من Windows والبرامج"
+msgstr[2] "عنصران من Windows والبرامج"
+msgstr[3] "‏{n} من Windows والبرامج"
+msgstr[4] "‏{n} من Windows والبرامج"
+msgstr[5] "‏{n} من Windows والبرامج"
+
+#: src/MenuMapController.cpp:775 src/MenuMapController.cpp:843
+msgid "Your Shell items"
+msgstr "عناصر Shell الخاصة بك"
+
+#: src/MenuMapController.cpp:775 src/MenuMapController.cpp:843
+msgid "Windows and other programs"
+msgstr "‏Windows والبرامج الأخرى"
+
+#: src/MenuMapController.cpp:778
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "‏{n} عنصر"
+msgstr[1] "عنصر واحد"
+msgstr[2] "عنصران"
+msgstr[3] "‏{n} عناصر"
+msgstr[4] "‏{n} عنصرًا"
+msgstr[5] "‏{n} عنصر"
+
+#: src/MenuMapController.cpp:785
+msgid "(drawn by its program)"
+msgstr "(يرسمه برنامجه)"
+
+#: src/MenuMapController.cpp:786 src/MenuMapController.cpp:856
+msgid "(set when the menu opens)"
+msgstr "(يُحدَّد عند فتح القائمة)"
+
+#: src/MenuMapController.cpp:916
+msgid "Submenu"
+msgstr "قائمة فرعية"
+
+#: src/MenuMapController.cpp:916
+msgid "Item"
+msgstr "عنصر"
+
+#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:198
+msgid "{}, line {}"
+msgstr "‏{}، السطر {}"
+
+#: src/MenuMapController.cpp:932
+msgid "From your config"
+msgstr "من التكوين الخاص بك"
+
+#: src/MenuMapController.cpp:937
+msgid "Title from {}"
+msgstr "العنوان من {}"
+
+#: src/MenuMapController.cpp:946
+msgid "Hidden by vis= in its own line."
+msgstr "مخفي بواسطة vis= في سطره."
+
+#: src/MenuMapController.cpp:948
+msgid "Moved here from {} by menu= in its own line."
+msgstr "نُقل إلى هنا من {} بواسطة menu= في سطره."
+
+#: src/MenuMapController.cpp:951
+msgid "Its menu= names {}, which isn't in this menu, so it doesn't show here."
+msgstr "يشير menu= الخاص به إلى {}، وهي ليست في هذه القائمة، لذا لا يظهر هنا."
+
+#: src/MenuMapController.cpp:954
+msgid "Its menu= depends on the selection, so the map shows it where it is written."
+msgstr "يعتمد menu= الخاص به على التحديد، لذا تعرضه الخريطة حيث هو مكتوب."
+
+#: src/MenuMapController.cpp:956
+msgid "Placed by pos={} in its own line."
+msgstr "وُضع بواسطة pos={} في سطره."
+
+#: src/MenuMapController.cpp:975 src/MenuMapController.cpp:1077
+msgid "Main menu"
+msgstr "القائمة الرئيسية"
+
+#: src/MenuMapController.cpp:987
+msgid "At the top"
+msgstr "في الأعلى"
+
+#: src/MenuMapController.cpp:996
+msgid "Before {}"
+msgstr "قبل {}"
+
+#: src/MenuMapController.cpp:998
+msgid "After {}"
+msgstr "بعد {}"
+
+#: src/MenuMapController.cpp:1000
+msgid "At the bottom"
+msgstr "في الأسفل"
+
+#: src/MenuMapController.cpp:1010
+msgid "Its menu= depends on the selection; change it with Edit code."
+msgstr "يعتمد menu= الخاص به على التحديد؛ غيّره عبر «تحرير الكود»."
+
+#: src/MenuMapController.cpp:1016
+msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
+msgstr "يؤدي إيقاف تشغيله إلى إضافة vis=vis.remove إلى سطره. يُحفظ فورًا، مع التقاط لقطة أولاً."
+
+#: src/MenuMapController.cpp:1020
+msgid "Not in the menu read here. Rules made here name it by its title, so they work wherever the menu has it."
+msgstr "غير موجود في القائمة المقروءة هنا. القواعد التي تُنشأ هنا تشير إليه بعنوانه، لذا تعمل أينما وُجد في القائمة."
+
+#: src/MenuMapController.cpp:1022
+msgid "Added by Windows"
+msgstr "أضافه Windows"
+
+#: src/MenuMapController.cpp:1024
+msgid "Added by {}"
+msgstr "أضافه {}"
+
+#: src/MenuMapController.cpp:1026
+msgid "Added by Windows or an installed app; Shell couldn't tell which."
+msgstr "أضافه Windows أو تطبيق مثبت؛ تعذر على Shell تحديد أيهما."
+
+#: src/MenuMapController.cpp:1035
+msgid "verb {}"
+msgstr "الفعل {}"
+
+#: src/MenuMapController.cpp:1044
+msgid "a rule made here"
+msgstr "قاعدة أُنشئت هنا"
+
+#: src/MenuMapController.cpp:1048
+msgid "Hidden by {}."
+msgstr "مخفي بواسطة {}."
+
+#: src/MenuMapController.cpp:1050
+msgid "Kept in the main menu by {}, so later rules don't move it."
+msgstr "أُبقي في القائمة الرئيسية بواسطة {}، لذا لا تنقله القواعد اللاحقة."
+
+#: src/MenuMapController.cpp:1051
+msgid "Moved to the main menu by {}."
+msgstr "نُقل إلى القائمة الرئيسية بواسطة {}."
+
+#: src/MenuMapController.cpp:1053
+msgid "Moved to {} by {}."
+msgstr "نُقل إلى {} بواسطة {}."
+
+#: src/MenuMapController.cpp:1055
+msgid "Renamed to {} by {}."
+msgstr "أُعيدت تسميته إلى {} بواسطة {}."
+
+#: src/MenuMapController.cpp:1057
+msgid "Changed by {}."
+msgstr "تم تغييره بواسطة {}."
+
+#: src/MenuMapController.cpp:1067
+msgid "{}, line {} may change it, depending on what is selected."
+msgstr "قد يغيّره {}، السطر {}، حسب ما هو محدد."
+
+#: src/MenuMapController.cpp:1085
+msgid "Turning it off adds a rule that removes it from the menu. Save to apply."
+msgstr "يؤدي إيقاف تشغيله إلى إضافة قاعدة تزيله من القائمة. احفظ للتطبيق."
+
+#: src/MenuMapController.cpp:1086
+msgid "Hidden by a rule made here. Turning it on removes that rule."
+msgstr "مخفي بواسطة قاعدة أُنشئت هنا. يؤدي تشغيله إلى إزالة تلك القاعدة."
+
+#: src/MenuMapController.cpp:1109
+msgid "Shown again once you save."
+msgstr "سيظهر مجددًا بمجرد الحفظ."
+
+#: src/MenuMapController.cpp:1110
+msgid "Hidden once you save."
+msgstr "سيُخفى بمجرد الحفظ."
+
+#: src/MenuMapController.cpp:1111
+msgid "Changes once you save."
+msgstr "سيتغير بمجرد الحفظ."
+
+#: src/MenuMapController.cpp:1405
+msgid "{} couldn't be read."
+msgstr "تعذرت قراءة {}."
+
+#: src/MenuMapController.cpp:1412
+msgid "Not changed"
+msgstr "لم يتغير"
+
+#: src/MenuMapController.cpp:1462
+msgid "Couldn't open the code"
+msgstr "تعذر فتح التعليمات البرمجية"
+
+#: src/MenuMapController.cpp:1462
+msgid "{} has no declaration on line {}."
+msgstr "لا يحتوي {} على تعريف في السطر {}."
+
+#: src/MenuMapController.cpp:1517
+msgid "The file changed since this code was opened. Cancel, then open it again."
+msgstr "تغيّر الملف منذ فتح هذه التعليمات البرمجية. ألغِ، ثم افتحها مرة أخرى."
+
+#: src/MenuMapController.cpp:1521 src/SaveService.cpp:453
+msgid "Not saved: {}"
+msgstr "لم يتم الحفظ: {}"
+
+#: src/MenuMapController.cpp:1552
+msgid "Not saved: the config would fail to load. {}"
+msgstr "لم يتم الحفظ: سيفشل تحميل التكوين. {}"
+
+#: src/MenuMapController.cpp:1555
+msgid "Couldn't save: {}"
+msgstr "تعذر الحفظ: {}"
+
+#: src/MenuModel.cpp:237
+msgctxt "Default title of a new menu"
+msgid "New menu"
+msgstr "قائمة جديدة"
+
+#: src/MenuModel.cpp:239
+msgctxt "Default title of a new item"
+msgid "New item"
+msgstr "عنصر جديد"
+
+#: src/MenuWriter.cpp:154
+msgid "{} was edited by hand, and line {} can't be read ({}). The app didn't change the file, so your edit is safe. Fix it in the Config Editor, then try again."
+msgstr "تم تحرير {} يدويًا، ولا يمكن قراءة السطر {} ({}). لم يغيّر التطبيق الملف، لذا فإن تعديلك آمن. أصلحه في محرر التكوين، ثم أعد المحاولة."
+
+#: src/OpenWithController.cpp:84 src/OtherApps.cpp:282
+msgid "{} and {}"
+msgstr "‏{} و{}"
+
+#: src/OpenWithController.cpp:86 src/OtherApps.cpp:284
+msgid "{}, {}"
+msgstr "‏{}، {}"
+
+#: src/OpenWithController.cpp:151
+msgctxt "Default name of a new app in Open with"
+msgid "New app"
+msgstr "تطبيق جديد"
+
+#: src/OpenWithController.cpp:171
+msgid "Choose the program"
+msgstr "اختر البرنامج"
+
+#: src/OpenWithController.cpp:194
+msgid "Icons and programs"
+msgstr "الأيقونات والبرامج"
+
+#: src/OpenWithController.cpp:485
+msgid "This file uses an older layout; Save puts the items under WinRAR or \"Open in new window\". {}"
+msgstr "يستخدم هذا الملف تخطيطًا أقدم؛ يضع الحفظ العناصر أسفل WinRAR أو \"فتح في نافذة جديدة\". {}"
+
+#: src/OpenWithController.cpp:598
+msgid "(no name)"
+msgstr "(بلا اسم)"
+
+#: src/OpenWithController.cpp:603
+msgid "No program chosen"
+msgstr "لم يتم اختيار برنامج"
+
+#: src/OpenWithController.cpp:603
+msgid "Not found on this PC"
+msgstr "غير موجود على هذا الكمبيوتر"
+
+#: src/OpenWithController.cpp:608
+msgid "Doesn't show: the menu isn't on the places it's for."
+msgstr "لا يظهر: القائمة غير موجودة في الأماكن المخصصة لها."
+
+#: src/OpenWithController.cpp:611
+msgid "Also hides: {}"
+msgstr "يخفي أيضًا: {}"
+
+#: src/OpenWithController.cpp:612
+msgid "Switching it off also hides: {}"
+msgstr "إيقاف تشغيله يخفي أيضًا: {}"
+
+#: src/OpenWithController.cpp:613
+msgid "Keeps its own: {}"
+msgstr "يحتفظ بعناصره الخاصة: {}"
+
+#: src/OpenWithController.cpp:614
+msgid "Off by default, its own still show: {}"
+msgstr "متوقف افتراضيًا، وتظل عناصره الخاصة ظاهرة: {}"
+
+#: src/OpenWithController.cpp:649
+msgid "Shell extension \"{}\""
+msgstr "ملحق Shell \"{}\""
+
+#: src/OpenWithController.cpp:650
+msgid "Shell extension \"{}\" ({})"
+msgstr "ملحق Shell \"{}\" ({})"
+
+#: src/OpenWithController.cpp:654
+msgid "Shift only"
+msgstr "‏Shift فقط"
+
+#: src/OpenWithController.cpp:654
+msgid "Title shown by the app"
+msgstr "العنوان الذي يعرضه التطبيق"
+
+#: src/OpenWithController.cpp:658
+msgid "Program not found: {}"
+msgstr "البرنامج غير موجود: {}"
+
+#: src/OpenWithController.cpp:668
+msgid "No longer in the registry. The rule stays until you switch it back on."
+msgstr "لم يعد موجودًا في السجل. تبقى القاعدة حتى تعيد تشغيله."
+
+#: src/OpenWithController.cpp:672
+msgid "Type the title the menu shows, or nothing is hidden."
+msgstr "اكتب العنوان الذي تعرضه القائمة، وإلا فلن يُخفى أي شيء."
+
+#: src/OpenWithController.cpp:673
+msgid "A title with \" or | can't be matched exactly, so nothing is hidden."
+msgstr "لا يمكن مطابقة عنوان يحتوي على \" أو | تمامًا، لذا لن يُخفى أي شيء."
+
+#: src/OpenWithController.cpp:678
+msgid "Leftovers from uninstalled programs"
+msgstr "بقايا البرامج التي أُلغي تثبيتها"
+
+#: src/OpenWithController.cpp:681
+msgid "Other items"
+msgstr "عناصر أخرى"
+
+#: src/OpenWithController.cpp:725
+msgid "Pick at least one place, or nothing shows."
+msgstr "اختر مكانًا واحدًا على الأقل، وإلا فلن يظهر شيء."
+
+#: src/OpenWithController.cpp:727
+msgid "Give the submenu a title."
+msgstr "أعطِ القائمة الفرعية عنوانًا."
+
+#: src/OpenWithController.cpp:778
+msgid "Open in new window"
+msgstr "فتح في نافذة جديدة"
+
+#: src/OpenWithController.cpp:779 src/WindowsTitles.cpp:82
+msgid "Pin to Quick access"
+msgstr "تثبيت في الوصول السريع"
+
+#: src/OpenWithController.cpp:806
+msgid "Nothing of yours shows for a .txt file."
+msgstr "لا يظهر أي من عناصرك لملف .txt."
+
+#: src/OpenWithController.cpp:807
+msgid "Nothing of yours shows for a folder."
+msgstr "لا يظهر أي من عناصرك لمجلد."
+
+#: src/OpenWithController.cpp:808
+msgid "Nothing of yours shows for a folder's background."
+msgstr "لا يظهر أي من عناصرك لخلفية مجلد."
+
+#: src/OpenWithController.cpp:854
+msgid "Pick the program first."
+msgstr "اختر البرنامج أولاً."
+
+#: src/OpenWithController.cpp:863
+msgid "Two files"
+msgstr "ملفان"
+
+#: src/OpenWithController.cpp:874
+msgid "A folder's background"
+msgstr "خلفية مجلد"
+
+#: src/OpenWithController.cpp:877
+msgid "It doesn't show anywhere with the current settings, so there's nothing to run."
+msgstr "لا يظهر في أي مكان بالإعدادات الحالية، لذا لا يوجد ما يمكن تشغيله."
+
+#: src/OpenWithController.cpp:879
+msgid "The program isn't there, so Shell hides the item."
+msgstr "البرنامج غير موجود، لذا يخفي Shell العنصر."
+
+#: src/OpenWithController.cpp:881
+msgid "Parts starting with @ are filled in by Shell when the menu opens."
+msgstr "الأجزاء التي تبدأ بـ @ يملؤها Shell عند فتح القائمة."
+
+#: src/OpenWithController.cpp:883
+msgid "It runs as administrator; Windows asks first."
+msgstr "يعمل كمسؤول؛ يطلب Windows الإذن أولاً."
+
+#: src/OpenWithController.cpp:1111
+msgid "Couldn't change the Editors submenu in {}."
+msgstr "تعذر تغيير القائمة الفرعية Editors في {}."
+
+#: src/OpenWithController.cpp:1133
+msgid "Updated the switched-off apps' own items"
+msgstr "تم تحديث العناصر الخاصة بالتطبيقات المتوقفة"
+
+#: src/OpenWithController.cpp:1134
+msgid "{} Snapshot {} has the file before."
+msgstr "‏{} تحتوي اللقطة {} على الملف قبل التغيير."
+
+#: src/OpenWithController.cpp:1135
+msgid "Their menu entries changed in the registry."
+msgstr "تغيّرت إدخالات القائمة الخاصة بها في السجل."
+
+#: src/OpenWithController.cpp:1136
+msgid "The menu no longer shows {}'s own entries."
+msgstr "لم تعد القائمة تعرض الإدخالات الخاصة بـ {}."
+
+#: src/OpenWithController.cpp:1139
+msgid "Moved the Open with items"
+msgstr "تم نقل عناصر فتح باستخدام"
+
+#: src/OpenWithController.cpp:1140
+msgid "They're now right under WinRAR (or \"Open in new window\"; else at the top). Snapshot {} has the old layout."
+msgstr "أصبحت الآن أسفل WinRAR مباشرةً (أو \"فتح في نافذة جديدة\"؛ وإلا ففي الأعلى). تحتوي اللقطة {} على التخطيط القديم."
+
+#: src/OpenWithController.cpp:1143
+msgid "Saved the Open with items"
+msgstr "تم حفظ عناصر فتح باستخدام"
+
+#: src/OpenWithController.cpp:1146
+msgid "Snapshot {} was taken first. Right-click a file to see them."
+msgstr "تم التقاط اللقطة {} أولاً. انقر بزر الماوس الأيمن فوق ملف لرؤيتها."
+
+#: src/OpenWithController.cpp:1157
+msgid "Not saved: Shell would reject these items"
+msgstr "لم يتم الحفظ: سيرفض Shell هذه العناصر"
+
+#: src/OpenWithModel.cpp:1004
+msgid "Give it a name; it's the item's title."
+msgstr "أعطه اسمًا؛ فهو عنوان العنصر."
+
+#: src/OpenWithModel.cpp:1006
+msgid "Pick the program it runs."
+msgstr "اختر البرنامج الذي يشغّله."
+
+#: src/OpenWithModel.cpp:1008
+msgid "The program path contains @, which Shell reads as an expression."
+msgstr "يحتوي مسار البرنامج على @، والذي يقرؤه Shell كتعبير."
+
+#: src/OpenWithModel.cpp:1010
+msgid "The arguments can use ' or ` quotes, but not both."
+msgstr "يمكن أن تستخدم الوسيطات علامات الاقتباس ' أو `، ولكن ليس كليهما."
+
+#: src/OpenWithModel.cpp:1012
+msgid "List at least one extension, like .py .js"
+msgstr "أدرج امتدادًا واحدًا على الأقل، مثل .py .js"
+
+#: src/OpenWithModel.cpp:1458
+msgid "own app={}: no such app in the file"
+msgstr "‏own app={}: لا يوجد تطبيق كهذا في الملف"
+
+#: src/PendingChanges.cpp:23
+msgid "{}: unknown key"
+msgstr "‏{}: مفتاح غير معروف"
+
+#: src/PendingChanges.cpp:25
+msgid "{}: a value is needed"
+msgstr "‏{}: يلزم إدخال قيمة"
+
+#: src/PendingChanges.cpp:27
+msgid "{}: the value must fit on one line"
+msgstr "‏{}: يجب أن تكون القيمة في سطر واحد"
+
+#: src/PendingChanges.cpp:29
+msgid "{}: only plain values can be set here"
+msgstr "‏{}: يمكن تعيين القيم البسيطة فقط هنا"
+
+#: src/PendingChanges.cpp:229
+msgid "The generated settings-app.nss doesn't parse: {}"
+msgstr "تعذر تحليل ملف settings-app.nss المُنشأ: {}"
+
+#: src/PendingChanges.cpp:249
+msgid "The generated settings-app-map.nss doesn't parse: {}"
+msgstr "تعذر تحليل ملف settings-app-map.nss المُنشأ: {}"
+
+#: src/PresetsController.cpp:139
+msgid "Saving"
+msgstr "جارٍ الحفظ"
+
+#: src/PresetsController.cpp:139
+msgid "Apply {} again once the save is done."
+msgstr "طبّق {} مرة أخرى بعد انتهاء الحفظ."
+
+#: src/PresetsController.cpp:154
+msgid "Couldn't apply {}"
+msgstr "تعذر تطبيق {}"
+
+#: src/PresetsController.cpp:160
+msgid "{} is in the preview"
+msgstr "‏{} في المعاينة"
+
+#: src/PresetsController.cpp:161
+msgid "Save (Ctrl+S) to use it in your menus, or Discard to go back."
+msgstr "احفظ (Ctrl+S) لاستخدامه في قوائمك، أو اختر تجاهل للرجوع."
+
+#: src/PresetsController.cpp:161
+msgid "It is your saved look already."
+msgstr "إنه مظهرك المحفوظ بالفعل."
+
+#: src/PresetsController.cpp:171
+msgid "Copied {}"
+msgstr "تم نسخ {}"
+
+#: src/PresetsController.cpp:171
+msgid "Paste the theme{} block into a .nss file of your own."
+msgstr "الصق كتلة theme{} في ملف .nss خاص بك."
+
+#: src/PresetsController.cpp:173 src/PresetsController.cpp:189
+msgid "Couldn't copy"
+msgstr "تعذر النسخ"
+
+#: src/PresetsController.cpp:173 src/PresetsController.cpp:189
+msgid "Another app is holding the clipboard. Try again."
+msgstr "تطبيق آخر يستخدم الحافظة. أعد المحاولة."
+
+#: src/PresetsController.cpp:183
+msgid "Nothing to copy"
+msgstr "لا يوجد ما يمكن نسخه"
+
+#: src/PresetsController.cpp:183
+msgid "Every theme setting has its built-in default."
+msgstr "كل إعدادات السمة على قيمها الافتراضية المضمنة."
+
+#: src/PresetsController.cpp:187
+msgid "Copied your current look"
+msgstr "تم نسخ مظهرك الحالي"
+
+#: src/PresetsController.cpp:187
+msgid "A theme{} block with every theme setting in effect, saved or not."
+msgstr "كتلة theme{} تحتوي على كل إعدادات السمة السارية، محفوظة أم لا."
+
+#: src/SaveService.cpp:64 src/SaveService.cpp:79
+msgid "the check failed"
+msgstr "فشل الفحص"
+
+#: src/SaveService.cpp:206
+msgid "Changed here · not saved yet"
+msgstr "تم التغيير هنا · لم يُحفظ بعد"
+
+#: src/SaveService.cpp:208
+msgid "Back to {} · not saved yet"
+msgstr "العودة إلى {} · لم يُحفظ بعد"
+
+#: src/SaveService.cpp:209
+msgid "Back to the built-in default · not saved yet"
+msgstr "العودة إلى الإعداد الافتراضي المضمّن · لم يُحفظ بعد"
+
+#: src/SaveService.cpp:211
+msgid "Set by this app · {} has {}"
+msgstr "تم تعيينه بواسطة هذا التطبيق · {} يحتوي على {}"
+
+#: src/SaveService.cpp:215
+msgid "Built-in default"
+msgstr "الإعداد الافتراضي المضمّن"
+
+#: src/SaveService.cpp:295
+msgid "shell.exe -status did not finish in time."
+msgstr "لم ينتهِ shell.exe -status في الوقت المحدد."
+
+#: src/SaveService.cpp:314
+msgid "The config file was not found. Create a personal config from Home."
+msgstr "لم يتم العثور على ملف التكوين. أنشئ تكوينًا شخصيًا من الصفحة الرئيسية."
+
+#: src/SaveService.cpp:338
+msgid "shell.exe was not found, so the config can't be checked before saving."
+msgstr "لم يتم العثور على shell.exe، لذا لا يمكن فحص التكوين قبل الحفظ."
+
+#: src/SaveService.cpp:344
+msgid "Checking with shell.exe…"
+msgstr "جارٍ التحقق باستخدام shell.exe…"
+
+#: src/SaveService.cpp:446
+msgid "Nothing to save · the files already match"
+msgstr "لا شيء للحفظ · الملفات متطابقة بالفعل"
+
+#: src/SaveService.cpp:447
+msgid "Saved · Shell reloads on next right-click"
+msgstr "تم الحفظ · يُعيد Shell التحميل عند النقر بزر الماوس الأيمن التالي"
+
+#: src/SaveService.cpp:449
+msgid "Shell rejected the config, rolled back: {}"
+msgstr "رفض Shell التكوين، وتم التراجع عن التغييرات: {}"
+
+#: src/SaveService.cpp:451
+msgid "Shell rejected the config, nothing was written: {}"
+msgstr "رفض Shell التكوين، ولم تتم كتابة أي شيء: {}"
+
+#: src/SaveService.cpp:482
+msgid "Creating your personal config…"
+msgstr "جارٍ إنشاء التكوين الشخصي…"
+
+#: src/SaveService.cpp:496
+msgid "shell.exe did not finish in time."
+msgstr "لم ينتهِ shell.exe في الوقت المحدد."
+
+#: src/SaveService.cpp:504
+msgid "Couldn't create the personal config: {}"
+msgstr "تعذر إنشاء التكوين الشخصي: {}"
+
+#: src/ShellCli.cpp:131
+msgid "CreatePipe failed."
+msgstr "فشل CreatePipe."
+
+#: src/ShellCli.cpp:186
+msgid "Could not start shell.exe (error {})."
+msgstr "تعذر بدء تشغيل shell.exe (الخطأ {})."
+
+#: src/ShellCli.cpp:241
+msgid "The administrator prompt was cancelled."
+msgstr "تم إلغاء مطالبة المسؤول."
+
+#: src/ShellCli.cpp:242
+msgid "Could not start shell.exe as administrator (error {})."
+msgstr "تعذر بدء تشغيل shell.exe كمسؤول (الخطأ {})."
+
+#: src/SnippetPreview.cpp:727
+msgid "Task Manager"
+msgstr "إدارة المهام"
+
+#: src/SnippetPreview.cpp:727
+msgid "Taskbar settings"
+msgstr "إعدادات شريط المهام"
+
+#: src/SnippetPreview.cpp:781
+msgid "Name from the selection"
+msgstr "الاسم من التحديد"
+
+#: src/Snippets.cpp:579
+msgid "There is no snippet called {}."
+msgstr "لا يوجد مقتطف باسم {}."
+
+#: src/Snippets.cpp:665
+msgid "Archives"
+msgstr "الأرشيفات"
+
+#: src/Snippets.cpp:669
+msgid "Security"
+msgstr "الأمان"
+
+#: src/SnippetsController.cpp:221
+msgid "Couldn't write {}"
+msgstr "تعذرت كتابة {}"
+
+#: src/SnippetsController.cpp:299
+msgid "shell.exe couldn't load the snippet"
+msgstr "تعذر على shell.exe تحميل المقتطف"
+
+#: src/SnippetsController.cpp:377
+msgid "Loading preview…"
+msgstr "جارٍ تحميل المعاينة…"
+
+#: src/SnippetsController.cpp:382
+msgid "No preview ({}). This is the snippet's code."
+msgstr "لا توجد معاينة ({}). هذه هي التعليمات البرمجية للمقتطف."
+
+#: src/SnippetsController.cpp:386
+msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+msgstr "لا يضيف هذا المقتطف عناصر خاصة به: فهو يغيّر عناصر أخرى أو يخفيها، أو يعمل في مكان آخر. هذه هي تعليماته البرمجية."
+
+#: src/SnippetsController.cpp:407
+msgid "Shown for a {} file."
+msgstr "يظهر لملف {}."
+
+#: src/SnippetsController.cpp:608
+msgid "All"
+msgstr "الكل"
+
+#: src/SnippetsController.cpp:641
+msgid "Needs Shell {} or later"
+msgstr "يتطلب Shell {} أو أحدث"
+
+#: src/SnippetsController.cpp:645
+msgid " and "
+msgstr " و"
+
+#: src/SnippetsController.cpp:646
+msgid "Needs {}"
+msgstr "يتطلب {}"
+
+#: src/SnippetsController.cpp:652
+msgid "You changed this copy, so newer versions aren't applied to it."
+msgstr "لقد غيّرت هذه النسخة، لذا لا تُطبَّق عليها الإصدارات الأحدث."
+
+#: src/SnippetsController.cpp:655
+msgid "The copy in {} is missing. Turn the snippet off and on again."
+msgstr "النسخة الموجودة في {} مفقودة. أوقف تشغيل المقتطف ثم شغّله مرة أخرى."
+
+#: src/SnippetsController.cpp:658
+msgid "A newer version is applied the next time the app starts."
+msgstr "يُطبَّق إصدار أحدث في المرة التالية التي يبدأ فيها التطبيق."
+
+#: src/SnippetsController.cpp:684
+msgid "{n} of {0} on"
+msgid_plural "{n} of {0} on"
+msgstr[0] "‏{n} من {0} قيد التشغيل"
+msgstr[1] "واحد من {0} قيد التشغيل"
+msgstr[2] "اثنان من {0} قيد التشغيل"
+msgstr[3] "‏{n} من {0} قيد التشغيل"
+msgstr[4] "‏{n} من {0} قيد التشغيل"
+msgstr[5] "‏{n} من {0} قيد التشغيل"
+
+#: src/SnippetsController.cpp:685
+msgid "Loading…"
+msgstr "جارٍ التحميل…"
+
+#: src/SnippetsController.cpp:686
+msgid "No snippets are available."
+msgstr "لا تتوفر أي مقتطفات."
+
+#: src/SnippetsController.cpp:687
+msgid "No snippet matches the search."
+msgstr "لا يوجد مقتطف يطابق البحث."
+
+#: src/SnippetsController.cpp:718
+msgid "Couldn't change this snippet"
+msgstr "تعذر تغيير هذا المقتطف"
+
+#: src/SnippetsController.cpp:773
+msgid "Turned on {}"
+msgstr "تم تشغيل {}"
+
+#: src/SnippetsController.cpp:774
+msgid "It's in the menu the next time you right-click."
+msgstr "سيظهر في القائمة في المرة التالية التي تنقر فيها بزر الماوس الأيمن."
+
+#: src/SnippetsController.cpp:776
+msgid "Turned off {}"
+msgstr "تم إيقاف {}"
+
+#: src/SnippetsController.cpp:778
+msgid "Snapshot {} has it if you want it back."
+msgstr "تحتفظ اللقطة {} به إذا أردت استعادته."
+
+#: src/SnippetsController.cpp:793
+msgid "Shell rejected the change, so it was undone"
+msgstr "رفض Shell التغيير، لذا تم التراجع عنه"
+
+#: src/Status.cpp:97
+msgid "shell.exe printed nothing."
+msgstr "لم يُخرج shell.exe أي شيء."
+
+#: src/Status.cpp:97
+msgid "shell.exe printed invalid JSON."
+msgstr "أخرج shell.exe بيانات JSON غير صالحة."
+
+#: src/Status.cpp:159
+msgid "Two copies stop the menu from appearing."
+msgstr "وجود نسختين يمنع ظهور القائمة."
+
+#: src/Status.cpp:164
+msgid "Its file no longer exists; only the registration is left."
+msgstr "لم يعد ملفه موجودًا؛ لم يتبقَّ سوى التسجيل."
+
+#: src/Status.cpp:169
+msgid "Also registered: {}"
+msgstr "مسجّل أيضًا: {}"
+
+#: src/Status.cpp:171
+msgid "Another copy of Nilesoft Shell is registered: {}"
+msgstr "توجد نسخة أخرى مسجّلة من Nilesoft Shell: {}"
+
+#: src/Status.cpp:172
+msgid "Fix (needs administrator)"
+msgstr "إصلاح (يتطلب المسؤول)"
+
+#: src/Status.cpp:176
+msgid "Shell isn't enabled"
+msgstr "‏Shell غير ممكَّن"
+
+#: src/Status.cpp:176
+msgid "Enable it for your account; no administrator rights are needed."
+msgstr "مكّنه لحسابك؛ لا يلزم الحصول على حقوق المسؤول."
+
+#: src/Status.cpp:179
+msgid "The registered shell.dll is missing"
+msgstr "ملف shell.dll المسجّل مفقود"
+
+#: src/Status.cpp:180
+msgid "Register again from the install folder to repair it."
+msgstr "سجّله مرة أخرى من مجلد التثبيت لإصلاحه."
+
+#: src/Status.cpp:182
+msgid "Shell is registered twice"
+msgstr "‏Shell مسجّل مرتين"
+
+#: src/Status.cpp:183
+msgid "Your own registration ({}) takes priority, so the all-users copy ({}) isn't used for you."
+msgstr "تسجيلك الخاص ({}) له الأولوية، لذا لا تُستخدم نسخة جميع المستخدمين ({}) لك."
+
+#: src/Status.cpp:188
+msgid "Create a personal config to get the default menu back."
+msgstr "أنشئ تكوينًا شخصيًا لاستعادة القائمة الافتراضية."
+
+#: src/Status.cpp:191
+msgid "You're using the shared config"
+msgstr "أنت تستخدم التكوين المشترك"
+
+#: src/Status.cpp:192
+msgid "A personal copy in %APPDATA% is kept per user and survives updates."
+msgstr "يتم الاحتفاظ بنسخة شخصية في %APPDATA% لكل مستخدم، وتبقى بعد التحديثات."
+
+#: src/TaskbarApps.cpp:575 src/TaskbarApps.cpp:747
+msgid "Registry Editor"
+msgstr "محرر التسجيل"
+
+#: src/TaskbarApps.cpp:577 src/TaskbarApps.cpp:744
+msgid "Paint"
+msgstr "الرسام"
+
+#: src/TaskbarApps.cpp:579 src/TaskbarApps.cpp:746
+msgid "Calculator"
+msgstr "الحاسبة"
+
+#: src/TaskbarApps.cpp:748
+msgid "Notepad"
+msgstr "المفكرة"
+
+#: src/TaskbarApps.cpp:749
+msgid "File Explorer"
+msgstr "مستكشف الملفات"
+
+#: src/TaskbarApps.cpp:751
+msgid "Windows PowerShell"
+msgstr "Windows PowerShell"
+
+#: src/TaskbarApps.cpp:752
+msgid "Control Panel"
+msgstr "لوحة التحكم"
+
+#: src/TaskbarApps.cpp:753
+msgid "Character Map"
+msgstr "مخطط الأحرف"
+
+#: src/TaskbarApps.cpp:754
+msgid "Remote Desktop Connection"
+msgstr "اتصال سطح المكتب البعيد"
+
+#: src/TaskbarApps.cpp:755
+msgid "Device Manager"
+msgstr "إدارة الأجهزة"
+
+#: src/TaskbarApps.cpp:756
+msgid "Services"
+msgstr "الخدمات"
+
+#: src/TaskbarApps.cpp:757
+msgid "Disk Management"
+msgstr "إدارة الأقراص"
+
+#: src/TaskbarApps.cpp:758
+msgid "Event Viewer"
+msgstr "عارض الأحداث"
+
+#: src/ThemePresets.cpp:26
+msgid "Default"
+msgstr "افتراضي"
+
+#: src/ThemePresets.cpp:27
+msgid "The look Shell ships with: modern, following Windows."
+msgstr "المظهر الذي يأتي به Shell: عصري، ويتبع Windows."
+
+#: src/ThemePresets.cpp:28
+msgid "Shell 1.8"
+msgstr "Shell 1.8"
+
+#: src/ThemePresets.cpp:29
+msgid "The 2023 default: modern, without the blur effect."
+msgstr "الإعداد الافتراضي لعام 2023: عصري، بدون تأثير التمويه."
+
+#: src/ThemePresets.cpp:31
+msgid "Acrylic tinted with the accent colour (README screenshot)."
+msgstr "أكريليك مصبوغ بلون التمييز (لقطة شاشة README)."
+
+#: src/ThemePresets.cpp:32
+msgid "Gradient"
+msgstr "تدرج لوني"
+
+#: src/ThemePresets.cpp:33
+msgid "An accent gradient from dark to light and back (README screenshot)."
+msgstr "تدرج بلون التمييز من الداكن إلى الفاتح والعكس (لقطة شاشة README)."
+
+#: src/ThemePresets.cpp:34
+msgid "Clear acrylic"
+msgstr "أكريليك شفاف"
+
+#: src/ThemePresets.cpp:35
+msgid "Modern with plain acrylic and no background colour."
+msgstr "عصري مع أكريليك عادي وبدون لون خلفية."
+
+#: src/ThemePresets.cpp:36
+msgid "Accent outline"
+msgstr "حد بلون التمييز"
+
+#: src/ThemePresets.cpp:37
+msgid "A 1 px accent-coloured border and accent icons."
+msgstr "حد بلون التمييز بعرض 1 px وأيقونات بلون التمييز."
+
+#: src/ThemePresets.cpp:38
+msgid "Flat"
+msgstr "مسطّح"
+
+#: src/ThemePresets.cpp:39
+msgid "No border, no shadow, square item highlights."
+msgstr "بلا حد، بلا ظل، تمييز مربع للعناصر."
+
+#: src/ThemePresets.cpp:40
+msgid "Blue"
+msgstr "أزرق"
+
+#: src/ThemePresets.cpp:41
+msgid "Shell 1.x colours: white on deep blue, square corners."
+msgstr "ألوان Shell 1.x: أبيض على أزرق داكن، زوايا مربعة."
+
+#: src/ThemePresets.cpp:42
+msgid "Gray"
+msgstr "رمادي"
+
+#: src/ThemePresets.cpp:43
+msgid "Shell 1.x colours: white on grey, light highlight."
+msgstr "ألوان Shell 1.x: أبيض على رمادي، تمييز فاتح."
+
+#: src/ThemePresets.cpp:44
+msgid "Green"
+msgstr "أخضر"
+
+#: src/ThemePresets.cpp:45
+msgid "Shell 1.x colours: black on green, square corners."
+msgstr "ألوان Shell 1.x: أسود على أخضر، زوايا مربعة."
+
+#: src/ThemePresets.cpp:46
+msgid "Yellow"
+msgstr "أصفر"
+
+#: src/ThemePresets.cpp:47
+msgid "Shell 1.x colours: white on olive, yellow highlight."
+msgstr "ألوان Shell 1.x: أبيض على زيتوني، تمييز أصفر."
+
+#: src/ThemePresets.cpp:49
+msgid "Modern"
+msgstr "عصري"
+
+#: src/ThemePresets.cpp:50
+msgid "Auto"
+msgstr "تلقائي"
+
+#: src/ThemePresets.cpp:51
+msgid "Opaque"
+msgstr "معتم"
+
+#: src/ThemePresets.cpp:52
+msgid "Accent tint"
+msgstr "صبغة بلون التمييز"
+
+#: src/ThemePresets.cpp:53
+msgid "Accent"
+msgstr "لون التمييز"
+
+#: src/ThemePresets.cpp:54
+msgid "No tint"
+msgstr "بلا صبغة"
+
+#: src/ThemePresets.cpp:56
+msgid "Square"
+msgstr "مربعة"
+
+#: src/ThemePresets.cpp:57
+msgid "No shadow"
+msgstr "بلا ظل"
+
+#: src/ThemePresets.cpp:58
+msgid "Shell 1.x"
+msgstr "Shell 1.x"
+
+#: src/Tr.cpp:245
+msgid "The file is saved as {}. Save it as UTF-8 and try again."
+msgstr "الملف محفوظ بترميز {}. احفظه بترميز UTF-8 وحاول مرة أخرى."
+
+#: src/Tr.cpp:252
+msgid "The Plural-Forms line in the file's header can't be read: {}"
+msgstr "يتعذر قراءة سطر Plural-Forms في رأس الملف: {}"
+
+#: src/Tr.cpp:309
+msgid "The file can't be opened."
+msgstr "يتعذر فتح الملف."
+
+#: src/TrayController.cpp:120
+msgid "Open Nilesoft Shell Pro"
+msgstr "فتح Nilesoft Shell Pro"
+
+#: src/TrayController.cpp:122
+msgid "Check for updates"
+msgstr "التحقق من وجود تحديثات"
+
+#: src/TrayController.cpp:126
+msgid "Quit"
+msgstr "إنهاء"
+
+#: src/TrayController.cpp:213
+msgid "Nilesoft Shell Pro {} is installed for you. Restart the app to start using it."
+msgstr "تم تثبيت Nilesoft Shell Pro {} لك. أعد تشغيل التطبيق لبدء استخدامه."
+
+#: src/TrayController.cpp:223
+msgid "Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new."
+msgstr "يتوفر Nilesoft Shell Pro {}. يتطلب تثبيته موافقة المسؤول. انقر لمعرفة الجديد."
+
+#: src/TrayController.cpp:225
+msgid "Nilesoft Shell Pro {} is available. Click to see what's new."
+msgstr "يتوفر Nilesoft Shell Pro {}. انقر لمعرفة الجديد."
+
+#: src/TrayController.cpp:226
+msgid "Update available"
+msgstr "يتوفر تحديث"
+
+#: src/TrayController.cpp:235
+msgid "Couldn't check for updates"
+msgstr "تعذر التحقق من وجود تحديثات"
+
+#: src/TrayController.cpp:237 src/UpdateController.cpp:738
+msgid "You have the latest version."
+msgstr "لديك أحدث إصدار."
+
+#: src/UpdateController.cpp:87
+msgid "Couldn't find this app's own file or the temporary folder."
+msgstr "تعذر العثور على ملف هذا التطبيق أو المجلد المؤقت."
+
+#: src/UpdateController.cpp:92
+msgid "Couldn't copy the app to the temporary folder."
+msgstr "تعذر نسخ التطبيق إلى المجلد المؤقت."
+
+#: src/UpdateController.cpp:146
+msgid "{} MB"
+msgstr "‏{} ميغابايت"
+
+#: src/UpdateController.cpp:149
+msgid "{} KB"
+msgstr "‏{} كيلوبايت"
+
+#: src/UpdateController.cpp:152
+msgid "January"
+msgstr "يناير"
+
+#: src/UpdateController.cpp:152
+msgid "February"
+msgstr "فبراير"
+
+#: src/UpdateController.cpp:152
+msgid "March"
+msgstr "مارس"
+
+#: src/UpdateController.cpp:153
+msgid "April"
+msgstr "أبريل"
+
+#: src/UpdateController.cpp:153
+msgid "June"
+msgstr "يونيو"
+
+#: src/UpdateController.cpp:154
+msgid "July"
+msgstr "يوليو"
+
+#: src/UpdateController.cpp:154
+msgid "August"
+msgstr "أغسطس"
+
+#: src/UpdateController.cpp:154
+msgid "September"
+msgstr "سبتمبر"
+
+#: src/UpdateController.cpp:155
+msgid "October"
+msgstr "أكتوبر"
+
+#: src/UpdateController.cpp:155
+msgid "November"
+msgstr "نوفمبر"
+
+#: src/UpdateController.cpp:155
+msgid "December"
+msgstr "ديسمبر"
+
+#: src/UpdateController.cpp:161
+msgctxt "date: day, month name, year"
+msgid "{0} {1} {2}"
+msgstr "{0} {1} {2}"
+
+#: src/UpdateController.cpp:176
+msgid "Never"
+msgstr "أبدًا"
+
+#: src/UpdateController.cpp:187
+msgid "Today at {}"
+msgstr "اليوم في {}"
+
+#: src/UpdateController.cpp:189
+msgid "Yesterday at {}"
+msgstr "أمس في {}"
+
+#: src/UpdateController.cpp:339
+msgid "The update's files are missing."
+msgstr "ملفات التحديث مفقودة."
+
+#: src/UpdateController.cpp:373
+msgid "msiexec.exe couldn't be started."
+msgstr "تعذر بدء تشغيل msiexec.exe."
+
+#: src/UpdateController.cpp:376
+msgid "Another installation is in progress. Try again when it has finished."
+msgstr "هناك عملية تثبيت أخرى قيد التقدم. حاول مرة أخرى عند انتهائها."
+
+#: src/UpdateController.cpp:378
+msgid "The installer stopped with code {}. Its log is {}.log."
+msgstr "توقف المثبّت بالرمز {}. سجله هو {}.log."
+
+#: src/UpdateController.cpp:479 src/UpdateController.cpp:488 src/UpdateController.cpp:492
+msgid "Updated to {}"
+msgstr "تم التحديث إلى {}"
+
+#: src/UpdateController.cpp:480
+msgid "The app was updated for you, without administrator rights."
+msgstr "تم تحديث التطبيق لك، بدون حقوق المسؤول."
+
+#: src/UpdateController.cpp:482 src/UpdateController.cpp:495
+msgid "The update wasn't installed"
+msgstr "لم يتم تثبيت التحديث"
+
+#: src/UpdateController.cpp:484
+msgid "Version {} couldn't start, so {} is running. Check for updates to try again."
+msgstr "تعذر بدء تشغيل الإصدار {}، لذا يعمل الإصدار {}. تحقق من وجود تحديثات للمحاولة مرة أخرى."
+
+#: src/UpdateController.cpp:489
+msgid "Restart Explorer to load the new shell.dll; until then it keeps using the old one."
+msgstr "أعد تشغيل المستكشف لتحميل shell.dll الجديد؛ وحتى ذلك الحين سيستمر في استخدام القديم."
+
+#: src/UpdateController.cpp:493
+msgid "Nilesoft Shell Pro {} is installed."
+msgstr "تم تثبيت Nilesoft Shell Pro {}."
+
+#: src/UpdateController.cpp:497
+msgid "The update was cancelled"
+msgstr "تم إلغاء التحديث"
+
+#: src/UpdateController.cpp:497
+msgid "Nothing was changed."
+msgstr "لم يتم تغيير أي شيء."
+
+#: src/UpdateController.cpp:684
+msgid "You seem to be offline, so updates couldn't be checked."
+msgstr "يبدو أنك غير متصل بالإنترنت، لذا تعذر التحقق من وجود تحديثات."
+
+#: src/UpdateController.cpp:685 src/Updater.cpp:262
+msgid "GitHub's limit for update checks was reached. Try again in an hour."
+msgstr "تم بلوغ حد GitHub للتحقق من التحديثات. حاول مرة أخرى بعد ساعة."
+
+#: src/UpdateController.cpp:686
+msgid "Couldn't check for updates: {}"
+msgstr "تعذر التحقق من وجود تحديثات: {}"
+
+#: src/UpdateController.cpp:743 src/UpdateController.cpp:758
+msgid "This release has no download for this kind of install. Get it from the release page."
+msgstr "لا يتضمن هذا الإصدار ملف تنزيل لهذا النوع من التثبيت. احصل عليه من صفحة الإصدار."
+
+#: src/UpdateController.cpp:764 src/Updater.cpp:1209
+msgid "Couldn't find %LOCALAPPDATA%."
+msgstr "تعذر العثور على %LOCALAPPDATA%."
+
+#: src/UpdateController.cpp:772
+msgid "Starting…"
+msgstr "جارٍ البدء…"
+
+#: src/UpdateController.cpp:815
+msgid "The app package doesn't match update.json."
+msgstr "حزمة التطبيق لا تطابق update.json."
+
+#: src/UpdateController.cpp:839
+msgid "Download cancelled."
+msgstr "تم إلغاء التنزيل."
+
+#: src/UpdateController.cpp:845
+msgid "The update couldn't be downloaded in the background: {}"
+msgstr "تعذر تنزيل التحديث في الخلفية: {}"
+
+#: src/UpdateController.cpp:864 src/UpdateController.cpp:905
+msgid "Save or discard your changes first: the app closes to install the update."
+msgstr "احفظ تغييراتك أو تجاهلها أولاً: يُغلق التطبيق لتثبيت التحديث."
+
+#: src/UpdateController.cpp:892 src/UpdateController.cpp:930
+msgid "Couldn't start the update helper."
+msgstr "تعذر بدء تشغيل أداة التحديث المساعدة."
+
+#: src/UpdateController.cpp:898
+msgid "Restarting…"
+msgstr "جارٍ إعادة التشغيل…"
+
+#: src/UpdateController.cpp:936 src/UpdateController.cpp:967
+msgid "Installing the update…"
+msgstr "جارٍ تثبيت التحديث…"
+
+#: src/UpdateController.cpp:972
+msgid "Couldn't start the installer (error {})."
+msgstr "تعذر بدء تشغيل المثبّت (الخطأ {})."
+
+#: src/UpdateController.cpp:991
+msgid "Version {} is skipped. Newer versions will still show up."
+msgstr "تم تخطي الإصدار {}. ستظل الإصدارات الأحدث تظهر."
+
+#: src/Updater.cpp:115
+msgid "error {}"
+msgstr "الخطأ {}"
+
+#: src/Updater.cpp:216
+msgid "Only https addresses are used for updates."
+msgstr "تُستخدم عناوين https فقط للتحديثات."
+
+#: src/Updater.cpp:250
+msgid "The download was redirected to an unexpected address."
+msgstr "تمت إعادة توجيه التنزيل إلى عنوان غير متوقع."
+
+#: src/Updater.cpp:251
+msgid "The download was redirected to an unexpected address: {}"
+msgstr "تمت إعادة توجيه التنزيل إلى عنوان غير متوقع: {}"
+
+#: src/Updater.cpp:263
+msgid "The server answered HTTP {}."
+msgstr "استجاب الخادم بـ HTTP {}."
+
+#: src/Updater.cpp:286
+msgid "Writing the download failed."
+msgstr "فشلت كتابة التنزيل."
+
+#: src/Updater.cpp:296
+msgid "The download was cut off."
+msgstr "انقطع التنزيل."
+
+#: src/Updater.cpp:303
+msgid "Too many redirects."
+msgstr "عمليات إعادة توجيه كثيرة جدًا."
+
+#: src/Updater.cpp:408
+msgid "GitHub: {}"
+msgstr "GitHub: {}"
+
+#: src/Updater.cpp:409
+msgid "The list of releases couldn't be read."
+msgstr "تعذرت قراءة قائمة الإصدارات."
+
+#: src/Updater.cpp:799
+msgid "The download address is not a release of Nilesoft Shell Pro: {}"
+msgstr "عنوان التنزيل ليس إصدارًا من Nilesoft Shell Pro: {}"
+
+#: src/Updater.cpp:806 src/Updater.cpp:819 src/Updater.cpp:1273
+msgid "Couldn't write {}."
+msgstr "تعذرت كتابة {}."
+
+#: src/Updater.cpp:827
+msgid "Couldn't save {}."
+msgstr "تعذر حفظ {}."
+
+#: src/Updater.cpp:858
+msgid "NSP_UPDATE_FEED: couldn't read {}."
+msgstr "‏NSP_UPDATE_FEED: تعذرت قراءة {}."
+
+#: src/Updater.cpp:892
+msgid "{} is not served from this project's releases."
+msgstr "لا يتم توفير {} من إصدارات هذا المشروع."
+
+#: src/Updater.cpp:897
+msgid "Couldn't download {}: {}"
+msgstr "تعذر تنزيل {}: {}"
+
+#: src/Updater.cpp:916 src/Updater.cpp:957
+msgid "This release has no SHA256SUMS.txt, so the download can't be verified."
+msgstr "لا يتضمن هذا الإصدار SHA256SUMS.txt، لذا لا يمكن التحقق من التنزيل."
+
+#: src/Updater.cpp:925 src/Updater.cpp:974
+msgid "SHA256SUMS.txt has no entry for {}."
+msgstr "لا يحتوي SHA256SUMS.txt على إدخال لـ {}."
+
+#: src/Updater.cpp:929
+msgid "update.json doesn't match SHA256SUMS.txt."
+msgstr "لا يطابق update.json الملف SHA256SUMS.txt."
+
+#: src/Updater.cpp:939
+msgid "update.json is for another version."
+msgstr "‏update.json مخصص لإصدار آخر."
+
+#: src/Updater.cpp:952
+msgid "The release lists an asset with an unusable name."
+msgstr "يسرد الإصدار ملفًا باسم غير صالح للاستخدام."
+
+#: src/Updater.cpp:963 src/Updater.cpp:1252
+msgid "Couldn't create {}."
+msgstr "تعذر إنشاء {}."
+
+#: src/Updater.cpp:987
+msgid "Couldn't copy {}."
+msgstr "تعذر نسخ {}."
+
+#: src/Updater.cpp:996
+msgid "The download failed: {}"
+msgstr "فشل التنزيل: {}"
+
+#: src/Updater.cpp:1004
+msgid "nothing"
+msgstr "لا شيء"
+
+#: src/Updater.cpp:1005
+msgid "The download doesn't match SHA256SUMS.txt, so it was deleted. Expected {}…, got {}."
+msgstr "التنزيل لا يطابق SHA256SUMS.txt، لذا تم حذفه. المتوقع {}…، والفعلي {}."
+
+#: src/Updater.cpp:1020
+msgid "The staging folder is not empty."
+msgstr "مجلد التجهيز ليس فارغًا."
+
+#: src/Updater.cpp:1027
+msgid "tar.exe (part of Windows 10 and later) was not found."
+msgstr "لم يتم العثور على tar.exe (جزء من Windows 10 والإصدارات الأحدث)."
+
+#: src/Updater.cpp:1035
+msgid "Couldn't start tar.exe: {}."
+msgstr "تعذر بدء تشغيل tar.exe: {}."
+
+#: src/Updater.cpp:1047
+msgid "The zip couldn't be extracted (tar.exe exit code {})."
+msgstr "تعذر استخراج ملف zip (رمز خروج tar.exe {})."
+
+#: src/Updater.cpp:1055
+msgid "The zip contains a link, which an update never does."
+msgstr "يحتوي ملف zip على ارتباط، وهو ما لا يحتويه أي تحديث أبدًا."
+
+#: src/Updater.cpp:1060
+msgid "The zip contains a file outside its folder."
+msgstr "يحتوي ملف zip على ملف خارج مجلده."
+
+#: src/Updater.cpp:1105
+msgid "The update doesn't contain NilesoftShellPro.exe and shell.dll."
+msgstr "لا يحتوي التحديث على NilesoftShellPro.exe وshell.dll."
+
+#: src/Updater.cpp:1109
+msgid "The install folder {} doesn't exist."
+msgstr "مجلد التثبيت {} غير موجود."
+
+#: src/Updater.cpp:1119 src/Updater.cpp:1223
+msgid "Couldn't read the update's files."
+msgstr "تعذرت قراءة ملفات التحديث."
+
+#: src/Updater.cpp:1161
+msgid "Couldn't replace {}: {}."
+msgstr "تعذر استبدال {}: {}."
+
+#: src/Updater.cpp:1171 src/Updater.cpp:1264
+msgid "Couldn't write {}: {}."
+msgstr "تعذرت كتابة {}: {}."
+
+#: src/Updater.cpp:1205
+msgid "This release has no app package."
+msgstr "لا يتضمن هذا الإصدار حزمة تطبيق."
+
+#: src/Updater.cpp:1229
+msgid "The app package has no {}."
+msgstr "لا تحتوي حزمة التطبيق على {}."
+
+#: src/Updater.cpp:1233
+msgid "{} in the app package doesn't match update.json."
+msgstr "‏{} في حزمة التطبيق لا يطابق update.json."
+
+#: src/Updater.cpp:1241
+msgid "The app package has a file update.json doesn't list: {}."
+msgstr "تحتوي حزمة التطبيق على ملف غير مدرج في update.json: {}."
+
+#: src/Updater.cpp:1266
+msgid "{} was not written correctly."
+msgstr "لم تتم كتابة {} بشكل صحيح."
+
+#: src/Updater.cpp:1280
+msgid "Couldn't replace {}."
+msgstr "تعذر استبدال {}."
+
+#: src/Updater.cpp:1296
+msgid "Couldn't create {}: {}."
+msgstr "تعذر إنشاء {}: {}."
+
+#: src/WindowsTitles.cpp:33
+msgid "Give access to"
+msgstr "منح حق الوصول إلى"
+
+#: src/WindowsTitles.cpp:35
+msgid "Share"
+msgstr "مشاركة"
+
+#: src/WindowsTitles.cpp:44
+msgid "Create shortcut"
+msgstr "إنشاء اختصار"
+
+#: src/WindowsTitles.cpp:55
+msgid "Customize this folder"
+msgstr "تخصيص هذا المجلد"
+
+#: src/WindowsTitles.cpp:60
+msgid "Send to"
+msgstr "إرسال إلى"
+
+#: src/WindowsTitles.cpp:61
+msgid "Map network drive"
+msgstr "تعيين محرك أقراص شبكة"
+
+#: src/WindowsTitles.cpp:62
+msgid "Disconnect network drive"
+msgstr "قطع اتصال محرك أقراص الشبكة"
+
+#: src/WindowsTitles.cpp:65
+msgid "Format"
+msgstr "تهيئة"
+
+#: src/WindowsTitles.cpp:66
+msgid "Eject"
+msgstr "إخراج"
+
+#: src/WindowsTitles.cpp:68
+msgid "Include in library"
+msgstr "تضمين في مكتبة"
+
+#: src/WindowsTitles.cpp:71
+msgid "Cast to device"
+msgstr "إرسال إلى جهاز"
+
+#: src/WindowsTitles.cpp:72
+msgid "Copy as path"
+msgstr "نسخ كمسار"
+
+#: src/WindowsTitles.cpp:76
+msgid "Empty Recycle Bin"
+msgstr "إفراغ سلة المحذوفات"
+
+#: src/WindowsTitles.cpp:80
+msgid "Open PowerShell window here"
+msgstr "فتح نافذة PowerShell هنا"
+
+#: src/WindowsTitles.cpp:83
+msgid "Pin current folder to Quick access"
+msgstr "تثبيت المجلد الحالي في الوصول السريع"
+
+#: src/WindowsTitles.cpp:85
+msgid "Pin to taskbar"
+msgstr "تثبيت على شريط المهام"
+
+#: src/WindowsTitles.cpp:86
+msgid "Unpin from Quick access"
+msgstr "إلغاء التثبيت من الوصول السريع"
+
+#: src/WindowsTitles.cpp:87
+msgid "Unpin from Start"
+msgstr "إلغاء التثبيت من \"ابدأ\""
+
+#: src/WindowsTitles.cpp:88
+msgid "Unpin from taskbar"
+msgstr "إلغاء التثبيت من شريط المهام"
+
+#: src/WindowsTitles.cpp:95
+msgid "Print"
+msgstr "طباعة"
+
+#: src/WindowsTitles.cpp:96
+msgid "Rotate left"
+msgstr "تدوير لليسار"
+
+#: src/WindowsTitles.cpp:97
+msgid "Rotate right"
+msgstr "تدوير لليمين"
+
+#: src/WindowsTitles.cpp:102
+msgid "More options"
+msgstr "خيارات إضافية"
+
+#: src/WindowsTitles.cpp:115
+msgid "Set as desktop background"
+msgstr "تعيين كخلفية لسطح المكتب"
+
+#: src/WindowsTitles.cpp:117
+msgid "Restore previous versions"
+msgstr "استعادة الإصدارات السابقة"

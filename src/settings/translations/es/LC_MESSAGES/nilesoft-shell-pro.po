@@ -10,20 +10,20 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:56
+#: ui/app.slint:57
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr "Segoe UI Variable Text"
 
-#: ui/app.slint:182
+#: ui/app.slint:199
 msgid "Put the default menu files back?"
 msgstr "¿Restaurar los archivos de menú predeterminados?"
 
-#: ui/app.slint:183
+#: ui/app.slint:200
 msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
 msgstr "Tu shell.nss y los archivos de su carpeta imports se sustituyen por los que vienen con Shell, y se deshacen los cambios hechos en esta aplicación. Antes se toma una instantánea de tus archivos actuales, para que puedas restaurarlos desde Copias de seguridad."
 
-#: ui/app.slint:184 ui/components/theme-controls.slint:81 ui/app.slint:184 ui/components/theme-controls.slint:81
+#: ui/app.slint:201 ui/components/theme-controls.slint:81 ui/app.slint:201 ui/components/theme-controls.slint:81
 msgid "Reset"
 msgstr "Restablecer"
 
@@ -112,7 +112,7 @@ msgstr "Activo"
 msgid "More for {}"
 msgstr "Más opciones para {}"
 
-#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:219
+#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:214
 msgid "From {}"
 msgstr "Desde {}"
 
@@ -260,7 +260,7 @@ msgstr "Comprobando el estado…"
 msgid "Preferences"
 msgstr "Preferencias"
 
-#: ui/components/theme-controls.slint:59 src/SaveService.cpp:217
+#: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
 msgid "Set by this app"
 msgstr "Establecido por esta aplicación"
 
@@ -2683,7 +2683,7 @@ msgstr "Este equipo"
 msgid "shell.exe did not finish in time and was stopped."
 msgstr "shell.exe no terminó a tiempo y se detuvo."
 
-#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:503
+#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:498
 msgid "shell.exe exited with code {}."
 msgstr "shell.exe terminó con el código {}."
 
@@ -4449,7 +4449,7 @@ msgstr "Submenú"
 msgid "Item"
 msgstr "Elemento"
 
-#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:203
+#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:198
 msgid "{}, line {}"
 msgstr "{}, línea {}"
 
@@ -4601,7 +4601,7 @@ msgstr "{} no tiene ninguna declaración en la línea {}."
 msgid "The file changed since this code was opened. Cancel, then open it again."
 msgstr "El archivo cambió desde que se abrió este código. Cancela y ábrelo de nuevo."
 
-#: src/MenuMapController.cpp:1521 src/SaveService.cpp:458
+#: src/MenuMapController.cpp:1521 src/SaveService.cpp:453
 msgid "Not saved: {}"
 msgstr "No guardado: {}"
 
@@ -4928,67 +4928,67 @@ msgstr "Un bloque theme{} con todos los ajustes del tema en vigor, guardados o n
 msgid "the check failed"
 msgstr "la comprobación falló"
 
-#: src/SaveService.cpp:211
+#: src/SaveService.cpp:206
 msgid "Changed here · not saved yet"
 msgstr "Cambiado aquí · aún sin guardar"
 
-#: src/SaveService.cpp:213
+#: src/SaveService.cpp:208
 msgid "Back to {} · not saved yet"
 msgstr "De vuelta a {} · aún sin guardar"
 
-#: src/SaveService.cpp:214
+#: src/SaveService.cpp:209
 msgid "Back to the built-in default · not saved yet"
 msgstr "De vuelta al valor predeterminado integrado · aún sin guardar"
 
-#: src/SaveService.cpp:216
+#: src/SaveService.cpp:211
 msgid "Set by this app · {} has {}"
 msgstr "Establecido por esta aplicación · {} tiene {}"
 
-#: src/SaveService.cpp:220
+#: src/SaveService.cpp:215
 msgid "Built-in default"
 msgstr "Valor predeterminado integrado"
 
-#: src/SaveService.cpp:300
+#: src/SaveService.cpp:295
 msgid "shell.exe -status did not finish in time."
 msgstr "shell.exe -status no terminó a tiempo."
 
-#: src/SaveService.cpp:319
+#: src/SaveService.cpp:314
 msgid "The config file was not found. Create a personal config from Home."
 msgstr "No se encontró el archivo de configuración. Crea una configuración personal desde Inicio."
 
-#: src/SaveService.cpp:343
+#: src/SaveService.cpp:338
 msgid "shell.exe was not found, so the config can't be checked before saving."
 msgstr "No se encontró shell.exe, así que la configuración no se puede comprobar antes de guardar."
 
-#: src/SaveService.cpp:349
+#: src/SaveService.cpp:344
 msgid "Checking with shell.exe…"
 msgstr "Comprobando con shell.exe…"
 
-#: src/SaveService.cpp:451
+#: src/SaveService.cpp:446
 msgid "Nothing to save · the files already match"
 msgstr "Nada que guardar · los archivos ya coinciden"
 
-#: src/SaveService.cpp:452
+#: src/SaveService.cpp:447
 msgid "Saved · Shell reloads on next right-click"
 msgstr "Guardado · Shell se recarga en el siguiente clic derecho"
 
-#: src/SaveService.cpp:454
+#: src/SaveService.cpp:449
 msgid "Shell rejected the config, rolled back: {}"
 msgstr "Shell rechazó la configuración y se revirtió: {}"
 
-#: src/SaveService.cpp:456
+#: src/SaveService.cpp:451
 msgid "Shell rejected the config, nothing was written: {}"
 msgstr "Shell rechazó la configuración; no se escribió nada: {}"
 
-#: src/SaveService.cpp:487
+#: src/SaveService.cpp:482
 msgid "Creating your personal config…"
 msgstr "Creando tu configuración personal…"
 
-#: src/SaveService.cpp:501
+#: src/SaveService.cpp:496
 msgid "shell.exe did not finish in time."
 msgstr "shell.exe no terminó a tiempo."
 
-#: src/SaveService.cpp:509
+#: src/SaveService.cpp:504
 msgid "Couldn't create the personal config: {}"
 msgstr "No se pudo crear la configuración personal: {}"
 
@@ -5871,20 +5871,20 @@ msgstr "Establecer como fondo de escritorio"
 msgid "Restore previous versions"
 msgstr "Restaurar versiones anteriores"
 
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
-
 #~ msgid "When the app starts, at most once a day."
 #~ msgstr "Al iniciar la aplicación, como máximo una vez al día."
 
-#~ msgid "Program (.exe)"
-#~ msgstr "Programa (.exe)"
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
 
 #~ msgid "To move one of your items, use Edit code or the Menu Builder."
 #~ msgstr "Para mover uno de tus elementos, usa Editar código o el Creador de menús."
 
+#~ msgid "Program (.exe)"
+#~ msgstr "Programa (.exe)"
+
 #~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 #~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"

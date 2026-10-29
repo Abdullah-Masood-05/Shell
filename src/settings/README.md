@@ -112,8 +112,8 @@ src\settings\out\nss\Release\nsscore_tests.exe
 
 ## Translations
 
-The app's text is in English, Simplified Chinese (`zh-CN`) and Traditional Chinese (`zh-TW`);
-Spanish (`es`) is started. Each language is one gettext file,
+The app's text is in English, Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-TW`),
+Spanish (`es`) and Arabic (`ar`, a first draft waiting for a native speaker's review). Each language is one gettext file,
 `translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`, next to the template
 `translations/nilesoft-shell-pro.pot`. The build embeds them: the `.slint` strings through
 Slint's bundled translations (`SLINT_BUNDLE_TRANSLATIONS` in `CMakeLists.txt`), the C++
@@ -179,6 +179,23 @@ The same steps are on the website: [Preferences > Translating the app](https://a
   mostly English with a few Spanish words; a label like "(incomplete)" would still have done
   that through *Auto*. Chinese is the one special case: `zh-TW`, `zh-HK`, `zh-MO` and
   `zh-Hant` go to `zh-TW`, other `zh` to `zh-CN` (`resolveLanguage` in `src/Tr.cpp`).
+- **Plural forms.** Each language's `Plural-Forms` header is read by both sides: Slint's
+  compiler for the `.slint` strings, `po::PluralRule` (`src/PoFile.cpp`) for the C++ ones,
+  and `po2inc` copies every `msgstr[i]`. Any C-style gettext rule works. Arabic uses all six
+  forms: `nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 :
+  n%100>=11 ? 4 : 5);` (0, 1, 2, 3 to 10, 11 to 99, 100 and up).
+- **Right-to-left languages (Arabic).** Slint 1.18 shapes Arabic and orders mixed Arabic and
+  Latin text within a line correctly (each text's direction comes from its first strong
+  letter), but it does not mirror layouts: the sidebar stays on the left, labels on the left
+  of their controls, and text is left-aligned, so a wrapped Arabic paragraph is ragged on
+  the right, where its lines begin. Mirroring only some components would look broken next to
+  the rest, so the app doesn't try. Two things help inside the `.po`: a translation that
+  starts with Latin text or a placeholder starts with U+200F (RIGHT-TO-LEFT MARK), so the
+  line is laid out right to left (`Shell نشط` reads as "Shell is active", not the other way
+  round); and short labels in tight places (segmented buttons, the key column of cards)
+  should stay short, because Slint doesn't elide right-to-left text, it runs past the start
+  edge (`Segmented` in `ui/components/controls.slint` clips each option for that reason).
+  Look at the result with `--lang ar --snapshot <prefix>`.
 - **Checking a language** without changing the setting: `NilesoftShellPro.exe --lang zh-TW`
   (`auto`, `en` or a listed code; that run only).
 - **The translator preview** (*Test a translation file…*, `--po <file>`) reads any `.po` at

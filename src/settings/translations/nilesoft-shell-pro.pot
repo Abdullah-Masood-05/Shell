@@ -11,20 +11,20 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:56
+#: ui/app.slint:57
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr ""
 
-#: ui/app.slint:182
+#: ui/app.slint:199
 msgid "Put the default menu files back?"
 msgstr ""
 
-#: ui/app.slint:183
+#: ui/app.slint:200
 msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
 msgstr ""
 
-#: ui/app.slint:184 ui/components/theme-controls.slint:81 ui/app.slint:184 ui/components/theme-controls.slint:81
+#: ui/app.slint:201 ui/components/theme-controls.slint:81 ui/app.slint:201 ui/components/theme-controls.slint:81
 msgid "Reset"
 msgstr ""
 
@@ -113,7 +113,7 @@ msgstr ""
 msgid "More for {}"
 msgstr ""
 
-#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:219
+#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:214
 msgid "From {}"
 msgstr ""
 
@@ -259,7 +259,7 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
-#: ui/components/theme-controls.slint:59 src/SaveService.cpp:217
+#: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
 msgid "Set by this app"
 msgstr ""
 
@@ -2678,7 +2678,7 @@ msgstr ""
 msgid "shell.exe did not finish in time and was stopped."
 msgstr ""
 
-#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:503
+#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:498
 msgid "shell.exe exited with code {}."
 msgstr ""
 
@@ -4399,7 +4399,7 @@ msgstr ""
 msgid "Item"
 msgstr ""
 
-#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:203
+#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:198
 msgid "{}, line {}"
 msgstr ""
 
@@ -4551,7 +4551,7 @@ msgstr ""
 msgid "The file changed since this code was opened. Cancel, then open it again."
 msgstr ""
 
-#: src/MenuMapController.cpp:1521 src/SaveService.cpp:458
+#: src/MenuMapController.cpp:1521 src/SaveService.cpp:453
 msgid "Not saved: {}"
 msgstr ""
 
@@ -4878,67 +4878,67 @@ msgstr ""
 msgid "the check failed"
 msgstr ""
 
-#: src/SaveService.cpp:211
+#: src/SaveService.cpp:206
 msgid "Changed here · not saved yet"
 msgstr ""
 
-#: src/SaveService.cpp:213
+#: src/SaveService.cpp:208
 msgid "Back to {} · not saved yet"
 msgstr ""
 
-#: src/SaveService.cpp:214
+#: src/SaveService.cpp:209
 msgid "Back to the built-in default · not saved yet"
 msgstr ""
 
-#: src/SaveService.cpp:216
+#: src/SaveService.cpp:211
 msgid "Set by this app · {} has {}"
 msgstr ""
 
-#: src/SaveService.cpp:220
+#: src/SaveService.cpp:215
 msgid "Built-in default"
 msgstr ""
 
-#: src/SaveService.cpp:300
+#: src/SaveService.cpp:295
 msgid "shell.exe -status did not finish in time."
 msgstr ""
 
-#: src/SaveService.cpp:319
+#: src/SaveService.cpp:314
 msgid "The config file was not found. Create a personal config from Home."
 msgstr ""
 
-#: src/SaveService.cpp:343
+#: src/SaveService.cpp:338
 msgid "shell.exe was not found, so the config can't be checked before saving."
 msgstr ""
 
-#: src/SaveService.cpp:349
+#: src/SaveService.cpp:344
 msgid "Checking with shell.exe…"
 msgstr ""
 
-#: src/SaveService.cpp:451
+#: src/SaveService.cpp:446
 msgid "Nothing to save · the files already match"
 msgstr ""
 
-#: src/SaveService.cpp:452
+#: src/SaveService.cpp:447
 msgid "Saved · Shell reloads on next right-click"
 msgstr ""
 
-#: src/SaveService.cpp:454
+#: src/SaveService.cpp:449
 msgid "Shell rejected the config, rolled back: {}"
 msgstr ""
 
-#: src/SaveService.cpp:456
+#: src/SaveService.cpp:451
 msgid "Shell rejected the config, nothing was written: {}"
 msgstr ""
 
-#: src/SaveService.cpp:487
+#: src/SaveService.cpp:482
 msgid "Creating your personal config…"
 msgstr ""
 
-#: src/SaveService.cpp:501
+#: src/SaveService.cpp:496
 msgid "shell.exe did not finish in time."
 msgstr ""
 
-#: src/SaveService.cpp:509
+#: src/SaveService.cpp:504
 msgid "Couldn't create the personal config: {}"
 msgstr ""
 

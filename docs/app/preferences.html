@@ -15,14 +15,16 @@
 	app's own window; the look of Shell's menu is set on <a href="/docs/app/appearance">Appearance</a>.</p>
 
 <h5 id="language">Language</h5>
-<p>The app is available in English, Simplified Chinese (简体中文) and Traditional Chinese (繁體中文). Choose
-	<kbd>Auto</kbd>, <kbd>English</kbd>, <kbd>简体中文</kbd> or <kbd>繁體中文</kbd>. The change applies right away, with no
-	restart.</p>
+<p>The app is available in English, Simplified Chinese (简体中文), Traditional Chinese (繁體中文) and Arabic
+	(العربية). Choose <kbd>Auto</kbd>, <kbd>English</kbd>, <kbd>简体中文</kbd>, <kbd>繁體中文</kbd> or <kbd>العربية</kbd>.
+	The change applies right away, with no restart.</p>
 <ul>
 	<li><strong>Auto</strong> (the default) follows the Windows display language (<i>Settings &rarr; Time &amp; language
 		&rarr; Language &amp; region</i>). Chinese for Taiwan, Hong Kong or Macao, or any Traditional Chinese, picks
-		繁體中文; any other Chinese picks 简体中文; every other language picks English. The card says which language
-		<i>Auto</i> uses right now.</li>
+		繁體中文; any other Chinese picks 简体中文; any Arabic picks العربية; every other language picks English. The
+		card says which language <i>Auto</i> uses right now.</li>
+	<li>The Arabic translation is a first draft, and corrections are welcome. The app's layout stays left to right in
+		Arabic for now.</li>
 	<li>The setting only changes the app's own window. The text of Shell's menus comes from your configuration; the
 		default configuration has its own language files in <code>imports\lang</code>.</li>
 	<li>Config keywords, file names and code samples stay in English in every language, because that is how you type
@@ -32,7 +34,7 @@
 		<a href="#translate">Test a translation file</a>.</li>
 </ul>
 <p>The choice is stored as <code>Language</code> under <code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Settings</code>
-	(empty for Auto, <code>en</code>, <code>zh-CN</code> or <code>zh-TW</code>).</p>
+	(empty for Auto, <code>en</code>, <code>zh-CN</code>, <code>zh-TW</code> or <code>ar</code>).</p>
 
 <h5 id="translate">Translating the app</h5>
 <p>Anyone can translate the app; you don't need to be a programmer. All the text of the app is in one file per language,

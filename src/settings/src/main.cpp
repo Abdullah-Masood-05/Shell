@@ -33,7 +33,7 @@
 //   --map-expand, --map-select <title>, --map-open-move (its Move to list open),
 //   --map-sample <n> (the File context's sample, 0 = .txt)   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
-//   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
+//   --lang <auto|en|zh-CN|zh-TW|ar> the app's language for this run (not saved)
 //   --po <file>            the translator preview: shows the app in that .po file, like
 //                          Preferences > Language > Test a translation file
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
