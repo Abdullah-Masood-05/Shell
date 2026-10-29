@@ -15,8 +15,10 @@
 <p>The switcher at the top chooses which right-click menu is shown:</p>
 <table class="table">
 	<tr><td class="w-25">File</td><td>A file of the type you pick next to it: <i>Text file (.txt)</i>, <i>Image
-		(.png)</i>, <i>Program (.exe)</i>, <i>Archive (.zip)</i>, <i>PDF (.pdf)</i> or <i>Music (.mp3)</i>. Programs often
-		add items only for some types, so the menu can differ from one type to the next.</td></tr>
+		(.png)</i>, <i>Application (.exe)</i>, <i>Shortcut (.lnk)</i>, <i>Archive (.zip)</i>, <i>PDF (.pdf)</i> or <i>Music
+		(.mp3)</i>. Programs often add items only for some types, so the menu can differ from one type to the next. For
+		example, <i>Troubleshoot compatibility</i> and <i>Run as administrator</i> show only for an application or a
+		shortcut.</td></tr>
 	<tr><td>Folder</td><td>A folder you right-click.</td></tr>
 	<tr><td>Background</td><td>An empty spot inside an open folder (the folder background).</td></tr>
 	<tr><td>Desktop</td><td>An empty spot on the desktop.</td></tr>
@@ -79,8 +81,8 @@
 		Editor and a link to the <a href="/docs/app/context-menus">Context Menus</a> page.</td></tr>
 	<tr><td>In the menu</td><td>The switch that hides or shows the item.</td></tr>
 	<tr><td>Rename</td><td>A new title for the item.</td></tr>
-	<tr><td>Move to</td><td>Another menu to put it in. For Windows and program items: your Shell menus and Windows
-		submenus. For your own items: the main menu and your Shell menus.</td></tr>
+	<tr><td>Move to</td><td>Another menu to put it in. <i>Main menu</i> comes first, then your Shell menus, and for
+		Windows and program items also Windows submenus such as <i>Send to</i>.</td></tr>
 	<tr><td>Place in this menu</td><td>Your own items only: where the item goes in its menu (at the top, before or
 		after another item, at the bottom), and <kbd>Move up</kbd> and <kbd>Move down</kbd>.</td></tr>
 	<tr><td>Code</td><td>The code behind the item.</td></tr>
@@ -91,8 +93,8 @@
 <ol>
 	<li>Select the item.</li>
 	<li>Turn off <strong>In the menu</strong> to hide it. Or type a new title under <strong>Rename</strong>, or pick a
-		menu under <strong>Move to</strong>. The list has your Shell menus, such as <i>File manage</i> or <i>More
-		options</i>, and Windows submenus, such as <i>Send to</i>.</li>
+		menu under <strong>Move to</strong>. The list starts with <i>Main menu</i>, then has your Shell menus, such as
+		<i>File manage</i> or <i>More options</i>, and Windows submenus, such as <i>Send to</i>.</li>
 	<li>The footer at the bottom of the window counts the change. Click <kbd>Save</kbd>, or <kbd>Discard</kbd> to drop
 		your changes.</li>
 	<li>Right-click again to see the result.</li>
@@ -107,6 +109,13 @@
 	<li>An item whose title changes with what is selected, such as 7-Zip's <i>Add to "name.7z"</i>. A rule can't name it,
 		so the panel suggests the Config Editor.</li>
 </ul>
+<p><strong>Main menu</strong> takes an item out of a submenu, or back from a move a file such as
+	<code>imports/modify.nss</code> makes. For example, the bundled <code>modify.nss</code> moves <i>Create shortcut</i>
+	into <i>More options</i>; <i>Main menu</i> keeps it in the main menu. The page writes <code>menu="/"</code> for it,
+	and Shell then leaves the item in the main menu: the rules after that one don't move it again. The tag reads
+	<i>Kept in the main menu</i>.</p>
+
+<h6 id=
 
 <h5 id="your-items">Change one of your Shell items</h5>
 <p>Changes to your own items are saved right away, without the footer.</p>
@@ -115,10 +124,11 @@
 		line; turning the switch back on removes exactly that. If the item already has its own <code>vis</code>, the
 		switch can't be used and the panel suggests <kbd>Edit code</kbd>.</li>
 	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
-	<li><strong>Move to</strong> puts the item in another menu: the main menu or one of your Shell menus for this
+	<li><strong>Move to</strong> puts the item in another menu: <i>Main menu</i> or one of your Shell menus for this
 		place, for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The page adds
 		<code>menu=</code> to the item's line, such as <code>menu=loc.file_manage</code>. The item stays written where it
-		is, so <kbd>Put it back where it is written</kbd> only takes that out again.</li>
+		is, so <kbd>Put it back where it is written</kbd> only takes that out again. <i>Main menu</i> writes
+		<code>menu='/'</code>.</li>
 	<li><strong>Place in this menu</strong> sets where the item goes in its menu: <i>At the top</i>, <i>Before …</i> or
 		<i>After …</i> another item, or <i>At the bottom</i>. The page adds <code>pos=</code> to the item's line, such as
 		<code>pos=indexof(quote(loc.tools_lock), 1)</code> for "after Lock". <kbd>Use the order in the file</kbd> takes
@@ -175,6 +185,8 @@
 	<li>Dragging items to reorder them isn't supported. Use the arrows, <kbd>Alt</kbd>+<kbd>Up</kbd> and
 		<kbd>Alt</kbd>+<kbd>Down</kbd>, or <strong>Place in this menu</strong>.</li>
 	<li>The <code>modify.remove.duplicate</code> setting is not applied in the map.</li>
+	<li>Items some programs add only inside File Explorer are not listed. Add them by title, see
+		<a href="#not-listed">An item that isn't listed</a>.</li>
 </ul>
 
 <h5 id="troubleshooting">Troubleshooting</h5>
