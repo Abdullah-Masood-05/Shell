@@ -643,6 +643,13 @@ namespace Nilesoft
 						case IDENT_SYS:
 							_result = context->_this->system;
 							break;
+						case IDENT_TIP:
+							_result = context->_this->tip ? *context->_this->tip : string();
+							break;
+						case IDENT_KEY:
+						case IDENT_KEYS:
+							_result = context->_this->key ? *context->_this->key : string();
+							break;
 						case IDENT_NAME:
 						case IDENT_TITLE:
 						{
@@ -702,16 +709,60 @@ namespace Nilesoft
 						}
 						case IDENT_PARENT:
 						{
-							/*switch(Id[2])
+							// this.parent.id/title/name/tip/key/count: the menu item this one
+							// is in. In the main menu there is none: id is this.parent's value,
+							// count is this.count, the texts are empty.
+							auto p = context->_this->parent_item;
+							switch(Id[2])
 							{
 								case IDENT_ID:
-								case IDENT_NAME:
+									_result = p ? p->id : context->_this->parent;
+									if(argc > 0)
+									{
+										auto id = _result.to_number<uint32_t>();
+										_result = false;
+										for(size_t i = 0; i < Arguments.size(); i++)
+										{
+											if(eval_arg(i).to_number<uint32_t>() == id)
+											{
+												_result = true;
+												break;
+											}
+										}
+									}
+									return _result.move();
 								case IDENT_TITLE:
-									break;
-								case IDENT_ZERO:
-									break;
+								case IDENT_NAME:
+								{
+									string title = !p ? string() : string(Id[2] == IDENT_TITLE ? p->title : p->title_normalize);
+									if(argc == 0)
+										_result = title.move();
+									else
+									{
+										_result = false;
+										for(size_t i = 0; i < Arguments.size(); i++)
+										{
+											string r = eval_arg(i).to_string().trim().move();
+											if(title.equals(r))
+											{
+												_result = true;
+												break;
+											}
+										}
+									}
+									return _result.move();
+								}
+								case IDENT_TIP:
+									_result = p && p->tip ? *p->tip : string();
+									return _result.move();
+								case IDENT_KEY:
+								case IDENT_KEYS:
+									_result = p && p->key ? *p->key : string();
+									return _result.move();
+								case IDENT_COUNT:
+									_result = p ? p->count : context->menu_count;
+									return _result.move();
 							}
-							*/
 							if(argc == 0)
 								_result = context->_this->parent;
 							else
@@ -828,6 +879,88 @@ namespace Nilesoft
 						case IDENT_IS_BITMAP:
 						{
 							_result = Text::Clipboard::IsFormatAvailable(CF_BITMAP);
+							break;
+						}
+						case IDENT_IS_FILES:
+						{
+							// Files copied or cut in Explorer.
+							_result = Text::Clipboard::IsFormatAvailable(CF_HDROP);
+							break;
+						}
+						case IDENT_FILES:
+						{
+							// clipboard.files[.name|.title|.ext|.quote][n](separator) and
+							// clipboard.files.count: the files copied or cut in Explorer.
+							std::vector<string> files;
+							if(Text::Clipboard::IsFormatAvailable(CF_HDROP) && ::OpenClipboard(nullptr))
+							{
+								if(auto hdrop = static_cast<HDROP>(::GetClipboardData(CF_HDROP)); hdrop)
+								{
+									auto count = ::DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
+									for(UINT i = 0; i < count; i++)
+									{
+										auto len = ::DragQueryFileW(hdrop, i, nullptr, 0);
+										if(len == 0)
+											continue;
+										string path;
+										if(::DragQueryFileW(hdrop, i, path.buffer(len + 1), len + 1))
+											files.push_back(path.release(len).move());
+									}
+								}
+								::CloseClipboard();
+							}
+
+							if(Id[2] == IDENT_COUNT)
+							{
+								_result = static_cast<uint32_t>(files.size());
+								break;
+							}
+
+							auto part = [&](string const &path) -> string
+							{
+								switch(Id[2])
+								{
+									case IDENT_NAME:
+										return Path::Name(path.c_str()).move();
+									case IDENT_TITLE:
+										return Path::Title(path.c_str()).move();
+									case IDENT_EXT:
+									{
+										string name = Path::Name(path.c_str()).move();
+										auto dot = name.last_index_of(L'.', false);
+										if(dot == 0 || dot == name.npos)
+											return {};
+										return name.substr(dot).move();
+									}
+									case IDENT_QUOTE:
+										return string(L"\"") + path + L"\"";
+								}
+								return path;
+							};
+
+							if(Array)
+							{
+								if(Object oa = context->Eval(Array).move(); oa.is_number())
+								{
+									auto i = oa.to_number<int64_t>();
+									if(i >= 0 && i < static_cast<int64_t>(files.size()))
+										_result = part(files[static_cast<size_t>(i)]).move();
+								}
+								break;
+							}
+
+							if(files.empty())
+								break;
+
+							string sep = argc > 0 ? eval_arg(0).to_string().move() : string(L"\n");
+							string all;
+							for(size_t i = 0; i < files.size(); i++)
+							{
+								if(i > 0)
+									all += sep;
+								all += part(files[i]);
+							}
+							_result = all.move();
 							break;
 						}
 						case IDENT_ZERO:

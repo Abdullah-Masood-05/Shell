@@ -1280,7 +1280,25 @@ namespace Nilesoft
 						case IDENT_LEN:
 						case IDENT_LENGTH:
 						case IDENT_GET:
+						case IDENT_IS_FILES:
 							return check(argc == 0, 1);
+						case IDENT_FILES:
+						{
+							// clipboard.files[.name|.title|.ext|.quote][n](separator), .count
+							switch(id[2])
+							{
+								case IDENT_ZERO:
+									return check(argc <= 1, 1);
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
+								case IDENT_NAME:
+								case IDENT_TITLE:
+								case IDENT_EXT:
+								case IDENT_QUOTE:
+									return check(argc <= 1, 2);
+							}
+							return error_at(2);
+						}
 						case IDENT_SET:
 							return check(argc == 1, 1);
 							
@@ -1519,11 +1537,20 @@ namespace Nilesoft
 								case IDENT_NAME:
 								case IDENT_TITLE:
 									return check(argc >= 0, 2);
+								case IDENT_TIP:
+								case IDENT_KEY:
+								case IDENT_KEYS:
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc >= 0, 1);
 							}
 							return error_at(2);
 						}
+						case IDENT_TIP:
+						case IDENT_KEY:
+						case IDENT_KEYS:
+							return check(argc == 0, 1);
 						case MENU_VERB:
 						case IDENT_DISABLED:
 						case IDENT_TYPE:

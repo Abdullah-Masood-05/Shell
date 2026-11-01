@@ -135,6 +135,14 @@ namespace Nilesoft
 			int sep = 0;
 			int level = 0;
 			string clsid;
+			// this.tip and this.key: the item's tip and its shortcut text (both may
+			// be filled in after this is set up, so they are read through pointers).
+			const string *tip{};
+			const string *key{};
+			// The menu item this one is in (this.parent.*), or null in the main menu.
+			// Its count is the number of items in that menu.
+			const struct this_item *parent_item{};
+			uint32_t count = 0;
 		};
 
 		//contains information that's global to the interpreter.

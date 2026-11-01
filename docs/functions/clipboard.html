@@ -31,6 +31,31 @@
 	<code>clipboard.is_empty</code>
 </section>
 
+<section id="clipboard.is_files" class="my-5">
+	<h5>clipboard.is_files</h5>
+	<p>Returns true when files or folders were copied or cut in File Explorer.</p>
+	<p>Syntax</p>
+	<code>clipboard.is_files</code>
+</section>
+
+<section id="clipboard.files" class="my-5">
+	<h5>clipboard.files</h5>
+	<p>Returns the files and folders that were copied or cut in File Explorer: their full paths, one per line, or
+		separated by the text you give. With <code>[n]</code> it returns only one of them, counting from 0.
+		<code>.name</code>, <code>.title</code> (the name without its extension), <code>.ext</code> and
+		<code>.quote</code> (the path in double quotes) give that part of each path instead.</p>
+	<p>Syntax</p>
+	<pre><code>clipboard.files                  // every path, one per line
+clipboard.files(', ')            // every path, separated by a comma
+clipboard.files[0]               // the first path
+clipboard.files.count            // how many there are
+clipboard.files.name(', ')       // every name, such as "report.docx, photo.jpg"
+clipboard.files.quote(' ')       // every path in double quotes, separated by a space
+clipboard.files.title[0]         // the first name without its extension</code></pre>
+	<p>Example</p>
+	<code>item(title='Copy the names of the copied files' where=clipboard.is_files cmd=clipboard.set(clipboard.files.name))</code>
+</section>
+
 <section id="clipboard.empty" class="my-5">
 	<h5>clipboard.empty</h5>
 	<p>Empty values stored in the clipboard.</p>

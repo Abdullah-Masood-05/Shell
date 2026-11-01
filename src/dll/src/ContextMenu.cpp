@@ -262,6 +262,21 @@ namespace Nilesoft
 			}
 		}
 
+		// this.parent.* for an item in the submenu `owner` (none in the main menu);
+		// count is the number of items in that submenu.
+		static void set_parent_item(this_item &self, this_item &parent, MenuItemInfo *owner, size_t count)
+		{
+			if(!owner)
+				return;
+			parent.id = owner->id;
+			parent.title = owner->title.text;
+			parent.title_normalize = owner->title.normalize;
+			parent.tip = &owner->tip.text;
+			parent.key = &owner->keys;
+			parent.count = static_cast<uint32_t>(count);
+			self.parent_item = &parent;
+		}
+
 		// Lists `item` as moved by menu=`value` (already evaluated): once only, with the
 		// path of the menu it goes to ('A/B'), or none for the main menu ('/', as for
 		// modify()). False when the value names no menu, or the main menu for an item
@@ -369,8 +384,11 @@ namespace Nilesoft
 					auto not_sep = !item->is_separator();
 
 					this_item _this{};
+					this_item _parent{};
 					_context._this = &_this;
 					_this.level = (int)parent_level.size();
+					set_parent_item(_this, _parent, owner,
+									list.size() + (menu && menu->std_items ? menu->std_items->size() : 0));
 
 					_this.type = not_sep ? (item->is_menu() ? 1 : 0) : 2;
 					_this.pos = _this_index++;
@@ -552,6 +570,8 @@ namespace Nilesoft
 
 						_this.title_normalize = mii->title.normalize;
 						_this.id = mii->hash;
+						_this.tip = &mii->tip.text;
+						_this.key = &mii->keys;
 
 						if(item->is_menu() && item->cmd->admin)
 							mii->privileges = _context.parse_privileges(item->cmd);
@@ -863,7 +883,14 @@ namespace Nilesoft
 			mii->dwItemData = item->dwItemData;
 			mii->handle = menu->handle;
 
-			this_item _this; _context._this = &_this;
+			this_item _this, _parent; _context._this = &_this;
+			set_parent_item(_this, _parent, menu->owner,
+							(menu->std_items ? menu->std_items->size() : 0) + menu->dynamics.size());
+
+			// The tip an earlier modify() rule gave it (build_main_system_menuitems).
+			mii->tip.text = item->tip;
+			_this.tip = &mii->tip.text;
+			_this.key = &mii->keys;
 
 			_this.type = item->type;
 			_this.pos = (int)item->position;
@@ -4355,6 +4382,20 @@ namespace Nilesoft
 
 						_this.parent = menu->uid();
 						//_this.level = (int)parent_level.size();
+						_this.tip = &item->tip;
+						_this.key = &item->keys;
+
+						this_item _parent;
+						if(!is_root)
+						{
+							_parent.id = menu->uid();
+							_parent.title = menu->title;
+							_parent.title_normalize = menu->name;
+							_parent.tip = &menu->tip;
+							_parent.key = &menu->keys;
+							_parent.count = static_cast<uint32_t>(items->size());
+							_this.parent_item = &_parent;
+						}
 
 						if(!item->is_separator())
 						{
@@ -4526,7 +4567,16 @@ namespace Nilesoft
 						}
 
 						if(!removed)
+						{
 							item->native_items.push_back(si);
+							// this.tip for the rules after this one.
+							if(si->tip)
+							{
+								uint8_t tip_type{};
+								uint16_t tip_time{};
+								_context.eval_tip(si->tip, item->tip, tip_type, tip_time);
+							}
+						}
 
 						if(si->invoke && 0 == _context.parse_invoke(si->invoke))
 						{
@@ -5138,7 +5188,14 @@ namespace Nilesoft
 
 			auto invoke_item = cm->invoke_item;
 
-			this_item _this;
+			// ctx->_this is read by the commands after this returns, so it cannot point
+			// at a local. Each command runs on its own thread (Invoke).
+			static thread_local this_item _this, _parent;
+			_this = {};
+			_parent = {};
+			set_parent_item(_this, _parent, invoke_item->owner, invoke_item->owner ? invoke_item->owner->items.size() : 0);
+			_this.tip = &invoke_item->tip.text;
+			_this.key = &invoke_item->keys;
 			_this.type = invoke_item->is_separator() ? 2 : (invoke_item->is_popup() ? 1 : 0);
 			_this.pos = static_cast<int>(invoke_item->position);
 			_this.checked = invoke_item->is_checked() ? (invoke_item->is_radiocheck() ? 2 : 1) : 0;

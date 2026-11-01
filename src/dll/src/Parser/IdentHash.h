@@ -803,6 +803,7 @@ namespace Nilesoft
 		constexpr auto IDENT_ID_SEND_FEEDBACK = 0xF4ABBE33U;
 		constexpr auto IDENT_CLIPBOARD = 0x4912A9B5U;
 		constexpr auto IDENT_IS_EMPTY = 0xDC1854CFU;
+		constexpr auto IDENT_IS_FILES = 0xDC2828D3U;
 		constexpr auto IDENT_ID_COPY_TO_CLIPBOARD = 0x49C3DC71U;
 
 		constexpr auto IDENT_COMMAND_RESTORE_ALL_WINDOWS = 0xDFA7F50BU;

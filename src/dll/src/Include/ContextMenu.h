@@ -85,6 +85,8 @@ namespace Nilesoft
 			string name;
 			string title;
 			string keys;
+			// The tip a modify() rule gave it (this.tip); Windows gives its items none.
+			string tip;
 			uint32_t length = 0;
 			int tab = 0;
 			bool disabled = false;
