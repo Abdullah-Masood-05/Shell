@@ -30,12 +30,16 @@
   a per-user mode that needs no administrator rights, and an app to set it up and configure it.
 </p>
 
-**Download the latest release:**
+**Download the latest stable release:**
 [setup-x64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi) ·
 [setup-arm64.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi) ·
 [setup-x86.msi](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi) ·
 [portable zip (per user, no admin)](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip) ·
-[all releases](https://github.com/Abdullah-Masood-05/Shell/releases). These links always point to the newest release.
+[all releases](https://github.com/Abdullah-Masood-05/Shell/releases). These links always point to the newest stable release.
+
+**Try the newest beta:** [2.3.0-beta.3](https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0-beta.3), with the latest features and fixes before they reach stable. It may have bugs; tell us what you find.
+
+Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
 ## What's different in Pro
 
