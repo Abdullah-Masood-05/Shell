@@ -638,7 +638,7 @@ void SnippetsController::push()
                         missing.push_back(req.name);
             std::string needs;
             if (!snippets::versionMet(s.minVersion, SETTINGS_VERSION))
-                needs = nsp::trf("Needs Shell {} or later", s.minVersion);
+                needs = nsp::trf("Needs Shell {} or later", nsp::ltr(s.minVersion));
             else if (!missing.empty()) {
                 std::string names;
                 for (size_t i = 0; i < missing.size(); ++i)

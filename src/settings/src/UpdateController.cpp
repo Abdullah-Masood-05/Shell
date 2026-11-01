@@ -476,21 +476,21 @@ void UpdateController::start()
     if (options_.updated.rfind(L"app:", 0) == 0) {
         auto wanted = updater::Version::parse(narrow(options_.updated.substr(4)));
         if (!wanted || updater::compare(current_, *wanted) >= 0)
-            notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
+            notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", nsp::ltr(v)); },
                    later(nsp::mark("The app was updated for you, without administrator rights.")), "");
         else
             notice("error", later(nsp::mark("The update wasn't installed")),
                    [w = wanted->str(), v = current_.str()] {
-                       return nsp::trf("Version {} couldn't start, so {} is running. Check for updates to try again.", w, v);
+                       return nsp::trf("Version {} couldn't start, so {} is running. Check for updates to try again.", nsp::ltr(w), nsp::ltr(v));
                    },
                    "");
     } else if (options_.updated == L"portable")
-        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
+        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", nsp::ltr(v)); },
                later(nsp::mark("Restart Explorer to load the new shell.dll; until then it keeps using the old one.")),
                "restart");
     else if (options_.updated == L"msi")
-        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", v); },
-               [v = current_.str()] { return nsp::trf("Nilesoft Shell Pro {} is installed.", v); }, "");
+        notice("ok", [v = current_.str()] { return nsp::trf("Updated to {}", nsp::ltr(v)); },
+               [v = current_.str()] { return nsp::trf("Nilesoft Shell Pro {} is installed.", nsp::ltr(v)); }, "");
     else if (!options_.updateFailed.empty())
         notice("error", later(nsp::mark("The update wasn't installed")), as(narrow(options_.updateFailed)), "");
     else if (options_.updateCancelled)
@@ -988,5 +988,5 @@ void UpdateController::skip()
     ready_.clear();
     readyVersion_.clear();
     showRelease();
-    setState("up-to-date", [version] { return nsp::trf("Version {} is skipped. Newer versions will still show up.", version); });
+    setState("up-to-date", [version] { return nsp::trf("Version {} is skipped. Newer versions will still show up.", nsp::ltr(version)); });
 }

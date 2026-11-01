@@ -210,7 +210,7 @@ export component HomePage inherits PageFrame {
                 key: @tr("Version");
                 // After an app update for this user, the app is newer than the installed Shell core: both.
                 property <string> shown: AppState.app-version != "" && AppState.status.version != AppState.app-version
-                    ? @tr("Shell core {}  ·  app {}", AppState.status.version, AppState.app-version) : AppState.status.version;
+                    ? @tr("Shell core {}  ·  app {}", Tokens.ltr(AppState.status.version), Tokens.ltr(AppState.app-version)) : Tokens.ltr(AppState.status.version);
                 value: AppState.status.version == "" ? "—" : AppState.status.elevated ? @tr("{}  (running as administrator)", self.shown) : self.shown;
             }
             Rectangle { vertical-stretch: 1; }

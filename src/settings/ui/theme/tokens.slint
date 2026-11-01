@@ -106,4 +106,12 @@ export global Tokens {
         if (kind == "info") { return info-bg; }
         return layer-2;
     }
+
+    // A version number ("2.3.0-beta.3") inside a sentence: left-to-right marks around
+    // it keep it in order in a right-to-left language (Arabic would show "beta.3-2.3.0").
+    // They are invisible; "" stays "".
+    public pure function ltr(text: string) -> string {
+        if (text == "") { return ""; }
+        return "\u{200E}" + text + "\u{200E}";
+    }
 }
