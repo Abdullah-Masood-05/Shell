@@ -7,6 +7,7 @@
 #include <propsys.h>
 #include <propvarutil.h>
 #include <propkey.h>
+#include <sddl.h>
 
 #include <regex>
 
@@ -4449,6 +4450,78 @@ namespace Nilesoft
 
 #pragma comment(lib, "propsys.lib")
 
+		namespace
+		{
+			struct token_group
+			{
+				std::wstring sid;	// S-1-5-32-544
+				std::wstring name;	// Administrators (in the Windows language)
+				std::wstring full;	// BUILTIN\Administrators
+			};
+
+			// user.groups: the groups this process's token is a member of. Only the
+			// enabled ones: a group that is there for deny only (Administrators
+			// without elevation) or switched off doesn't count, nor do the logon
+			// session and integrity level entries. A process token's groups never
+			// change, so the names are looked up once, on first use, and not on
+			// every menu.
+			const std::vector<token_group> &token_groups()
+			{
+				static const std::vector<token_group> groups = []()
+				{
+					std::vector<token_group> list;
+					HANDLE token{};
+					if(!::OpenProcessToken(::GetCurrentProcess(), TOKEN_QUERY, &token))
+						return list;
+
+					DWORD size = 0;
+					::GetTokenInformation(token, TokenGroups, nullptr, 0, &size);
+					std::vector<BYTE> buffer(size);
+					if(size && ::GetTokenInformation(token, TokenGroups, buffer.data(), size, &size))
+					{
+						auto info = reinterpret_cast<const TOKEN_GROUPS *>(buffer.data());
+						for(DWORD i = 0; i < info->GroupCount; i++)
+						{
+							auto &group = info->Groups[i];
+							if(!(group.Attributes & SE_GROUP_ENABLED) ||
+							   (group.Attributes & (SE_GROUP_USE_FOR_DENY_ONLY | SE_GROUP_INTEGRITY)) ||
+							   (group.Attributes & SE_GROUP_LOGON_ID) == SE_GROUP_LOGON_ID)
+								continue;
+
+							token_group g;
+							LPWSTR sid = nullptr;
+							if(::ConvertSidToStringSidW(group.Sid, &sid) && sid)
+							{
+								g.sid = sid;
+								::LocalFree(sid);
+							}
+
+							DWORD name_len = 0, domain_len = 0;
+							SID_NAME_USE use{};
+							::LookupAccountSidW(nullptr, group.Sid, nullptr, &name_len, nullptr, &domain_len, &use);
+							if(name_len)
+							{
+								std::wstring name(name_len, L'\0'), domain(domain_len + 1, L'\0');
+								if(::LookupAccountSidW(nullptr, group.Sid, name.data(), &name_len, domain.data(), &domain_len, &use))
+								{
+									name.resize(name_len);
+									domain.resize(domain_len);
+									g.name = name;
+									g.full = domain.empty() ? name : domain + L'\\' + name;
+								}
+							}
+
+							if(!g.sid.empty() || !g.name.empty())
+								list.push_back(std::move(g));
+						}
+					}
+					::CloseHandle(token);
+					return list;
+				}();
+				return groups;
+			}
+		}
+
 		void FuncExpression::eval_user()
 		{
 			auto trim = L"\\/";
@@ -4521,6 +4594,44 @@ namespace Nilesoft
 				case IDENT_EXPAND:
 					_result = Environment::Expand(eval_arg(0).to_string(), true).move();
 					break;
+				case IDENT_GROUPS:
+				{
+					// user.groups: the names (the SID when a name can't be found).
+					// user.groups('Administrators', 'S-1-5-32-544', ...): true when the
+					// user is in any of them, named as 'Name', 'DOMAIN\Name' or a SID.
+					auto &groups = token_groups();
+					auto argc = Arguments.size();
+					if(argc == 0)
+					{
+						auto array = new Object[groups.size() + 1];
+						Object result(array, true);
+						*array++ = groups.size();
+						for(auto &g : groups)
+							*array++ = (g.name.empty() ? g.sid : g.name).c_str();
+						_result = result.move();
+						break;
+					}
+
+					bool found = false;
+					for(size_t a = 0; a < argc && !found; a++)
+					{
+						string wanted = eval_arg(a).to_string().trim().move();
+						if(wanted.empty())
+							continue;
+						for(auto &g : groups)
+						{
+							if((!g.sid.empty() && wanted.equals(g.sid.c_str())) ||
+							   (!g.name.empty() && wanted.equals(g.name.c_str())) ||
+							   (!g.full.empty() && wanted.equals(g.full.c_str())))
+							{
+								found = true;
+								break;
+							}
+						}
+					}
+					_result = found;
+					break;
+				}
 			}
 		}
 

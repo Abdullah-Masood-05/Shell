@@ -526,6 +526,7 @@ namespace Nilesoft
 		constexpr auto IDENT_APPEND = 0xF24D48DDU;
 		//
 		constexpr auto IDENT_USERS = 0x1084FF77U;
+		constexpr auto IDENT_GROUPS = 0x007025A5U;
 		constexpr auto IDENT_MAJOR = 0x0FEA717EU;
 		constexpr auto IDENT_MINOR = 0x0FEEE58AU;
 		constexpr auto IDENT_BUILD = 0x0F2E56D5U;

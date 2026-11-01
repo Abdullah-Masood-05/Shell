@@ -7,6 +7,25 @@
 	<code>user.name</code>
 </section>
 
+<section id="user.groups" class="my-5">
+	<h5>user.groups</h5>
+	<p>Without arguments, returns the groups the current user is in, as an array of names (a group whose name Windows
+		can't find is given by its SID). With arguments, returns <code>true</code> when the user is in any of the groups named.</p>
+	<p>A group can be named as <code>'Administrators'</code>, <code>'BUILTIN\Administrators'</code> or by its SID, such as
+		<code>'S-1-5-32-544'</code>. Names don't care about case. Group names follow the Windows language, so a SID is the
+		safer choice in a snippet you share.</p>
+	<p>Only groups that are switched on count. When File Explorer runs without administrator rights (the usual case),
+		Administrators is there for deny only, so <code>user.groups('Administrators')</code> is <code>false</code> even for an
+		administrator account.</p>
+	<p>Syntax</p>
+	<pre><code>user.groups                                   // array of group names
+user.groups('Administrators')                 // true when in Administrators
+user.groups('S-1-5-32-544', 'Remote Desktop Users')  // true when in any of them</code></pre>
+	<p>Example</p>
+	<pre><code>item(title='Build tools' where=user.groups('Developers') cmd='cmd.exe')
+item(title='Groups' cmd=msg(str.join(user.groups, ', ')))</code></pre>
+</section>
+
 <section id="user-functions" class="my-5">
 	<h5>Functions to return the path of user directories</h5>
 	<p>Syntax</p>
