@@ -138,7 +138,7 @@ export component SnippetStage inherits Rectangle {
     property <bool> has-first-sub: root.showing-menu && root.first-sub >= 0 && root.first-sub < root.subs.length;
 
     // Each menu at most stage-menu-max wide; when the pair still doesn't fit, both give
-    // up width (labels elide), the main menu keeping at least half.
+    // up width: the main menu its spare room first, then the labels elide.
     property <length> avail: root.width - 2 * root.menu-edge;
     property <length> main-want: min(Tokens.stage-menu-max, main.natural-width);
     property <length> sub-want: min(Tokens.stage-menu-max, probe.natural-width);

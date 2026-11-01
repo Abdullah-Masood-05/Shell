@@ -78,7 +78,8 @@ component SnippetPreview inherits Rectangle {
     in property <bool> compact;         // under the row (narrow window): no title, no card
     in property <length> avail;         // the width inside it: a list of places when the buttons don't fit
 
-    property <bool> contexts-fit: SnippetsState.preview-contexts.length * 64px + 6px <= root.avail;
+    // Room for "Background" in every button, else the list.
+    property <bool> contexts-fit: SnippetsState.preview-contexts.length * 92px + 6px <= root.avail;
     property <string> state: SnippetsState.preview-state;
     property <bool> staged: root.state == "menu" || root.state == "loading" || root.state == "error";
     // The error's code, folded away at first.
@@ -148,7 +149,7 @@ component SnippetPreview inherits Rectangle {
         if root.state == "menu" && SnippetsState.preview-contexts.length > 1 && root.contexts-fit: HorizontalLayout {
             alignment: start;
             Segmented {
-                min-option-width: 64px;
+                min-option-width: 92px;
                 options: SnippetsState.preview-contexts;
                 selected: SnippetsState.preview-context;
                 changed(i) => { SnippetsState.set-preview-context(i); }
