@@ -313,6 +313,21 @@ struct taskbar_t
 
 	static bool is_allowed_area(HWND hTaskbar, const Point &pt)
 	{
+		// One right-click asks twice, in WM_MOUSEACTIVATE and then WM_CONTEXTMENU,
+		// and each answer is a UI Automation call into the taskbar. The same
+		// taskbar and point within 150 ms reuses the first answer.
+		static thread_local struct
+		{
+			ULONGLONG time = 0;
+			HWND taskbar = nullptr;
+			Point pt{};
+			bool result = false;
+		} last;
+
+		const auto now = ::GetTickCount64();
+		if(last.time && now - last.time < 150 && last.taskbar == hTaskbar && last.pt.x == pt.x && last.pt.y == pt.y)
+			return last.result;
+
 		bool ret = false;
 
 		if(!_IUIAutomation)
@@ -369,6 +384,11 @@ struct taskbar_t
 				}
 			}
 		}
+
+		last.time = now;
+		last.taskbar = hTaskbar;
+		last.pt = pt;
+		last.result = ret;
 		return ret;
 	}
 
@@ -1372,6 +1392,264 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 	return FALSE;
 }
 
+/*
+	Third-party file managers (settings.filemanagers, off unless the config turns it on).
+
+	Explorer gives the hooked menu its selection through the folder view's
+	IShellBrowser. Total Commander, XYplorer, Double Commander, Everything and other
+	programs build Windows' file menu themselves and have no such view, so Shell's
+	menu there knew nothing about the files. When the setting allows the program,
+	DllGetClassObject hands the host a real (empty) context menu handler: the host
+	calls IShellExtInit::Initialize with the selection's IDataObject, and the menu
+	the host then shows on that thread reads the files from it
+	(Selections::QuerySelected).
+
+	- The data object is offered once, to the next menu on the same thread, and
+	  only for a few seconds after the host prepared the handler; the handler
+	  going away withdraws it. A later menu of the program's own (a toolbar, a
+	  tab) never sees an old selection.
+	- The handler adds no items and runs no commands.
+	- DllCanUnloadNow says no while any of these objects are alive.
+*/
+namespace filemanager
+{
+	std::atomic<long> objects{ 0 };
+
+	constexpr ULONGLONG offer_ms = 10000;
+
+	// The selection offered to the next menu on this thread. A plain struct (no
+	// destructor): what is left when a thread ends is one reference, never freed
+	// under the loader lock.
+	struct offer_t
+	{
+		const void *handler;
+		IDataObject *data;
+		ULONGLONG time;
+	};
+	thread_local offer_t offer{};
+
+	static void withdraw(const void *handler = nullptr)
+	{
+		if(handler && offer.handler != handler)
+			return;
+		if(offer.data)
+			offer.data->Release();
+		offer = {};
+	}
+
+	class Handler final : public IShellExtInit, public IContextMenu
+	{
+		LONG _refs = 1;
+		IDataObject *_data{};
+
+	public:
+		Handler() { objects++; }
+		~Handler()
+		{
+			withdraw(this);
+			if(_data)
+				_data->Release();
+			objects--;
+		}
+
+		HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppv) noexcept override
+		{
+			if(!ppv)
+				return E_POINTER;
+			if(riid == IID_IUnknown || riid == IID_IShellExtInit)
+				*ppv = static_cast<IShellExtInit *>(this);
+			else if(riid == IID_IContextMenu)
+				*ppv = static_cast<IContextMenu *>(this);
+			else
+			{
+				*ppv = nullptr;
+				return E_NOINTERFACE;
+			}
+			AddRef();
+			return S_OK;
+		}
+		ULONG STDMETHODCALLTYPE AddRef() noexcept override { return static_cast<ULONG>(::InterlockedIncrement(&_refs)); }
+		ULONG STDMETHODCALLTYPE Release() noexcept override
+		{
+			auto refs = ::InterlockedDecrement(&_refs);
+			if(refs == 0)
+				delete this;
+			return static_cast<ULONG>(refs);
+		}
+
+		HRESULT STDMETHODCALLTYPE Initialize(PCIDLIST_ABSOLUTE, IDataObject *data, HKEY) noexcept override
+		{
+			if(_data)
+				_data->Release();
+			_data = data;
+			if(_data)
+				_data->AddRef();
+			arm();
+			return S_OK;
+		}
+
+		// Right before the host shows its menu: (re)offer the selection.
+		HRESULT STDMETHODCALLTYPE QueryContextMenu(HMENU, UINT, UINT, UINT, UINT) noexcept override
+		{
+			arm();
+			return MAKE_HRESULT(SEVERITY_SUCCESS, 0, 0);
+		}
+
+		HRESULT STDMETHODCALLTYPE InvokeCommand(CMINVOKECOMMANDINFO *) noexcept override { return E_FAIL; }
+		HRESULT STDMETHODCALLTYPE GetCommandString(UINT_PTR, UINT, UINT *, CHAR *, UINT) noexcept override { return E_NOTIMPL; }
+
+	private:
+		void arm()
+		{
+			withdraw();
+			if(!_data)
+				return;
+			_data->AddRef();
+			offer = { this, _data, ::GetTickCount64() };
+		}
+	};
+
+	class Factory final : public IClassFactory
+	{
+		LONG _refs = 1;
+
+	public:
+		Factory() { objects++; }
+		~Factory() { objects--; }
+
+		HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppv) noexcept override
+		{
+			if(!ppv)
+				return E_POINTER;
+			if(riid == IID_IUnknown || riid == IID_IClassFactory)
+			{
+				*ppv = static_cast<IClassFactory *>(this);
+				AddRef();
+				return S_OK;
+			}
+			*ppv = nullptr;
+			return E_NOINTERFACE;
+		}
+		ULONG STDMETHODCALLTYPE AddRef() noexcept override { return static_cast<ULONG>(::InterlockedIncrement(&_refs)); }
+		ULONG STDMETHODCALLTYPE Release() noexcept override
+		{
+			auto refs = ::InterlockedDecrement(&_refs);
+			if(refs == 0)
+				delete this;
+			return static_cast<ULONG>(refs);
+		}
+
+		HRESULT STDMETHODCALLTYPE CreateInstance(IUnknown *outer, REFIID riid, void **ppv) noexcept override
+		{
+			if(!ppv)
+				return E_POINTER;
+			*ppv = nullptr;
+			if(outer)
+				return CLASS_E_NOAGGREGATION;
+			auto handler = new(std::nothrow) Handler();
+			if(!handler)
+				return E_OUTOFMEMORY;
+			auto hr = handler->QueryInterface(riid, ppv);
+			handler->Release();
+			return hr;
+		}
+
+		HRESULT STDMETHODCALLTYPE LockServer(BOOL lock) noexcept override
+		{
+			if(lock)
+				objects++;
+			else
+				objects--;
+			return S_OK;
+		}
+	};
+
+	static HRESULT get_class_object(REFIID riid, void **ppv) noexcept
+	{
+		auto factory = new(std::nothrow) Factory();
+		if(!factory)
+			return E_OUTOFMEMORY;
+		auto hr = factory->QueryInterface(riid, ppv);
+		factory->Release();
+		return hr;
+	}
+
+	// settings.filemanagers: true for every program but Explorer, or a program
+	// name or a list of them (as in exclude.process), such as ['totalcmd64', 'xyplorer'].
+	static bool enabled()
+	{
+		auto cache = _initializer.cache;
+		if(!cache || !cache->settings.filemanagers)
+			return false;
+
+		try
+		{
+			Selections selected;
+			Keyboard keyboard;
+			Context context;
+			context.Selections = &selected;
+			context.Application = &_initializer.application;
+			context.Cache = cache;
+			context.Keyboard = &keyboard;
+			context.variables.global = &cache->variables.global;
+			context.variables.runtime = &cache->variables.runtime;
+			context.variables.local = nullptr;
+
+			Object value = context.Eval(cache->settings.filemanagers).move();
+			if(value.is_null())
+				return false;
+
+			auto &name = _initializer.process.name;
+			auto matches = [&](const Object &o)
+			{
+				string want = o.to_string().trim().move();
+				if(want.empty() || name.empty())
+					return false;
+				if(want.ends_with(L".exe"))
+					want = want.substr(0, want.length() - 4).move();
+				return name.equals(want);
+			};
+
+			if(value.is_array())
+			{
+				auto ptr = value.ptr();
+				int count = ptr[0];
+				for(int i = 0; i < count; i++)
+				{
+					if(matches(ptr[i + 1]))
+						return true;
+				}
+				return false;
+			}
+			if(value.is_string())
+				return matches(value);
+			return value.to_bool();
+		}
+		catch(...)
+		{
+		}
+		return false;
+	}
+}
+
+// The selection a third-party file manager gave Shell's handler for the menu
+// about to show on this thread, once (Selections::QuerySelected). Null when there
+// is none. The caller releases it.
+IDataObject *FileManagerTakeDataObject()
+{
+	auto &offer = filemanager::offer;
+	if(!offer.data)
+		return nullptr;
+	IDataObject *data = nullptr;
+	if(::GetTickCount64() - offer.time < filemanager::offer_ms)
+	{
+		data = offer.data;
+		offer.data = nullptr;
+	}
+	filemanager::withdraw();
+	return data;
+}
+
 //IID_FolderExtensions
 //#pragma comment(linker, "/export:DllGetClassObject=DllGetClassObject")
 _Check_return_
@@ -1420,6 +1698,14 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 
 		if(!_initializer.Status.Loaded)
 			_initializer.init();
+
+		// A third-party file manager the config lets in: a real handler, so the
+		// host hands over the selection (see filemanager above).
+		if(rclsid == IID_ContextMenu && !_loader.explorer && ppv && _initializer.Status.Loaded &&
+		   !_initializer.has_error(false) && filemanager::enabled())
+		{
+			hr = filemanager::get_class_object(riid, ppv);
+		}
 	}
 	except
 	{
@@ -1441,6 +1727,10 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 __control_entrypoint(DllExport)
 STDAPI DllCanUnloadNow(void)
 {
+	// A file manager still holds one of our handlers or the class factory.
+	if(filemanager::objects > 0)
+		return S_FALSE;
+
 	if(!_loader.explorer || !is_registered())
 		return S_OK;
 	return S_FALSE;

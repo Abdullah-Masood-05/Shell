@@ -17,6 +17,10 @@
 		process = process name
 	}
 
+	// Off unless set: give Shell's menu the selected files in other file
+	// managers, such as Total Commander (see "Other file managers" below)
+	filemanagers = ['totalcmd64', 'xyplorer']
+
 	tip = true
 	// or
 	tip
@@ -97,3 +101,19 @@
 {
 	exclude.where = !process.is_explorer or window.is_taskbar
 }</code></pre>
+<h5 id="filemanagers">Other file managers</h5>
+<p>In File Explorer, Shell's menu knows which files you right-clicked. Other file managers, such as Total Commander,
+	XYplorer, Double Commander and Everything, build the Windows file menu their own way, and by default Shell's menu
+	there doesn't know the files, so items with <code>type=</code> or <code>sel</code> don't show or don't work.</p>
+<p><code>filemanagers</code> turns this on. It is off unless you set it. Give it the names of the programs, without
+	<code>.exe</code> (what <code>process.name</code> gives), or <code>true</code> for every program but File Explorer.
+	Shell's menu must also be allowed in those programs: the shipped <code>shell.nss</code> leaves out every program but
+	File Explorer with <code>exclude.where = !process.is_explorer</code>, so change that line too:</p>
+<pre><code class="lang-shell">settings
+{
+	filemanagers = ['totalcmd64', 'xyplorer', 'doublecmd', 'everything']
+	exclude.where = !process.is_explorer &amp;&amp; process.name != 'totalcmd64' &amp;&amp; process.name != 'xyplorer' &amp;&amp;
+		process.name != 'doublecmd' &amp;&amp; process.name != 'everything'
+}</code></pre>
+<p>This is new and has had little testing with these programs. If one of them misbehaves, take it off the list. A
+	right-click on empty space in such a program still has no files.</p>

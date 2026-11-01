@@ -1011,6 +1011,7 @@ namespace Nilesoft
 				bool menu_dynamic = false;
 				bool to_root = false;		// menu='/'
 				bool moved = false;			// placed in another menu than its own here
+				bool expanded = false;		// expanded=1 (a constant): its items show in its place
 				std::wstring moved_from;	// the menu it is written in ("" the main menu)
 				std::wstring pos;			// top, bottom, middle, N, before:<title>, after:<title>, indexof
 				Placement::Spec spec;
@@ -1107,6 +1108,18 @@ namespace Nilesoft
 								m.pop_back();
 							n->menu = m;
 							n->to_root = !n->menu_dynamic && m.empty() && all.find(L'/') != std::wstring::npos;
+						}
+					}
+					// expanded=1: the menu shows its items in its place, and the Windows
+					// items a modify(menu=) moves into it show there too (ContextMenu.cpp).
+					if(item->is_menu() && item->expanded.get() && is_safe(item->expanded))
+					{
+						try
+						{
+							n->expanded = context.Eval(item->expanded).to_bool();
+						}
+						catch(...)
+						{
 						}
 					}
 					position_of(*n);
@@ -1311,6 +1324,7 @@ namespace Nilesoft
 					jtext(shell, L"menu", n.to_root ? std::wstring(L"/") : n.menu);
 					jbool(shell, L"menu_dynamic", n.menu_dynamic);
 					jbool(shell, L"moved", n.moved);
+					jbool(shell, L"expanded", n.expanded);
 					jtext(shell, L"moved_from", n.moved_from);
 					jtext(shell, L"pos", n.pos);
 					jkey(shell, L"items");

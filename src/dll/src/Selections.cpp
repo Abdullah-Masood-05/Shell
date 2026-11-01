@@ -1,5 +1,7 @@
 #include <pch.h>
 
+IDataObject *FileManagerTakeDataObject(); // Main.cpp: settings.filemanagers
+
 //Enable Narrow Classic Context Menu on Windows 10
 // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\FlightedFeatures\ImmersiveContextMenu:0
 //Windows Explorer on XP, Vista, 7, 8
@@ -905,8 +907,129 @@ namespace Nilesoft
 			return result;
 		}
 
+		// sel.drop: the folder a right-drag drops into, from the point where the drag
+		// menu opened. The window there, or one of its parents, gives the folder view's
+		// IShellBrowser; MSAA names the item under that point, and when that item is a
+		// folder it is the target, else the view's own folder is. Looked up once, and
+		// only when sel.drop is asked for.
+		//
+		// WM_GETISHELLBROWSER (WM_USER + 7) means something else to other programs, and
+		// what comes back is a pointer in this process: it is only sent to windows of
+		// this process, so a drop into another program's window gives nothing.
+		const string &Selections::DropPath()
+		{
+			if(drop.resolved || !drop.menu)
+				return drop.path;
+			drop.resolved = true;
+
+			try
+			{
+				POINT pt{ drop.point.x, drop.point.y };
+				const auto pid = ::GetCurrentProcessId();
+
+				IShellBrowser *browser = nullptr;
+				HWND hwnd = ::WindowFromPoint(pt);
+				for(int depth = 0; hwnd && depth < 32; depth++)
+				{
+					DWORD owner = 0;
+					::GetWindowThreadProcessId(hwnd, &owner);
+					if(owner != pid)
+						return drop.path;
+
+					// The navigation pane: the target is the tree item under the
+					// point, not the folder the view shows. Not supported.
+					if(Windows::Window::class_hash(hwnd) == WC_SysTreeView32)
+						return drop.path;
+
+					browser = GetIShellBrowser(hwnd, true);
+					if(browser)
+						break;
+					hwnd = ::GetParent(hwnd);
+				}
+
+				if(!browser)
+					return drop.path;
+
+				IComPtr<IShellView> sv;
+				if(S_OK != browser->QueryActiveShellView(sv))
+					return drop.path;
+
+				IComPtr<IFolderView> fv;
+				if(S_OK != sv->QueryInterface(IID_IFolderView, fv))
+					return drop.path;
+
+				string folder;
+				{
+					IComPtr<IPersistFolder2> pf;
+					if(S_OK == fv->GetFolder(IID_IPersistFolder2, pf))
+					{
+						PIDLIST_ABSOLUTE pidl = nullptr;
+						if(S_OK == pf->GetCurFolder(&pidl) && pidl)
+						{
+							wchar_t path[MAX_PATH]{};
+							if(::SHGetPathFromIDListW(pidl, path))
+								folder = path;
+							::ILFree(pidl);
+						}
+					}
+				}
+
+				if(folder.empty())
+					return drop.path;
+
+				// oleacc.dll only when a drop menu asks, not linked into every process
+				// that loads Shell.
+				using AccessibleObjectFromPoint_t = HRESULT(WINAPI *)(POINT, IAccessible **, VARIANT *);
+				static const auto accessible_from_point = []() -> AccessibleObjectFromPoint_t
+				{
+					auto lib = ::LoadLibraryExW(L"oleacc.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+					return lib ? reinterpret_cast<AccessibleObjectFromPoint_t>(::GetProcAddress(lib, "AccessibleObjectFromPoint")) : nullptr;
+				}();
+
+				if(accessible_from_point)
+				{
+					IAccessible *acc = nullptr;
+					VARIANT child;
+					::VariantInit(&child);
+					if(SUCCEEDED(accessible_from_point(pt, &acc, &child)) && acc)
+					{
+						BSTR value = nullptr;
+						if(SUCCEEDED(acc->get_accValue(child, &value)) && value && *value)
+						{
+							// A name in the view's folder, or a full path.
+							string name = value;
+							string target;
+							if(!::PathIsRelativeW(value))
+								target = name.move();
+							else if(!name.contains(L'\\') && !name.contains(L'/') && !name.equals(L".") && !name.equals(L".."))
+								target = Path::Combine(folder, name).move();
+							if(!target.empty() && Path::IsDirectory(::GetFileAttributesW(target.c_str())))
+								folder = target.move();
+						}
+						if(value)
+							::SysFreeString(value);
+						acc->Release();
+					}
+					::VariantClear(&child);
+				}
+
+				drop.path = folder.move();
+			}
+			catch(...)
+			{
+				drop.path.clear();
+			}
+			return drop.path;
+		}
+
 		bool Selections::QuerySelected()
 		{
+			// A third-party file manager's selection (settings.filemanagers) is for
+			// this menu only: taken here whether or not it is used, so no later menu
+			// on this thread can pick it up.
+			IComPtr<IDataObject> filemanager_data;
+			filemanager_data.attach(FileManagerTakeDataObject());
+
 			try
 			{
 				if(Window.handle == nullptr)
@@ -985,9 +1108,45 @@ namespace Nilesoft
 				*/
 
 				HWND current_window{};
-				
+
 				if(!Window.has_IShellBrowser)
-					return false;
+				{
+					// A third-party file manager (settings.filemanagers): the files
+					// its menu is for, from Shell's handler (Main.cpp, filemanager).
+					if(!filemanager_data)
+						return false;
+
+					IComPtr<IShellItemArray> sia;
+					if(S_OK != ::SHCreateShellItemArrayFromDataObject(filemanager_data, IID_IShellItemArray, sia))
+						return false;
+
+					DWORD sel_count = 0;
+					if(S_OK != sia->GetCount(&sel_count) || sel_count == 0)
+						return false;
+
+					Items.reserve(sel_count);
+					for(DWORD i = 0; i < sel_count; i++)
+					{
+						IComPtr<IShellItem> item;
+						if(S_OK == sia->GetItemAt(i, item) && item)
+							Parse(item);
+					}
+
+					if(!Items.empty())
+					{
+						IComPtr<IShellItem> first, parent;
+						if(S_OK == sia->GetItemAt(0, first) && first && S_OK == first->GetParent(parent) && parent)
+						{
+							FileProperties fp;
+							if(GetFileProperties(parent, &fp))
+							{
+								Parent = fp.Path.move();
+								ParentRaw = fp.PathRaw.move();
+							}
+						}
+					}
+					return !Items.empty();
+				}
 
 				if(Window.desktop)
 				{

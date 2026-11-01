@@ -731,7 +731,37 @@ namespace Nilesoft
 							is_container = _context.Eval(item->expanded).to_bool();
 
 						if(is_container)
+						{
+							// modify(menu='X') into an expanded=1 menu: X has no submenu of
+							// its own (prepare_system_items2 never sees its path), so the
+							// Windows items moved there show here, in its place. They stay
+							// in __movable_system_items: a submenu holding X is rebuilt each
+							// time it opens and needs them again.
+							string virtual_path;
+							if(owner)
+								virtual_path = (owner->path + L'/' + owner->title.normalize).trim(L'/').move();
+							if(!virtual_path.empty())
+								virtual_path += L'/';
+							virtual_path += mii->title.normalize;
+							virtual_path.trim(L'/');
+
+							if(!virtual_path.empty())
+							{
+								for(auto sys_item : __movable_system_items)
+								{
+									if(sys_item->path.equals(virtual_path))
+									{
+										_context._this = nullptr;
+										auto sys_mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
+										prepare_system_item(sys_item, sys_mii, menu);
+										posList.push(sys_mii);
+									}
+								}
+								_context._this = &_this;
+							}
+
 							prepare_new_items(posList, item->items, mii, menu);
+						}
 						else
 						{
 							if(owner)
@@ -4916,6 +4946,14 @@ namespace Nilesoft
 				/*if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
 					_result = Window::class_name(h);
 				*/
+				// A right-drag's menu (owned by a STATIC window): where it was dropped,
+				// for sel.drop. Only the point here; the folder is looked up when asked.
+				if(Selected.Window.hash == WC__STATIC)
+				{
+					Selected.drop.menu = true;
+					Selected.drop.point = Point::CursorPos();
+				}
+
 				if(Selected.Window.id == WINDOW_UI)
 				{
 					if(Selected.Window.hash != WC__STATIC)
