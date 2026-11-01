@@ -319,5 +319,10 @@ img.is-256 { width: 256px; margin: 0 8px 8px 0; vertical-align: top; }
 	body { font-size: 16px; }
 	.content > :is(h4, h5):first-child { font-size: 28px; }
 	.pager { grid-template-columns: 1fr; }
+	/* Two-column reference tables (option | what it does) stack, so the text column keeps its width. */
+	.content table:not(:has(th)), .content table:not(:has(th)) tbody { display: block; width: 100%; }
+	.content table:not(:has(th)) tr { display: block; padding: 8px 0; border-bottom: 1px solid var(--border); }
+	.content table:not(:has(th)) td { display: block; width: auto !important; padding: 2px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+	.content .w-25, .content .is-two-thirds { width: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .sidebar { transition: none !important; } }
