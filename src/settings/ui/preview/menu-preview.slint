@@ -25,6 +25,12 @@ export component MenuSurface inherits Rectangle {
     in-out property <int> hovered: -1;
     // Drawn smaller than the theme says (a narrow preview pane): every length times this.
     in property <float> zoom: 1;
+    // The Snippets preview (snippet-stage.slint): rows that aren't the snippet's are
+    // Windows' own, faded and not hoverable; the snippet's rows in this menu get an outline
+    // (`outline`, the main menu only). The menu is at most `cap-width` wide; labels elide.
+    in property <bool> snippet;
+    in property <bool> outline;
+    in property <length> cap-width: 100000px;
 
     // The menu's default font, Segoe UI; each language can name another one in its .po file,
     // because Slint's fallback for Chinese text in Segoe UI misses characters.
@@ -35,7 +41,14 @@ export component MenuSurface inherits Rectangle {
     // The width at zoom 1, for placing the menus in the pane.
     out property <length> natural-width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
 
-    width: root.natural-width * root.zoom;
+    // Without the theme's minimum width and the spare room after the labels: as narrow as
+    // the menu gets before a label is cut (the Snippets preview, when space is short).
+    out property <length> tight-width: t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 0.72 + 20px + t.item-pad-right;
+    // keys= text: a little smaller than the label, like Windows' shortcut column.
+    property <length> keys-size: t.font-size * 0.92;
+    property <length> keys-gap: 24px;
+
+    width: min(root.natural-width, root.cap-width) * root.zoom;
     height: (root.menu.height * root.zoom);
     border-radius: (t.radius * root.zoom);
     drop-shadow-blur: t.shadow ? (t.shadow-size * root.zoom) * 3 : 0px;
@@ -50,12 +63,22 @@ export component MenuSurface inherits Rectangle {
         clip: true;
         opacity: 0;
         measure := VerticalLayout {
-            for it in root.menu.items: Text {
-                text: it.label;
-                font-size: t.font-size;
-                font-family: root.family;
-                font-weight: t.font-weight;
-                font-italic: t.italic;
+            for it in root.menu.items: HorizontalLayout {
+                Text {
+                    text: it.label;
+                    font-size: t.font-size;
+                    font-family: root.family;
+                    font-weight: t.font-weight;
+                    font-italic: t.italic;
+                }
+                if it.keys != "": Rectangle {
+                    width: root.keys-gap;
+                }
+                if it.keys != "": Text {
+                    text: it.keys;
+                    font-size: root.keys-size;
+                    font-family: root.family;
+                }
             }
         }
     }
@@ -99,7 +122,13 @@ export component MenuSurface inherits Rectangle {
             y: (it.y * root.zoom);
             width: parent.width - (t.pad-left * root.zoom) - (t.pad-right * root.zoom);
             height: (it.h * root.zoom);
-            property <bool> selected: i == root.hovered && !it.separator;
+            // Windows' own rows around the snippet's (the Snippets preview).
+            property <bool> ghost: root.snippet && (it.ghost || !it.own);
+            property <bool> selected: i == root.hovered && !it.separator && !self.ghost;
+            // The snippet's rows in the main menu: one outline around each run of them.
+            property <bool> grouped: root.outline && !self.ghost;
+            property <bool> group-top: it.group-first || i == 0 || root.menu.items[i - 1].ghost || !root.menu.items[i - 1].own;
+            property <bool> group-bottom: it.group-last || i == root.menu.items.length - 1 || root.menu.items[i + 1].ghost || !root.menu.items[i + 1].own;
 
             if it.separator: Rectangle {
                 x: (t.sep-mar-left * root.zoom);
@@ -107,21 +136,23 @@ export component MenuSurface inherits Rectangle {
                 width: parent.width - (t.sep-mar-left * root.zoom) - (t.sep-mar-right * root.zoom);
                 height: (t.sep-size * root.zoom);
                 background: t.sep-color;
+                opacity: ghost ? 0.5 : 1;
             }
-            // The Snippets preview marks the snippet's own rows: a faint accent wash
-            // behind them and a short accent bar at the menu's edge.
-            if it.own && !it.separator: Rectangle {
-                x: -(t.pad-left * root.zoom) + 1px;
-                width: parent.width + (t.pad-left * root.zoom) + (t.pad-right * root.zoom) - 2px;
-                background: Tokens.accent.with-alpha(0.13);
-            }
-            if it.own && !it.separator: Rectangle {
+            // The outline around the snippet's rows: each row draws its slice of one
+            // rounded rectangle (the parts beyond the run's ends are clipped away), 2 px in
+            // from the menu's edges.
+            if grouped: Rectangle {
                 x: -(t.pad-left * root.zoom) + 2px;
-                y: (parent.height - self.height) / 2;
-                width: 3px;
-                height: min(parent.height - 6px, 16px);
-                border-radius: 1.5px;
-                background: Tokens.accent;
+                width: parent.width + (t.pad-left * root.zoom) + (t.pad-right * root.zoom) - 4px;
+                clip: true;
+                Rectangle {
+                    property <length> over: 24px;
+                    y: group-top ? 0 : -self.over;
+                    height: parent.height + (group-top ? 0 : self.over) + (group-bottom ? 0 : self.over);
+                    border-width: 1px;
+                    border-color: Tokens.accent.with-alpha(0.7);
+                    border-radius: (t.item-radius * root.zoom) + 2px;
+                }
             }
             if !it.separator: Rectangle {
                 x: (t.item-mar-left * root.zoom);
@@ -132,18 +163,26 @@ export component MenuSurface inherits Rectangle {
                 background: !selected ? transparent : it.disabled ? t.back-dis-sel : t.back-sel;
                 accessible-role: list-item;
                 accessible-label: it.label;
+                // Windows' own rows (Snippets preview): drawn as they are, but faded.
+                opacity: ghost ? 0.38 : 1;
+                // A row of Windows' own is never "disabled" here: faded is enough.
+                property <bool> dis: it.disabled && !ghost;
+                property <color> ink: dis || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
+                property <length> chevron-room: it.sub >= 0 ? (t.font-size * root.zoom) * 0.72 + 12px : 0px;
+                property <length> keys-room: it.keys != "" ? keys.preferred-width + root.keys-gap * root.zoom : 0px;
 
+                // Icons on whole pixels, so they stay sharp.
                 if t.show-images && it.has-icon: Image {
-                    x: (t.item-pad-left * root.zoom);
-                    y: (parent.height - self.height) / 2;
+                    x: round((t.item-pad-left * root.zoom) / 1px) * 1px;
+                    y: round((parent.height - self.height) / 2 / 1px) * 1px;
                     width: (t.image-size * root.zoom);
                     height: (t.image-size * root.zoom);
                     source: it.icon;
                     image-fit: contain;
-                    opacity: it.disabled ? 0.45 : 1;
+                    opacity: dis ? 0.45 : 1;
                 }
                 if t.show-images && !it.has-icon && it.glyph != "": Text {
-                    x: (t.item-pad-left * root.zoom);
+                    x: round((t.item-pad-left * root.zoom) / 1px) * 1px;
                     width: (t.image-size * root.zoom);
                     height: parent.height;
                     text: it.glyph;
@@ -151,11 +190,11 @@ export component MenuSurface inherits Rectangle {
                     font-size: (t.image-size * root.zoom) * 0.94;
                     horizontal-alignment: center;
                     vertical-alignment: center;
-                    color: it.disabled ? t.text-dis : selected ? t.icon-sel : t.icon;
+                    color: dis ? t.text-dis : it.glyph-color != transparent ? it.glyph-color : selected ? t.icon-sel : t.icon;
                 }
-                Text {
+                label := Text {
                     x: root.label-x;
-                    width: parent.width - self.x - (t.item-pad-right * root.zoom) - (t.font-size * root.zoom) * 1.5;
+                    width: parent.width - self.x - (t.item-pad-right * root.zoom) - max((t.font-size * root.zoom) * 1.5, chevron-room + keys-room);
                     height: parent.height;
                     text: it.label;
                     font-family: root.family;
@@ -164,7 +203,47 @@ export component MenuSurface inherits Rectangle {
                     font-italic: t.italic || it.placeholder;
                     vertical-alignment: center;
                     overflow: elide;
-                    color: it.disabled || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
+                    color: ink;
+                }
+                // The accelerator's underline (&x in the title) under that letter: the
+                // label's text before it says where. Not when the label is cut short.
+                if it.accel-char != "" && label.preferred-width <= label.width + 0.5px: Rectangle {
+                    x: label.x + accel-before.preferred-width;
+                    y: round((parent.height / 2 + (t.font-size * root.zoom) * 0.414) / 1px) * 1px + 1px;
+                    width: accel-char.preferred-width;
+                    height: 1px;
+                    background: ink;
+                }
+                Rectangle {
+                    width: 0;
+                    height: 0;
+                    clip: true;
+                    accel-before := Text {
+                        text: it.accel-before;
+                        font-family: root.family;
+                        font-size: (t.font-size * root.zoom);
+                        font-weight: t.font-weight;
+                        font-italic: t.italic || it.placeholder;
+                    }
+                    accel-char := Text {
+                        text: it.accel-char;
+                        font-family: root.family;
+                        font-size: (t.font-size * root.zoom);
+                        font-weight: t.font-weight;
+                        font-italic: t.italic || it.placeholder;
+                    }
+                }
+                // keys= on the right, before the chevron, dimmed like Windows' shortcuts.
+                keys := Text {
+                    visible: it.keys != "";
+                    x: parent.width - (t.item-pad-right * root.zoom) - chevron-room - self.width;
+                    width: self.preferred-width;
+                    height: parent.height;
+                    text: it.keys;
+                    font-family: root.family;
+                    font-size: root.keys-size * root.zoom;
+                    vertical-alignment: center;
+                    color: ink.with-alpha(0.55);
                 }
                 if it.sub >= 0: Text {
                     x: parent.width - (t.item-pad-right * root.zoom) - self.width;
@@ -173,12 +252,12 @@ export component MenuSurface inherits Rectangle {
                     font-family: root.icon-font;
                     font-size: (t.font-size * root.zoom) * 0.72;
                     vertical-alignment: center;
-                    color: it.disabled ? t.text-dis : selected ? t.chevron-sel : t.chevron;
+                    color: dis ? t.text-dis : selected ? t.chevron-sel : t.chevron;
                 }
             }
             TouchArea {
                 changed has-hover => {
-                    if (self.has-hover && !it.separator) {
+                    if (self.has-hover && !it.separator && !ghost) {
                         root.hovered = i;
                     }
                 }
