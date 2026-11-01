@@ -247,6 +247,10 @@ void MenuMapController::bindCallbacks()
     st.on_toggle([this](int key, bool on) { toggle(key, on); });
     st.on_rename([this](slint::SharedString t) { rename(str(t)); });
     st.on_reset_title([this] { resetTitle(); });
+    st.on_set_icon([this](slint::SharedString t) { setIcon(str(t)); });
+    st.on_remove_icon([this] { setIcon("null"); });
+    st.on_reset_icon([this] { resetIcon(); });
+    st.on_browse_icon([this] { return ss(browseIcon()); });
     st.on_move_to([this](int i) { moveTo(i); });
     st.on_reset_menu([this] { resetMenu(); });
     st.on_place([this](int i) { place(i); });
@@ -554,9 +558,14 @@ std::vector<std::string> MenuMapController::mapLinesOf(const std::vector<int> &i
         const auto &r = tree_.rules[size_t(i)];
         if (!menumap::isMapFile(r.file) || r.line < 1 || r.line > int(mapLines_.size()))
             continue;
-        bool match = w == "vis" ? r.vis == "hidden" : w == "title" ? !r.title.empty() : w == "menu" ? !r.menu.empty() : true;
+        std::string line(nss::trim(mapLines_[size_t(r.line - 1)]));
+        bool match = w == "vis"     ? r.vis == "hidden"
+                     : w == "title" ? !r.title.empty()
+                     : w == "menu"  ? !r.menu.empty()
+                     : w == "image" ? menumap::ruleImage(line).has_value()
+                                    : true;
         if (match)
-            out.push_back(std::string(nss::trim(mapLines_[size_t(r.line - 1)])));
+            out.push_back(std::move(line));
     }
     return out;
 }
@@ -935,11 +944,12 @@ void MenuMapController::pushDetail()
         d.line = n.line;
         if (!n.titleSource.empty())
             d.facts = ss(nsp::trf("Title from {}", n.titleSource));
-        std::optional<std::string> menuProp, posProp;
+        std::optional<std::string> menuProp, posProp, imageProp;
         if (auto doc = loadDecls(n.file, nullptr)) {
             d.conditions = ss(menumap::conditionText(*doc, size_t(n.line), size_t(n.column)));
             menuProp = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "menu");
             posProp = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "pos");
+            imageProp = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "image");
         }
         auto line = [&](const std::string &s) { status += (status.empty() ? "" : "\n") + s; };
         if (n.vis == "hidden")
@@ -956,6 +966,9 @@ void MenuMapController::pushDetail()
             line(nsp::trf("Placed by pos={} in its own line.", *posProp));
         d.can_rename = writable(n.file) && n.kind != "separator";
         d.rename_value = ss(n.title);
+        d.can_icon = d.can_rename && n.line > 0;
+        d.icon_value = ss(imageProp && *imageProp != "null" ? menumap::imageText(*imageProp) : std::string());
+        d.can_remove_icon = imageProp.has_value() && *imageProp != "null";
 
         // Move to: the main menu and Shell's menus, but not its own menu, itself or
         // the menus inside it.
@@ -1071,6 +1084,28 @@ void MenuMapController::pushDetail()
         d.can_rename = named && n.kind != "separator";
         d.rename_value = ss(n.renamed.empty() ? n.title : n.renamed);
         d.can_reset_title = !mapLinesOf(n.rules, "title").empty() && !shared_;
+        // Icon: the rule made here that sets it, saved or waiting to be saved.
+        d.can_icon = d.can_rename;
+        if (d.can_icon) {
+            std::optional<std::string> image;
+            bool own = false; // a rule made here sets it
+            for (const auto &line : mapLinesOf(n.rules, "image")) {
+                const auto *c = save_.pending().findRule(line);
+                if (!(c && !c->add)) {
+                    image = menumap::ruleImage(line);
+                    own = true;
+                }
+            }
+            const auto props = menumap::matchProps(n);
+            for (const auto &[text, change] : save_.pending().rules())
+                if (change.add && text.rfind("modify(" + props + " image=", 0) == 0) {
+                    image = menumap::ruleImage(text);
+                    own = true;
+                }
+            d.icon_value = ss(image && *image != "null" ? menumap::imageText(*image) : std::string());
+            d.can_remove_icon = !(image && *image == "null");
+            d.can_reset_icon = own;
+        }
         // Move to: the main menu first ("/": out of a submenu, or back from a move
         // a rule in another file makes), then Shell's menus and Windows' submenus.
         sysTargets_.clear();
@@ -1224,6 +1259,95 @@ void MenuMapController::resetTitle()
     const auto &n = *entries_[size_t(selected_)].node;
     for (const auto &line : mapLinesOf(n.rules, "title"))
         stageRule(line, false, "original title for " + n.title);
+}
+
+void MenuMapController::dropIconRules(const Node &n, const std::string &label)
+{
+    auto props = menumap::matchProps(n);
+    std::vector<std::string> drop;
+    for (const auto &[text, change] : save_.pending().rules())
+        if (change.add && text.rfind("modify(" + props + " image=", 0) == 0)
+            drop.push_back(text);
+    for (const auto &text : drop)
+        stageRule(text, false, label);
+    for (const auto &line : mapLinesOf(n.rules, "image"))
+        stageRule(line, false, label);
+}
+
+void MenuMapController::setIcon(const std::string &typed)
+{
+    if (selected_ < 0 || !entries_[size_t(selected_)].node || save_.saving())
+        return;
+    const auto &n = *entries_[size_t(selected_)].node;
+    if (n.kind == "separator")
+        return;
+    const bool none = nss::trim(typed).empty() || nss::trim(typed) == "null";
+    const std::string value = none ? std::string("null") : menumap::imageValue(typed);
+    if (value.empty())
+        return;
+    if (n.origin == Origin::Shell) {
+        if (ui_->global<MenuMapState>().get_busy())
+            return;
+        // No image= is no icon: "Remove icon" takes the property out.
+        saveShellEdit(n, (none ? "Menu map: remove the icon of " : "Menu map: change the icon of ") + n.title,
+                      [&n, value, none](nss::NssDocument &doc, std::string &error) {
+                          return menumap::setShellItemProp(doc, size_t(n.line), size_t(n.column), "image",
+                                                           none ? std::string() : value, &error);
+                      });
+        return;
+    }
+    auto rule = menumap::imageRule(n, value);
+    if (rule.empty())
+        return;
+    const std::string label = (none ? "remove the icon of " : "change the icon of ") + n.title;
+    dropIconRules(n, label);
+    stageRule(rule, true, label);
+}
+
+void MenuMapController::resetIcon()
+{
+    if (selected_ < 0 || !entries_[size_t(selected_)].node || save_.saving())
+        return;
+    const auto &n = *entries_[size_t(selected_)].node;
+    if (n.origin != Origin::Shell)
+        dropIconRules(n, "original icon for " + n.title);
+}
+
+std::string MenuMapController::browseIcon()
+{
+    IFileOpenDialog *dlg = nullptr;
+    if (FAILED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dlg))))
+        return {};
+    DWORD flags = 0;
+    dlg->GetOptions(&flags);
+    dlg->SetOptions(flags | FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_NODEREFERENCELINKS);
+    const std::wstring title = nss::widen(nsp::tr("Choose an icon"));
+    const std::wstring images = nss::widen(nsp::tr("Icons, images and programs"));
+    const std::wstring allFiles = nss::widen(nsp::tr("All files"));
+    dlg->SetTitle(title.c_str());
+    COMDLG_FILTERSPEC filters[] = {
+        { images.c_str(), L"*.ico;*.png;*.svg;*.bmp;*.jpg;*.jpeg;*.gif;*.exe;*.dll;*.lnk" },
+        { allFiles.c_str(), L"*.*" },
+    };
+    dlg->SetFileTypes(UINT(std::size(filters)), filters);
+    std::string picked;
+    if (SUCCEEDED(dlg->Show(ui_->window().win32_hwnd()))) {
+        IShellItem *result = nullptr;
+        if (SUCCEEDED(dlg->GetResult(&result))) {
+            PWSTR path = nullptr;
+            if (SUCCEEDED(result->GetDisplayName(SIGDN_FILESYSPATH, &path)) && path) {
+                picked = nss::narrow(path);
+                CoTaskMemFree(path);
+            }
+            result->Release();
+        }
+    }
+    dlg->Release();
+    // A program or a DLL holds icons: ",0" is its first one, and the number can be changed.
+    auto ext = lower(nss::narrow(fs::path(nss::widen(picked)).extension().wstring()));
+    if (ext == ".exe" || ext == ".dll")
+        picked += ",0";
+    return picked;
 }
 
 namespace {

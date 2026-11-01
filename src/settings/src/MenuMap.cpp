@@ -313,6 +313,114 @@ std::string moveRule(const Node &n, std::string_view menuPath)
     return "modify(" + m + " menu=" + nss::quoteString(p) + ")";
 }
 
+std::string imageRule(const Node &n, std::string_view value)
+{
+    auto m = matchProps(n);
+    auto v = nss::trim(value);
+    if (m.empty() || v.empty() || v.find_first_of("\r\n") != std::string_view::npos)
+        return {};
+    return "modify(" + m + " image=" + std::string(v) + ")";
+}
+
+namespace {
+
+bool endsWithNoCase(std::string_view s, std::string_view end)
+{
+    if (s.size() < end.size())
+        return false;
+    for (size_t i = 0; i < end.size(); ++i)
+        if (std::tolower(static_cast<unsigned char>(s[s.size() - end.size() + i])) != end[i])
+            return false;
+    return true;
+}
+
+// "C:\a.dll,3" -> "C:\a.dll": the icon index after the file.
+std::string_view withoutIndex(std::string_view path)
+{
+    auto comma = path.rfind(',');
+    if (comma == std::string_view::npos)
+        return path;
+    auto index = path.substr(comma + 1);
+    if (!index.empty() && index.front() == '-')
+        index.remove_prefix(1);
+    if (index.empty() || index.find_first_not_of("0123456789") != std::string_view::npos)
+        return path;
+    return path.substr(0, comma);
+}
+
+// A file, typed as it is: C:\..., \\server\..., %SystemRoot%\..., @sys.dir\..., or
+// a name such as shell32.dll,4 or a.ico.
+bool pathLike(std::string_view t)
+{
+    if (t.empty() || t.front() == '"' || t.front() == '\'' || t.front() == '[' || t.find('(') != std::string_view::npos)
+        return false;
+    if (t.size() >= 3 && std::isalpha(static_cast<unsigned char>(t[0])) && t[1] == ':' && (t[2] == '\\' || t[2] == '/'))
+        return true;
+    if (t.rfind("\\\\", 0) == 0 || t.front() == '%')
+        return true;
+    if (t.front() == '@' && t.find_first_of("\\/") != std::string_view::npos)
+        return true;
+    auto file = withoutIndex(t);
+    for (auto ext : { ".ico", ".png", ".bmp", ".jpg", ".jpeg", ".gif", ".tif", ".tiff", ".exe", ".dll", ".mui", ".lnk", ".svg" })
+        if (endsWithNoCase(file, ext))
+            return true;
+    return false;
+}
+
+// The text of a plain string literal: "..." with only \\ and \" escaped, or '...'
+// without @ or escapes. nullopt for anything else.
+std::optional<std::string> plainString(std::string_view v)
+{
+    if (v.size() < 2 || v.front() != v.back() || (v.front() != '"' && v.front() != '\''))
+        return std::nullopt;
+    const char q = v.front();
+    auto inner = v.substr(1, v.size() - 2);
+    std::string out;
+    for (size_t i = 0; i < inner.size(); ++i) {
+        char c = inner[i];
+        if (c == q || (q == '\'' && c == '@'))
+            return std::nullopt;
+        if (c == '\\' && q == '"') {
+            if (i + 1 >= inner.size() || (inner[i + 1] != '\\' && inner[i + 1] != '"'))
+                return std::nullopt;
+            c = inner[++i];
+        } else if (c == '\\' && i + 1 < inner.size() && inner[i + 1] == '\'') {
+            return std::nullopt;
+        }
+        out += c;
+    }
+    return out;
+}
+
+} // namespace
+
+std::string imageValue(std::string_view typed)
+{
+    auto t = nss::trim(typed);
+    if (t.empty() || t.find_first_of("\r\n") != std::string_view::npos)
+        return {};
+    if (!pathLike(t))
+        return std::string(t);
+    // '@' starts an expression only in single quotes (@sys.dir\shell32.dll,4).
+    std::string quoted = t.front() == '@' && t.find('\'') == std::string_view::npos ? "'" + std::string(t) + "'"
+                                                                                   : nss::quoteString(t);
+    if (endsWithNoCase(withoutIndex(t), ".svg"))
+        return "image.svgf(" + quoted + ")";
+    return quoted;
+}
+
+std::string imageText(std::string_view value)
+{
+    auto v = nss::trim(value);
+    std::string_view inner = v;
+    const bool svg = v.rfind("image.svgf(", 0) == 0 && v.size() > 12 && v.back() == ')';
+    if (svg)
+        inner = nss::trim(v.substr(11, v.size() - 12));
+    if (auto text = plainString(inner); text && pathLike(*text) && endsWithNoCase(withoutIndex(*text), ".svg") == svg)
+        return *text;
+    return std::string(v);
+}
+
 std::string itemName(std::string_view title)
 {
     auto name = stripAccelerators(nss::trim(title));
@@ -579,6 +687,8 @@ std::vector<std::string_view> aliasesOf(std::string_view name)
         return { "menu", "parent", "sub", "move" };
     if (name == "pos")
         return { "pos", "position" };
+    if (name == "image")
+        return { "image", "icon" };
     return { name };
 }
 
@@ -623,6 +733,12 @@ std::optional<std::string> shellItemProp(const nss::NssDocument &doc, size_t lin
     if (!p)
         return std::nullopt;
     return p->hasValue ? std::string(nss::trim(doc.slice(p->valueSpan))) : std::string();
+}
+
+std::optional<std::string> ruleImage(std::string_view rule)
+{
+    auto doc = nss::NssDocument::fromText(std::string(nss::trim(rule)));
+    return shellItemProp(doc, 1, 0, "image");
 }
 
 bool setShellItemProp(nss::NssDocument &doc, size_t line, size_t column, std::string_view name, std::string_view value,

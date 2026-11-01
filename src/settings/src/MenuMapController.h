@@ -100,6 +100,15 @@ private:
     void toggle(int key, bool on);
     void rename(const std::string &title);
     void resetTitle();
+    // Icon: image= on your item's line, or a modify(... image=) rule for a Windows item.
+    // `typed` as the field has it (menumap::imageValue()); "" or "null" takes it away.
+    void setIcon(const std::string &typed);
+    void resetIcon();
+    // A file dialog for an icon: the file as the Icon field takes it ("C:pp.exe,0").
+    std::string browseIcon();
+    // The rules for the selected Windows item's icon that a new one replaces: pending
+    // ones taken out, the saved ones in settings-app-map.nss staged for removal.
+    void dropIconRules(const menumap::Node &n, const std::string &label);
     void moveTo(int index);
     void resetMenu();
     // A Windows or program item the map can't list, named by its title.
