@@ -269,3 +269,15 @@ sel(true, "\n")</code></pre>
 	<code>sel.item</code><br>
 	<code>sel.item.len</code>
 </section>
+<section id="sel.drop" class="my-5">
+	<h5>sel.drop</h5>
+	<p>In the menu that shows when you drag files with the right mouse button and let go, returns the folder they are
+		dropped into: the folder under the pointer, or else the folder the window shows. In any other menu it is empty.</p>
+	<p>It works when you drop into the file list of a File Explorer window or on the desktop. It is empty when you drop on
+		the navigation pane, into another program's window, or into a place that isn't a folder on disk.</p>
+	<p>Syntax</p>
+	<code>sel.drop</code>
+	<p>Example</p>
+	<pre><code>item(title='Open @sel.drop' where=len(sel.drop) > 0 cmd=sel.drop)
+item(title='Terminal in the drop folder' where=len(sel.drop) > 0 cmd='wt.exe' args='-d "@sel.drop"')</code></pre>
+</section>

@@ -625,6 +625,8 @@ namespace Nilesoft
 						}
 						case IDENT_META:
 							return check(argc <= 2, 1);
+						case IDENT_DROP:
+							return check(argc == 0, 1);
 
 						case IDENT_ZERO:
 							return check(argc <= 3);

@@ -4893,6 +4893,14 @@ namespace Nilesoft
 				/*if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
 					_result = Window::class_name(h);
 				*/
+				// A right-drag's menu (owned by a STATIC window): where it was dropped,
+				// for sel.drop. Only the point here; the folder is looked up when asked.
+				if(Selected.Window.hash == WC__STATIC)
+				{
+					Selected.drop.menu = true;
+					Selected.drop.point = Point::CursorPos();
+				}
+
 				if(Selected.Window.id == WINDOW_UI)
 				{
 					if(Selected.Window.hash != WC__STATIC)

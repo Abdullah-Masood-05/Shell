@@ -227,6 +227,17 @@ namespace Nilesoft
 			bool			destroy = true;
 			IShellBrowser*	ShellBrowser{};
 
+			// sel.drop: the folder a right-drag drops into. Only the point is
+			// taken when the drag menu opens; the folder is looked up the first
+			// time sel.drop is asked for (ResolveDropPath).
+			struct
+			{
+				bool		menu{};		// a right-drag (drop) menu
+				bool		resolved{};
+				Point		point{};
+				string		path;
+			} drop;
+
 			IShellView *ShellView{};
 			IFolderView2 *FolderView{};
 
@@ -324,6 +335,7 @@ namespace Nilesoft
 			void QuerySelectionMode();
 			bool QueryShellWindow();
 			bool QuerySelected();
+			const string &DropPath();
 			bool Preparing();
 			bool Parse(IShellItem *shellItem);
 			bool Parse(FileProperties *prop);

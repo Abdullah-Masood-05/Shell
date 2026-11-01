@@ -2299,6 +2299,16 @@ namespace Nilesoft
 			auto sel = context->Selections;
 			auto argc = Arguments.size();
 
+			// sel.drop: a right-drag's target folder (empty in any other menu).
+			if(Id.length() == 2 && Id[1] == IDENT_DROP)
+			{
+				if(sel)
+					_result = sel->DropPath();
+				else
+					_result = L"";
+				return;
+			}
+
 			auto array_index = size_t(-1);
 
 			if(Array)
