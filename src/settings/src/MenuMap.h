@@ -123,6 +123,10 @@ std::string matchProps(const Node &n);
 std::string hideRule(const Node &n);                                   // remove(...)
 std::string renameRule(const Node &n, std::string_view title);         // modify(... title="...")
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
+// modify(... image=<value>): `value` as imageValue() gives it; "null" takes the icon away.
+std::string imageRule(const Node &n, std::string_view value);
+// The image= of a rule written on one line, such as imageRule() makes: nullopt without one.
+std::optional<std::string> ruleImage(std::string_view rule);
 // "/" (also " / "): the main menu as menu= names it. shell.dll keeps an item that
 // menu='/' put in the main menu there: the rules after it don't move it.
 bool isRootPath(std::string_view menuPath);
@@ -178,6 +182,19 @@ bool shellItemHidden(const nss::NssDocument &doc, size_t line, size_t column);
 // it has none).
 bool setShellItemTitle(nss::NssDocument &doc, size_t line, size_t column, std::string_view title,
                        std::string *error = nullptr);
+
+// --- Icons ---
+//
+// The Menu map's Icon field holds what goes in image=: a file (C:\Icons\a.ico, or a
+// program's icon C:\app.exe,0) typed as it is, or an expression such as
+// image.mdl(\uE8C8) or icon.copy.
+
+// The value of image= for what was typed: a file path in quotes (image.svgf() for an
+// .svg), anything else as it is. "" for nothing.
+std::string imageValue(std::string_view typed);
+// What the field shows for an image= value: the file of a plain quoted path, else the
+// value as written. imageValue(imageText(v)) means the same as v.
+std::string imageText(std::string_view value);
 
 // "where=sel.count>1  find='.txt'": the properties that decide when the item shows.
 std::string conditionText(const nss::NssDocument &doc, size_t line, size_t column);

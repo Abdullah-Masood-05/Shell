@@ -58,6 +58,10 @@ export struct MapDetail {
     can-rename: bool,
     rename-value: string,
     can-reset-title: bool,
+    can-icon: bool,
+    icon-value: string,        // image= as the Icon field shows it ("" none)
+    can-remove-icon: bool,
+    can-reset-icon: bool,      // a Windows item: a rule made here sets its icon
     can-move: bool,
     move-note: string,
     can-reset-menu: bool,
@@ -89,7 +93,7 @@ export global MenuMapState {
     in property <length> canvas-width;
     in property <length> canvas-height;
     in property <MapDetail> detail;
-    in property <int> detail-serial;           // bumped when the rename field must reload
+    in property <int> detail-serial;           // bumped when the rename and icon fields must reload
     in property <[string]> move-targets;
     in property <[string]> positions;          // your items: At the top, Before X, After X, At the bottom
     in property <bool> busy;                   // saving one of your items
@@ -117,6 +121,10 @@ export global MenuMapState {
     callback toggle(key: int, on: bool);
     callback rename(title: string);
     callback reset-title();
+    callback set-icon(text: string);
+    callback remove-icon();
+    callback reset-icon();
+    callback browse-icon() -> string;          // a file dialog: the file for the Icon field, or ""
     callback move-to(index: int);
     callback reset-menu();
     callback place(index: int);

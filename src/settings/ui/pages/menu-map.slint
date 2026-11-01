@@ -391,8 +391,12 @@ component DetailPanel inherits Rectangle {
     border-color: Tokens.stroke;
 
     property <string> rename-text: root.d.rename-value;
+    property <string> icon-text: root.d.icon-value;
     property <int> serial: MenuMapState.detail-serial;
-    changed serial => { root.rename-text = root.d.rename-value; }
+    changed serial => {
+        root.rename-text = root.d.rename-value;
+        root.icon-text = root.d.icon-value;
+    }
 
     if root.d.key < 0: VerticalLayout {
         padding: Tokens.s5;
@@ -560,6 +564,59 @@ component DetailPanel inherits Rectangle {
                     text: @tr("Use the original title");
                     font-size: Tokens.caption + 1px;
                     activated => { MenuMapState.reset-title(); }
+                }
+            }
+
+            // image= on your item's line, or a rule for a Windows item, as Rename.
+            if root.d.can-icon: Section {
+                title: @tr("Icon");
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        text <=> root.icon-text;
+                        placeholder-text: @tr("A file, or a glyph like image.mdl(\\uE8C8)");
+                        accepted => {
+                            if (self.text != "" && self.text != root.d.icon-value) {
+                                MenuMapState.set-icon(self.text);
+                            }
+                        }
+                    }
+                    AppButton {
+                        text: @tr("Browse…");
+                        clicked => {
+                            let picked = MenuMapState.browse-icon();
+                            if (picked != "") {
+                                root.icon-text = picked;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    alignment: start;
+                    AppButton {
+                        text: @tr("Change icon");
+                        enabled: root.icon-text != "" && root.icon-text != root.d.icon-value && !MenuMapState.busy;
+                        clicked => { MenuMapState.set-icon(root.icon-text); }
+                    }
+                    AppButton {
+                        text: @tr("Remove icon");
+                        enabled: root.d.can-remove-icon && !MenuMapState.busy;
+                        clicked => { MenuMapState.remove-icon(); }
+                    }
+                }
+                if root.d.can-reset-icon: Link {
+                    text: @tr("Use its own icon");
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.reset-icon(); }
+                }
+                Wrapped {
+                    text: root.d.origin == "shell"
+                        ? @tr("Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Saved right away, with a snapshot first.")
+                        : @tr("Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Save to apply.");
+                    color: Tokens.text-3;
+                    font-size: Tokens.caption;
                 }
             }
 

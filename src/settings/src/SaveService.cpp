@@ -116,6 +116,30 @@ LRESULT CALLBACK SaveService::keyProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp,
         slint::invoke_from_event_loop([self] { self->saveFromKeyboard(); });
         return 0;
     }
+    // Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+Z... in a keyboard layout whose letter keys
+    // type other letters (Arabic, Russian, Greek): Slint matches its shortcuts by the
+    // text of the key, so Ctrl+C there is Ctrl+"ؤ" and copies nothing. The key itself
+    // is the same as on an English keyboard, so the Latin letter goes in its place
+    // (while Ctrl is down, as Slint keeps it).
+    if (msg == WM_KEYDOWN && wp >= 'A' && wp <= 'Z' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_MENU) >= 0) {
+        const UINT typed = MapVirtualKeyExW(UINT(wp), MAPVK_VK_TO_CHAR, GetKeyboardLayout(0)) & 0x7FFFFFFF;
+        if (typed != UINT(wp) && typed != UINT(wp) + 32) {
+            const bool shift = GetKeyState(VK_SHIFT) < 0;
+            const char letter = char(shift ? wp : wp + 32);
+            // The control character Windows queued for this key would follow it.
+            MSG next;
+            if (PeekMessageW(&next, hwnd, WM_CHAR, WM_CHAR, PM_NOREMOVE) && next.wParam < 32)
+                PeekMessageW(&next, hwnd, WM_CHAR, WM_CHAR, PM_REMOVE);
+            auto *self = reinterpret_cast<SaveService *>(data);
+            auto text = slint::SharedString(std::string_view(&letter, 1));
+            if (lp & (1 << 30))
+                self->ui_->window().dispatch_key_press_repeat_event(text);
+            else
+                self->ui_->window().dispatch_key_press_event(text);
+            self->ui_->window().dispatch_key_release_event(text);
+            return 0;
+        }
+    }
     return DefSubclassProc(hwnd, msg, wp, lp);
 }
 

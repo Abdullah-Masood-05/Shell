@@ -317,6 +317,66 @@ TEST_CASE("menu map: hiding and renaming one of Shell's items")
     CHECK(conditionText(doc, 2, 1) == "vis=key.shift()");
 }
 
+TEST_CASE("menu map: icons, as the Icon field writes them")
+{
+    // A file typed as it is goes in quotes; an .svg through image.svgf().
+    CHECK(imageValue("  C:\\Icons\\a.ico ") == "\"C:\\\\Icons\\\\a.ico\"");
+    CHECK(imageValue("C:\\Tools\\app.exe,0") == "\"C:\\\\Tools\\\\app.exe,0\"");
+    CHECK(imageValue("shell32.dll,-16") == "\"shell32.dll,-16\"");
+    CHECK(imageValue("%SystemRoot%\\notepad.exe") == "\"%SystemRoot%\\\\notepad.exe\"");
+    CHECK(imageValue("C:\\Icons\\logo.svg") == "image.svgf(\"C:\\\\Icons\\\\logo.svg\")");
+    // @: an expression, so single quotes.
+    CHECK(imageValue("@sys.dir\\shell32.dll,4") == "'@sys.dir\\shell32.dll,4'");
+    // Anything else is an expression already.
+    CHECK(imageValue("image.mdl(\\uE8C8)") == "image.mdl(\\uE8C8)");
+    CHECK(imageValue("\\uE8C8") == "\\uE8C8");
+    CHECK(imageValue("icon.copy") == "icon.copy");
+    CHECK(imageValue("'C:\\x.ico'") == "'C:\\x.ico'");
+    CHECK(imageValue("  ").empty());
+
+    // The field shows the file of a plain quoted path, and gives the same value back.
+    for (const char *typed : { "C:\\Icons\\a.ico", "C:\\Tools\\app.exe,0", "C:\\Icons\\logo.svg", "image.mdl(\\uE8C8)",
+                               "icon.copy" }) {
+        CAPTURE(typed);
+        CHECK(imageText(imageValue(typed)) == typed);
+    }
+    CHECK(imageText("'@sys.prog\\7-Zip\\7zFM.exe'") == "'@sys.prog\\7-Zip\\7zFM.exe'"); // @ inside: as written
+    CHECK(imageText("[\\uE194,#f00]") == "[\\uE194,#f00]");
+    CHECK(imageText("\"C:\\\\a.svg\"") == "\"C:\\\\a.svg\""); // a plain .svg string isn't image.svgf()
+
+    // One of your items: image= on its line, replaced, taken out (icon= counts too).
+    const std::string text = "item(title='Notepad' cmd='notepad.exe')\r\n"
+                             "item(title='Paint' icon=\\uE8C8 cmd='mspaint.exe')\r\n";
+    auto doc = nss::NssDocument::fromText(text);
+    REQUIRE(setShellItemProp(doc, 1, 1, "image", imageValue("C:\\Icons\\a.ico")));
+    CHECK(doc.text().rfind("item(title='Notepad' cmd='notepad.exe' image=\"C:\\\\Icons\\\\a.ico\")\r\n", 0) == 0);
+    CHECK(shellItemProp(doc, 2, 1, "image") == std::optional<std::string>("\\uE8C8"));
+    REQUIRE(setShellItemProp(doc, 2, 1, "image", "image.mdl(\\uE8C9)"));
+    CHECK(doc.text().find("item(title='Paint' icon=image.mdl(\\uE8C9) cmd='mspaint.exe')") != std::string::npos);
+    REQUIRE(setShellItemProp(doc, 1, 1, "image", ""));
+    REQUIRE(setShellItemProp(doc, 2, 1, "image", "\\uE8C8"));
+    CHECK(doc.text() == text);
+    std::string error;
+    CHECK_FALSE(setShellItemProp(doc, 1, 1, "image", "\"unclosed", &error));
+    CHECK(doc.text() == text);
+
+    // A Windows item: a rule made here, and its image= read back.
+    auto t = parseTree(kTreeJson);
+    REQUIRE(t);
+    const auto &cap = t->system[0];
+    auto rule = imageRule(cap, imageValue("C:\\Tools\\app.exe,0"));
+    CHECK(rule == "modify(where=this.id==id.copy_as_path image=\"C:\\\\Tools\\\\app.exe,0\")");
+    CHECK(ruleImage(rule) == std::optional<std::string>("\"C:\\\\Tools\\\\app.exe,0\""));
+    CHECK(imageRule(cap, "null") == "modify(where=this.id==id.copy_as_path image=null)");
+    CHECK(ruleImage("modify(where=this.id==id.copy_as_path title=\"Path\")") == std::nullopt);
+    CHECK(imageRule(cap, "").empty());
+    CHECK(imageRule(t->system[3], "icon.copy").empty()); // a title find= can't hold
+    for (const auto &r : { rule, imageRule(cap, "image.mdl(\\uE8C8)") }) {
+        auto d = nss::NssDocument::fromText(r);
+        CHECK(d.diagnostics().empty());
+    }
+}
+
 TEST_CASE("menu map: hand edit survives an app save")
 {
     TempDir dir;

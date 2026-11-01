@@ -330,8 +330,9 @@ namespace Nilesoft
 							continue;
 					}
 
-					if(item->is_menu() && !item->items.empty() &&
-					   _context.parse_visibility(item->visibility) != Visibility::Hidden)
+					// Also inside a hidden menu: an item moved out of it shows where it
+					// went, only the items that stay in it are hidden with it.
+					if(item->is_menu() && !item->items.empty())
 						collect_moved_items(item->items, depth + 1);
 				}
 				catch(...)

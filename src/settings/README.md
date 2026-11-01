@@ -113,7 +113,7 @@ src\settings\out\nss\Release\nsscore_tests.exe
 ## Translations
 
 The app's text is in English, Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-TW`),
-Spanish (`es`) and Arabic (`ar`, a first draft waiting for a native speaker's review). Each language is one gettext file,
+Spanish (`es`) and Arabic (`ar`, reviewed by kaser4). Each language is one gettext file,
 `translations/<code>/LC_MESSAGES/nilesoft-shell-pro.po`, next to the template
 `translations/nilesoft-shell-pro.pot`. The build embeds them: the `.slint` strings through
 Slint's bundled translations (`SLINT_BUNDLE_TRANSLATIONS` in `CMakeLists.txt`), the C++
