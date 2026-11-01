@@ -14,6 +14,8 @@
 //                          find box with that text, in the Config Editor's edit view (screenshots)
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
+//   --snippets-report <file>   write which icon each bundled snippet's rows get (a Markdown
+//                          table, as a new install's config shows them), then exit; no window
 //   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
 //                          the Snippets page previews that snippet (in that context)
 //   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
@@ -99,6 +101,7 @@ bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
 std::string g_snippetsCode;
 std::string g_snippetsSelect;
+std::wstring g_snippetsReport;
 std::string g_snippetsContext;
 MenuMapController::DevOptions g_map;
 bool g_mapSet = false;
@@ -177,6 +180,8 @@ AppOptions parseArgs()
             g_update.updateCancelled = true;
         } else if (_wcsicmp(argv[i], L"--snippets-code") == 0 && i + 1 < argc) {
             g_snippetsCode = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-report") == 0 && i + 1 < argc) {
+            g_snippetsReport = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snippets-select") == 0 && i + 1 < argc) {
             g_snippetsSelect = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--snippets-context") == 0 && i + 1 < argc) {
@@ -285,6 +290,13 @@ int main()
         return rc;
 
     auto options = parseArgs();
+    if (!g_snippetsReport.empty()) {
+        const HRESULT reportCom = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+        const bool ok = SnippetsController::writeReport(g_snippetsReport);
+        if (SUCCEEDED(reportCom))
+            CoUninitialize();
+        return ok ? 0 : 1;
+    }
     const bool snapshot = !g_snapshotPath.empty();
     // Snapshots write nothing and check only when asked to.
     if (snapshot) {

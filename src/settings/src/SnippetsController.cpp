@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <functional>
 #include <future>
 
 namespace fs = std::filesystem;
@@ -116,16 +117,59 @@ fs::path prepareSample(sp::Context c, const fs::path &dir, const sp::Sample &sam
     }
 }
 
-void collectIcons(const std::vector<sp::Item> &items, std::vector<sp::Icon> &out)
+std::string iconKey(const sp::Icon &icon) { return icon.path + "," + std::to_string(icon.index); }
+
+// The UTF-8 characters before byte `at` (Slint counts characters).
+int charsBefore(std::string_view s, size_t at)
 {
-    for (const auto &it : items) {
-        if (it.icon.kind == sp::IconKind::File)
-            out.push_back(it.icon);
-        collectIcons(it.children, out);
-    }
+    int n = 0;
+    for (size_t i = 0; i < at && i < s.size(); ++i)
+        if ((static_cast<unsigned char>(s[i]) & 0xC0) != 0x80)
+            ++n;
+    return n;
 }
 
-std::string iconKey(const sp::Icon &icon) { return icon.path + "," + std::to_string(icon.index); }
+// The UTF-8 character at byte `at`, whole.
+std::string charAt(std::string_view s, size_t at)
+{
+    size_t end = at + 1;
+    while (end < s.size() && (static_cast<unsigned char>(s[end]) & 0xC0) == 0x80)
+        ++end;
+    return std::string(s.substr(at, end - at));
+}
+
+slint::Color argbColor(uint32_t argb)
+{
+    return slint::Color::from_argb_uint8(uint8_t(argb >> 24), uint8_t(argb >> 16), uint8_t(argb >> 8), uint8_t(argb));
+}
+
+// The chip over the preview: where to right-click, and its Segoe glyph.
+std::string captionOf(sp::Context c, const sp::Sample &sample)
+{
+    switch (c) {
+    case sp::Context::File:
+        return sample.fromSnippet ? nsp::trf("Right-click a {} file", sample.extension) : nsp::tr("Right-click a file");
+    case sp::Context::Folder: return nsp::tr("Right-click a folder");
+    case sp::Context::Back: return nsp::tr("Right-click inside a folder");
+    case sp::Context::Desktop: return nsp::tr("Right-click the desktop");
+    case sp::Context::Drive: return nsp::tr("Right-click a drive");
+    case sp::Context::Taskbar: return nsp::tr("Right-click the taskbar");
+    }
+    return {};
+}
+
+const char *chipGlyph(sp::Context c)
+{
+    switch (c) {
+    case sp::Context::File: return "\uE8A5";
+    case sp::Context::Folder: return "\uE8B7";
+    case sp::Context::Back:
+    case sp::Context::Desktop: return "\uE7F4";
+    case sp::Context::Drive: return "\uEDA2";
+    case sp::Context::Taskbar: return "\uE75B";
+    }
+    return "";
+}
 
 } // namespace
 
@@ -238,6 +282,13 @@ std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePrevi
                 if (auto bytes = read(p))
                     sp::collectImageDefs(*bytes, out->defs);
         }
+    // No image definitions in the config (or no config): the ones Shell comes with, so
+    // icon.copy looks the way it does in a new install.
+    if (out->defs.svgs.empty()) {
+        std::string bytes;
+        if (nss::readFile(exe.parent_path() / L"imports" / L"images.nss", bytes))
+            sp::collectImageDefs(bytes, out->defs);
+    }
     sp::collectImageDefs(text, out->defs);
     out->sample = sp::sampleFor(text);
     const auto snippetDoc = nss::NssDocument::fromText(snippets::normalize(text));
@@ -307,22 +358,113 @@ std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePrevi
             out->contexts.push_back({ sp::kContexts[i], std::move(items) });
     }
 
-    // Programs' icons are read here, so the UI thread only turns them into images.
-    std::vector<sp::Icon> icons;
-    for (const auto &c : out->contexts)
-        collectIcons(c.items, icons);
+    // Programs' icons are read here (32 px, drawn at 16), so the UI thread only turns them
+    // into images. One that can't be read gives way to its fallback, or to no icon.
     const auto vars = pathVariables(exe);
-    for (const auto &icon : icons) {
+    std::map<std::string, bool> tried;
+    auto readable = [&](const sp::Icon &icon) {
         const auto key = iconKey(icon);
-        if (out->files.count(key))
-            continue;
+        if (auto t = tried.find(key); t != tried.end())
+            return t->second;
         Preview::Pixels px;
-        if (auto rgba = fileicon::extract(nss::widen(sp::expandPath(icon.path, vars)), icon.index, 32, px.width, px.height)) {
+        auto rgba = fileicon::extract(nss::widen(sp::expandPath(icon.path, vars)), icon.index, 32, px.width, px.height);
+        if (rgba) {
             px.rgba = std::move(*rgba);
             out->files[key] = std::move(px);
         }
-    }
+        return tried[key] = rgba.has_value();
+    };
+    std::function<void(std::vector<sp::Item> &)> settle = [&](std::vector<sp::Item> &items) {
+        for (auto &it : items) {
+            while (it.icon.kind == sp::IconKind::File && !readable(it.icon)) {
+                auto next = it.icon.fallback ? *it.icon.fallback : sp::Icon{};
+                it.icon = std::move(next);
+            }
+            settle(it.children);
+        }
+    };
+    for (auto &c : out->contexts)
+        settle(c.items);
     return out;
+}
+
+namespace {
+
+void describe(const std::vector<sp::Item> &items, int depth, std::string &rows, int &withIcon, int &without)
+{
+    for (const auto &it : items) {
+        if (it.kind == "separator")
+            continue;
+        const char *kind = "none";
+        std::string what;
+        switch (it.icon.kind) {
+        case sp::IconKind::Glyph:
+            kind = it.icon.font == sp::GlyphFont::Segoe ? "Segoe glyph" : "Shell glyph";
+            {
+                // U+XXXX from the UTF-8 bytes (3 bytes: the private use area).
+                const auto &g = it.icon.glyph;
+                if (g.size() == 3) {
+                    unsigned cp = ((unsigned char)g[0] & 0x0F) << 12 | ((unsigned char)g[1] & 0x3F) << 6 | ((unsigned char)g[2] & 0x3F);
+                    char buf[16];
+                    snprintf(buf, sizeof buf, "U+%04X", cp);
+                    what = buf;
+                }
+            }
+            if (it.icon.colors[0].given())
+                what += " coloured";
+            break;
+        case sp::IconKind::Svg: kind = "SVG"; break;
+        case sp::IconKind::File:
+            kind = "file";
+            what = it.icon.path + "," + std::to_string(it.icon.index);
+            break;
+        default: break;
+        }
+        (it.icon.kind == sp::IconKind::None ? without : withIcon)++;
+        std::string title = it.dynamicTitle ? "(from the selection)" : it.title;
+        for (auto &c : title)
+            if (c == '|')
+                c = '/';
+        rows += "| " + std::string(size_t(depth) * 2, ' ') + (depth ? "- " : "") + title + " | " + it.kind + " | " + kind +
+                " | " + what + " | " + it.keys + " |\n";
+        describe(it.children, depth + 1, rows, withIcon, without);
+    }
+}
+
+} // namespace
+
+bool SnippetsController::writeReport(const fs::path &file)
+{
+    const auto exe = ShellCli::locate();
+    const auto catalog = snippets::loadAll();
+    std::string out = "# Snippet preview icons\n\nshell.exe: " + nss::narrow(exe.wstring()) +
+                      "\n\nAs a new install's config shows them (images.nss next to shell.exe).\n\n";
+    std::string summary = "| snippet | contexts | rows with an icon | rows without | note |\n|---|---|---|---|---|\n";
+    std::string details;
+    for (const auto &s : catalog.snippets) {
+        auto p = makePreview(s.id, s.text, exe, {});
+        int withIcon = 0, without = 0;
+        std::string rows, contexts;
+        for (const auto &c : p->contexts) {
+            contexts += (contexts.empty() ? "" : ", ") + std::string(sp::contextName(c.context));
+            if (rows.empty())
+                describe(c.items, 0, rows, withIcon, without);
+        }
+        std::string note = p->error;
+        if (p->contexts.empty() && note.empty())
+            note = "adds no rows of its own";
+        if (p->sample.fromSnippet)
+            note += (note.empty() ? "" : "; ") + std::string("sample ") + p->sample.extension;
+        summary += "| " + s.id + " | " + contexts + " | " + std::to_string(withIcon) + " | " + std::to_string(without) +
+                   " | " + note + " |\n";
+        if (!rows.empty())
+            details += "\n## " + s.id + " (" + std::string(sp::contextName(p->contexts.front().context)) +
+                       ")\n\n| row | kind | icon | which | keys |\n|---|---|---|---|---|\n" + rows;
+    }
+    out += summary + details;
+    std::ofstream f(file, std::ios::binary | std::ios::trunc);
+    f.write(out.data(), std::streamsize(out.size()));
+    return bool(f);
 }
 
 slint::Image SnippetsController::iconImage(const sp::Icon &icon, const Preview &p)
@@ -337,7 +479,9 @@ slint::Image SnippetsController::iconImage(const sp::Icon &icon, const Preview &
     }
     if (icon.kind != sp::IconKind::Svg)
         return {};
-    const auto svg = sp::svgFor(icon.svg, p.defs, theme_.imageColor, !theme_.dark);
+    uint32_t colors[3];
+    sp::iconColors(icon, theme_.imageColor, colors);
+    const auto svg = sp::svgFor(icon.svg, p.defs, colors, !theme_.dark);
     if (auto it = svgImages_.find(svg); it != svgImages_.end())
         return it->second;
     auto image = slint::Image::load_from_data(
@@ -403,8 +547,9 @@ void SnippetsController::pushPreview()
     st.set_preview_contexts(std::make_shared<slint::VectorModel<slint::SharedString>>(labels));
     st.set_preview_context(previewContext_);
     st.set_preview_pane(ctx.context == sp::Context::Desktop || ctx.context == sp::Context::Taskbar ? 0 : 1);
-    if (ctx.context == sp::Context::File && p.sample.fromSnippet)
-        st.set_preview_note(ss(nsp::trf("Shown for a {} file.", p.sample.extension)));
+    st.set_preview_caption(ss(captionOf(ctx.context, p.sample)));
+    st.set_preview_glyph(ss(chipGlyph(ctx.context)));
+    st.set_preview_rtl(nsp::currentLanguage() == "ar");
 
     const auto composed = sp::compose(ctx.context, ctx.items, [](const char *msgid) { return std::string(nsp::tr(msgid)); });
     const auto m = theme::rowMetrics(theme_);
@@ -417,12 +562,28 @@ void SnippetsController::pushPreview()
             it.separator = r.separator;
             it.label = ss(r.label);
             it.disabled = r.disabled;
+            it.ghost = r.ghost;
+            it.group_first = r.groupFirst;
+            it.group_last = r.groupLast;
             it.sub = r.sub;
             it.own = r.own;
             it.placeholder = r.placeholder;
+            it.keys = ss(r.keys);
+            it.accel = -1;
+            if (r.accel >= 0 && size_t(r.accel) < r.label.size()) {
+                const auto at = size_t(r.accel);
+                const auto ch = charAt(r.label, at);
+                it.accel = charsBefore(r.label, at);
+                it.accel_before = ss(r.label.substr(0, at));
+                it.accel_char = ss(ch);
+                it.accel_after = ss(r.label.substr(at + ch.size()));
+            }
+            it.opened = open >= 0 && int(items->row_count()) == open;
             if (r.icon.kind == sp::IconKind::Glyph) {
                 it.glyph = ss(r.icon.glyph);
                 it.glyph_font = ss(r.icon.font == sp::GlyphFont::Shell ? std::string("Nilesoft.Shell") : iconFont);
+                if (auto c = sp::glyphColor(r.icon, theme_.imageColor))
+                    it.glyph_color = argbColor(c);
             } else if (r.icon.kind != sp::IconKind::None) {
                 it.icon = iconImage(r.icon, p);
                 it.has_icon = it.icon.size().width > 0;
