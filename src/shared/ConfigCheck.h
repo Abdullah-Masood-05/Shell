@@ -71,7 +71,10 @@ typedef HRESULT(WINAPI *ConfigCheckTitlesProc)(const wchar_t *root, const wchar_
 	in `where` through `tree`, once, as a JSON object:
 	  "shell":  Shell's own items that show there (type=), in config order:
 	            {kind, title, state, source, file, line, column, vis,
-	             conditions, dynamic, items}
+	             conditions, dynamic, menu, menu_dynamic, moved, expanded,
+	             moved_from, pos, items}; expanded: a menu with expanded=1,
+	             whose items (and the Windows items a modify(menu=) moves into
+	             it) show in its place
 	  "system": the Windows menu for `sample`, built off-screen with
 	            IContextMenu (no window or menu is shown): {kind, title, name,
 	            path, uid, id, verb, disabled, owner_drawn, source (windows,

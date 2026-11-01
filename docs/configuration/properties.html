@@ -754,6 +754,8 @@ in = "Sort By"</code></pre>
 				<p>Name the menu by its title, or a path of titles such as <code>'Tools/More'</code>. <code>'/'</code> is the
 					main menu. In <code>modify()</code>, an item that <code>menu='/'</code> puts in (or keeps in) the main
 					menu stays there: the modify rules after it don't move it again.</p>
+				<p>The menu can be one of yours with <a href="#expanded"><code>expanded=1</code></a>: the Windows items
+					<code>modify(find='copy' menu='Tools')</code> moves into it then show in its place, next to its own items.</p>
 				Default = <span class="syntax-keyword">null</span></td>
 		</tr>
 		<tr id="checked">
@@ -792,6 +794,8 @@ in = "Sort By"</code></pre>
 			<td>nm</td>
 			<td>
 				<p>Move all immediate menuitems to the parent <a href="/docs/configuration/dynamic#menu">menu</a>.</p>
+				<p>Windows items that a <code>modify()</code> moves into this menu with <a href="#parent"><code>menu=</code></a>
+					show there too.</p>
 				Default = <span class="syntax-keyword">false</span>
 			</td>
 		</tr>
