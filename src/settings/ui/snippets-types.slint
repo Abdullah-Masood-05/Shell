@@ -40,6 +40,9 @@ export global SnippetsState {
     in property <string> preview-state;     // loading | menu | code | message
     in property <string> preview-message;   // loading, why there's no menu, or a note over the code
     in property <string> preview-note;      // under the menu: "Shown for a .zip file"
+    in property <string> preview-caption;   // the context chip: "Right-click a .zip file"
+    in property <string> preview-glyph;     // its Segoe glyph
+    in property <bool> preview-rtl;         // the app's language reads right to left
     in property <[string]> preview-contexts;// where it adds items: File, Folder, ...
     in property <int> preview-context;
     in property <int> preview-pane;         // PreviewPane's context: 0 desktop, 1 File Explorer
