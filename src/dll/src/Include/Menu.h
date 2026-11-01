@@ -16,6 +16,8 @@ namespace Nilesoft
 		{
 			auto_expr showdelay;
 			auto_expr priority;
+			// settings.filemanagers: third-party file managers (Main.cpp, filemanager)
+			auto_expr filemanagers;
 			struct
 			{
 				auto_expr enabled;

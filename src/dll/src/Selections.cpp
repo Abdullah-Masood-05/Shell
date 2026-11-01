@@ -1,5 +1,7 @@
 #include <pch.h>
 
+IDataObject *FileManagerTakeDataObject(); // Main.cpp: settings.filemanagers
+
 //Enable Narrow Classic Context Menu on Windows 10
 // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\FlightedFeatures\ImmersiveContextMenu:0
 //Windows Explorer on XP, Vista, 7, 8
@@ -1022,6 +1024,12 @@ namespace Nilesoft
 
 		bool Selections::QuerySelected()
 		{
+			// A third-party file manager's selection (settings.filemanagers) is for
+			// this menu only: taken here whether or not it is used, so no later menu
+			// on this thread can pick it up.
+			IComPtr<IDataObject> filemanager_data;
+			filemanager_data.attach(FileManagerTakeDataObject());
+
 			try
 			{
 				if(Window.handle == nullptr)
@@ -1100,9 +1108,45 @@ namespace Nilesoft
 				*/
 
 				HWND current_window{};
-				
+
 				if(!Window.has_IShellBrowser)
-					return false;
+				{
+					// A third-party file manager (settings.filemanagers): the files
+					// its menu is for, from Shell's handler (Main.cpp, filemanager).
+					if(!filemanager_data)
+						return false;
+
+					IComPtr<IShellItemArray> sia;
+					if(S_OK != ::SHCreateShellItemArrayFromDataObject(filemanager_data, IID_IShellItemArray, sia))
+						return false;
+
+					DWORD sel_count = 0;
+					if(S_OK != sia->GetCount(&sel_count) || sel_count == 0)
+						return false;
+
+					Items.reserve(sel_count);
+					for(DWORD i = 0; i < sel_count; i++)
+					{
+						IComPtr<IShellItem> item;
+						if(S_OK == sia->GetItemAt(i, item) && item)
+							Parse(item);
+					}
+
+					if(!Items.empty())
+					{
+						IComPtr<IShellItem> first, parent;
+						if(S_OK == sia->GetItemAt(0, first) && first && S_OK == first->GetParent(parent) && parent)
+						{
+							FileProperties fp;
+							if(GetFileProperties(parent, &fp))
+							{
+								Parent = fp.Path.move();
+								ParentRaw = fp.PathRaw.move();
+							}
+						}
+					}
+					return !Items.empty();
+				}
 
 				if(Window.desktop)
 				{
