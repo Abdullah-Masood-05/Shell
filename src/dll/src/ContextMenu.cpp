@@ -2960,6 +2960,7 @@ namespace Nilesoft
 					transparency.effect = 0;
 			}
 
+			const auto configured_theme = _theme.Type;
 			switch(_theme.Type)
 			{
 				case ThemeType::HighContrast:
@@ -3108,6 +3109,7 @@ namespace Nilesoft
 				}
 			}
 
+			_theme.configured = configured_theme;
 			_theme.system.transparency = enableTransparency;
 			_theme.system.mode = systemUsesLightTheme ? 0 : 1;
 			_theme.isHighContrast = isHighContrast;

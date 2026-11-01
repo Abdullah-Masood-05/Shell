@@ -1799,7 +1799,7 @@ namespace Nilesoft
 						case IDENT_DPI:
 							return check(argc == 0, 1);
 						case IDENT_BACKGROUND:
-							if(id.equals(2, { IDENT_OPACITY , IDENT_EFFECT }))
+							if(id.equals(2, { IDENT_OPACITY , IDENT_EFFECT, IDENT_GRADIENT }))
 								return check(argc == 0, 2);
 							return check(argc == 0, 1);
 						case IDENT_ITEM:
@@ -1815,8 +1815,36 @@ namespace Nilesoft
 
 								return check(argc == 0, 2);
 							}
+							if(id.equals(2, { IDENT_RADIUS, IDENT_OPACITY }))
+								return check(argc == 0, 2);
 							return error_at(1);
 						}
+						case IDENT_NAME:
+							return check(argc == 0, 1);
+						case IDENT_FONT:
+							if(id.equals(2, { IDENT_NAME, IDENT_SIZE }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_BORDER:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_RADIUS }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_SHADOW:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_OFFSET, IDENT_ENABLED }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_SEPARATOR:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_LAYOUT:
+							if(id[2] == IDENT_RTL)
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_IMAGE:
+							if(id.equals(2, { IDENT_SIZE, IDENT_GAP, IDENT_SCALE, IDENT_ENABLED }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
 						case IDENT_MODE:
 						{
 							if(id[2] == IDENT_ZERO)

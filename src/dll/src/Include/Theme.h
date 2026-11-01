@@ -239,6 +239,8 @@ namespace Nilesoft
 			DPI *dpi{};
 
 			ThemeType Type = ThemeType::Auto;
+			// The theme name = chose (theme.name); Type is the theme it turned into.
+			ThemeType configured = ThemeType::Auto;
 			uint8_t mode{}; //0 = light, 1 = dark, 2= high contrast
 			bool transparent = true;
 			//int view = -1;

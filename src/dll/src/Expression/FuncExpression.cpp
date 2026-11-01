@@ -1565,27 +1565,41 @@ namespace Nilesoft
 						case IDENT_ISHIGHCONTRAST:
 							_result = (context && context->theme) ? context->theme->isHighContrast : Theme::IsHighContrast();
 							break;
+					}
+
+					// The getters below read the theme of the menu being shown; there is
+					// none outside a menu (shell.exe -config:check, a command run later).
+					auto theme = context ? context->theme : nullptr;
+					if(!theme)
+						break;
+
+					switch(Id[1])
+					{
 						case IDENT_DPI:
-							_result = context->theme->dpi->val;
+							if(theme->dpi)
+								_result = theme->dpi->val;
 							break;
 						case IDENT_BACKGROUND:
 						{
 							if(Id[2] == IDENT_OPACITY)
-								_result = context->theme->background.color.a;
+								_result = theme->background.color.a;
 							else if(Id[2] == IDENT_EFFECT)
-								_result = context->theme->background.effect;
+								_result = theme->background.effect;
+							else if(Id[2] == IDENT_GRADIENT)
+								_result = theme->gradient.enabled;
 							else
-								_result = Object(context->theme->background.color).move();
+								_result = Object(theme->background.color).move();
 							break;
 						}
 						case IDENT_ITEM:
 						{
 							// theme.item.{back,text,border}.{normal,select}[.disabled]
-							if(Id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
+							if(Id.equals(2, { IDENT_BACK, IDENT_TEXT, IDENT_BORDER }) &&
+							   Id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 							{
-								auto &state = Id[2] == IDENT_BACK ? context->theme->back.color
-									: Id[2] == IDENT_BORDER ? context->theme->back.border
-									: context->theme->text.color;
+								auto &state = Id[2] == IDENT_BACK ? theme->back.color
+									: Id[2] == IDENT_BORDER ? theme->back.border
+									: theme->text.color;
 								// .disable was the old spelling; keep it working.
 								bool dis = Id.equals(4, { IDENT_DISABLED, IDENT_DISABLE });
 								Color color;
@@ -1596,12 +1610,79 @@ namespace Nilesoft
 
 								_result = Object(color).move();
 							}
-							else if(Id[2] == IDENT_EFFECT)
-								_result = context->theme->background.effect;
-							else
-								_result = Object(context->theme->background.color).move();
+							else if(Id[2] == IDENT_RADIUS)
+								_result = static_cast<int32_t>(theme->back.radius);
+							else if(Id[2] == IDENT_OPACITY)
+								_result = static_cast<int32_t>(theme->back.opacity);
 							break;
 						}
+						case IDENT_NAME:
+						{
+							// The theme the config chose (name = ...), not the light or dark
+							// one it turned into.
+							const wchar_t *name = L"auto";
+							switch(theme->configured)
+							{
+								case ThemeType::System: name = L"system"; break;
+								case ThemeType::HighContrast: name = L"highcontrast"; break;
+								case ThemeType::White: name = L"white"; break;
+								case ThemeType::Black: name = L"black"; break;
+								case ThemeType::Classic: name = L"classic"; break;
+								case ThemeType::Edge: name = L"edge"; break;
+								case ThemeType::Dark: name = L"dark"; break;
+								case ThemeType::Light: name = L"light"; break;
+								case ThemeType::Modern: name = L"modern"; break;
+								case ThemeType::Custom: name = L"custom"; break;
+								default: break;
+							}
+							_result = name;
+							break;
+						}
+						case IDENT_FONT:
+							// theme.font and theme.font.name: the font's name; .size in pixels.
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->text.size);
+							else
+								_result = string(theme->font.lfFaceName).move();
+							break;
+						case IDENT_BORDER:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->border.size);
+							else if(Id[2] == IDENT_RADIUS)
+								_result = static_cast<int32_t>(theme->border.radius);
+							else
+								_result = Object(theme->border.color).move();
+							break;
+						case IDENT_SHADOW:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->shadow.size);
+							else if(Id[2] == IDENT_OFFSET)
+								_result = static_cast<int32_t>(theme->shadow.offset);
+							else if(Id[2] == IDENT_ENABLED)
+								_result = theme->shadow.enabled;
+							else
+								_result = Object(theme->shadow.color).move();
+							break;
+						case IDENT_SEPARATOR:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->separator.size);
+							else
+								_result = Object(theme->separator.color).move();
+							break;
+						case IDENT_LAYOUT:
+							// theme.layout and theme.layout.rtl
+							_result = theme->layout.rtl != 0;
+							break;
+						case IDENT_IMAGE:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->image.size);
+							else if(Id[2] == IDENT_GAP)
+								_result = static_cast<int32_t>(theme->image.gap);
+							else if(Id[2] == IDENT_SCALE)
+								_result = theme->image.scale;
+							else
+								_result = theme->image.enabled;
+							break;
 					}
 					break;
 				}
