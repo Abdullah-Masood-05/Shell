@@ -2,6 +2,7 @@
 #include "Include/Theme.h"
 #include "Include/ContextMenu.h"
 #include "Include/stb_image_write.h"
+#include "Include/NssFunctions.h"
 
 using namespace Nilesoft::Diagnostics;
 #include <mutex>
@@ -5355,6 +5356,11 @@ namespace Nilesoft
 							Selected.Directory = cmd.directory;
 						}
 					}
+
+					// A script of several lines in cmd-ps= / cmd-pwsh= is sent as
+					// -EncodedCommand; on the command line it would end at the first line.
+					if(cmd.type == COMMAND_POWERSHELL || cmd.type == COMMAND_PWSH)
+						cmd.arguments = PowerShellArgs::encode(as_wstring(cmd.arguments)).c_str();
 
 					/*auto r = */ShellExec::Run(cmd.command, cmd.arguments, cmd.directory,
 												cmd.verb, wait, cmd.window);

@@ -270,5 +270,131 @@ namespace Nilesoft
 				return result;
 			}
 		}
+
+		namespace PowerShellArgs
+		{
+			// Base64 (RFC 4648, with padding) of raw bytes.
+			inline std::wstring base64(const unsigned char *data, size_t size)
+			{
+				static constexpr wchar_t table[] =
+					L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+				std::wstring out;
+				out.reserve((size + 2) / 3 * 4);
+				size_t i = 0;
+				for(; i + 2 < size; i += 3)
+				{
+					unsigned v = (unsigned(data[i]) << 16) | (unsigned(data[i + 1]) << 8) | data[i + 2];
+					out += table[(v >> 18) & 63];
+					out += table[(v >> 12) & 63];
+					out += table[(v >> 6) & 63];
+					out += table[v & 63];
+				}
+				if(i < size)
+				{
+					unsigned v = unsigned(data[i]) << 16;
+					if(i + 1 < size)
+						v |= unsigned(data[i + 1]) << 8;
+					out += table[(v >> 18) & 63];
+					out += table[(v >> 12) & 63];
+					out += i + 1 < size ? table[(v >> 6) & 63] : L'=';
+					out += L'=';
+				}
+				return out;
+			}
+
+			// The arguments for powershell.exe or pwsh.exe from a cmd-ps= / cmd-pwsh= value.
+			// A one-line value is passed as it is. A script of several lines is cut off
+			// at the first line break when given on the command line, so it is sent as
+			// -EncodedCommand <Base64 of its UTF-16LE text>. Switches before the script
+			// (-NoExit, -NoProfile, -ExecutionPolicy Bypass, -Command, ...) stay as they
+			// are; only the script is encoded. A value that runs a file or is already
+			// encoded (-File, -EncodedCommand) is left alone.
+			inline std::wstring encode(const std::wstring &value)
+			{
+				if(value.find_first_of(L"\r\n") == std::wstring::npos)
+					return value;
+
+				auto is_space = [](wchar_t c) { return c == L' ' || c == L'\t' || c == L'\r' || c == L'\n'; };
+				auto lower = [](std::wstring s)
+				{
+					for(auto &c : s)
+						if(c >= L'A' && c <= L'Z')
+							c = wchar_t(c - L'A' + L'a');
+					return s;
+				};
+				auto any_of = [](const std::wstring &s, std::initializer_list<const wchar_t *> names)
+				{
+					for(auto n : names)
+						if(s == n)
+							return true;
+					return false;
+				};
+
+				std::wstring switches;
+				bool command = false;
+				size_t pos = 0;
+				for(;;)
+				{
+					while(pos < value.size() && is_space(value[pos]))
+						pos++;
+					if(pos >= value.size() || (value[pos] != L'-' && value[pos] != L'/'))
+						break;
+
+					size_t end = pos;
+					while(end < value.size() && !is_space(value[end]))
+						end++;
+					auto token = lower(value.substr(pos + 1, end - pos - 1));
+					if(token.empty())
+						break;
+
+					if(any_of(token, { L"file", L"f", L"encodedcommand", L"enc", L"e", L"ec",
+									   L"encodedarguments", L"ea" }))
+						return value;
+
+					if(any_of(token, { L"command", L"c" }))
+					{
+						command = true;
+						pos = end;
+						while(pos < value.size() && is_space(value[pos]))
+							pos++;
+						break;
+					}
+
+					// A switch that takes a value: keep the value with it.
+					if(any_of(token, { L"executionpolicy", L"ex", L"ep", L"windowstyle", L"w", L"version", L"v",
+									   L"inputformat", L"inp", L"if", L"outputformat", L"o", L"of",
+									   L"configurationname", L"config", L"workingdirectory", L"wd", L"wo",
+									   L"settingsfile", L"custompipename", L"psconsolefile" }))
+					{
+						while(end < value.size() && is_space(value[end]))
+							end++;
+						while(end < value.size() && !is_space(value[end]))
+							end++;
+					}
+					else if(!any_of(token, { L"noexit", L"noe", L"noprofile", L"nop", L"nologo", L"nol",
+											 L"noninteractive", L"noni", L"sta", L"mta", L"login", L"l",
+											 L"noprofileloadtime", L"interactive", L"i" }))
+					{
+						// Not a switch PowerShell knows: it is the start of the script.
+						break;
+					}
+
+					switches.append(value, pos, end - pos);
+					switches += L' ';
+					pos = end;
+				}
+
+				auto last = value.find_last_not_of(L" \t\r\n");
+				if(pos >= value.size() || last == std::wstring::npos || last < pos)
+					return value;
+				std::wstring script = value.substr(pos, last + 1 - pos);
+				// Only the switches were on lines of their own.
+				if(script.find_first_of(L"\r\n") == std::wstring::npos)
+					return switches + (command ? L"-Command " : L"") + script;
+
+				return switches + L"-EncodedCommand " +
+					base64(reinterpret_cast<const unsigned char *>(script.data()), script.size() * sizeof(wchar_t));
+			}
+		}
 	}
 }

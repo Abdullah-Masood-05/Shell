@@ -854,6 +854,12 @@ tip = ["Lorem Ipsum is simply dummy text.", tip.info, 1.2]</code></pre>
 			<td>ni</td>
 			<td><p>The <strong>command</strong> associated with the menuitem. Occurs when the menuitem is clicked or
 				selected using a shortcut key or access key defined for the menuitem.</p>
+				<p><code>cmd-ps=</code> (or <code>cmd-powershell=</code>) runs a PowerShell script, and <code>cmd-pwsh=</code>
+					runs it with PowerShell 7. The script can have several lines; switches such as <code>-NoExit</code> or
+					<code>-ExecutionPolicy Bypass</code> can go before it.</p>
+				<pre><code>item(title='Free space on C:' cmd-ps=`-NoExit
+$d = Get-PSDrive C
+Write-Host ([math]::Round($d.Free / 1GB)) 'GB free'`)</code></pre>
 				Default = <span class="syntax-keyword">null</span>
 			</td>
 		</tr>
