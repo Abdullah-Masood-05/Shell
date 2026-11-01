@@ -126,9 +126,27 @@ export component MenuSurface inherits Rectangle {
             property <bool> ghost: root.snippet && (it.ghost || !it.own);
             property <bool> selected: i == root.hovered && !it.separator && !self.ghost;
             // The snippet's rows in the main menu: one outline around each run of them.
-            property <bool> grouped: root.outline && !self.ghost;
-            property <bool> group-top: it.group-first || i == 0 || root.menu.items[i - 1].ghost || !root.menu.items[i - 1].own;
-            property <bool> group-bottom: it.group-last || i == root.menu.items.length - 1 || root.menu.items[i + 1].ghost || !root.menu.items[i + 1].own;
+            // A run starts or ends at a row the data marks (group-first/-last), or where the
+            // row before or after isn't the snippet's. A separator belongs to a run only
+            // between two of its rows, so a run never ends in a separator's line and a
+            // separator between two runs keeps them apart (one outline each).
+            property <PreviewItem> prev: i > 0 ? root.menu.items[i - 1] : { own: false };
+            property <PreviewItem> next: i + 1 < root.menu.items.length ? root.menu.items[i + 1] : { own: false };
+            property <PreviewItem> prev2: i > 1 ? root.menu.items[i - 2] : { own: false };
+            property <PreviewItem> next2: i + 2 < root.menu.items.length ? root.menu.items[i + 2] : { own: false };
+            property <bool> prev-own: self.prev.own && !self.prev.ghost;
+            property <bool> next-own: self.next.own && !self.next.ghost;
+            // A separator inside a run: the snippet's rows on both sides, no run ending before it.
+            property <bool> inner-sep: it.separator && self.prev-own && self.next-own && !self.prev.separator && !self.next.separator
+                && !self.prev.group-last && !self.next.group-first;
+            property <bool> grouped: root.outline && !self.ghost && (!it.separator || self.inner-sep);
+            // The row before is in this run: one of the snippet's, or an inner separator with one before it.
+            property <bool> joins-prev: self.prev-own && !it.group-first && !self.prev.group-last
+                && (!self.prev.separator || (self.prev2.own && !self.prev2.ghost && !self.prev2.group-last));
+            property <bool> joins-next: self.next-own && !it.group-last && !self.next.group-first
+                && (!self.next.separator || (self.next2.own && !self.next2.ghost && !self.next2.group-first));
+            property <bool> group-top: !it.separator && !self.joins-prev;
+            property <bool> group-bottom: !it.separator && !self.joins-next;
 
             if it.separator: Rectangle {
                 x: (t.sep-mar-left * root.zoom);
