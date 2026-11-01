@@ -24,6 +24,14 @@
 				"zh-TW": {
 					"title": "複製名稱清單",
 					"description": "加入「Copy list」選單，把選取項目的名稱，或某個資料夾中所有檔案和資料夾的名稱複製到剪貼簿，按住 Shift 時複製完整路徑。"
+				},
+				"es": {
+					"title": "Copiar una lista de nombres",
+					"description": "Añade un menú Copy list que copia al portapapeles los nombres de los elementos seleccionados, o de todos los archivos y carpetas de una carpeta, con la ruta completa si mantienes pulsada la tecla Mayús."
+				},
+				"ar": {
+					"title": "نسخ قائمة بالأسماء",
+					"description": "يضيف قائمة «Copy list» تنسخ إلى الحافظة أسماء العناصر المحددة، أو أسماء كل الملفات والمجلدات داخل مجلد، مع المسارات الكاملة عند الضغط مع الاستمرار على Shift."
 				}
 			}
 		},
@@ -44,6 +52,14 @@
 				"zh-TW": {
 					"title": "複製捷徑的目標",
 					"description": "在捷徑檔案上加入「Copy lnk path」選單，可開啟目標所在位置，或複製目標路徑、所在資料夾、名稱或副檔名。"
+				},
+				"es": {
+					"title": "Copiar el destino de un acceso directo",
+					"description": "En los accesos directos, añade un menú Copy lnk path que abre la ubicación del destino o copia la ruta del destino, su carpeta, su nombre o su extensión."
+				},
+				"ar": {
+					"title": "نسخ هدف الاختصار",
+					"description": "يضيف إلى ملفات الاختصار قائمة «Copy lnk path» تفتح موقع الهدف أو تنسخ مسار الهدف أو مجلده أو اسمه أو امتداده."
 				}
 			}
 		},
@@ -64,6 +80,14 @@
 				"zh-TW": {
 					"title": "以多種形式複製路徑",
 					"description": "加入「複製路徑」選單，可複製完整路徑、上層資料夾、名稱、不含副檔名的名稱或副檔名，按住 Shift 還能複製網路路徑、WSL 路徑和 file:// 形式。"
+				},
+				"es": {
+					"title": "Copiar la ruta de muchas formas",
+					"description": "Añade un menú Copy as path que copia la ruta completa, la carpeta principal, el nombre, el nombre sin extensión o la extensión y, con Mayús, también las formas de red, WSL y file://."
+				},
+				"ar": {
+					"title": "نسخ المسار بصيغ متعددة",
+					"description": "يضيف قائمة «Copy as path» تنسخ المسار الكامل أو المجلد الأصل أو الاسم أو الاسم بدون امتداد أو الامتداد، ومع Shift أيضًا صيغ الشبكة وWSL وfile://."
 				}
 			}
 		},
@@ -84,6 +108,14 @@
 				"zh-TW": {
 					"title": "複製網際網路捷徑中的網址",
 					"description": "在 .url 網際網路捷徑上加入「Copy url path」選單，可複製完整網址、去掉 # 之後部分的網址或只有網站網域，按住 Shift 時則在瀏覽器中開啟。"
+				},
+				"es": {
+					"title": "Copiar la dirección de un acceso directo a Internet",
+					"description": "En los accesos directos a Internet (.url), añade un menú Copy url path que copia la dirección completa, la dirección sin la parte que sigue a #, o solo el nombre del sitio, y la abre en el navegador si mantienes pulsada la tecla Mayús."
+				},
+				"ar": {
+					"title": "نسخ عنوان اختصار الإنترنت",
+					"description": "يضيف إلى اختصارات الإنترنت (ملفات .url) قائمة «Copy url path» تنسخ العنوان الكامل، أو العنوان بدون الجزء الذي يلي #، أو اسم الموقع فقط، وتفتحه في المتصفح عند الضغط مع الاستمرار على Shift."
 				}
 			}
 		},
@@ -104,6 +136,14 @@
 				"zh-TW": {
 					"title": "在原位置建立捷徑",
 					"description": "加入「Create shortcut」項目，為每個選取的檔案或資料夾在同一資料夾中建立捷徑。"
+				},
+				"es": {
+					"title": "Crear accesos directos aquí",
+					"description": "Añade un elemento Create shortcut que crea un acceso directo para cada archivo o carpeta seleccionados en la misma carpeta."
+				},
+				"ar": {
+					"title": "إنشاء اختصارات هنا",
+					"description": "يضيف عنصر «Create shortcut» ينشئ اختصارًا لكل ملف أو مجلد محدد في المجلد نفسه."
 				}
 			}
 		},
@@ -124,6 +164,14 @@
 				"zh-TW": {
 					"title": "快速重新命名",
 					"description": "加入「Fast Renamer」選單，可一次重新命名選取的檔案和資料夾，例如改成小寫或大寫、加上編號、加上前置或後置文字，或取代空格、句點和底線。"
+				},
+				"es": {
+					"title": "Cambio rápido de nombre",
+					"description": "Añade un menú Fast Renamer que cambia el nombre de los archivos y carpetas seleccionados de una vez, por ejemplo a minúsculas o mayúsculas, con un contador, con un prefijo o sufijo, o sustituyendo espacios, puntos y guiones bajos."
+				},
+				"ar": {
+					"title": "إعادة تسمية سريعة",
+					"description": "يضيف قائمة «Fast Renamer» تعيد تسمية الملفات والمجلدات المحددة دفعة واحدة، مثلًا إلى أحرف صغيرة أو كبيرة، أو مع عدّاد، أو مع بادئة أو لاحقة، أو باستبدال المسافات والنقاط والشرطات السفلية."
 				}
 			}
 		},
@@ -144,6 +192,14 @@
 				"zh-TW": {
 					"title": "更多「傳送到」選項",
 					"description": "把「傳送到」移到「複製」旁邊，並加入幾個項目：把檔案傳送給你選擇的任何程式、開啟「傳送到」資料夾，或把選取的資料夾或程式加入「傳送到」。"
+				},
+				"es": {
+					"title": "Más opciones de Enviar a",
+					"description": "Coloca Enviar a junto a Copiar y añade elementos para enviar un archivo a cualquier programa que elijas, abrir la carpeta Enviar a o añadir a Enviar a la carpeta o el programa seleccionados."
+				},
+				"ar": {
+					"title": "خيارات إضافية لـ «إرسال إلى»",
+					"description": "ينقل «إرسال إلى» بجانب «نسخ» ويضيف عناصر لإرسال ملف إلى أي برنامج تختاره، أو فتح مجلد «إرسال إلى»، أو إضافة المجلد أو البرنامج المحدد إلى «إرسال إلى»."
 				}
 			}
 		},
@@ -164,6 +220,14 @@
 				"zh-TW": {
 					"title": "「開啟檔案」選單",
 					"description": "把「開啟檔案」換成一個小選單，可以選擇應用程式、在 Microsoft Store 搜尋這種檔案類型，或在網站上查詢該副檔名。"
+				},
+				"es": {
+					"title": "Menú Abrir con",
+					"description": "Sustituye la opción Abrir con por un pequeño menú para elegir una aplicación, buscar el tipo de archivo en Microsoft Store o consultar la extensión del archivo en un sitio web."
+				},
+				"ar": {
+					"title": "قائمة «فتح باستخدام»",
+					"description": "يستبدل عنصر «فتح باستخدام» بقائمة صغيرة تتيح لك اختيار تطبيق، أو البحث عن نوع الملف في Microsoft Store، أو البحث عن امتداد الملف في موقع ويب."
 				}
 			}
 		},
@@ -184,6 +248,14 @@
 				"zh-TW": {
 					"title": "儲存剪貼簿中的圖片",
 					"description": "剪貼簿裡有圖片時，在資料夾空白處或桌面上按右鍵會出現「Save Image」，可將圖片以日期時間命名的 PNG 檔案儲存到目前位置。"
+				},
+				"es": {
+					"title": "Guardar imagen del portapapeles",
+					"description": "Cuando el portapapeles contiene una imagen, al hacer clic derecho en un espacio vacío de una carpeta o del escritorio aparece Save Image, que la guarda allí como archivo PNG con la fecha y la hora como nombre."
+				},
+				"ar": {
+					"title": "حفظ صورة الحافظة",
+					"description": "عندما تحتوي الحافظة على صورة، يظهر عنصر «Save Image» عند النقر بزر الماوس الأيمن فوق مكان فارغ في مجلد أو على سطح المكتب، فيحفظها هناك كملف PNG يحمل اسمه التاريخ والوقت."
 				}
 			}
 		},
@@ -204,6 +276,14 @@
 				"zh-TW": {
 					"title": "縮短過長的名稱",
 					"description": "當檔案或資料夾的路徑超過 Windows 允許的長度時，右鍵選單的「重新命名」旁會出現「自動」項目，按下即可縮短名稱，讓它恢復可用。"
+				},
+				"es": {
+					"title": "Acortar nombres demasiado largos",
+					"description": "Cuando la ruta de un archivo o carpeta es más larga de lo que Windows permite, aparece un elemento Auto rename junto a Cambiar nombre que acorta el nombre para que el elemento vuelva a funcionar."
+				},
+				"ar": {
+					"title": "تقصير الأسماء الطويلة جدًا",
+					"description": "عندما يكون مسار ملف أو مجلد أطول مما يسمح به Windows، يظهر عنصر «Auto rename» بجانب «إعادة التسمية» فيقصّر الاسم ليعمل العنصر من جديد."
 				}
 			}
 		},
@@ -224,6 +304,14 @@
 				"zh-TW": {
 					"title": "暫時資料夾書籤",
 					"description": "加入「Go To Temporary」選單，可記住最多十個資料夾，並在本次使用期間隨時跳回這些資料夾。"
+				},
+				"es": {
+					"title": "Marcadores temporales de carpetas",
+					"description": "Añade un menú Go To Temporary donde puedes recordar hasta diez carpetas y volver a ellas más tarde en la misma sesión."
+				},
+				"ar": {
+					"title": "إشارات مرجعية مؤقتة للمجلدات",
+					"description": "يضيف قائمة «Go To Temporary» يمكنك فيها تذكّر ما يصل إلى عشرة مجلدات والعودة إليها لاحقًا في الجلسة نفسها."
 				}
 			}
 		},
@@ -246,6 +334,14 @@
 				"zh-TW": {
 					"title": "隱藏 7-Zip 選單",
 					"description": "隱藏 7-Zip 加到右鍵選單中的項目，7-Zip 程式本身仍可正常使用。"
+				},
+				"es": {
+					"title": "Ocultar el menú de 7-Zip",
+					"description": "Oculta la entrada que 7-Zip añade al menú del clic derecho, y 7-Zip sigue funcionando cuando lo abres."
+				},
+				"ar": {
+					"title": "إخفاء قائمة 7-Zip",
+					"description": "يخفي عنصر 7-Zip الذي يضيفه 7-Zip إلى قائمة النقر بزر الماوس الأيمن، ويظل 7-Zip نفسه يعمل عند فتحه."
 				}
 			}
 		},
@@ -266,6 +362,14 @@
 				"zh-TW": {
 					"title": "隱藏 NanaZip 選單",
 					"description": "隱藏 NanaZip 應用程式加到右鍵選單中的項目，適合不在右鍵選單裡使用它的使用者。"
+				},
+				"es": {
+					"title": "Ocultar el menú de NanaZip",
+					"description": "Oculta la entrada que la aplicación NanaZip añade al menú del clic derecho, para quien no la usa ahí."
+				},
+				"ar": {
+					"title": "إخفاء قائمة NanaZip",
+					"description": "يخفي عنصر NanaZip الذي يضيفه تطبيق NanaZip إلى قائمة النقر بزر الماوس الأيمن، لمن لا يستخدمه هناك."
 				}
 			}
 		},
@@ -286,6 +390,14 @@
 				"zh-TW": {
 					"title": "使用 certutil 計算檔案雜湊",
 					"description": "為檔案加入「File Hash」選單，可檢視或複製 MD5、SHA1、SHA256 雜湊值，儲存成檔案，或用校驗檔核對檔案。"
+				},
+				"es": {
+					"title": "Hash de archivos con certutil",
+					"description": "Añade a los archivos un menú File Hash que muestra o copia sumas de comprobación MD5, SHA1 o SHA256, las guarda en un archivo y comprueba archivos con un archivo de sumas de comprobación."
+				},
+				"ar": {
+					"title": "تجزئة الملفات باستخدام certutil",
+					"description": "يضيف إلى الملفات قائمة «File Hash» تعرض أو تنسخ المجاميع الاختبارية MD5 أو SHA1 أو SHA256، وتحفظها في ملف، وتتحقق من الملفات باستخدام ملف مجاميع اختبارية."
 				}
 			}
 		},
@@ -306,6 +418,14 @@
 				"zh-TW": {
 					"title": "資料夾選項捷徑",
 					"description": "加入「Item Options」選單，其中的「資料夾選項」可開啟檔案總管選項視窗。"
+				},
+				"es": {
+					"title": "Acceso a Opciones de carpeta",
+					"description": "Añade un menú Item Options con un elemento Folder options que abre la ventana de opciones del Explorador de archivos."
+				},
+				"ar": {
+					"title": "اختصار خيارات المجلد",
+					"description": "يضيف قائمة «Item Options» تحتوي على عنصر «Folder options» يفتح نافذة خيارات مستكشف الملفات."
 				}
 			}
 		},
@@ -326,6 +446,14 @@
 				"zh-TW": {
 					"title": "在選單中顯示鍵盤快速鍵",
 					"description": "在複製、貼上、重新命名和「檢視」中的圖示大小等常用命令旁顯示對應的快速鍵，並在「檢視」選單中加入上一頁、下一頁、上移和展開瀏覽窗格等項目。"
+				},
+				"es": {
+					"title": "Mostrar atajos de teclado en los menús",
+					"description": "Muestra el atajo de teclado correspondiente junto a comandos habituales como Copiar, Pegar, Cambiar nombre y los tamaños de Ver, y añade al menú Ver los elementos Back, Forward, Up y Expand Navigation Pane."
+				},
+				"ar": {
+					"title": "إظهار اختصارات لوحة المفاتيح في القوائم",
+					"description": "يعرض اختصار لوحة المفاتيح المناسب بجانب الأوامر الشائعة مثل «نسخ» و«لصق» و«إعادة التسمية» وأحجام «عرض»، ويضيف إلى قائمة «عرض» العناصر Back وForward وUp وExpand Navigation Pane."
 				}
 			}
 		},
@@ -346,6 +474,14 @@
 				"zh-TW": {
 					"title": "標題列視窗工具",
 					"description": "在視窗標題列上按右鍵時，會出現「全螢幕」項目和一個視窗選單，可重疊、堆疊、並排顯示、全部最小化或還原所有視窗。"
+				},
+				"es": {
+					"title": "Herramientas de ventana en la barra de título",
+					"description": "Al hacer clic derecho en la barra de título de una ventana se añaden un elemento Full screen y un menú Windows para organizar en cascada, apilar, colocar en paralelo, minimizar o restaurar todas las ventanas."
+				},
+				"ar": {
+					"title": "أدوات النوافذ في شريط العنوان",
+					"description": "عند النقر بزر الماوس الأيمن فوق شريط عنوان نافذة، يُضاف عنصر «Full screen» وقائمة «Windows» لترتيب كل النوافذ بشكل متتالٍ أو مكدّس أو جنبًا إلى جنب، أو تصغيرها كلها أو استعادتها."
 				}
 			}
 		},
@@ -366,6 +502,14 @@
 				"zh-TW": {
 					"title": "在工作列選單中顯示 Windows 版本",
 					"description": "在工作列上按右鍵時顯示 Windows 名稱和版本號碼，按一下即可複製到剪貼簿。"
+				},
+				"es": {
+					"title": "Versión de Windows en el menú de la barra de tareas",
+					"description": "Muestra el nombre y el número de versión de Windows al hacer clic derecho en la barra de tareas, y los copia al portapapeles al hacer clic."
+				},
+				"ar": {
+					"title": "إصدار Windows في قائمة شريط المهام",
+					"description": "يعرض اسم Windows ورقم إصداره عند النقر بزر الماوس الأيمن فوق شريط المهام، وينسخه إلى الحافظة عند النقر عليه."
 				}
 			}
 		},
@@ -386,6 +530,14 @@
 				"zh-TW": {
 					"title": "整理 Dropbox 選單項目",
 					"description": "適用於 Dropbox 使用者：把「共用」、「複製 Dropbox 連結」等 Dropbox 右鍵命令集中到一個 Dropbox 子選單裡。"
+				},
+				"es": {
+					"title": "Agrupar elementos de Dropbox",
+					"description": "Para quien usa Dropbox, reúne los comandos de Dropbox del clic derecho, como Compartir y Copiar enlace de Dropbox, en un solo submenú Dropbox."
+				},
+				"ar": {
+					"title": "تجميع عناصر Dropbox",
+					"description": "لمستخدمي Dropbox، يجمع أوامر Dropbox في قائمة النقر بزر الماوس الأيمن، مثل «مشاركة» و«نسخ رابط Dropbox»، في قائمة فرعية واحدة باسم Dropbox."
 				}
 			}
 		},
@@ -406,6 +558,14 @@
 				"zh-TW": {
 					"title": "整理 OneDrive 選單項目",
 					"description": "把「共用」、「線上檢視」、「釋放空間」等 OneDrive 右鍵命令集中到一個帶有 OneDrive 圖示的子選單裡。"
+				},
+				"es": {
+					"title": "Agrupar elementos de OneDrive",
+					"description": "Reúne los comandos de OneDrive del clic derecho, como Compartir, Ver en línea y Liberar espacio, en un solo submenú OneDrive con el icono de OneDrive."
+				},
+				"ar": {
+					"title": "تجميع عناصر OneDrive",
+					"description": "يجمع أوامر OneDrive في قائمة النقر بزر الماوس الأيمن، مثل «مشاركة» و«عرض عبر الإنترنت» و«تحرير مساحة»، في قائمة فرعية واحدة باسم OneDrive مع أيقونة OneDrive."
 				}
 			}
 		},
@@ -426,6 +586,14 @@
 				"zh-TW": {
 					"title": "隱藏 Dropbox 內建的選單項目",
 					"description": "隱藏 Dropbox 應用程式加到 Windows 11 右鍵選單中的項目，適合不需要這些項目的使用者。"
+				},
+				"es": {
+					"title": "Ocultar los elementos de menú de Dropbox",
+					"description": "Oculta los elementos que la aplicación Dropbox añade al menú del clic derecho de Windows 11, para quien no los quiere."
+				},
+				"ar": {
+					"title": "إخفاء عناصر قائمة Dropbox",
+					"description": "يخفي العناصر التي يضيفها تطبيق Dropbox إلى قائمة النقر بزر الماوس الأيمن في Windows 11، لمن لا يريدها."
 				}
 			}
 		},
@@ -448,6 +616,14 @@
 				"zh-TW": {
 					"title": "用 Everything 搜尋",
 					"description": "加入「Search Everything...」選單，開啟 Everything 搜尋工具並預先限定在選取的資料夾、磁碟機或檔案類型，或用來尋找重複檔案、大型檔案和最近修改的檔案。"
+				},
+				"es": {
+					"title": "Buscar con Everything",
+					"description": "Añade un menú Search Everything que abre la aplicación de búsqueda Everything ya limitada a la carpeta, la unidad o el tipo de archivo seleccionados, o preparada para encontrar duplicados, archivos grandes o cambios recientes."
+				},
+				"ar": {
+					"title": "البحث باستخدام Everything",
+					"description": "يضيف قائمة «Search Everything» تفتح تطبيق البحث Everything مقيّدًا مسبقًا بالمجلد أو محرك الأقراص أو نوع الملف المحدد، أو مهيّأً للعثور على الملفات المكررة أو الكبيرة أو التغييرات الأخيرة."
 				}
 			}
 		},
@@ -472,6 +648,10 @@
 				"es": {
 					"title": "Reproducir en MPC-BE",
 					"description": "Añade Open in MPC a los archivos de vídeo y música, y a las carpetas que los contienen, para reproducirlos en MPC-BE, o añadirlos a su lista de reproducción si mantienes pulsada la tecla Mayús. Necesita MPC-BE de Microsoft Store."
+				},
+				"ar": {
+					"title": "التشغيل في MPC-BE",
+					"description": "يضيف «Open in MPC» إلى ملفات الفيديو والموسيقى والمجلدات التي تحتويها لتشغيلها في MPC-BE، أو لإضافتها إلى قائمة التشغيل فيه عند الضغط مع الاستمرار على Shift. يتطلب MPC-BE من Microsoft Store."
 				}
 			}
 		}

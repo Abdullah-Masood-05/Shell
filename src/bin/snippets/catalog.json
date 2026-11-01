@@ -16,7 +16,9 @@
 			"sha256": "1a3ea7df3799cab409363c274de2d97cc215ece512e034b85b8408669cbccd9f",
 			"translations": {
 				"zh-CN": { "title": "复制文件哈希值", "description": "将文件的 SHA-256、SHA-1 或 MD5 哈希值复制到剪贴板。" },
-				"zh-TW": { "title": "複製檔案雜湊值", "description": "將檔案的 SHA-256、SHA-1 或 MD5 雜湊值複製到剪貼簿。" }
+				"zh-TW": { "title": "複製檔案雜湊值", "description": "將檔案的 SHA-256、SHA-1 或 MD5 雜湊值複製到剪貼簿。" },
+				"es": { "title": "Copiar hash del archivo", "description": "Copia al portapapeles el hash SHA-256, SHA-1 o MD5 de un archivo." },
+				"ar": { "title": "نسخ تجزئة الملف", "description": "ينسخ تجزئة SHA-256 أو SHA-1 أو MD5 للملف إلى الحافظة." }
 			}
 		},
 		{
@@ -33,7 +35,9 @@
 			"sha256": "4094a54f1cf8051d7d5c1e22abea7e0cab8967a9f20e7ef87dae0d72b744af77",
 			"translations": {
 				"zh-CN": { "title": "复制文件内容", "description": "无需打开即可将文本或代码文件的内容复制到剪贴板。" },
-				"zh-TW": { "title": "複製檔案內容", "description": "無需開啟即可將文字或程式碼檔案的內容複製到剪貼簿。" }
+				"zh-TW": { "title": "複製檔案內容", "description": "無需開啟即可將文字或程式碼檔案的內容複製到剪貼簿。" },
+				"es": { "title": "Copiar contenido del archivo", "description": "Copia al portapapeles el texto de un archivo de texto o de código sin abrirlo." },
+				"ar": { "title": "نسخ محتوى الملف", "description": "ينسخ نص ملف نصي أو ملف برمجي إلى الحافظة دون فتحه." }
 			}
 		},
 		{
@@ -50,7 +54,9 @@
 			"sha256": "eb10eda755d35f56f5f051070b10ed6dc0b26dfb6ecb205e35d938c344dcb38b",
 			"translations": {
 				"zh-CN": { "title": "带参数运行", "description": "先询问命令行参数，再用这些参数运行程序或批处理文件。" },
-				"zh-TW": { "title": "帶參數執行", "description": "先詢問命令列參數，再以這些參數執行程式或批次檔。" }
+				"zh-TW": { "title": "帶參數執行", "description": "先詢問命令列參數，再以這些參數執行程式或批次檔。" },
+				"es": { "title": "Ejecutar con argumentos", "description": "Pide argumentos de línea de comandos y luego ejecuta el programa o el archivo por lotes con ellos." },
+				"ar": { "title": "تشغيل مع وسائط", "description": "يطلب منك وسائط سطر الأوامر، ثم يشغّل البرنامج أو الملف الدفعي بها." }
 			}
 		},
 		{
@@ -67,7 +73,9 @@
 			"sha256": "3d9adfaa20bce99eee945854ca995295ce9a1d1f39b53b612e918351e578970a",
 			"translations": {
 				"zh-CN": { "title": "复制文件夹树", "description": "将文件夹中的文件和子文件夹以文本树形式复制到剪贴板。" },
-				"zh-TW": { "title": "複製資料夾樹狀結構", "description": "將資料夾中的檔案和子資料夾以文字樹狀結構複製到剪貼簿。" }
+				"zh-TW": { "title": "複製資料夾樹狀結構", "description": "將資料夾中的檔案和子資料夾以文字樹狀結構複製到剪貼簿。" },
+				"es": { "title": "Copiar árbol de carpetas", "description": "Copia al portapapeles los archivos y subcarpetas de una carpeta como un árbol de texto." },
+				"ar": { "title": "نسخ شجرة المجلد", "description": "ينسخ ملفات المجلد ومجلداته الفرعية إلى الحافظة على شكل شجرة نصية." }
 			}
 		},
 		{
@@ -84,7 +92,9 @@
 			"sha256": "fab63912fc5648aecb683e2c79752d085c77a5355258f3ed9ff2aac1c2c3157d",
 			"translations": {
 				"zh-CN": { "title": "新建 .gitignore", "description": "在当前文件夹中新建包含常用规则的 .gitignore。" },
-				"zh-TW": { "title": "新增 .gitignore", "description": "在目前資料夾中新增包含常用規則的 .gitignore。" }
+				"zh-TW": { "title": "新增 .gitignore", "description": "在目前資料夾中新增包含常用規則的 .gitignore。" },
+				"es": { "title": "Nuevo .gitignore", "description": "Crea un .gitignore con las entradas más comunes en la carpeta donde haces clic derecho." },
+				"ar": { "title": "ملف .gitignore جديد", "description": "ينشئ ملف .gitignore يحتوي على الإدخالات الشائعة في المجلد الذي تنقر فيه بزر الماوس الأيمن." }
 			}
 		},
 		{
@@ -101,7 +111,9 @@
 			"sha256": "453fdba846aa9750d745dab94414e4f0c8b2d0e8e1e30422152ed67aa3284bba",
 			"translations": {
 				"zh-CN": { "title": "压缩为 ZIP", "description": "将选中的文件和文件夹压缩为同一位置的 ZIP 文件，不覆盖已有文件。" },
-				"zh-TW": { "title": "壓縮成 ZIP", "description": "將選取的檔案和資料夾壓縮成同一位置的 ZIP 檔，不覆寫既有檔案。" }
+				"zh-TW": { "title": "壓縮成 ZIP", "description": "將選取的檔案和資料夾壓縮成同一位置的 ZIP 檔，不覆寫既有檔案。" },
+				"es": { "title": "Comprimir en ZIP", "description": "Guarda los archivos y carpetas seleccionados en un archivo ZIP junto a ellos, sin sobrescribir nunca uno que ya exista." },
+				"ar": { "title": "ضغط إلى ZIP", "description": "يضع الملفات والمجلدات المحددة في ملف ZIP بجانبها، دون الكتابة فوق ملف موجود أبدًا." }
 			}
 		},
 		{
@@ -118,7 +130,9 @@
 			"sha256": "982aba18f914a4f4c797404f5258b97e86a56a36acf2c38e6b07a9863d4e35b3",
 			"translations": {
 				"zh-CN": { "title": "解压 ZIP 到文件夹", "description": "一键将 ZIP 文件解压到以其命名的新文件夹。" },
-				"zh-TW": { "title": "解壓縮 ZIP 到資料夾", "description": "一鍵將 ZIP 檔解壓縮到以其命名的新資料夾。" }
+				"zh-TW": { "title": "解壓縮 ZIP 到資料夾", "description": "一鍵將 ZIP 檔解壓縮到以其命名的新資料夾。" },
+				"es": { "title": "Extraer ZIP en una carpeta", "description": "Extrae un archivo ZIP en una carpeta nueva con su mismo nombre, con un solo clic." },
+				"ar": { "title": "استخراج ZIP إلى مجلد", "description": "يستخرج ملف ZIP إلى مجلد جديد يحمل اسمه، بنقرة واحدة." }
 			}
 		},
 		{
@@ -135,7 +149,9 @@
 			"sha256": "193889b18c5c1ef91cc605dacff6d5e715d0c71645724ae80c1d518b6ee28cfa",
 			"translations": {
 				"zh-CN": { "title": "分别压缩为 .7z", "description": "为每个选中的文件或文件夹单独创建 7-Zip 压缩包。" },
-				"zh-TW": { "title": "分別壓縮成 .7z", "description": "為每個選取的檔案或資料夾各建立一個 7-Zip 壓縮檔。" }
+				"zh-TW": { "title": "分別壓縮成 .7z", "description": "為每個選取的檔案或資料夾各建立一個 7-Zip 壓縮檔。" },
+				"es": { "title": "Comprimir cada uno en su propio .7z", "description": "Crea un archivo 7-Zip distinto para cada archivo o carpeta seleccionados." },
+				"ar": { "title": "ضغط كل عنصر في ملف .7z خاص به", "description": "ينشئ أرشيف 7-Zip مستقلًا لكل ملف أو مجلد محدد." }
 			}
 		},
 		{
@@ -152,7 +168,9 @@
 			"sha256": "a74e44a1e6c562d353b704c98234906be652338a3bd2bad1059f8e38c4af12ee",
 			"translations": {
 				"zh-CN": { "title": "以管理员身份在此处打开", "description": "以管理员身份在该文件夹中打开命令提示符或 PowerShell。" },
-				"zh-TW": { "title": "以系統管理員身分在此開啟", "description": "以系統管理員身分在該資料夾中開啟命令提示字元或 PowerShell。" }
+				"zh-TW": { "title": "以系統管理員身分在此開啟", "description": "以系統管理員身分在該資料夾中開啟命令提示字元或 PowerShell。" },
+				"es": { "title": "Abrir aquí como administrador", "description": "Abre el Símbolo del sistema o PowerShell como administrador en la carpeta." },
+				"ar": { "title": "فتح هنا كمسؤول", "description": "يفتح موجه الأوامر أو PowerShell كمسؤول في هذا المجلد." }
 			}
 		},
 		{
@@ -169,7 +187,9 @@
 			"sha256": "4dfd30827610a47b8d8b30645e488af4b854258d17fddf0fc2d8ea98d2a2dc4e",
 			"translations": {
 				"zh-CN": { "title": "在新的终端标签页中打开", "description": "在最近使用的 Windows 终端窗口中以新标签页打开该文件夹。" },
-				"zh-TW": { "title": "在新的終端機索引標籤中開啟", "description": "在最近使用的 Windows 終端機視窗中以新索引標籤開啟該資料夾。" }
+				"zh-TW": { "title": "在新的終端機索引標籤中開啟", "description": "在最近使用的 Windows 終端機視窗中以新索引標籤開啟該資料夾。" },
+				"es": { "title": "Abrir en una pestaña nueva de Terminal", "description": "Abre la carpeta en una pestaña nueva de la última ventana de Windows Terminal que usaste." },
+				"ar": { "title": "فتح في علامة تبويب جديدة في Terminal", "description": "يفتح المجلد في علامة تبويب جديدة داخل آخر نافذة Windows Terminal استخدمتها." }
 			}
 		},
 		{
@@ -186,7 +206,9 @@
 			"sha256": "0503837cf0e92cfc439ecdfe31e79956a8d558b5f0655fb31f500d94d93016af",
 			"translations": {
 				"zh-CN": { "title": "解除阻止下载的文件", "description": "去除文件的“来自互联网”标记，也可处理文件夹中的所有文件。" },
-				"zh-TW": { "title": "解除封鎖下載的檔案", "description": "移除檔案的「來自網際網路」標記，也可處理資料夾中的所有檔案。" }
+				"zh-TW": { "title": "解除封鎖下載的檔案", "description": "移除檔案的「來自網際網路」標記，也可處理資料夾中的所有檔案。" },
+				"es": { "title": "Desbloquear archivos descargados", "description": "Quita la marca de descargado de Internet de los archivos, o de todos los archivos de una carpeta." },
+				"ar": { "title": "إلغاء حظر الملفات المنزّلة", "description": "يزيل علامة «تم التنزيل من الإنترنت» من الملفات، أو من كل الملفات داخل مجلد." }
 			}
 		},
 		{
@@ -203,7 +225,9 @@
 			"sha256": "d621eb40e7a7dda75f58d7bd72236e28f7e5651de94ca3b9ac83ec8d49e0cff4",
 			"translations": {
 				"zh-CN": { "title": "在 VirusTotal 上查询", "description": "打开文件的 VirusTotal 报告。只发送哈希值，从不上传文件。" },
-				"zh-TW": { "title": "在 VirusTotal 上查詢", "description": "開啟檔案的 VirusTotal 報告。只傳送雜湊值，絕不上傳檔案。" }
+				"zh-TW": { "title": "在 VirusTotal 上查詢", "description": "開啟檔案的 VirusTotal 報告。只傳送雜湊值，絕不上傳檔案。" },
+				"es": { "title": "Buscar en VirusTotal", "description": "Abre el informe de VirusTotal de un archivo. Solo se envía su hash, nunca el archivo." },
+				"ar": { "title": "البحث في VirusTotal", "description": "يفتح تقرير VirusTotal للملف. تُرسَل تجزئته فقط، ولا يُرسَل الملف نفسه أبدًا." }
 			}
 		},
 		{
@@ -221,7 +245,8 @@
 			"translations": {
 				"zh-CN": { "title": "快捷工具", "description": "复制这台电脑的信息，为文件夹添加书签并可在任意右键菜单中再次打开，以及以正斜杠、带引号或文件 URL 的形式复制路径。" },
 				"zh-TW": { "title": "快速工具", "description": "複製這台電腦的資訊，將資料夾加入書籤並可從任何右鍵選單再次開啟，以及以正斜線、加上引號或檔案 URL 的形式複製路徑。" },
-				"es": { "title": "Herramientas rápidas", "description": "Copia datos de este equipo, guarda una carpeta como marcador para abrirla desde cualquier clic derecho y copia rutas con barras normales, entre comillas o como URL de archivo." }
+				"es": { "title": "Herramientas rápidas", "description": "Copia datos de este equipo, guarda una carpeta como marcador para abrirla desde cualquier clic derecho y copia rutas con barras normales, entre comillas o como URL de archivo." },
+				"ar": { "title": "أدوات سريعة", "description": "انسخ معلومات عن هذا الكمبيوتر، واحفظ مجلدًا كإشارة مرجعية لتفتحه من أي قائمة نقر بزر الماوس الأيمن، وانسخ المسار بشرطات مائلة أمامية أو بين علامتي اقتباس أو كعنوان URL لملف." }
 			}
 		}
 	]
