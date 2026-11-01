@@ -57,6 +57,42 @@ namespace Nilesoft
 			return root && Window::class_hash(root) == WC_DLGBOX;
 		}
 
+		// path.dir.boxl: the Browse For Folder box (SHBrowseForFolder), opened at
+		// `initial` when it is given. Returns the folder's path, or null when cancelled.
+		static int CALLBACK browse_for_folder_proc(HWND hwnd, UINT msg, LPARAM, LPARAM data)
+		{
+			if(msg == BFFM_INITIALIZED && data)
+				::SendMessageW(hwnd, BFFM_SETSELECTIONW, TRUE, data);
+			return 0;
+		}
+
+		static Object browse_for_folder(const string &title, HWND owner, const string &initial)
+		{
+			BROWSEINFOW bi{};
+			bi.hwndOwner = owner;
+			bi.lpszTitle = title.empty() ? nullptr : title.c_str();
+			bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+			if(!initial.empty())
+			{
+				bi.lpfn = browse_for_folder_proc;
+				bi.lParam = reinterpret_cast<LPARAM>(initial.c_str());
+			}
+
+			Object result;
+			if(auto pidl = ::SHBrowseForFolderW(&bi); pidl)
+			{
+				// Not SHGetPathFromIDList: it stops at MAX_PATH.
+				PWSTR path = nullptr;
+				if(SUCCEEDED(::SHGetNameFromIDList(pidl, SIGDN_FILESYSPATH, &path)) && path)
+				{
+					result = string(path).move();
+					::CoTaskMemFree(path);
+				}
+				::CoTaskMemFree(pidl);
+			}
+			return result.move();
+		}
+
 		// Runs `fn` on the thread that owns `hwnd` and waits for it (5 seconds at most).
 		// Commands run on a worker thread, but a dialog's shell browser has to be used
 		// from the dialog's own thread. A WH_GETMESSAGE hook on that thread picks up a
@@ -3896,6 +3932,18 @@ namespace Nilesoft
 							if(title.empty())
 								title = string::Extract(IDS_SELECT_FOLDER).move();
 							_result = Path::OpenFolderDialog(title, hwnd, initialDir.c_str()).move();
+							break;
+						}
+						case IDENT_BOXL:
+						{
+							// path.dir.boxl(initialDir, title): the older Browse For Folder box,
+							// a folder tree. Both optional.
+							auto hwnd = context->Runtime ? context->wnd.active : nullptr;
+							string initialDir = argc > 0 ? arg0.trim(L"\"'").move() : string();
+							string title = argc > 1 ? eval_arg(1).to_string().move() : string();
+							if(title.empty())
+								title = string::Extract(IDS_SELECT_FOLDER).move();
+							_result = browse_for_folder(title, hwnd, initialDir);
 							break;
 						}
 						case IDENT_ZERO:

@@ -1082,6 +1082,8 @@ namespace Nilesoft
 									return check(argc == 0, 2);
 								case IDENT_BOX:
 									return check(argc <= 4, 2);
+								case IDENT_BOXL:
+									return check(argc <= 2, 2);
 								case IDENT_FILES:
 									return check(argc <= 2, 2);
 								case IDENT_ZERO:

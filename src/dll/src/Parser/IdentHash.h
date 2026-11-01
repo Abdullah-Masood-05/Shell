@@ -512,6 +512,7 @@ namespace Nilesoft
 		constexpr auto IDENT_LNK_TARGET = 0x1D90FD6CU;
 		constexpr auto IDENT_LNKTARGET = 0xDD2F0D11U;
 		constexpr auto IDENT_BOX = 0x0B88628EU;
+		constexpr auto IDENT_BOXL = 0x7C94B4BAU;
 		constexpr auto IDENT_SAVE_BOX = 0xE2B11CFCU;
 		constexpr auto IDENT_CHANGE = 0xF65EC1CBU;
 		constexpr auto IDENT_EMPTY = 0x0F605C34U;
