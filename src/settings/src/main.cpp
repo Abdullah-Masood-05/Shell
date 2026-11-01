@@ -15,7 +15,9 @@
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
 //   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
-//                          the Snippets page previews that snippet (in that context)
+//                          the Snippets page previews that snippet (in that context);
+//                          NSP_SNIPPETS_PREVIEW=loading|error in the environment shows
+//                          that state of the preview instead (screenshots)
 //   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
 //                          list, or its installed apps list
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,

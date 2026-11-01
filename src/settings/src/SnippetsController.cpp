@@ -44,6 +44,28 @@ std::string trimmed(std::string s)
 
 namespace sp = snippetpreview;
 
+// The preview's context chip: where the menu shows ("Right-click a .zip file") and its
+// Segoe glyph (file, folder, desktop, drive, taskbar).
+std::pair<std::string, std::string> contextCaption(sp::Context c, const sp::Sample &sample)
+{
+    switch (c) {
+    case sp::Context::File:
+        return { sample.fromSnippet ? nsp::trf("Right-click a {} file", sample.extension) : nsp::tr("Right-click a file"),
+                 "\uE8A5" };
+    case sp::Context::Folder:
+        return { nsp::tr("Right-click a folder"), "\uE8B7" };
+    case sp::Context::Back:
+        return { nsp::tr("Right-click inside a folder"), "\uE7F4" };
+    case sp::Context::Desktop:
+        return { nsp::tr("Right-click the desktop"), "\uE7F4" };
+    case sp::Context::Drive:
+        return { nsp::tr("Right-click a drive"), "\uEDA2" };
+    case sp::Context::Taskbar:
+        return { nsp::tr("Right-click the taskbar"), "\uE75B" };
+    }
+    return {};
+}
+
 // %TEMP%\NilesoftShellPro\snippet-preview\<id>: the scratch root, the snippet and the samples.
 fs::path previewDir(const std::string &id)
 {
@@ -357,15 +379,17 @@ void SnippetsController::pushPreview()
     }
     st.set_preview_title(ss(s->titleIn(nsp::currentLanguage())));
     st.set_preview_note("");
+    st.set_preview_caption("");
     auto setState = [&](const char *state, const std::string &message) {
         st.set_preview_state(state);
         st.set_preview_message(ss(message));
     };
-    auto showCode = [&](const std::string &message) {
+    // "code": the snippet's code under the message; "error": the code folded away.
+    auto showCode = [&](const char *state, const std::string &message) {
         int columns = 0;
         st.set_preview_code(code(*s, columns));
         st.set_preview_code_columns(columns);
-        setState("code", message);
+        setState(state, message);
     };
 
     // Selected before the catalog was in (--snippets-select): start it now.
@@ -373,17 +397,22 @@ void SnippetsController::pushPreview()
         previewDelay_.start(slint::TimerMode::SingleShot, 150ms, [this] { startPreview(); });
 
     auto found = previews_.find(s->id);
-    if (found == previews_.end()) {
+    // Screenshots of the other states: NSP_SNIPPETS_PREVIEW=loading or error.
+    static const std::string forced = [] {
+        char buf[16]{};
+        return GetEnvironmentVariableA("NSP_SNIPPETS_PREVIEW", buf, sizeof buf) < sizeof buf ? std::string(buf) : std::string();
+    }();
+    if (found == previews_.end() || forced == "loading") {
         setState("loading", nsp::tr("Loading preview…"));
         return;
     }
     const auto &p = *found->second;
-    if (!p.error.empty()) {
-        showCode(nsp::trf("No preview ({}). This is the snippet's code.", p.error));
+    if (!p.error.empty() || forced == "error") {
+        showCode("error", nsp::trf("Couldn't build the preview: {}", forced == "error" ? std::string("shell.exe stopped") : p.error));
         return;
     }
     if (p.contexts.empty()) {
-        showCode(nsp::tr("This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."));
+        showCode("code", nsp::tr("This snippet changes or hides existing items, so there is nothing new to show."));
         return;
     }
 
@@ -403,8 +432,9 @@ void SnippetsController::pushPreview()
     st.set_preview_contexts(std::make_shared<slint::VectorModel<slint::SharedString>>(labels));
     st.set_preview_context(previewContext_);
     st.set_preview_pane(ctx.context == sp::Context::Desktop || ctx.context == sp::Context::Taskbar ? 0 : 1);
-    if (ctx.context == sp::Context::File && p.sample.fromSnippet)
-        st.set_preview_note(ss(nsp::trf("Shown for a {} file.", p.sample.extension)));
+    const auto [caption, glyph] = contextCaption(ctx.context, p.sample);
+    st.set_preview_caption(ss(caption));
+    st.set_preview_glyph(ss(glyph));
 
     const auto composed = sp::compose(ctx.context, ctx.items, [](const char *msgid) { return std::string(nsp::tr(msgid)); });
     const auto m = theme::rowMetrics(theme_);
