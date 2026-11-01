@@ -1,5 +1,5 @@
 # Nilesoft Shell Pro: العربية translation.
-# First draft, not yet reviewed by a native speaker; corrections welcome.
+# Reviewed and corrected by kaser4.
 msgid ""
 msgstr ""
 "Project-Id-Version: Nilesoft Shell Pro\n"
@@ -113,7 +113,7 @@ msgstr "نشط"
 msgid "More for {}"
 msgstr "خيارات إضافية لـ {}"
 
-#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:214
+#: ui/components/preset-gallery.slint:212 src/SaveService.cpp:238
 msgid "From {}"
 msgstr "من {}"
 
@@ -229,7 +229,7 @@ msgstr "قوائم السياق"
 msgid "Menus"
 msgstr "القوائم"
 
-#: ui/components/sidebar.slint:19 ui/pages/menu-map.slint:780 src/ConfigRules.cpp:57
+#: ui/components/sidebar.slint:19 ui/pages/menu-map.slint:837 src/ConfigRules.cpp:57
 msgid "Menu map"
 msgstr "خريطة القوائم"
 
@@ -269,7 +269,7 @@ msgstr "جارٍ التحقق من الحالة…"
 msgid "Preferences"
 msgstr "الإعدادات"
 
-#: ui/components/theme-controls.slint:59 src/SaveService.cpp:212
+#: ui/components/theme-controls.slint:59 src/SaveService.cpp:236
 msgid "Set by this app"
 msgstr "معيّن بواسطة هذا التطبيق"
 
@@ -1020,7 +1020,7 @@ msgstr "حيث {}"
 msgid "line {}"
 msgstr "السطر {}"
 
-#: ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:533 ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:533 ui/pages/openwith.slint:486
+#: ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:537 ui/pages/context-menus.slint:376 ui/pages/menu-map.slint:537 ui/pages/openwith.slint:486
 msgid "Show {} in the menu"
 msgstr "إظهار {} في القائمة"
 
@@ -1040,7 +1040,7 @@ msgstr "البرنامج"
 msgid "A program, a shortcut, a document, a web address, or a command such as calc.exe."
 msgstr "برنامج أو اختصار أو مستند أو عنوان ويب أو أمر مثل calc.exe."
 
-#: ui/pages/context-menus.slint:459 ui/pages/openwith.slint:272 ui/pages/context-menus.slint:459 ui/pages/openwith.slint:272
+#: ui/pages/context-menus.slint:459 ui/pages/menu-map.slint:586 ui/pages/context-menus.slint:459 ui/pages/menu-map.slint:586 ui/pages/openwith.slint:302
 msgid "Browse…"
 msgstr "استعراض…"
 
@@ -1056,11 +1056,11 @@ msgstr "تشغيل كمسؤول"
 msgid "Written by hand in the file. The page keeps it as it is; change it in the Config Editor."
 msgstr "مكتوب يدويًا في الملف. تحتفظ به هذه الصفحة كما هو؛ غيّره في محرر التكوين."
 
-#: ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:612 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:612
+#: ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:669 ui/pages/context-menus.slint:494 ui/pages/menu-builder.slint:485 ui/pages/menu-map.slint:669
 msgid "Move up"
 msgstr "نقل لأعلى"
 
-#: ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:617 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:617
+#: ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:674 ui/pages/context-menus.slint:499 ui/pages/menu-builder.slint:491 ui/pages/menu-map.slint:674
 msgid "Move down"
 msgstr "نقل لأسفل"
 
@@ -1126,7 +1126,7 @@ msgstr[5] "تغيّر {n} ملف"
 msgid "Save"
 msgstr "حفظ"
 
-#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:793 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:793 ui/pages/snippets.slint:407
+#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/snippets.slint:407
 msgid "This is the shared config in the install folder"
 msgstr "هذا هو التكوين المشترك في مجلد التثبيت"
 
@@ -1270,7 +1270,7 @@ msgstr "يديره Nilesoft Shell Pro. يمكنك تحريره؛ يحتفظ ال
 msgid "Problems"
 msgstr "المشكلات"
 
-#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:751 src/EditorController.cpp:690
+#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:808 src/EditorController.cpp:690
 msgid "Checking…"
 msgstr "جارٍ الفحص…"
 
@@ -1437,7 +1437,7 @@ msgctxt "Tree badge"
 msgid "menu"
 msgstr "قائمة"
 
-#: ui/pages/menu-builder.slint:317 src/OpenWithController.cpp:194
+#: ui/pages/menu-builder.slint:317 src/MenuMapController.cpp:1324 src/OpenWithController.cpp:194
 msgid "Choose an icon"
 msgstr "اختيار أيقونة"
 
@@ -1539,7 +1539,7 @@ msgstr "وضع & قبل حرف يجعله مفتاح الوصول."
 msgid "Shown in the menu"
 msgstr "يظهر في القائمة"
 
-#: ui/pages/menu-builder.slint:630 ui/pages/openwith.slint:290
+#: ui/pages/menu-builder.slint:630 ui/pages/menu-map.slint:572 ui/pages/menu-builder.slint:630 ui/pages/menu-map.slint:572
 msgid "Icon"
 msgstr "الأيقونة"
 
@@ -1691,7 +1691,7 @@ msgstr "مكبرة"
 msgid "LOOK"
 msgstr "الشكل"
 
-#: ui/pages/menu-builder.slint:788 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:916 src/TaskbarApps.cpp:561
+#: ui/pages/menu-builder.slint:788 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:925 src/TaskbarApps.cpp:561
 msgid "Separator"
 msgstr "فاصل"
 
@@ -1755,7 +1755,7 @@ msgstr "للقراءة فقط. يكتب الحفظ هذا إلى {}."
 msgid "Nothing to preview yet."
 msgstr "لا شيء لمعاينته بعد."
 
-#: ui/pages/menu-map.slint:301 ui/pages/menu-map.slint:526 src/AppearanceController.cpp:83 src/MenuMapController.cpp:630 src/MenuMapController.cpp:656
+#: ui/pages/menu-map.slint:301 ui/pages/menu-map.slint:530 src/AppearanceController.cpp:83 src/MenuMapController.cpp:639 src/MenuMapController.cpp:665
 msgid "Hidden"
 msgstr "مخفي"
 
@@ -1763,151 +1763,175 @@ msgstr "مخفي"
 msgid "Moved"
 msgstr "منقول"
 
-#: ui/pages/menu-map.slint:402
+#: ui/pages/menu-map.slint:406
 msgid "Select an item to see where it comes from and what you can do with it."
 msgstr "حدد عنصرًا لمعرفة مصدره وما يمكنك فعله به."
 
-#: ui/pages/menu-map.slint:407
+#: ui/pages/menu-map.slint:411
 msgid "Not in the list?"
 msgstr "ليس في القائمة؟"
 
-#: ui/pages/menu-map.slint:413
+#: ui/pages/menu-map.slint:417
 msgid "Its title, as the menu shows it"
 msgstr "عنوانه كما يظهر في القائمة"
 
-#: ui/pages/menu-map.slint:420 ui/pages/rules.slint:113
+#: ui/pages/menu-map.slint:424 ui/pages/rules.slint:113
 msgid "Add"
 msgstr "إضافة"
 
-#: ui/pages/menu-map.slint:459
+#: ui/pages/menu-map.slint:463
 msgid "Comes from"
 msgstr "المصدر"
 
-#: ui/pages/menu-map.slint:493
+#: ui/pages/menu-map.slint:497
 msgid "Shows when"
 msgstr "يظهر عندما"
 
-#: ui/pages/menu-map.slint:502 src/BehaviorController.cpp:24
+#: ui/pages/menu-map.slint:506 src/BehaviorController.cpp:24
 msgid "Rules"
 msgstr "القواعد"
 
-#: ui/pages/menu-map.slint:508
+#: ui/pages/menu-map.slint:512
 msgid "Open {}"
 msgstr "فتح {}"
 
-#: ui/pages/menu-map.slint:513
+#: ui/pages/menu-map.slint:517
 msgid "Context Menus page"
 msgstr "صفحة القوائم المختصرة"
 
-#: ui/pages/menu-map.slint:521 ui/pages/openwith.slint:709
+#: ui/pages/menu-map.slint:525 ui/pages/openwith.slint:709
 msgid "In the menu"
 msgstr "في القائمة"
 
-#: ui/pages/menu-map.slint:526
+#: ui/pages/menu-map.slint:530
 msgid "Shown"
 msgstr "ظاهر"
 
-#: ui/pages/menu-map.slint:545 ui/pages/menu-map.slint:554 src/AppearanceController.cpp:90
+#: ui/pages/menu-map.slint:549 ui/pages/menu-map.slint:558 src/AppearanceController.cpp:90
 msgid "Rename"
 msgstr "إعادة تسمية"
 
-#: ui/pages/menu-map.slint:560
+#: ui/pages/menu-map.slint:564
 msgid "Use the original title"
 msgstr "استخدام العنوان الأصلي"
 
-#: ui/pages/menu-map.slint:567
+#: ui/pages/menu-map.slint:578
+msgid "A file, or a glyph like image.mdl(\\uE8C8)"
+msgstr "ملف، أو رمز مثل image.mdl(\\uE8C8)"
+
+#: ui/pages/menu-map.slint:599
+msgid "Change icon"
+msgstr "تغيير الأيقونة"
+
+#: ui/pages/menu-map.slint:604
+msgid "Remove icon"
+msgstr "إزالة الأيقونة"
+
+#: ui/pages/menu-map.slint:610
+msgid "Use its own icon"
+msgstr "استخدام أيقونته الأصلية"
+
+#: ui/pages/menu-map.slint:616
+msgid "Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Saved right away, with a snapshot first."
+msgstr "اختر ملف ‎.ico‎ أو ‎.png‎ أو ‎.svg‎، أو برنامجًا: الرقم بعد الفاصلة يحدد إحدى أيقوناته. يُحفظ فورًا، مع التقاط لقطة أولاً."
+
+#: ui/pages/menu-map.slint:617
+msgid "Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Save to apply."
+msgstr "اختر ملف ‎.ico‎ أو ‎.png‎ أو ‎.svg‎، أو برنامجًا: الرقم بعد الفاصلة يحدد إحدى أيقوناته. احفظ للتطبيق."
+
+#: ui/pages/menu-map.slint:624
 msgid "Move to"
 msgstr "نقل إلى"
 
-#: ui/pages/menu-map.slint:579
+#: ui/pages/menu-map.slint:636
 msgid "Move"
 msgstr "نقل"
 
-#: ui/pages/menu-map.slint:585
+#: ui/pages/menu-map.slint:642
 msgid "Put it back where it is written"
 msgstr "إعادته إلى حيث هو مكتوب"
 
-#: ui/pages/menu-map.slint:585
+#: ui/pages/menu-map.slint:642
 msgid "Put it back where Windows has it"
 msgstr "إعادته إلى حيث يضعه Windows"
 
-#: ui/pages/menu-map.slint:595
+#: ui/pages/menu-map.slint:652
 msgid "Place in this menu"
 msgstr "وضع في هذه القائمة"
 
-#: ui/pages/menu-map.slint:603
+#: ui/pages/menu-map.slint:660
 msgid "Place"
 msgstr "وضع"
 
-#: ui/pages/menu-map.slint:623
+#: ui/pages/menu-map.slint:680
 msgid "Use the order in the file"
 msgstr "استخدام الترتيب الموجود في الملف"
 
-#: ui/pages/menu-map.slint:628
+#: ui/pages/menu-map.slint:685
 msgid "In the outline, Alt+Up and Alt+Down move the selected item too."
 msgstr "في المخطط التفصيلي، ينقل Alt+Up وAlt+Down العنصر المحدد أيضًا."
 
-#: ui/pages/menu-map.slint:636
+#: ui/pages/menu-map.slint:693
 msgid "Code"
 msgstr "الكود"
 
-#: ui/pages/menu-map.slint:641
+#: ui/pages/menu-map.slint:698
 msgid "Edit code"
 msgstr "تحرير الكود"
 
-#: ui/pages/menu-map.slint:691
+#: ui/pages/menu-map.slint:748
 msgid "Edit code: {}"
 msgstr "تحرير الكود: {}"
 
-#: ui/pages/menu-map.slint:698
+#: ui/pages/menu-map.slint:755
 msgid "{} · only this declaration changes; the rest of the file stays as it is."
 msgstr "‏{} · يتغير هذا التعريف فقط؛ ويبقى باقي الملف كما هو."
 
-#: ui/pages/menu-map.slint:751
+#: ui/pages/menu-map.slint:808
 msgid "Check and save"
 msgstr "فحص وحفظ"
 
-#: ui/pages/menu-map.slint:781
+#: ui/pages/menu-map.slint:838
 msgid "The menu as it opens for a file, a folder or the desktop: your Shell items with the line that adds each one, and the items Windows and other programs add."
 msgstr "القائمة كما تُفتح لملف أو مجلد أو سطح المكتب: عناصر Shell الخاصة بك مع السطر الذي يضيف كل عنصر منها، والعناصر التي يضيفها Windows والبرامج الأخرى."
 
-#: ui/pages/menu-map.slint:783
+#: ui/pages/menu-map.slint:840
 msgid "Reading the menu…"
 msgstr "جارٍ قراءة القائمة…"
 
-#: ui/pages/menu-map.slint:794
+#: ui/pages/menu-map.slint:851
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to hide, rename or move items."
 msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لإخفاء العناصر أو إعادة تسميتها أو نقلها."
 
-#: ui/pages/menu-map.slint:801
+#: ui/pages/menu-map.slint:858
 msgid "Couldn't read the menu"
 msgstr "تعذرت قراءة القائمة"
 
-#: ui/pages/menu-map.slint:806
+#: ui/pages/menu-map.slint:863
 msgid "Your config doesn't load"
 msgstr "لا يتم تحميل التكوين"
 
-#: ui/pages/menu-map.slint:831 ui/pages/menu-map.slint:848
+#: ui/pages/menu-map.slint:888 ui/pages/menu-map.slint:905
 msgid "Outline"
 msgstr "مخطط"
 
-#: ui/pages/menu-map.slint:831 ui/pages/menu-map.slint:848
+#: ui/pages/menu-map.slint:888 ui/pages/menu-map.slint:905
 msgid "Nodes"
 msgstr "عُقد"
 
-#: ui/pages/menu-map.slint:866
+#: ui/pages/menu-map.slint:923
 msgid "Item not listed?"
 msgstr "العنصر غير مدرج؟"
 
-#: ui/pages/menu-map.slint:871
+#: ui/pages/menu-map.slint:928
 msgid "Expand all"
 msgstr "توسيع الكل"
 
-#: ui/pages/menu-map.slint:876
+#: ui/pages/menu-map.slint:933
 msgid "Collapse all"
 msgstr "طي الكل"
 
-#: ui/pages/menu-map.slint:955
+#: ui/pages/menu-map.slint:1012
 msgid "Nothing to show yet."
 msgstr "لا شيء لعرضه بعد."
 
@@ -2542,8 +2566,8 @@ msgid "Thanks"
 msgstr "شكر وتقدير"
 
 #: ui/pages/preferences.slint:384
-msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
-msgstr "‏RubicBG، على مقتطفاته وإصلاحات المحرك من ReShell. Deliond، الذي ترجم التطبيق إلى الإسبانية بمبادرة منه. zhonglixun، على مراجعة الترجمة الصينية وعلى الكثير من البلاغات والأفكار. advanced03 وTheDoctor121 وFroztySeven، على بلاغات الأخطاء. وكل من نُقلت إصلاحاته وترجماته من مشكلات Nilesoft Shell وطلبات السحب والنسخ المتفرعة الخاصة به."
+msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. kaser4, who reviewed and corrected the Arabic translation. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
+msgstr "‏RubicBG، على مقتطفاته وإصلاحات المحرك من ReShell. Deliond، الذي ترجم التطبيق إلى الإسبانية بمبادرة منه. zhonglixun، على مراجعة الترجمة الصينية وعلى الكثير من البلاغات والأفكار. kaser4، الذي راجع الترجمة العربية وصحّحها. advanced03 وTheDoctor121 وFroztySeven، على بلاغات الأخطاء. وكل من نُقلت إصلاحاته وترجماته من مشكلات Nilesoft Shell وطلبات السحب والنسخ المتفرعة الخاصة به."
 
 #: ui/pages/preferences.slint:395
 msgid "Third-party software"
@@ -2708,7 +2732,7 @@ msgstr "هذا الكمبيوتر"
 msgid "shell.exe did not finish in time and was stopped."
 msgstr "لم ينتهِ shell.exe في الوقت المحدد وتم إيقافه."
 
-#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:498
+#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:43 src/SaveService.cpp:522
 msgid "shell.exe exited with code {}."
 msgstr "خرج shell.exe بالرمز {}."
 
@@ -2752,7 +2776,7 @@ msgstr "مسار مخصص (السجل)"
 msgid "Shared (install folder)"
 msgstr "مشترك (مجلد التثبيت)"
 
-#: src/AppController.cpp:145 src/MenuMapController.cpp:694
+#: src/AppController.cpp:145 src/MenuMapController.cpp:703
 msgid "Unknown"
 msgstr "غير معروف"
 
@@ -2824,7 +2848,7 @@ msgstr "اختبار ملف ترجمة"
 msgid "Translation files"
 msgstr "ملفات الترجمة"
 
-#: src/AppController.cpp:276 src/ContextMenusController.cpp:557 src/OpenWithController.cpp:992
+#: src/AppController.cpp:276 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1326 src/OpenWithController.cpp:992
 msgid "All files"
 msgstr "كل الملفات"
 
@@ -4021,7 +4045,7 @@ msgctxt "where"
 msgid "{0} {1}"
 msgstr "{0} {1}"
 
-#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1037
+#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1050
 msgid "in {}"
 msgstr "في {}"
 
@@ -4184,7 +4208,7 @@ msgstr "تعذر فحص التكوين"
 msgid "shell.exe was not found, so nothing was saved."
 msgstr "لم يتم العثور على shell.exe، لذا لم يُحفظ أي شيء."
 
-#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1405 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:705
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1529 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:705
 msgid "Not saved"
 msgstr "لم يتم الحفظ"
 
@@ -4196,23 +4220,23 @@ msgstr "‏{} للقراءة فقط هنا."
 msgid "Saved, but a file couldn't be deleted"
 msgstr "تم الحفظ، لكن تعذر حذف ملف"
 
-#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1430 src/MenuMapController.cpp:1537
+#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1554 src/MenuMapController.cpp:1661
 msgid "Saved"
 msgstr "تم الحفظ"
 
-#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1430 src/MenuMapController.cpp:1537 src/OpenWithController.cpp:1145
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1554 src/MenuMapController.cpp:1661 src/OpenWithController.cpp:1145
 msgid "No changes were needed."
 msgstr "لم تكن هناك حاجة إلى أي تغييرات."
 
-#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:1431 src/MenuMapController.cpp:1538
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:1555 src/MenuMapController.cpp:1662
 msgid "Snapshot {} was taken first."
 msgstr "تم التقاط اللقطة {} أولاً."
 
-#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1443 src/SnippetsController.cpp:794
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1567 src/SnippetsController.cpp:794
 msgid "Not saved: the config would fail to load"
 msgstr "لم يتم الحفظ: سيفشل تحميل التكوين"
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1446 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:797
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1570 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:797
 msgid "Couldn't save"
 msgstr "تعذر الحفظ"
 
@@ -4268,7 +4292,7 @@ msgstr "اختر برنامجًا له"
 msgid "Not found: {}"
 msgstr "غير موجود: {}"
 
-#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1549 src/MenuModel.cpp:537 src/OpenWithModel.cpp:1433
+#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1673 src/MenuModel.cpp:537 src/OpenWithModel.cpp:1433
 msgid "Line {}: {}"
 msgstr "السطر {}: {}"
 
@@ -4288,7 +4312,7 @@ msgstr "اختر برنامجًا أو اختصارًا"
 msgid "Programs and shortcuts"
 msgstr "البرامج والاختصارات"
 
-#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:691 src/Snippets.cpp:671
+#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:700 src/Snippets.cpp:671
 msgid "Windows"
 msgstr "Windows"
 
@@ -4416,7 +4440,7 @@ msgstr "لا يتم تحميل التكوين."
 msgid "refusing to write under Program Files: {}"
 msgstr "تم رفض الكتابة داخل Program Files: {}"
 
-#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:787 src/MenuMapController.cpp:856 src/MenuMapController.cpp:915 src/MenuMapController.cpp:1472
+#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:796 src/MenuMapController.cpp:865 src/MenuMapController.cpp:924 src/MenuMapController.cpp:1596
 msgid "(no title)"
 msgstr "(بلا عنوان)"
 
@@ -4480,127 +4504,127 @@ msgstr "PDF (.pdf)"
 msgid "Music (.mp3)"
 msgstr "موسيقى (.mp3)"
 
-#: src/MenuMapController.cpp:327
+#: src/MenuMapController.cpp:331
 msgid "The config file doesn't exist. Create a personal config from Home first."
 msgstr "ملف التكوين غير موجود. أنشئ تكوينًا شخصيًا من الصفحة الرئيسية أولاً."
 
-#: src/MenuMapController.cpp:332 src/ShellCli.cpp:124
+#: src/MenuMapController.cpp:336 src/ShellCli.cpp:124
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr "لم يتم العثور على shell.exe بجوار NilesoftShellPro.exe أو ملف shell.dll المسجل."
 
-#: src/MenuMapController.cpp:350 src/SnippetsController.cpp:267
+#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:267
 msgid "shell.exe took too long to read the menu and was stopped."
 msgstr "استغرق shell.exe وقتًا طويلاً في قراءة القائمة فتم إيقافه."
 
-#: src/MenuMapController.cpp:355 src/SnippetsController.cpp:272
+#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:272
 msgid "shell.exe gave no menu ({}). It may be older than this app."
 msgstr "لم يُرجع shell.exe أي قائمة ({}). ربما يكون أقدم من هذا التطبيق."
 
-#: src/MenuMapController.cpp:449
+#: src/MenuMapController.cpp:453
 msgid "{} (Windows)"
 msgstr "{} (Windows)"
 
-#: src/MenuMapController.cpp:493
+#: src/MenuMapController.cpp:497
 msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
 msgstr "‏{} مرفق مع Shell. بمجرد تغييره هنا، تحتفظ التحديثات بنسختك وتعرض مقارنتها بالنسخة الجديدة."
 
-#: src/MenuMapController.cpp:575 src/MenuMapController.cpp:611 src/MenuMapController.cpp:1009 src/MenuMapController.cpp:1082
+#: src/MenuMapController.cpp:584 src/MenuMapController.cpp:620 src/MenuMapController.cpp:1022 src/MenuMapController.cpp:1117
 msgid "The shared config is read-only here."
 msgstr "التكوين المشترك للقراءة فقط هنا."
 
-#: src/MenuMapController.cpp:577 src/MenuMapController.cpp:1011
+#: src/MenuMapController.cpp:586 src/MenuMapController.cpp:1024
 msgid "This file is read-only here."
 msgstr "هذا الملف للقراءة فقط هنا."
 
-#: src/MenuMapController.cpp:579
+#: src/MenuMapController.cpp:588
 msgid "It has its own vis= setting; change it with Edit code."
 msgstr "له إعداد vis= خاص به؛ غيّره عبر «تحرير الكود»."
 
-#: src/MenuMapController.cpp:600
+#: src/MenuMapController.cpp:609
 msgid "A rule in your config hides it. Turn that rule off on the Context Menus page."
 msgstr "تخفيه قاعدة في التكوين الخاص بك. أوقف تلك القاعدة في صفحة القوائم المختصرة."
 
-#: src/MenuMapController.cpp:608 src/MenuMapController.cpp:1083
+#: src/MenuMapController.cpp:617 src/MenuMapController.cpp:1118
 msgid "Its title changes with the selection, so a rule can't name it. Use the Config Editor."
 msgstr "يتغير عنوانه حسب التحديد، لذا لا يمكن لقاعدة أن تشير إليه بالاسم. استخدم محرر التكوين."
 
-#: src/MenuMapController.cpp:634
+#: src/MenuMapController.cpp:643
 msgid "Moved from the main menu"
 msgstr "نُقل من القائمة الرئيسية"
 
-#: src/MenuMapController.cpp:635
+#: src/MenuMapController.cpp:644
 msgid "Moved from {}"
 msgstr "نُقل من {}"
 
-#: src/MenuMapController.cpp:639 src/MenuMapController.cpp:662
+#: src/MenuMapController.cpp:648 src/MenuMapController.cpp:671
 msgid "Moved to {}"
 msgstr "نُقل إلى {}"
 
-#: src/MenuMapController.cpp:639 src/MenuMapController.cpp:949 src/MenuMapController.cpp:952
+#: src/MenuMapController.cpp:648 src/MenuMapController.cpp:959 src/MenuMapController.cpp:962
 msgid "the main menu"
 msgstr "القائمة الرئيسية"
 
-#: src/MenuMapController.cpp:643
+#: src/MenuMapController.cpp:652
 msgid "Disabled"
 msgstr "معطل"
 
-#: src/MenuMapController.cpp:650
+#: src/MenuMapController.cpp:659
 msgid "Shows only sometimes"
 msgstr "يظهر أحيانًا فقط"
 
-#: src/MenuMapController.cpp:661
+#: src/MenuMapController.cpp:670
 msgid "Kept in the main menu"
 msgstr "مُبقى في القائمة الرئيسية"
 
-#: src/MenuMapController.cpp:661
+#: src/MenuMapController.cpp:670
 msgid "Moved to the main menu"
 msgstr "نُقل إلى القائمة الرئيسية"
 
-#: src/MenuMapController.cpp:666
+#: src/MenuMapController.cpp:675
 msgid "Renamed to {}"
 msgstr "أُعيدت تسميته إلى {}"
 
-#: src/MenuMapController.cpp:670
+#: src/MenuMapController.cpp:679
 msgid "May be hidden"
 msgstr "قد يكون مخفيًا"
 
-#: src/MenuMapController.cpp:674
+#: src/MenuMapController.cpp:683
 msgid "A rule may change it"
 msgstr "قد تغيّره قاعدة"
 
-#: src/MenuMapController.cpp:685
+#: src/MenuMapController.cpp:694
 msgid "{}:{}"
 msgstr "{}:{}"
 
-#: src/MenuMapController.cpp:687
+#: src/MenuMapController.cpp:696
 msgid "Typed by title"
 msgstr "مُدخل بالعنوان"
 
-#: src/MenuMapController.cpp:693 src/MenuMapController.cpp:1024
+#: src/MenuMapController.cpp:702 src/MenuMapController.cpp:1037
 msgid "A program"
 msgstr "برنامج"
 
-#: src/MenuMapController.cpp:719
+#: src/MenuMapController.cpp:728
 msgid "Windows builds the taskbar's menu itself, so only Shell's items are listed here."
 msgstr "يُنشئ Windows قائمة شريط المهام بنفسه، لذا لا تُدرج هنا سوى عناصر Shell."
 
-#: src/MenuMapController.cpp:721
+#: src/MenuMapController.cpp:730
 msgid "Windows' items couldn't be read: {}"
 msgstr "تعذرت قراءة عناصر Windows: {}"
 
-#: src/MenuMapController.cpp:730
+#: src/MenuMapController.cpp:739
 msgid "Some programs add their items only inside File Explorer, so they aren't listed here. Type the item's title as the menu shows it to hide, rename or move it."
 msgstr "تضيف بعض البرامج عناصرها داخل مستكشف الملفات فقط، لذا لا تظهر في هذه القائمة. اكتب عنوان العنصر كما تعرضه القائمة لإخفائه أو إعادة تسميته أو نقله."
 
-#: src/MenuMapController.cpp:735
+#: src/MenuMapController.cpp:744
 msgid "Added nothing here: {}."
 msgstr "لم تتم إضافة أي شيء هنا: {}."
 
-#: src/MenuMapController.cpp:744
+#: src/MenuMapController.cpp:753
 msgid "{} · {}"
 msgstr "{} · {}"
 
-#: src/MenuMapController.cpp:744
+#: src/MenuMapController.cpp:753
 msgid "{n} of your items"
 msgid_plural "{n} of your items"
 msgstr[0] "‏{n} من عناصرك"
@@ -4610,7 +4634,7 @@ msgstr[3] "‏{n} من عناصرك"
 msgstr[4] "‏{n} من عناصرك"
 msgstr[5] "‏{n} من عناصرك"
 
-#: src/MenuMapController.cpp:745
+#: src/MenuMapController.cpp:754
 msgid "{n} from Windows and programs"
 msgid_plural "{n} from Windows and programs"
 msgstr[0] "‏{n} من Windows والبرامج"
@@ -4620,15 +4644,15 @@ msgstr[3] "‏{n} من Windows والبرامج"
 msgstr[4] "‏{n} من Windows والبرامج"
 msgstr[5] "‏{n} من Windows والبرامج"
 
-#: src/MenuMapController.cpp:775 src/MenuMapController.cpp:843
+#: src/MenuMapController.cpp:784 src/MenuMapController.cpp:852
 msgid "Your Shell items"
 msgstr "عناصر Shell الخاصة بك"
 
-#: src/MenuMapController.cpp:775 src/MenuMapController.cpp:843
+#: src/MenuMapController.cpp:784 src/MenuMapController.cpp:852
 msgid "Windows and other programs"
 msgstr "‏Windows والبرامج الأخرى"
 
-#: src/MenuMapController.cpp:778
+#: src/MenuMapController.cpp:787
 msgid "{n} item"
 msgid_plural "{n} items"
 msgstr[0] "‏{n} عنصر"
@@ -4638,183 +4662,187 @@ msgstr[3] "‏{n} عناصر"
 msgstr[4] "‏{n} عنصرًا"
 msgstr[5] "‏{n} عنصر"
 
-#: src/MenuMapController.cpp:785
+#: src/MenuMapController.cpp:794
 msgid "(drawn by its program)"
 msgstr "(يرسمه برنامجه)"
 
-#: src/MenuMapController.cpp:786 src/MenuMapController.cpp:856
+#: src/MenuMapController.cpp:795 src/MenuMapController.cpp:865
 msgid "(set when the menu opens)"
 msgstr "(يُحدَّد عند فتح القائمة)"
 
-#: src/MenuMapController.cpp:916
+#: src/MenuMapController.cpp:925
 msgid "Submenu"
 msgstr "قائمة فرعية"
 
-#: src/MenuMapController.cpp:916
+#: src/MenuMapController.cpp:925
 msgid "Item"
 msgstr "عنصر"
 
-#: src/MenuMapController.cpp:927 src/MenuMapController.cpp:933 src/MenuMapController.cpp:1045 src/MenuMapController.cpp:1473 src/SaveService.cpp:198
+#: src/MenuMapController.cpp:936 src/MenuMapController.cpp:942 src/MenuMapController.cpp:1058 src/MenuMapController.cpp:1597 src/SaveService.cpp:222
 msgid "{}, line {}"
 msgstr "‏{}، السطر {}"
 
-#: src/MenuMapController.cpp:932
+#: src/MenuMapController.cpp:941
 msgid "From your config"
 msgstr "من التكوين الخاص بك"
 
-#: src/MenuMapController.cpp:937
+#: src/MenuMapController.cpp:946
 msgid "Title from {}"
 msgstr "العنوان من {}"
 
-#: src/MenuMapController.cpp:946
+#: src/MenuMapController.cpp:956
 msgid "Hidden by vis= in its own line."
 msgstr "مخفي بواسطة vis= في سطره."
 
-#: src/MenuMapController.cpp:948
+#: src/MenuMapController.cpp:958
 msgid "Moved here from {} by menu= in its own line."
 msgstr "نُقل إلى هنا من {} بواسطة menu= في سطره."
 
-#: src/MenuMapController.cpp:951
+#: src/MenuMapController.cpp:961
 msgid "Its menu= names {}, which isn't in this menu, so it doesn't show here."
 msgstr "يشير menu= الخاص به إلى {}، وهي ليست في هذه القائمة، لذا لا يظهر هنا."
 
-#: src/MenuMapController.cpp:954
+#: src/MenuMapController.cpp:964
 msgid "Its menu= depends on the selection, so the map shows it where it is written."
 msgstr "يعتمد menu= الخاص به على التحديد، لذا تعرضه الخريطة حيث هو مكتوب."
 
-#: src/MenuMapController.cpp:956
+#: src/MenuMapController.cpp:966
 msgid "Placed by pos={} in its own line."
 msgstr "وُضع بواسطة pos={} في سطره."
 
-#: src/MenuMapController.cpp:975 src/MenuMapController.cpp:1077
+#: src/MenuMapController.cpp:988 src/MenuMapController.cpp:1112
 msgid "Main menu"
 msgstr "القائمة الرئيسية"
 
-#: src/MenuMapController.cpp:987
+#: src/MenuMapController.cpp:1000
 msgid "At the top"
 msgstr "في الأعلى"
 
-#: src/MenuMapController.cpp:996
+#: src/MenuMapController.cpp:1009
 msgid "Before {}"
 msgstr "قبل {}"
 
-#: src/MenuMapController.cpp:998
+#: src/MenuMapController.cpp:1011
 msgid "After {}"
 msgstr "بعد {}"
 
-#: src/MenuMapController.cpp:1000
+#: src/MenuMapController.cpp:1013
 msgid "At the bottom"
 msgstr "في الأسفل"
 
-#: src/MenuMapController.cpp:1010
+#: src/MenuMapController.cpp:1023
 msgid "Its menu= depends on the selection; change it with Edit code."
 msgstr "يعتمد menu= الخاص به على التحديد؛ غيّره عبر «تحرير الكود»."
 
-#: src/MenuMapController.cpp:1016
+#: src/MenuMapController.cpp:1029
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
 msgstr "يؤدي إيقاف تشغيله إلى إضافة vis=vis.remove إلى سطره. يُحفظ فورًا، مع التقاط لقطة أولاً."
 
-#: src/MenuMapController.cpp:1020
+#: src/MenuMapController.cpp:1033
 msgid "Not in the menu read here. Rules made here name it by its title, so they work wherever the menu has it."
 msgstr "غير موجود في القائمة المقروءة هنا. القواعد التي تُنشأ هنا تشير إليه بعنوانه، لذا تعمل أينما وُجد في القائمة."
 
-#: src/MenuMapController.cpp:1022
+#: src/MenuMapController.cpp:1035
 msgid "Added by Windows"
 msgstr "أضافه Windows"
 
-#: src/MenuMapController.cpp:1024
+#: src/MenuMapController.cpp:1037
 msgid "Added by {}"
 msgstr "أضافه {}"
 
-#: src/MenuMapController.cpp:1026
+#: src/MenuMapController.cpp:1039
 msgid "Added by Windows or an installed app; Shell couldn't tell which."
 msgstr "أضافه Windows أو تطبيق مثبت؛ تعذر على Shell تحديد أيهما."
 
-#: src/MenuMapController.cpp:1035
+#: src/MenuMapController.cpp:1048
 msgid "verb {}"
 msgstr "الفعل {}"
 
-#: src/MenuMapController.cpp:1044
+#: src/MenuMapController.cpp:1057
 msgid "a rule made here"
 msgstr "قاعدة أُنشئت هنا"
 
-#: src/MenuMapController.cpp:1048
+#: src/MenuMapController.cpp:1061
 msgid "Hidden by {}."
 msgstr "مخفي بواسطة {}."
 
-#: src/MenuMapController.cpp:1050
+#: src/MenuMapController.cpp:1063
 msgid "Kept in the main menu by {}, so later rules don't move it."
 msgstr "أُبقي في القائمة الرئيسية بواسطة {}، لذا لا تنقله القواعد اللاحقة."
 
-#: src/MenuMapController.cpp:1051
+#: src/MenuMapController.cpp:1064
 msgid "Moved to the main menu by {}."
 msgstr "نُقل إلى القائمة الرئيسية بواسطة {}."
 
-#: src/MenuMapController.cpp:1053
+#: src/MenuMapController.cpp:1066
 msgid "Moved to {} by {}."
 msgstr "نُقل إلى {} بواسطة {}."
 
-#: src/MenuMapController.cpp:1055
+#: src/MenuMapController.cpp:1068
 msgid "Renamed to {} by {}."
 msgstr "أُعيدت تسميته إلى {} بواسطة {}."
 
-#: src/MenuMapController.cpp:1057
+#: src/MenuMapController.cpp:1070
 msgid "Changed by {}."
 msgstr "تم تغييره بواسطة {}."
 
-#: src/MenuMapController.cpp:1067
+#: src/MenuMapController.cpp:1080
 msgid "{}, line {} may change it, depending on what is selected."
 msgstr "قد يغيّره {}، السطر {}، حسب ما هو محدد."
 
-#: src/MenuMapController.cpp:1085
+#: src/MenuMapController.cpp:1120
 msgid "Turning it off adds a rule that removes it from the menu. Save to apply."
 msgstr "يؤدي إيقاف تشغيله إلى إضافة قاعدة تزيله من القائمة. احفظ للتطبيق."
 
-#: src/MenuMapController.cpp:1086
+#: src/MenuMapController.cpp:1121
 msgid "Hidden by a rule made here. Turning it on removes that rule."
 msgstr "مخفي بواسطة قاعدة أُنشئت هنا. يؤدي تشغيله إلى إزالة تلك القاعدة."
 
-#: src/MenuMapController.cpp:1109
+#: src/MenuMapController.cpp:1144
 msgid "Shown again once you save."
 msgstr "سيظهر مجددًا بمجرد الحفظ."
 
-#: src/MenuMapController.cpp:1110
+#: src/MenuMapController.cpp:1145
 msgid "Hidden once you save."
 msgstr "سيُخفى بمجرد الحفظ."
 
-#: src/MenuMapController.cpp:1111
+#: src/MenuMapController.cpp:1146
 msgid "Changes once you save."
 msgstr "سيتغير بمجرد الحفظ."
 
-#: src/MenuMapController.cpp:1405
+#: src/MenuMapController.cpp:1325
+msgid "Icons, images and programs"
+msgstr "الأيقونات والصور والبرامج"
+
+#: src/MenuMapController.cpp:1529
 msgid "{} couldn't be read."
 msgstr "تعذرت قراءة {}."
 
-#: src/MenuMapController.cpp:1412
+#: src/MenuMapController.cpp:1536
 msgid "Not changed"
 msgstr "لم يتغير"
 
-#: src/MenuMapController.cpp:1462
+#: src/MenuMapController.cpp:1586
 msgid "Couldn't open the code"
 msgstr "تعذر فتح التعليمات البرمجية"
 
-#: src/MenuMapController.cpp:1462
+#: src/MenuMapController.cpp:1586
 msgid "{} has no declaration on line {}."
 msgstr "لا يحتوي {} على تعريف في السطر {}."
 
-#: src/MenuMapController.cpp:1517
+#: src/MenuMapController.cpp:1641
 msgid "The file changed since this code was opened. Cancel, then open it again."
 msgstr "تغيّر الملف منذ فتح هذه التعليمات البرمجية. ألغِ، ثم افتحها مرة أخرى."
 
-#: src/MenuMapController.cpp:1521 src/SaveService.cpp:453
+#: src/MenuMapController.cpp:1645 src/SaveService.cpp:477
 msgid "Not saved: {}"
 msgstr "لم يتم الحفظ: {}"
 
-#: src/MenuMapController.cpp:1552
+#: src/MenuMapController.cpp:1676
 msgid "Not saved: the config would fail to load. {}"
 msgstr "لم يتم الحفظ: سيفشل تحميل التكوين. {}"
 
-#: src/MenuMapController.cpp:1555
+#: src/MenuMapController.cpp:1679
 msgid "Couldn't save: {}"
 msgstr "تعذر الحفظ: {}"
 
@@ -5133,67 +5161,67 @@ msgstr "كتلة theme{} تحتوي على كل إعدادات السمة الس
 msgid "the check failed"
 msgstr "فشل الفحص"
 
-#: src/SaveService.cpp:206
+#: src/SaveService.cpp:230
 msgid "Changed here · not saved yet"
 msgstr "تم التغيير هنا · لم يُحفظ بعد"
 
-#: src/SaveService.cpp:208
+#: src/SaveService.cpp:232
 msgid "Back to {} · not saved yet"
 msgstr "العودة إلى {} · لم يُحفظ بعد"
 
-#: src/SaveService.cpp:209
+#: src/SaveService.cpp:233
 msgid "Back to the built-in default · not saved yet"
 msgstr "العودة إلى الإعداد الافتراضي المضمّن · لم يُحفظ بعد"
 
-#: src/SaveService.cpp:211
+#: src/SaveService.cpp:235
 msgid "Set by this app · {} has {}"
 msgstr "تم تعيينه بواسطة هذا التطبيق · {} يحتوي على {}"
 
-#: src/SaveService.cpp:215
+#: src/SaveService.cpp:239
 msgid "Built-in default"
 msgstr "الإعداد الافتراضي المدمج"
 
-#: src/SaveService.cpp:295
+#: src/SaveService.cpp:319
 msgid "shell.exe -status did not finish in time."
 msgstr "لم ينتهِ shell.exe -status في الوقت المحدد."
 
-#: src/SaveService.cpp:314
+#: src/SaveService.cpp:338
 msgid "The config file was not found. Create a personal config from Home."
 msgstr "لم يتم العثور على ملف التكوين. أنشئ تكوينًا شخصيًا من الصفحة الرئيسية."
 
-#: src/SaveService.cpp:338
+#: src/SaveService.cpp:362
 msgid "shell.exe was not found, so the config can't be checked before saving."
 msgstr "لم يتم العثور على shell.exe، لذا لا يمكن فحص التكوين قبل الحفظ."
 
-#: src/SaveService.cpp:344
+#: src/SaveService.cpp:368
 msgid "Checking with shell.exe…"
 msgstr "جارٍ التحقق باستخدام shell.exe…"
 
-#: src/SaveService.cpp:446
+#: src/SaveService.cpp:470
 msgid "Nothing to save · the files already match"
 msgstr "لا شيء للحفظ · الملفات متطابقة بالفعل"
 
-#: src/SaveService.cpp:447
+#: src/SaveService.cpp:471
 msgid "Saved · Shell reloads on next right-click"
 msgstr "تم الحفظ · يُعيد Shell التحميل عند النقر بزر الماوس الأيمن التالي"
 
-#: src/SaveService.cpp:449
+#: src/SaveService.cpp:473
 msgid "Shell rejected the config, rolled back: {}"
 msgstr "رفض Shell التكوين، وتم التراجع عن التغييرات: {}"
 
-#: src/SaveService.cpp:451
+#: src/SaveService.cpp:475
 msgid "Shell rejected the config, nothing was written: {}"
 msgstr "رفض Shell التكوين، ولم تتم كتابة أي شيء: {}"
 
-#: src/SaveService.cpp:482
+#: src/SaveService.cpp:506
 msgid "Creating your personal config…"
 msgstr "جارٍ إنشاء التكوين الشخصي…"
 
-#: src/SaveService.cpp:496
+#: src/SaveService.cpp:520
 msgid "shell.exe did not finish in time."
 msgstr "لم ينتهِ shell.exe في الوقت المحدد."
 
-#: src/SaveService.cpp:504
+#: src/SaveService.cpp:528
 msgid "Couldn't create the personal config: {}"
 msgstr "تعذر إنشاء التكوين الشخصي: {}"
 

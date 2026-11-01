@@ -243,6 +243,7 @@ bun run serve   # http://127.0.0.1:4000/Shell/
   functions ported from his ReShell in 2.3.0, with his permission.
 - [Deliond](https://github.com/Deliond) translated the app into Spanish on his own;
   [zhonglixun](https://github.com/zhonglixun) reviewed the Chinese translation and reported many issues;
+  kaser4 reviewed and corrected the Arabic translation;
   advanced03, TheDoctor121 and FroztySeven sent bug reports that led to fixes.
 - The default menus come from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config) (MIT).
