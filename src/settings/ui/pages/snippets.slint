@@ -1,4 +1,4 @@
-import { ComboBox, ListView, Spinner } from "std-widgets.slint";
+import { ComboBox, ListView } from "std-widgets.slint";
 import { AppLineEdit as LineEdit } from "../components/line-edit.slint";
 import { Tokens } from "../theme/tokens.slint";
 import { Icons } from "../theme/icons.slint";
@@ -11,7 +11,7 @@ import { Toggle } from "../components/toggle.slint";
 import { Link, Segmented } from "../components/controls.slint";
 import { CodeColors, CodeRow } from "../components/code.slint";
 import { ScrollColumn } from "../components/scroll-column.slint";
-import { PreviewPane } from "../preview/menu-preview.slint";
+import { SnippetStage } from "../preview/snippet-stage.slint";
 import { AppearanceState } from "appearance-state.slint";
 
 // The list surface: one bordered layer, rows separated by hairlines.
@@ -71,22 +71,35 @@ component CodeView inherits Rectangle {
     }
 }
 
-// What the selected snippet adds to the menu: the Appearance page's menu mock in the
-// user's theme, the snippet's rows marked with the accent between greyed rows of
-// Windows' own. Its code instead when Shell couldn't build the menu.
+// What the selected snippet adds to the menu: the real menu at 1:1 in the user's theme on
+// the wallpaper, the snippet's part outlined, hovered and open, Windows' own items faded
+// (ui/preview/snippet-stage.slint). When Shell couldn't build the menu, why, and its code.
 component SnippetPreview inherits Rectangle {
     in property <bool> compact;         // under the row (narrow window): no title, no card
-    in property <length> pane-height;   // 0: as tall as the panel allows
     in property <length> avail;         // the width inside it: a list of places when the buttons don't fit
 
     property <bool> contexts-fit: SnippetsState.preview-contexts.length * 64px + 6px <= root.avail;
-
-    property <string> marked: @tr("The snippet's items are marked in blue; the greyed ones are already in the menu.");
+    property <string> state: SnippetsState.preview-state;
+    property <bool> staged: root.state == "menu" || root.state == "loading" || root.state == "error";
+    // The error's code, folded away at first.
+    property <bool> code-open;
+    // Loading for a long time: say so.
+    property <bool> slow;
+    changed state => {
+        root.code-open = false;
+        root.slow = false;
+    }
 
     background: root.compact ? transparent : Tokens.layer;
     border-radius: Tokens.radius-lg;
     border-width: root.compact ? 0 : 1px;
     border-color: Tokens.stroke;
+
+    Timer {
+        interval: 4s;
+        running: root.state == "loading" && !root.slow;
+        triggered => { root.slow = true; }
+    }
 
     VerticalLayout {
         padding: root.compact ? 0 : Tokens.s4;
@@ -119,7 +132,7 @@ component SnippetPreview inherits Rectangle {
                     overflow: elide;
                 }
             }
-            if SnippetsState.preview-state == "menu": VerticalLayout {
+            if root.staged: VerticalLayout {
                 alignment: center;
                 Segmented {
                     width: 116px;
@@ -132,7 +145,7 @@ component SnippetPreview inherits Rectangle {
         }
 
         // Where it adds items, when that's more than one place.
-        if SnippetsState.preview-state == "menu" && SnippetsState.preview-contexts.length > 1 && root.contexts-fit: HorizontalLayout {
+        if root.state == "menu" && SnippetsState.preview-contexts.length > 1 && root.contexts-fit: HorizontalLayout {
             alignment: start;
             Segmented {
                 min-option-width: 64px;
@@ -141,7 +154,7 @@ component SnippetPreview inherits Rectangle {
                 changed(i) => { SnippetsState.set-preview-context(i); }
             }
         }
-        if SnippetsState.preview-state == "menu" && SnippetsState.preview-contexts.length > 1 && !root.contexts-fit: HorizontalLayout {
+        if root.state == "menu" && SnippetsState.preview-contexts.length > 1 && !root.contexts-fit: HorizontalLayout {
             alignment: start;
             ComboBox {
                 width: min(root.avail, 200px);
@@ -151,66 +164,68 @@ component SnippetPreview inherits Rectangle {
             }
         }
 
-        if SnippetsState.preview-state == "loading": Rectangle {
-            vertical-stretch: 1;
-            min-height: root.pane-height > 0 ? root.pane-height : 160px;
-            border-radius: Tokens.radius-md;
-            background: Tokens.layer-2;
-            HorizontalLayout {
-                alignment: center;
-                spacing: Tokens.s2;
-                VerticalLayout {
-                    alignment: center;
-                    Spinner {
-                        width: 20px;
-                        height: 20px;
-                        indeterminate: true;
-                    }
-                }
-                Text {
-                    text: SnippetsState.preview-message;
-                    font-size: Tokens.caption + 1px;
-                    color: Tokens.text-2;
-                    vertical-alignment: center;
-                }
-            }
-        }
-
-        if SnippetsState.preview-state == "menu": PreviewPane {
-            vertical-stretch: 1;
-            min-height: root.pane-height > 0 ? root.pane-height : 280px;
+        if root.staged: SnippetStage {
+            mode: root.state;
             t: AppearanceState.preview;
-            context: SnippetsState.preview-pane;
             menu: SnippetsState.preview-menu;
             subs: SnippetsState.preview-subs;
             wallpaper: AppearanceState.wallpaper;
             blurred: AppearanceState.wallpaper-blurred;
             icon-font: AppearanceState.icon-font;
             dark: AppearanceState.preview-dark;
-        }
-        if SnippetsState.preview-state == "menu": Text {
-            text: SnippetsState.preview-note != "" ? SnippetsState.preview-note + " " + root.marked : root.marked;
-            font-size: Tokens.caption;
-            color: Tokens.text-2;
-            wrap: word-wrap;
-            min-height: self.preferred-height;
+            caption: root.state == "menu" ? SnippetsState.preview-caption : "";
+            caption-glyph: SnippetsState.preview-glyph;
         }
 
-        // No menu: why, and the code when there is some.
-        if SnippetsState.preview-state == "code" || SnippetsState.preview-state == "message": Text {
+        // The legend: the swatch is the outline in the menu.
+        if root.state == "menu": HorizontalLayout {
+            spacing: Tokens.s2;
+            VerticalLayout {
+                alignment: start;
+                padding-top: 3px;
+                Rectangle {
+                    width: 14px;
+                    height: 10px;
+                    border-radius: 3px;
+                    border-width: 1px;
+                    border-color: Tokens.accent.with-alpha(0.7);
+                }
+            }
+            Text {
+                horizontal-stretch: 1;
+                text: @tr("Outlined: added by this snippet. Faded items are already in your menu.");
+                font-size: Tokens.caption;
+                color: Tokens.text-2;
+                wrap: word-wrap;
+                min-height: self.preferred-height;
+            }
+        }
+        if root.state == "loading" && root.slow: Text {
+            text: @tr("Still building the preview…");
+            font-size: Tokens.caption;
+            color: Tokens.text-2;
+        }
+
+        // No menu: why, then the code (folded away after an error).
+        if root.state == "code" || root.state == "message" || root.state == "error": Text {
             text: SnippetsState.preview-message;
             font-size: Tokens.caption + 1px;
             color: Tokens.text-2;
             wrap: word-wrap;
             min-height: self.preferred-height;
         }
-        if SnippetsState.preview-state == "code": CodeView {
+        if root.state == "error": HorizontalLayout {
+            alignment: start;
+            Link {
+                text: root.code-open ? @tr("Hide code") : @tr("Show code");
+                font-size: Tokens.caption + 1px;
+                activated => { root.code-open = !root.code-open; }
+            }
+        }
+        if root.state == "code" || (root.state == "error" && root.code-open): CodeView {
             lines: SnippetsState.preview-code;
             columns: SnippetsState.preview-code-columns;
-            limit: root.pane-height > 0 ? root.pane-height : 420px;
-        }
-        if !root.compact && SnippetsState.preview-state != "menu" && SnippetsState.preview-state != "loading": Rectangle {
-            vertical-stretch: 1;
+            limit: 300px;
         }
     }
 }
@@ -336,7 +351,6 @@ component SnippetItem inherits Rectangle {
         if root.inline-preview && root.entry.selected: SnippetPreview {
             compact: true;
             avail: root.preview-avail;
-            pane-height: max(240px, SnippetsState.preview-menu.height + 40px);
         }
     }
 }
@@ -345,7 +359,7 @@ export component SnippetsPage inherits Rectangle {
     // Side by side when there's room for both, as on the Appearance page; otherwise
     // the preview opens under the selected row.
     property <bool> wide: root.width >= 820px;
-    property <length> preview-width: clamp((root.width - 72px) * 0.4, 300px, 460px);
+    property <length> preview-width: clamp((root.width - 72px) * 0.46, 350px, 540px);
 
     property <float> appear: 0;
     init => {
@@ -478,8 +492,9 @@ export component SnippetsPage inherits Rectangle {
             if root.wide && SnippetsState.selected != "": VerticalLayout {
                 width: root.preview-width;
                 padding-bottom: Tokens.s6;
+                // As tall as what it shows, like the Appearance page's preview card.
+                alignment: start;
                 SnippetPreview {
-                    vertical-stretch: 1;
                     avail: root.preview-width - 2 * Tokens.s4 - 2px;
                 }
             }
