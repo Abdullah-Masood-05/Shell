@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -97,6 +98,17 @@ enum class GlyphFont
     Segoe, // Segoe Fluent Icons / MDL2 Assets (image.mdl(), image.fluent(), image.segoe())
 };
 
+// A colour an image= gives: one of the theme's image colours (image.color2) or a literal
+// one (#f00, color.greenyellow). Neither: the theme's own.
+struct IconColor
+{
+    int theme = 0;     // 1..3: theme.image.color1..3
+    uint32_t argb = 0; // 0xAARRGGBB, when theme is 0
+
+    bool given() const { return theme != 0 || argb != 0; }
+    bool operator==(const IconColor &) const = default;
+};
+
 struct Icon
 {
     IconKind kind = IconKind::None;
@@ -105,9 +117,25 @@ struct Icon
     std::string svg;
     std::string path;
     int index = 0;     // the icon in the file
+    // Glyph: colors[0] is its colour. SVG: in place of @image.color1..3 (icon.copy(#f00, auto)).
+    IconColor colors[3];
+    // A file icon that may not be there (if(path.exists(x), x, [\uE187, image.color2])):
+    // what shows when it isn't.
+    std::shared_ptr<const Icon> fallback;
 
     bool operator==(const Icon &) const = default;
 };
+
+// #rgb / #rrggbb / #rrggbbaa, color.<name>, image.color1..3, rgb(r, g, b); auto and
+// default are no colour. nullopt when it isn't a colour.
+std::optional<IconColor> colorOf(std::string_view value);
+
+// The colours an SVG icon is drawn with: the icon's own where it gives them, else the
+// theme's `theme` (0xAARRGGBB, theme.image.color).
+void iconColors(const Icon &icon, const uint32_t theme[3], uint32_t out[3]);
+
+// A glyph's colour (0xAARRGGBB); 0 when the theme's icon colour applies.
+uint32_t glyphColor(const Icon &icon, const uint32_t theme[3]);
 
 // Image definitions, from images.nss and the snippet: @copy,copy_to_clipboard='<svg ...>'
 // and $name=value variables (the value as written).
@@ -139,10 +167,22 @@ enum class Pos
     Bottom,
 };
 
+// A title as the menu shows it: "Copy &lnk path	Ctrl+L" -> "Copy lnk path", the
+// accelerator at byte 5 ("l"), "Ctrl+L" on the right. "&&" is a plain "&".
+struct Title
+{
+    std::string label;
+    int accel = -1;    // byte offset of the underlined character in label, or -1
+    std::string keys;  // after a tab
+};
+Title splitTitle(std::string_view raw);
+
 struct Item
 {
     std::string kind;          // item | menu | separator
     std::string title;         // "" with dynamicTitle: it depends on the selection
+    int accel = -1;            // the underlined character in title (byte offset), or -1
+    std::string keys;          // keys=, or the title's text after a tab: shown on the right
     bool dynamicTitle = false;
     Icon icon;
     bool disabled = false;
@@ -154,8 +194,9 @@ struct Item
 };
 
 // The items of `shell` (the tree's Shell items) declared in `snippetFile`, with what
-// their declarations in `snippet` say about icons, position and separators. Hidden
-// items and items without a title are left out.
+// their declarations in `snippet` say about icons, keys=, position and separators.
+// Hidden items, items without a title and items that only show with Shift held
+// (where=key.shift()) are left out.
 std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const std::filesystem::path &snippetFile,
                           const nss::NssDocument &snippet, const ImageDefs &defs);
 
@@ -164,10 +205,15 @@ std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const std::fi
 struct Row
 {
     std::string label;
+    int accel = -1;           // the underlined character in label (byte offset), or -1
+    std::string keys;         // shown on the right
     Icon icon;
     bool separator = false;
-    bool disabled = false;    // greyed: Windows' own items around the snippet's
+    bool disabled = false;    // vis=disabled
+    bool ghost = false;       // one of Windows' own items around the snippet's (faded)
     bool own = false;         // the snippet's
+    bool groupFirst = false;  // the first and last rows of a run of the snippet's rows
+    bool groupLast = false;   //   in the main menu (separators inside a run don't end it)
     bool placeholder = false; // a title that depends on the selection
     int sub = -1;             // index into Composed::subs
 };
@@ -181,14 +227,15 @@ struct Composed
 {
     Menu main;
     std::vector<Menu> subs;
-    int open = -1;  // the row whose submenu shows at first
+    int open = -1;  // the row whose submenu shows at first: the snippet's first menu
     int own = 0;    // the snippet's rows in the main menu
 };
 
 using Translate = std::function<std::string(const char *)>;
 
-// The snippet's items between a few of Windows' own for `context` (greyed). Separators
-// never lead, trail or double up. `tr` translates the frame's labels and the
+// The snippet's items between a few of Windows' own for `context` (ghost rows: at most
+// two before the snippet's middle rows and one after them). Separators never lead,
+// trail or double up. `tr` translates the frame's labels and the
 // placeholder for a title that depends on the selection.
 Composed compose(Context context, const std::vector<Item> &items, const Translate &tr);
 

@@ -399,6 +399,8 @@ Sample sampleFor(std::string_view snippetText)
 {
     Sample out;
     auto doc = nss::NssDocument::fromText(std::string(snippetText));
+    ImageDefs vars;
+    collectImageDefs(snippetText, vars);
     std::string found;
     auto consider = [&](std::string_view value) {
         std::string v = unquote(value);
@@ -408,6 +410,9 @@ Sample sampleFor(std::string_view snippetText)
             auto token = trimmed(std::string_view(v).substr(start, bar == std::string::npos ? std::string::npos : bar - start));
             if (!token.empty() && token.front() == '*')
                 token.erase(0, 1);
+            // '."zip"': exactly that extension.
+            if (token.size() >= 4 && token[0] == '.' && token[1] == '"' && token.back() == '"')
+                token = "." + token.substr(2, token.size() - 3);
             if (token.size() >= 2 && token.front() == '.' &&
                 std::all_of(token.begin() + 1, token.end(), [](char c) { return std::isalnum(static_cast<unsigned char>(c)) != 0; }))
                 found = lower(token);
@@ -421,8 +426,18 @@ Sample sampleFor(std::string_view snippetText)
             return false;
         if (n.kind != nss::NodeKind::MenuDecl)
             return true;
-        if (auto find = prop(doc, n, { "find" }); find && isQuoted(*find))
-            consider(*find);
+        if (auto find = prop(doc, n, { "find" })) {
+            // find=ext_list: a variable holding the list.
+            std::string value = *find;
+            for (int depth = 0; depth < 4 && !isQuoted(value); ++depth) {
+                auto it = vars.vars.find(lower(value));
+                if (it == vars.vars.end())
+                    break;
+                value = it->second;
+            }
+            if (isQuoted(value))
+                consider(value);
+        }
         if (found.empty())
             if (auto where = prop(doc, n, { "where" })) {
                 // sel.file.ext == '.zip' / sel.ext=='.zip'
@@ -503,25 +518,263 @@ void collectImageDefs(std::string_view text, ImageDefs &defs)
     }
 }
 
-Icon iconOf(std::string_view value, const ImageDefs &defs, const Icon *parent)
+namespace {
+
+struct NamedColor
+{
+    const char *name;
+    uint32_t argb;
+};
+
+// color.<name>: Shell's table (src/dll/src/Expression/Constants.h).
+constexpr NamedColor kColors[] = {
+    { "black", 0xFF000000 }, { "white", 0xFFFFFFFF }, { "aliceblue", 0xFFF0F8FF },
+    { "antiquewhite", 0xFFFAEBD7 }, { "aqua", 0xFF00FFFF }, { "aquamarine", 0xFF7FFFD4 },
+    { "azure", 0xFFF0FFFF }, { "beige", 0xFFF5F5DC }, { "bisque", 0xFFFFE4C4 },
+    { "blanchedalmond", 0xFFFFEBCD }, { "blue", 0xFF0000FF }, { "blueviolet", 0xFF8A2BE2 },
+    { "brown", 0xFFA52A2A }, { "burlywood", 0xFFDEB887 }, { "cadetblue", 0xFF5F9EA0 },
+    { "chartreuse", 0xFF7FFF00 }, { "chocolate", 0xFFD2691E }, { "coral", 0xFFFF7F50 },
+    { "cornflowerblue", 0xFF6495ED }, { "cornsilk", 0xFFFFF8DC }, { "crimson", 0xFFDC143C },
+    { "cyan", 0xFF00FFFF }, { "darkblue", 0xFF00008B }, { "darkcyan", 0xFF008B8B },
+    { "darkgoldenrod", 0xFFB8860B }, { "darkgray", 0xFFA9A9A9 }, { "darkgreen", 0xFF006400 },
+    { "darkkhaki", 0xFFBDB76B }, { "darkmagenta", 0xFF8B008B }, { "darkolivegreen", 0xFF556B2F },
+    { "darkorange", 0xFFFF8C00 }, { "darkorchid", 0xFF9932CC }, { "darkred", 0xFF8B0000 },
+    { "darksalmon", 0xFFE9967A }, { "darkseagreen", 0xFF8FBC8F }, { "darkslateblue", 0xFF483D8B },
+    { "darkslategray", 0xFF2F4F4F }, { "darkturquoise", 0xFF00CED1 }, { "darkviolet", 0xFF9400D3 },
+    { "deeppink", 0xFFFF1493 }, { "deepskyblue", 0xFF00BFFF }, { "dimgray", 0xFF696969 },
+    { "dodgerblue", 0xFF1E90FF }, { "firebrick", 0xFFB22222 }, { "floralwhite", 0xFFFFFAF0 },
+    { "forestgreen", 0xFF228B22 }, { "fuchsia", 0xFFFF00FF }, { "gainsboro", 0xFFDCDCDC },
+    { "ghostwhite", 0xFFF8F8FF }, { "gold", 0xFFFFD700 }, { "goldenrod", 0xFFDAA520 }, { "gray", 0xFF808080 },
+    { "green", 0xFF008000 }, { "greenyellow", 0xFFADFF2F }, { "honeydew", 0xFFF0FFF0 },
+    { "hotpink", 0xFFFF69B4 }, { "indianred", 0xFFCD5C5C }, { "indigo", 0xFF4B0082 }, { "ivory", 0xFFFFFFF0 },
+    { "khaki", 0xFFF0E68C }, { "lavender", 0xFFE6E6FA }, { "lavenderblush", 0xFFFFF0F5 },
+    { "lawngreen", 0xFF7CFC00 }, { "lemonchiffon", 0xFFFFFACD }, { "lightblue", 0xFFADD8E6 },
+    { "lightcoral", 0xFFF08080 }, { "lightcyan", 0xFFE0FFFF }, { "lightgoldenrodyellow", 0xFFFAFAD2 },
+    { "lightgray", 0xFFD3D3D3 }, { "lightgreen", 0xFF90EE90 }, { "lightpink", 0xFFFFB6C1 },
+    { "lightsalmon", 0xFFFFA07A }, { "lightseagreen", 0xFF20B2AA }, { "lightskyblue", 0xFF87CEFA },
+    { "lightslategray", 0xFF778899 }, { "lightsteelblue", 0xFFB0C4DE }, { "lightyellow", 0xFFFFFFE0 },
+    { "lime", 0xFF00FF00 }, { "limegreen", 0xFF32CD32 }, { "linen", 0xFFFAF0E6 }, { "magenta", 0xFFFF00FF },
+    { "maroon", 0xFF800000 }, { "mediumaquamarine", 0xFF66CDAA }, { "mediumblue", 0xFF0000CD },
+    { "mediumorchid", 0xFFBA55D3 }, { "mediumpurple", 0xFF9370DB }, { "mediumseagreen", 0xFF3CB371 },
+    { "mediumslateblue", 0xFF7B68EE }, { "mediumspringgreen", 0xFF00FA9A }, { "mediumturquoise", 0xFF48D1CC },
+    { "mediumvioletred", 0xFFC71585 }, { "midnightblue", 0xFF191970 }, { "mintcream", 0xFFF5FFFA },
+    { "mistyrose", 0xFFFFE4E1 }, { "moccasin", 0xFFFFE4B5 }, { "navajowhite", 0xFFFFDEAD },
+    { "navy", 0xFF000080 }, { "oldlace", 0xFFFDF5E6 }, { "olive", 0xFF808000 }, { "olivedrab", 0xFF6B8E23 },
+    { "orange", 0xFFFFA500 }, { "orangered", 0xFFFF4500 }, { "orchid", 0xFFDA70D6 },
+    { "palegoldenrod", 0xFFEEE8AA }, { "palegreen", 0xFF98FB98 }, { "paleturquoise", 0xFFAFEEEE },
+    { "palevioletred", 0xFFDB7093 }, { "papayawhip", 0xFFFFEFD5 }, { "peachpuff", 0xFFFFDAB9 },
+    { "peru", 0xFFCD853F }, { "pink", 0xFFFFC0CB }, { "plum", 0xFFDDA0DD }, { "powderblue", 0xFFB0E0E6 },
+    { "purple", 0xFF800080 }, { "red", 0xFFFF0000 }, { "rosybrown", 0xFFBC8F8F }, { "royalblue", 0xFF4169E1 },
+    { "saddlebrown", 0xFF8B4513 }, { "salmon", 0xFFFA8072 }, { "sandybrown", 0xFFF4A460 },
+    { "seagreen", 0xFF2E8B57 }, { "seashell", 0xFFFFF5EE }, { "sienna", 0xFFA0522D }, { "silver", 0xFFC0C0C0 },
+    { "skyblue", 0xFF87CEEB }, { "slateblue", 0xFF6A5ACD }, { "slategray", 0xFF708090 },
+    { "snow", 0xFFFFFAFA }, { "springgreen", 0xFF00FF7F }, { "steelblue", 0xFF4682B4 }, { "tan", 0xFFD2B48C },
+    { "teal", 0xFF008080 }, { "thistle", 0xFFD8BFD8 }, { "tomato", 0xFFFF6347 }, { "transparent", 0x00FFFFFF },
+    { "turquoise", 0xFF40E0D0 }, { "violet", 0xFFEE82EE }, { "wheat", 0xFFF5DEB3 },
+    { "whitesmoke", 0xFFF5F5F5 }, { "yellow", 0xFFFFFF00 }, { "yellowgreen", 0xFF9ACD32 },
+};
+
+// images.nss names a config may not define (no images.nss): a Segoe glyph like each,
+// so icon.copy still shows a copy icon.
+struct NamedGlyph
+{
+    const char *name;
+    unsigned glyph;
+};
+constexpr NamedGlyph kBuiltinGlyphs[] = {
+    { "copy", 0xE8C8 },          { "copy_to_clipboard", 0xE8C8 }, { "cut", 0xE8C6 },
+    { "paste", 0xE77F },         { "command_prompt", 0xE756 },    { "windows_powershell", 0xE756 },
+    { "run_with_powershell", 0xE756 }, { "run_as_administrator", 0xE7EF }, { "new_file", 0xE8A5 },
+    { "new_folder", 0xE8F4 },    { "open_new_tab", 0xE8A7 },      { "open_new_window", 0xE8A7 },
+    { "extract_all", 0xF012 },   { "compressed", 0xF012 },        { "settings", 0xE713 },
+    { "options", 0xE713 },       { "folder_options", 0xE713 },    { "refresh", 0xE72C },
+    { "delete", 0xE74D },        { "rename", 0xE8AC },            { "select_all", 0xE8B3 },
+    { "copy_path", 0xE8C8 },     { "copy_as_path", 0xE8C8 },      { "share", 0xE72D },
+    { "send_to", 0xE724 },       { "open_with", 0xE7AC },         { "open_folder", 0xE838 },
+    { "create_shortcut", 0xE71B }, { "details", 0xE8FD },         { "expand", 0xE740 },
+    { "properties", 0xE946 },    { "view", 0xE8A9 },              { "sort_by", 0xE8CB },
+    { "undo", 0xE7A7 },          { "redo", 0xE7A6 },              { "print", 0xE749 },
+};
+
+constexpr int kMaxDepth = 8;
+
+// A colour from its hex digits, as Shell's lexer reads #RGB, #RGBA, #RGBAA, #RRGGBB, #RRGGBBAA.
+std::optional<uint32_t> hexColor(std::string_view digits)
+{
+    const auto n = digits.size();
+    if (n < 3 || n > 8 || n == 7 ||
+        !std::all_of(digits.begin(), digits.end(), [](char c) { return std::isxdigit(static_cast<unsigned char>(c)) != 0; }))
+        return std::nullopt;
+    const uint32_t v = uint32_t(std::stoul(std::string(digits), nullptr, 16));
+    uint32_t r = 0, g = 0, b = 0, a = 0xFF;
+    if (n <= 5) {
+        const int shift = n == 3 ? 0 : n == 4 ? 4 : 8;
+        r = (v >> (8 + shift)) & 0xF;
+        g = (v >> (4 + shift)) & 0xF;
+        b = (v >> shift) & 0xF;
+        r |= r << 4;
+        g |= g << 4;
+        b |= b << 4;
+        if (n == 4)
+            a = (v & 0xF) | ((v & 0xF) << 4);
+        else if (n == 5)
+            a = v & 0xFF;
+    } else if (n == 6) {
+        r = (v >> 16) & 0xFF;
+        g = (v >> 8) & 0xFF;
+        b = v & 0xFF;
+    } else {
+        r = (v >> 24) & 0xFF;
+        g = (v >> 16) & 0xFF;
+        b = (v >> 8) & 0xFF;
+        a = v & 0xFF;
+    }
+    return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+Icon iconAt(std::string_view value, const ImageDefs &defs, const Icon *parent, int depth);
+
+// A file icon, then `next` when the file isn't there.
+Icon orElse(Icon first, const Icon &next)
+{
+    if (first.kind == IconKind::None || (first.kind == IconKind::File && first.path.empty()))
+        return next;
+    if (first.kind != IconKind::File || next.kind == IconKind::None)
+        return first;
+    first.fallback = std::make_shared<const Icon>(first.fallback ? orElse(*first.fallback, next) : next);
+    return first;
+}
+
+// The text of a path expression: 'C:\x.exe', a variable holding one, path.combine(sys.bin,
+// 'x.dll'), eval(...); sys.* and user.* become @sys.* for expandPath(). nullopt when it
+// can't be told without running it.
+std::optional<std::string> pathText(std::string_view value, const ImageDefs &defs, int depth)
+{
+    auto v = nss::trim(value);
+    if (depth > kMaxDepth || v.empty())
+        return std::nullopt;
+    if (isQuoted(v))
+        return unquote(v);
+    if (auto c = call(v)) {
+        auto args = splitArgs(c->second);
+        if (c->first == "eval" && args.size() == 1)
+            return pathText(args[0], defs, depth + 1);
+        if ((c->first == "path.combine" || c->first == "path.join") && !args.empty()) {
+            std::string out;
+            for (const auto &a : args) {
+                auto part = pathText(a, defs, depth + 1);
+                if (!part)
+                    return std::nullopt;
+                if (!out.empty() && out.back() != '\\' && !part->empty() && part->front() != '\\')
+                    out += '\\';
+                out += *part;
+            }
+            return out;
+        }
+        return std::nullopt;
+    }
+    const auto low = lower(v);
+    for (const char *scope : { "sys.", "user.", "app." })
+        if (low.rfind(scope, 0) == 0 && std::all_of(low.begin(), low.end(), isIdent))
+            return "@" + low;
+    std::string var = low;
+    if (!var.empty() && var.front() == '$')
+        var.erase(0, 1);
+    if (auto it = defs.vars.find(var); it != defs.vars.end())
+        return pathText(it->second, defs, depth + 1);
+    return std::nullopt;
+}
+
+Icon fileIcon(std::string path, int index)
+{
+    Icon icon{ IconKind::File };
+    icon.path = std::move(path);
+    icon.index = index;
+    return icon;
+}
+
+// 'C:\x\app.dll,3' -> the path and the index.
+Icon fileIconOf(const std::string &s)
+{
+    auto comma = s.rfind(',');
+    if (comma != std::string::npos && comma + 1 < s.size() &&
+        std::all_of(s.begin() + long(comma) + 1, s.end(), [](char ch) { return std::isdigit(static_cast<unsigned char>(ch)) || ch == '-'; }))
+        return fileIcon(trimmed(std::string_view(s).substr(0, comma)), std::atoi(s.c_str() + comma + 1));
+    return fileIcon(s, 0);
+}
+
+IconColor colorAt(std::string_view value, const ImageDefs &defs, int depth)
+{
+    if (auto c = colorOf(value))
+        return *c;
+    std::string var = lower(nss::trim(value));
+    if (!var.empty() && var.front() == '$')
+        var.erase(0, 1);
+    if (auto it = defs.vars.find(var); it != defs.vars.end() && depth < kMaxDepth)
+        return colorAt(it->second, defs, depth + 1);
+    return {};
+}
+
+// The colour among a glyph's other arguments (the rest are its size).
+IconColor glyphArgColor(const std::vector<std::string> &args, const ImageDefs &defs)
+{
+    for (size_t i = 1; i < args.size(); ++i)
+        if (auto c = colorAt(args[i], defs, 0); c.given())
+            return c;
+    return {};
+}
+
+Icon glyphIcon(const std::string &glyph, GlyphFont font, IconColor color = {})
+{
+    Icon icon{ IconKind::Glyph, glyph, font };
+    icon.colors[0] = color;
+    return icon;
+}
+
+// icon.copy, image.copy: the images.nss definition, else a Segoe glyph like it.
+std::optional<Icon> namedImage(const std::string &name, const ImageDefs &defs)
+{
+    if (auto it = defs.svgs.find(name); it != defs.svgs.end())
+        return Icon{ IconKind::Svg, {}, GlyphFont::Shell, it->second };
+    for (const auto &g : kBuiltinGlyphs)
+        if (name == g.name)
+            return glyphIcon(utf8(g.glyph), GlyphFont::Segoe);
+    return std::nullopt;
+}
+
+Icon iconAt(std::string_view value, const ImageDefs &defs, const Icon *parent, int depth)
 {
     auto v = nss::trim(value);
     const auto low = lower(v);
     if (v.empty() || low == "inherit" || low == "image.inherit" || low == "icon.inherit")
         return parent ? *parent : Icon{};
-    if (low == "none" || low == "null" || low == "nil" || low == "image.none" || low == "icon.none" || low == "0")
+    if (depth > kMaxDepth || low == "none" || low == "null" || low == "nil" || low == "image.none" ||
+        low == "icon.none" || low == "0" || low == "false")
         return {};
-    // [glyph, colour]: the first is the image.
+    // [glyph, colour]: a glyph in that colour; otherwise the first is the image.
     if (v.front() == '[' && v.back() == ']') {
         auto args = splitArgs(v.substr(1, v.size() - 2));
-        return args.empty() ? Icon{} : iconOf(args[0], defs, parent);
+        if (args.empty())
+            return {};
+        auto icon = iconAt(args[0], defs, parent, depth + 1);
+        if (icon.kind == IconKind::Glyph)
+            if (auto c = glyphArgColor(args, defs); c.given())
+                icon.colors[0] = c;
+        return icon;
     }
     if (auto g = glyphOf(v); !g.empty())
-        return Icon{ IconKind::Glyph, g, GlyphFont::Shell };
+        return glyphIcon(g, GlyphFont::Shell);
     if (auto c = call(v)) {
         auto args = splitArgs(c->second);
         const std::string first = args.empty() ? std::string{} : args[0];
         const auto &fn = c->first;
+        if (fn == "eval" && args.size() == 1)
+            return iconAt(first, defs, parent, depth + 1);
+        // if(path.exists(x), x, [\uE187, image.color2]): the first when it can be shown,
+        // else the second (a file that isn't there falls back to it).
+        if (fn == "if" && args.size() >= 2)
+            return orElse(iconAt(args[1], defs, parent, depth + 1),
+                          args.size() > 2 ? iconAt(args[2], defs, parent, depth + 1) : Icon{});
         auto dot = fn.find('.');
         const std::string scope = dot == std::string::npos ? fn : fn.substr(0, dot);
         const std::string name = dot == std::string::npos ? std::string{} : fn.substr(dot + 1);
@@ -529,29 +782,36 @@ Icon iconOf(std::string_view value, const ImageDefs &defs, const Icon *parent)
             return {};
         if (name == "mdl" || name == "fluent" || name == "segoe") {
             if (auto g = glyphOf(first); !g.empty())
-                return Icon{ IconKind::Glyph, g, GlyphFont::Segoe };
+                return glyphIcon(g, GlyphFont::Segoe, glyphArgColor(args, defs));
             return {};
         }
         if (name == "glyph") {
             if (auto g = glyphOf(first); !g.empty())
-                return Icon{ IconKind::Glyph, g, GlyphFont::Shell };
+                return glyphIcon(g, GlyphFont::Shell, glyphArgColor(args, defs));
             return {};
         }
         if (name == "svg") {
             if (isQuoted(first))
                 return Icon{ IconKind::Svg, {}, GlyphFont::Shell, unquote(first) };
             if (auto it = defs.vars.find(lower(first)); it != defs.vars.end())
-                return iconOf(it->second, defs, parent);
+                return iconAt(it->second, defs, parent, depth + 1);
             return {};
         }
         if (name.empty() || name == "res" || name == "icon") {
-            if (!isQuoted(first))
+            auto path = pathText(first, defs, depth + 1);
+            if (!path || path->empty())
                 return {};
-            Icon icon{ IconKind::File };
-            icon.path = unquote(first);
             if (args.size() > 1)
-                icon.index = std::atoi(args[1].c_str());
-            return icon;
+                return fileIcon(*path, std::atoi(args[1].c_str()));
+            return fileIconOf(*path);
+        }
+        // icon.rename(auto, color.greenyellow): the image in these colours.
+        if (auto icon = namedImage(name, defs)) {
+            for (size_t i = 0; i < args.size() && i < 3; ++i)
+                icon->colors[i] = colorAt(args[i], defs, depth + 1);
+            if (icon->kind == IconKind::Glyph && !icon->colors[0].given())
+                icon->colors[0] = icon->colors[1];
+            return *icon;
         }
         return {};
     }
@@ -559,15 +819,9 @@ Icon iconOf(std::string_view value, const ImageDefs &defs, const Icon *parent)
         auto s = unquote(v);
         if (s.find("<svg") != std::string::npos)
             return Icon{ IconKind::Svg, {}, GlyphFont::Shell, s };
-        auto comma = s.rfind(',');
-        Icon icon{ IconKind::File };
-        icon.path = s;
-        if (comma != std::string::npos && comma + 1 < s.size() &&
-            std::all_of(s.begin() + long(comma) + 1, s.end(), [](char ch) { return std::isdigit(static_cast<unsigned char>(ch)) || ch == '-'; })) {
-            icon.path = s.substr(0, comma);
-            icon.index = std::atoi(s.c_str() + comma + 1);
-        }
-        return icon;
+        if (s.empty())
+            return {};
+        return fileIconOf(s);
     }
     // icon.copy / image.copy: an image definition; a variable.
     std::string name = low;
@@ -575,14 +829,69 @@ Icon iconOf(std::string_view value, const ImageDefs &defs, const Icon *parent)
         name.erase(0, 5);
     else if (name.rfind("image.", 0) == 0)
         name.erase(0, 6);
-    if (auto it = defs.svgs.find(name); it != defs.svgs.end())
-        return Icon{ IconKind::Svg, {}, GlyphFont::Shell, it->second };
+    if (name != low)
+        if (auto icon = namedImage(name, defs))
+            return *icon;
     std::string var = low;
     if (!var.empty() && var.front() == '$')
         var.erase(0, 1);
     if (auto it = defs.vars.find(var); it != defs.vars.end() && it->second != value)
-        return iconOf(it->second, defs, parent);
+        return iconAt(it->second, defs, parent, depth + 1);
     return {};
+}
+
+uint32_t resolve(const IconColor &c, const uint32_t theme[3], uint32_t otherwise)
+{
+    if (c.theme >= 1 && c.theme <= 3)
+        return theme[c.theme - 1];
+    return c.argb ? c.argb : otherwise;
+}
+
+} // namespace
+
+std::optional<IconColor> colorOf(std::string_view value)
+{
+    auto v = unquote(value);
+    const auto low = lower(v);
+    if (low == "auto" || low == "default" || low == "color.default" || low == "color.auto" || low == "null")
+        return IconColor{};
+    if (low.size() > 1 && low.front() == '#') {
+        if (auto argb = hexColor(std::string_view(low).substr(1)))
+            return IconColor{ 0, *argb };
+        return std::nullopt;
+    }
+    if (low == "image.color1" || low == "image.color2" || low == "image.color3")
+        return IconColor{ low.back() - '0', 0 };
+    if (low.rfind("color.", 0) == 0) {
+        const auto name = std::string_view(low).substr(6);
+        for (const auto &c : kColors)
+            if (name == c.name)
+                return IconColor{ 0, c.argb };
+        return IconColor{}; // color.accent and the like: the theme's
+    }
+    if (auto c = call(v); c && (c->first == "rgb" || c->first == "rgba")) {
+        auto args = splitArgs(c->second);
+        if (args.size() < 3)
+            return std::nullopt;
+        uint32_t ch[4] = { 0, 0, 0, 255 };
+        for (size_t i = 0; i < args.size() && i < 4; ++i)
+            ch[i] = uint32_t(std::clamp(std::atoi(args[i].c_str()), 0, 255));
+        return IconColor{ 0, (ch[3] << 24) | (ch[0] << 16) | (ch[1] << 8) | ch[2] };
+    }
+    return std::nullopt;
+}
+
+void iconColors(const Icon &icon, const uint32_t theme[3], uint32_t out[3])
+{
+    for (int i = 0; i < 3; ++i)
+        out[i] = resolve(icon.colors[i], theme, theme[i]);
+}
+
+uint32_t glyphColor(const Icon &icon, const uint32_t theme[3]) { return resolve(icon.colors[0], theme, 0); }
+
+Icon iconOf(std::string_view value, const ImageDefs &defs, const Icon *parent)
+{
+    return iconAt(value, defs, parent, 0);
 }
 
 std::string svgFor(std::string_view svg, const ImageDefs &defs, const uint32_t colors[3], bool light)
@@ -624,7 +933,56 @@ std::string expandPath(std::string_view path, const std::map<std::string, std::s
 
 // --- the snippet's items ----------------------------------------------------------------
 
+Title splitTitle(std::string_view raw)
+{
+    Title out;
+    for (size_t i = 0; i < raw.size(); ++i) {
+        const char c = raw[i];
+        if (c == '\t') {
+            out.keys = trimmed(raw.substr(i + 1));
+            break;
+        }
+        if (c == '&') {
+            if (i + 1 < raw.size() && raw[i + 1] == '&') {
+                out.label += '&';
+                ++i;
+            } else if (out.accel < 0 && i + 1 < raw.size() && raw[i + 1] != ' ' && raw[i + 1] != '\t')
+                out.accel = int(out.label.size());
+            continue;
+        }
+        out.label += c;
+    }
+    return out;
+}
+
 namespace {
+
+// where=key.shift() (or key.shift() and ...): the item shows only while Shift is held.
+bool shiftOnly(std::string_view where)
+{
+    std::string w = lower(unquote(where));
+    for (char &c : w)
+        if (c == '\t' || c == '\n' || c == '\r')
+            c = ' ';
+    if (w.find(" or ") != std::string::npos || w.find("||") != std::string::npos)
+        return false;
+    for (size_t at = w.find("&&"); at != std::string::npos; at = w.find("&&", at))
+        w.replace(at, 2, " and ");
+    size_t start = 0;
+    while (start <= w.size()) {
+        size_t next = w.find(" and ", start);
+        std::string term;
+        for (char c : w.substr(start, next == std::string::npos ? std::string::npos : next - start))
+            if (c != ' ' && c != '(' && c != ')')
+                term += c;
+        if (term == "key.shift" || term == "keys.shift")
+            return true;
+        if (next == std::string::npos)
+            break;
+        start = next + 5;
+    }
+    return false;
+}
 
 std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc, const ImageDefs &defs,
                             const Icon *parentIcon)
@@ -638,10 +996,22 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
     if (it.kind == "separator") {
         return it;
     }
-    it.title = n.title;
+    // The title as the menu shows it: no '&', the accelerator underlined, a tab's tail on the right.
+    auto title = splitTitle(n.rawTitle.empty() ? n.title : n.rawTitle);
+    it.title = title.label;
+    it.accel = title.accel;
+    it.keys = title.keys;
     if (it.title.empty() && (n.state == "dynamic" || n.dynamic))
         it.dynamicTitle = true;
     if (decl) {
+        if (auto where = prop(doc, *decl, { "where" }); where && shiftOnly(*where))
+            return std::nullopt;
+        // keys= written as text; one that is worked out (keys=@x) is left out.
+        if (auto keys = prop(doc, *decl, { "keys" }); keys && isQuoted(*keys)) {
+            auto k = unquote(*keys);
+            if (k.find('@') == std::string::npos)
+                it.keys = k;
+        }
         if (auto image = prop(doc, *decl, { "image", "icon" }))
             it.icon = iconOf(*image, defs, parentIcon);
         if (auto pos = prop(doc, *decl, { "pos", "position" })) {
@@ -779,6 +1149,8 @@ void flatten(const std::vector<Item> &items, std::vector<Row> &rows, std::vector
             r.disabled = it.disabled;
             r.placeholder = it.dynamicTitle;
             r.label = it.dynamicTitle ? tr(nsp::mark("Name from the selection")) : it.title;
+            r.accel = it.dynamicTitle ? -1 : it.accel;
+            r.keys = it.keys;
             if (it.kind == "menu") {
                 // The submenu's own submenus get an index too, so their rows show a chevron.
                 const size_t index = subs.size();
@@ -803,7 +1175,10 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
     for (const auto &it : items)
         (it.pos == Pos::Top ? top : it.pos == Pos::Bottom ? bottom : middle).push_back(it);
 
-    auto frameRows = [&](const std::vector<FrameItem> &list) {
+    // `keep` of Windows' rows: the last ones before the snippet's, the first ones after.
+    auto frameRows = [&](std::vector<FrameItem> list, size_t keep, bool last) {
+        if (list.size() > keep)
+            list.erase(last ? list.begin() : list.begin() + long(keep), last ? list.end() - long(keep) : list.end());
         for (const auto &f : list) {
             if (!f.label) {
                 out.main.rows.push_back(separatorRow(false));
@@ -812,7 +1187,7 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
             Row r;
             r.label = tr(f.label);
             r.icon = Icon{ IconKind::Glyph, utf8(f.glyph), GlyphFont::Segoe };
-            r.disabled = true;
+            r.ghost = true;
             out.main.rows.push_back(std::move(r));
         }
     };
@@ -826,13 +1201,32 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
 
     const auto frame = frameOf(context);
     ownRows(top);
-    frameRows(frame.before);
+    frameRows(frame.before, 2, true);
     ownRows(middle);
-    frameRows(frame.after);
+    frameRows(frame.after, 1, false);
     ownRows(bottom);
     tidy(out.main.rows);
     for (auto &m : out.subs)
         tidy(m.rows);
+
+    // The runs of the snippet's rows, for the outline around them.
+    auto &rows = out.main.rows;
+    for (size_t i = 0; i < rows.size();) {
+        if (!rows[i].own || rows[i].separator) {
+            ++i;
+            continue;
+        }
+        size_t last = i;
+        size_t j = i;
+        while (j < rows.size() && rows[j].own) {
+            if (!rows[j].separator)
+                last = j;
+            ++j;
+        }
+        rows[i].groupFirst = true;
+        rows[last].groupLast = true;
+        i = j;
+    }
 
     for (size_t i = 0; i < out.main.rows.size(); ++i) {
         const auto &r = out.main.rows[i];

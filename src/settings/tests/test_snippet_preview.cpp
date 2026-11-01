@@ -5,6 +5,7 @@
 #include "nss/NssDocument.h"
 #include "nss/Text.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -136,6 +137,17 @@ TEST_CASE("snippet preview: the sample file follows find= and where=")
     s = sampleFor("item(type='file' find='*.PNG' title='x' cmd='x')");
     CHECK(s.extension == ".png");
 
+    // '."zip"': exactly that extension.
+    s = sampleFor("item(type='file' find='.\"zip\"' title='x' cmd='x')");
+    CHECK(s.extension == ".zip");
+    CHECK(s.fromSnippet);
+    s = sampleFor("item(type='file' find='.\"md5\"|.\"sha1\"' title='x' cmd='x')");
+    CHECK(s.extension == ".md5");
+
+    // A variable holding the list.
+    s = sampleFor("$ext_list = '.mkv|.mp4'\nitem(type='file' find=ext_list title='x' cmd='x')");
+    CHECK(s.extension == ".mkv");
+
     s = sampleFor("menu(type='file' title='m') { item(where=sel.file.ext == '.pdf' title='x' cmd='x') }");
     CHECK(s.extension == ".pdf");
     CHECK(s.fromSnippet);
@@ -202,6 +214,137 @@ TEST_CASE("snippet preview: icons")
     i = iconOf("svg_info", withVar);
     CHECK(i.kind == IconKind::Svg);
     CHECK(i.svg.find("<path/>") != std::string::npos);
+}
+
+TEST_CASE("snippet preview: icon colours")
+{
+    auto c = colorOf("#f00");
+    REQUIRE(c);
+    CHECK(c->argb == 0xFFFF0000);
+    CHECK(colorOf("#00FF0080")->argb == 0x8000FF00);
+    CHECK(colorOf("#123456")->argb == 0xFF123456);
+    CHECK(colorOf("color.greenyellow")->argb == 0xFFADFF2F);
+    CHECK(colorOf("image.color2")->theme == 2);
+    CHECK_FALSE(colorOf("auto")->given());
+    CHECK(colorOf("rgb(255, 0, 0)")->argb == 0xFFFF0000);
+    CHECK_FALSE(colorOf("#12"));
+    CHECK_FALSE(colorOf("sel.path"));
+
+    auto defs = imageDefs();
+    const uint32_t theme[3] = { 0xFF111111, 0xFF222222, 0xFF333333 };
+
+    // A glyph's colour: [glyph, colour], image.mdl(glyph, colour, size).
+    auto i = iconOf("[\\uE187, image.color2]", defs);
+    CHECK(i.kind == IconKind::Glyph);
+    CHECK(glyphColor(i, theme) == 0xFF222222);
+    i = iconOf("image.mdl(\\uE8B7, #f00, 12)", defs);
+    CHECK(i.font == GlyphFont::Segoe);
+    CHECK(glyphColor(i, theme) == 0xFFFF0000);
+    CHECK(glyphColor(iconOf("image.glyph(\\uE0CE, 14)", defs), theme) == 0); // the theme's
+
+    // icon.copy(auto, color.red): the SVG with its second colour replaced.
+    i = iconOf("icon.copy(auto, color.red)", defs);
+    REQUIRE(i.kind == IconKind::Svg);
+    uint32_t colors[3];
+    iconColors(i, theme, colors);
+    CHECK(colors[0] == 0xFF111111);
+    CHECK(colors[1] == 0xFFFF0000);
+    CHECK(colors[2] == 0xFF333333);
+    CHECK(svgFor(i.svg, defs, colors, true).find("#FF0000") != std::string::npos);
+}
+
+TEST_CASE("snippet preview: icons Shell works out")
+{
+    ImageDefs defs;
+    collectImageDefs("$exe_64 = '@sys.prog\\Everything\\Everything.exe'\n"
+                     "$exe_32 = '@sys.prog32\\Everything\\Everything.exe'\n"
+                     "$path_ev = eval(if(path.exists(exe_64), exe_64, if(path.exists(exe_32), exe_32, '')))\n"
+                     "$dll = path.combine(sys.bin, 'imageres.dll')\n",
+                     defs);
+
+    // if(path.exists(x), x, y): x, then y when x can't be read.
+    auto i = iconOf("if(path.exists(path_ev), path_ev, [\\uE187, image.color2])", defs);
+    REQUIRE(i.kind == IconKind::File);
+    CHECK(i.path == "@sys.prog\\Everything\\Everything.exe");
+    REQUIRE(i.fallback);
+    CHECK(i.fallback->path == "@sys.prog32\\Everything\\Everything.exe");
+    REQUIRE(i.fallback->fallback);
+    CHECK(i.fallback->fallback->kind == IconKind::Glyph);
+    CHECK(i.fallback->fallback->colors[0].theme == 2);
+    CHECK_FALSE(i.fallback->fallback->fallback);
+
+    // A path from path.combine() and a variable.
+    i = iconOf("icon.res(dll, -5)", defs);
+    REQUIRE(i.kind == IconKind::File);
+    CHECK(i.path == "@sys.bin\\imageres.dll");
+    CHECK(i.index == -5);
+    i = iconOf("image.res('@sys.bin\\desk.cpl', 0)", defs);
+    CHECK(i.path == "@sys.bin\\desk.cpl");
+
+    // Can't be told without running it: nothing, never a guess.
+    CHECK(iconOf("icon.res(reg.get('HKCU\\x'), 0)", defs).kind == IconKind::None);
+    CHECK(iconOf("eval(appx('Some', 'logo'))", defs).kind == IconKind::None);
+    CHECK(iconOf("if(path.exists(nope), nope, '')", defs).kind == IconKind::None);
+
+    // An images.nss name the config doesn't define: a Segoe glyph like it.
+    i = iconOf("icon.select_all", defs);
+    CHECK(i.kind == IconKind::Glyph);
+    CHECK(i.font == GlyphFont::Segoe);
+    CHECK(iconOf("icon.copy", defs).kind == IconKind::Glyph);
+    CHECK(iconOf("icon.copy", imageDefs()).kind == IconKind::Svg); // images.nss wins
+    CHECK(iconOf("icon.no_such_image", defs).kind == IconKind::None);
+}
+
+TEST_CASE("snippet preview: titles as the menu shows them")
+{
+    auto t = splitTitle("Copy &lnk path");
+    CHECK(t.label == "Copy lnk path");
+    CHECK(t.accel == 5);
+    CHECK(t.keys.empty());
+    t = splitTitle("Save && close");
+    CHECK(t.label == "Save & close");
+    CHECK(t.accel == -1);
+    t = splitTitle("&Open\tCtrl+O");
+    CHECK(t.label == "Open");
+    CHECK(t.accel == 0);
+    CHECK(t.keys == "Ctrl+O");
+    t = splitTitle("Go To\tTemporary");
+    CHECK(t.label == "Go To");
+    CHECK(t.keys == "Temporary");
+
+    // keys= and where=key.shift() from the declaration.
+    auto tree = menumap::parseTree(R"({"ok":true,"root":"","context":"file","sample":"","errors":[],"warnings":[],
+        "tree":{"shell":[
+          {"kind":"item","title":"Select &all","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Copy MD2","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Go To\tTemporary","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Network path","state":"text","source":"","file":"C:\\s.nss","line":4,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Not with Shift","state":"text","source":"","file":"C:\\s.nss","line":5,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]}
+        ],"system":[],"rules":[]}})");
+    REQUIRE(tree);
+    auto doc = nss::NssDocument::fromText("item(title='Select &all' keys='Ctrl+A' image=icon.select_all cmd='x')\n"
+                                          "item(title='Copy MD2' where=key.Shift() cmd='x')\n"
+                                          "item(title='Go To@\"\\t\"Temporary' cmd='x')\n"
+                                          "item(title='Network path' where=keys.shift() and str.contains(sel.path, ':') cmd='x')\n"
+                                          "item(title='Not with Shift' where=!key.shift() cmd='x')\n");
+    auto items = itemsOf(tree->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 3); // Copy MD2 and Network path show only with Shift held
+    CHECK(items[2].title == "Not with Shift");
+    CHECK(items[0].title == "Select all");
+    CHECK(items[0].accel == 7);
+    CHECK(items[0].keys == "Ctrl+A");
+    CHECK(items[0].icon.kind == IconKind::Glyph);
+    CHECK(items[1].title == "Go To");
+    CHECK(items[1].keys == "Temporary");
+    auto c = compose(Context::File, items, identity);
+    bool found = false;
+    for (const auto &r : c.main.rows)
+        if (r.label == "Select all") {
+            found = true;
+            CHECK(r.accel == 7);
+            CHECK(r.keys == "Ctrl+A");
+        }
+    CHECK(found);
 }
 
 TEST_CASE("snippet preview: SVG colours and variables")
@@ -283,7 +426,14 @@ TEST_CASE("snippet preview: the tree's items become the snippet's rows")
         CHECK(c.own == 3);
         CHECK(c.main.rows[0].own);
         CHECK_FALSE(c.main.rows[2].own);
-        CHECK(c.main.rows[2].disabled); // greyed
+        CHECK(c.main.rows[2].ghost); // faded, not disabled
+        CHECK_FALSE(c.main.rows[2].disabled);
+        // The outline goes around each run of the snippet's rows.
+        CHECK(c.main.rows[0].groupFirst);
+        CHECK(c.main.rows[0].groupLast);
+        CHECK(c.main.rows[5].groupFirst);
+        CHECK_FALSE(c.main.rows[5].groupLast);
+        CHECK(c.main.rows[6].groupLast);
         CHECK(c.main.rows[2].icon.font == GlyphFont::Segoe);
         CHECK(c.main.rows[6].icon.kind == IconKind::File);
 
@@ -294,6 +444,7 @@ TEST_CASE("snippet preview: the tree's items become the snippet's rows")
         const auto &sub = c.subs[0].rows;
         REQUIRE(sub.size() == 3);
         CHECK(sub[0].label == "Extract here");
+        CHECK(sub[0].accel == 8); // Extract &here
         CHECK(sub[1].separator);
         CHECK(sub[2].placeholder);
         CHECK(sub[2].label == "Name from the selection");
@@ -302,11 +453,16 @@ TEST_CASE("snippet preview: the tree's items become the snippet's rows")
 
     SUBCASE("the desktop and the taskbar have their own frames")
     {
+        // At most two of Windows' rows before the snippet's and one after.
         auto desktop = compose(Context::Desktop, items, identity);
-        CHECK(desktop.main.rows.back().label == "Personalize");
+        std::vector<std::string> labels;
+        for (const auto &r : desktop.main.rows)
+            labels.push_back(r.separator ? "-" : r.label);
+        CHECK(labels == std::vector<std::string>{ "At the top", "-", "Sort by", "Refresh", "-", "Archive", "Inline one",
+                                                  "-", "Display settings" });
         auto taskbar = compose(Context::Taskbar, { items[2] }, identity);
         // pos=top, then the taskbar's items; no separator first.
-        REQUIRE(taskbar.main.rows.size() == 4);
+        REQUIRE(taskbar.main.rows.size() == 3);
         CHECK(taskbar.main.rows[0].label == "At the top");
         CHECK(taskbar.main.rows[1].separator);
         CHECK(taskbar.main.rows[2].label == "Task Manager");
@@ -340,8 +496,10 @@ TEST_CASE("snippet preview: a bundled snippet's file parses into icons")
 {
     // Every bundled snippet's image= is one the preview understands.
     const fs::path dir = fs::path(SETTINGS_SOURCE_BIN) / L"snippets";
+    // Worked out only when the menu shows: the registry, an installed Store app.
+    const std::vector<std::string> unresolved = { "icon.res(path_db_dll, 0)", "ico_mpcbe", "ico_od_win" };
     int checked = 0;
-    for (const auto &e : fs::directory_iterator(dir)) {
+    for (const auto &e : fs::recursive_directory_iterator(dir)) {
         if (e.path().extension() != L".nss")
             continue;
         std::string text;
@@ -357,9 +515,12 @@ TEST_CASE("snippet preview: a bundled snippet's file parses into icons")
                 return true;
             for (const auto &p : n.props)
                 if (p.name == "image" && p.hasValue) {
-                    INFO(nss::narrow(e.path().filename().wstring()) << ": " << doc.slice(p.valueSpan));
-                    const auto icon = iconOf(doc.slice(p.valueSpan), defs);
-                    CHECK(icon.kind != IconKind::None);
+                    const std::string value(nss::trim(doc.slice(p.valueSpan)));
+                    INFO(nss::narrow(e.path().filename().wstring()) << ": " << value);
+                    const Icon parent{ IconKind::Glyph, "x", GlyphFont::Shell };
+                    const auto icon = iconOf(value, defs, &parent);
+                    if (std::find(unresolved.begin(), unresolved.end(), value) == unresolved.end())
+                        CHECK(icon.kind != IconKind::None);
                     if (icon.kind == IconKind::Svg) {
                         // Every @ is filled in, so the SVG loads.
                         const uint32_t colors[3] = { 0xFF555555, 0xFF0078D4, 0xFFFAFAFA };
@@ -375,5 +536,5 @@ TEST_CASE("snippet preview: a bundled snippet's file parses into icons")
             return true;
         });
     }
-    CHECK(checked >= 10);
+    CHECK(checked >= 100);
 }
