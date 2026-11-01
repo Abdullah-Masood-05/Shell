@@ -360,7 +360,7 @@ export component SnippetsPage inherits Rectangle {
     // Side by side when there's room for both, as on the Appearance page; otherwise
     // the preview opens under the selected row.
     property <bool> wide: root.width >= 820px;
-    property <length> preview-width: clamp((root.width - 72px) * 0.46, 350px, 540px);
+    property <length> preview-width: clamp((root.width - 72px) * 0.48, 360px, 540px);
 
     property <float> appear: 0;
     init => {

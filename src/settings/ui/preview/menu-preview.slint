@@ -44,6 +44,11 @@ export component MenuSurface inherits Rectangle {
     // Without the theme's minimum width and the spare room after the labels: as narrow as
     // the menu gets before a label is cut (the Snippets preview, when space is short).
     out property <length> tight-width: t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 0.72 + 20px + t.item-pad-right;
+    // Where the open row's label ends: a submenu short of room may cover this menu up to
+    // there, never the label itself.
+    // (keys= text included).
+    out property <length> open-label-end: t.pad-left + t.item-mar-left + root.label-x + open-label.preferred-width
+        + (open-keys.text != "" ? root.keys-gap + open-keys.preferred-width : 0px) + 12px;
     // keys= text: a little smaller than the label, like Windows' shortcut column.
     property <length> keys-size: t.font-size * 0.92;
     property <length> keys-gap: 24px;
@@ -62,6 +67,18 @@ export component MenuSurface inherits Rectangle {
         height: 0px;
         clip: true;
         opacity: 0;
+        open-label := Text {
+            text: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].label : "";
+            font-size: t.font-size;
+            font-family: root.family;
+            font-weight: t.font-weight;
+            font-italic: t.italic;
+        }
+        open-keys := Text {
+            text: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].keys : "";
+            font-size: root.keys-size;
+            font-family: root.family;
+        }
         measure := VerticalLayout {
             for it in root.menu.items: HorizontalLayout {
                 Text {

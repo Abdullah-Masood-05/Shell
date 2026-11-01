@@ -121,7 +121,7 @@ export component SnippetStage inherits Rectangle {
     in property <string> mode: "menu";
 
     property <length> edge: 12px;
-    property <length> menu-edge: 8px;   // the menus may come a little closer to the sides
+    property <length> menu-edge: 4px;   // the menus may come closer to the sides than the chip
     property <length> top-room: 48px;   // the chip
     property <length> bottom-room: 28px;
     property <length> gap: Tokens.stage-gap;
@@ -137,21 +137,23 @@ export component SnippetStage inherits Rectangle {
     property <int> first-sub: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].sub : -1;
     property <bool> has-first-sub: root.showing-menu && root.first-sub >= 0 && root.first-sub < root.subs.length;
 
-    // Each menu at most stage-menu-max wide; when the pair still doesn't fit, both give
-    // up width: the main menu its spare room first, then the labels elide.
+    // Each menu at most stage-menu-max wide. Short of room: the main menu shrinks to its
+    // content (Windows' rows included), then the submenu covers the main menu's right part
+    // like Windows does near a screen edge (never the open row's label), and only then
+    // do the submenu's labels elide.
     property <length> avail: root.width - 2 * root.menu-edge;
     property <length> main-want: min(Tokens.stage-menu-max, main.natural-width);
     property <length> sub-want: min(Tokens.stage-menu-max, probe.natural-width);
-    property <length> share: root.avail - root.gap;
-    // Short of room, the main menu gives up its spare width first (down to its tight
-    // width), then the submenu's labels elide.
-    property <length> main-tight: min(root.main-want, main.tight-width);
     property <length> main-cap: !root.has-first-sub ? min(root.main-want, root.avail)
-        : root.main-want + root.gap + root.sub-want <= root.share + root.gap ? root.main-want
-        : max(min(root.main-tight, root.share - 120px), min(root.main-want, root.share - root.sub-want));
+        : root.main-want + root.gap + root.sub-want <= root.avail ? root.main-want
+        : max(120px, min(root.main-want, main.tight-width));
+    // How far the submenu may cover the main menu, and how far it does.
+    property <length> max-overlap: max(0px, main.width + root.gap - main.open-label-end);
     property <length> sub-cap: !root.has-first-sub ? Tokens.stage-menu-max
-        : max(120px, min(root.sub-want, root.share - root.main-cap));
-    property <length> pair-width: main.width + (root.has-first-sub ? root.gap + probe.width : 0px);
+        : max(120px, min(root.sub-want, root.avail - main.width - root.gap + root.max-overlap));
+    property <length> overlap: !root.has-first-sub ? 0px
+        : clamp(main.width + root.gap + probe.width - root.avail, 0px, root.max-overlap);
+    property <length> pair-width: main.width + (root.has-first-sub ? root.gap + probe.width - root.overlap : 0px);
 
     // Where the first submenu's top goes, relative to the main menu's.
     property <length> first-sub-dy: root.has-first-sub ? root.menu.items[root.menu.open].y - root.t.pad-top - root.t.border-size : 0px;
@@ -206,7 +208,7 @@ export component SnippetStage inherits Rectangle {
 
     // To the right of its row, a small gap from the menu, its first row level with it.
     if root.has-sub: MenuSurface {
-        x: root.menus-x + main.width + root.gap;
+        x: root.menus-x + main.width + root.gap - root.overlap;
         y: root.menus-y + root.menu.items[root.hovered].y - root.t.pad-top - root.t.border-size;
         snippet: true;
         cap-width: root.sub-cap;
