@@ -180,6 +180,7 @@ namespace Nilesoft
 		constexpr auto IDENT_IS_TITLEBAR = 0x60467157U;
 		constexpr auto IDENT_IS_ICONTEXTMENU = 0xA5329703U;
 		constexpr auto IDENT_IS_CONTEXTMENUHANDLER = 0x49FA7698U;
+		constexpr auto IDENT_IS_DIALOG = 0x5C7D0770U;
 		
 		constexpr auto IDENT_IS_PRIMARY_MONITOR = 0x9E5789CBU;
 		constexpr auto IDENT_MONITOR = 0xD53A30CDU;

@@ -1907,6 +1907,7 @@ namespace Nilesoft
 						case IDENT_IS_START:
 						case IDENT_IS_TITLEBAR:
 						case IDENT_IS_CONTEXTMENUHANDLER:
+						case IDENT_IS_DIALOG:
 						case IDENT_MODULE:
 						case IDENT_INSTANCE:
 						case IDENT_ID:

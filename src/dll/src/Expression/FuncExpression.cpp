@@ -46,6 +46,85 @@ namespace Nilesoft
 			return nullptr;
 		}
 
+		// True when the menu was opened in a dialog box, such as an Open or Save As box:
+		// the top-level window of the window it was opened in is a #32770 dialog.
+		static bool in_dialog(Context *context)
+		{
+			auto sel = context ? context->Selections : nullptr;
+			if(!sel || !sel->Window.handle)
+				return false;
+			auto root = ::GetAncestor(sel->Window.handle, GA_ROOT);
+			return root && Window::class_hash(root) == WC_DLGBOX;
+		}
+
+		// Runs `fn` on the thread that owns `hwnd` and waits for it (5 seconds at most).
+		// Commands run on a worker thread, but a dialog's shell browser has to be used
+		// from the dialog's own thread. A WH_GETMESSAGE hook on that thread picks up a
+		// message posted to the window and runs the job there.
+		namespace on_window_thread
+		{
+			struct job_t
+			{
+				std::function<void()> fn;
+				HANDLE done{};
+			};
+
+			static UINT message()
+			{
+				static UINT msg = ::RegisterWindowMessageW(L"NilesoftShell.RunOnWindowThread");
+				return msg;
+			}
+
+			static LRESULT CALLBACK hook(int code, WPARAM wParam, LPARAM lParam)
+			{
+				auto msg = reinterpret_cast<MSG *>(lParam);
+				if(code == HC_ACTION && wParam == PM_REMOVE && msg && msg->message == message() && msg->lParam)
+				{
+					auto job = reinterpret_cast<job_t *>(msg->lParam);
+					msg->message = WM_NULL;
+					try { job->fn(); }
+					catch(...) {}
+					::SetEvent(job->done);
+				}
+				return ::CallNextHookEx(nullptr, code, wParam, lParam);
+			}
+
+			static bool run(HWND hwnd, std::function<void()> fn)
+			{
+				auto tid = ::GetWindowThreadProcessId(hwnd, nullptr);
+				if(!tid)
+					return false;
+				if(tid == ::GetCurrentThreadId())
+				{
+					fn();
+					return true;
+				}
+
+				// Kept alive when the wait times out: the hook may still run it.
+				auto job = new job_t{ std::move(fn), ::CreateEventW(nullptr, TRUE, FALSE, nullptr) };
+				if(!job->done)
+				{
+					delete job;
+					return false;
+				}
+
+				bool ok = false;
+				if(auto hk = ::SetWindowsHookExW(WH_GETMESSAGE, hook, nullptr, tid); hk)
+				{
+					if(::PostMessageW(hwnd, message(), 0, reinterpret_cast<LPARAM>(job)))
+						ok = ::WaitForSingleObject(job->done, 5000) == WAIT_OBJECT_0;
+					::UnhookWindowsHookEx(hk);
+				}
+
+				if(ok)
+				{
+					::CloseHandle(job->done);
+					delete job;
+				}
+				return ok;
+			}
+		}
+
 		LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM     lParam)
 		{
 			switch(message)                  /* handle the messages */
@@ -1841,6 +1920,9 @@ namespace Nilesoft
 							case IDENT_IS_CONTEXTMENUHANDLER:
 								_result = sel->loader.contextmenuhandler; 
 								break;
+							case IDENT_IS_DIALOG:
+								_result = in_dialog(context);
+								break;
 						}
 					}
 					break;
@@ -2005,6 +2087,27 @@ namespace Nilesoft
 									empty.vt = VT_EMPTY;
 									webBrowser->Navigate(bstrFile, &empty, &empty, &empty, &empty);
 									::SysFreeString(bstrFile);
+								}
+							}
+							else if(shellBrowser && in_dialog(context))
+							{
+								// An Open or Save As box has no web browser: browse its folder
+								// view to the folder, which keeps the file name typed in it.
+								PIDLIST_ABSOLUTE pidl{};
+								if(SUCCEEDED(::SHParseDisplayName(url, nullptr, &pidl, 0, nullptr)) && pidl)
+								{
+									// Freed with the job, which outlives a wait that timed out.
+									struct folder_t
+									{
+										PIDLIST_ABSOLUTE pidl{};
+										~folder_t() { ::ILFree(pidl); }
+									};
+									auto folder = std::make_shared<folder_t>();
+									folder->pidl = pidl;
+									on_window_thread::run(context->Selections->Window.handle, [shellBrowser, folder]()
+									{
+										shellBrowser->BrowseObject(folder->pidl, SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
+									});
 								}
 							}
 							break;

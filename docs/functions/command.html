@@ -22,9 +22,11 @@
 
 <section id="command.navigate" class="my-5">
 	<h5>command.navigate</h5>
-	<p>Opens a folder in the same explorer window.</p>
+	<p>Opens a folder in the same explorer window. In an Open or Save As box it opens the folder in that box,
+		and the file name you typed stays as it is.</p>
 	<p>Syntax</p>
-	<code>command.navigate(path)</code>
+	<code>command.navigate(path)</code><br>
+	<code>item(title='Desktop' where=wnd.is_dialog cmd=command.navigate(user.desktop))</code>
 </section>
 
 <section id="command.refresh" class="my-5">
