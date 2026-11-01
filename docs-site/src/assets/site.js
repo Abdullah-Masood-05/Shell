@@ -77,3 +77,28 @@
 		if (e.key === "/" && document.activeElement !== input && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); input.focus(); }
 	});
 })();
+
+// Installation page: point the Beta links at the newest pre-release. The links in the page
+// name a fixed beta, so they still work when GitHub can't be reached.
+(function () {
+	var links = document.querySelectorAll("a[data-latest-beta]");
+	if (!links.length || !window.fetch) return;
+	fetch("https://api.github.com/repos/Abdullah-Masood-05/Shell/releases?per_page=20")
+		.then(function (r) { return r.ok ? r.json() : []; })
+		.then(function (list) {
+			var beta = null;
+			for (var i = 0; i < list.length; i++) if (list[i].prerelease && !list[i].draft) { beta = list[i]; break; }
+			if (!beta) return;
+			[].forEach.call(links, function (a) {
+				var file = a.getAttribute("data-latest-beta");
+				if (!file) {
+					a.href = beta.html_url;
+					if (a.hasAttribute("data-latest-beta-text")) a.textContent = beta.tag_name.replace(/^v/, "");
+					return;
+				}
+				for (var j = 0; j < beta.assets.length; j++)
+					if (beta.assets[j].name === file) { a.href = beta.assets[j].browser_download_url; return; }
+			});
+		})
+		.catch(function () {});
+})();

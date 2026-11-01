@@ -23,10 +23,10 @@
 <ul>
 	<li><a href="#installer">Installer</a></li>
 	<li><a href="#portable">Portable</a></li>
-	<li><a href="#winget">Windows Package Manager</a></li>
-	<li><a href="#scoop">Scoop</a></li>
-	<li><a href="#chocolatey">Chocolatey</a></li>
-</ul><br>
+</ul>
+<p id="package-managers">Nilesoft Shell Pro isn't on winget, Scoop, Chocolatey or any other package manager yet. The
+	<code>Nilesoft.Shell</code> and <code>nilesoft-shell</code> packages there install the original Nilesoft Shell, not
+	this version. Download it from the links below instead.</p><br>
 <p>See also <a href="#updates">How updates work</a> and <a href="#config-updates">Updates and your configuration</a>.
 	If something doesn't work after installing, see <a href="/docs/troubleshooting">Troubleshooting and FAQ</a>.</p>
 <br>
@@ -38,14 +38,24 @@
 <br>
 <div id="download">
 	<h5>Download</h5>
-	<p>These links always point to the newest release of Nilesoft Shell Pro:</p>
+	<p><b>Stable</b>: the newest tested release, for most people. These links always point to it:</p>
 	<ul>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi"><b>setup-x64.msi</b></a>: installer for most PCs (64-bit Intel/AMD).</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi">setup-arm64.msi</a>: installer for ARM64 PCs.</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi">setup-x86.msi</a>: installer for 32-bit Windows (without the Nilesoft Shell Pro app).</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a>: portable, per user, no administrator rights.</li>
-		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>: checksums. Release notes and older versions: <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest">release page</a>.</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>: checksums. Release notes: <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest">stable release page</a>.</li>
 	</ul>
+	<p id="beta"><b>Beta</b>: the newest test version, with the latest features and fixes before they reach Stable. It
+		may have bugs, so use it if you want to try new things early and tell us what you find. The newest beta is
+		<a data-latest-beta="" data-latest-beta-text="" href="https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0-beta.3">2.3.0-beta.3</a>:</p>
+	<ul>
+		<li><a data-latest-beta="setup-x64.msi" href="https://github.com/Abdullah-Masood-05/Shell/releases/download/v2.3.0-beta.3/setup-x64.msi"><b>setup-x64.msi</b></a> (beta): installer for most PCs.</li>
+		<li><a data-latest-beta="setup-arm64.msi" href="https://github.com/Abdullah-Masood-05/Shell/releases/download/v2.3.0-beta.3/setup-arm64.msi">setup-arm64.msi</a> (beta): installer for ARM64 PCs.</li>
+		<li><a data-latest-beta="NilesoftShellPro-x64-portable.zip" href="https://github.com/Abdullah-Masood-05/Shell/releases/download/v2.3.0-beta.3/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a> (beta): portable, per user.</li>
+	</ul>
+	<p>Already installed? The app can move you between them: <a href="/docs/app/preferences#updates">Preferences: Updates</a>
+		has a Stable and a Beta channel. All versions, old ones too, are on the <a href="https://github.com/Abdullah-Masood-05/Shell/releases">releases page</a>.</p>
 	<p>The files are not code-signed, so Windows SmartScreen may ask for confirmation (<i>More info</i> &rarr; <i>Run anyway</i>).
 		See <a href="/docs/troubleshooting#smartscreen">Troubleshooting</a> for how to check the file first.</p>
 </div>
@@ -159,110 +169,6 @@
 	</div>
 </div>
 <br/>
-<div id="winget">
-	<h5>Windows Package Manager</h5>
-	<p>Windows Package Manager is available from Windows 10 version 1809.</p>
-	<div id="winget-install">
-		<h5>Install</h5>
-		<p>Open a command prompt, and run</p>
-		<div class="console">
-			<div class="console-title">COMMAND PROMPT</div>
-			<div class="console-body">winget install Nilesoft.Shell</div>
-		</div>
-		<p>The program will be installed to <code>C:\Program Files\Nilesoft Shell\</code>.</p>
-	</div>
-	<hr>
-	<div id="winget-uninstall">
-		<h5>Uninstall</h5>
-		<p>Open a command prompt, and run</p>
-		<div class="console">
-			<div class="console-title">COMMAND PROMPT</div>
-			<div class="console-body">winget uninstall Nilesoft.Shell</div>
-		</div>
-	</div>
-</div>
-<br/>
-<div id="scoop">
-	<h5>Scoop</h5>
-	<p>Scoop can be installed following the instructions at <a href="https://scoop.sh/">scoop.sh</a>.</p>
-	<div id="scoop-install">
-		<h5>Install</h5>
-		<p>Open a command prompt, and run</p>
-		<div class="console">
-			<div class="console-title">COMMAND PROMPT</div>
-			<div class="console-body">scoop install nilesoft-shell</div>
-		</div>
-		<p>The program will be installed to <code>%USERPROFILE%\scoop\apps\nilesoft-shell\current\</code>.</p>
-		<div class="notification is-info mt-5">
-			<i>Tip:</i> If you get the error <code>Couldn't find manifest for 'nilesoft-shell'</code>, please run first
-			<div class="console">
-				<div class="console-title">COMMAND PROMPT</div>
-				<div class="console-body">scoop bucket add extras</div>
-			</div>
-		</div>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), and run</p>
-		<div class="console">
-			<div class="console-title">Administrator: Command Prompt</div>
-			<div class="console-body">shell -register -restart</div>
-		</div>
-		<p>For further details see the chapter <a href="#cli">Command-Line Help</a> below.</p>
-	</div>
-	<hr>
-	<div id="scoop-uninstall">
-		<h5>Uninstall</h5>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), and run</p>
-		<div class="console">
-			<div class="console-title">Administrator: Command Prompt</div>
-			<div class="console-body">shell -unregister -restart</div>
-		</div>
-		<p>Then run</p>
-		<div class="console">
-			<div class="console-title">Administrator: Command Prompt</div>
-			<div class="console-body">scoop uninstall nilesoft-shell</div>
-		</div>
-	</div>
-</div>
-<br/>
-<div id="chocolatey">
-	<h5>Chocolatey</h5>
-	<p>Chocolatey can be installed following the instructions at <a href="https://chocolatey.org/install#individual">chocolatey.org</a>.</p>
-	<div id="chocolatey-install">
-		<h5>Install</h5>
-		<div class="notification is-info mt-5">
-			<i>Notice:</i> Until the package has been moderated, you need to add the specific version string to the
-			installer, adding e.g.<br/>
-			<div class="console">
-				<div class="console-title">COMMAND PROMPT</div>
-				<div class="console-body">
-					choco install nilesoft.shell --version=1.8.1
-				</div>
-			</div>
-			Please find the latest published version at <a href="https://community.chocolatey.org/packages/nilesoft.shell#versionhistory">
-			Chocolatey's Version History</a> and use the latest version number (replacing <code>1.8.1</code>).
-		</div>
-		<br>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), and run</p>
-		<div class="console">
-			<div class="console-title">COMMAND PROMPT</div>
-			<div class="console-body">
-				choco install nilesoft.shell
-			</div>
-		</div>
-		<p>The program will be installed to <code>C:\Program Files\Nilesoft Shell\</code>.</p>
-	</div>
-	<hr>
-	<div id="chocolatey-uninstall">
-		<h5>Uninstall</h5>
-		<p>Open an <strong>elevated command prompt</strong> (or use <a href="https://github.com/gerardog/gsudo">gsudo</a>), and run</p>
-		<div class="console">
-			<div class="console-title">COMMAND PROMPT</div>
-			<div class="console-body">choco uninstall nilesoft.shell</div>
-		</div>
-	</div>
-</div>
-
-<br/>
-
 <div id="cli">
 	<h5 id="cli-help">Command-Line Help</h5><br>
 	<code>shell -[options]</code>
