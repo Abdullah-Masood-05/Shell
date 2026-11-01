@@ -353,7 +353,8 @@ std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePrevi
     for (size_t i = 0; i < runs.size(); ++i) {
         if (!runs[i].tree || !runs[i].tree->ok)
             continue;
-        auto items = sp::itemsOf(runs[i].tree->shell, snippetFile, snippetDoc, out->defs);
+        const auto example = sp::exampleFor(sp::kContexts[i], out->sample);
+        auto items = sp::itemsOf(runs[i].tree->shell, snippetFile, snippetDoc, out->defs, &example);
         if (!items.empty())
             out->contexts.push_back({ sp::kContexts[i], std::move(items) });
     }

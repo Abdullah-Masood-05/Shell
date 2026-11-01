@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
+#include <cstdlib>
 
 namespace fs = std::filesystem;
 
@@ -985,7 +987,7 @@ bool shiftOnly(std::string_view where)
 }
 
 std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc, const ImageDefs &defs,
-                            const Icon *parentIcon)
+                            const Icon *parentIcon, const Example *example)
 {
     if (n.vis == "hidden" || n.vis == "remove")
         return std::nullopt;
@@ -1006,6 +1008,23 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
     if (decl) {
         if (auto where = prop(doc, *decl, { "where" }); where && shiftOnly(*where))
             return std::nullopt;
+        if (example) {
+            // Not there for the example selection (where=(sel.raw != sel.path)).
+            if (auto where = prop(doc, *decl, { "where" }))
+                if (auto shows = exampleTest(*where, *example); shows && !*shows)
+                    return std::nullopt;
+            // title=sel.path: the example's value, as the menu would show it.
+            if (it.dynamicTitle)
+                if (auto expr = prop(doc, *decl, { "title" }))
+                    if (auto value = exampleValue(*expr, *example); value && !value->empty()) {
+                        auto t = splitTitle(*value);
+                        it.title = t.label;
+                        it.accel = t.accel;
+                        if (it.keys.empty())
+                            it.keys = t.keys;
+                        it.dynamicTitle = false;
+                    }
+        }
         // keys= written as text; one that is worked out (keys=@x) is left out.
         if (auto keys = prop(doc, *decl, { "keys" }); keys && isQuoted(*keys)) {
             auto k = unquote(*keys);
@@ -1033,7 +1052,7 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
     if (it.kind == "menu" && it.title.empty() && !it.dynamicTitle)
         it.expanded = true; // no title: Shell shows its items in its place
     for (const auto &c : n.children)
-        if (auto child = convert(c, doc, defs, it.icon.kind == IconKind::None ? parentIcon : &it.icon))
+        if (auto child = convert(c, doc, defs, it.icon.kind == IconKind::None ? parentIcon : &it.icon, example))
             it.children.push_back(std::move(*child));
     if (it.kind == "item" && it.title.empty() && !it.dynamicTitle)
         return std::nullopt;
@@ -1045,20 +1064,407 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
 } // namespace
 
 std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const fs::path &snippetFile,
-                          const nss::NssDocument &snippet, const ImageDefs &defs)
+                          const nss::NssDocument &snippet, const ImageDefs &defs, const Example *example)
 {
     std::vector<Item> out;
     const auto key = nss::pathKey(snippetFile);
     for (const auto &n : shell) {
         if (nss::pathKey(n.file) != key)
             continue;
-        if (auto it = convert(n, snippet, defs, nullptr))
+        if (auto it = convert(n, snippet, defs, nullptr, example))
             out.push_back(std::move(*it));
     }
     // A snippet of separators only adds nothing.
     if (std::all_of(out.begin(), out.end(), [](const Item &i) { return i.kind == "separator"; }))
         out.clear();
     return out;
+}
+
+// --- example values ---------------------------------------------------------------------
+
+Example exampleFor(Context c, const Sample &sample)
+{
+    Example ex;
+    auto &v = ex.vars;
+    // A selection like the user's own: path, its folder, name, title (no extension) and extension.
+    auto set = [&](const std::string &path, const std::string &dir, const std::string &name, const std::string &title,
+                   const std::string &ext, const std::string &shortPath) {
+        for (const char *k : { "sel", "sel.path", "sel.raw", "sel.file", "sel.file.path" })
+            v[k] = path;
+        v["sel.short"] = shortPath;
+        for (const char *k : { "sel.dir", "sel.parent", "sel.parent.raw", "sel.dir.path" })
+            v[k] = dir;
+        const auto cut = dir.find_last_of('\\');
+        const std::string dirName = cut == std::string::npos ? dir : dir.substr(cut + 1);
+        v["sel.dir.name"] = v["sel.parent.name"] = dirName;
+        for (const char *k : { "sel.name", "sel.file.name", "sel.path.name" })
+            v[k] = name;
+        for (const char *k : { "sel.title", "sel.file.title", "sel.path.title" })
+            v[k] = title;
+        for (const char *k : { "sel.ext", "sel.file.ext" })
+            v[k] = ext;
+        v["sel.root"] = path.substr(0, 3);
+    };
+    // Short, so a submenu of paths fits the preview; 8.3-safe, so sel.short is the same.
+    const std::string docs = "D:\\Work";
+    switch (c) {
+    case Context::File: {
+        const auto &e = sample.extension;
+        const std::string title = e == ".zip" || e == ".7z" || e == ".rar" ? "Photos"
+                                  : e == ".exe" || e == ".msi"              ? "setup"
+                                  : e == ".lnk"                             ? "Notepad"
+                                                                            : "report";
+        set(docs + "\\" + title + e, docs, title + e, title, e, docs + "\\" + title + e);
+        break;
+    }
+    case Context::Folder:
+        set(docs + "\\Projects", docs, "Projects", "Projects", "", docs + "\\PROJEC~1");
+        break;
+    case Context::Back:
+        set(docs, "D:\\", "Work", "Work", "", docs);
+        break;
+    case Context::Desktop:
+        set("C:\\Users\\You\\Desktop", "C:\\Users\\You", "Desktop", "Desktop", "", "C:\\Users\\You\\Desktop");
+        break;
+    case Context::Drive:
+        set("D:\\", "", "D:\\", "D:", "", "D:\\");
+        v["sel.root"] = "D:\\";
+        break;
+    case Context::Taskbar:
+        ex.count = 0;
+        break;
+    }
+    return ex;
+}
+
+namespace {
+
+// A value: text, or a number (true and false are 1 and 0).
+struct Val
+{
+    bool num = false;
+    double n = 0;
+    std::string s;
+
+    std::string text() const
+    {
+        if (!num)
+            return s;
+        char buf[32];
+        snprintf(buf, sizeof buf, "%g", n);
+        return buf;
+    }
+    bool truth() const { return num ? n != 0 : !s.empty(); }
+};
+Val number(double n) { return { true, n, {} }; }
+Val text(std::string s) { return { false, 0, std::move(s) }; }
+
+// A small recursive-descent reader over the expression's text. Any thing it doesn't
+// know makes the whole value unknown (nullopt); nothing is ever run.
+class Eval
+{
+public:
+    Eval(std::string_view src, const Example &ex) : s_(src), ex_(ex) {}
+
+    std::optional<Val> run()
+    {
+        auto v = orExpr();
+        skip();
+        if (bad_ || !v || pos_ != s_.size())
+            return std::nullopt;
+        return v;
+    }
+
+private:
+    std::string_view s_;
+    const Example &ex_;
+    size_t pos_ = 0;
+    bool bad_ = false; // text it can't read at all (an unknown value is only nullopt)
+
+    std::nullopt_t fail()
+    {
+        bad_ = true;
+        return std::nullopt;
+    }
+
+    void skip()
+    {
+        while (pos_ < s_.size() && std::isspace(static_cast<unsigned char>(s_[pos_])))
+            ++pos_;
+    }
+    bool eat(std::string_view tok)
+    {
+        skip();
+        if (s_.substr(pos_, tok.size()) != tok)
+            return false;
+        // A word must end there: "and" is not the start of "android".
+        if (std::isalpha(static_cast<unsigned char>(tok.back())) && pos_ + tok.size() < s_.size() &&
+            isIdent(s_[pos_ + tok.size()]))
+            return false;
+        pos_ += tok.size();
+        return true;
+    }
+
+    std::optional<Val> orExpr()
+    {
+        auto a = andExpr();
+        while (eat("||") || eat("or")) {
+            auto b = andExpr();
+            if (!a || !b)
+                return std::nullopt;
+            a = number(a->truth() || b->truth());
+        }
+        return a;
+    }
+    std::optional<Val> andExpr()
+    {
+        auto a = compare();
+        while (eat("&&") || eat("and")) {
+            auto b = compare();
+            if (!a || !b)
+                return std::nullopt;
+            a = number(a->truth() && b->truth());
+        }
+        return a;
+    }
+    std::optional<Val> compare()
+    {
+        auto a = sum();
+        for (const char *op : { "==", "!=", ">=", "<=", ">", "<" }) {
+            if (!eat(op))
+                continue;
+            auto b = sum();
+            if (!a || !b)
+                return std::nullopt;
+            const std::string o = op;
+            if (a->num && b->num) {
+                const double x = a->n, y = b->n;
+                return number(o == "==" ? x == y : o == "!=" ? x != y : o == ">=" ? x >= y : o == "<=" ? x <= y : o == ">" ? x > y : x < y);
+            }
+            if (o == "==" || o == "!=") {
+                // Strings compare without case, as in Shell.
+                const bool same = lower(a->text()) == lower(b->text());
+                return number(o == "==" ? same : !same);
+            }
+            return std::nullopt;
+        }
+        return a;
+    }
+    std::optional<Val> sum()
+    {
+        auto a = unary();
+        for (;;) {
+            skip();
+            if (pos_ < s_.size() && (s_[pos_] == '+' || s_[pos_] == '-')) {
+                const char op = s_[pos_++];
+                auto b = unary();
+                if (!a || !b)
+                    return std::nullopt;
+                if (a->num && b->num)
+                    a = number(op == '+' ? a->n + b->n : a->n - b->n);
+                else if (op == '+')
+                    a = text(a->text() + b->text());
+                else
+                    return std::nullopt;
+                continue;
+            }
+            return a;
+        }
+    }
+    std::optional<Val> unary()
+    {
+        skip();
+        if (pos_ < s_.size() && s_[pos_] == '!' && s_.substr(pos_, 2) != "!=") {
+            ++pos_;
+            auto v = unary();
+            return v ? std::optional<Val>(number(!v->truth())) : std::nullopt;
+        }
+        if (eat("not")) {
+            auto v = unary();
+            return v ? std::optional<Val>(number(!v->truth())) : std::nullopt;
+        }
+        return primary();
+    }
+    std::optional<Val> primary()
+    {
+        skip();
+        if (pos_ >= s_.size())
+            return std::nullopt;
+        const char c = s_[pos_];
+        if (c == '(') {
+            ++pos_;
+            auto v = orExpr();
+            if (!eat(")"))
+                return fail();
+            return postfix(v);
+        }
+        if (c == '\'' || c == '"') {
+            const size_t end = s_.find(c, pos_ + 1);
+            if (end == std::string_view::npos)
+                return fail();
+            std::string lit(s_.substr(pos_ + 1, end - pos_ - 1));
+            pos_ = end + 1;
+            if (lit.find('@') != std::string::npos) // @expressions inside the string
+                return std::nullopt;
+            return text(std::move(lit));
+        }
+        if (std::isdigit(static_cast<unsigned char>(c))) {
+            size_t end = pos_;
+            while (end < s_.size() && (std::isdigit(static_cast<unsigned char>(s_[end])) || s_[end] == '.'))
+                ++end;
+            const double n = std::atof(std::string(s_.substr(pos_, end - pos_)).c_str());
+            pos_ = end;
+            return number(n);
+        }
+        if (c == '@')
+            ++pos_;
+        size_t end = pos_;
+        while (end < s_.size() && isIdent(s_[end]))
+            ++end;
+        if (end == pos_)
+            return fail();
+        const std::string name = lower(s_.substr(pos_, end - pos_));
+        pos_ = end;
+        skip();
+        if (pos_ < s_.size() && s_[pos_] == '(') {
+            ++pos_;
+            std::vector<std::optional<Val>> args;
+            skip();
+            if (!eat(")")) {
+                do
+                    args.push_back(orExpr());
+                while (eat(","));
+                if (!eat(")"))
+                    return fail();
+            }
+            return postfix(call(name, args));
+        }
+        return postfix(variable(name));
+    }
+    // ip[0], name[1]: read past it; the value isn't known.
+    std::optional<Val> postfix(std::optional<Val> v)
+    {
+        while (eat("[")) {
+            orExpr();
+            if (!eat("]"))
+                return fail();
+            v = std::nullopt;
+        }
+        return v;
+    }
+
+    std::optional<Val> variable(const std::string &name)
+    {
+        if (name == "true")
+            return number(1);
+        if (name == "false")
+            return number(0);
+        if (name == "sel.count")
+            return number(ex_.count);
+        if (auto it = ex_.vars.find(name); it != ex_.vars.end())
+            return text(it->second);
+        // sel.parent.len: the length of the text.
+        if (name.size() > 4 && name.ends_with(".len"))
+            if (auto it = ex_.vars.find(name.substr(0, name.size() - 4)); it != ex_.vars.end())
+                return number(double(it->second.size()));
+        return std::nullopt;
+    }
+
+    std::optional<Val> call(const std::string &f, const std::vector<std::optional<Val>> &a)
+    {
+        // Calls that answer whatever their arguments are.
+        if (f == "app.exists")
+            return number(0); // nothing saved yet
+        if (f == "app.get")
+            return text("");
+        if (f == "path.exists") {
+            if (a.size() != 1 || !a[0])
+                return number(0);
+            const auto p = lower(a[0]->text());
+            for (const char *k : { "sel.path", "sel.dir" })
+                if (auto it = ex_.vars.find(k); it != ex_.vars.end() && lower(it->second) == p)
+                    return number(1);
+            return number(0);
+        }
+        for (const auto &v : a)
+            if (!v)
+                return std::nullopt;
+        auto s = [&](size_t i) { return a[i]->text(); };
+        auto n = [&](size_t i) { return a[i]->num ? a[i]->n : std::atof(a[i]->s.c_str()); };
+        if (f == "if" && (a.size() == 2 || a.size() == 3))
+            return a[0]->truth() ? *a[1] : a.size() == 3 ? *a[2] : text("");
+        if ((f == "len" || f == "str.len" || f == "length") && a.size() == 1)
+            return number(double(s(0).size()));
+        if (f == "str.replace" && a.size() == 3) {
+            auto r = s(0);
+            const auto from = s(1), to = s(2);
+            if (!from.empty())
+                for (size_t at = r.find(from); at != std::string::npos; at = r.find(from, at + to.size()))
+                    r.replace(at, from.size(), to);
+            return text(r);
+        }
+        if (f == "path.separator" && a.size() == 1) {
+            auto r = s(0);
+            std::replace(r.begin(), r.end(), '\\', '/');
+            return text(r);
+        }
+        if (f == "path.wsl" && a.size() == 1) {
+            auto r = s(0);
+            std::replace(r.begin(), r.end(), '\\', '/');
+            if (r.size() >= 2 && r[1] == ':')
+                r = "/mnt/" + lower(r.substr(0, 1)) + r.substr(2);
+            return text(r);
+        }
+        if ((f == "str.left" || f == "str.right") && a.size() == 2) {
+            const auto r = s(0);
+            const size_t k = size_t(std::clamp(n(1), 0.0, double(r.size())));
+            return text(f == "str.left" ? r.substr(0, k) : r.substr(r.size() - k));
+        }
+        if ((f == "str.start" || f == "str.end" || f == "str.contains") && a.size() == 2) {
+            const auto r = lower(s(0)), p = lower(s(1));
+            const bool yes = f == "str.contains"                  ? r.find(p) != std::string::npos
+                             : p.size() > r.size()                ? false
+                             : f == "str.start"                   ? r.compare(0, p.size(), p) == 0
+                                                                  : r.compare(r.size() - p.size(), p.size(), p) == 0;
+            return number(yes);
+        }
+        if (f == "str.upper" && a.size() == 1) {
+            auto r = s(0);
+            for (auto &ch : r)
+                ch = char(std::toupper(static_cast<unsigned char>(ch)));
+            return text(r);
+        }
+        if (f == "str.lower" && a.size() == 1)
+            return text(lower(s(0)));
+        if (f == "str.trim" && a.size() == 1)
+            return text(trimmed(s(0)));
+        if (f == "str.fmt" && !a.empty()) {
+            auto r = s(0);
+            for (size_t i = 1; i < a.size(); ++i) {
+                const auto key = "{" + std::to_string(i - 1) + "}";
+                for (size_t at = r.find(key); at != std::string::npos; at = r.find(key))
+                    r.replace(at, key.size(), s(i));
+            }
+            return text(r);
+        }
+        return std::nullopt;
+    }
+};
+
+} // namespace
+
+std::optional<std::string> exampleValue(std::string_view expr, const Example &ex)
+{
+    if (auto v = Eval(expr, ex).run())
+        return v->text();
+    return std::nullopt;
+}
+
+std::optional<bool> exampleTest(std::string_view expr, const Example &ex)
+{
+    if (auto v = Eval(expr, ex).run())
+        return v->truth();
+    return std::nullopt;
 }
 
 // --- the menu shown ---------------------------------------------------------------------

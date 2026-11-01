@@ -538,3 +538,75 @@ TEST_CASE("snippet preview: a bundled snippet's file parses into icons")
     }
     CHECK(checked >= 100);
 }
+
+TEST_CASE("snippet preview: example values for titles and where= that depend on the selection")
+{
+    Sample zip;
+    zip.extension = ".zip";
+    zip.fromSnippet = true;
+    const auto file = exampleFor(Context::File, zip);
+    CHECK(exampleValue("sel.path", file) == "D:\\Work\\Photos.zip");
+    CHECK(exampleValue("@sel.file.name", file) == "Photos.zip");
+    CHECK(exampleValue("@sel.file.title", file) == "Photos");
+    CHECK(exampleValue("@sel.file.ext", file) == ".zip");
+    CHECK(exampleValue("@sel.parent", file) == "D:\\Work");
+    CHECK(exampleValue("'\\\\localhost\\' + str.replace(sel.path, ':', '$')", file) ==
+          "\\\\localhost\\D$\\Work\\Photos.zip");
+    CHECK(exampleValue("path.wsl(sel.path)", file) == "/mnt/d/Work/Photos.zip");
+    CHECK(exampleValue("str.replace(path.wsl(sel.path), '/mnt/', '/cygdrive/')", file) ==
+          "/cygdrive/d/Work/Photos.zip");
+    CHECK(exampleValue("str.right(path.wsl(sel.path), len(path.wsl(sel.path))-len('/mnt/d'))", file) ==
+          "/Work/Photos.zip");
+    CHECK(exampleValue("'file://' + path.separator(sel.path)", file) == "file://D:/Work/Photos.zip");
+    CHECK(exampleValue("str.fmt('{0} ({1})', sel.file.title, sel.count)", file) == "Photos (1)");
+
+    // Conditions: told when they can be, else unknown.
+    CHECK(exampleTest("(sel.raw != sel.path)", file) == false);
+    CHECK(exampleTest("(sel.short != sel.path) and len(sel.short)>0", file) == false); // 8.3 already
+    CHECK(exampleTest("(sel.short != sel.path) and len(sel.short)>0", exampleFor(Context::Folder, {})) == true);
+    CHECK(exampleTest("sel.parent.len>3 and !str.start(sel.raw, '::')", file) == true);
+    CHECK(exampleTest("sel.file.ext.len>0", file) == true);
+    CHECK(exampleTest("app.exists('bookmark')", file) == false);
+    CHECK(exampleTest("path.exists(ip[toint(do[0])])", file) == false);
+    CHECK_FALSE(exampleTest("sel.type == type.file", file).has_value());
+    CHECK_FALSE(exampleValue("ip[toint(do[0])]", file).has_value());
+    CHECK_FALSE(exampleValue("sys.screen.width", file).has_value());
+    CHECK_FALSE(exampleValue("'Go To@\"\\t\"x'", file).has_value());
+
+    const auto folder = exampleFor(Context::Folder, {});
+    CHECK(exampleValue("sel.path", folder) == "D:\\Work\\Projects");
+    CHECK(exampleTest("sel.file.ext.len>0", folder) == false);
+    CHECK(exampleTest("sel.count > 0", exampleFor(Context::Taskbar, {})) == false);
+}
+
+TEST_CASE("snippet preview: with an example, dynamic titles read like the selection")
+{
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "file", "sample": "C:\\s\\Sample.txt",
+  "tree": {"shell":[
+    {"kind":"menu","title":"Copy path","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,
+     "items":[{"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":2,"column":2,"vis":"","conditions":[],"dynamic":true,"items":[]},
+              {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":3,"column":2,"vis":"","conditions":["where"],"dynamic":true,"items":[]},
+              {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":4,"column":2,"vis":"","conditions":[],"dynamic":true,"items":[]}]}],
+  "system":[], "rules":[]}})";
+    const auto doc = nss::NssDocument::fromText("menu(title='Copy path') {\n"
+                                                "\titem(title=sel.path)\n"
+                                                "\titem(title=sel.raw where=(sel.raw != sel.path))\n"
+                                                "\titem(title=ip[0])\n"
+                                                "}\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    const auto ex = exampleFor(Context::File, {});
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {}, &ex);
+    REQUIRE(items.size() == 1);
+    const auto &rows = items[0].children;
+    REQUIRE(rows.size() == 2); // sel.raw is the same as sel.path here: left out
+    CHECK(rows[0].title == "D:\\Work\\report.txt");
+    CHECK_FALSE(rows[0].dynamicTitle);
+    CHECK(rows[1].dynamicTitle); // can't be told: the placeholder stays
+
+    // Without an example, as before.
+    auto plain = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(plain.size() == 1);
+    CHECK(plain[0].children.size() == 3);
+}

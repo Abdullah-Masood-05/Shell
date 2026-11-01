@@ -82,6 +82,26 @@ struct Sample
 // or sel.ext with a string) name, else .txt.
 Sample sampleFor(std::string_view snippetText);
 
+// --- example values --------------------------------------------------------------------
+
+// What a title such as title=sel.path or a where= reads in the preview: made-up but real
+// looking values for a right-click in one context ("D:\Work\report.txt"),
+// never the scratch folder's own paths.
+struct Example
+{
+    std::map<std::string, std::string> vars; // "sel.path" -> "D:\Work\report.txt"
+    int count = 1;                           // sel.count
+};
+Example exampleFor(Context c, const Sample &sample);
+
+// An NSS expression's value with the example's sel.* values: string and number literals,
+// + - comparisons and/or/not, if() and a few str./path. functions. nullopt when it needs
+// anything else. Pure: nothing runs and nothing is read; app.exists() is false (nothing
+// saved yet) and path.exists() is true only for the example's own paths.
+std::optional<std::string> exampleValue(std::string_view expr, const Example &ex);
+// The same for a condition: nullopt when it can't be told.
+std::optional<bool> exampleTest(std::string_view expr, const Example &ex);
+
 // --- icons -----------------------------------------------------------------------------
 
 enum class IconKind
@@ -197,8 +217,10 @@ struct Item
 // their declarations in `snippet` say about icons, keys=, position and separators.
 // Hidden items, items without a title and items that only show with Shift held
 // (where=key.shift()) are left out.
+// With an `example`, a title that depends on the selection gets its example value (when
+// exampleValue() can work it out) and a row whose where= is false for it is left out.
 std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const std::filesystem::path &snippetFile,
-                          const nss::NssDocument &snippet, const ImageDefs &defs);
+                          const nss::NssDocument &snippet, const ImageDefs &defs, const Example *example = nullptr);
 
 // --- the menu shown --------------------------------------------------------------------
 
