@@ -115,7 +115,33 @@
 	and Shell then leaves the item in the main menu: the rules after that one don't move it again. The tag reads
 	<i>Kept in the main menu</i>.</p>
 
-<h6 id=
+<h6 id="not-listed">An item that isn't listed</h6>
+<p>Some programs add their items only when File Explorer itself opens the menu, so the page can't see them. Microsoft
+	Defender's <i>Scan with Microsoft Defender</i> is one on some PCs. The page names the programs that added nothing
+	under the list.</p>
+<ol>
+	<li>Click <kbd>Item not listed?</kbd> above the list.</li>
+	<li>Type the item's title exactly as the real right-click menu shows it, for example
+		<code>Scan with Microsoft Defender</code>, and press <kbd>Enter</kbd> or click <kbd>Add</kbd>.</li>
+	<li>The item shows at the end of the main menu, tagged <i>Typed by title</i>. Hide, rename or move it like any other
+		item, then <kbd>Save</kbd>.</li>
+</ol>
+<p>The link isn't there when your configuration is the shared one in the install folder, which the app doesn't
+	change.</p>
+
+<h6 id="icon">Change an item's icon</h6>
+<p>The <strong>Icon</strong> section of the panel, under <strong>Rename</strong>, changes the picture next to an item.
+	It works for Windows items and for your own Shell items.</p>
+<ul>
+	<li><kbd>Browse</kbd> picks a file: an icon (<code>.ico</code>), a picture (<code>.png</code> or <code>.svg</code>),
+		or a program, library or shortcut (<code>.exe</code>, <code>.dll</code>, <code>.lnk</code>), which gives its
+		first icon.</li>
+	<li>Or type the value yourself, for example a glyph from Windows' icon font: <code>image.mdl()</code>.</li>
+	<li><kbd>Change icon</kbd> uses what is in the box. <kbd>Remove icon</kbd> takes the icon away.</li>
+</ul>
+<p>For your own items the page writes <code>image=</code> on the item's line, saved right away with a snapshot first.
+	For Windows items it writes a <code>modify()</code> rule with <code>image=</code>, saved with <kbd>Save</kbd>;
+	<kbd>Use its own icon</kbd> takes the rule back.</p>
 
 <h5 id="your-items">Change one of your Shell items</h5>
 <p>Changes to your own items are saved right away, without the footer.</p>
