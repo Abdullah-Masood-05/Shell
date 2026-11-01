@@ -938,7 +938,7 @@ Title splitTitle(std::string_view raw)
     Title out;
     for (size_t i = 0; i < raw.size(); ++i) {
         const char c = raw[i];
-        if (c == '	') {
+        if (c == '\t') {
             out.keys = trimmed(raw.substr(i + 1));
             break;
         }
@@ -946,7 +946,7 @@ Title splitTitle(std::string_view raw)
             if (i + 1 < raw.size() && raw[i + 1] == '&') {
                 out.label += '&';
                 ++i;
-            } else if (out.accel < 0 && i + 1 < raw.size() && raw[i + 1] != ' ' && raw[i + 1] != '	')
+            } else if (out.accel < 0 && i + 1 < raw.size() && raw[i + 1] != ' ' && raw[i + 1] != '\t')
                 out.accel = int(out.label.size());
             continue;
         }
@@ -957,14 +957,31 @@ Title splitTitle(std::string_view raw)
 
 namespace {
 
-// where=key.shift(): the item shows only while Shift is held.
+// where=key.shift() (or key.shift() and ...): the item shows only while Shift is held.
 bool shiftOnly(std::string_view where)
 {
-    std::string w;
-    for (char c : lower(unquote(where)))
-        if (c != ' ' && c != '	')
-            w += c;
-    return w == "key.shift()" || w == "keys.shift()" || w == "key.shift" || w == "keys.shift";
+    std::string w = lower(unquote(where));
+    for (char &c : w)
+        if (c == '\t' || c == '\n' || c == '\r')
+            c = ' ';
+    if (w.find(" or ") != std::string::npos || w.find("||") != std::string::npos)
+        return false;
+    for (size_t at = w.find("&&"); at != std::string::npos; at = w.find("&&", at))
+        w.replace(at, 2, " and ");
+    size_t start = 0;
+    while (start <= w.size()) {
+        size_t next = w.find(" and ", start);
+        std::string term;
+        for (char c : w.substr(start, next == std::string::npos ? std::string::npos : next - start))
+            if (c != ' ' && c != '(' && c != ')')
+                term += c;
+        if (term == "key.shift" || term == "keys.shift")
+            return true;
+        if (next == std::string::npos)
+            break;
+        start = next + 5;
+    }
+    return false;
 }
 
 std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc, const ImageDefs &defs,

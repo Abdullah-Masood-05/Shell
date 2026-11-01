@@ -317,14 +317,19 @@ TEST_CASE("snippet preview: titles as the menu shows them")
         "tree":{"shell":[
           {"kind":"item","title":"Select &all","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]},
           {"kind":"item","title":"Copy MD2","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]},
-          {"kind":"item","title":"Go To\tTemporary","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]}
+          {"kind":"item","title":"Go To\tTemporary","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Network path","state":"text","source":"","file":"C:\\s.nss","line":4,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]},
+          {"kind":"item","title":"Not with Shift","state":"text","source":"","file":"C:\\s.nss","line":5,"column":1,"vis":"","conditions":["where"],"dynamic":false,"items":[]}
         ],"system":[],"rules":[]}})");
     REQUIRE(tree);
     auto doc = nss::NssDocument::fromText("item(title='Select &all' keys='Ctrl+A' image=icon.select_all cmd='x')\n"
                                           "item(title='Copy MD2' where=key.Shift() cmd='x')\n"
-                                          "item(title='Go To@\"\\t\"Temporary' cmd='x')\n");
+                                          "item(title='Go To@\"\\t\"Temporary' cmd='x')\n"
+                                          "item(title='Network path' where=keys.shift() and str.contains(sel.path, ':') cmd='x')\n"
+                                          "item(title='Not with Shift' where=!key.shift() cmd='x')\n");
     auto items = itemsOf(tree->shell, L"C:\\s.nss", doc, {});
-    REQUIRE(items.size() == 2); // Copy MD2 shows only with Shift held
+    REQUIRE(items.size() == 3); // Copy MD2 and Network path show only with Shift held
+    CHECK(items[2].title == "Not with Shift");
     CHECK(items[0].title == "Select all");
     CHECK(items[0].accel == 7);
     CHECK(items[0].keys == "Ctrl+A");

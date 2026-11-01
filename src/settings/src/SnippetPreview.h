@@ -119,7 +119,7 @@ struct Icon
     int index = 0;     // the icon in the file
     // Glyph: colors[0] is its colour. SVG: in place of @image.color1..3 (icon.copy(#f00, auto)).
     IconColor colors[3];
-    // A file icon that may not be there (if(path.exists(x), x, [, image.color2])):
+    // A file icon that may not be there (if(path.exists(x), x, [\uE187, image.color2])):
     // what shows when it isn't.
     std::shared_ptr<const Icon> fallback;
 
