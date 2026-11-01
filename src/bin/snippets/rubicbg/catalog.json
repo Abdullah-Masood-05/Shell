@@ -381,7 +381,7 @@
 			"category": "security",
 			"requires": [],
 			"risk": "none",
-			"sha256": "7b14d8dcc83b2ae10655bdf5b5039b9cf233abe9069afe632948fd3342df80c6",
+			"sha256": "5a09a7f0be26da64ffd1bd85cdf268e3c8e526e8eb51c854593fa506a557309d",
 			"translations": {
 				"zh-CN": {
 					"title": "使用 certutil 计算文件哈希",

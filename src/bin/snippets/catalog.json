@@ -32,7 +32,7 @@
 			"requires": [],
 			"risk": "none",
 			"min_version": "2.0.0",
-			"sha256": "4094a54f1cf8051d7d5c1e22abea7e0cab8967a9f20e7ef87dae0d72b744af77",
+			"sha256": "dff74c06c533c22eaafb852701e3bca6f8010d431243abe1702487331dc2b756",
 			"translations": {
 				"zh-CN": { "title": "复制文件内容", "description": "无需打开即可将文本或代码文件的内容复制到剪贴板。" },
 				"zh-TW": { "title": "複製檔案內容", "description": "無需開啟即可將文字或程式碼檔案的內容複製到剪貼簿。" },
@@ -51,7 +51,7 @@
 			"requires": [],
 			"risk": "none",
 			"min_version": "2.0.0",
-			"sha256": "eb10eda755d35f56f5f051070b10ed6dc0b26dfb6ecb205e35d938c344dcb38b",
+			"sha256": "0e306dd42d2525e21afbdf350ec783d6e937382b769cfe2d9640ed3928de462f",
 			"translations": {
 				"zh-CN": { "title": "带参数运行", "description": "先询问命令行参数，再用这些参数运行程序或批处理文件。" },
 				"zh-TW": { "title": "帶參數執行", "description": "先詢問命令列參數，再以這些參數執行程式或批次檔。" },
@@ -127,7 +127,7 @@
 			"requires": [],
 			"risk": "none",
 			"min_version": "2.0.0",
-			"sha256": "982aba18f914a4f4c797404f5258b97e86a56a36acf2c38e6b07a9863d4e35b3",
+			"sha256": "64f8253842994f082d68caea6f2ab5fbefc0e5c5e7157a2e24d18636560a94e0",
 			"translations": {
 				"zh-CN": { "title": "解压 ZIP 到文件夹", "description": "一键将 ZIP 文件解压到以其命名的新文件夹。" },
 				"zh-TW": { "title": "解壓縮 ZIP 到資料夾", "description": "一鍵將 ZIP 檔解壓縮到以其命名的新資料夾。" },

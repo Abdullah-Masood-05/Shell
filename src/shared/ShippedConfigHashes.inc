@@ -25,6 +25,7 @@
 { "imports/file-manage.nss", 0xbf9f30ca70d5d021ull },
 { "imports/file-manage.nss", 0xd40e3dc1dc276c61ull },
 { "imports/file-manage.nss", 0xf38b111ef2216482ull },
+{ "imports/file-manage.nss", 0xfb86cf6d53e33d1eull },
 { "imports/file-manage.nss", 0xfff3d1a45019ed98ull },
 { "imports/goto.nss", 0x0e8df71717799e3aull },
 { "imports/goto.nss", 0x6af9523cec6ee98dull },
