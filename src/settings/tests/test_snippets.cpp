@@ -120,7 +120,7 @@ TEST_CASE("snippets: the bundled catalog matches src/bin/snippets")
         CHECK(s.source.rfind("https://", 0) == 0);
         CHECK(categoryLabel(s.category) != nullptr);
         CHECK(s.origin == "bundled");
-        for (const char *lang : { "zh-CN", "zh-TW" }) {
+        for (const char *lang : { "zh-CN", "zh-TW", "es", "ar" }) {
             CAPTURE(lang);
             auto t = s.translations.find(lang);
             REQUIRE(t != s.translations.end());
@@ -542,7 +542,7 @@ TEST_CASE("snippets: RubicBG's snippets are bundled from src/bin/snippets/rubicb
         CHECK(!s.description.empty());
         CHECK(s.description.find("\xE2\x80\x94") == std::string::npos);
         CHECK(s.description.find("\xE2\x80\x93") == std::string::npos);
-        for (const char *lang : { "zh-CN", "zh-TW" }) {
+        for (const char *lang : { "zh-CN", "zh-TW", "es", "ar" }) {
             CAPTURE(lang);
             auto t = s.translations.find(lang);
             REQUIRE(t != s.translations.end());
