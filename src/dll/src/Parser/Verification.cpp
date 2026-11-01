@@ -1470,9 +1470,10 @@ namespace Nilesoft
 				{
 					if(length == 1)
 					{
+						// (file, args, verb, directory, show, wait)
 						if(id[0] == IDENT_CMD)
-							return check(argc <= 3);
-						return check(argc >= 1 && argc <= 3);
+							return check(argc <= 6);
+						return check(argc >= 1 && argc <= 6);
 					}
 					else if(length == 2)
 					{

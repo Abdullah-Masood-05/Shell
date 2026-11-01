@@ -586,24 +586,7 @@ namespace Nilesoft
 					else
 					{
 						if(context->Runtime)
-						{
-							// Passed explicitly so the launched process still starts in
-							// the selected folder. This used to be inherited from the
-							// process working directory, which Selections changed on
-							// every menu.
-							auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
-							Object arg0 = eval_arg(0).move();
-							if(argc > 1)
-							{
-								Diagnostics::ShellExec::Run(arg0, eval_arg(1),
-															cwd, L"runas", eval_arg(2, SW_NORMAL));
-							}
-							else
-							{
-								Diagnostics::ShellExec::Run(arg0, nullptr,
-															cwd, L"open", SW_NORMAL);
-							}
-						}
+							eval_exec();
 						//else if(Id[0] == IDENT_CMD && argc == 0)
 						//	_result = IDENT_CMD;
 					}
@@ -636,11 +619,7 @@ namespace Nilesoft
 						}
 					}
 					else if(context->Runtime && argc > 0)
-					{
-						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
-						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
-															  eval_arg(2), eval_arg(3, SW_NORMAL));
-					}
+						eval_exec();
 					break;
 				}
 				case IDENT_THIS:
@@ -5933,6 +5912,87 @@ namespace Nilesoft
 
 			if(Id[1] == IDENT_EXISTS)
 				_result = false;
+		}
+
+		// exec, run, launch, cmd and shell(file, args, verb, directory, show, wait).
+		// Older forms keep working:
+		//   run(file)                 opens the file;
+		//   run(file, args[, show])   starts it as administrator (runas), as before;
+		//   shell(file, args, verb[, show]).
+		// A number in the verb place is the show value (the old third argument), and a
+		// number in the directory place is too (shell's old fourth argument). The
+		// directory defaults to the folder of the selection. Unless wait is given, the
+		// command waits for the program to end when its window is not hidden, which is
+		// what the older forms did. shell() gives the program's exit code once it ended;
+		// the others give nothing, as before, because an item's cmd= would otherwise try
+		// to run that number as a program.
+		void FuncExpression::eval_exec()
+		{
+			auto argc = Arguments.size();
+			if(argc == 0)
+				return;
+
+			const bool is_shell = Id[0] == IDENT_SHELL;
+
+			string file = eval_arg(0).to_string().move();
+			string args;
+			string verb;
+			string dir;
+			int show = SW_SHOWNORMAL;
+			int wait = -1;
+
+			if(argc > 1)
+				args = eval_arg(1).to_string().move();
+
+			if(argc > 2)
+			{
+				Object a = eval_arg(2).move();
+				if(a.is_number())
+					show = static_cast<int>(a);
+				else if(!a.is_null())
+					verb = a.to_string().move();
+			}
+
+			if(argc > 3)
+			{
+				Object a = eval_arg(3).move();
+				if(a.is_number())
+					show = static_cast<int>(a);
+				else if(!a.is_null())
+					dir = a.to_string().move();
+			}
+
+			if(argc > 4)
+			{
+				Object a = eval_arg(4).move();
+				if(!a.is_null())
+					show = static_cast<int>(a);
+			}
+
+			if(argc > 5)
+			{
+				Object a = eval_arg(5).move();
+				if(!a.is_null())
+					wait = a.to_bool();
+			}
+
+			verb.trim();
+			if(verb.empty() && !is_shell)
+				verb = argc > 1 ? L"runas" : L"open";
+
+			dir.trim();
+			if(dir.empty() && context->Selections)
+				dir = context->Selections->Directory;
+
+			if(wait < 0)
+				wait = show != SW_HIDE;
+
+			auto code = Diagnostics::ShellExec::Run(file, args.empty() ? nullptr : args.c_str(),
+													dir.empty() ? nullptr : dir.c_str(),
+													verb.empty() ? nullptr : verb.c_str(),
+													wait != 0, show);
+			if(is_shell)
+				_result = code;
 		}
 
 		void FuncExpression::eval_icon()

@@ -228,6 +228,7 @@ namespace Nilesoft
 			void eval_reg();
 			void eval_msg();
 			void eval_icon();
+			void eval_exec();
 
 			Object eval_key();
 			Object eval_color();
