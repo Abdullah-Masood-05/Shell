@@ -313,6 +313,21 @@ struct taskbar_t
 
 	static bool is_allowed_area(HWND hTaskbar, const Point &pt)
 	{
+		// One right-click asks twice, in WM_MOUSEACTIVATE and then WM_CONTEXTMENU,
+		// and each answer is a UI Automation call into the taskbar. The same
+		// taskbar and point within 150 ms reuses the first answer.
+		static thread_local struct
+		{
+			ULONGLONG time = 0;
+			HWND taskbar = nullptr;
+			Point pt{};
+			bool result = false;
+		} last;
+
+		const auto now = ::GetTickCount64();
+		if(last.time && now - last.time < 150 && last.taskbar == hTaskbar && last.pt.x == pt.x && last.pt.y == pt.y)
+			return last.result;
+
 		bool ret = false;
 
 		if(!_IUIAutomation)
@@ -369,6 +384,11 @@ struct taskbar_t
 				}
 			}
 		}
+
+		last.time = now;
+		last.taskbar = hTaskbar;
+		last.pt = pt;
+		last.result = ret;
 		return ret;
 	}
 
