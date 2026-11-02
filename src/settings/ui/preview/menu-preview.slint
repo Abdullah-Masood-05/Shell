@@ -40,20 +40,40 @@ export component MenuSurface inherits Rectangle {
     property <string> family: t.font-family != "" ? t.font-family : root.default-family;
     property <length> label-x: (t.item-pad-left * root.zoom) + (t.show-images ? (t.image-size * root.zoom) + (t.image-gap * root.zoom) : 0px);
 
+    // The Snippets preview, short of room: no keys= text on the right (it's the first
+    // thing to go so the submenu fits next to this menu).
+    in property <bool> hide-keys;
+    // The rows a submenu next to this one would be level with (unzoomed, in this menu's
+    // coordinates), for keep-end.
+    in property <length> cover-top: 0px;
+    in property <length> cover-bottom: 100000px;
+
+    property <length> chrome-width: t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px);
     // The width at zoom 1, for placing the menus in the pane.
-    out property <length> natural-width: max(t.min-width, t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
+    out property <length> natural-width: root.hide-keys ? root.bare-width : root.keyed-width;
+    // natural-width with keys= text and without it.
+    out property <length> keyed-width: max(t.min-width, root.chrome-width + measure.preferred-width + t.font-size * 3 + t.item-pad-right);
+    out property <length> bare-width: max(t.min-width, root.chrome-width + bare.preferred-width + t.font-size * 3 + t.item-pad-right);
 
     // Without the theme's minimum width and the spare room after the labels: as narrow as
     // the menu gets before a label is cut (the Snippets preview, when space is short).
-    out property <length> tight-width: t.pad-left + t.pad-right + t.item-mar-left + t.item-mar-right + t.item-pad-left + (t.show-images ? t.image-size + t.image-gap : 0px) + measure.preferred-width + t.font-size * 0.72 + 20px + t.item-pad-right;
-    // Where the open row's label ends: a submenu short of room may cover this menu up to
-    // there, never the label itself.
-    // (keys= text included).
-    out property <length> open-label-end: t.pad-left + t.item-mar-left + root.label-x + open-label.preferred-width
-        + (open-keys.text != "" ? root.keys-gap + open-keys.preferred-width : 0px) + 12px;
+    out property <length> tight-width: root.chrome-width + (root.hide-keys ? bare.preferred-width : measure.preferred-width) + t.font-size * 0.72 + 20px + t.item-pad-right;
+    // How far a submenu short of room may cover this menu from the right: never the open
+    // row's label or the snippet's rows' labels (keys= text included) level with it, and
+    // no more of Windows' own rows' labels than their first 56 px.
+    out property <length> keep-end: t.pad-left + t.item-mar-left + root.label-x + max(keep.preferred-width, min(56px, faded.preferred-width)) + 12px;
     // keys= text: a little smaller than the label, like Windows' shortcut column.
     property <length> keys-size: t.font-size * 0.92;
     property <length> keys-gap: 24px;
+
+    // A row keep-end keeps clear: the open one, and the snippet's level with the submenu.
+    pure function kept(it: PreviewItem, i: int) -> bool {
+        return !it.separator && (i == root.menu.open
+            || (it.own && !it.ghost && it.y + it.h > root.cover-top && it.y < root.cover-bottom));
+    }
+    pure function fades(it: PreviewItem, i: int) -> bool {
+        return !it.separator && !root.kept(it, i) && it.y + it.h > root.cover-top && it.y < root.cover-bottom;
+    }
 
     width: min(root.natural-width, root.cap-width) * root.zoom;
     height: (root.menu.height * root.zoom);
@@ -69,17 +89,42 @@ export component MenuSurface inherits Rectangle {
         height: 0px;
         clip: true;
         opacity: 0;
-        open-label := Text {
-            text: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].label : "";
-            font-size: t.font-size;
-            font-family: root.family;
-            font-weight: t.font-weight;
-            font-italic: t.italic;
+        keep := VerticalLayout {
+            for it[i] in root.menu.items: HorizontalLayout {
+                Text {
+                    text: root.kept(it, i) ? it.label : "";
+                    font-size: t.font-size;
+                    font-family: root.family;
+                    font-weight: t.font-weight;
+                    font-italic: t.italic;
+                }
+                if root.kept(it, i) && it.keys != "" && !root.hide-keys: Rectangle {
+                    width: root.keys-gap;
+                }
+                if root.kept(it, i) && it.keys != "" && !root.hide-keys: Text {
+                    text: it.keys;
+                    font-size: root.keys-size;
+                    font-family: root.family;
+                }
+            }
         }
-        open-keys := Text {
-            text: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].keys : "";
-            font-size: root.keys-size;
-            font-family: root.family;
+        faded := VerticalLayout {
+            for it[i] in root.menu.items: Text {
+                text: root.fades(it, i) ? it.label : "";
+                font-size: t.font-size;
+                font-family: root.family;
+                font-weight: t.font-weight;
+                font-italic: t.italic;
+            }
+        }
+        bare := VerticalLayout {
+            for it in root.menu.items: Text {
+                text: it.label;
+                font-size: t.font-size;
+                font-family: root.family;
+                font-weight: t.font-weight;
+                font-italic: t.italic;
+            }
         }
         measure := VerticalLayout {
             for it in root.menu.items: HorizontalLayout {
@@ -193,13 +238,21 @@ export component MenuSurface inherits Rectangle {
                     border-radius: (t.item-radius * root.zoom) + 2px;
                 }
             }
-            if !it.separator: Rectangle {
+            // The hover background, not faded with the row's text: a row of Windows' own
+            // that is open (View with the snippet's items in it) looks open like any other.
+            if !it.separator && selected: Rectangle {
                 x: (t.item-mar-left * root.zoom);
                 y: (t.item-mar-top * root.zoom);
                 width: parent.width - (t.item-mar-left * root.zoom) - (t.item-mar-right * root.zoom);
                 height: parent.height - (t.item-mar-top * root.zoom) - (t.item-mar-bottom * root.zoom);
                 border-radius: (t.item-radius * root.zoom);
-                background: !selected ? transparent : it.disabled ? t.back-dis-sel : t.back-sel;
+                background: it.disabled && !ghost ? t.back-dis-sel : t.back-sel;
+            }
+            if !it.separator: Rectangle {
+                x: (t.item-mar-left * root.zoom);
+                y: (t.item-mar-top * root.zoom);
+                width: parent.width - (t.item-mar-left * root.zoom) - (t.item-mar-right * root.zoom);
+                height: parent.height - (t.item-mar-top * root.zoom) - (t.item-mar-bottom * root.zoom);
                 accessible-role: list-item;
                 accessible-label: it.label;
                 // Windows' own rows (Snippets preview): drawn as they are, but faded.
@@ -209,7 +262,7 @@ export component MenuSurface inherits Rectangle {
                 property <bool> dis: it.disabled && !ghost;
                 property <color> ink: dis || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
                 property <length> chevron-room: it.sub >= 0 ? (t.font-size * root.zoom) * 0.72 + 12px : 0px;
-                property <length> keys-room: it.keys != "" ? keys.preferred-width + root.keys-gap * root.zoom : 0px;
+                property <length> keys-room: it.keys != "" && !root.hide-keys ? keys.preferred-width + root.keys-gap * root.zoom : 0px;
 
                 // Icons on whole pixels, so they stay sharp.
                 if t.show-images && it.has-icon: Image {
@@ -275,7 +328,7 @@ export component MenuSurface inherits Rectangle {
                 }
                 // keys= on the right, before the chevron, dimmed like Windows' shortcuts.
                 keys := Text {
-                    visible: it.keys != "";
+                    visible: it.keys != "" && !root.hide-keys;
                     x: parent.width - (t.item-pad-right * root.zoom) - chevron-room - self.width;
                     width: self.preferred-width;
                     height: parent.height;

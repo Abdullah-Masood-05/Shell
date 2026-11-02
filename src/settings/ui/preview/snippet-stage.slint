@@ -140,18 +140,23 @@ export component SnippetStage inherits Rectangle {
     property <int> first-sub: root.menu.open >= 0 && root.menu.open < root.menu.items.length ? root.menu.items[root.menu.open].sub : -1;
     property <bool> has-first-sub: root.showing-menu && root.first-sub >= 0 && root.first-sub < root.subs.length;
 
-    // Each menu at most stage-menu-max wide. Short of room: the main menu shrinks to its
-    // content (Windows' rows included), then the submenu covers the main menu's right part
-    // like Windows does near a screen edge (never the open row's label), and only then
-    // do the submenu's labels elide.
+    // Each menu at most stage-menu-max wide. Short of room: the main menu drops its keys=
+    // text, then shrinks to its content (Windows' rows included), then the submenu covers
+    // the main menu's right part like Windows does near a screen edge (never the open
+    // row's label or the snippet's labels level with it, at most the end of Windows' own
+    // labels), and only then do the submenu's labels elide. (Opening the submenu to the
+    // left wouldn't help: the stage has the same room on both sides, and covering the
+    // main menu from the left covers every label's start.)
     property <length> avail: root.width - 2 * root.menu-edge;
-    property <length> main-want: min(Tokens.stage-menu-max, main.natural-width);
     property <length> sub-want: min(Tokens.stage-menu-max, probe.natural-width);
+    property <bool> hide-main-keys: root.has-first-sub && main.keyed-width > main.bare-width
+        && min(Tokens.stage-menu-max, main.keyed-width) + root.gap + root.sub-want > root.avail;
+    property <length> main-want: min(Tokens.stage-menu-max, main.natural-width);
     property <length> main-cap: !root.has-first-sub ? min(root.main-want, root.avail)
         : root.main-want + root.gap + root.sub-want <= root.avail ? root.main-want
         : max(120px, min(root.main-want, main.tight-width));
     // How far the submenu may cover the main menu, and how far it does.
-    property <length> max-overlap: max(0px, main.width + root.gap - main.open-label-end);
+    property <length> max-overlap: max(0px, main.width + root.gap - main.keep-end);
     property <length> sub-cap: !root.has-first-sub ? Tokens.stage-menu-max
         : max(120px, min(root.sub-want, root.avail - main.width - root.gap + root.max-overlap));
     property <length> overlap: !root.has-first-sub ? 0px
@@ -204,6 +209,9 @@ export component SnippetStage inherits Rectangle {
         outline: true;
         outline-color: root.outline-color;
         cap-width: root.main-cap;
+        hide-keys: root.hide-main-keys;
+        cover-top: root.first-sub-dy;
+        cover-bottom: root.first-sub-dy + probe.height;
         t: root.t;
         menu: root.menu;
         icon-font: root.icon-font;
