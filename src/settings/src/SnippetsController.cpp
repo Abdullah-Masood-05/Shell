@@ -354,6 +354,7 @@ std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePrevi
     // The snippet's own $variables, for titles and where= that read them.
     sp::ImageDefs own;
     sp::collectImageDefs(text, own);
+    out->frameKeys = sp::frameKeysOf(snippetDoc);
     for (size_t i = 0; i < runs.size(); ++i) {
         if (!runs[i].tree || !runs[i].tree->ok)
             continue;
@@ -571,12 +572,12 @@ void SnippetsController::pushPreview()
     // The stage's room for the menus (snippet-stage.slint: stage-max less the chip's
     // room above and the room below): a longer menu is cut, with "+N more".
     constexpr float kRoom = 420 - 48 - 28;
-    auto composed = sp::compose(ctx.context, ctx.items, tr);
+    auto composed = sp::compose(ctx.context, ctx.items, tr, p.frameKeys);
     sp::fitHeight(composed, metrics, kRoom);
     // The stage as tall as the tallest context needs, so it doesn't jump between tabs.
     float tallest = 0;
     for (const auto &c : p.contexts) {
-        auto other = sp::compose(c.context, c.items, tr);
+        auto other = sp::compose(c.context, c.items, tr, p.frameKeys);
         sp::fitHeight(other, metrics, kRoom);
         tallest = std::max(tallest, sp::pairHeight(other, metrics));
     }

@@ -63,6 +63,7 @@ private:
         std::vector<Items> contexts;          // the ones where it adds items, in order
         snippetpreview::Sample sample;
         snippetpreview::ImageDefs defs;
+        snippetpreview::FrameKeys frameKeys;  // keys= its modify() rules give Windows' own items
         std::map<std::string, Pixels> files;  // file icons, by Icon::path + "," + index
     };
 
