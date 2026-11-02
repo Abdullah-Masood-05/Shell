@@ -47,6 +47,7 @@ export global SnippetsState {
     in property <int> preview-context;
     in property <int> preview-pane;         // PreviewPane's context: 0 desktop, 1 File Explorer
     in property <PreviewMenu> preview-menu;
+    in property <length> preview-min-height;  // the menus of the tallest context (stage height)
     in property <[PreviewMenu]> preview-subs;
     in property <[CodeLine]> preview-code;  // "code": the snippet's code instead
     in property <int> preview-code-columns;

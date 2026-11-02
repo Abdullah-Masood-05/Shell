@@ -986,6 +986,30 @@ bool shiftOnly(std::string_view where)
     return false;
 }
 
+// sel, sel.path, @sel.count, sel(false, "\n"): the expression reads the selection,
+// itself or through one of the snippet's variables ($ext_dir = regex.matches(sel, ...)).
+bool readsSelection(std::string_view expr, const std::map<std::string, std::string> *vars, int depth = 0)
+{
+    const auto low = lower(expr);
+    for (size_t at = 0; at < low.size();) {
+        if (!isIdent(low[at]) || (at > 0 && isIdent(low[at - 1]))) {
+            ++at;
+            continue;
+        }
+        size_t end = at;
+        while (end < low.size() && isIdent(low[end]))
+            ++end;
+        const auto name = low.substr(at, end - at);
+        if (name == "sel" || name.starts_with("sel."))
+            return true;
+        if (vars && depth < 8)
+            if (auto v = vars->find(name); v != vars->end() && readsSelection(v->second, vars, depth + 1))
+                return true;
+        at = end;
+    }
+    return false;
+}
+
 std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc, const ImageDefs &defs,
                             const Icon *parentIcon, const Example *example)
 {
@@ -1025,6 +1049,10 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
                         it.dynamicTitle = false;
                     }
         }
+        // title=sys.ver.name, str.res(...): worked out when the menu opens, but not from the selection.
+        if (it.dynamicTitle)
+            if (auto expr = prop(doc, *decl, { "title" }))
+                it.fromSelection = readsSelection(*expr, example ? &example->snippetVars : nullptr);
         // keys= written as text; one that is worked out (keys=@x) is left out.
         if (auto keys = prop(doc, *decl, { "keys" }); keys && isQuoted(*keys)) {
             auto k = unquote(*keys);
@@ -1071,13 +1099,66 @@ std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const fs::pat
     for (const auto &n : shell) {
         if (nss::pathKey(n.file) != key)
             continue;
-        if (auto it = convert(n, snippet, defs, nullptr, example))
+        if (auto it = convert(n, snippet, defs, nullptr, example)) {
+            // menu=title.send_to: a menu of Windows' own (Shell's tree only moves items
+            // into its own menus, so it stays here; the real menu has it in Send to).
+            if (!n.menu.empty() && n.menu != "/" && !n.relocated && !n.menuDynamic)
+                it->host = n.menu;
             out.push_back(std::move(*it));
+        }
     }
     // A snippet of separators only adds nothing.
     if (std::all_of(out.begin(), out.end(), [](const Item &i) { return i.kind == "separator"; }))
         out.clear();
     return out;
+}
+
+namespace {
+
+// "Se&nd to" -> "send to": a menu's title as menu= matches it.
+std::string menuKey(std::string_view title)
+{
+    std::string out;
+    for (char c : title)
+        if (c != '&')
+            out += c;
+    return lower(trimmed(out));
+}
+
+void collectMenus(const std::vector<menumap::Node> &nodes, std::vector<std::string> &out)
+{
+    for (const auto &n : nodes)
+        if (n.kind == "menu") {
+            out.push_back(menuKey(n.rawTitle.empty() ? n.title : n.rawTitle));
+            collectMenus(n.children, out);
+        }
+}
+
+} // namespace
+
+void dropMissingHosts(std::vector<Item> &items, Context context, const std::vector<menumap::Node> &system)
+{
+    std::vector<std::string> menus;
+    collectMenus(system, menus);
+    // The ones Windows (in English) always has there, for a tree without Windows' items.
+    switch (context) {
+    case Context::File:
+    case Context::Folder:
+    case Context::Drive:
+        menus.insert(menus.end(), { "send to", "open with", "give access to" });
+        break;
+    case Context::Back:
+    case Context::Desktop:
+        menus.insert(menus.end(), { "view", "sort by", "group by", "new" });
+        break;
+    case Context::Taskbar:
+        break;
+    }
+    std::erase_if(items, [&](const Item &it) {
+        return !it.host.empty() && std::find(menus.begin(), menus.end(), menuKey(it.host)) == menus.end();
+    });
+    if (std::all_of(items.begin(), items.end(), [](const Item &i) { return i.kind == "separator"; }))
+        items.clear();
 }
 
 // --- example values ---------------------------------------------------------------------
@@ -1086,18 +1167,26 @@ Example exampleFor(Context c, const Sample &sample)
 {
     Example ex;
     auto &v = ex.vars;
-    // A selection like the user's own: path, its folder, name, title (no extension) and extension.
-    auto set = [&](const std::string &path, const std::string &dir, const std::string &name, const std::string &title,
+    // A selection like the user's own: path, the folder it is in, name, title (no
+    // extension) and extension. As in Shell, sel.dir is the item itself unless it is a
+    // file (then its folder), and sel.file is its name.
+    auto set = [&](const std::string &path, const std::string &parent, const std::string &name, const std::string &title,
                    const std::string &ext, const std::string &shortPath) {
-        for (const char *k : { "sel", "sel.path", "sel.raw", "sel.file", "sel.file.path" })
+        for (const char *k : { "sel", "sel.path", "sel.raw" })
             v[k] = path;
         v["sel.short"] = shortPath;
-        for (const char *k : { "sel.dir", "sel.parent", "sel.parent.raw", "sel.dir.path" })
-            v[k] = dir;
-        const auto cut = dir.find_last_of('\\');
-        const std::string dirName = cut == std::string::npos ? dir : dir.substr(cut + 1);
-        v["sel.dir.name"] = v["sel.parent.name"] = dirName;
-        for (const char *k : { "sel.name", "sel.file.name", "sel.path.name" })
+        for (const char *k : { "sel.parent", "sel.parent.raw" })
+            v[k] = parent;
+        const std::string dir = c == Context::File ? parent : path;
+        v["sel.dir"] = v["sel.dir.path"] = dir;
+        // Path::Title: the last part ("Projects"), a drive's root as it is ("D:\").
+        auto titleOf = [](const std::string &p) {
+            const auto cut = p.find_last_of('\\');
+            return p.size() <= 3 || cut == std::string::npos ? p : p.substr(cut + 1);
+        };
+        v["sel.dir.name"] = v["sel.dir.title"] = titleOf(dir);
+        v["sel.parent.name"] = titleOf(parent);
+        for (const char *k : { "sel.name", "sel.file", "sel.file.name", "sel.path.name" })
             v[k] = name;
         for (const char *k : { "sel.title", "sel.file.title", "sel.path.title" })
             v[k] = title;
@@ -1115,10 +1204,12 @@ Example exampleFor(Context c, const Sample &sample)
                                   : e == ".lnk"                             ? "Notepad"
                                                                             : "report";
         set(docs + "\\" + title + e, docs, title + e, title, e, docs + "\\" + title + e);
+        v["sel.type"] = "1"; // type.file
         break;
     }
     case Context::Folder:
         set(docs + "\\Projects", docs, "Projects", "Projects", "", docs + "\\PROJEC~1");
+        v["sel.type"] = "3"; // type.dir
         break;
     case Context::Back:
         set(docs, "D:\\", "Work", "Work", "", docs);
@@ -1164,7 +1255,7 @@ Val text(std::string s) { return { false, 0, std::move(s) }; }
 class Eval
 {
 public:
-    Eval(std::string_view src, const Example &ex) : s_(src), ex_(ex) {}
+    Eval(std::string_view src, const Example &ex, int depth = 0) : s_(src), ex_(ex), depth_(depth) {}
 
     std::optional<Val> run()
     {
@@ -1178,8 +1269,10 @@ public:
 private:
     std::string_view s_;
     const Example &ex_;
+    int depth_ = 0;    // a snippet variable's value read through another's
     size_t pos_ = 0;
     bool bad_ = false; // text it can't read at all (an unknown value is only nullopt)
+    bool listed_ = false; // the last value read was an entry of a list (ip[0])
 
     std::nullopt_t fail()
     {
@@ -1299,14 +1392,44 @@ private:
             return postfix(v);
         }
         if (c == '\'' || c == '"') {
-            const size_t end = s_.find(c, pos_ + 1);
-            if (end == std::string_view::npos)
-                return fail();
-            std::string lit(s_.substr(pos_ + 1, end - pos_ - 1));
-            pos_ = end + 1;
-            if (lit.find('@') != std::string::npos) // @expressions inside the string
-                return std::nullopt;
-            return text(std::move(lit));
+            // 'Create shortcut@if(sel.count>1, 's')': @name, @call(...) and @(expr) in the
+            // text are read where they are (their own quotes don't end the string).
+            ++pos_;
+            std::string lit;
+            bool known = true;
+            while (pos_ < s_.size()) {
+                const char ch = s_[pos_];
+                if (ch == c) {
+                    ++pos_;
+                    return known ? std::optional<Val>(text(std::move(lit))) : std::nullopt;
+                }
+                if (ch == '@' && pos_ + 1 < s_.size()) {
+                    const char at = s_[pos_ + 1];
+                    if (at == '(' || std::isalpha(static_cast<unsigned char>(at)) || at == '_') {
+                        ++pos_;
+                        std::optional<Val> v;
+                        if (at == '(') {
+                            ++pos_;
+                            v = orExpr();
+                            if (!eat(")"))
+                                return fail();
+                        } else {
+                            v = reference(true);
+                        }
+                        if (bad_)
+                            return std::nullopt;
+                        if (v)
+                            lit += v->text();
+                        else
+                            known = false;
+                        continue;
+                    }
+                    known = false; // @"\t" and the like
+                }
+                lit += ch;
+                ++pos_;
+            }
+            return fail();
         }
         if (std::isdigit(static_cast<unsigned char>(c))) {
             size_t end = pos_;
@@ -1318,37 +1441,51 @@ private:
         }
         if (c == '@')
             ++pos_;
+        return reference();
+    }
+    // name, name.part, call(args), each with [n] after it. In a string's text a space
+    // ends it ('@sel.count (x)' is no call).
+    std::optional<Val> reference(bool inText = false)
+    {
         size_t end = pos_;
         while (end < s_.size() && isIdent(s_[end]))
             ++end;
+        // '@sel.file.ext.': the sentence's full stop isn't part of the name.
+        while (end > pos_ + 1 && s_[end - 1] == '.')
+            --end;
         if (end == pos_)
             return fail();
         const std::string name = lower(s_.substr(pos_, end - pos_));
         pos_ = end;
-        skip();
+        if (!inText)
+            skip();
         if (pos_ < s_.size() && s_[pos_] == '(') {
             ++pos_;
             std::vector<std::optional<Val>> args;
+            std::vector<bool> listed;
             skip();
             if (!eat(")")) {
-                do
+                do {
                     args.push_back(orExpr());
-                while (eat(","));
+                    listed.push_back(listed_);
+                } while (eat(","));
                 if (!eat(")"))
                     return fail();
             }
-            return postfix(call(name, args));
+            return postfix(call(name, args, listed));
         }
         return postfix(variable(name));
     }
     // ip[0], name[1]: read past it; the value isn't known.
     std::optional<Val> postfix(std::optional<Val> v)
     {
+        listed_ = false;
         while (eat("[")) {
             orExpr();
             if (!eat("]"))
                 return fail();
             v = std::nullopt;
+            listed_ = true;
         }
         return v;
     }
@@ -1361,38 +1498,50 @@ private:
             return number(0);
         if (name == "sel.count")
             return number(ex_.count);
+        if (name == "sel.type")
+            if (auto it = ex_.vars.find(name); it != ex_.vars.end())
+                return number(std::atof(it->second.c_str()));
         if (auto it = ex_.vars.find(name); it != ex_.vars.end())
             return text(it->second);
         // sel.parent.len: the length of the text.
         if (name.size() > 4 && name.ends_with(".len"))
             if (auto it = ex_.vars.find(name.substr(0, name.size() - 4)); it != ex_.vars.end())
                 return number(double(it->second.size()));
+        // The snippet's own $menu_db_name = 'Dropbox'.
+        if (auto it = ex_.snippetVars.find(name); it != ex_.snippetVars.end() && depth_ < 8)
+            return Eval(it->second, ex_, depth_ + 1).run();
         return std::nullopt;
     }
 
-    std::optional<Val> call(const std::string &f, const std::vector<std::optional<Val>> &a)
+    std::optional<Val> call(const std::string &f, const std::vector<std::optional<Val>> &a, const std::vector<bool> &listed)
     {
         // Calls that answer whatever their arguments are.
         if (f == "app.exists")
             return number(0); // nothing saved yet
         if (f == "app.get")
             return text("");
-        if (f == "path.exists") {
-            if (a.size() != 1 || !a[0])
-                return number(0);
+        if (f == "path.exists" && a.size() == 1) {
+            // ip[toint(do[0])]: a path the snippet saves later; none yet.
+            if (!a[0])
+                return listed[0] ? std::optional<Val>(number(0)) : std::nullopt;
             const auto p = lower(a[0]->text());
-            for (const char *k : { "sel.path", "sel.dir" })
+            for (const char *k : { "sel.path", "sel.dir", "sel.parent" })
                 if (auto it = ex_.vars.find(k); it != ex_.vars.end() && lower(it->second) == p)
                     return number(1);
-            return number(0);
+            // sys.prog + '\7-Zip\7z.exe': there on some PCs, so not known.
+            return std::nullopt;
+        }
+        // if(): only the branch it takes has to be known.
+        if (f == "if" && (a.size() == 2 || a.size() == 3)) {
+            if (!a[0])
+                return std::nullopt;
+            return a[0]->truth() ? a[1] : a.size() == 3 ? a[2] : std::optional<Val>(text(""));
         }
         for (const auto &v : a)
             if (!v)
                 return std::nullopt;
         auto s = [&](size_t i) { return a[i]->text(); };
         auto n = [&](size_t i) { return a[i]->num ? a[i]->n : std::atof(a[i]->s.c_str()); };
-        if (f == "if" && (a.size() == 2 || a.size() == 3))
-            return a[0]->truth() ? *a[1] : a.size() == 3 ? *a[2] : text("");
         if ((f == "len" || f == "str.len" || f == "length") && a.size() == 1)
             return number(double(s(0).size()));
         if (f == "str.replace" && a.size() == 3) {
@@ -1439,11 +1588,24 @@ private:
         if (f == "str.trim" && a.size() == 1)
             return text(trimmed(s(0)));
         if (f == "str.fmt" && !a.empty()) {
-            auto r = s(0);
-            for (size_t i = 1; i < a.size(); ++i) {
-                const auto key = "{" + std::to_string(i - 1) + "}";
-                for (size_t at = r.find(key); at != std::string::npos; at = r.find(key))
-                    r.replace(at, key.size(), s(i));
+            // One pass: a value with "{0}" in it stays as it is.
+            const auto fmt = s(0);
+            std::string r;
+            for (size_t i = 0; i < fmt.size(); ++i) {
+                if (fmt[i] == '{') {
+                    const size_t close = fmt.find('}', i);
+                    if (close != std::string::npos && close > i + 1 &&
+                        std::all_of(fmt.begin() + long(i) + 1, fmt.begin() + long(close),
+                                    [](char ch) { return std::isdigit(static_cast<unsigned char>(ch)) != 0; })) {
+                        const size_t k = size_t(std::atoi(fmt.substr(i + 1, close - i - 1).c_str())) + 1;
+                        if (k < a.size()) {
+                            r += s(k);
+                            i = close;
+                            continue;
+                        }
+                    }
+                }
+                r += fmt[i];
             }
             return text(r);
         }
@@ -1554,7 +1716,9 @@ void flatten(const std::vector<Item> &items, std::vector<Row> &rows, std::vector
             r.icon = it.icon;
             r.disabled = it.disabled;
             r.placeholder = it.dynamicTitle;
-            r.label = it.dynamicTitle ? tr(nsp::mark("Name from the selection")) : it.title;
+            r.label = !it.dynamicTitle     ? it.title
+                      : it.fromSelection ? tr(nsp::mark("Name from the selection"))
+                                         : tr(nsp::mark("Worked out when the menu opens"));
             r.accel = it.dynamicTitle ? -1 : it.accel;
             r.keys = it.keys;
             if (it.kind == "menu") {
@@ -1574,49 +1738,13 @@ void flatten(const std::vector<Item> &items, std::vector<Row> &rows, std::vector
 
 } // namespace
 
-Composed compose(Context context, const std::vector<Item> &items, const Translate &tr)
+namespace {
+
+// The runs of the snippet's rows, for the outline around them.
+void markGroups(std::vector<Row> &rows)
 {
-    Composed out;
-    std::vector<Item> top, middle, bottom;
-    for (const auto &it : items)
-        (it.pos == Pos::Top ? top : it.pos == Pos::Bottom ? bottom : middle).push_back(it);
-
-    // `keep` of Windows' rows: the last ones before the snippet's, the first ones after.
-    auto frameRows = [&](std::vector<FrameItem> list, size_t keep, bool last) {
-        if (list.size() > keep)
-            list.erase(last ? list.begin() : list.begin() + long(keep), last ? list.end() - long(keep) : list.end());
-        for (const auto &f : list) {
-            if (!f.label) {
-                out.main.rows.push_back(separatorRow(false));
-                continue;
-            }
-            Row r;
-            r.label = tr(f.label);
-            r.icon = Icon{ IconKind::Glyph, utf8(f.glyph), GlyphFont::Segoe };
-            r.ghost = true;
-            out.main.rows.push_back(std::move(r));
-        }
-    };
-    auto ownRows = [&](const std::vector<Item> &list) {
-        if (list.empty())
-            return;
-        out.main.rows.push_back(separatorRow(false));
-        flatten(list, out.main.rows, out.subs, tr);
-        out.main.rows.push_back(separatorRow(false));
-    };
-
-    const auto frame = frameOf(context);
-    ownRows(top);
-    frameRows(frame.before, 2, true);
-    ownRows(middle);
-    frameRows(frame.after, 1, false);
-    ownRows(bottom);
-    tidy(out.main.rows);
-    for (auto &m : out.subs)
-        tidy(m.rows);
-
-    // The runs of the snippet's rows, for the outline around them.
-    auto &rows = out.main.rows;
+    for (auto &r : rows)
+        r.groupFirst = r.groupLast = false;
     for (size_t i = 0; i < rows.size();) {
         if (!rows[i].own || rows[i].separator) {
             ++i;
@@ -1633,15 +1761,225 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
         rows[last].groupLast = true;
         i = j;
     }
+}
 
-    for (size_t i = 0; i < out.main.rows.size(); ++i) {
-        const auto &r = out.main.rows[i];
+// The first of the snippet's menus with rows, else the first menu of Windows' own with
+// the snippet's items in it.
+int openRow(const Composed &c)
+{
+    for (int pass = 0; pass < 2; ++pass)
+        for (size_t i = 0; i < c.main.rows.size(); ++i) {
+            const auto &r = c.main.rows[i];
+            if (r.sub >= 0 && (pass == 1 || r.own) && !c.subs[size_t(r.sub)].rows.empty())
+                return int(i);
+        }
+    return -1;
+}
+
+std::string hostKey(std::string_view title)
+{
+    std::string out;
+    for (char c : title)
+        if (c != '&')
+            out += c;
+    return lower(trimmed(out));
+}
+
+} // namespace
+
+Composed compose(Context context, const std::vector<Item> &items, const Translate &tr)
+{
+    Composed out;
+    std::vector<Item> top, middle, bottom;
+    // menu=title.send_to: in that menu of Windows' own, in the order they'd go there.
+    std::vector<std::pair<std::string, std::vector<Item>>> hosts;
+    for (const auto &it : items) {
+        if (!it.host.empty()) {
+            auto h = std::find_if(hosts.begin(), hosts.end(), [&](const auto &x) { return hostKey(x.first) == hostKey(it.host); });
+            if (h == hosts.end())
+                h = hosts.insert(hosts.end(), { it.host, {} });
+            h->second.push_back(it);
+            continue;
+        }
+        (it.pos == Pos::Top ? top : it.pos == Pos::Bottom ? bottom : middle).push_back(it);
+    }
+    for (auto &h : hosts)
+        std::stable_sort(h.second.begin(), h.second.end(), [](const Item &a, const Item &b) {
+            auto rank = [](Pos p) { return p == Pos::Top ? 0 : p == Pos::Middle ? 1 : 2; };
+            return rank(a.pos) < rank(b.pos);
+        });
+    std::vector<bool> placed(hosts.size());
+    // The Windows row a host menu is: its submenu has the snippet's items.
+    auto hostOf = [&](const std::string &label) -> int {
+        for (size_t i = 0; i < hosts.size(); ++i)
+            if (!placed[i] && hostKey(hosts[i].first) == hostKey(label))
+                return int(i);
+        return -1;
+    };
+    auto hostRow = [&](Row &r, size_t h) {
+        placed[h] = true;
+        const size_t index = out.subs.size();
+        out.subs.emplace_back();
+        auto m = subMenu(hosts[h].second, out.subs, tr);
+        out.subs[index] = std::move(m);
+        r.sub = int(index);
+    };
+
+    // `keep` of Windows' rows: the last ones before the snippet's, the first ones after
+    // (and any that has the snippet's items in it).
+    auto frameRows = [&](std::vector<FrameItem> list, size_t keep, bool last) {
+        auto hosting = [&](const FrameItem &f) { return f.label && (hostOf(f.label) >= 0 || hostOf(tr(f.label)) >= 0); };
+        if (last)
+            for (size_t i = 0; i + keep < list.size(); ++i)
+                if (hosting(list[i])) {
+                    keep = list.size() - i;
+                    break;
+                }
+        if (!last)
+            for (size_t i = list.size(); i-- > keep;)
+                if (hosting(list[i])) {
+                    keep = i + 1;
+                    break;
+                }
+        if (list.size() > keep)
+            list.erase(last ? list.begin() : list.begin() + long(keep), last ? list.end() - long(keep) : list.end());
+        for (const auto &f : list) {
+            if (!f.label) {
+                out.main.rows.push_back(separatorRow(false));
+                continue;
+            }
+            Row r;
+            r.label = tr(f.label);
+            r.icon = Icon{ IconKind::Glyph, utf8(f.glyph), GlyphFont::Segoe };
+            r.ghost = true;
+            int h = hostOf(f.label);
+            if (h < 0)
+                h = hostOf(r.label);
+            if (h >= 0)
+                hostRow(r, size_t(h));
+            out.main.rows.push_back(std::move(r));
+        }
+    };
+    // Host menus not in the frame: a row of their own, as Windows titles it.
+    auto otherHosts = [&] {
+        for (size_t i = 0; i < hosts.size(); ++i) {
+            if (placed[i])
+                continue;
+            const auto t = splitTitle(hosts[i].first);
+            Row r;
+            r.label = t.label;
+            r.accel = t.accel;
+            r.ghost = true;
+            if (hostKey(hosts[i].first) == "send to")
+                r.icon = Icon{ IconKind::Glyph, utf8(0xE724), GlyphFont::Segoe };
+            hostRow(r, i);
+            out.main.rows.push_back(std::move(r));
+        }
+    };
+    auto ownRows = [&](const std::vector<Item> &list) {
+        if (list.empty())
+            return;
+        out.main.rows.push_back(separatorRow(false));
+        flatten(list, out.main.rows, out.subs, tr);
+        out.main.rows.push_back(separatorRow(false));
+    };
+
+    const auto frame = frameOf(context);
+    ownRows(top);
+    frameRows(frame.before, 2, true);
+    ownRows(middle);
+    otherHosts();
+    frameRows(frame.after, 1, false);
+    ownRows(bottom);
+    tidy(out.main.rows);
+    for (auto &m : out.subs)
+        tidy(m.rows);
+    markGroups(out.main.rows);
+
+    for (const auto &r : out.main.rows)
         if (r.own && !r.separator)
             ++out.own;
-        if (out.open < 0 && r.own && r.sub >= 0 && !out.subs[size_t(r.sub)].rows.empty())
-            out.open = int(i);
-    }
+    out.open = openRow(out);
     return out;
+}
+
+float heightOf(const Menu &menu, const Metrics &m)
+{
+    float h = m.top + m.bottom;
+    for (const auto &r : menu.rows)
+        h += r.separator ? m.sep : m.row;
+    return h;
+}
+
+namespace {
+
+// Where row `index` starts, from the menu's top.
+float rowY(const Menu &menu, size_t index, const Metrics &m)
+{
+    float y = m.top;
+    for (size_t i = 0; i < index && i < menu.rows.size(); ++i)
+        y += menu.rows[i].separator ? m.sep : m.row;
+    return y;
+}
+
+// Leaves out rows[at] (counted in `hidden` unless it's a separator).
+void dropRow(Menu &menu, size_t at)
+{
+    if (!menu.rows[at].separator)
+        ++menu.hidden;
+    menu.rows.erase(menu.rows.begin() + long(at));
+}
+
+} // namespace
+
+float pairHeight(const Composed &c, const Metrics &m)
+{
+    float h = heightOf(c.main, m);
+    if (c.open >= 0 && size_t(c.open) < c.main.rows.size()) {
+        const int sub = c.main.rows[size_t(c.open)].sub;
+        if (sub >= 0 && size_t(sub) < c.subs.size())
+            h = std::max(h, rowY(c.main, size_t(c.open), m) - m.top + heightOf(c.subs[size_t(sub)], m));
+    }
+    return h;
+}
+
+void fitHeight(Composed &c, const Metrics &m, float room)
+{
+    // The main menu: the rows after the open one go first, then the ones before it.
+    auto &main = c.main;
+    const Row *open = c.open >= 0 && size_t(c.open) < main.rows.size() ? &main.rows[size_t(c.open)] : nullptr;
+    size_t at = open ? size_t(c.open) : 0;
+    while (heightOf(main, m) > room && main.rows.size() > at + 1)
+        dropRow(main, main.rows.size() - 1);
+    while (heightOf(main, m) > room && at > 0) {
+        dropRow(main, 0);
+        --at;
+    }
+    if (main.hidden) {
+        tidy(main.rows);
+        markGroups(main.rows);
+        c.open = openRow(c);
+    }
+    // Each submenu below its row, level with it; one that has no row here from the top.
+    for (size_t s = 0; s < c.subs.size(); ++s) {
+        float dy = 0;
+        for (size_t i = 0; i < main.rows.size(); ++i)
+            if (main.rows[i].sub == int(s))
+                dy = rowY(main, i, m) - m.top;
+        auto &sub = c.subs[s];
+        // At least a few rows, even next to a row low in a tall menu.
+        const float budget = std::max(room - dy, m.top + m.bottom + 3 * m.row);
+        bool cut = false;
+        while (heightOf(sub, m) > budget && sub.rows.size() > 1) {
+            dropRow(sub, sub.rows.size() - 1);
+            cut = true;
+        }
+        if (cut) {
+            // No separator last.
+            while (!sub.rows.empty() && sub.rows.back().separator)
+                sub.rows.pop_back();
+        }
+    }
 }
 
 } // namespace snippetpreview

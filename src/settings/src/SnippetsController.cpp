@@ -148,7 +148,8 @@ std::string captionOf(sp::Context c, const sp::Sample &sample)
 {
     switch (c) {
     case sp::Context::File:
-        return sample.fromSnippet ? nsp::trf("Right-click a {} file", sample.extension) : nsp::tr("Right-click a file");
+        // ".zip" stays together in a right-to-left sentence (Arabic).
+        return sample.fromSnippet ? nsp::trf("Right-click a {} file", nsp::ltr(sample.extension)) : nsp::tr("Right-click a file");
     case sp::Context::Folder: return nsp::tr("Right-click a folder");
     case sp::Context::Back: return nsp::tr("Right-click inside a folder");
     case sp::Context::Desktop: return nsp::tr("Right-click the desktop");
@@ -350,11 +351,16 @@ std::shared_ptr<const SnippetsController::Preview> SnippetsController::makePrevi
             out->error = nsp::tr("shell.exe couldn't load the snippet");
         return out;
     }
+    // The snippet's own $variables, for titles and where= that read them.
+    sp::ImageDefs own;
+    sp::collectImageDefs(text, own);
     for (size_t i = 0; i < runs.size(); ++i) {
         if (!runs[i].tree || !runs[i].tree->ok)
             continue;
-        const auto example = sp::exampleFor(sp::kContexts[i], out->sample);
+        auto example = sp::exampleFor(sp::kContexts[i], out->sample);
+        example.snippetVars = own.vars;
         auto items = sp::itemsOf(runs[i].tree->shell, snippetFile, snippetDoc, out->defs, &example);
+        sp::dropMissingHosts(items, sp::kContexts[i], runs[i].tree->system);
         if (!items.empty())
             out->contexts.push_back({ sp::kContexts[i], std::move(items) });
     }
@@ -559,8 +565,22 @@ void SnippetsController::pushPreview()
     st.set_preview_glyph(ss(chipGlyph(ctx.context)));
     st.set_preview_rtl(nsp::currentLanguage() == "ar");
 
-    const auto composed = sp::compose(ctx.context, ctx.items, [](const char *msgid) { return std::string(nsp::tr(msgid)); });
+    const auto tr = [](const char *msgid) { return std::string(nsp::tr(msgid)); };
     const auto m = theme::rowMetrics(theme_);
+    const sp::Metrics metrics{ m.top, m.bottom, m.row, m.sep };
+    // The stage's room for the menus (snippet-stage.slint: stage-max less the chip's
+    // room above and the room below): a longer menu is cut, with "+N more".
+    constexpr float kRoom = 420 - 48 - 28;
+    auto composed = sp::compose(ctx.context, ctx.items, tr);
+    sp::fitHeight(composed, metrics, kRoom);
+    // The stage as tall as the tallest context needs, so it doesn't jump between tabs.
+    float tallest = 0;
+    for (const auto &c : p.contexts) {
+        auto other = sp::compose(c.context, c.items, tr);
+        sp::fitHeight(other, metrics, kRoom);
+        tallest = std::max(tallest, sp::pairHeight(other, metrics));
+    }
+    st.set_preview_min_height(tallest);
     const std::string iconFont = str(ui_->global<AppearanceState>().get_icon_font());
     auto build = [&](const sp::Menu &menu, int open) {
         auto items = std::make_shared<slint::VectorModel<PreviewItem>>();
@@ -605,6 +625,7 @@ void SnippetsController::pushPreview()
         out.items = items;
         out.height = y + m.bottom;
         out.open = open;
+        out.hidden_count = menu.hidden;
         return out;
     };
     st.set_preview_menu(build(composed.main, composed.open));

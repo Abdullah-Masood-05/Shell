@@ -610,3 +610,181 @@ TEST_CASE("snippet preview: with an example, dynamic titles read like the select
     REQUIRE(plain.size() == 1);
     CHECK(plain[0].children.size() == 3);
 }
+
+TEST_CASE("snippet preview: example values work like Shell's")
+{
+    const auto file = exampleFor(Context::File, {});
+    const auto folder = exampleFor(Context::Folder, {});
+    const auto back = exampleFor(Context::Back, {});
+    // sel.dir: a file's folder, else the item itself; sel.file: the name.
+    CHECK(exampleValue("sel.dir", file) == "D:\\Work");
+    CHECK(exampleValue("sel.dir", folder) == "D:\\Work\\Projects");
+    CHECK(exampleValue("sel.dir.name", folder) == "Projects");
+    CHECK(exampleValue("sel.dir", back) == "D:\\Work");
+    CHECK(exampleValue("sel.parent", folder) == "D:\\Work");
+    CHECK(exampleValue("sel.file", file) == "report.txt");
+    CHECK(exampleTest("sel.file.len == 10", file) == true);
+    CHECK(exampleValue("sel.dir", exampleFor(Context::Drive, {})) == "D:\\");
+    CHECK(exampleValue("sel.dir.name", exampleFor(Context::Drive, {})) == "D:\\");
+    // sel.type: a file is 1, a folder 3.
+    CHECK(exampleTest("(sel.count==1 and (sel.type==3 or sel.type==5)) or sel.count>1", file) == false);
+    CHECK(exampleTest("(sel.count==1 and (sel.type==3 or sel.type==5)) or sel.count>1", folder) == true);
+
+    // path.exists: the example's own paths; a list entry saved later is not there yet;
+    // any other path (a program's) is unknown, so its row stays.
+    CHECK(exampleTest("path.exists(sel.dir)", file) == true);
+    CHECK(exampleTest("path.exists(ip[toint(do[0])])", file) == false);
+    CHECK_FALSE(exampleTest("path.exists(sys.prog + '\\7-Zip\\7z.exe')", file).has_value());
+    CHECK_FALSE(exampleTest("path.exists('C:\\Tools\\tool.exe')", file).has_value());
+
+    // if(): the branch not taken may be unknown.
+    CHECK(exampleValue("'Rename' + if(sel.count>1, ' @sel.count Selected') + '...'", file) == "Rename...");
+    CHECK_FALSE(exampleValue("if(sys.is11, 'a', 'b')", file).has_value());
+    // @ in a string: read in place.
+    CHECK(exampleValue("'Create shortcut@if(sel.count>1, 's')'", file) == "Create shortcut");
+    CHECK(exampleValue("'Copy (@sel.count) item@if(sel.count>1, 's')'", file) == "Copy (1) item");
+    CHECK(exampleValue("'Open @sel.file.title.'", file) == "Open report.");
+    CHECK(exampleValue("'@(sel.count + 1) more'", file) == "2 more");
+    CHECK_FALSE(exampleValue("'OS: @sys.ver'", file).has_value());
+
+    // str.fmt: one pass, a value with {0} in it stays.
+    CHECK(exampleValue("str.fmt('{0}', '{0}')", file) == "{0}");
+    CHECK(exampleValue("str.fmt('{0}-{1}-{0}', 'a{0}', 'b')", file) == "a{0}-b-a{0}");
+
+    // The snippet's own variables.
+    auto ex = file;
+    ex.snippetVars["menu_db_name"] = "'Dropbox'";
+    ex.snippetVars["ni"] = "0";
+    ex.snippetVars["loop"] = "loop";
+    ex.snippetVars["off"] = "false";
+    CHECK(exampleValue("menu_db_name", ex) == "Dropbox");
+    CHECK(exampleTest("ni>0", ex) == false);
+    CHECK(exampleTest("!off", ex) == true);
+    CHECK_FALSE(exampleValue("loop", ex).has_value());
+}
+
+TEST_CASE("snippet preview: items for a menu of Windows' own go in it")
+{
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "file", "sample": "C:\\s\\Sample.txt",
+  "tree": {"shell":[
+    {"kind":"item","title":"Send to Executable","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"Se&nd to","moved":false,"items":[]},
+    {"kind":"item","title":"Up","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Mine","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]}],
+  "system":[{"kind":"menu","title":"Se&nd to","items":[]}], "rules":[]}})";
+    const auto doc = nss::NssDocument::fromText("item(menu=title.send_to title='Send to Executable' pos='top')\n"
+                                                "item(menu=title.view title='Up')\n"
+                                                "item(title='Mine')\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 3);
+    CHECK(items[0].host == "Se&nd to");
+    CHECK(items[2].host.empty());
+
+    // No View on a file: that one is left out.
+    auto file = items;
+    dropMissingHosts(file, Context::File, t->system);
+    REQUIRE(file.size() == 2);
+    auto c = compose(Context::File, file, identity);
+    // Open, Copy, Mine, Send to (with the snippet's item), Properties.
+    std::vector<std::string> labels;
+    for (const auto &r : c.main.rows)
+        if (!r.separator)
+            labels.push_back(r.label);
+    CHECK(labels == std::vector<std::string>{ "Open", "Copy", "Mine", "Send to", "Properties" });
+    REQUIRE(c.open >= 0);
+    const auto &host = c.main.rows[size_t(c.open)];
+    CHECK(host.label == "Send to");
+    CHECK(host.ghost);
+    REQUIRE(host.sub >= 0);
+    REQUIRE(c.subs[size_t(host.sub)].rows.size() == 1);
+    CHECK(c.subs[size_t(host.sub)].rows[0].label == "Send to Executable");
+    CHECK(c.subs[size_t(host.sub)].rows[0].own);
+    CHECK(c.own == 1);
+
+    // The background's View row is in the frame: it gets the item.
+    auto back = items;
+    dropMissingHosts(back, Context::Back, {});
+    REQUIRE(back.size() == 2);
+    auto b = compose(Context::Back, back, identity);
+    REQUIRE(b.open >= 0);
+    CHECK(b.main.rows[size_t(b.open)].label == "View");
+    CHECK(b.subs[size_t(b.main.rows[size_t(b.open)].sub)].rows[0].label == "Up");
+
+    auto bar = items;
+    dropMissingHosts(bar, Context::Taskbar, {});
+    CHECK(bar.size() == 1);
+}
+
+TEST_CASE("snippet preview: a long menu is cut around its open row")
+{
+    const Metrics m{ 4, 4, 28, 9 };
+    Item menu;
+    menu.kind = "menu";
+    menu.title = "Copy path";
+    for (int i = 0; i < 20; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Form " + std::to_string(i);
+        menu.children.push_back(it);
+    }
+    Item plain;
+    plain.kind = "item";
+    plain.title = "Plain";
+    auto c = compose(Context::File, { plain, menu }, identity);
+    REQUIRE(c.open >= 0);
+    CHECK(pairHeight(c, m) > 344);
+    fitHeight(c, m, 344);
+    CHECK(pairHeight(c, m) <= 344);
+    const auto &sub = c.subs[size_t(c.main.rows[size_t(c.open)].sub)];
+    CHECK(sub.hidden > 0);
+    CHECK(sub.hidden + int(sub.rows.size()) == 20);
+    CHECK(c.main.hidden == 0);
+    CHECK(sub.rows.front().label == "Form 0");
+
+    // A main menu taller than the room: rows after the open one go first.
+    std::vector<Item> many;
+    for (int i = 0; i < 16; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Row " + std::to_string(i);
+        many.push_back(it);
+    }
+    many.insert(many.begin() + 3, menu);
+    auto d = compose(Context::File, many, identity);
+    fitHeight(d, m, 344);
+    CHECK(heightOf(d.main, m) <= 344);
+    CHECK(d.main.hidden > 0);
+    REQUIRE(d.open >= 0);
+    CHECK(d.main.rows[size_t(d.open)].label == "Copy path");
+}
+
+TEST_CASE("snippet preview: a title not from the selection says so")
+{
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "file", "sample": "C:\\s\\Sample.txt",
+  "tree": {"shell":[
+    {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":true,"items":[]},
+    {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":true,"items":[]}],
+  "system":[], "rules":[]}})";
+    const auto doc = nss::NssDocument::fromText("item(title=sys.ver.name)\n"
+                                                "item(title=str.fmt('{0} x', sel.path(1)))\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    const auto ex = exampleFor(Context::File, {});
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {}, &ex);
+    REQUIRE(items.size() == 2);
+    CHECK(items[0].dynamicTitle);
+    CHECK_FALSE(items[0].fromSelection);
+    CHECK(items[1].dynamicTitle);
+    CHECK(items[1].fromSelection);
+    auto c = compose(Context::File, items, identity);
+    bool worked = false, named = false;
+    for (const auto &r : c.main.rows) {
+        worked |= r.label == "Worked out when the menu opens";
+        named |= r.label == "Name from the selection";
+    }
+    CHECK(worked);
+    CHECK(named);
+}
