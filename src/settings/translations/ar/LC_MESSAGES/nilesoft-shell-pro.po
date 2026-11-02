@@ -52,7 +52,7 @@ msgstr "إعادة"
 msgid "Cut"
 msgstr "قص"
 
-#: ui/components/code.slint:358 ui/components/line-edit.slint:73 ui/components/code.slint:358 ui/components/line-edit.slint:73 src/AppearanceController.cpp:88 src/OpenWithController.cpp:775 src/OpenWithController.cpp:781 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087
+#: ui/components/code.slint:358 ui/components/line-edit.slint:73 ui/components/code.slint:358 ui/components/line-edit.slint:73 src/AppearanceController.cpp:88 src/OpenWithController.cpp:775 src/OpenWithController.cpp:781 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645
 msgid "Copy"
 msgstr "نسخ"
 
@@ -241,7 +241,7 @@ msgstr "أداة إنشاء القوائم"
 msgid "Open with"
 msgstr "فتح باستخدام"
 
-#: ui/components/sidebar.slint:22 ui/pages/snippets.slint:381 src/ConfigRules.cpp:59
+#: ui/components/sidebar.slint:22 ui/pages/snippets.slint:383 src/ConfigRules.cpp:59
 msgid "Snippets"
 msgstr "المقتطفات"
 
@@ -506,7 +506,7 @@ msgstr "يتوفر تحديث: {}"
 msgid "Live preview"
 msgstr "معاينة مباشرة"
 
-#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:339
+#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:341
 msgid "Desktop"
 msgstr "سطح المكتب"
 
@@ -535,7 +535,7 @@ msgstr "هل تريد المزيد؟"
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr "التدرجات وألوان الصور وقواعد كل عنصر موجودة في shell.nss وملفات imports الخاصة به."
 
-#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:338
+#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:340
 msgid "Background"
 msgstr "الخلفية"
 
@@ -844,7 +844,7 @@ msgstr "إنشاء لقطة الآن"
 msgid "No personal config to back up"
 msgstr "لا يوجد تكوين شخصي لنسخه احتياطيًا"
 
-#: ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:423 src/Status.cpp:189
+#: ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:425 src/Status.cpp:189
 msgid "Create personal config"
 msgstr "إنشاء تكوين شخصي"
 
@@ -960,7 +960,7 @@ msgstr "لقطات الشاشة"
 msgid "Print Screen saves the open menu"
 msgstr "مفتاح Print Screen يحفظ القائمة المفتوحة"
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:337
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:339
 msgid "Folder"
 msgstr "المجلد"
 
@@ -1126,7 +1126,7 @@ msgstr[5] "تغيّر {n} ملف"
 msgid "Save"
 msgstr "حفظ"
 
-#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/snippets.slint:421
+#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/snippets.slint:423
 msgid "This is the shared config in the install folder"
 msgstr "هذا هو التكوين المشترك في مجلد التثبيت"
 
@@ -1134,7 +1134,7 @@ msgstr "هذا هو التكوين المشترك في مجلد التثبيت"
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
 msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لتشغيل القوائم والقواعد أو إيقافها."
 
-#: ui/pages/context-menus.slint:780 ui/pages/snippets.slint:429
+#: ui/pages/context-menus.slint:780 ui/pages/snippets.slint:431
 msgid "Couldn't read the config"
 msgstr "تعذرت قراءة التكوين"
 
@@ -1294,7 +1294,7 @@ msgstr "السطر {}، العمود {}"
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr "نظرة سريعة على Nilesoft Shell: التسجيل والتكوين النشط والتشخيص الأخير."
 
-#: ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/preview/menu-preview.slint:283 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/preview/menu-preview.slint:322 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "Refresh"
 msgstr "تحديث"
 
@@ -2653,94 +2653,94 @@ msgstr "اسم فئة النافذة"
 msgid "No window classes."
 msgstr "لا توجد فئات نوافذ."
 
-#: ui/pages/snippets.slint:196
+#: ui/pages/snippets.slint:198
 msgid "Outlined: added by this snippet. Faded items are already in your menu."
 msgstr "المحاط بإطار: أضافه هذا المقتطف. أما العناصر الباهتة فموجودة بالفعل في قائمتك."
 
-#: ui/pages/snippets.slint:204
+#: ui/pages/snippets.slint:206
 msgid "Still building the preview…"
 msgstr "لا يزال إنشاء المعاينة جاريًا…"
 
-#: ui/pages/snippets.slint:220 ui/pages/snippets.slint:320
+#: ui/pages/snippets.slint:222 ui/pages/snippets.slint:322
 msgid "Hide code"
 msgstr "إخفاء الكود"
 
-#: ui/pages/snippets.slint:220 ui/pages/snippets.slint:320
+#: ui/pages/snippets.slint:222 ui/pages/snippets.slint:322
 msgid "Show code"
 msgstr "إظهار الكود"
 
-#: ui/pages/snippets.slint:289
+#: ui/pages/snippets.slint:291
 msgid "Runs as administrator"
 msgstr "يعمل كمسؤول"
 
-#: ui/pages/snippets.slint:293
+#: ui/pages/snippets.slint:295
 msgid "Uses the internet"
 msgstr "يستخدم الإنترنت"
 
-#: ui/pages/snippets.slint:308 ui/pages/snippets.slint:315
+#: ui/pages/snippets.slint:310 ui/pages/snippets.slint:317
 msgid "by {}"
 msgstr "بواسطة {}"
 
-#: ui/pages/snippets.slint:382
+#: ui/pages/snippets.slint:384
 msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
 msgstr "إضافات صغيرة جاهزة لقائمة النقر بزر الماوس الأيمن. شغّل إحداها وستجدها في المرة التالية التي تنقر فيها بزر الماوس الأيمن؛ وأوقفها فتختفي. يفحص Shell كل تغيير قبل حفظه."
 
-#: ui/pages/snippets.slint:391
+#: ui/pages/snippets.slint:393
 msgid "RubicBG's snippets are CC0, shared with his permission."
 msgstr "مقتطفات RubicBG مرخصة بموجب CC0، وتتم مشاركتها بإذنه."
 
-#: ui/pages/snippets.slint:399
+#: ui/pages/snippets.slint:401
 msgid "His collection on GitHub"
 msgstr "مجموعته على GitHub"
 
-#: ui/pages/snippets.slint:422
+#: ui/pages/snippets.slint:424
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
 msgstr "إنه للقراءة فقط هنا، ولا تتم الكتابة إلى Program Files أبدًا. أنشئ نسخة شخصية في %APPDATA% لتشغيل المقتطفات."
 
-#: ui/pages/snippets.slint:441
+#: ui/pages/snippets.slint:443
 msgid "Search snippets"
 msgstr "البحث في المقتطفات"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
-#: ui/preview/menu-preview.slint:37 ui/preview/menu-preview.slint:282
+#: ui/preview/menu-preview.slint:39 ui/preview/menu-preview.slint:321
 msgctxt "Menu font family"
 msgid "Segoe UI"
 msgstr "Segoe UI"
 
-#: ui/preview/menu-preview.slint:283
+#: ui/preview/menu-preview.slint:322
 msgctxt "Explorer menu"
 msgid "View"
 msgstr "عرض"
 
-#: ui/preview/menu-preview.slint:283 src/AppearanceController.cpp:64 src/OpenWithController.cpp:784 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: ui/preview/menu-preview.slint:322 src/AppearanceController.cpp:64 src/OpenWithController.cpp:784 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "Sort by"
 msgstr "فرز حسب"
 
-#: ui/preview/menu-preview.slint:367 ui/preview/menu-preview.slint:398
+#: ui/preview/menu-preview.slint:406 ui/preview/menu-preview.slint:437
 msgid "Documents"
 msgstr "المستندات"
 
-#: ui/preview/menu-preview.slint:367
+#: ui/preview/menu-preview.slint:406
 msgid "Pictures"
 msgstr "الصور"
 
-#: ui/preview/menu-preview.slint:367
+#: ui/preview/menu-preview.slint:406
 msgid "Projects"
 msgstr "المشاريع"
 
-#: ui/preview/menu-preview.slint:398
+#: ui/preview/menu-preview.slint:437
 msgid "This PC"
 msgstr "هذا الكمبيوتر"
 
-#: ui/preview/snippet-stage.slint:240
+#: ui/preview/snippet-stage.slint:254
 msgid "+{} more"
 msgstr "‏{} أخرى"
 
-#: ui/preview/snippet-stage.slint:282 src/AppearanceController.cpp:86 src/OpenWithController.cpp:771 src/OpenWithController.cpp:777 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087 src/SnippetPreview.cpp:1095
+#: ui/preview/snippet-stage.slint:296 src/AppearanceController.cpp:86 src/OpenWithController.cpp:771 src/OpenWithController.cpp:777 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645 src/SnippetPreview.cpp:1653
 msgid "Open"
 msgstr "فتح"
 
-#: ui/preview/snippet-stage.slint:284 src/AppearanceController.cpp:94 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087 src/SnippetPreview.cpp:1090 src/SnippetPreview.cpp:1095
+#: ui/preview/snippet-stage.slint:298 src/AppearanceController.cpp:94 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645 src/SnippetPreview.cpp:1648 src/SnippetPreview.cpp:1653
 msgid "Properties"
 msgstr "خصائص"
 
@@ -2919,7 +2919,7 @@ msgctxt "Language"
 msgid "Auto"
 msgstr "تلقائي"
 
-#: src/AppController.cpp:521 src/SnippetsController.cpp:227
+#: src/AppController.cpp:521 src/SnippetsController.cpp:228
 msgid "shell.exe was not found"
 msgstr "لم يتم العثور على shell.exe"
 
@@ -3047,7 +3047,7 @@ msgstr "ملفاتك السابقة محفوظة في النسخ الاحتيا�
 msgid "The reset didn't work"
 msgstr "لم تنجح إعادة التعيين"
 
-#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "View"
 msgstr "عرض"
 
@@ -3071,11 +3071,11 @@ msgstr "التطوير"
 msgid "New"
 msgstr "جديد"
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1093
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1651
 msgid "Display settings"
 msgstr "إعدادات العرض"
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1093
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1651
 msgid "Personalize"
 msgstr "تخصيص"
 
@@ -3213,7 +3213,7 @@ msgstr "يتم حذف لقطة {} (\"{}\") من القرص. لا يمكن الت
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr "التكوين النشط هو التكوين المشترك في مجلد التثبيت، الذي لا يكتب إليه هذا التطبيق أبدًا. أنشئ تكوينًا شخصيًا للحصول على لقطات."
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:183 src/SnippetsController.cpp:675
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:697
 msgid "The config file doesn't exist: {}"
 msgstr "ملف التكوين غير موجود: {}"
 
@@ -3446,7 +3446,7 @@ msgstr "الانتقال إلى"
 msgid "Jump to common folders and Windows Settings pages."
 msgstr "الانتقال السريع إلى المجلدات الشائعة وصفحات إعدادات Windows."
 
-#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:341
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:343
 msgid "Taskbar"
 msgstr "شريط المهام"
 
@@ -4062,7 +4062,7 @@ msgctxt "where"
 msgid "{0}, {1}"
 msgstr "‏{0}، {1}"
 
-#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:336
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:338
 msgid "File"
 msgstr "ملف"
 
@@ -4208,15 +4208,15 @@ msgstr "تعذر تغيير هذه القاعدة"
 msgid "Edit it in the Config Editor instead."
 msgstr "حرّره في محرر التكوين بدلاً من ذلك."
 
-#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:869
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:891
 msgid "Can't check the config"
 msgstr "تعذر فحص التكوين"
 
-#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:869
+#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:891
 msgid "shell.exe was not found, so nothing was saved."
 msgstr "لم يتم العثور على shell.exe، لذا لم يُحفظ أي شيء."
 
-#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1529 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:873
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1529 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:895
 msgid "Not saved"
 msgstr "لم يتم الحفظ"
 
@@ -4240,11 +4240,11 @@ msgstr "لم تكن هناك حاجة إلى أي تغييرات."
 msgid "Snapshot {} was taken first."
 msgstr "تم التقاط اللقطة {} أولاً."
 
-#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1567 src/SnippetsController.cpp:962
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1567 src/SnippetsController.cpp:984
 msgid "Not saved: the config would fail to load"
 msgstr "لم يتم الحفظ: سيفشل تحميل التكوين"
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1570 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:965
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1570 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:987
 msgid "Couldn't save"
 msgstr "تعذر الحفظ"
 
@@ -4456,11 +4456,11 @@ msgstr "(بلا عنوان)"
 msgid "(title from an expression)"
 msgstr "(عنوان من تعبير)"
 
-#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:911
+#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:933
 msgid "Couldn't read {}: {}"
 msgstr "تعذرت قراءة {}: {}"
 
-#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:873
+#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:895
 msgid "Program Files is never written to."
 msgstr "لا تتم الكتابة أبدًا في Program Files."
 
@@ -4480,7 +4480,7 @@ msgstr "‏{} (السطر {})"
 msgid "Not saved: Shell would reject these menus"
 msgstr "لم يتم الحفظ: سيرفض Shell هذه القوائم"
 
-#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:340
+#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:342
 msgid "Drive"
 msgstr "محرك أقراص"
 
@@ -4520,11 +4520,11 @@ msgstr "ملف التكوين غير موجود. أنشئ تكوينًا شخص�
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr "لم يتم العثور على shell.exe بجوار NilesoftShellPro.exe أو ملف shell.dll المسجل."
 
-#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:318
+#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:319
 msgid "shell.exe took too long to read the menu and was stopped."
 msgstr "استغرق shell.exe وقتًا طويلاً في قراءة القائمة فتم إيقافه."
 
-#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:323
+#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:324
 msgid "shell.exe gave no menu ({}). It may be older than this app."
 msgstr "لم يُرجع shell.exe أي قائمة ({}). ربما يكون أقدم من هذا التطبيق."
 
@@ -5249,17 +5249,21 @@ msgstr "تم إلغاء مطالبة المسؤول."
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr "تعذر بدء تشغيل shell.exe كمسؤول (الخطأ {})."
 
-#: src/SnippetPreview.cpp:1097
+#: src/SnippetPreview.cpp:1655
 msgid "Task Manager"
 msgstr "إدارة المهام"
 
-#: src/SnippetPreview.cpp:1097
+#: src/SnippetPreview.cpp:1655
 msgid "Taskbar settings"
 msgstr "إعدادات شريط المهام"
 
-#: src/SnippetPreview.cpp:1151
+#: src/SnippetPreview.cpp:1710
 msgid "Name from the selection"
 msgstr "الاسم من التحديد"
+
+#: src/SnippetPreview.cpp:1711
+msgid "Worked out when the menu opens"
+msgstr "يُحدَّد عند فتح القائمة"
 
 #: src/Snippets.cpp:579
 msgid "There is no snippet called {}."
@@ -5273,83 +5277,83 @@ msgstr "الأرشيفات"
 msgid "Security"
 msgstr "الأمان"
 
-#: src/SnippetsController.cpp:151
+#: src/SnippetsController.cpp:152
 msgid "Right-click a {} file"
 msgstr "انقر بزر الماوس الأيمن فوق ملف {}"
 
-#: src/SnippetsController.cpp:151
+#: src/SnippetsController.cpp:152
 msgid "Right-click a file"
 msgstr "انقر بزر الماوس الأيمن فوق ملف"
 
-#: src/SnippetsController.cpp:152
+#: src/SnippetsController.cpp:153
 msgid "Right-click a folder"
 msgstr "انقر بزر الماوس الأيمن فوق مجلد"
 
-#: src/SnippetsController.cpp:153
+#: src/SnippetsController.cpp:154
 msgid "Right-click inside a folder"
 msgstr "انقر بزر الماوس الأيمن داخل مجلد"
 
-#: src/SnippetsController.cpp:154
+#: src/SnippetsController.cpp:155
 msgid "Right-click the desktop"
 msgstr "انقر بزر الماوس الأيمن فوق سطح المكتب"
 
-#: src/SnippetsController.cpp:155
+#: src/SnippetsController.cpp:156
 msgid "Right-click a drive"
 msgstr "انقر بزر الماوس الأيمن فوق محرك أقراص"
 
-#: src/SnippetsController.cpp:156
+#: src/SnippetsController.cpp:157
 msgid "Right-click the taskbar"
 msgstr "انقر بزر الماوس الأيمن فوق شريط المهام"
 
-#: src/SnippetsController.cpp:265
+#: src/SnippetsController.cpp:266
 msgid "Couldn't write {}"
 msgstr "تعذرت كتابة {}"
 
-#: src/SnippetsController.cpp:350
+#: src/SnippetsController.cpp:351
 msgid "shell.exe couldn't load the snippet"
 msgstr "تعذر على shell.exe تحميل المقتطف"
 
-#: src/SnippetsController.cpp:528
+#: src/SnippetsController.cpp:535
 msgid "Loading preview…"
 msgstr "جارٍ تحميل المعاينة…"
 
-#: src/SnippetsController.cpp:533
+#: src/SnippetsController.cpp:540
 msgid "Couldn't build the preview: {}"
 msgstr "تعذّر إنشاء المعاينة: {}"
 
-#: src/SnippetsController.cpp:537
+#: src/SnippetsController.cpp:544
 msgid "This snippet changes or hides existing items, so there is nothing new to show."
 msgstr "يغيّر هذا المقتطف العناصر الموجودة أو يخفيها، لذا لا يوجد شيء جديد لعرضه."
 
-#: src/SnippetsController.cpp:776
+#: src/SnippetsController.cpp:798
 msgid "All"
 msgstr "الكل"
 
-#: src/SnippetsController.cpp:809
+#: src/SnippetsController.cpp:831
 msgid "Needs Shell {} or later"
 msgstr "يتطلب Shell {} أو أحدث"
 
-#: src/SnippetsController.cpp:813
+#: src/SnippetsController.cpp:835
 msgid " and "
 msgstr " و"
 
-#: src/SnippetsController.cpp:814
+#: src/SnippetsController.cpp:836
 msgid "Needs {}"
 msgstr "يتطلب {}"
 
-#: src/SnippetsController.cpp:820
+#: src/SnippetsController.cpp:842
 msgid "You changed this copy, so newer versions aren't applied to it."
 msgstr "لقد غيّرت هذه النسخة، لذا لا تُطبَّق عليها الإصدارات الأحدث."
 
-#: src/SnippetsController.cpp:823
+#: src/SnippetsController.cpp:845
 msgid "The copy in {} is missing. Turn the snippet off and on again."
 msgstr "النسخة الموجودة في {} مفقودة. أوقف تشغيل المقتطف ثم شغّله مرة أخرى."
 
-#: src/SnippetsController.cpp:826
+#: src/SnippetsController.cpp:848
 msgid "A newer version is applied the next time the app starts."
 msgstr "يُطبَّق إصدار أحدث في المرة التالية التي يبدأ فيها التطبيق."
 
-#: src/SnippetsController.cpp:852
+#: src/SnippetsController.cpp:874
 msgid "{n} of {0} on"
 msgid_plural "{n} of {0} on"
 msgstr[0] "‏{n} من {0} قيد التشغيل"
@@ -5359,39 +5363,39 @@ msgstr[3] "‏{n} من {0} قيد التشغيل"
 msgstr[4] "‏{n} من {0} قيد التشغيل"
 msgstr[5] "‏{n} من {0} قيد التشغيل"
 
-#: src/SnippetsController.cpp:853
+#: src/SnippetsController.cpp:875
 msgid "Loading…"
 msgstr "جارٍ التحميل…"
 
-#: src/SnippetsController.cpp:854
+#: src/SnippetsController.cpp:876
 msgid "No snippets are available."
 msgstr "لا تتوفر أي مقتطفات."
 
-#: src/SnippetsController.cpp:855
+#: src/SnippetsController.cpp:877
 msgid "No snippet matches the search."
 msgstr "لا يوجد مقتطف يطابق البحث."
 
-#: src/SnippetsController.cpp:886
+#: src/SnippetsController.cpp:908
 msgid "Couldn't change this snippet"
 msgstr "تعذر تغيير هذا المقتطف"
 
-#: src/SnippetsController.cpp:941
+#: src/SnippetsController.cpp:963
 msgid "Turned on {}"
 msgstr "تم تشغيل {}"
 
-#: src/SnippetsController.cpp:942
+#: src/SnippetsController.cpp:964
 msgid "It's in the menu the next time you right-click."
 msgstr "سيظهر في القائمة في المرة التالية التي تنقر فيها بزر الماوس الأيمن."
 
-#: src/SnippetsController.cpp:944
+#: src/SnippetsController.cpp:966
 msgid "Turned off {}"
 msgstr "تم إيقاف {}"
 
-#: src/SnippetsController.cpp:946
+#: src/SnippetsController.cpp:968
 msgid "Snapshot {} has it if you want it back."
 msgstr "تحتفظ اللقطة {} به إذا أردت استعادته."
 
-#: src/SnippetsController.cpp:961
+#: src/SnippetsController.cpp:983
 msgid "Shell rejected the change, so it was undone"
 msgstr "رفض Shell التغيير، لذا تم التراجع عنه"
 
@@ -6140,6 +6144,9 @@ msgstr "تعيين كخلفية لسطح المكتب"
 msgid "Restore previous versions"
 msgstr "استعادة الإصدارات السابقة"
 
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "لا توجد معاينة ({}). هذه هي التعليمات البرمجية للمقتطف."
+
 #~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
 #~ msgstr "عناصر المقتطف مميزة باللون الأزرق؛ أما العناصر الرمادية فموجودة بالفعل في القائمة."
 
@@ -6148,6 +6155,3 @@ msgstr "استعادة الإصدارات السابقة"
 
 #~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
 #~ msgstr "لا يضيف هذا المقتطف عناصر خاصة به: فهو يغيّر عناصر أخرى أو يخفيها، أو يعمل في مكان آخر. هذه هي تعليماته البرمجية."
-
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "لا توجد معاينة ({}). هذه هي التعليمات البرمجية للمقتطف."

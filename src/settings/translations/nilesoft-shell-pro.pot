@@ -52,7 +52,7 @@ msgstr ""
 msgid "Cut"
 msgstr ""
 
-#: ui/components/code.slint:358 ui/components/line-edit.slint:73 ui/components/code.slint:358 ui/components/line-edit.slint:73 src/AppearanceController.cpp:88 src/OpenWithController.cpp:775 src/OpenWithController.cpp:781 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087
+#: ui/components/code.slint:358 ui/components/line-edit.slint:73 ui/components/code.slint:358 ui/components/line-edit.slint:73 src/AppearanceController.cpp:88 src/OpenWithController.cpp:775 src/OpenWithController.cpp:781 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645
 msgid "Copy"
 msgstr ""
 
@@ -231,7 +231,7 @@ msgstr ""
 msgid "Open with"
 msgstr ""
 
-#: ui/components/sidebar.slint:22 ui/pages/snippets.slint:381 src/ConfigRules.cpp:59
+#: ui/components/sidebar.slint:22 ui/pages/snippets.slint:383 src/ConfigRules.cpp:59
 msgid "Snippets"
 msgstr ""
 
@@ -496,7 +496,7 @@ msgstr ""
 msgid "Live preview"
 msgstr ""
 
-#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:339
+#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:341
 msgid "Desktop"
 msgstr ""
 
@@ -525,7 +525,7 @@ msgstr ""
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr ""
 
-#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:338
+#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:340
 msgid "Background"
 msgstr ""
 
@@ -829,7 +829,7 @@ msgstr ""
 msgid "No personal config to back up"
 msgstr ""
 
-#: ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:423 src/Status.cpp:189
+#: ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/backups.slint:220 ui/pages/context-menus.slint:774 ui/pages/menu-builder.slint:424 ui/pages/onboarding.slint:217 ui/pages/snippets.slint:425 src/Status.cpp:189
 msgid "Create personal config"
 msgstr ""
 
@@ -945,7 +945,7 @@ msgstr ""
 msgid "Print Screen saves the open menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:337
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:339
 msgid "Folder"
 msgstr ""
 
@@ -1106,7 +1106,7 @@ msgstr[0] ""
 msgid "Save"
 msgstr ""
 
-#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/snippets.slint:421
+#: ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/context-menus.slint:772 ui/pages/editor.slint:217 ui/pages/menu-map.slint:850 ui/pages/snippets.slint:423
 msgid "This is the shared config in the install folder"
 msgstr ""
 
@@ -1114,7 +1114,7 @@ msgstr ""
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn menus and rules on or off."
 msgstr ""
 
-#: ui/pages/context-menus.slint:780 ui/pages/snippets.slint:429
+#: ui/pages/context-menus.slint:780 ui/pages/snippets.slint:431
 msgid "Couldn't read the config"
 msgstr ""
 
@@ -1274,7 +1274,7 @@ msgstr ""
 msgid "Nilesoft Shell at a glance: registration, the active config and recent diagnostics."
 msgstr ""
 
-#: ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/preview/menu-preview.slint:283 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/pages/home.slint:96 ui/pages/home.slint:312 ui/pages/home.slint:332 ui/preview/menu-preview.slint:322 src/AppearanceController.cpp:64 src/OpenWithController.cpp:785 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "Refresh"
 msgstr ""
 
@@ -2623,94 +2623,94 @@ msgstr ""
 msgid "No window classes."
 msgstr ""
 
-#: ui/pages/snippets.slint:196
+#: ui/pages/snippets.slint:198
 msgid "Outlined: added by this snippet. Faded items are already in your menu."
 msgstr ""
 
-#: ui/pages/snippets.slint:204
+#: ui/pages/snippets.slint:206
 msgid "Still building the preview…"
 msgstr ""
 
-#: ui/pages/snippets.slint:220 ui/pages/snippets.slint:320
+#: ui/pages/snippets.slint:222 ui/pages/snippets.slint:322
 msgid "Hide code"
 msgstr ""
 
-#: ui/pages/snippets.slint:220 ui/pages/snippets.slint:320
+#: ui/pages/snippets.slint:222 ui/pages/snippets.slint:322
 msgid "Show code"
 msgstr ""
 
-#: ui/pages/snippets.slint:289
+#: ui/pages/snippets.slint:291
 msgid "Runs as administrator"
 msgstr ""
 
-#: ui/pages/snippets.slint:293
+#: ui/pages/snippets.slint:295
 msgid "Uses the internet"
 msgstr ""
 
-#: ui/pages/snippets.slint:308 ui/pages/snippets.slint:315
+#: ui/pages/snippets.slint:310 ui/pages/snippets.slint:317
 msgid "by {}"
 msgstr ""
 
-#: ui/pages/snippets.slint:382
+#: ui/pages/snippets.slint:384
 msgid "Small, ready-made additions to the right-click menu. Turn one on and it's there the next time you right-click; turn it off and it's gone. Shell checks each change before it's saved."
 msgstr ""
 
-#: ui/pages/snippets.slint:391
+#: ui/pages/snippets.slint:393
 msgid "RubicBG's snippets are CC0, shared with his permission."
 msgstr ""
 
-#: ui/pages/snippets.slint:399
+#: ui/pages/snippets.slint:401
 msgid "His collection on GitHub"
 msgstr ""
 
-#: ui/pages/snippets.slint:422
+#: ui/pages/snippets.slint:424
 msgid "It's read-only here, and Program Files is never written to. Create a personal copy in %APPDATA% to turn snippets on."
 msgstr ""
 
-#: ui/pages/snippets.slint:441
+#: ui/pages/snippets.slint:443
 msgid "Search snippets"
 msgstr ""
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
-#: ui/preview/menu-preview.slint:37 ui/preview/menu-preview.slint:282
+#: ui/preview/menu-preview.slint:39 ui/preview/menu-preview.slint:321
 msgctxt "Menu font family"
 msgid "Segoe UI"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:283
+#: ui/preview/menu-preview.slint:322
 msgctxt "Explorer menu"
 msgid "View"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:283 src/AppearanceController.cpp:64 src/OpenWithController.cpp:784 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: ui/preview/menu-preview.slint:322 src/AppearanceController.cpp:64 src/OpenWithController.cpp:784 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "Sort by"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:367 ui/preview/menu-preview.slint:398
+#: ui/preview/menu-preview.slint:406 ui/preview/menu-preview.slint:437
 msgid "Documents"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:367
+#: ui/preview/menu-preview.slint:406
 msgid "Pictures"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:367
+#: ui/preview/menu-preview.slint:406
 msgid "Projects"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:398
+#: ui/preview/menu-preview.slint:437
 msgid "This PC"
 msgstr ""
 
-#: ui/preview/snippet-stage.slint:240
+#: ui/preview/snippet-stage.slint:254
 msgid "+{} more"
 msgstr ""
 
-#: ui/preview/snippet-stage.slint:282 src/AppearanceController.cpp:86 src/OpenWithController.cpp:771 src/OpenWithController.cpp:777 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087 src/SnippetPreview.cpp:1095
+#: ui/preview/snippet-stage.slint:296 src/AppearanceController.cpp:86 src/OpenWithController.cpp:771 src/OpenWithController.cpp:777 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645 src/SnippetPreview.cpp:1653
 msgid "Open"
 msgstr ""
 
-#: ui/preview/snippet-stage.slint:284 src/AppearanceController.cpp:94 src/SnippetPreview.cpp:1085 src/SnippetPreview.cpp:1087 src/SnippetPreview.cpp:1090 src/SnippetPreview.cpp:1095
+#: ui/preview/snippet-stage.slint:298 src/AppearanceController.cpp:94 src/SnippetPreview.cpp:1643 src/SnippetPreview.cpp:1645 src/SnippetPreview.cpp:1648 src/SnippetPreview.cpp:1653
 msgid "Properties"
 msgstr ""
 
@@ -2874,7 +2874,7 @@ msgctxt "Language"
 msgid "Auto"
 msgstr ""
 
-#: src/AppController.cpp:521 src/SnippetsController.cpp:227
+#: src/AppController.cpp:521 src/SnippetsController.cpp:228
 msgid "shell.exe was not found"
 msgstr ""
 
@@ -3002,7 +3002,7 @@ msgstr ""
 msgid "The reset didn't work"
 msgstr ""
 
-#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:1089 src/SnippetPreview.cpp:1092
+#: src/AppearanceController.cpp:64 src/OpenWithController.cpp:783 src/SnippetPreview.cpp:1647 src/SnippetPreview.cpp:1650
 msgid "View"
 msgstr ""
 
@@ -3026,11 +3026,11 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1093
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1651
 msgid "Display settings"
 msgstr ""
 
-#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1093
+#: src/AppearanceController.cpp:72 src/SnippetPreview.cpp:1651
 msgid "Personalize"
 msgstr ""
 
@@ -3163,7 +3163,7 @@ msgstr ""
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr ""
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:183 src/SnippetsController.cpp:675
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:697
 msgid "The config file doesn't exist: {}"
 msgstr ""
 
@@ -3366,7 +3366,7 @@ msgstr ""
 msgid "Jump to common folders and Windows Settings pages."
 msgstr ""
 
-#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:341
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:343
 msgid "Taskbar"
 msgstr ""
 
@@ -3857,7 +3857,7 @@ msgctxt "where"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:336
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:338
 msgid "File"
 msgstr ""
 
@@ -3988,15 +3988,15 @@ msgstr ""
 msgid "Edit it in the Config Editor instead."
 msgstr ""
 
-#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:869
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:891
 msgid "Can't check the config"
 msgstr ""
 
-#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:869
+#: src/ContextMenusController.cpp:428 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:891
 msgid "shell.exe was not found, so nothing was saved."
 msgstr ""
 
-#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1529 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:873
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1529 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:895
 msgid "Not saved"
 msgstr ""
 
@@ -4020,11 +4020,11 @@ msgstr ""
 msgid "Snapshot {} was taken first."
 msgstr ""
 
-#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1567 src/SnippetsController.cpp:962
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1567 src/SnippetsController.cpp:984
 msgid "Not saved: the config would fail to load"
 msgstr ""
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1570 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:965
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1570 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:987
 msgid "Couldn't save"
 msgstr ""
 
@@ -4216,11 +4216,11 @@ msgstr ""
 msgid "(title from an expression)"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:911
+#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/SnippetsController.cpp:933
 msgid "Couldn't read {}: {}"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:873
+#: src/MenuBuilderController.cpp:517 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:895
 msgid "Program Files is never written to."
 msgstr ""
 
@@ -4240,7 +4240,7 @@ msgstr ""
 msgid "Not saved: Shell would reject these menus"
 msgstr ""
 
-#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:340
+#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:342
 msgid "Drive"
 msgstr ""
 
@@ -4280,11 +4280,11 @@ msgstr ""
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr ""
 
-#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:318
+#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:319
 msgid "shell.exe took too long to read the menu and was stopped."
 msgstr ""
 
-#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:323
+#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:324
 msgid "shell.exe gave no menu ({}). It may be older than this app."
 msgstr ""
 
@@ -4994,16 +4994,20 @@ msgstr ""
 msgid "Could not start shell.exe as administrator (error {})."
 msgstr ""
 
-#: src/SnippetPreview.cpp:1097
+#: src/SnippetPreview.cpp:1655
 msgid "Task Manager"
 msgstr ""
 
-#: src/SnippetPreview.cpp:1097
+#: src/SnippetPreview.cpp:1655
 msgid "Taskbar settings"
 msgstr ""
 
-#: src/SnippetPreview.cpp:1151
+#: src/SnippetPreview.cpp:1710
 msgid "Name from the selection"
+msgstr ""
+
+#: src/SnippetPreview.cpp:1711
+msgid "Worked out when the menu opens"
 msgstr ""
 
 #: src/Snippets.cpp:579
@@ -5018,120 +5022,120 @@ msgstr ""
 msgid "Security"
 msgstr ""
 
-#: src/SnippetsController.cpp:151
+#: src/SnippetsController.cpp:152
 msgid "Right-click a {} file"
 msgstr ""
 
-#: src/SnippetsController.cpp:151
+#: src/SnippetsController.cpp:152
 msgid "Right-click a file"
 msgstr ""
 
-#: src/SnippetsController.cpp:152
+#: src/SnippetsController.cpp:153
 msgid "Right-click a folder"
 msgstr ""
 
-#: src/SnippetsController.cpp:153
+#: src/SnippetsController.cpp:154
 msgid "Right-click inside a folder"
 msgstr ""
 
-#: src/SnippetsController.cpp:154
+#: src/SnippetsController.cpp:155
 msgid "Right-click the desktop"
 msgstr ""
 
-#: src/SnippetsController.cpp:155
+#: src/SnippetsController.cpp:156
 msgid "Right-click a drive"
 msgstr ""
 
-#: src/SnippetsController.cpp:156
+#: src/SnippetsController.cpp:157
 msgid "Right-click the taskbar"
 msgstr ""
 
-#: src/SnippetsController.cpp:265
+#: src/SnippetsController.cpp:266
 msgid "Couldn't write {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:350
+#: src/SnippetsController.cpp:351
 msgid "shell.exe couldn't load the snippet"
 msgstr ""
 
-#: src/SnippetsController.cpp:528
+#: src/SnippetsController.cpp:535
 msgid "Loading preview…"
 msgstr ""
 
-#: src/SnippetsController.cpp:533
+#: src/SnippetsController.cpp:540
 msgid "Couldn't build the preview: {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:537
+#: src/SnippetsController.cpp:544
 msgid "This snippet changes or hides existing items, so there is nothing new to show."
 msgstr ""
 
-#: src/SnippetsController.cpp:776
+#: src/SnippetsController.cpp:798
 msgid "All"
 msgstr ""
 
-#: src/SnippetsController.cpp:809
+#: src/SnippetsController.cpp:831
 msgid "Needs Shell {} or later"
 msgstr ""
 
-#: src/SnippetsController.cpp:813
+#: src/SnippetsController.cpp:835
 msgid " and "
 msgstr ""
 
-#: src/SnippetsController.cpp:814
+#: src/SnippetsController.cpp:836
 msgid "Needs {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:820
+#: src/SnippetsController.cpp:842
 msgid "You changed this copy, so newer versions aren't applied to it."
 msgstr ""
 
-#: src/SnippetsController.cpp:823
+#: src/SnippetsController.cpp:845
 msgid "The copy in {} is missing. Turn the snippet off and on again."
 msgstr ""
 
-#: src/SnippetsController.cpp:826
+#: src/SnippetsController.cpp:848
 msgid "A newer version is applied the next time the app starts."
 msgstr ""
 
-#: src/SnippetsController.cpp:852
+#: src/SnippetsController.cpp:874
 msgid "{n} of {0} on"
 msgid_plural "{n} of {0} on"
 msgstr[0] ""
 
-#: src/SnippetsController.cpp:853
+#: src/SnippetsController.cpp:875
 msgid "Loading…"
 msgstr ""
 
-#: src/SnippetsController.cpp:854
+#: src/SnippetsController.cpp:876
 msgid "No snippets are available."
 msgstr ""
 
-#: src/SnippetsController.cpp:855
+#: src/SnippetsController.cpp:877
 msgid "No snippet matches the search."
 msgstr ""
 
-#: src/SnippetsController.cpp:886
+#: src/SnippetsController.cpp:908
 msgid "Couldn't change this snippet"
 msgstr ""
 
-#: src/SnippetsController.cpp:941
+#: src/SnippetsController.cpp:963
 msgid "Turned on {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:942
+#: src/SnippetsController.cpp:964
 msgid "It's in the menu the next time you right-click."
 msgstr ""
 
-#: src/SnippetsController.cpp:944
+#: src/SnippetsController.cpp:966
 msgid "Turned off {}"
 msgstr ""
 
-#: src/SnippetsController.cpp:946
+#: src/SnippetsController.cpp:968
 msgid "Snapshot {} has it if you want it back."
 msgstr ""
 
-#: src/SnippetsController.cpp:961
+#: src/SnippetsController.cpp:983
 msgid "Shell rejected the change, so it was undone"
 msgstr ""
 
