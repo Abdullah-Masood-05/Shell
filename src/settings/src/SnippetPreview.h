@@ -86,18 +86,27 @@ Sample sampleFor(std::string_view snippetText);
 
 // What a title such as title=sel.path or a where= reads in the preview: made-up but real
 // looking values for a right-click in one context ("D:\Work\report.txt"),
-// never the scratch folder's own paths.
+// never the scratch folder's own paths. The window is known where the context says
+// which it is: a folder's background is in File Explorer (window.name 'CabinetWClass'),
+// the desktop is wnd.is_desktop; for a file, folder or drive it may be either.
 struct Example
 {
     std::map<std::string, std::string> vars; // "sel.path" -> "D:\Work\report.txt"
     int count = 1;                           // sel.count
+    // The snippet's own $name = value, as written ("menu_db_name" -> "'Dropbox'"): what
+    // the name reads before any command changes it.
+    std::map<std::string, std::string> snippetVars;
 };
 Example exampleFor(Context c, const Sample &sample);
 
-// An NSS expression's value with the example's sel.* values: string and number literals,
-// + - comparisons and/or/not, if() and a few str./path. functions. nullopt when it needs
-// anything else. Pure: nothing runs and nothing is read; app.exists() is false (nothing
-// saved yet) and path.exists() is true only for the example's own paths.
+// An NSS expression's value with the example's sel.* values and the snippet's own
+// variables: string and number literals (with @name and @(expr) in them), + -
+// comparisons and/or/not, if() (only the branch it takes needs to be known), a few
+// str./path. functions and regex.match()/regex.matches() (a list: name[0] is its first
+// match, '' past its end). nullopt when it needs anything else. Pure: nothing runs and
+// nothing is read; app.exists() is false (nothing saved yet). path.exists() is true for
+// the example's own paths, false for an entry of a list the snippet fills in later
+// (ip[0]) and unknown for any other path (a program's folder may well be there).
 std::optional<std::string> exampleValue(std::string_view expr, const Example &ex);
 // The same for a condition: nullopt when it can't be told.
 std::optional<bool> exampleTest(std::string_view expr, const Example &ex);
@@ -207,7 +216,18 @@ struct Item
     Icon icon;
     bool disabled = false;
     bool expanded = false;     // a menu whose items show in place of it
+    bool fromSelection = true; // a dynamicTitle that reads the selection (sel.*), not
+                               // something else worked out when the menu opens
+    std::string host;          // menu= one of Windows' own menus ("Se&nd to", "(&V)"
+                               // in Chinese): it shows in there, not in the main menu
+                               // (top-level items only)
+    std::string hostId;        // menu=title.send_to: "send_to", whatever Windows' language
     Pos pos = Pos::Middle;
+    // pos=indexof(...): the item of Windows' own it goes in front of. posBeforeId for a
+    // title.* name ("show_desktop_icons"), posBeforeTitle for a title written as text
+    // ("Refresh"); both empty when pos= isn't one indexof() the preview can read.
+    std::string posBeforeId;
+    std::string posBeforeTitle;
     bool sepBefore = false;
     bool sepAfter = false;
     std::vector<Item> children;
@@ -222,6 +242,11 @@ struct Item
 std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const std::filesystem::path &snippetFile,
                           const nss::NssDocument &snippet, const ImageDefs &defs, const Example *example = nullptr);
 
+// Leaves out the items whose host menu (menu=title.send_to) Windows doesn't have in
+// `context`: not in the tree's `system` items, nor one Windows always has there.
+// Titles match without '&' and a bracketed accelerator ("View(&V)" is "View").
+void dropMissingHosts(std::vector<Item> &items, Context context, const std::vector<menumap::Node> &system);
+
 // --- the menu shown --------------------------------------------------------------------
 
 struct Row
@@ -232,7 +257,8 @@ struct Row
     Icon icon;
     bool separator = false;
     bool disabled = false;    // vis=disabled
-    bool ghost = false;       // one of Windows' own items around the snippet's (faded)
+    bool ghost = false;       // one of Windows' own items around the snippet's (faded); with
+                              // a sub, the Windows menu the snippet's items go in
     bool own = false;         // the snippet's
     bool groupFirst = false;  // the first and last rows of a run of the snippet's rows
     bool groupLast = false;   //   in the main menu (separators inside a run don't end it)
@@ -243,6 +269,7 @@ struct Row
 struct Menu
 {
     std::vector<Row> rows;
+    int hidden = 0; // rows left out by fitHeight() ("+N more")
 };
 
 struct Composed
@@ -255,10 +282,36 @@ struct Composed
 
 using Translate = std::function<std::string(const char *)>;
 
+// What the snippet's modify(where=this.title==title.copy keys='Ctrl+C') rules add to
+// Windows' own items: "copy" -> "Ctrl+C" (keys= written as text only).
+using FrameKeys = std::map<std::string, std::string>;
+FrameKeys frameKeysOf(const nss::NssDocument &snippet);
+
 // The snippet's items between a few of Windows' own for `context` (ghost rows: at most
 // two before the snippet's middle rows and one after them). Separators never lead,
 // trail or double up. `tr` translates the frame's labels and the
 // placeholder for a title that depends on the selection.
-Composed compose(Context context, const std::vector<Item> &items, const Translate &tr);
+// Items with a host menu go in a row of Windows' own (faded) named after it, whose
+// submenu has them; that row is open at first when the snippet has no menu of its own.
+// A host menu Windows always has (Send to, View, New, Sort by) shows a few of its own
+// items too (faded), the snippet's after them (pos=top: before them). Windows' rows
+// show the keys `keys` gives them.
+Composed compose(Context context, const std::vector<Item> &items, const Translate &tr, const FrameKeys &keys = {});
+
+// Row heights, as the menus draw them (theme::rowMetrics).
+struct Metrics
+{
+    float top = 0, bottom = 0; // above the first row and below the last
+    float row = 0, sep = 0;
+};
+// The height of `menu` drawn with `m`.
+float heightOf(const Menu &menu, const Metrics &m);
+// How tall the menu pair is with the open row's submenu level with it.
+float pairHeight(const Composed &c, const Metrics &m);
+// Cuts the menus to at most `room` tall: the main menu around its open row (rows after
+// it go first, then the ones before), each submenu at its bottom, below its row;
+// Windows' own rows go before any of the snippet's. Each menu's `hidden` says how many
+// of the snippet's rows (not separators, not Windows' own) it lost.
+void fitHeight(Composed &c, const Metrics &m, float room);
 
 } // namespace snippetpreview

@@ -610,3 +610,480 @@ TEST_CASE("snippet preview: with an example, dynamic titles read like the select
     REQUIRE(plain.size() == 1);
     CHECK(plain[0].children.size() == 3);
 }
+
+TEST_CASE("snippet preview: example values work like Shell's")
+{
+    const auto file = exampleFor(Context::File, {});
+    const auto folder = exampleFor(Context::Folder, {});
+    const auto back = exampleFor(Context::Back, {});
+    // sel.dir: a file's folder, else the item itself; sel.file: the name.
+    CHECK(exampleValue("sel.dir", file) == "D:\\Work");
+    CHECK(exampleValue("sel.dir", folder) == "D:\\Work\\Projects");
+    CHECK(exampleValue("sel.dir.name", folder) == "Projects");
+    CHECK(exampleValue("sel.dir", back) == "D:\\Work");
+    CHECK(exampleValue("sel.parent", folder) == "D:\\Work");
+    CHECK(exampleValue("sel.file", file) == "report.txt");
+    CHECK(exampleTest("sel.file.len == 10", file) == true);
+    CHECK(exampleValue("sel.dir", exampleFor(Context::Drive, {})) == "D:\\");
+    CHECK(exampleValue("sel.dir.name", exampleFor(Context::Drive, {})) == "D:\\");
+    // sel.type: a file is 1, a folder 3.
+    CHECK(exampleTest("(sel.count==1 and (sel.type==3 or sel.type==5)) or sel.count>1", file) == false);
+    CHECK(exampleTest("(sel.count==1 and (sel.type==3 or sel.type==5)) or sel.count>1", folder) == true);
+
+    // path.exists: the example's own paths; a list entry saved later is not there yet;
+    // any other path (a program's) is unknown, so its row stays.
+    CHECK(exampleTest("path.exists(sel.dir)", file) == true);
+    CHECK(exampleTest("path.exists(ip[toint(do[0])])", file) == false);
+    CHECK_FALSE(exampleTest("path.exists(sys.prog + '\\7-Zip\\7z.exe')", file).has_value());
+    CHECK_FALSE(exampleTest("path.exists('C:\\Tools\\tool.exe')", file).has_value());
+
+    // if(): the branch not taken may be unknown.
+    CHECK(exampleValue("'Rename' + if(sel.count>1, ' @sel.count Selected') + '...'", file) == "Rename...");
+    CHECK_FALSE(exampleValue("if(sys.is11, 'a', 'b')", file).has_value());
+    // @ in a string: read in place.
+    CHECK(exampleValue("'Create shortcut@if(sel.count>1, 's')'", file) == "Create shortcut");
+    CHECK(exampleValue("'Copy (@sel.count) item@if(sel.count>1, 's')'", file) == "Copy (1) item");
+    CHECK(exampleValue("'Open @sel.file.title.'", file) == "Open report.");
+    CHECK(exampleValue("'@(sel.count + 1) more'", file) == "2 more");
+    CHECK_FALSE(exampleValue("'OS: @sys.ver'", file).has_value());
+
+    // str.fmt: one pass, a value with {0} in it stays.
+    CHECK(exampleValue("str.fmt('{0}', '{0}')", file) == "{0}");
+    CHECK(exampleValue("str.fmt('{0}-{1}-{0}', 'a{0}', 'b')", file) == "a{0}-b-a{0}");
+
+    // The snippet's own variables.
+    auto ex = file;
+    ex.snippetVars["menu_db_name"] = "'Dropbox'";
+    ex.snippetVars["ni"] = "0";
+    ex.snippetVars["loop"] = "loop";
+    ex.snippetVars["off"] = "false";
+    CHECK(exampleValue("menu_db_name", ex) == "Dropbox");
+    CHECK(exampleTest("ni>0", ex) == false);
+    CHECK(exampleTest("!off", ex) == true);
+    CHECK_FALSE(exampleValue("loop", ex).has_value());
+}
+
+TEST_CASE("snippet preview: items for a menu of Windows' own go in it")
+{
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "file", "sample": "C:\\s\\Sample.txt",
+  "tree": {"shell":[
+    {"kind":"item","title":"Send to Executable","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"Se&nd to","moved":false,"items":[]},
+    {"kind":"item","title":"Up","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Mine","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"items":[]}],
+  "system":[{"kind":"menu","title":"Se&nd to","items":[]}], "rules":[]}})";
+    const auto doc = nss::NssDocument::fromText("item(menu=title.send_to title='Send to Executable' pos='top')\n"
+                                                "item(menu=title.view title='Up')\n"
+                                                "item(title='Mine')\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 3);
+    CHECK(items[0].host == "Se&nd to");
+    CHECK(items[2].host.empty());
+
+    // No View on a file: that one is left out.
+    auto file = items;
+    dropMissingHosts(file, Context::File, t->system);
+    REQUIRE(file.size() == 2);
+    auto c = compose(Context::File, file, identity);
+    // Open, Copy, Mine, Send to (with the snippet's item), Properties.
+    std::vector<std::string> labels;
+    for (const auto &r : c.main.rows)
+        if (!r.separator)
+            labels.push_back(r.label);
+    CHECK(labels == std::vector<std::string>{ "Open", "Copy", "Mine", "Send to", "Properties" });
+    REQUIRE(c.open >= 0);
+    const auto &host = c.main.rows[size_t(c.open)];
+    CHECK(host.label == "Send to");
+    CHECK(host.ghost);
+    REQUIRE(host.sub >= 0);
+    // pos=top: before Windows' own items there (faded).
+    const auto &sendTo = c.subs[size_t(host.sub)].rows;
+    REQUIRE(sendTo.size() == 5);
+    CHECK(sendTo[0].label == "Send to Executable");
+    CHECK(sendTo[0].own);
+    CHECK(sendTo[0].groupFirst);
+    CHECK(sendTo[0].groupLast);
+    CHECK(sendTo[1].separator);
+    CHECK(sendTo[2].label == "Compressed (zipped) folder");
+    CHECK(sendTo[2].ghost);
+    CHECK_FALSE(sendTo[2].own);
+    CHECK(c.own == 1);
+
+    // The background's View row is in the frame: it gets the item.
+    auto back = items;
+    dropMissingHosts(back, Context::Back, {});
+    REQUIRE(back.size() == 2);
+    auto b = compose(Context::Back, back, identity);
+    REQUIRE(b.open >= 0);
+    CHECK(b.main.rows[size_t(b.open)].label == "View");
+    // Windows' own View items first, then the snippet's.
+    const auto &view = b.subs[size_t(b.main.rows[size_t(b.open)].sub)].rows;
+    REQUIRE(view.size() == 5);
+    CHECK(view[0].label == "Large icons");
+    CHECK(view[0].ghost);
+    CHECK(view[3].separator);
+    CHECK(view[4].label == "Up");
+    CHECK(view[4].own);
+
+    auto bar = items;
+    dropMissingHosts(bar, Context::Taskbar, {});
+    CHECK(bar.size() == 1);
+}
+
+TEST_CASE("snippet preview: a long menu is cut around its open row")
+{
+    const Metrics m{ 4, 4, 28, 9 };
+    Item menu;
+    menu.kind = "menu";
+    menu.title = "Copy path";
+    for (int i = 0; i < 20; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Form " + std::to_string(i);
+        menu.children.push_back(it);
+    }
+    Item plain;
+    plain.kind = "item";
+    plain.title = "Plain";
+    auto c = compose(Context::File, { plain, menu }, identity);
+    REQUIRE(c.open >= 0);
+    CHECK(pairHeight(c, m) > 344);
+    fitHeight(c, m, 344);
+    CHECK(pairHeight(c, m) <= 344);
+    const auto &sub = c.subs[size_t(c.main.rows[size_t(c.open)].sub)];
+    CHECK(sub.hidden > 0);
+    CHECK(sub.hidden + int(sub.rows.size()) == 20);
+    CHECK(c.main.hidden == 0);
+    CHECK(sub.rows.front().label == "Form 0");
+
+    // A main menu taller than the room: rows after the open one go first.
+    std::vector<Item> many;
+    for (int i = 0; i < 16; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Row " + std::to_string(i);
+        many.push_back(it);
+    }
+    many.insert(many.begin() + 3, menu);
+    auto d = compose(Context::File, many, identity);
+    fitHeight(d, m, 344);
+    CHECK(heightOf(d.main, m) <= 344);
+    CHECK(d.main.hidden > 0);
+    REQUIRE(d.open >= 0);
+    CHECK(d.main.rows[size_t(d.open)].label == "Copy path");
+}
+
+TEST_CASE("snippet preview: a title not from the selection says so")
+{
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "file", "sample": "C:\\s\\Sample.txt",
+  "tree": {"shell":[
+    {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":true,"items":[]},
+    {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":true,"items":[]}],
+  "system":[], "rules":[]}})";
+    const auto doc = nss::NssDocument::fromText("item(title=sys.ver.name)\n"
+                                                "item(title=str.fmt('{0} x', sel.path(1)))\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    const auto ex = exampleFor(Context::File, {});
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {}, &ex);
+    REQUIRE(items.size() == 2);
+    CHECK(items[0].dynamicTitle);
+    CHECK_FALSE(items[0].fromSelection);
+    CHECK(items[1].dynamicTitle);
+    CHECK(items[1].fromSelection);
+    auto c = compose(Context::File, items, identity);
+    bool worked = false, named = false;
+    for (const auto &r : c.main.rows) {
+        worked |= r.label == "Worked out when the menu opens";
+        named |= r.label == "Name from the selection";
+    }
+    CHECK(worked);
+    CHECK(named);
+}
+
+TEST_CASE("snippet preview: a host menu's title with a bracketed accelerator (Chinese Windows)")
+{
+    // menu=title.view on Chinese Windows reads "查看(&V)"; the app in Chinese calls the
+    // frame's View row "查看".
+    const char *tree = R"J({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "back", "sample": "",
+  "tree": {"shell":[
+    {"kind":"item","title":"Up","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"查看(&V)","moved":false,"items":[]},
+    {"kind":"item","title":"Back","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"查看(&V)","moved":false,"items":[]},
+    {"kind":"item","title":"Tool","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"工具(&T)","moved":false,"items":[]}],
+  "system":[{"kind":"menu","title":"查看(&V)","items":[]},{"kind":"menu","title":"工具(&T)","items":[]}], "rules":[]}})J";
+    const auto doc = nss::NssDocument::fromText("item(menu=title.view title='Up')\n"
+                                                "item(menu='查看(&V)' title='Back')\n"
+                                                "item(menu='工具(&T)' title='Tool')\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 3);
+    CHECK(items[0].hostId == "view");
+    CHECK(items[1].hostId.empty());
+    dropMissingHosts(items, Context::Back, t->system);
+    REQUIRE(items.size() == 3);
+
+    const std::map<std::string, std::string> zh{ { "View", "查看" }, { "Sort by", "排序方式" }, { "Refresh", "刷新" },
+                                                 { "Large icons", "大图标" } };
+    const Translate zhTr = [&](const char *s) {
+        auto it = zh.find(s);
+        return it == zh.end() ? std::string(s) : it->second;
+    };
+    auto c = compose(Context::Back, items, zhTr);
+    std::vector<std::string> labels;
+    for (const auto &r : c.main.rows)
+        if (!r.separator)
+            labels.push_back(r.label);
+    // One View row with both items; the menu the preview doesn't know keeps its own
+    // title, without "(T)".
+    CHECK(labels == std::vector<std::string>{ "查看", "排序方式", "刷新", "工具", "Properties" });
+    REQUIRE(c.open >= 0);
+    const auto &view = c.main.rows[size_t(c.open)];
+    CHECK(view.label == "查看");
+    std::vector<std::string> sub;
+    for (const auto &r : c.subs[size_t(view.sub)].rows)
+        if (!r.separator)
+            sub.push_back(r.label);
+    CHECK(sub == std::vector<std::string>{ "大图标", "Medium icons", "Small icons", "Up", "Back" });
+    for (const auto &r : c.main.rows)
+        if (r.label == "工具")
+            CHECK(r.accel == -1);
+
+    // The app in English on Chinese Windows: title.view still finds View.
+    auto en = compose(Context::Back, items, identity);
+    REQUIRE(en.open >= 0);
+    CHECK(en.main.rows[size_t(en.open)].label == "View");
+    size_t mine = 0;
+    for (const auto &r : en.subs[size_t(en.main.rows[size_t(en.open)].sub)].rows)
+        mine += r.own ? 1 : 0;
+    CHECK(mine == 1); // "Back" names it only as Chinese Windows does: a row of its own
+    // A tree without Windows' items: title.view is one Windows always has there.
+    auto bare = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    dropMissingHosts(bare, Context::Back, {});
+    REQUIRE(bare.size() == 1);
+    CHECK(bare[0].title == "Up");
+}
+
+TEST_CASE("snippet preview: pos=indexof(...) puts an item in front of the row it names")
+{
+    const char *tree = R"J({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "desktop", "sample": "",
+  "tree": {"shell":[
+    {"kind":"item","title":"Desktop icon settings","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Before medium","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Unknown","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Plus one","state":"text","source":"","file":"C:\\s.nss","line":4,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Before refresh","state":"text","source":"","file":"C:\\s.nss","line":5,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]},
+    {"kind":"item","title":"Before view","state":"text","source":"","file":"C:\\s.nss","line":6,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]},
+    {"kind":"item","title":"Before personalize","state":"text","source":"","file":"C:\\s.nss","line":7,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]}],
+  "system":[{"kind":"menu","title":"&View","items":[]}], "rules":[]}})J";
+    const auto doc = nss::NssDocument::fromText(
+        "item(title='Desktop icon settings' menu=title.view pos=indexof(quote(str.replace(title.show_desktop_icons,'&',''))))\n"
+        "item(title='Before medium' menu=title.view pos=indexof('Medium icons'))\n"
+        "item(title='Unknown' menu=title.view pos=indexof(title.no_such_item))\n"
+        "item(title='Plus one' menu=title.view pos=indexof(title.small_icons)+1)\n"
+        "item(title='Before refresh' pos=indexof(title.refresh))\n"
+        "item(title='Before view' pos=indexof(title.view))\n"
+        "item(title='Before personalize' pos=indexof(\"Personalize\"))\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 7);
+    CHECK(items[0].posBeforeId == "show_desktop_icons");
+    CHECK(items[1].posBeforeTitle == "Medium icons");
+    CHECK(items[2].posBeforeId == "no_such_item");
+    CHECK(items[3].posBeforeId.empty());
+    CHECK(items[3].posBeforeTitle.empty());
+    CHECK(items[4].posBeforeId == "refresh");
+    CHECK(items[6].posBeforeTitle == "Personalize");
+
+    auto c = compose(Context::Desktop, items, identity);
+    std::vector<std::string> main;
+    for (const auto &r : c.main.rows)
+        if (!r.separator)
+            main.push_back(r.label);
+    // Before view keeps View in the frame (only Sort by and Refresh otherwise).
+    CHECK(main == std::vector<std::string>{ "Before view", "View", "Sort by", "Before refresh", "Refresh", "Display settings",
+                                            "Before personalize", "Personalize" });
+    REQUIRE(c.open >= 0);
+    const auto &view = c.main.rows[size_t(c.open)];
+    CHECK(view.label == "View");
+    std::vector<std::string> sub;
+    for (const auto &r : c.subs[size_t(view.sub)].rows)
+        if (!r.separator)
+            sub.push_back(r.label);
+    // Names the preview can't place (or indexof()+1) go after Windows' rows, as before.
+    CHECK(sub == std::vector<std::string>{ "Large icons", "Before medium", "Medium icons", "Small icons", "Desktop icon settings",
+                                           "Show desktop icons", "Unknown", "Plus one" });
+}
+
+TEST_CASE("snippet preview: the window is known on the background and the desktop")
+{
+    const auto back = exampleFor(Context::Back, {});
+    const auto desk = exampleFor(Context::Desktop, {});
+    const auto file = exampleFor(Context::File, {});
+    CHECK(exampleTest("wnd.is_desktop", back) == false);
+    CHECK(exampleTest("wnd.is_desktop", desk) == true);
+    CHECK(exampleTest("window.name=='CabinetWClass'", back) == true);
+    CHECK(exampleTest("window.name=='CabinetWClass'", desk) == false);
+    CHECK(exampleTest("wnd.name=='cabinetwclass'", back) == true);
+    CHECK(exampleTest("!wnd.is_desktop", back) == true);
+    // A file may be on the desktop or in a folder: not known.
+    CHECK_FALSE(exampleTest("wnd.is_desktop", file).has_value());
+    CHECK_FALSE(exampleTest("window.name=='CabinetWClass'", file).has_value());
+    CHECK_FALSE(exampleTest("wnd.is_desktop", exampleFor(Context::Folder, {})).has_value());
+    CHECK_FALSE(exampleTest("wnd.is_desktop", exampleFor(Context::Drive, {})).has_value());
+}
+
+TEST_CASE("snippet preview: regex.matches against the example's path")
+{
+    auto folder = exampleFor(Context::Folder, {});
+    folder.snippetVars["ext_dir"] =
+        "regex.matches(sel, '\\.\\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\}$')";
+    // D:\Work\Projects has no {GUID}: nothing matches, ext_dir[0] is ''.
+    CHECK(exampleTest("len(ext_dir[0])>0", folder) == false);
+    CHECK(exampleValue("ext_dir[0]", folder) == "");
+    CHECK(exampleValue("ext_dir[3]", folder) == "");
+    CHECK_FALSE(exampleValue("ext_dir", folder).has_value()); // a list is no text
+    CHECK_FALSE(exampleValue("ext_dir + 'x'", folder).has_value());
+
+    auto guid = folder;
+    guid.vars["sel"] = "D:\\Work\\Fonts.{BD84B380-8CA2-1069-AB1D-08000B88E8B5}";
+    guid.vars["sel.file.name"] = "Fonts.{BD84B380-8CA2-1069-AB1D-08000B88E8B5}";
+    CHECK(exampleTest("len(ext_dir[0])>0", guid) == true);
+    CHECK(exampleValue("ext_dir[0]", guid) == ".{BD84B380-8CA2-1069-AB1D-08000B88E8B5}");
+    CHECK(exampleValue("str.replace(sel.file.name, ext_dir[0], \"\")", guid) == "Fonts");
+
+    const auto file = exampleFor(Context::File, {});
+    CHECK(exampleTest("regex.match(sel.path, '.*\\.TXT')", file) == true); // no case
+    CHECK(exampleTest("regex.match(sel.path, 'report')", file) == false);  // the whole text
+    CHECK(exampleValue("regex.matches(sel.path, 'o.')[1]", file) == "or");
+    // A pattern std::regex can't read matches nothing, as in Shell.
+    CHECK(exampleTest("regex.match(sel.path, '(')", file) == false);
+    CHECK(exampleValue("regex.matches(sel.path, '(')[0]", file) == "");
+    CHECK_FALSE(exampleValue("regex.matches(sel.path, sys.x)[0]", file).has_value());
+
+    // The bundled Copy path snippet's two rows for a {GUID} folder are left out.
+    const char *tree = R"({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "folder", "sample": "",
+  "tree": {"shell":[
+    {"kind":"menu","title":"Paths","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,
+     "items":[{"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":3,"column":2,"vis":"","conditions":["where"],"dynamic":true,"items":[]},
+              {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":4,"column":2,"vis":"","conditions":["where"],"dynamic":true,"items":[]},
+              {"kind":"item","title":"","state":"dynamic","source":"","file":"C:\\s.nss","line":5,"column":2,"vis":"","conditions":[],"dynamic":true,"items":[]}]}],
+  "system":[], "rules":[]}})";
+    const char *text = "menu(title='Paths') {\n"
+                       "\t$ext_dir = regex.matches(sel, '\\.\\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\}$')\n"
+                       "\titem(where=len(ext_dir[0])>0 title=str.replace(sel.file.name, ext_dir[0], \"\"))\n"
+                       "\titem(where=len(ext_dir[0])>0 title=ext_dir[0])\n"
+                       "\titem(title=sel.path)\n"
+                       "}\n";
+    const auto doc = nss::NssDocument::fromText(text);
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    ImageDefs own;
+    collectImageDefs(text, own);
+    auto ex = exampleFor(Context::Folder, {});
+    ex.snippetVars = own.vars;
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {}, &ex);
+    REQUIRE(items.size() == 1);
+    REQUIRE(items[0].children.size() == 1);
+    CHECK(items[0].children[0].title == "D:\\Work\\Projects");
+}
+
+TEST_CASE("snippet preview: \"+N more\" counts only the snippet's rows")
+{
+    const Metrics m{ 4, 4, 28, 9 };
+    std::vector<Item> many;
+    for (int i = 0; i < 14; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Row " + std::to_string(i);
+        many.push_back(it);
+    }
+    auto c = compose(Context::File, many, identity);
+    const auto rows = [](const Menu &menu, bool own) {
+        int n = 0;
+        for (const auto &r : menu.rows)
+            n += !r.separator && r.own == own ? 1 : 0;
+        return n;
+    };
+    CHECK(rows(c.main, false) == 3); // Open, Copy, Properties
+    fitHeight(c, m, 344);
+    CHECK(heightOf(c.main, m) <= 344);
+    // Windows' rows go first and aren't counted.
+    CHECK(rows(c.main, false) == 0);
+    CHECK(c.main.hidden == 14 - rows(c.main, true));
+    CHECK(c.main.hidden > 0);
+
+    // Room for all of the snippet's rows once Windows' are gone: nothing to count.
+    auto d = compose(Context::File, std::vector<Item>(many.begin(), many.begin() + 10), identity);
+    fitHeight(d, m, 4 + 4 + 10 * 28 + 9);
+    CHECK(rows(d.main, true) == 10);
+    CHECK(d.main.hidden == 0);
+
+    // In Send to: Windows' items there go first, then the snippet's from the bottom.
+    std::vector<Item> sendTo;
+    for (int i = 0; i < 8; ++i) {
+        Item it;
+        it.kind = "item";
+        it.title = "Target " + std::to_string(i);
+        it.host = "Se&nd to";
+        it.hostId = "send_to";
+        sendTo.push_back(it);
+    }
+    auto e = compose(Context::File, sendTo, identity);
+    REQUIRE(e.open >= 0);
+    const auto &sub = e.subs[size_t(e.main.rows[size_t(e.open)].sub)];
+    CHECK(rows(sub, false) == 3);
+    // Send to is the fourth row (Open, Copy, a separator): its submenu has room for six.
+    fitHeight(e, m, 4 + 4 + 6 * 28 + 2 * 28 + 9);
+    const auto &cut = e.subs[size_t(e.main.rows[size_t(e.open)].sub)];
+    CHECK(rows(cut, false) == 0);
+    CHECK(cut.hidden == 8 - rows(cut, true));
+    CHECK(cut.hidden == 2);
+    CHECK_FALSE(cut.rows.front().separator);
+}
+
+TEST_CASE("snippet preview: keys a snippet's modify() gives Windows' own items")
+{
+    const auto doc = nss::NssDocument::fromText(
+        "modify(where=this.title==title.copy type='*' keys='Ctrl+C')\n"
+        "modify(where=this.title == title.properties & sel.count>0 keys='Alt+Enter')\n"
+        "modify(where=this.title==title.large_icons in=str.replace(title.view, '&', '') keys='Ctrl+Shift+2')\n"
+        "modify(where=this.title==title.open keys=@x)\n"
+        "item(title='Up' menu=title.view)\n");
+    const auto keys = frameKeysOf(doc);
+    CHECK(keys.size() == 3);
+    CHECK(keys.at("copy") == "Ctrl+C");
+    CHECK(keys.at("properties") == "Alt+Enter");
+    CHECK(keys.at("large_icons") == "Ctrl+Shift+2");
+
+    Item mine;
+    mine.kind = "item";
+    mine.title = "Mine";
+    auto c = compose(Context::File, { mine }, identity, keys);
+    std::map<std::string, std::string> shown;
+    for (const auto &r : c.main.rows)
+        if (r.ghost)
+            shown[r.label] = r.keys;
+    CHECK(shown["Copy"] == "Ctrl+C");
+    CHECK(shown["Open"] == "");
+    CHECK(shown["Properties"] == "Alt+Enter");
+
+    Item up;
+    up.kind = "item";
+    up.title = "Up";
+    up.host = "&View";
+    up.hostId = "view";
+    auto b = compose(Context::Back, { up }, identity, keys);
+    REQUIRE(b.open >= 0);
+    const auto &view = b.subs[size_t(b.main.rows[size_t(b.open)].sub)].rows;
+    REQUIRE_FALSE(view.empty());
+    CHECK(view[0].label == "Large icons");
+    CHECK(view[0].keys == "Ctrl+Shift+2");
+}
