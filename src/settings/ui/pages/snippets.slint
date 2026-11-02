@@ -176,6 +176,7 @@ component SnippetPreview inherits Rectangle {
             dark: AppearanceState.preview-dark;
             caption: root.state == "menu" ? SnippetsState.preview-caption : "";
             caption-glyph: SnippetsState.preview-glyph;
+            min-content: SnippetsState.preview-min-height;
         }
 
         // The legend: the swatch is the outline in the menu.
@@ -189,7 +190,7 @@ component SnippetPreview inherits Rectangle {
                     height: 10px;
                     border-radius: 3px;
                     border-width: 1px;
-                    border-color: Tokens.accent.with-alpha(0.7);
+                    border-color: AppearanceState.preview-dark ? Tokens.stage-outline-dark : Tokens.stage-outline-light;
                 }
             }
             Text {

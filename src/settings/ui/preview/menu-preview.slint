@@ -26,10 +26,12 @@ export component MenuSurface inherits Rectangle {
     // Drawn smaller than the theme says (a narrow preview pane): every length times this.
     in property <float> zoom: 1;
     // The Snippets preview (snippet-stage.slint): rows that aren't the snippet's are
-    // Windows' own, faded and not hoverable; the snippet's rows in this menu get an outline
-    // (`outline`, the main menu only). The menu is at most `cap-width` wide; labels elide.
+    // Windows' own, faded and not hoverable (unless their submenu has the snippet's
+    // items); the snippet's rows in this menu get an outline (`outline`) in
+    // `outline-color`. The menu is at most `cap-width` wide; labels elide.
     in property <bool> snippet;
     in property <bool> outline;
+    in property <color> outline-color: Tokens.accent.with-alpha(0.7);
     in property <length> cap-width: 100000px;
 
     // The menu's default font, Segoe UI; each language can name another one in its .po file,
@@ -141,7 +143,9 @@ export component MenuSurface inherits Rectangle {
             height: (it.h * root.zoom);
             // Windows' own rows around the snippet's (the Snippets preview).
             property <bool> ghost: root.snippet && (it.ghost || !it.own);
-            property <bool> selected: i == root.hovered && !it.separator && !self.ghost;
+            // A row of Windows' own with a submenu has the snippet's items in it (Send to).
+            property <bool> hoverable: !it.separator && (!self.ghost || it.sub >= 0);
+            property <bool> selected: i == root.hovered && self.hoverable;
             // The snippet's rows in the main menu: one outline around each run of them.
             // A run starts or ends at a row the data marks (group-first/-last), or where the
             // row before or after isn't the snippet's. A separator belongs to a run only
@@ -185,7 +189,7 @@ export component MenuSurface inherits Rectangle {
                     y: group-top ? 0 : -self.over;
                     height: parent.height + (group-top ? 0 : self.over) + (group-bottom ? 0 : self.over);
                     border-width: 1px;
-                    border-color: Tokens.accent.with-alpha(0.7);
+                    border-color: root.outline-color;
                     border-radius: (t.item-radius * root.zoom) + 2px;
                 }
             }
@@ -199,7 +203,8 @@ export component MenuSurface inherits Rectangle {
                 accessible-role: list-item;
                 accessible-label: it.label;
                 // Windows' own rows (Snippets preview): drawn as they are, but faded.
-                opacity: ghost ? 0.38 : 1;
+                // Open with the snippet's items in it (Send to): a little less faded.
+                opacity: !ghost ? 1 : selected ? 0.7 : 0.38;
                 // A row of Windows' own is never "disabled" here: faded is enough.
                 property <bool> dis: it.disabled && !ghost;
                 property <color> ink: dis || it.placeholder ? t.text-dis : selected ? t.text-sel : t.text;
@@ -292,7 +297,7 @@ export component MenuSurface inherits Rectangle {
             }
             TouchArea {
                 changed has-hover => {
-                    if (self.has-hover && !it.separator && !ghost) {
+                    if (self.has-hover && hoverable) {
                         root.hovered = i;
                     }
                 }

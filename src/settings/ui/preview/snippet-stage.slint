@@ -116,6 +116,9 @@ export component SnippetStage inherits Rectangle {
     in property <bool> dark;            // the preview's Light/Dark
     in property <string> caption;       // "Right-click a .zip file"
     in property <string> caption-glyph;
+    // At least this tall for the menus: the tallest of the snippet's contexts, so the
+    // stage keeps its height when another tab is picked.
+    in property <length> min-content;
     // menu | loading | error. Loading: a skeleton after 150 ms. Error: a faded menu of
     // Windows' own items (the reason is said under the stage).
     in property <string> mode: "menu";
@@ -159,11 +162,16 @@ export component SnippetStage inherits Rectangle {
     property <length> first-sub-dy: root.has-first-sub ? root.menu.items[root.menu.open].y - root.t.pad-top - root.t.border-size : 0px;
     property <length> content-height: !root.showing-menu ? 0px
         : max(root.menu.height, root.has-first-sub ? root.first-sub-dy + probe.height : 0px);
+    property <length> room-height: max(root.content-height, root.showing-menu ? root.min-content : 0px);
     out property <length> wanted-height: root.showing-menu
-        ? clamp(root.top-room + root.content-height + root.bottom-room, Tokens.stage-min, Tokens.stage-max)
+        ? clamp(root.top-room + root.room-height + root.bottom-room, Tokens.stage-min, Tokens.stage-max)
         : Tokens.stage-min;
     property <bool> overflow-y: root.showing-menu && root.top-room + root.content-height + root.bottom-room > Tokens.stage-max;
     property <bool> overflow-x: root.showing-menu && root.pair-width > root.avail;
+    // Rows the data left out of the menus shown ("+N more").
+    property <int> hidden-count: !root.showing-menu ? 0
+        : root.menu.hidden-count + (root.has-sub ? root.subs[root.open-sub].hidden-count : 0);
+    property <color> outline-color: root.dark ? Tokens.stage-outline-dark : Tokens.stage-outline-light;
 
     height: root.wanted-height;
     clip: true;
@@ -194,6 +202,7 @@ export component SnippetStage inherits Rectangle {
         y: root.menus-y;
         snippet: true;
         outline: true;
+        outline-color: root.outline-color;
         cap-width: root.main-cap;
         t: root.t;
         menu: root.menu;
@@ -207,10 +216,13 @@ export component SnippetStage inherits Rectangle {
     }
 
     // To the right of its row, a small gap from the menu, its first row level with it.
+    // In a menu of Windows' own (Send to), the snippet's rows there are outlined.
     if root.has-sub: MenuSurface {
         x: root.menus-x + main.width + root.gap - root.overlap;
         y: root.menus-y + root.menu.items[root.hovered].y - root.t.pad-top - root.t.border-size;
         snippet: true;
+        outline: root.menu.items[root.hovered].ghost;
+        outline-color: root.outline-color;
         cap-width: root.sub-cap;
         t: root.t;
         menu: root.subs[root.open-sub];
@@ -223,12 +235,12 @@ export component SnippetStage inherits Rectangle {
     }
 
     // A long menu: cut at the bottom and faded, with how many rows are left out.
-    if root.overflow-y: Rectangle {
+    if root.overflow-y || root.hidden-count > 0: Rectangle {
         y: root.height - 40px;
         height: 40px;
         background: @linear-gradient(180deg, transparent 0%, (root.dark ? Tokens.stage-fade-dark : Tokens.stage-fade-light) 100%);
     }
-    if root.overflow-y && root.menu.hidden-count > 0: Rectangle {
+    if root.hidden-count > 0: Rectangle {
         property <color> ink: root.dark ? Tokens.stage-ink-dark : Tokens.stage-ink-light;
         x: (root.width - self.width) / 2;
         y: root.height - self.height - 8px;
@@ -239,7 +251,7 @@ export component SnippetStage inherits Rectangle {
         border-width: 1px;
         border-color: root.dark ? Tokens.stage-chip-stroke-dark : Tokens.stage-chip-stroke-light;
         more := Text {
-            text: @tr("+{} more", root.menu.hidden-count);
+            text: @tr("+{} more", root.hidden-count);
             font-size: Tokens.caption;
             color: parent.ink;
         }
