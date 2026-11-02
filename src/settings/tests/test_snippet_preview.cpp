@@ -868,6 +868,59 @@ TEST_CASE("snippet preview: a host menu's title with a bracketed accelerator (Ch
     CHECK(bare[0].title == "Up");
 }
 
+TEST_CASE("snippet preview: pos=indexof(...) puts an item in front of the row it names")
+{
+    const char *tree = R"J({
+  "ok": true, "root": "C:\\s\\root.nss", "context": "desktop", "sample": "",
+  "tree": {"shell":[
+    {"kind":"item","title":"Desktop icon settings","state":"text","source":"","file":"C:\\s.nss","line":1,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Before medium","state":"text","source":"","file":"C:\\s.nss","line":2,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Unknown","state":"text","source":"","file":"C:\\s.nss","line":3,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Plus one","state":"text","source":"","file":"C:\\s.nss","line":4,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"&View","moved":false,"items":[]},
+    {"kind":"item","title":"Before refresh","state":"text","source":"","file":"C:\\s.nss","line":5,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]},
+    {"kind":"item","title":"Before view","state":"text","source":"","file":"C:\\s.nss","line":6,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]},
+    {"kind":"item","title":"Before personalize","state":"text","source":"","file":"C:\\s.nss","line":7,"column":1,"vis":"","conditions":[],"dynamic":false,"menu":"","moved":false,"items":[]}],
+  "system":[{"kind":"menu","title":"&View","items":[]}], "rules":[]}})J";
+    const auto doc = nss::NssDocument::fromText(
+        "item(title='Desktop icon settings' menu=title.view pos=indexof(quote(str.replace(title.show_desktop_icons,'&',''))))\n"
+        "item(title='Before medium' menu=title.view pos=indexof('Medium icons'))\n"
+        "item(title='Unknown' menu=title.view pos=indexof(title.no_such_item))\n"
+        "item(title='Plus one' menu=title.view pos=indexof(title.small_icons)+1)\n"
+        "item(title='Before refresh' pos=indexof(title.refresh))\n"
+        "item(title='Before view' pos=indexof(title.view))\n"
+        "item(title='Before personalize' pos=indexof(\"Personalize\"))\n");
+    auto t = menumap::parseTree(tree);
+    REQUIRE(t);
+    auto items = itemsOf(t->shell, L"C:\\s.nss", doc, {});
+    REQUIRE(items.size() == 7);
+    CHECK(items[0].posBeforeId == "show_desktop_icons");
+    CHECK(items[1].posBeforeTitle == "Medium icons");
+    CHECK(items[2].posBeforeId == "no_such_item");
+    CHECK(items[3].posBeforeId.empty());
+    CHECK(items[3].posBeforeTitle.empty());
+    CHECK(items[4].posBeforeId == "refresh");
+    CHECK(items[6].posBeforeTitle == "Personalize");
+
+    auto c = compose(Context::Desktop, items, identity);
+    std::vector<std::string> main;
+    for (const auto &r : c.main.rows)
+        if (!r.separator)
+            main.push_back(r.label);
+    // Before view keeps View in the frame (only Sort by and Refresh otherwise).
+    CHECK(main == std::vector<std::string>{ "Before view", "View", "Sort by", "Before refresh", "Refresh", "Display settings",
+                                            "Before personalize", "Personalize" });
+    REQUIRE(c.open >= 0);
+    const auto &view = c.main.rows[size_t(c.open)];
+    CHECK(view.label == "View");
+    std::vector<std::string> sub;
+    for (const auto &r : c.subs[size_t(view.sub)].rows)
+        if (!r.separator)
+            sub.push_back(r.label);
+    // Names the preview can't place (or indexof()+1) go after Windows' rows, as before.
+    CHECK(sub == std::vector<std::string>{ "Large icons", "Before medium", "Medium icons", "Small icons", "Desktop icon settings",
+                                           "Show desktop icons", "Unknown", "Plus one" });
+}
+
 TEST_CASE("snippet preview: the window is known on the background and the desktop")
 {
     const auto back = exampleFor(Context::Back, {});

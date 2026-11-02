@@ -1011,6 +1011,78 @@ bool readsSelection(std::string_view expr, const std::map<std::string, std::stri
     return false;
 }
 
+// pos=indexof(title.show_desktop_icons), pos=indexof(quote(str.replace(title.x,'&',''))),
+// pos=indexof('Refresh'): the item of Windows' own the snippet's goes in front of, as a
+// title.* name (`id`) or a title written as text (`title`). Anything else (indexof(...)+1,
+// a variable) sets neither.
+void indexOfTarget(std::string_view expr, std::string &id, std::string &title)
+{
+    const auto e = trimmed(expr);
+    const auto l = lower(e);
+    constexpr std::string_view head = "indexof";
+    if (!l.starts_with(head))
+        return;
+    size_t open = head.size();
+    while (open < l.size() && std::isspace(static_cast<unsigned char>(l[open])))
+        ++open;
+    if (open >= l.size() || l[open] != '(')
+        return;
+    // The bracket closing it, past quoted text; it must end the expression.
+    int depth = 0;
+    char quote = 0;
+    size_t close = std::string::npos;
+    for (size_t i = open; i < l.size(); ++i) {
+        const char c = l[i];
+        if (quote) {
+            if (c == quote)
+                quote = 0;
+        } else if (c == '\'' || c == '"' || c == '`') {
+            quote = c;
+        } else if (c == '(') {
+            ++depth;
+        } else if (c == ')' && --depth == 0) {
+            close = i;
+            break;
+        }
+    }
+    if (close == std::string::npos || !nss::trim(std::string_view(l).substr(close + 1)).empty())
+        return;
+    const auto arg = std::string_view(l).substr(open + 1, close - open - 1);
+    // title.<name>, outside quotes.
+    quote = 0;
+    for (size_t i = 0; i < arg.size(); ++i) {
+        const char c = arg[i];
+        if (quote) {
+            if (c == quote)
+                quote = 0;
+            continue;
+        }
+        if (c == '\'' || c == '"' || c == '`') {
+            quote = c;
+            continue;
+        }
+        const bool start = i == 0 || !(std::isalnum(static_cast<unsigned char>(arg[i - 1])) || arg[i - 1] == '_' || arg[i - 1] == '.');
+        if (start && arg.substr(i).starts_with("title.")) {
+            size_t end = i + 6;
+            while (end < arg.size() && (std::isalnum(static_cast<unsigned char>(arg[end])) || arg[end] == '_'))
+                ++end;
+            if (end > i + 6) {
+                id = std::string(arg.substr(i + 6, end - i - 6));
+                return;
+            }
+        }
+    }
+    // The first text in it, as written (not lowered).
+    const auto raw = std::string_view(e).substr(open + 1, close - open - 1);
+    for (size_t i = 0; i < raw.size(); ++i)
+        if (raw[i] == '\'' || raw[i] == '"' || raw[i] == '`') {
+            const size_t end = raw.find(raw[i], i + 1);
+            if (end != std::string_view::npos && end > i + 1)
+                title = std::string(raw.substr(i + 1, end - i - 1));
+            return;
+        }
+}
+
 std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc, const ImageDefs &defs,
                             const Icon *parentIcon, const Example *example)
 {
@@ -1068,6 +1140,8 @@ std::optional<Item> convert(const menumap::Node &n, const nss::NssDocument &doc,
                 it.pos = Pos::Top;
             else if (p == "bottom" || p == "pos.bottom")
                 it.pos = Pos::Bottom;
+            else
+                indexOfTarget(*pos, it.posBeforeId, it.posBeforeTitle);
         }
         if (auto sep = prop(doc, *decl, { "sep", "separator" })) {
             auto s = lower(unquote(*sep));
@@ -1998,21 +2072,41 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
                 r.keys = k->second;
         return r;
     };
+    // pos=indexof(title.show_desktop_icons): the item goes in front of that row.
+    auto aheadOf = [&](const Item &it, const FrameItem &f) {
+        if (!it.posBeforeId.empty())
+            return f.id && it.posBeforeId == f.id;
+        if (it.posBeforeTitle.empty())
+            return false;
+        const auto key = menuKey(it.posBeforeTitle);
+        return key == menuKey(f.label) || key == menuKey(tr(f.label));
+    };
     auto hostRow = [&](Row &r, size_t h) {
         placed[h] = true;
         const size_t index = out.subs.size();
         out.subs.emplace_back();
-        // A few of Windows' own items, the snippet's after them (pos=top: before them).
-        std::vector<Item> first, rest;
-        for (const auto &it : hosts[h].items)
-            (it.pos == Pos::Top ? first : rest).push_back(it);
+        // A few of Windows' own items, the snippet's after them (pos=top: before them;
+        // pos=indexof(...): in front of the row it names).
         const char *english = englishOf(hosts[h]);
+        const auto frame = english ? hostFrameOf(context, english) : std::vector<FrameItem>{};
+        std::vector<Item> first, rest;
+        std::vector<std::vector<Item>> ahead(frame.size());
+        for (const auto &it : hosts[h].items) {
+            if (it.pos == Pos::Top) {
+                first.push_back(it);
+                continue;
+            }
+            const auto f = std::find_if(frame.begin(), frame.end(), [&](const FrameItem &x) { return aheadOf(it, x); });
+            (f == frame.end() ? rest : ahead[size_t(f - frame.begin())]).push_back(it);
+        }
         Menu m;
         flatten(first, m.rows, out.subs, tr);
         if (english) {
             m.rows.push_back(separatorRow(false));
-            for (const auto &f : hostFrameOf(context, english))
-                m.rows.push_back(ghostRow(f));
+            for (size_t i = 0; i < frame.size(); ++i) {
+                flatten(ahead[i], m.rows, out.subs, tr);
+                m.rows.push_back(ghostRow(frame[i]));
+            }
             m.rows.push_back(separatorRow(false));
         }
         flatten(rest, m.rows, out.subs, tr);
@@ -2024,8 +2118,24 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
 
     // `keep` of Windows' rows: the last ones before the snippet's, the first ones after
     // (and any that has the snippet's items in it).
+    // The snippet's items (not in a host menu) that go in front of one of the frame's rows.
+    std::vector<Item> aheadMain;
+    auto takeAhead = [&](const FrameItem &f) {
+        std::vector<Item> taken;
+        for (auto it = aheadMain.begin(); it != aheadMain.end();)
+            if (aheadOf(*it, f)) {
+                taken.push_back(std::move(*it));
+                it = aheadMain.erase(it);
+            } else {
+                ++it;
+            }
+        return taken;
+    };
     auto frameRows = [&](std::vector<FrameItem> list, size_t keep, bool last) {
-        auto hosting = [&](const FrameItem &f) { return hostOf(f.label) >= 0; };
+        auto hosting = [&](const FrameItem &f) {
+            return hostOf(f.label) >= 0 ||
+                   std::any_of(aheadMain.begin(), aheadMain.end(), [&](const Item &it) { return aheadOf(it, f); });
+        };
         if (last)
             for (size_t i = 0; i + keep < list.size(); ++i)
                 if (hosting(list[i])) {
@@ -2041,6 +2151,7 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
         if (list.size() > keep)
             list.erase(last ? list.begin() : list.begin() + long(keep), last ? list.end() - long(keep) : list.end());
         for (const auto &f : list) {
+            flatten(takeAhead(f), out.main.rows, out.subs, tr);
             Row r = ghostRow(f);
             if (const int h = hostOf(f.label); h >= 0)
                 hostRow(r, size_t(h));
@@ -2078,6 +2189,15 @@ Composed compose(Context context, const std::vector<Item> &items, const Translat
     };
 
     const auto frame = frameOf(context);
+    for (auto it = middle.begin(); it != middle.end();) {
+        auto names = [&](const FrameItem &f) { return aheadOf(*it, f); };
+        if (std::any_of(frame.before.begin(), frame.before.end(), names) || std::any_of(frame.after.begin(), frame.after.end(), names)) {
+            aheadMain.push_back(std::move(*it));
+            it = middle.erase(it);
+        } else {
+            ++it;
+        }
+    }
     ownRows(top);
     frameRows(frame.before, 2, true);
     ownRows(middle);

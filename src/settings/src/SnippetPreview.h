@@ -223,6 +223,11 @@ struct Item
                                // (top-level items only)
     std::string hostId;        // menu=title.send_to: "send_to", whatever Windows' language
     Pos pos = Pos::Middle;
+    // pos=indexof(...): the item of Windows' own it goes in front of. posBeforeId for a
+    // title.* name ("show_desktop_icons"), posBeforeTitle for a title written as text
+    // ("Refresh"); both empty when pos= isn't one indexof() the preview can read.
+    std::string posBeforeId;
+    std::string posBeforeTitle;
     bool sepBefore = false;
     bool sepAfter = false;
     std::vector<Item> children;
