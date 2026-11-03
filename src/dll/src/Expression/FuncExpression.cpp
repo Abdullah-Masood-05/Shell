@@ -4,6 +4,7 @@
 #include "Expression\Variable.h"
 #include "Include\NssFunctions.h"
 #include "Include\WindowThread.h"
+#include "Include\NewItem.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
@@ -4268,93 +4269,15 @@ namespace Nilesoft
 			return hr;
 		}
 
-		LPITEMIDLIST GeneratePidlFromName(PCIDLIST_ABSOLUTE pidlFolder, LPWSTR pszFile)
-		{
-			LPITEMIDLIST ppidl = nullptr;
-			IComPtr<IShellFolder> psf;
-			if(SUCCEEDED(SHBindToObject(nullptr, pidlFolder, 0, IID_IShellFolder, psf)))
-			{
-				LPITEMIDLIST pidlItem;
-				if(SUCCEEDED(psf->ParseDisplayName(nullptr, nullptr, pszFile, nullptr, &pidlItem, nullptr)))
-				{
-					ppidl = ::ILCombine(pidlFolder, pidlItem);
-					::ILFree(pidlItem);
-				}
-			}
-			return ppidl;
-		};
-
-		static bool same_folder(const string &a, const string &b)
-		{
-			auto normal = [](const string &path) -> std::wstring
-			{
-				wchar_t full[MAX_PATH * 4]{};
-				auto n = ::GetFullPathNameW(path.c_str(), _countof(full), full, nullptr);
-				std::wstring s = (n && n < _countof(full)) ? full : path.c_str();
-				while(s.length() > 3 && (s.back() == L'\\' || s.back() == L'/'))
-					s.pop_back();
-				return s;
-			};
-			if(a.empty() || b.empty())
-				return false;
-			auto x = normal(a), y = normal(b);
-			return ::CompareStringOrdinal(x.c_str(), (int)x.length(), y.c_str(), (int)y.length(), TRUE) == CSTR_EQUAL;
-		}
-
-		// io.dir.create and io.file.create(..., rename): tell Explorer about the new item
-		// and, when it was made in the folder the menu was opened in, select it and start
-		// renaming it, as Windows' own New > Folder does.
-		//
-		// The folder view belongs to its window's thread and Shell's pointer to its
-		// browser is a raw one read there, so all of that runs on that thread, posted
-		// without waiting: driving the view from the command thread made Explorer hang
-		// and restart (issue #8). An item made anywhere else is only announced.
+		// io.dir.create and io.file.create(..., rename): see Include\NewItem.h. Explorer is
+		// always told about the item; it is selected and renamed when the open view
+		// shows the folder it was made in, on the view's own thread (issue #8).
 		static void announce_new_item(Context *context, const string &path, bool folder)
 		{
-			const LONG event = folder ? SHCNE_MKDIR : SHCNE_CREATE;
 			auto sel = context ? context->Selections : nullptr;
 			HWND hwnd = sel ? (HWND)sel->Window.handle : nullptr;
 			auto browser = sel ? sel->ShellBrowser : nullptr;
-
-			if(browser && hwnd && same_folder(Path::Parent(path), sel->Directory))
-			{
-				string item = path;
-				string leaf = ::PathFindFileNameW(path.c_str());
-				bool posted = on_window_thread::post(hwnd, [browser, item, leaf, event]()
-				{
-					// First, so the view has the item (Windows' New menu does the same).
-					::SHChangeNotify(event, SHCNF_PATH | SHCNF_FLUSH, item.c_str(), nullptr);
-
-					IComPtr<IShellView> sv;
-					if(S_OK != browser->QueryActiveShellView(sv))
-						return;
-
-					IComPtr<IShellView2> sv2;
-					IComPtr<IFolderView> fv;
-					if(S_OK != sv->QueryInterface(IID_IShellView2, sv2) || S_OK != sv->QueryInterface(IID_IFolderView, fv))
-						return;
-
-					IComPtr<IPersistFolder2> ppf2;
-					if(S_OK != fv->GetFolder(IID_IPersistFolder2, ppf2))
-						return;
-
-					LPITEMIDLIST pidlFolder = nullptr;
-					if(S_OK != ppf2->GetCurFolder(&pidlFolder) || !pidlFolder)
-						return;
-
-					// The leaf name parses only in the folder the view shows.
-					if(auto pidlItem = GeneratePidlFromName(pidlFolder, (LPWSTR)leaf.c_str()); pidlItem)
-					{
-						sv2->SelectAndPositionItem(::ILFindLastID(pidlItem), SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT, nullptr);
-						::ILFree(pidlItem);
-					}
-					::ILFree(pidlFolder);
-				});
-				if(posted)
-					return;
-			}
-
-			::SHChangeNotify(event, SHCNF_PATH | SHCNF_FLUSHNOWAIT, path.c_str(), nullptr);
+			new_item::announce(hwnd, browser, path.c_str(), folder);
 		}
 
 		void FuncExpression::eval_io()
