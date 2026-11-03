@@ -3,6 +3,7 @@
 #include "Expression\Constants.h"
 #include "Expression\Variable.h"
 #include "Include\NssFunctions.h"
+#include "Include\WindowThread.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
@@ -92,74 +93,6 @@ namespace Nilesoft
 				::CoTaskMemFree(pidl);
 			}
 			return result.move();
-		}
-
-		// Runs `fn` on the thread that owns `hwnd` and waits for it (5 seconds at most).
-		// Commands run on a worker thread, but a dialog's shell browser has to be used
-		// from the dialog's own thread. A WH_GETMESSAGE hook on that thread picks up a
-		// message posted to the window and runs the job there.
-		namespace on_window_thread
-		{
-			struct job_t
-			{
-				std::function<void()> fn;
-				HANDLE done{};
-			};
-
-			static UINT message()
-			{
-				static UINT msg = ::RegisterWindowMessageW(L"NilesoftShell.RunOnWindowThread");
-				return msg;
-			}
-
-			static LRESULT CALLBACK hook(int code, WPARAM wParam, LPARAM lParam)
-			{
-				auto msg = reinterpret_cast<MSG *>(lParam);
-				if(code == HC_ACTION && wParam == PM_REMOVE && msg && msg->message == message() && msg->lParam)
-				{
-					auto job = reinterpret_cast<job_t *>(msg->lParam);
-					msg->message = WM_NULL;
-					try { job->fn(); }
-					catch(...) {}
-					::SetEvent(job->done);
-				}
-				return ::CallNextHookEx(nullptr, code, wParam, lParam);
-			}
-
-			static bool run(HWND hwnd, std::function<void()> fn)
-			{
-				auto tid = ::GetWindowThreadProcessId(hwnd, nullptr);
-				if(!tid)
-					return false;
-				if(tid == ::GetCurrentThreadId())
-				{
-					fn();
-					return true;
-				}
-
-				// Kept alive when the wait times out: the hook may still run it.
-				auto job = new job_t{ std::move(fn), ::CreateEventW(nullptr, TRUE, FALSE, nullptr) };
-				if(!job->done)
-				{
-					delete job;
-					return false;
-				}
-
-				bool ok = false;
-				if(auto hk = ::SetWindowsHookExW(WH_GETMESSAGE, hook, nullptr, tid); hk)
-				{
-					if(::PostMessageW(hwnd, message(), 0, reinterpret_cast<LPARAM>(job)))
-						ok = ::WaitForSingleObject(job->done, 5000) == WAIT_OBJECT_0;
-					::UnhookWindowsHookEx(hk);
-				}
-
-				if(ok)
-				{
-					::CloseHandle(job->done);
-					delete job;
-				}
-				return ok;
-			}
 		}
 
 		LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM     lParam)
@@ -2037,7 +1970,6 @@ namespace Nilesoft
 
 					COM_INITIALIZER com_initializer(true);
 					IComPtr<IShellDispatch6> shellDisp;
-					IComPtr<IWebBrowser> webBrowser;
 
 					auto shellBrowser = context->Selections->ShellBrowser;
 
@@ -2046,14 +1978,22 @@ namespace Nilesoft
 						return shellDisp.CreateInstance(CLSID_Shell, IID_IDispatch, CLSCTX_SERVER) && shellDisp;
 					};
 
-					auto WebBrowser = [&]()->bool
+					// The shell browser belongs to its window's thread (it is a raw pointer
+					// read there), so navigation runs there, not on this command thread.
+					auto on_browser = [&](std::function<void(IShellBrowser *)> fn)->bool
 					{
-						if(shellBrowser)
-						{
-							IComPtr<IServiceProvider> sp;
-							if(S_OK == shellBrowser->QueryInterface(IID_IServiceProvider, sp))
-								return S_OK == sp->QueryService(SID_SWebBrowserApp, IID_IWebBrowser, webBrowser);
-						}
+						HWND hwnd = context->Selections->Window.handle;
+						if(!shellBrowser || !hwnd)
+							return false;
+						return on_window_thread::run(hwnd, [shellBrowser, fn]() { fn(shellBrowser); });
+					};
+
+					// Only on the browser's own thread.
+					auto web_browser = [](IShellBrowser *sb, IComPtr<IWebBrowser> &wb)->bool
+					{
+						IComPtr<IServiceProvider> sp;
+						if(S_OK == sb->QueryInterface(IID_IServiceProvider, sp))
+							return S_OK == sp->QueryService(SID_SWebBrowserApp, IID_IWebBrowser, wb) && wb;
 						return false;
 					};
 
@@ -2115,51 +2055,51 @@ namespace Nilesoft
 							if(url.empty())
 								break;
 
-							if(WebBrowser())
+							// An Open or Save As box has no web browser: browse its folder
+							// view to the folder, which keeps the file name typed in it.
+							// Freed with the job, which can outlive a wait that timed out.
+							struct folder_t
 							{
-								auto bstrFile = ::SysAllocString(url);
-								if(bstrFile)
-								{
-									VARIANT empty{};
-									empty.vt = VT_EMPTY;
-									webBrowser->Navigate(bstrFile, &empty, &empty, &empty, &empty);
-									::SysFreeString(bstrFile);
-								}
-							}
-							else if(shellBrowser && in_dialog(context))
-							{
-								// An Open or Save As box has no web browser: browse its folder
-								// view to the folder, which keeps the file name typed in it.
 								PIDLIST_ABSOLUTE pidl{};
-								if(SUCCEEDED(::SHParseDisplayName(url, nullptr, &pidl, 0, nullptr)) && pidl)
+								~folder_t() { ::ILFree(pidl); }
+							};
+							auto folder = std::make_shared<folder_t>();
+							if(in_dialog(context))
+								::SHParseDisplayName(url, nullptr, &folder->pidl, 0, nullptr);
+
+							on_browser([web_browser, url, folder](IShellBrowser *sb)
+							{
+								IComPtr<IWebBrowser> wb;
+								if(web_browser(sb, wb))
 								{
-									// Freed with the job, which outlives a wait that timed out.
-									struct folder_t
+									if(auto bstrFile = ::SysAllocString(url); bstrFile)
 									{
-										PIDLIST_ABSOLUTE pidl{};
-										~folder_t() { ::ILFree(pidl); }
-									};
-									auto folder = std::make_shared<folder_t>();
-									folder->pidl = pidl;
-									on_window_thread::run(context->Selections->Window.handle, [shellBrowser, folder]()
-									{
-										shellBrowser->BrowseObject(folder->pidl, SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
-									});
+										VARIANT empty{};
+										empty.vt = VT_EMPTY;
+										wb->Navigate(bstrFile, &empty, &empty, &empty, &empty);
+										::SysFreeString(bstrFile);
+									}
 								}
-							}
+								else if(folder->pidl)
+									sb->BrowseObject(folder->pidl, SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
+							});
 							break;
 						}
 						case IDENT_COMMAND_GOBACK:
-							if(WebBrowser())
-								webBrowser->GoBack();
-							break;
 						case IDENT_COMMAND_GOFORWARD:
-							if(WebBrowser())
-								webBrowser->GoForward();
-							break;
 						case IDENT_COMMAND_GOHOME:
-							if(WebBrowser())
-								webBrowser->GoHome();
+							on_browser([web_browser, id](IShellBrowser *sb)
+							{
+								IComPtr<IWebBrowser> wb;
+								if(!web_browser(sb, wb))
+									return;
+								if(id == IDENT_COMMAND_GOBACK)
+									wb->GoBack();
+								else if(id == IDENT_COMMAND_GOFORWARD)
+									wb->GoForward();
+								else
+									wb->GoHome();
+							});
 							break;
 						case IDENT_COMMAND_TOGGLE_DESKTOP:
 							if(shelldisp())
@@ -3408,78 +3348,17 @@ namespace Nilesoft
 				case IDENT_META:
 				{
 					auto sb = context->Selections->ShellBrowser;
-					if(sb)
+					HWND hwnd = context->Selections->Window.handle;
+					if(sb && hwnd)
 					{
-						IComPtr<IShellView> sv;
-
-						if(S_OK != sb->QueryActiveShellView(sv))
-							break;
-
-						IComPtr<IFolderView2> fv;
-						if(S_OK != sv->QueryInterface(IID_IFolderView2, fv))
-							break;
-
-						IComPtr<IShellItemArray> sia;
-						if(S_OK != fv->GetSelection(FALSE, sia))
-							break;
-						
-						DWORD sel_count = 0;
-						if(S_OK != sia->GetCount(&sel_count) || sel_count == 0)
-							break;
-
+						// The arguments are worked out here; the folder view is read on
+						// its own window's thread (the browser is a raw pointer from there).
 						uint32_t ai = 0;
-
 						if(Array)
 						{
 							if(Object oa = context->Eval(Array).move(); oa.is_number())
-							{
 								ai = oa;
-								if(ai < 0 || ai >= sel_count)
-									return;
-							}
 						}
-
-						IComPtr<IShellItem2> si;
-						if(S_OK != sia->GetItemAt(ai, si))
-							break;
-
-						/*string path = eval_arg(0).to_string().trim().move();
-						
-						if(path.empty())
-							break;
-
-						string name = eval_arg(1).to_string().trim().move();
-						string sys = L"System.";
-
-						if(name.empty())
-							name = sys + L"Title";
-						else if(!name.starts_with(sys))
-							name = sys + name;
-
-						PROPERTYKEY key{};
-						auto hr = ::PSGetPropertyKeyFromName(name, &key);
-						if(SUCCEEDED(hr))
-						{
-							IComPtr<IPropertyStore> ps;
-							// Call the helper to get the property store for the initialized item
-							hr = ::SHGetPropertyStoreFromParsingName(path, nullptr, GPS_DEFAULT, __uuidof(IPropertyStore), ps);
-							if(SUCCEEDED(hr))
-							{
-								PROPVARIANT propvarValue = { 0 };
-								hr = ps->GetValue(key, &propvarValue);
-								if(SUCCEEDED(hr))
-								{
-									wchar_t* pszDisplayValue = nullptr;
-									hr = ::PSFormatForDisplayAlloc(key, propvarValue, PDFF_DEFAULT, &pszDisplayValue);
-									if(SUCCEEDED(hr))
-									{
-										_result = pszDisplayValue;
-										::CoTaskMemFree(pszDisplayValue);
-									}
-									::PropVariantClear(&propvarValue);
-								}
-							}
-						}*/
 
 						string name = eval_arg(0).to_string().trim().move();
 						string sys = L"System.";
@@ -3490,17 +3369,49 @@ namespace Nilesoft
 							name = sys + name;
 
 						PROPERTYKEY property_key{};
-						auto hr = ::PSGetPropertyKeyFromName(name, &property_key);
-						if(SUCCEEDED(hr))
+						if(FAILED(::PSGetPropertyKeyFromName(name, &property_key)))
+							break;
+
+						struct meta_t
 						{
+							string value;
+							bool ok{};
+						};
+						auto meta = std::make_shared<meta_t>();
+
+						on_window_thread::run(hwnd, [sb, ai, property_key, meta]()
+						{
+							IComPtr<IShellView> sv;
+							if(S_OK != sb->QueryActiveShellView(sv))
+								return;
+
+							IComPtr<IFolderView2> fv;
+							if(S_OK != sv->QueryInterface(IID_IFolderView2, fv))
+								return;
+
+							IComPtr<IShellItemArray> sia;
+							if(S_OK != fv->GetSelection(FALSE, sia))
+								return;
+
+							DWORD sel_count = 0;
+							if(S_OK != sia->GetCount(&sel_count) || ai >= sel_count)
+								return;
+
+							IComPtr<IShellItem2> si;
+							if(S_OK != sia->GetItemAt(ai, si))
+								return;
+
 							wchar_t *value = nullptr;
-							hr = si->GetString(property_key, &value);
-							if(SUCCEEDED(hr))
+							if(SUCCEEDED(si->GetString(property_key, &value)))
 							{
-								_result = value;
+								meta->value = value;
+								meta->ok = true;
 								::CoTaskMemFree(value);
 							}
-						}
+						});
+
+						if(meta->ok)
+							_result = meta->value;
 					}
 					break;
 				}
@@ -4369,10 +4280,82 @@ namespace Nilesoft
 					ppidl = ::ILCombine(pidlFolder, pidlItem);
 					::ILFree(pidlItem);
 				}
-				psf->Release();
 			}
 			return ppidl;
 		};
+
+		static bool same_folder(const string &a, const string &b)
+		{
+			auto normal = [](const string &path) -> std::wstring
+			{
+				wchar_t full[MAX_PATH * 4]{};
+				auto n = ::GetFullPathNameW(path.c_str(), _countof(full), full, nullptr);
+				std::wstring s = (n && n < _countof(full)) ? full : path.c_str();
+				while(s.length() > 3 && (s.back() == L'\\' || s.back() == L'/'))
+					s.pop_back();
+				return s;
+			};
+			if(a.empty() || b.empty())
+				return false;
+			auto x = normal(a), y = normal(b);
+			return ::CompareStringOrdinal(x.c_str(), (int)x.length(), y.c_str(), (int)y.length(), TRUE) == CSTR_EQUAL;
+		}
+
+		// io.dir.create and io.file.create(..., rename): tell Explorer about the new item
+		// and, when it was made in the folder the menu was opened in, select it and start
+		// renaming it, as Windows' own New > Folder does.
+		//
+		// The folder view belongs to its window's thread and Shell's pointer to its
+		// browser is a raw one read there, so all of that runs on that thread, posted
+		// without waiting: driving the view from the command thread made Explorer hang
+		// and restart (issue #8). An item made anywhere else is only announced.
+		static void announce_new_item(Context *context, const string &path, bool folder)
+		{
+			const LONG event = folder ? SHCNE_MKDIR : SHCNE_CREATE;
+			auto sel = context ? context->Selections : nullptr;
+			HWND hwnd = sel ? (HWND)sel->Window.handle : nullptr;
+			auto browser = sel ? sel->ShellBrowser : nullptr;
+
+			if(browser && hwnd && same_folder(Path::Parent(path), sel->Directory))
+			{
+				string item = path;
+				string leaf = ::PathFindFileNameW(path.c_str());
+				bool posted = on_window_thread::post(hwnd, [browser, item, leaf, event]()
+				{
+					// First, so the view has the item (Windows' New menu does the same).
+					::SHChangeNotify(event, SHCNF_PATH | SHCNF_FLUSH, item.c_str(), nullptr);
+
+					IComPtr<IShellView> sv;
+					if(S_OK != browser->QueryActiveShellView(sv))
+						return;
+
+					IComPtr<IShellView2> sv2;
+					IComPtr<IFolderView> fv;
+					if(S_OK != sv->QueryInterface(IID_IShellView2, sv2) || S_OK != sv->QueryInterface(IID_IFolderView, fv))
+						return;
+
+					IComPtr<IPersistFolder2> ppf2;
+					if(S_OK != fv->GetFolder(IID_IPersistFolder2, ppf2))
+						return;
+
+					LPITEMIDLIST pidlFolder = nullptr;
+					if(S_OK != ppf2->GetCurFolder(&pidlFolder) || !pidlFolder)
+						return;
+
+					// The leaf name parses only in the folder the view shows.
+					if(auto pidlItem = GeneratePidlFromName(pidlFolder, (LPWSTR)leaf.c_str()); pidlItem)
+					{
+						sv2->SelectAndPositionItem(::ILFindLastID(pidlItem), SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT, nullptr);
+						::ILFree(pidlItem);
+					}
+					::ILFree(pidlFolder);
+				});
+				if(posted)
+					return;
+			}
+
+			::SHChangeNotify(event, SHCNF_PATH | SHCNF_FLUSHNOWAIT, path.c_str(), nullptr);
+		}
 
 		void FuncExpression::eval_io()
 		{
@@ -4392,7 +4375,6 @@ namespace Nilesoft
 					return path.move();
 				};
 
-				string name0 = arg0;
 				arg0 = full(arg0);
 
 				switch(Id[1])
@@ -4478,36 +4460,12 @@ namespace Nilesoft
 												_result = lpNumberOfBytesWritten;
 										}
 										
-										bool rename = eval_arg(2);
-										auto sel = context->Selections;
-										if(rename && sel && sel->ShellBrowser)
-										{
-											IComPtr<IShellView2> sv;
-											if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-											{
-												IComPtr<IFolderView> fv;
-												if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-												{
-													IComPtr<IPersistFolder2> ppf2;
-													if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-													{
-														LPITEMIDLIST pidlFolder = nullptr;
-														if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-														{
-															if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-															{
-																auto dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-																sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-																::ILFree(pidlCreatedItem);
-															}
-															::ILFree(pidlFolder);
-														}
-													}
-												}
-											}
-											return;
-										}
-										::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
+										// The file is closed first, so a rename can start on it.
+										hFile.close();
+										if(bool(eval_arg(2)))
+											announce_new_item(context, arg0, false);
+										else
+											::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
 										return;
 									}
 								}
@@ -4538,43 +4496,26 @@ namespace Nilesoft
 								int32_t creates = 0;
 								try
 								{
-									creates = ::CreateDirectoryW(arg0.c_str(), nullptr);
+									// One new folder is selected and renamed, as before; with
+									// several, each is only announced.
+									std::vector<string> made;
+									if(::CreateDirectoryW(arg0.c_str(), nullptr))
+										made.push_back(arg0);
 									for(size_t i = 1; i < argc; i++)
-										creates += ::CreateDirectoryW(full(eval_arg(i).to_string()), nullptr);
-
-									auto sel = context->Selections;
-									if(creates == 1 && sel && sel->ShellBrowser)
 									{
-										IComPtr<IShellView2> sv;
-										if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-										{
-											IComPtr<IFolderView> fv;
-											if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-											{
-
-												IComPtr<IPersistFolder2> ppf2;
-												if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-												{
-													LPITEMIDLIST pidlFolder = nullptr;
-													if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-													{
-														if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-														{
-															DWORD dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-															sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-															::ILFree(pidlCreatedItem);
-														}
-														::ILFree(pidlFolder);
-													}
-												}
-											}
-										}
+										string path = full(eval_arg(i).to_string()).move();
+										if(::CreateDirectoryW(path.c_str(), nullptr))
+											made.push_back(path);
 									}
+									creates = (int32_t)made.size();
 
 									if(creates == 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
-									else if(creates > 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_FLUSHNOWAIT, Path::Parent(arg0), nullptr);
+										announce_new_item(context, made[0], true);
+									else
+									{
+										for(auto &path : made)
+											::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, path.c_str(), nullptr);
+									}
 								}
 								catch(...)
 								{

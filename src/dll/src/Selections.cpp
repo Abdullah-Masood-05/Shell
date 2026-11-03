@@ -1,4 +1,5 @@
 #include <pch.h>
+#include "Include\WindowThread.h"
 
 IDataObject *FileManagerTakeDataObject(); // Main.cpp: settings.filemanagers
 
@@ -950,16 +951,19 @@ namespace Nilesoft
 				if(!browser)
 					return drop.path;
 
-				IComPtr<IShellView> sv;
-				if(S_OK != browser->QueryActiveShellView(sv))
-					return drop.path;
-
-				IComPtr<IFolderView> fv;
-				if(S_OK != sv->QueryInterface(IID_IFolderView, fv))
-					return drop.path;
-
-				string folder;
+				// The browser belongs to the window's thread (sel.drop can be asked for
+				// from a command's thread), so the view is read there.
+				auto view_folder = std::make_shared<string>();
+				on_window_thread::run(hwnd, [browser, view_folder]()
 				{
+					IComPtr<IShellView> sv;
+					if(S_OK != browser->QueryActiveShellView(sv))
+						return;
+
+					IComPtr<IFolderView> fv;
+					if(S_OK != sv->QueryInterface(IID_IFolderView, fv))
+						return;
+
 					IComPtr<IPersistFolder2> pf;
 					if(S_OK == fv->GetFolder(IID_IPersistFolder2, pf))
 					{
@@ -968,11 +972,12 @@ namespace Nilesoft
 						{
 							wchar_t path[MAX_PATH]{};
 							if(::SHGetPathFromIDListW(pidl, path))
-								folder = path;
+								*view_folder = path;
 							::ILFree(pidl);
 						}
 					}
-				}
+				});
+				string folder = *view_folder;
 
 				if(folder.empty())
 					return drop.path;
