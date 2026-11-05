@@ -4699,7 +4699,7 @@ namespace Nilesoft
 						item->radio_check = mii.fType & MFT_RADIOCHECK;
 						item->image = MenuItemInfo::FindImage(&mii);
 
-						if(item->disabled && _settings.modify_items.remove.disabled)
+						if(mii.cch == 0 && item->disabled && _settings.modify_items.remove.disabled)
 							continue;
 						
 						if(mii.cch > 0)
@@ -4709,17 +4709,26 @@ namespace Nilesoft
 
 							item->ui = Initializer::get_muid(item->hash);
 
+							// Explorer hands "Empty Recycle Bin" over greyed out and works out
+							// its real state later, so the bin itself is asked. Only a query
+							// that succeeds and finds nothing keeps it greyed out.
 							if(!item->is_menu() && is_root && item->disabled)
 							{
 								if(item->uid() == IDENT_ID_EMPTY_RECYCLE_BIN)
 								{
 									item->disabled = false;
 									SHQUERYRBINFO sqrbi = { sizeof(SHQUERYRBINFO) };
-									DLL::Invoke<HRESULT>(L"shell32.dll", "SHQueryRecycleBinW", nullptr, &sqrbi);
-									if((sqrbi.i64Size + sqrbi.i64NumItems) == 0)
+									auto hr = DLL::Invoke<HRESULT>(L"shell32.dll", "SHQueryRecycleBinW", nullptr, &sqrbi);
+									if(SUCCEEDED(hr) && (sqrbi.i64Size + sqrbi.i64NumItems) == 0)
 										item->disabled = true;
 								}
 							}
+
+							// "Remove disabled items" (modify.remove.disabled) is checked only
+							// now: before, it dropped "Empty Recycle Bin" while it was still
+							// greyed out, so the item was gone even with files in the bin (#9).
+							if(item->disabled && _settings.modify_items.remove.disabled)
+								continue;
 
 							if(remove_duplicate)
 							{
