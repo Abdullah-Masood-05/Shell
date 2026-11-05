@@ -38,10 +38,21 @@ command.refresh(1)                             // send the refresh straight to t
 command.refresh(2)                             // refresh, and rebuild the Windows icon cache (ie4uinit.exe -show), for icons that show wrong</code></pre>
 </section>
 
+<section id="command.empty_recycle_bin" class="my-5">
+	<h5>command.empty_recycle_bin</h5>
+	<p>Empties the Recycle Bin on every drive. It does not ask first, so put a <code>msg()</code> question in front of it.
+		Windows shows its progress window while it works. If the Recycle Bin is already empty, nothing happens.
+		If one drive can't be emptied, the other drives still are, and the reason is written to shell.log.</p>
+	<p>Syntax</p>
+	<code>command.empty_recycle_bin</code><br>
+	<code>item(title='Empty Recycle Bin' cmd=if(msg('Empty the Recycle Bin?', app.name, msg.yesno | msg.warning) == msg.idyes, command.empty_recycle_bin))</code>
+</section>
+
 <section id="list" class="my-5">
 <pre><code>command.cascade_windows
 command.copy_to_folder
 command.customize_this_folder
+command.empty_recycle_bin
 command.find
 command.folder_options
 command.invert_selection

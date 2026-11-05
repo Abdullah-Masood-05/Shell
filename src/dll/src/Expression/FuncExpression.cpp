@@ -4,6 +4,7 @@
 #include "Expression\Variable.h"
 #include "Include\NssFunctions.h"
 #include "Include\WindowThread.h"
+#include "Include\RecycleBin.h"
 #include "Include\NewItem.h"
 
 #include <propsys.h>
@@ -2166,6 +2167,25 @@ namespace Nilesoft
 						case IDENT_COMMAND_RESTART_EXPLORER:
 							_result = Windows::Explorer::Restart();
 							break;
+						case IDENT_ID_EMPTY_RECYCLE_BIN:
+						{
+							// command.empty_recycle_bin: no confirmation of its own (the
+							// item asks with msg() first); Windows shows its progress.
+							auto r = RecycleBin::empty(context->wnd.owner);
+							if(r.was_empty)
+								Logger::Info(L"Empty Recycle Bin: the Recycle Bin is already empty.");
+							for(auto &step : r.steps)
+							{
+								auto where = step.root[0] ? step.root : L"all drives";
+								if(RecycleBin::succeeded(step.hr))
+									Logger::Info(L"Empty Recycle Bin (%s): done (0x%08X).", where, (uint32_t)step.hr);
+								else
+									Logger::Warning(L"Empty Recycle Bin (%s) failed: 0x%08X.", where, (uint32_t)step.hr);
+							}
+							if(!r.ok)
+								Logger::Warning(L"Empty Recycle Bin: some items could not be deleted.");
+							break;
+						}
 						case IDENT_COMMAND_TOGGLEHIDDEN:
 							Explorer::ToggleHiddenFiles();
 							break;
