@@ -285,6 +285,78 @@ TEST_CASE("menu move: up or down steps over hidden items")
     CHECK(planReorder(top, 2, true).pos == "\"top\"");
 }
 
+TEST_CASE("menu move: which of a menu's items show and can be named, as Shell builds it")
+{
+    auto ownNode = [](const char *title, int line, const char *file = "C:/cfg/a.nss") {
+        Node n;
+        n.origin = Origin::Shell;
+        n.kind = "item";
+        n.title = n.rawTitle = title;
+        n.state = "text";
+        n.file = file;
+        n.line = line;
+        n.column = 2;
+        return n;
+    };
+    auto winNode = [](const char *title, const char *path = "") {
+        Node n;
+        n.origin = Origin::System;
+        n.kind = "item";
+        n.title = n.rawTitle = title;
+        n.name = itemName(title);
+        n.path = path;
+        return n;
+    };
+    const auto self = ownNode("Self", 10);
+
+    // Your items: hidden (vis=hidden, or switched off here), sent elsewhere by menu=,
+    // or brought here by another one's menu=.
+    auto plain = ownNode("Plain", 3);
+    CHECK(siblingOf(plain, &self, true, "", "").shown);
+    CHECK_FALSE(siblingOf(plain, &self, false, "", "").shown);
+    auto away = ownNode("Away", 4);
+    away.menu = "Terminal";
+    CHECK_FALSE(siblingOf(away, &self, true, "", "").shown);
+    auto broughtHere = away;
+    broughtHere.relocated = true;
+    CHECK(siblingOf(broughtHere, &self, true, "", "").shown);
+
+    // Placed by its own pos=N or pos=indexof(): only one declared before `self` in
+    // the same file is in the menu when `self` is placed.
+    auto early = ownNode("Early", 5);
+    early.pos = "indexof";
+    CHECK(siblingOf(early, &self, true, "", "").titled);
+    auto late = ownNode("Late", 12);
+    late.pos = "2";
+    CHECK_FALSE(siblingOf(late, &self, true, "", "").titled);
+    auto otherFile = ownNode("Other", 1, "C:/cfg/b.nss");
+    otherFile.pos = "indexof";
+    CHECK_FALSE(siblingOf(otherFile, &self, true, "", "").titled);
+    late.pos = "bottom"; // top, middle and bottom are placed before any of those
+    CHECK(siblingOf(late, &self, true, "", "").titled);
+
+    // Windows' items: hidden by a rule (saved or waiting, as stateOf gives it), moved
+    // to another menu, kept in the main menu, or renamed.
+    auto term = winNode("Open in Terminal");
+    CHECK(siblingOf(term, &self, true, "", "").shown);
+    CHECK_FALSE(siblingOf(term, &self, false, "", "").shown);
+    CHECK_FALSE(siblingOf(term, &self, true, "Terminal", "").shown);
+    CHECK(siblingOf(term, &self, true, "/", "").shown);
+    auto sendTo = winNode("Mail recipient", "send to");
+    CHECK_FALSE(siblingOf(sendTo, &self, true, "/", "").shown);
+    CHECK(siblingOf(sendTo, &self, true, "Send &to", "").shown);
+    auto renamed = siblingOf(term, &self, true, "", "Terminal here");
+    CHECK(renamed.shown);
+    CHECK(posValue(renamed.step, true) == "indexof(\"\\\"Terminal here\\\"\", 1)");
+
+    // The value of a rule waiting to be saved, as moveRule and renameRule write it.
+    CHECK(ruleProp(term, moveRule(term, "Terminal"), "menu") == std::optional<std::string>("Terminal"));
+    CHECK(ruleProp(term, moveRule(term, "/"), "menu") == std::optional<std::string>("/"));
+    CHECK(ruleProp(term, renameRule(term, "Say \"hi\""), "title") == std::optional<std::string>("Say \"hi\""));
+    CHECK_FALSE(ruleProp(term, renameRule(term, "X"), "menu").has_value());
+    CHECK_FALSE(ruleProp(winNode("Other"), moveRule(term, "Terminal"), "menu").has_value());
+}
+
 TEST_CASE("menu move: a declaration moved up or down in its file")
 {
     const std::string text = "menu(title='System')\r\n"

@@ -123,6 +123,9 @@ std::string matchProps(const Node &n);
 std::string hideRule(const Node &n);                                   // remove(...)
 std::string renameRule(const Node &n, std::string_view title);         // modify(... title="...")
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
+// The value a rule made by renameRule or moveRule gives: prop "title" or "menu" of
+// `rule` when it is modify(<matchProps(n)> <prop>="..."), else nullopt.
+std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::string_view prop);
 // modify(... image=<value>): `value` as imageValue() gives it; "null" takes the icon away.
 std::string imageRule(const Node &n, std::string_view value);
 // The image= of a rule written on one line, such as imageRule() makes: nullopt without one.
@@ -263,6 +266,18 @@ struct Place
     std::string pos;     // the value of pos=
 };
 std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t index);
+
+// The Sibling for `n`, in the menu of `self` (the item being placed; may be null).
+// `shown`: not hidden, counting a hide or show waiting to be saved. For Windows'
+// items, `moved` and `renamed` are the menu= and title= its rules give it, counting
+// changes waiting to be saved ("" for none). What decides it, as Shell builds the menu:
+// - A Windows item moved to another menu is taken out of this one before your items
+//   are placed, as a hidden one is. Kept in the main menu (menu='/') it stays.
+// - A Windows item renamed is found by its new title.
+// - One of your items with its own pos=N or pos=indexof() is placed in the order the
+//   items are declared, so one declared after `self` (or in another file) isn't in
+//   the menu yet when `self` is placed: pos=indexof() can't name it (titled false).
+Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view moved, std::string_view renamed);
 
 // How to move siblings[index] one place up or down among its siblings. Siblings
 // that aren't shown are stepped over: the move goes past the next one that shows.

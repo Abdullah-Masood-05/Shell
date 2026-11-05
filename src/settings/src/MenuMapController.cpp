@@ -513,22 +513,44 @@ std::vector<menumap::Sibling> MenuMapController::siblingsOf(const Entry &e, size
             *index = out.size();
         menumap::Sibling s;
         if (const auto *n = ke.node) {
-            s.own = n->origin == Origin::Shell && n->line > 0;
-            s.separator = n->kind == "separator";
-            s.titled = n->origin == Origin::Shell ? n->state == "text" : !n->title.empty();
-            s.step = { n->rawTitle, n->titleSource };
-            s.file = n->file;
-            s.line = n->line;
-            s.column = n->column;
-            s.fixed = !n->menu.empty() || (!n->pos.empty() && n->pos != "auto") || n->relocated;
-            // Hidden (vis=, a rule, or switched off here), or sent to another menu
-            // by its menu=. Shown only sometimes or disabled still counts as shown:
-            // it is in the menu at least some of the time.
-            s.shown = stateOf(ke).shown && !(n->origin == Origin::Shell && !n->menu.empty() && !n->relocated);
+            // Hidden (vis=, a rule, or switched off here), sent to another menu, or
+            // renamed: as the menu will be once the changes here are saved. Shown
+            // only sometimes or disabled still counts as shown: it is in the menu
+            // at least some of the time.
+            const bool windows = n->origin != Origin::Shell;
+            s = menumap::siblingOf(*n, e.node, stateOf(ke).shown, windows ? ruleValue(*n, "menu", n->moved) : std::string(),
+                                   windows ? ruleValue(*n, "title", n->renamed) : std::string());
         }
         out.push_back(std::move(s));
     }
     return out;
+}
+
+std::string MenuMapController::ruleValue(const Node &n, const char *prop, const std::string &saved) const
+{
+    const auto &pending = save_.pending();
+    // A rule made here and waiting to be saved: modify(<props> <prop>="...").
+    for (const auto &[text, change] : pending.rules())
+        if (change.add)
+            if (auto v = menumap::ruleProp(n, text, prop))
+                return *v;
+    if (saved.empty())
+        return saved;
+    // Every rule that gives it is one made here, waiting to be taken out.
+    const std::string w = prop;
+    size_t giving = 0;
+    for (int i : n.rules)
+        if (i >= 0 && i < int(tree_.rules.size())) {
+            const auto &r = tree_.rules[size_t(i)];
+            giving += w == "menu" ? !r.menu.empty() : !r.title.empty();
+        }
+    auto lines = mapLinesOf(n.rules, prop);
+    if (lines.empty() || lines.size() < giving)
+        return saved;
+    for (const auto &line : lines)
+        if (const auto *c = pending.findRule(line); !c || c->add)
+            return saved;
+    return {};
 }
 
 menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
