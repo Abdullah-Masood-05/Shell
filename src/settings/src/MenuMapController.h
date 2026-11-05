@@ -47,6 +47,7 @@ public:
         bool expandAll = false;
         std::string select;
         bool openMove = false;     // the selected item's Move to list opens (--map-open-move)
+        bool openPlace = false;    // its Place in this menu list opens (--map-open-place)
         int sample = -1;           // the File context's sample, by index (--map-sample)
     };
     void setDevOptions(DevOptions options);

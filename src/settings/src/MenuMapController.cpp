@@ -399,10 +399,13 @@ void MenuMapController::load()
                     }
                 // The Move to list open: its focus first, then Enter, as a keyboard
                 // user would (screenshots only).
-                if (dev_.openMove && selected_ >= 0)
+                if ((dev_.openMove || dev_.openPlace) && selected_ >= 0)
                     slint::Timer::single_shot(std::chrono::milliseconds(400), [this] {
                         const auto &st = ui_->global<MenuMapState>();
-                        st.set_dev_focus_move(st.get_dev_focus_move() + 1);
+                        if (dev_.openPlace)
+                            st.set_dev_focus_place(st.get_dev_focus_place() + 1);
+                        else
+                            st.set_dev_focus_move(st.get_dev_focus_move() + 1);
                         slint::Timer::single_shot(std::chrono::milliseconds(150), [this] {
                             ui_->window().dispatch_key_press_event(slint::SharedString(u8"\n"));
                             ui_->window().dispatch_key_release_event(slint::SharedString(u8"\n"));
@@ -518,6 +521,10 @@ std::vector<menumap::Sibling> MenuMapController::siblingsOf(const Entry &e, size
             s.line = n->line;
             s.column = n->column;
             s.fixed = !n->menu.empty() || (!n->pos.empty() && n->pos != "auto") || n->relocated;
+            // Hidden (vis=, a rule, or switched off here), or sent to another menu
+            // by its menu=. Shown only sometimes or disabled still counts as shown:
+            // it is in the menu at least some of the time.
+            s.shown = stateOf(ke).shown && !(n->origin == Origin::Shell && !n->menu.empty() && !n->relocated);
         }
         out.push_back(std::move(s));
     }
@@ -1000,16 +1007,8 @@ void MenuMapController::pushDetail()
             positions_.push_back(Choice{ nsp::tr("At the top"), nss::quoteString("top") });
             size_t index = 0;
             auto siblings = siblingsOf(e, &index);
-            for (size_t i = 0; i < siblings.size(); ++i) {
-                const auto &sib = siblings[i];
-                if (i == index || sib.separator || !sib.titled)
-                    continue;
-                auto title = menumap::stripAccelerators(sib.step.rawTitle);
-                if (auto v = menumap::posValue(sib.step, false); !v.empty())
-                    positions_.push_back(Choice{ nsp::trf("Before {}", title), v });
-                if (auto v = menumap::posValue(sib.step, true); !v.empty())
-                    positions_.push_back(Choice{ nsp::trf("After {}", title), v });
-            }
+            for (const auto &p : menumap::placesNextTo(siblings, index))
+                positions_.push_back(Choice{ p.after ? nsp::trf("After {}", p.title) : nsp::trf("Before {}", p.title), p.pos });
             positions_.push_back(Choice{ nsp::tr("At the bottom"), nss::quoteString("bottom") });
             d.can_up = reorderOf(e, true).possible;
             d.can_down = reorderOf(e, false).possible;

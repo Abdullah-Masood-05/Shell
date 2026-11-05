@@ -830,6 +830,21 @@ std::string posValue(const MenuStep &sibling, bool after)
     return "indexof(" + nss::quoteString("\"" + title + "\"") + ", " + offset + ")";
 }
 
+std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t index)
+{
+    std::vector<Place> out;
+    for (size_t i = 0; i < siblings.size(); ++i) {
+        const auto &sib = siblings[i];
+        if (i == index || sib.separator || !sib.titled || !sib.shown)
+            continue;
+        auto title = stripAccelerators(sib.step.rawTitle);
+        for (bool after : { false, true })
+            if (auto v = posValue(sib.step, after); !v.empty())
+                out.push_back(Place{ title, after, std::move(v) });
+    }
+    return out;
+}
+
 Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
 {
     Reorder r;
@@ -838,9 +853,21 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
     const auto &self = siblings[index];
     if (!self.own || self.separator)
         return r;
+    // The next sibling that shows, from `from` on (`from` itself first), or none.
+    // Hidden ones are left out of the menu, so stepping over them is what the move
+    // looks like; naming one in pos=indexof() wouldn't find it.
+    constexpr size_t none = size_t(-1);
+    auto shownFrom = [&](size_t from) {
+        for (size_t i = from; i < siblings.size(); i = up ? i - 1 : i + 1)
+            if (siblings[i].shown)
+                return i;
+        return none;
+    };
     if (up ? index == 0 : index + 1 >= siblings.size())
         return r;
-    const size_t next = up ? index - 1 : index + 1;
+    const size_t next = shownFrom(up ? index - 1 : index + 1);
+    if (next == none)
+        return r;
     const auto &other = siblings[next];
 
     if (other.own && !self.fixed && !other.fixed && !self.file.empty() && self.file == other.file && self.line > 0 &&
@@ -857,10 +884,10 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
         if (other.titled)
             pos = posValue(other.step, !up);
     } else {
-        const bool beyond = up ? next > 0 : next + 1 < siblings.size();
-        if (!beyond)
+        const size_t beyond = (up ? next > 0 : next + 1 < siblings.size()) ? shownFrom(up ? next - 1 : next + 1) : none;
+        if (beyond == none)
             pos = nss::quoteString(up ? "top" : "bottom");
-        else if (const auto &b = siblings[up ? next - 1 : next + 1]; b.titled && !b.separator)
+        else if (const auto &b = siblings[beyond]; b.titled && !b.separator)
             pos = posValue(b.step, up);
     }
     if (!pos.empty()) {

@@ -35,6 +35,7 @@
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
 //   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
 //   --map-expand, --map-select <title>, --map-open-move (its Move to list open),
+//   --map-open-place (its Place in this menu list open),
 //   --map-sample <n> (the File context's sample, 0 = .txt)   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
 //   --lang <auto|en|zh-CN|zh-TW|ar> the app's language for this run (not saved)
@@ -206,6 +207,9 @@ AppOptions parseArgs()
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--map-open-move") == 0) {
             g_map.openMove = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-open-place") == 0) {
+            g_map.openPlace = true;
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--map-sample") == 0 && i + 1 < argc) {
             g_map.sample = _wtoi(argv[++i]);

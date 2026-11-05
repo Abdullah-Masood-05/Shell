@@ -225,6 +225,66 @@ TEST_CASE("menu move: planning a move up or down")
     CHECK_FALSE(planReorder(sep, 1, true).possible);
 }
 
+TEST_CASE("menu move: the places offered are next to items that show")
+{
+    auto hidden = [](Sibling s) {
+        s.shown = false;
+        return s;
+    };
+    Sibling windows;            // one of Windows' items with a title
+    windows.titled = true;
+    windows.step = { "&Open", "" };
+    Sibling untitled;           // a title that changes with the selection
+    std::vector<Sibling> menu = { own("More options", 1), hidden(own("Terminal", 3)), separator(4), own("Self", 5),
+                                  windows, untitled, own("Sometimes", 7) };
+    auto places = placesNextTo(menu, 3);
+    std::vector<std::string> got;
+    for (const auto &p : places)
+        got.push_back((p.after ? "After " : "Before ") + p.title + " = " + p.pos);
+    CHECK(got == std::vector<std::string>{
+                     "Before More options = indexof(\"\\\"More options\\\"\", 0)",
+                     "After More options = indexof(\"\\\"More options\\\"\", 1)",
+                     "Before Open = indexof(\"\\\"Open\\\"\", 0)",
+                     "After Open = indexof(\"\\\"Open\\\"\", 1)",
+                     "Before Sometimes = indexof(\"\\\"Sometimes\\\"\", 0)",
+                     "After Sometimes = indexof(\"\\\"Sometimes\\\"\", 1)",
+                 });
+}
+
+TEST_CASE("menu move: up or down steps over hidden items")
+{
+    auto hidden = [](Sibling s) {
+        s.shown = false;
+        return s;
+    };
+    // Hidden ones are left out of the menu: the move goes past the next item that shows,
+    // and pos= never names a hidden one (indexof() wouldn't find it).
+    std::vector<Sibling> menu = { own("Restart", 3), hidden(own("Terminal", 5)), own("Empty", 7),
+                                  hidden(own("Lock", 9)), own("Sleep", 11) };
+    auto up = planReorder(menu, 2, true);
+    CHECK(up.possible);
+    CHECK(up.text);
+    CHECK(up.anchor == 0);
+    CHECK_FALSE(up.after);
+    CHECK(up.pos == "indexof(\"\\\"Restart\\\"\", 0)");
+    auto down = planReorder(menu, 2, false);
+    CHECK(down.text);
+    CHECK(down.anchor == 4);
+    CHECK(down.after);
+    CHECK(down.pos == "indexof(\"\\\"Sleep\\\"\", 1)");
+
+    // Only hidden items above (or below): already first (last) of what shows.
+    std::vector<Sibling> ends = { hidden(own("A", 1)), own("B", 3), hidden(own("C", 5)) };
+    CHECK_FALSE(planReorder(ends, 1, true).possible);
+    CHECK_FALSE(planReorder(ends, 1, false).possible);
+
+    // Past a separator: the item beyond it that shows, else the top.
+    std::vector<Sibling> sep = { own("A", 1, true), hidden(own("H", 2, true)), separator(3), own("B", 4) };
+    CHECK(planReorder(sep, 3, true).pos == "indexof(\"\\\"A\\\"\", 1)");
+    std::vector<Sibling> top = { hidden(own("H", 1, true)), separator(2), own("B", 3) };
+    CHECK(planReorder(top, 2, true).pos == "\"top\"");
+}
+
 TEST_CASE("menu move: a declaration moved up or down in its file")
 {
     const std::string text = "menu(title='System')\r\n"

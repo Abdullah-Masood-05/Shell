@@ -652,6 +652,9 @@ component DetailPanel inherits Rectangle {
                 title: @tr("Place in this menu");
                 HorizontalLayout {
                     spacing: Tokens.s2;
+                    // Screenshots (--map-open-place), as for Move to.
+                    property <int> focus-serial: MenuMapState.dev-focus-place;
+                    changed focus-serial => { place.focus(); }
                     place := ComboBox {
                         horizontal-stretch: 1;
                         model: MenuMapState.positions;
