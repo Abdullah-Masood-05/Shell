@@ -93,6 +93,7 @@
 { "imports/modify.nss", 0xd19a2c7fb0cf9ca3ull },
 { "imports/modify.nss", 0xfbf118942b67f73dull },
 { "imports/my-tools.nss", 0x9e46ffb38e08ea17ull },
+{ "imports/my-tools.nss", 0xc1b280e20df4342eull },
 { "imports/my-tools.nss", 0xcc426ad29700e87dull },
 { "imports/my-tools.nss", 0xfa787e267792de85ull },
 { "imports/static.nss", 0x8c7338655fcd1ba4ull },

@@ -12,6 +12,8 @@
 	  - empty entries (no extension, no parent) are hidden
 	  - New file no longer truncates an existing file of the same name
 	  - Restart Explorer uses the built-in command.restart_explorer
+	  - Empty Recycle Bin uses the built-in command.empty_recycle_bin
+	    (PowerShell's Clear-RecycleBin could fail without telling you)
 	  - Empty Recycle Bin, Sign out, Restart and Shut down ask first
 
 	Icons: icon.<name> come from imports/images.nss; image.mdl(\uXXXX) is a
