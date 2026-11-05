@@ -42,7 +42,8 @@ command.refresh(2)                             // refresh, and rebuild the Windo
 	<h5>command.empty_recycle_bin</h5>
 	<p>Empties the Recycle Bin on every drive. It does not ask first, so put a <code>msg()</code> question in front of it.
 		Windows shows its progress window while it works. If the Recycle Bin is already empty, nothing happens.
-		If one drive can't be emptied, the other drives still are, and the reason is written to shell.log.</p>
+		If one drive can't be emptied, the other drives still are, and the reason is written to shell.log.
+		If you press Cancel in Windows' progress window, it stops and the files that are left stay in the Recycle Bin.</p>
 	<p>Syntax</p>
 	<code>command.empty_recycle_bin</code><br>
 	<code>item(title='Empty Recycle Bin' cmd=if(msg('Empty the Recycle Bin?', app.name, msg.yesno | msg.warning) == msg.idyes, command.empty_recycle_bin))</code>

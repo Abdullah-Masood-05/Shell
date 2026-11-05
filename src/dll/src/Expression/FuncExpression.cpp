@@ -2179,10 +2179,19 @@ namespace Nilesoft
 								auto where = step.root[0] ? step.root : L"all drives";
 								if(RecycleBin::succeeded(step.hr))
 									Logger::Info(L"Empty Recycle Bin (%s): done (0x%08X).", where, (uint32_t)step.hr);
+								else if(RecycleBin::cancelled(step.hr))
+									Logger::Info(L"Empty Recycle Bin (%s): cancelled by the user (0x%08X).", where, (uint32_t)step.hr);
+								else if(r.empty_now)
+									// Some PCs report an error although everything was deleted.
+									Logger::Info(L"Empty Recycle Bin (%s) returned 0x%08X, but the Recycle Bin is empty now.", where, (uint32_t)step.hr);
 								else
 									Logger::Warning(L"Empty Recycle Bin (%s) failed: 0x%08X.", where, (uint32_t)step.hr);
 							}
-							if(!r.ok)
+							if(r.cancelled)
+								Logger::Info(L"Empty Recycle Bin: stopped, the items left in the Recycle Bin were kept.");
+							else if(!r.was_empty && r.empty_now)
+								Logger::Info(L"Empty Recycle Bin: done, the Recycle Bin is empty now.");
+							else if(!r.ok)
 								Logger::Warning(L"Empty Recycle Bin: some items could not be deleted.");
 							break;
 						}
