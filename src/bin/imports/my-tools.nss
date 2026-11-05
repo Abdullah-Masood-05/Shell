@@ -45,7 +45,7 @@ menu(type='back|desktop' title=loc.tools_system image=icon.settings)
 
 	item(title=loc.tools_empty_recycle_bin image=image.mdl(\uE74D)
 		cmd=if(msg(loc.tools_confirm_empty_recycle_bin, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
-			shell('powershell.exe', '-NoProfile -WindowStyle Hidden -Command Clear-RecycleBin -Force -ErrorAction SilentlyContinue', 'open')))
+			command.empty_recycle_bin))
 
 	// Needs elevation
 	item(title=loc.tools_flush_dns admin=true image=#20bf6b
