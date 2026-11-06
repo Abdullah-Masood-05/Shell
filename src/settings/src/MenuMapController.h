@@ -78,6 +78,7 @@ private:
     {
         std::string label;
         std::string path;
+        int entry = -1;       // its entry in entries_
     };
 
     // "Move to" and the place in its menu for one of Shell's items.
