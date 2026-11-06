@@ -37,7 +37,7 @@
 [portable zip (per user, no admin)](https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip) ·
 [all releases](https://github.com/Abdullah-Masood-05/Shell/releases). These links always point to the newest stable release.
 
-**Try the newest beta:** [2.3.0-beta.4](https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0-beta.4), with the latest features and fixes before they reach stable. It may have bugs; tell us what you find.
+**Try the newest beta:** [2.3.0-beta.5](https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0-beta.5), with the latest features and fixes before they reach stable. It may have bugs; tell us what you find.
 
 Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
