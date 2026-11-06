@@ -112,6 +112,13 @@ namespace Nilesoft
 			// A modify(menu='/') rule put it in (or kept it in) the main menu: the
 			// rules after it that move items leave it there.
 			bool pinned = false;
+			// Windows gave it greyed out and no modify() rule set its visibility.
+			// Some items are greyed only until Windows works out their state, so
+			// the native item is read again when its menu is shown
+			// (keep_system_item). native_menu/native_pos: where it was read from.
+			bool native_disabled = false;
+			HMENU native_menu = nullptr;
+			int native_pos = -1;
 			~menuitem_t()
 			{
 				for(auto item : items)
@@ -377,6 +384,9 @@ plutovg_move_to(pluto, start.x, start.y);
 				std::vector<menuitem_t *> *std_items = nullptr;
 				// The system menu node std_items belongs to.
 				menuitem_t *std_owner = nullptr;
+				// How many of std_items show (prepare_system_items): the ones
+				// "Remove disabled items" leaves out are not counted (this.count).
+				size_t std_shown = 0;
 
 				NativeMenu *parent{};
 				//bool dynamic{};
@@ -767,6 +777,7 @@ plutovg_move_to(pluto, start.x, start.y);
 			bool refresh_system_submenu_item(menuitem_t *item);
 			void refresh_system_submenus(menuitem_t *menu);
 			void unmap_system_subtree(menuitem_t *node);
+			bool keep_system_item(menuitem_t *item);
 
 
 			void backup_native_items(HMENU hMenu, uint32_t id, bool check = false);

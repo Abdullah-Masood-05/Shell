@@ -358,7 +358,7 @@ namespace Nilesoft
 			// i.e. when Windows supplied no menu of its own, as on the Windows 11
 			// taskbar. Counting `list` here made that false whenever the
 			// configuration defines more than one item, so the menu vanished.
-			_context.menu_count = (menu && menu->std_items) ? static_cast<uint32_t>(menu->std_items->size()) : 0;
+			_context.menu_count = menu ? static_cast<uint32_t>(menu->std_shown) : 0;
 			int _this_index = 0;
 			
 			for(auto item : list)
@@ -390,7 +390,7 @@ namespace Nilesoft
 					_context._this = &_this;
 					_this.level = (int)parent_level.size();
 					set_parent_item(_this, _parent, owner,
-									list.size() + (menu && menu->std_items ? menu->std_items->size() : 0));
+									list.size() + (menu ? menu->std_shown : 0));
 
 					_this.type = not_sep ? (item->is_menu() ? 1 : 0) : 2;
 					_this.pos = _this_index++;
@@ -750,7 +750,7 @@ namespace Nilesoft
 							{
 								for(auto sys_item : __movable_system_items)
 								{
-									if(sys_item->path.equals(virtual_path))
+									if(sys_item->path.equals(virtual_path) && keep_system_item(sys_item))
 									{
 										_context._this = nullptr;
 										auto sys_mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
@@ -917,7 +917,7 @@ namespace Nilesoft
 
 			this_item _this, _parent; _context._this = &_this;
 			set_parent_item(_this, _parent, menu->owner,
-							(menu->std_items ? menu->std_items->size() : 0) + menu->dynamics.size());
+							menu->std_shown + menu->dynamics.size());
 
 			// The tip an earlier modify() rule gave it (build_main_system_menuitems).
 			mii->tip.text = item->tip;
@@ -1157,12 +1157,26 @@ namespace Nilesoft
 
 		bool ContextMenu::prepare_system_items(PositionList &list, menu_t *menu)
 		{
+			if(menu)
+				menu->std_shown = 0;
+
 			if(!menu || !menu->std_items)
 				return false;
 
-			//int _index = 0;
-			_context.menu_count = (uint32_t)menu->std_items->size();
+			// Greyed-out items "Remove disabled items" leaves out go first, so
+			// this.count is the number of system items that show.
+			std::vector<menuitem_t *> shown;
+			shown.reserve(menu->std_items->size());
 			for(auto item : *menu->std_items)
+			{
+				if(keep_system_item(item))
+					shown.push_back(item);
+			}
+
+			//int _index = 0;
+			menu->std_shown = shown.size();
+			_context.menu_count = (uint32_t)shown.size();
+			for(auto item : shown)
 			{
 				_context._this = nullptr;
 				auto mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
@@ -1180,7 +1194,7 @@ namespace Nilesoft
 
 			for(auto item : __movable_system_items)
 			{		
-				if(item->path.equals(menu->path))
+				if(item->path.equals(menu->path) && keep_system_item(item))
 				{
 					auto mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
 					prepare_system_item(item, mii, menu);
@@ -1496,7 +1510,7 @@ namespace Nilesoft
 					int cp = 0;
 
 					for(auto x : __movable_system_items)
-						cp += x->path.equals((item->path + L"/" + item->title.normalize).trim(L'/'));
+						cp += x->path.equals((item->path + L"/" + item->title.normalize).trim(L'/')) && keep_system_item(x);
 					
 					for(auto x : _moved_items.dynamics)
 						cp += !x->parent.empty() && item->id == x->parent.front();
@@ -1509,7 +1523,10 @@ namespace Nilesoft
 								items.erase(i--);
 						}
 
-						if(item->sys_items && item->sys_items->empty())
+						// Also when all it holds are greyed-out items that
+						// "Remove disabled items" leaves out.
+						if(item->sys_items && std::none_of(item->sys_items->begin(), item->sys_items->end(),
+														   [this](menuitem_t *x) { return keep_system_item(x); }))
 							items.erase(i--);
 					}
 				}
@@ -4523,6 +4540,8 @@ namespace Nilesoft
 								else if(item->visibility == Visibility::Disabled)
 									item->disabled = true;
 								_context._this->disabled = item->disabled;
+								// The rule decides now, not Windows' greyed-out state.
+								item->native_disabled = false;
 							}
 						}
 
@@ -4674,6 +4693,8 @@ namespace Nilesoft
 					item->wid = mii.wID;
 					item->dwItemData = mii.dwItemData;
 					item->is_toplevel = is_root;
+					item->native_menu = hMenu;
+					item->native_pos = i;
 
 					if(is_root)
 						;
@@ -4699,9 +4720,11 @@ namespace Nilesoft
 						item->radio_check = mii.fType & MFT_RADIOCHECK;
 						item->image = MenuItemInfo::FindImage(&mii);
 
-						if(mii.cch == 0 && item->disabled && _settings.modify_items.remove.disabled)
-							continue;
-						
+						// "Remove disabled items" (modify.remove.disabled) is not applied
+						// here: Windows hands over some items greyed out and enables them
+						// a moment later, once it has worked out their state. A greyed
+						// item is kept and keep_system_item() decides when its menu is
+						// shown, from the native item's state at that time (#9).
 						if(mii.cch > 0)
 						{
 							item->title = title.release(mii.cch).move();
@@ -4723,12 +4746,6 @@ namespace Nilesoft
 										item->disabled = true;
 								}
 							}
-
-							// "Remove disabled items" (modify.remove.disabled) is checked only
-							// now: before, it dropped "Empty Recycle Bin" while it was still
-							// greyed out, so the item was gone even with files in the bin (#9).
-							if(item->disabled && _settings.modify_items.remove.disabled)
-								continue;
 
 							if(remove_duplicate)
 							{
@@ -4770,6 +4787,9 @@ namespace Nilesoft
 							//_log.info(L"MFT_BITMAP");
 						}
 
+						// itemPtr: a duplicate replacement has released item already.
+						itemPtr->native_disabled = itemPtr->disabled;
+
 						if(mii.hSubMenu)
 							build_system_menuitems(mii.hSubMenu, itemPtr, false);
 					}
@@ -4796,6 +4816,75 @@ namespace Nilesoft
 						menu->items.push_back(item.release());
 				}
 			}
+		}
+
+		/*
+			An item Windows handed over greyed out (native_disabled) is checked
+			again when its menu is shown: Explorer greys some items until it has
+			worked out their state (async verb state) and enables them a moment
+			later in its own menu. If the native item is enabled by now, it is
+			shown enabled. If it is still greyed out, "Remove disabled items"
+			(modify.remove.disabled) leaves it out; otherwise it is shown greyed
+			out, as before (#9). Returns false when the item is to be left out.
+		*/
+		bool ContextMenu::keep_system_item(menuitem_t *item)
+		{
+			if(!item || !item->native_disabled || item->is_separator())
+				return true;
+
+			// -1: the native item could not be found, so its state is not known.
+			auto native_state = [item]() -> int
+			{
+				auto hMenu = item->native_menu;
+				if(!hMenu || !::IsMenu(hMenu))
+					return -1;
+
+				// Submenus are matched by their popup (their id is often 0),
+				// commands by their id.
+				const bool by_id = item->wid != 0 && item->wid != static_cast<uint32_t>(-1);
+				if(item->is_menu() ? item->source_handle == nullptr : !by_id)
+					return -1;
+
+				auto state_at = [&](int pos) -> int
+				{
+					MENUITEMINFOW mii{ sizeof(MENUITEMINFOW) };
+					mii.fMask = MIIM_ID | MIIM_STATE | MIIM_SUBMENU | MIIM_FTYPE;
+					if(!::GetMenuItemInfoW(hMenu, static_cast<UINT>(pos), TRUE, &mii) || (mii.fType & MFT_SEPARATOR))
+						return -1;
+
+					const bool match = item->is_menu() ? mii.hSubMenu == item->source_handle
+						: (mii.hSubMenu == nullptr && mii.wID == item->wid);
+					if(!match)
+						return -1;
+					return (mii.fState & MFS_DISABLED) ? 1 : 0;
+				};
+
+				// Where it was read from first; items may have been added since.
+				if(item->native_pos >= 0)
+				{
+					if(auto state = state_at(item->native_pos); state >= 0)
+						return state;
+				}
+
+				const int count = ::GetMenuItemCount(hMenu);
+				for(int pos = 0; pos < count; pos++)
+				{
+					if(pos == item->native_pos)
+						continue;
+					if(auto state = state_at(pos); state >= 0)
+						return state;
+				}
+				return -1;
+			};
+
+			if(native_state() == 0)
+			{
+				item->disabled = false;
+				item->native_disabled = false;
+				return true;
+			}
+
+			return !_settings.modify_items.remove.disabled;
 		}
 
 		// Drops __map_system_menu entries that point at node or anything below it,
