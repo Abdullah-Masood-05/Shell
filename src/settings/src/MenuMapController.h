@@ -136,6 +136,8 @@ private:
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
 
     ItemState stateOf(const Entry &e) const;
+    // Hidden itself or inside a hidden menu, as it will be once the changes here are saved.
+    bool inHiddenMenu(int entry) const;
     std::string statusOf(const Entry &e, std::string *kind) const;
     std::string originLabel(const Entry &e) const;
     std::string fileLabel(const std::filesystem::path &file) const;

@@ -454,7 +454,7 @@ void MenuMapController::buildEntries()
                 if (!e.menuPath.empty() && !e.menuPath.empty() && (n.origin == Origin::Shell || !n.name.empty())) {
                     std::string label = n.origin == Origin::Shell ? menumap::stripAccelerators(e.menuPath)
                                                                   : nsp::trf("{} (Windows)", n.title);
-                    targets_.push_back(MoveTarget{ label, e.menuPath });
+                    targets_.push_back(MoveTarget{ label, e.menuPath, idx });
                 }
                 add(n.children, idx, depth + 1, e.key, e.menuPath);
             }
@@ -597,6 +597,14 @@ std::vector<std::string> MenuMapController::mapLinesOf(const std::vector<int> &i
             out.push_back(std::move(line));
     }
     return out;
+}
+
+bool MenuMapController::inHiddenMenu(int entry) const
+{
+    for (int p = entry; p >= 0; p = entries_[size_t(p)].parent)
+        if (entries_[size_t(p)].node && !stateOf(entries_[size_t(p)]).shown)
+            return true;
+    return false;
 }
 
 MenuMapController::ItemState MenuMapController::stateOf(const Entry &e) const
@@ -1022,7 +1030,7 @@ void MenuMapController::pushDetail()
                 bool inside = false;
                 for (int p = int(i); p >= 0 && !inside; p = entries_[size_t(p)].parent)
                     inside = p == selected_;
-                if (!inside)
+                if (!inside && !inHiddenMenu(int(i)))
                     add(menumap::stripAccelerators(t.menuPath), t.steps, t.menuPath);
             }
             // Its place in the menu it is in.
@@ -1131,7 +1139,10 @@ void MenuMapController::pushDetail()
         // a rule in another file makes), then Shell's menus and Windows' submenus.
         sysTargets_.clear();
         sysTargets_.push_back(MoveTarget{ nsp::tr("Main menu"), "/" });
-        sysTargets_.insert(sysTargets_.end(), targets_.begin(), targets_.end());
+        // Not a menu that is hidden or inside one: an item moved there vanishes.
+        for (const auto &t : targets_)
+            if (!inHiddenMenu(t.entry))
+                sysTargets_.push_back(t);
         d.can_move = named && n.kind != "separator";
         d.can_reset_menu = !mapLinesOf(n.rules, "menu").empty() && !shared_;
         if (!named && n.kind != "separator")
