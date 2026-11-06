@@ -47,6 +47,7 @@ public:
         bool expandAll = false;
         std::string select;
         bool openMove = false;     // the selected item's Move to list opens (--map-open-move)
+        bool openPlace = false;    // its Place in this menu list opens (--map-open-place)
         int sample = -1;           // the File context's sample, by index (--map-sample)
     };
     void setDevOptions(DevOptions options);
@@ -118,6 +119,9 @@ private:
     void reorder(int key, bool up);
     // The items of the menu `e` is in, as planReorder() takes them.
     std::vector<menumap::Sibling> siblingsOf(const Entry &e, size_t *index) const;
+    // A Windows item's menu= or title= ("menu", "title") as its rules will give it
+    // once the changes waiting here are saved; `saved` is what they give it now.
+    std::string ruleValue(const menumap::Node &n, const char *prop, const std::string &saved) const;
     menumap::Reorder reorderOf(const Entry &e, bool up) const;
     bool canMoveOwn(const menumap::Node &n) const;
     // The note for a file that came with Shell: changing it makes it "edited by you"

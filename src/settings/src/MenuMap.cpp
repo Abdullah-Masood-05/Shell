@@ -313,6 +313,20 @@ std::string moveRule(const Node &n, std::string_view menuPath)
     return "modify(" + m + " menu=" + nss::quoteString(p) + ")";
 }
 
+std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::string_view prop)
+{
+    auto m = matchProps(n);
+    if (m.empty())
+        return std::nullopt;
+    const std::string prefix = "modify(" + m + " " + std::string(prop) + "=";
+    if (rule.size() <= prefix.size() + 1 || rule.substr(0, prefix.size()) != prefix || rule.back() != ')')
+        return std::nullopt;
+    auto lit = nss::Literal::parse(rule.substr(prefix.size(), rule.size() - prefix.size() - 1));
+    if (lit.kind != nss::LiteralKind::String)
+        return std::nullopt;
+    return lit.string;
+}
+
 std::string imageRule(const Node &n, std::string_view value)
 {
     auto m = matchProps(n);
@@ -830,6 +844,67 @@ std::string posValue(const MenuStep &sibling, bool after)
     return "indexof(" + nss::quoteString("\"" + title + "\"") + ", " + offset + ")";
 }
 
+std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t index)
+{
+    std::vector<Place> out;
+    for (size_t i = 0; i < siblings.size(); ++i) {
+        const auto &sib = siblings[i];
+        if (i == index || sib.separator || !sib.titled || !sib.shown)
+            continue;
+        auto title = stripAccelerators(sib.step.rawTitle);
+        for (bool after : { false, true })
+            if (auto v = posValue(sib.step, after); !v.empty())
+                out.push_back(Place{ title, after, std::move(v) });
+    }
+    return out;
+}
+
+Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view moved, std::string_view renamed)
+{
+    Sibling s;
+    s.own = n.origin == Origin::Shell && n.line > 0;
+    s.separator = n.kind == "separator";
+    s.titled = n.origin == Origin::Shell ? n.state == "text" : !n.title.empty();
+    s.step = { n.rawTitle, n.titleSource };
+    s.file = n.file;
+    s.line = n.line;
+    s.column = n.column;
+    s.fixed = !n.menu.empty() || (!n.pos.empty() && n.pos != "auto") || n.relocated;
+    s.shown = shown;
+    if (n.origin == Origin::Shell) {
+        // Sent to another menu by its menu= (and listed here where it is written).
+        if (!n.menu.empty() && !n.relocated)
+            s.shown = false;
+        const bool placedInOrder = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
+        if (placedInOrder && self && &n != self) {
+            const bool before = n.file == self->file && n.line > 0 &&
+                                (n.line < self->line || (n.line == self->line && n.column < self->column));
+            if (!before)
+                s.titled = false;
+        }
+        return s;
+    }
+    if (!moved.empty()) {
+        // Where it is listed: n.path ("" the main menu). Moved anywhere else, it is
+        // taken out of this menu.
+        auto key = [](std::string_view path) {
+            std::string out;
+            for (char c : stripAccelerators(path))
+                out += (c >= 'A' && c <= 'Z') ? char(c - 'A' + 'a') : c;
+            auto t = nss::trim(out);
+            while (!t.empty() && (t.front() == '/' || t.back() == '/'))
+                t = nss::trim(t.front() == '/' ? t.substr(1) : t.substr(0, t.size() - 1));
+            return std::string(t);
+        };
+        const bool here = isRootPath(moved) ? n.path.empty() : key(moved) == key(n.path);
+        if (!here)
+            s.shown = false;
+    }
+    if (!renamed.empty())
+        s.step = { std::string(renamed), "" };
+    return s;
+}
+
 Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
 {
     Reorder r;
@@ -838,9 +913,21 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
     const auto &self = siblings[index];
     if (!self.own || self.separator)
         return r;
+    // The next sibling that shows, from `from` on (`from` itself first), or none.
+    // Hidden ones are left out of the menu, so stepping over them is what the move
+    // looks like; naming one in pos=indexof() wouldn't find it.
+    constexpr size_t none = size_t(-1);
+    auto shownFrom = [&](size_t from) {
+        for (size_t i = from; i < siblings.size(); i = up ? i - 1 : i + 1)
+            if (siblings[i].shown)
+                return i;
+        return none;
+    };
     if (up ? index == 0 : index + 1 >= siblings.size())
         return r;
-    const size_t next = up ? index - 1 : index + 1;
+    const size_t next = shownFrom(up ? index - 1 : index + 1);
+    if (next == none)
+        return r;
     const auto &other = siblings[next];
 
     if (other.own && !self.fixed && !other.fixed && !self.file.empty() && self.file == other.file && self.line > 0 &&
@@ -857,10 +944,10 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
         if (other.titled)
             pos = posValue(other.step, !up);
     } else {
-        const bool beyond = up ? next > 0 : next + 1 < siblings.size();
-        if (!beyond)
+        const size_t beyond = (up ? next > 0 : next + 1 < siblings.size()) ? shownFrom(up ? next - 1 : next + 1) : none;
+        if (beyond == none)
             pos = nss::quoteString(up ? "top" : "bottom");
-        else if (const auto &b = siblings[up ? next - 1 : next + 1]; b.titled && !b.separator)
+        else if (const auto &b = siblings[beyond]; b.titled && !b.separator)
             pos = posValue(b.step, up);
     }
     if (!pos.empty()) {

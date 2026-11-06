@@ -399,10 +399,13 @@ void MenuMapController::load()
                     }
                 // The Move to list open: its focus first, then Enter, as a keyboard
                 // user would (screenshots only).
-                if (dev_.openMove && selected_ >= 0)
+                if ((dev_.openMove || dev_.openPlace) && selected_ >= 0)
                     slint::Timer::single_shot(std::chrono::milliseconds(400), [this] {
                         const auto &st = ui_->global<MenuMapState>();
-                        st.set_dev_focus_move(st.get_dev_focus_move() + 1);
+                        if (dev_.openPlace)
+                            st.set_dev_focus_place(st.get_dev_focus_place() + 1);
+                        else
+                            st.set_dev_focus_move(st.get_dev_focus_move() + 1);
                         slint::Timer::single_shot(std::chrono::milliseconds(150), [this] {
                             ui_->window().dispatch_key_press_event(slint::SharedString(u8"\n"));
                             ui_->window().dispatch_key_release_event(slint::SharedString(u8"\n"));
@@ -510,18 +513,44 @@ std::vector<menumap::Sibling> MenuMapController::siblingsOf(const Entry &e, size
             *index = out.size();
         menumap::Sibling s;
         if (const auto *n = ke.node) {
-            s.own = n->origin == Origin::Shell && n->line > 0;
-            s.separator = n->kind == "separator";
-            s.titled = n->origin == Origin::Shell ? n->state == "text" : !n->title.empty();
-            s.step = { n->rawTitle, n->titleSource };
-            s.file = n->file;
-            s.line = n->line;
-            s.column = n->column;
-            s.fixed = !n->menu.empty() || (!n->pos.empty() && n->pos != "auto") || n->relocated;
+            // Hidden (vis=, a rule, or switched off here), sent to another menu, or
+            // renamed: as the menu will be once the changes here are saved. Shown
+            // only sometimes or disabled still counts as shown: it is in the menu
+            // at least some of the time.
+            const bool windows = n->origin != Origin::Shell;
+            s = menumap::siblingOf(*n, e.node, stateOf(ke).shown, windows ? ruleValue(*n, "menu", n->moved) : std::string(),
+                                   windows ? ruleValue(*n, "title", n->renamed) : std::string());
         }
         out.push_back(std::move(s));
     }
     return out;
+}
+
+std::string MenuMapController::ruleValue(const Node &n, const char *prop, const std::string &saved) const
+{
+    const auto &pending = save_.pending();
+    // A rule made here and waiting to be saved: modify(<props> <prop>="...").
+    for (const auto &[text, change] : pending.rules())
+        if (change.add)
+            if (auto v = menumap::ruleProp(n, text, prop))
+                return *v;
+    if (saved.empty())
+        return saved;
+    // Every rule that gives it is one made here, waiting to be taken out.
+    const std::string w = prop;
+    size_t giving = 0;
+    for (int i : n.rules)
+        if (i >= 0 && i < int(tree_.rules.size())) {
+            const auto &r = tree_.rules[size_t(i)];
+            giving += w == "menu" ? !r.menu.empty() : !r.title.empty();
+        }
+    auto lines = mapLinesOf(n.rules, prop);
+    if (lines.empty() || lines.size() < giving)
+        return saved;
+    for (const auto &line : lines)
+        if (const auto *c = pending.findRule(line); !c || c->add)
+            return saved;
+    return {};
 }
 
 menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
@@ -1000,16 +1029,8 @@ void MenuMapController::pushDetail()
             positions_.push_back(Choice{ nsp::tr("At the top"), nss::quoteString("top") });
             size_t index = 0;
             auto siblings = siblingsOf(e, &index);
-            for (size_t i = 0; i < siblings.size(); ++i) {
-                const auto &sib = siblings[i];
-                if (i == index || sib.separator || !sib.titled)
-                    continue;
-                auto title = menumap::stripAccelerators(sib.step.rawTitle);
-                if (auto v = menumap::posValue(sib.step, false); !v.empty())
-                    positions_.push_back(Choice{ nsp::trf("Before {}", title), v });
-                if (auto v = menumap::posValue(sib.step, true); !v.empty())
-                    positions_.push_back(Choice{ nsp::trf("After {}", title), v });
-            }
+            for (const auto &p : menumap::placesNextTo(siblings, index))
+                positions_.push_back(Choice{ p.after ? nsp::trf("After {}", p.title) : nsp::trf("Before {}", p.title), p.pos });
             positions_.push_back(Choice{ nsp::tr("At the bottom"), nss::quoteString("bottom") });
             d.can_up = reorderOf(e, true).possible;
             d.can_down = reorderOf(e, false).possible;

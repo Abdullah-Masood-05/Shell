@@ -225,6 +225,138 @@ TEST_CASE("menu move: planning a move up or down")
     CHECK_FALSE(planReorder(sep, 1, true).possible);
 }
 
+TEST_CASE("menu move: the places offered are next to items that show")
+{
+    auto hidden = [](Sibling s) {
+        s.shown = false;
+        return s;
+    };
+    Sibling windows;            // one of Windows' items with a title
+    windows.titled = true;
+    windows.step = { "&Open", "" };
+    Sibling untitled;           // a title that changes with the selection
+    std::vector<Sibling> menu = { own("More options", 1), hidden(own("Terminal", 3)), separator(4), own("Self", 5),
+                                  windows, untitled, own("Sometimes", 7) };
+    auto places = placesNextTo(menu, 3);
+    std::vector<std::string> got;
+    for (const auto &p : places)
+        got.push_back((p.after ? "After " : "Before ") + p.title + " = " + p.pos);
+    CHECK(got == std::vector<std::string>{
+                     "Before More options = indexof(\"\\\"More options\\\"\", 0)",
+                     "After More options = indexof(\"\\\"More options\\\"\", 1)",
+                     "Before Open = indexof(\"\\\"Open\\\"\", 0)",
+                     "After Open = indexof(\"\\\"Open\\\"\", 1)",
+                     "Before Sometimes = indexof(\"\\\"Sometimes\\\"\", 0)",
+                     "After Sometimes = indexof(\"\\\"Sometimes\\\"\", 1)",
+                 });
+}
+
+TEST_CASE("menu move: up or down steps over hidden items")
+{
+    auto hidden = [](Sibling s) {
+        s.shown = false;
+        return s;
+    };
+    // Hidden ones are left out of the menu: the move goes past the next item that shows,
+    // and pos= never names a hidden one (indexof() wouldn't find it).
+    std::vector<Sibling> menu = { own("Restart", 3), hidden(own("Terminal", 5)), own("Empty", 7),
+                                  hidden(own("Lock", 9)), own("Sleep", 11) };
+    auto up = planReorder(menu, 2, true);
+    CHECK(up.possible);
+    CHECK(up.text);
+    CHECK(up.anchor == 0);
+    CHECK_FALSE(up.after);
+    CHECK(up.pos == "indexof(\"\\\"Restart\\\"\", 0)");
+    auto down = planReorder(menu, 2, false);
+    CHECK(down.text);
+    CHECK(down.anchor == 4);
+    CHECK(down.after);
+    CHECK(down.pos == "indexof(\"\\\"Sleep\\\"\", 1)");
+
+    // Only hidden items above (or below): already first (last) of what shows.
+    std::vector<Sibling> ends = { hidden(own("A", 1)), own("B", 3), hidden(own("C", 5)) };
+    CHECK_FALSE(planReorder(ends, 1, true).possible);
+    CHECK_FALSE(planReorder(ends, 1, false).possible);
+
+    // Past a separator: the item beyond it that shows, else the top.
+    std::vector<Sibling> sep = { own("A", 1, true), hidden(own("H", 2, true)), separator(3), own("B", 4) };
+    CHECK(planReorder(sep, 3, true).pos == "indexof(\"\\\"A\\\"\", 1)");
+    std::vector<Sibling> top = { hidden(own("H", 1, true)), separator(2), own("B", 3) };
+    CHECK(planReorder(top, 2, true).pos == "\"top\"");
+}
+
+TEST_CASE("menu move: which of a menu's items show and can be named, as Shell builds it")
+{
+    auto ownNode = [](const char *title, int line, const char *file = "C:/cfg/a.nss") {
+        Node n;
+        n.origin = Origin::Shell;
+        n.kind = "item";
+        n.title = n.rawTitle = title;
+        n.state = "text";
+        n.file = file;
+        n.line = line;
+        n.column = 2;
+        return n;
+    };
+    auto winNode = [](const char *title, const char *path = "") {
+        Node n;
+        n.origin = Origin::System;
+        n.kind = "item";
+        n.title = n.rawTitle = title;
+        n.name = itemName(title);
+        n.path = path;
+        return n;
+    };
+    const auto self = ownNode("Self", 10);
+
+    // Your items: hidden (vis=hidden, or switched off here), sent elsewhere by menu=,
+    // or brought here by another one's menu=.
+    auto plain = ownNode("Plain", 3);
+    CHECK(siblingOf(plain, &self, true, "", "").shown);
+    CHECK_FALSE(siblingOf(plain, &self, false, "", "").shown);
+    auto away = ownNode("Away", 4);
+    away.menu = "Terminal";
+    CHECK_FALSE(siblingOf(away, &self, true, "", "").shown);
+    auto broughtHere = away;
+    broughtHere.relocated = true;
+    CHECK(siblingOf(broughtHere, &self, true, "", "").shown);
+
+    // Placed by its own pos=N or pos=indexof(): only one declared before `self` in
+    // the same file is in the menu when `self` is placed.
+    auto early = ownNode("Early", 5);
+    early.pos = "indexof";
+    CHECK(siblingOf(early, &self, true, "", "").titled);
+    auto late = ownNode("Late", 12);
+    late.pos = "2";
+    CHECK_FALSE(siblingOf(late, &self, true, "", "").titled);
+    auto otherFile = ownNode("Other", 1, "C:/cfg/b.nss");
+    otherFile.pos = "indexof";
+    CHECK_FALSE(siblingOf(otherFile, &self, true, "", "").titled);
+    late.pos = "bottom"; // top, middle and bottom are placed before any of those
+    CHECK(siblingOf(late, &self, true, "", "").titled);
+
+    // Windows' items: hidden by a rule (saved or waiting, as stateOf gives it), moved
+    // to another menu, kept in the main menu, or renamed.
+    auto term = winNode("Open in Terminal");
+    CHECK(siblingOf(term, &self, true, "", "").shown);
+    CHECK_FALSE(siblingOf(term, &self, false, "", "").shown);
+    CHECK_FALSE(siblingOf(term, &self, true, "Terminal", "").shown);
+    CHECK(siblingOf(term, &self, true, "/", "").shown);
+    auto sendTo = winNode("Mail recipient", "send to");
+    CHECK_FALSE(siblingOf(sendTo, &self, true, "/", "").shown);
+    CHECK(siblingOf(sendTo, &self, true, "Send &to", "").shown);
+    auto renamed = siblingOf(term, &self, true, "", "Terminal here");
+    CHECK(renamed.shown);
+    CHECK(posValue(renamed.step, true) == "indexof(\"\\\"Terminal here\\\"\", 1)");
+
+    // The value of a rule waiting to be saved, as moveRule and renameRule write it.
+    CHECK(ruleProp(term, moveRule(term, "Terminal"), "menu") == std::optional<std::string>("Terminal"));
+    CHECK(ruleProp(term, moveRule(term, "/"), "menu") == std::optional<std::string>("/"));
+    CHECK(ruleProp(term, renameRule(term, "Say \"hi\""), "title") == std::optional<std::string>("Say \"hi\""));
+    CHECK_FALSE(ruleProp(term, renameRule(term, "X"), "menu").has_value());
+    CHECK_FALSE(ruleProp(winNode("Other"), moveRule(term, "Terminal"), "menu").has_value());
+}
+
 TEST_CASE("menu move: a declaration moved up or down in its file")
 {
     const std::string text = "menu(title='System')\r\n"

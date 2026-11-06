@@ -123,6 +123,9 @@ std::string matchProps(const Node &n);
 std::string hideRule(const Node &n);                                   // remove(...)
 std::string renameRule(const Node &n, std::string_view title);         // modify(... title="...")
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
+// The value a rule made by renameRule or moveRule gives: prop "title" or "menu" of
+// `rule` when it is modify(<matchProps(n)> <prop>="..."), else nullopt.
+std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::string_view prop);
 // modify(... image=<value>): `value` as imageValue() gives it; "null" takes the icon away.
 std::string imageRule(const Node &n, std::string_view value);
 // The image= of a rule written on one line, such as imageRule() makes: nullopt without one.
@@ -244,9 +247,40 @@ struct Sibling
     int column = 0;
     bool fixed = false;        // has menu= or pos=, or was moved here: its text order
                                // doesn't decide where it shows
+    bool shown = true;         // in the menu: not hidden, and not moved to another
+                               // menu by menu=. Shell leaves a hidden item out, so
+                               // pos=indexof() can't find it and a move past it
+                               // changes nothing that can be seen.
 };
 
-// How to move siblings[index] one place up or down among its siblings.
+// The places "Place in this menu" offers for siblings[index], between At the top and
+// At the bottom: right before and right after each sibling that shows and that
+// pos=indexof() can name. Not itself, separators, or hidden items: Shell leaves a
+// hidden item out of the menu, so a place next to it isn't one that can be seen.
+// Items that show only sometimes (where=, find=, vis=dynamic) or disabled stay:
+// they are in the menu at least some of the time.
+struct Place
+{
+    std::string title;   // without & accelerators
+    bool after = false;
+    std::string pos;     // the value of pos=
+};
+std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t index);
+
+// The Sibling for `n`, in the menu of `self` (the item being placed; may be null).
+// `shown`: not hidden, counting a hide or show waiting to be saved. For Windows'
+// items, `moved` and `renamed` are the menu= and title= its rules give it, counting
+// changes waiting to be saved ("" for none). What decides it, as Shell builds the menu:
+// - A Windows item moved to another menu is taken out of this one before your items
+//   are placed, as a hidden one is. Kept in the main menu (menu='/') it stays.
+// - A Windows item renamed is found by its new title.
+// - One of your items with its own pos=N or pos=indexof() is placed in the order the
+//   items are declared, so one declared after `self` (or in another file) isn't in
+//   the menu yet when `self` is placed: pos=indexof() can't name it (titled false).
+Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view moved, std::string_view renamed);
+
+// How to move siblings[index] one place up or down among its siblings. Siblings
+// that aren't shown are stepped over: the move goes past the next one that shows.
 struct Reorder
 {
     bool possible = false;
