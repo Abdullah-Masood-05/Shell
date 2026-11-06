@@ -50,11 +50,11 @@ menu(type='back|desktop' title=loc.tools_system image=icon.settings)
 			command.empty_recycle_bin))
 
 	// Needs elevation
-	item(title=loc.tools_flush_dns admin=true image=#20bf6b
+	item(title=loc.tools_flush_dns admin=true image=image.mdl(\uE774)
 		cmd='cmd.exe' window=hidden args='/c ipconfig /flushdns')
 
 	// God Mode: every Control Panel task in one window
-	item(title=loc.tools_god_mode image=#9b59b6
+	item(title=loc.tools_god_mode image=image.mdl(\uE90F)
 		cmd='explorer.exe' args='shell:::{ED7BA470-8E54-465E-825C-99712043E01C}')
 
 	separator
@@ -63,18 +63,18 @@ menu(type='back|desktop' title=loc.tools_system image=icon.settings)
 		cmd='rundll32.exe' args='user32.dll,LockWorkStation')
 
 	// Note: SetSuspendState hibernates instead when hibernation is enabled.
-	item(title=loc.tools_sleep image=#34495e
+	item(title=loc.tools_sleep image=image.mdl(\uE708)
 		cmd='rundll32.exe' args='powrprof.dll,SetSuspendState 0,1,0')
 
-	item(title=loc.tools_sign_out image=#e67e22
+	item(title=loc.tools_sign_out image=image.mdl(\uE748)
 		cmd=if(msg(loc.tools_confirm_sign_out, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/l', 'open')))
 
-	item(title=loc.tools_restart image=#e74c3c
+	item(title=loc.tools_restart image=image.mdl(\uE777)
 		cmd=if(msg(loc.tools_confirm_restart, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/r /t 0', 'open')))
 
-	item(title=loc.tools_shut_down image=#c0392b
+	item(title=loc.tools_shut_down image=image.mdl(\uE7E8)
 		cmd=if(msg(loc.tools_confirm_shut_down, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/s /t 0', 'open')))
 }
