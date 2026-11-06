@@ -3055,7 +3055,7 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"\t\tinstead of stdout / the console.\r\n\r\n"
                 //L"-runas:N\t\tLaunch with elevated privileges.\r\n"
                 //L"\t\tN=[admin | system | trustedinsaller]\r\n\r\n"
-                L"-?\t\tDispay this help message.\r\n\r\n"
+                L"-?\t\tDisplay this help message.\r\n\r\n"
                 L"Examples:\r\nshell.exe -register -treat\r\n"
                 L"shell.exe -register -user -treat -restart\r\n"
               //  L"shell.exe -runas:admin -cmd:'cmd.exe' -args:\"/K echo Hello world!\"\r\n"
