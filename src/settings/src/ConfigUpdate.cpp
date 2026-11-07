@@ -1,6 +1,11 @@
 #include "ConfigUpdate.h"
 
 #include "AppChannel.h"
+#include "CarryOver.h"
+#include "ShellOverrides.h"
+
+#include "nss/NssDocument.h"
+#include "nss/Text.h"
 
 // The one place the app itself runs src/shared code: the upgrade of a per-user copy.
 #include "../../shared/ConfigUpgrade.h"
@@ -92,6 +97,84 @@ Report runLocal(const std::wstring &shippedDir, const std::wstring &configRoot, 
         return r;
     }
     return *report;
+}
+
+Carried carryOver(const std::filesystem::path &configRoot, const std::filesystem::path &installDir,
+                  const std::vector<std::string> &files, bool partial, const nss::Validator &validator)
+{
+    namespace fs = std::filesystem;
+    Carried out;
+    const auto configDir = configRoot.parent_path();
+    std::vector<nss::FileWrite> writes;
+    std::vector<overrides::Override> lines;
+    std::optional<std::string> rootText;
+    std::optional<nss::TextFormat> rootFormat;
+    std::vector<std::string> done;
+    size_t kept = 0;
+    for (const auto &rel : files) {
+        const auto path = (configDir / fs::path(nss::widen(rel))).lexically_normal();
+        std::string user, shipped;
+        if (!nss::readFile(path, user) || !nss::readFile(installDir / fs::path(nss::widen(rel)), shipped))
+            continue;
+        auto r = carryover::carry(rel, user, shipped, carryover::shippedBases(rel), partial);
+        if (r.text.empty() || (!partial && !r.complete))
+            continue;
+        if (nss::pathKey(path) == nss::pathKey(configRoot)) {
+            rootText = r.text;
+            rootFormat = r.format;
+        } else
+            writes.push_back(nss::FileWrite{ path, r.text, r.format });
+        lines.insert(lines.end(), r.overrides.begin(), r.overrides.end());
+        kept += r.carried;
+        done.push_back(rel);
+    }
+    if (done.empty())
+        return out;
+
+    if (!lines.empty()) {
+        auto plan = overrides::planMapWrite(configRoot, [&](maprules::Rules &rules, std::string &) {
+            carryover::addOverrides(rules, lines);
+            return true;
+        });
+        if (!plan.ok) {
+            out.ok = false;
+            out.error = plan.error;
+            return out;
+        }
+        for (auto &w : plan.writes) {
+            if (nss::pathKey(w.path) == nss::pathKey(configRoot)) {
+                // The root's import of the map file: on the new root when that is written too.
+                if (!rootText) {
+                    rootText = w.text;
+                    rootFormat = w.format;
+                }
+                continue;
+            }
+            writes.push_back(std::move(w));
+        }
+        if (rootText) {
+            auto doc = nss::NssDocument::fromText(*rootText, rootFormat.value_or(nss::defaultFormat()));
+            maprules::ensureImported(doc);
+            rootText = doc.text();
+        }
+    }
+    if (rootText)
+        writes.push_back(nss::FileWrite{ configRoot, *rootText, rootFormat });
+
+    nss::ConfigStore store(configRoot);
+    nss::SaveOptions options;
+    options.reason = partial ? "Before using the new version of a menu file" : reasonCarry;
+    options.validator = validator;
+    auto result = store.save(writes, options);
+    if (!result.ok) {
+        out.ok = false;
+        out.error = result.error;
+        return out;
+    }
+    out.snapshot = result.snapshotId;
+    out.files = std::move(done);
+    out.kept = kept;
+    return out;
 }
 
 std::wstring localShippedDir()
