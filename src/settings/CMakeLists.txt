@@ -91,6 +91,7 @@ add_executable(settings WIN32
     src/BackupsController.cpp
     src/BackupsModel.cpp
     src/BehaviorController.cpp
+    src/CarryOver.cpp
     src/CodeDocument.cpp
     src/CodeEditorBridge.cpp
     src/ConfigRules.cpp
@@ -124,6 +125,7 @@ add_executable(settings WIN32
     src/Registry.cpp
     src/SaveService.cpp
     src/ShellCli.cpp
+    src/ShellOverrides.cpp
     src/SnippetPreview.cpp
     src/Snippets.cpp
     src/SnippetsController.cpp
@@ -207,6 +209,9 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_config_upgrade.cpp
         tests/test_menumap.cpp
         tests/test_menumove.cpp
+        tests/test_overrides.cpp
+        tests/test_backups_files.cpp
+        tests/test_carryover.cpp
         tests/test_snippets.cpp
         tests/test_code_document.cpp
         tests/test_snippet_preview.cpp
@@ -216,6 +221,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_app_channel.cpp
         src/AppChannel.cpp
         src/BackupsModel.cpp
+        src/CarryOver.cpp
         src/CodeDocument.cpp
         src/ConfigRules.cpp
         src/ConfigUpdate.cpp
@@ -235,6 +241,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/Tr.cpp
         src/MapRules.cpp
         src/MenuMap.cpp
+        src/ShellOverrides.cpp
         src/MenuModel.cpp
         src/MenuWriter.cpp
         src/OpenWithModel.cpp
