@@ -91,7 +91,33 @@ function fail(msg: string) { errors.push(msg); }
 function warn(msg: string) { warnings.push(msg); }
 function stripBom(s: string) { return s.replace(/^﻿/, ""); }
 
-walk(menu);
+/*
+	The sidebar is split into groups for two audiences: people who use the
+	app, and people who write the configuration by hand. Each top-level
+	menu.json entry is placed by its link; anything not listed lands in the
+	last group, so a new upstream page still shows up. Pages are ordered by
+	group, so Previous/Next follow the sidebar.
+*/
+type Group = { label: string; links: string[]; open?: string[] };
+const GROUPS: Group[] = [
+	{ label: "Start here", links: ["/docs", "/docs/installation", "/docs/troubleshooting"] },
+	{ label: "Using the app", links: ["/docs/settings-app", "/docs/snippets"], open: ["/docs/settings-app"] },
+	{ label: "Writing configuration", links: ["/docs/get-started", "/docs/configuration", "/docs/expressions", "/docs/functions", "/docs/examples", "/docs/command-line"] },
+	{ label: "About", links: ["/docs/fork"] },
+];
+const groupOf = new Map<string, number>();
+const groupItems: MenuItem[][] = GROUPS.map(() => []);
+for (const it of menu) {
+	let g = GROUPS.findIndex(gr => gr.links.includes(it.link));
+	if (g < 0) g = GROUPS.length - 1;
+	groupItems[g].push(it);
+}
+for (const [g, items] of groupItems.entries()) {
+	items.sort((a, b) => GROUPS[g].links.indexOf(a.link) - GROUPS[g].links.indexOf(b.link));
+	const before = pages.length;
+	walk(items);
+	for (let i = before; i < pages.length; i++) groupOf.set(pages[i].slug, g);
+}
 const bySlug = new Map(pages.map(p => [p.slug, p]));
 
 // --------------------------------------------------------------- utils ---
@@ -218,19 +244,35 @@ function rewriteLinks(html: string, page: Page): string {
 	matching the active theme (system preference or the toggle).
 */
 function themeImages(html: string): string {
-	return html.replace(/<img\b([^>]*?)\ssrc="\/docs\/images\/(dark|light)\/([^"]+)"([^>]*)>/g,
+	const pair = (pre: string, post: string, light: string, dark: string) => {
+		const img = (m: string, src: string) => {
+			let attrs = `${pre} src="/docs/images/${src}"${post}`;
+			attrs = /\sclass="/.test(attrs)
+				? attrs.replace(/\sclass="([^"]*)"/, ` class="$1 only-${m}"`)
+				: attrs + ` class="only-${m}"`;
+			return `<img${attrs}>`;
+		};
+		return img("light", light) + img("dark", dark);
+	};
+	html = html.replace(/<img\b([^>]*?)\ssrc="\/docs\/images\/(dark|light)\/([^"]+)"([^>]*)>/g,
 		(whole, pre: string, mode: string, name: string, post: string) => {
 			const other = mode === "dark" ? "light" : "dark";
 			if (!existsSync(join(DOCS, "images", other, name))) return whole;
-			const img = (m: string) => {
-				let attrs = `${pre} src="/docs/images/${m}/${name}"${post}`;
-				attrs = /\sclass="/.test(attrs)
-					? attrs.replace(/\sclass="([^"]*)"/, ` class="$1 only-${m}"`)
-					: attrs + ` class="only-${m}"`;
-				return `<img${attrs}>`;
-			};
-			return img("light") + img("dark");
+			return pair(pre, post, `light/${name}`, `dark/${name}`);
 		});
+	// images/x/name-dark.png with a name-light.png next to it (the app screenshots).
+	return html.replace(/<img\b([^>]*?)\ssrc="\/docs\/images\/([^"]+?)-(dark|light)\.(png|jpg|webp)"([^>]*)>/g,
+		(whole, pre: string, stem: string, mode: string, ext: string, post: string) => {
+			const other = mode === "dark" ? "light" : "dark";
+			if (!existsSync(join(DOCS, "images", `${stem}-${other}.${ext}`))) return whole;
+			return pair(pre, post, `${stem}-light.${ext}`, `${stem}-dark.${ext}`);
+		});
+}
+
+// The fragments start with an <h4> or <h5> title; make it the page's <h1>.
+function pageHeading(html: string): string {
+	return html.replace(/^(\s*(?:<style\b[\s\S]*?<\/style>\s*)?)<h([3-6])\b([^>]*)>([\s\S]*?)<\/h\2>/,
+		(_, lead: string, _l: string, attrs: string, inner: string) => `${lead}<h1${attrs}>${inner}</h1>`);
 }
 
 function lazyImages(html: string): string {
@@ -294,16 +336,33 @@ const template = readFileSync(join(SRC, "layout.html"), "utf8");
 
 function sidebar(active: Page): string {
 	const activeGroup = active.parent ?? active.slug;
-	const li = (it: MenuItem, depth: number): string => {
+	const li = (it: MenuItem, open: string[]): string => {
 		const slug = slugOf(it.link);
 		const cur = slug === active.slug ? ' aria-current="page"' : "";
 		let sub = "";
-		if (it.items && (slug === activeGroup)) {
-			sub = `<ul>${it.items.map(c => li(c, depth + 1)).join("")}</ul>`;
+		if (it.items && (slug === activeGroup || open.includes(it.link))) {
+			sub = `<ul>${it.items.map(c => li(c, open)).join("")}</ul>`;
 		}
 		return `<li><a href="${pageUrl(slug)}"${cur}>${esc(it.title)}</a>${sub}</li>`;
 	};
-	return `<ul>${menu.map(it => li(it, 0)).join("")}</ul>`;
+	return groupItems.map((items, g) => items.length
+		? `<p class="nav-label" id="nav-${g}">${esc(GROUPS[g].label)}</p><ul aria-labelledby="nav-${g}">${items.map(it => li(it, GROUPS[g].open ?? [])).join("")}</ul>`
+		: "").join("");
+}
+
+/*
+	A one-line trail above the title, so a reader who lands on a reference
+	page from a search can tell which part of the site they are in. The
+	"Start here" pages need no trail.
+*/
+function crumbs(page: Page): string {
+	const g = groupOf.get(page.slug);
+	if (page.slug === "" || g === 0) return "";
+	const parts: string[] = [];
+	if (g !== undefined) parts.push(`<span>${esc(GROUPS[g].label)}</span>`);
+	const parent = page.parent !== undefined ? bySlug.get(page.parent) : undefined;
+	if (parent) parts.push(`<a href="${pageUrl(parent.slug)}">${esc(parent.title)}</a>`);
+	return parts.length ? `<nav class="crumbs" aria-label="Breadcrumb">${parts.join('<span aria-hidden="true">/</span>')}</nav>` : "";
 }
 
 function pager(i: number): string {
@@ -330,6 +389,8 @@ function pageVars(p: Partial<Record<string, string>>): Record<string, string> {
 		content: "",
 		pager: "",
 		edit: "",
+		crumbs: "",
+		pageclass: "",
 		...p,
 	} as Record<string, string>;
 }
@@ -349,10 +410,13 @@ for (const [i, page] of pages.entries()) {
 	html = themeImages(html);
 	html = rewriteLinks(html, page);
 	html = lazyImages(html);
+	html = pageHeading(html);
 
 	const source = relative(ROOT, page.file).replace(/\\/g, "/");
 	const out = render(pageVars({
-		title: `${esc(page.title)} · Nilesoft Shell`,
+		title: page.slug === "" ? "Nilesoft Shell Pro: a better right-click menu for Windows" : `${esc(page.title)} · Nilesoft Shell Pro`,
+		crumbs: crumbs(page),
+		pageclass: page.slug === "" ? "page-home" : "",
 		description: esc(description(html)),
 		canonical: SITE + pageUrl(page.slug),
 		sidebar: sidebar(page),
@@ -390,13 +454,26 @@ for (const o of outputs) {
 	writeFileSync(join(dir, "index.html"), o.html);
 }
 
-// 404 page: links are absolute, so it works at any depth.
+// 404 page: links are absolute, so it works at any depth. site.js offers the
+// page whose address is closest to the one asked for (old /docs/... links).
+const notFoundLinks: [string, string, string][] = [
+	["", "Start here", "What Nilesoft Shell Pro is, and how to get it."],
+	["installation", "Installation", "Download, install, update or remove it."],
+	["settings-app", "The app", "A guide to every page of the settings app."],
+	["troubleshooting", "Troubleshooting and FAQ", "The menu is missing, looks wrong, or an update failed."],
+	["configuration", "Writing configuration", "The shell.nss file, for people who edit it by hand."],
+];
 writeFileSync(join(DIST, "404.html"), render(pageVars({
-	title: "Page not found · Nilesoft Shell",
+	title: "Page not found · Nilesoft Shell Pro",
 	description: "Page not found.",
 	canonical: SITE + BASE,
 	sidebar: sidebar({ title: "", link: "", slug: "\u0000", file: "" }),
-	content: `<h4>Page not found</h4><p>There is no page at this address. It may have moved when the documentation was reorganised.</p><p>Try the search above, or start from the <a href="${BASE}">introduction</a>.</p>`,
+	content: `<h1>Page not found</h1>
+<p>There is no page at this address. It may have moved when the documentation was reorganised.</p>
+<p class="suggest" hidden></p>
+<p>Search for it with the box at the top of the page, or pick one of these:</p>
+<ul class="signposts">${notFoundLinks.map(([slug, t, d]) =>
+		`<li><a href="${pageUrl(slug)}"><strong>${esc(t)}</strong><span>${esc(d)}</span></a></li>`).join("")}</ul>`,
 })));
 
 // Static files.

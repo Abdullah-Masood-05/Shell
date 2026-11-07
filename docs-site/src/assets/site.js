@@ -78,22 +78,39 @@
 	});
 })();
 
-// Installation page: point the Beta links at the newest pre-release. The links in the page
-// name a fixed beta, so they still work when GitHub can't be reached.
+// Download links. The pages name a fixed release, so they still work when GitHub can't be reached;
+// this points them at the newest one.
+//   a[data-latest-beta="file"]   the file in the newest beta (empty: the beta's release page)
+//   a[data-latest-beta-text]     its text becomes the beta's version
+//   [data-latest-beta-version]   its text becomes the beta's version
+//   [data-latest-stable-version="Version {v}"]  its text becomes this, with {v} the stable version
+//   .beta-offer                  hidden when the newest stable is newer than the newest beta
 (function () {
-	var links = document.querySelectorAll("a[data-latest-beta]");
-	if (!links.length || !window.fetch) return;
+	var sel = "a[data-latest-beta], [data-latest-beta-version], [data-latest-stable-version], .beta-offer";
+	if (!document.querySelector(sel) || !window.fetch) return;
 	fetch("https://api.github.com/repos/Abdullah-Masood-05/Shell/releases?per_page=20")
 		.then(function (r) { return r.ok ? r.json() : []; })
 		.then(function (list) {
-			var beta = null;
-			for (var i = 0; i < list.length; i++) if (list[i].prerelease && !list[i].draft) { beta = list[i]; break; }
+			var beta = null, stable = null, stableFirst = false;
+			for (var i = 0; i < list.length; i++) {
+				var r = list[i];
+				if (r.draft) continue;
+				if (r.prerelease) { if (!beta) beta = r; }
+				else if (!stable) { stable = r; if (!beta) stableFirst = true; }
+			}
+			var each = function (q, f) { [].forEach.call(document.querySelectorAll(q), f); };
+			var version = function (r) { return r.tag_name.replace(/^v/, ""); };
+			if (stable) each("[data-latest-stable-version]", function (el) {
+				el.textContent = (el.getAttribute("data-latest-stable-version") || "{v}").replace("{v}", version(stable));
+			});
+			if (stableFirst) each(".beta-offer", function (el) { el.hidden = true; });
 			if (!beta) return;
-			[].forEach.call(links, function (a) {
+			each("[data-latest-beta-version]", function (el) { el.textContent = version(beta); });
+			each("a[data-latest-beta]", function (a) {
 				var file = a.getAttribute("data-latest-beta");
 				if (!file) {
 					a.href = beta.html_url;
-					if (a.hasAttribute("data-latest-beta-text")) a.textContent = beta.tag_name.replace(/^v/, "");
+					if (a.hasAttribute("data-latest-beta-text")) a.textContent = version(beta);
 					return;
 				}
 				for (var j = 0; j < beta.assets.length; j++)
@@ -101,4 +118,29 @@
 			});
 		})
 		.catch(function () {});
+})();
+
+// 404 page: offer the page whose address matches the one asked for, such as an old
+// /docs/... link or one ending in .html.
+(function () {
+	var box = document.querySelector(".suggest");
+	if (!box || !window.fetch) return;
+	var BASE = "{{base}}";
+	var path = decodeURIComponent(location.pathname);
+	if (path.indexOf(BASE) === 0) path = path.slice(BASE.length);
+	var want = path.replace(/^\/+/, "").replace(/^docs(\/|$)/, "").replace(/(\/index)?(\.html?)?\/*$/, "").toLowerCase();
+	var last = want.split("/").pop();
+	fetch(BASE + "search.json").then(function (r) { return r.json(); }).then(function (index) {
+		var pages = index.filter(function (e) { return !e.p; });
+		var slug = function (e) { return e.u.slice(BASE.length).replace(/\/$/, "").toLowerCase(); };
+		var hit = pages.filter(function (e) { return slug(e) === want; })[0]
+			|| (last && pages.filter(function (e) { return slug(e).split("/").pop() === last; })[0]);
+		if (!hit) return;
+		var a = document.createElement("a");
+		a.href = hit.u; a.textContent = hit.t;
+		box.textContent = "Were you looking for ";
+		box.appendChild(a);
+		box.appendChild(document.createTextNode("?"));
+		box.hidden = false;
+	}).catch(function () {});
 })();

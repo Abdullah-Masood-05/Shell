@@ -1,10 +1,10 @@
 [
-	{"title":"Introduction", "link":"/docs"},
+	{"title":"Overview", "link":"/docs"},
 	{"title":"Installation", "link":"/docs/installation"},
 	{"title":"Command line", "link":"/docs/command-line"},
-	{"title":"Get Started", "link":"/docs/get-started"},
+	{"title":"Get started with code", "link":"/docs/get-started"},
 	{
-		"title":"Nilesoft Shell Pro app", "link":"/docs/settings-app",
+		"title":"The app", "link":"/docs/settings-app",
 		"items": [
 			{"title":"Home", "link":"/docs/app/home"},
 			{"title":"Appearance", "link":"/docs/app/appearance"},
@@ -73,7 +73,7 @@
 			{"title":"Go to", "link":"/docs/examples/goto"}
 		]
 	},
-	{"title":"Snippets", "link":"/docs/snippets"},
+	{"title":"Snippet collections", "link":"/docs/snippets"},
 	{"title":"About this fork", "link":"/docs/fork"},
 	{"title":"Troubleshooting and FAQ", "link":"/docs/troubleshooting"}
 ]

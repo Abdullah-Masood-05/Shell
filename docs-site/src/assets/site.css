@@ -14,6 +14,8 @@
 	--muted: #5a6472;
 	--accent: #1364fd;
 	--accent-weak: rgba(19, 100, 253, .08);
+	--accent-hover: #0d52d6;
+	--on-accent: #ffffff;
 	--warn: #a86500;
 	--warn-weak: rgba(214, 140, 0, .10);
 	--danger: #c62828;
@@ -29,6 +31,8 @@
 	--font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 	--mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, "SF Mono", Menlo, monospace;
 	--topbar: 56px;
+	--radius: 6px;
+	--radius-lg: 10px;
 	color-scheme: light;
 }
 
@@ -41,6 +45,8 @@
 	--muted: #9aa3b0;
 	--accent: #139efd;
 	--accent-weak: rgba(19, 158, 253, .12);
+	--accent-hover: #4db5ff;
+	--on-accent: #06121f;
 	--warn: #e5a83a;
 	--warn-weak: rgba(229, 168, 58, .12);
 	--danger: #f07070;
@@ -65,6 +71,8 @@
 		--muted: #9aa3b0;
 		--accent: #139efd;
 		--accent-weak: rgba(19, 158, 253, .12);
+		--accent-hover: #4db5ff;
+		--on-accent: #06121f;
 		--warn: #e5a83a;
 		--warn-weak: rgba(229, 168, 58, .12);
 		--danger: #f07070;
@@ -141,7 +149,8 @@ button { font: inherit; color: inherit; }
 	font: inherit; color: var(--text);
 	background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
 }
-.search input:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+.search input:focus { border-color: var(--accent); background: var(--bg); }
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .search input::-webkit-search-cancel-button { display: none; }
 .search-key { position: absolute; right: 8px; top: 7px; font-size: 12px; line-height: 16px; padding: 0 5px; }
 .search input:focus + .search-key { display: none; }
@@ -169,6 +178,8 @@ button { font: inherit; color: inherit; }
 	font-size: 15px; line-height: 1.4;
 }
 .sidebar ul { list-style: none; margin: 0; padding: 0; }
+.nav-label { margin: 24px 10px 6px; font-size: 13px; font-weight: 600; line-height: 1.4; color: var(--muted); }
+.nav-label:first-child { margin-top: 0; }
 .sidebar ul ul { margin: 2px 0 6px 12px; padding-left: 8px; border-left: 1px solid var(--border); }
 .sidebar a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--text); }
 .sidebar ul ul a { color: var(--muted); }
@@ -177,6 +188,9 @@ button { font: inherit; color: inherit; }
 
 .main { flex: 1 1 auto; min-width: 0; padding: 40px 48px 32px; }
 .content { max-width: 70ch; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; font-size: 14px; line-height: 1.4; color: var(--muted); }
+.crumbs a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.crumbs a:hover { color: var(--text); text-decoration-color: currentColor; }
 
 /* ----------------------------------------------------------- headings */
 
@@ -184,10 +198,11 @@ button { font: inherit; color: inherit; }
 .content h3, .content h4 { font-size: 24px; letter-spacing: -.01em; }
 .content h5 { font-size: 20px; }
 .content h6 { font-size: 17px; }
-.content > :is(h4, h5):first-child,
-.content > style:first-child + :is(h4, h5) { font-size: 32px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .6em; }
+.content h1 { font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .6em; }
 /* The fragments put a <br> after most headings; margins already do that job. */
-.content :is(h3, h4, h5, h6) + br { display: none; }
+.content :is(h1, h3, h4, h5, h6) + br { display: none; }
+/* Stand-alone <br> spacers between blocks; block margins already space them. */
+.content > br { display: none; }
 .content section > h5:first-child { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 0; }
 
 .content p, .content ul, .content ol, .content dl, .content pre, .content table, .content figure { margin: 0 0 1em; }
@@ -286,11 +301,100 @@ img.is-256 { width: 256px; margin: 0 8px 8px 0; vertical-align: top; }
 .my-5 { margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; }
 .my-6 { margin-top: 3rem !important; margin-bottom: 3rem !important; }
 
+/* ------------------------------------------------------ landing page */
+/*
+	The home page and the download block on Installation. One action wins
+	(the download button); the "I want to..." list is drawn like a context
+	menu, which is the thing this project makes.
+*/
+
+.lead { font-size: 20px; line-height: 1.55; max-width: 60ch; }
+.page-home .content { max-width: 880px; }
+.page-home .content > :is(p, ol, ul, .notification) { max-width: 70ch; }
+.page-home .content h1 { font-size: 40px; margin-bottom: .4em; }
+
+.button {
+	display: inline-flex; align-items: center; justify-content: center;
+	min-height: 44px; padding: 0 20px;
+	background: var(--accent); color: var(--on-accent);
+	border-radius: var(--radius);
+	font-size: 17px; font-weight: 600; line-height: 1.2;
+}
+.button:hover { background: var(--accent-hover); text-decoration: none; }
+.button:active { transform: translateY(1px); }
+
+.get { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 28px 0 12px; }
+.get-meta { margin: 0 !important; font-size: 15px; line-height: 1.5; color: var(--muted); }
+.get-meta a { white-space: nowrap; }
+.get-beta { font-size: 15px; line-height: 1.5; color: var(--muted); }
+.get + .get-beta { margin-bottom: 24px; }
+.get-files { margin-top: .5em; font-size: 16px; }
+
+.intro { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 40px; align-items: center; }
+.intro .lead { margin-top: 0; }
+.hero-shot { margin: 8px 0 24px !important; max-width: 360px; }
+.hero-shot img { display: block; width: 100%; }
+@media (min-width: 1180px) {
+	.intro { grid-template-columns: minmax(0, 1fr) 320px; }
+	.hero-shot { margin: 0 !important; }
+}
+.nowrap { white-space: nowrap; }
+
+ol.steps { list-style: none; padding: 0; counter-reset: step; }
+ol.steps > li { counter-increment: step; position: relative; padding-left: 44px; margin: 0 0 20px; }
+ol.steps > li::before {
+	content: counter(step);
+	position: absolute; left: 0; top: 0;
+	width: 30px; height: 30px; border-radius: 50%;
+	display: grid; place-items: center;
+	background: var(--accent-weak); color: var(--accent);
+	font-size: 15px; font-weight: 700; line-height: 1;
+}
+ol.steps > li > strong:first-child { display: block; }
+
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0 0 1em; }
+.gallery figure { margin: 0; }
+.gallery a { display: block; border-radius: var(--radius); }
+.gallery img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: left top; border: 1px solid var(--border); border-radius: var(--radius); }
+.gallery figcaption { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.gallery figcaption b { color: var(--text); font-weight: 600; }
+
+.signposts {
+	list-style: none !important; max-width: 640px;
+	padding: 4px !important;
+	background: var(--surface);
+	border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.signposts li { margin: 0; }
+.signposts a {
+	position: relative;
+	display: block; padding: 10px 40px 10px 14px;
+	border-radius: var(--radius);
+	color: var(--text); line-height: 1.4;
+}
+.signposts a::after {
+	content: ""; position: absolute; right: 16px; top: 50%;
+	width: 7px; height: 7px; margin-top: -4px;
+	border: solid var(--muted); border-width: 1.5px 1.5px 0 0;
+	transform: rotate(45deg);
+}
+.signposts a:hover { background: var(--accent-weak); text-decoration: none; }
+.signposts a:focus-visible { outline-offset: -2px; }
+.signposts strong { display: block; font-weight: 600; }
+.signposts span { display: block; font-size: 14px; color: var(--muted); }
+
+.suggest { font-size: 18px; }
+.toc { font-size: 15px; line-height: 1.6; color: var(--muted); }
+.toc b { color: var(--text); font-weight: 600; }
+/* A section inside a section (Installation: Installer version > Install). */
+.content > div > div > h5 { font-size: 17px; margin-top: 1.5em; }
+
 /* --------------------------------------------------------- pager/footer */
 
 .pager { max-width: 70ch; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 56px 0 0; }
 .pager a { display: block; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-weight: 600; line-height: 1.4; }
-.pager a:hover { border-color: var(--accent); text-decoration: none; }
+.pager a:hover { text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .pager a:hover { border-color: var(--accent); } }
 .pager span { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
 .pager-next { text-align: right; }
 .footer { max-width: 70ch; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 14px; line-height: 1.6; color: var(--muted); }
@@ -317,12 +421,17 @@ img.is-256 { width: 256px; margin: 0 8px 8px 0; vertical-align: top; }
 	.brand span { display: none; }
 	.search-key { display: none; }
 	body { font-size: 16px; }
-	.content > :is(h4, h5):first-child { font-size: 28px; }
+	.content h1 { font-size: 28px; }
 	.pager { grid-template-columns: 1fr; }
+	.page-home .content h1 { font-size: 32px; }
+	.lead { font-size: 18px; }
+	.get .button { width: 100%; }
+	.gallery { grid-template-columns: 1fr; }
+	.hero-shot { max-width: 280px; }
 	/* Two-column reference tables (option | what it does) stack, so the text column keeps its width. */
 	.content table:not(:has(th)), .content table:not(:has(th)) tbody { display: block; width: 100%; }
 	.content table:not(:has(th)) tr { display: block; padding: 8px 0; border-bottom: 1px solid var(--border); }
 	.content table:not(:has(th)) td { display: block; width: auto !important; padding: 2px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
 	.content .w-25, .content .is-two-thirds { width: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .sidebar { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .sidebar { transition: none !important; } .button:active { transform: none; } }

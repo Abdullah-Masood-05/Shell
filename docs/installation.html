@@ -1,5 +1,7 @@
 ﻿<h4>Installation</h4>
 <br>
+<p class="lead">Download the installer, run it, and the new right-click menu is on. This page also covers the
+	portable version, updates, and how to remove Nilesoft Shell Pro.</p>
 <div class="notification is-danger mt-5" role="alert">
 	<i>Warning:</i> <strong>If the original Nilesoft Shell is installed, uninstall it first.</strong>
 	Nilesoft Shell Pro has its own name, so it does <em>not</em> replace the original (installed with its own installer,
@@ -9,43 +11,26 @@
 	folder and delete the folder. Back up your <code>shell.nss</code> and <code>imports</code> folder first if you want to
 	keep your configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
 </div>
-<div class="notification is-warning mt-5" role="alert">
-	<i>Info:</i> The installer (MSI) needs administrator rights once; the portable version can be set up per user without them.
-</div>
-<div class="notification is-info mt-5">
-	<i>Tip:</i> To use Shell for your account only, without administrator rights, register an extracted
-	(portable) copy with <code>shell -register -user -restart</code> and create your own configuration in
-	<code>%APPDATA%\Nilesoft\Shell</code> with <code>shell -config:init</code>.
-	See <a href="/docs/command-line">Command line</a>.
-</div>
-<br>
-<p>Shell can be installed in the following ways:</p>
-<ul>
-	<li><a href="#installer">Installer</a></li>
-	<li><a href="#portable">Portable</a></li>
-</ul>
-<p id="package-managers">Nilesoft Shell Pro isn't on winget, Scoop, Chocolatey or any other package manager yet. The
-	<code>Nilesoft.Shell</code> and <code>nilesoft-shell</code> packages there install the original Nilesoft Shell, not
-	this version. Download it from the links below instead.</p><br>
-<p>See also <a href="#updates">How updates work</a> and <a href="#config-updates">Updates and your configuration</a>.
-	If something doesn't work after installing, see <a href="/docs/troubleshooting">Troubleshooting and FAQ</a>.</p>
-<br>
-<p>Please also note the following reference sections:</p>
-<ul>
-	<li><a href="#cli">Command-Line Help</a></li>
-	<li><a href="#keys">Keys to enable/disable Shell functionalities</a></li>
-</ul>
-<br>
+<p class="toc"><b>On this page:</b> <a href="#download">Download</a>, <a href="#installer">Installer</a>,
+	<a href="#portable">Portable version</a>, <a href="#updates">How updates work</a>,
+	<a href="#config-updates">Updates and your configuration</a>, <a href="#cli">Command-line help</a>,
+	<a href="#keys">Keys to turn Shell on and off</a>.</p>
 <div id="download">
 	<h5>Download</h5>
-	<p><b>Stable</b>: the newest tested release, for most people. These links always point to it:</p>
+	<p><b>Stable</b>: the newest tested release, for most people.</p>
+	<div class="get">
+		<a class="button" href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi">Download setup-x64.msi</a>
+		<p class="get-meta"><span data-latest-stable-version="Version {v}">The newest version</span>. Installer for most PCs
+			(64-bit Intel/AMD). Needs administrator approval once.</p>
+	</div>
+	<p>Other files for the same version:</p>
 	<ul>
-		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x64.msi"><b>setup-x64.msi</b></a>: installer for most PCs (64-bit Intel/AMD).</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-arm64.msi">setup-arm64.msi</a>: installer for ARM64 PCs.</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/setup-x86.msi">setup-x86.msi</a>: installer for 32-bit Windows (without the Nilesoft Shell Pro app).</li>
-		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a>: portable, per user, no administrator rights.</li>
+		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/NilesoftShellPro-x64-portable.zip">NilesoftShellPro-x64-portable.zip</a>: portable, for your account only, no administrator rights. See <a href="#portable">Portable version</a>.</li>
 		<li><a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>: checksums. Release notes: <a href="https://github.com/Abdullah-Masood-05/Shell/releases/latest">stable release page</a>.</li>
 	</ul>
+	<p>These links always point to the newest stable release.</p>
 	<p id="beta"><b>Beta</b>: the newest test version, with the latest features and fixes before they reach Stable. It
 		may have bugs, so use it if you want to try new things early and tell us what you find. The newest beta is
 		<a data-latest-beta="" data-latest-beta-text="" href="https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0-beta.6">2.3.0-beta.6</a>:</p>
@@ -56,8 +41,12 @@
 	</ul>
 	<p>Already installed? The app can move you between them: <a href="/docs/app/preferences#updates">Preferences: Updates</a>
 		has a Stable and a Beta channel. All versions, old ones too, are on the <a href="https://github.com/Abdullah-Masood-05/Shell/releases">releases page</a>.</p>
+	<p id="package-managers">Nilesoft Shell Pro isn't on winget, Scoop, Chocolatey or any other package manager yet. The
+		<code>Nilesoft.Shell</code> and <code>nilesoft-shell</code> packages there install the original Nilesoft Shell, not
+		this version. Download it from the links above instead.</p>
 	<p>The files are not code-signed, so Windows SmartScreen may ask for confirmation (<i>More info</i> &rarr; <i>Run anyway</i>).
-		See <a href="/docs/troubleshooting#smartscreen">Troubleshooting</a> for how to check the file first.</p>
+		See <a href="/docs/troubleshooting#smartscreen">Troubleshooting</a> for how to check the file first.
+		If something doesn't work after installing, see <a href="/docs/troubleshooting">Troubleshooting and FAQ</a>.</p>
 </div>
 <br/>
 <div id="installer">
@@ -147,6 +136,12 @@
 		</div>
 		<p>To register for all users instead, run <code>shell -register -treat -restart</code> from an
 			<strong>elevated</strong> command prompt.</p>
+		<div class="notification is-info mt-5">
+			<i>Tip:</i> To use Shell for your account only, without administrator rights, register an extracted
+			(portable) copy with <code>shell -register -user -restart</code> and create your own configuration in
+			<code>%APPDATA%\Nilesoft\Shell</code> with <code>shell -config:init</code>.
+			See <a href="/docs/command-line">Command line</a>.
+		</div>
 <p>For further details, see the chapter <a href="#cli">Command-Line Help</a> below.</p>
 	</div>
 	<hr>
@@ -267,7 +262,7 @@
 </div>
 <hr>
 <div id="keys">
-	<h5>Use the following keys to enable/disable</h5>
+	<h5>Keys to turn Shell on and off</h5>
 	<p>These keys are used when you press <kbd>right-click</kbd> or press <kbd>Shift</kbd>+<kbd>F10</kbd> keys</p>
 	<kbd>CTRL</kbd> To enable and reload the configuration file <code>shell.nss</code><br/>
 	<kbd>WIN</kbd> To make priority to the modern context menu for Windows 11<br>
