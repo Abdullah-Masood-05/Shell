@@ -27,7 +27,10 @@ struct FileDiff
     };
     std::string path; // relative, '/' separated
     Status status = Same;
-    diff::Unified diff; // snapshot (old) -> current (new)
+    diff::Unified diff; // snapshot (old) -> current (new); empty for a binary file
+    // An image or another file that isn't text: compared byte for byte, not line by line.
+    bool binary = false;
+    uint64_t oldSize = 0, newSize = 0; // bytes in the snapshot and now (0 when absent)
 };
 
 struct SnapshotDiff
@@ -38,11 +41,21 @@ struct SnapshotDiff
 };
 
 // Compares the snapshot's files with the current tree (text decoded, so a
-// change of encoding alone shows as "modified" without line changes).
+// change of encoding alone shows as "modified" without line changes). A snapshot
+// that kept every file (SnapshotInfo::allFiles) is compared with every file the
+// next one would keep; an older one with the .nss files only.
+
 SnapshotDiff diffSnapshot(const nss::ConfigStore &store, const nss::SnapshotInfo &snapshot);
 
 // Deletes an unpinned snapshot folder. False (with a reason) otherwise.
 bool deleteSnapshot(const nss::ConfigStore &store, const std::string &id, std::string *error = nullptr);
+
+// Not text: a NUL byte in it, or it isn't UTF-8 or UTF-16 text (.nss files are
+// always text).
+bool isBinary(std::string_view path, std::string_view bytes);
+
+// "12 KB", "1.5 MB", "320 bytes".
+std::string sizeText(uint64_t bytes);
 
 // True when every file of the snapshot matches the tree byte for byte.
 bool matchesTree(const nss::ConfigStore &store, const nss::SnapshotInfo &snapshot);

@@ -17,7 +17,8 @@
 //      every file is put back as it was.
 //
 // The tree is every *.nss file under the root's folder, excluding the
-// backups folder.
+// backups folder. A snapshot also keeps the user's other files there (icons in
+// imports\images\ and the like, snapshotFiles()), so a restore brings them back.
 
 #include "nss/Text.h"
 
@@ -80,6 +81,10 @@ namespace nss
 		std::string created;   // ISO 8601 local time
 		std::string root;      // root file name
 		bool pinned = false;
+		// "scope": "all" in the manifest: every file of snapshotFiles(), not only the
+		// .nss ones (snapshots before 2.3.0-beta.6). Comparing with the current files
+		// and restoring with removeExtra look at the same kind of files.
+		bool allFiles = false;
 		std::vector<SnapshotFile> files;
 	};
 
@@ -102,12 +107,21 @@ namespace nss
 		SaveResult save(std::vector<FileWrite> writes, const SaveOptions &options = {});
 
 		std::vector<std::filesystem::path> treeFiles() const;
+		// What a snapshot keeps: treeFiles(), and every other file under the root's
+		// folder except the backups, the backup-<time> folders `shell.exe
+		// -config:reset` leaves, *.bak, *.tmp and *.log files. A file over
+		// maxSnapshotFile, and the files past maxSnapshotOther in all (by path), are
+		// left out; .nss files always count.
+		std::vector<std::filesystem::path> snapshotFiles() const;
+		static constexpr uint64_t maxSnapshotFile = 16ull << 20;
+		static constexpr uint64_t maxSnapshotOther = 128ull << 20;
 		std::optional<SnapshotInfo> snapshot(const std::string &reason, std::string *error = nullptr);
 		std::vector<SnapshotInfo> snapshots() const;  // newest first
 		std::optional<SnapshotInfo> findSnapshot(const std::string &id) const;
 		bool pin(const std::string &id, bool pinned);
 		// Puts the snapshot's files back (after taking a "before restore"
-		// snapshot). Files added since are left alone unless removeExtra.
+		// snapshot), byte for byte (images too). Files added since are left alone
+		// unless removeExtra; then only those of the kind it kept (allFiles) go.
 		bool restore(const std::string &id, std::string *error = nullptr, bool removeExtra = false);
 		// Deletes snapshots outside the policy; returns how many.
 		size_t applyRetention(const RetentionPolicy &policy = {});
