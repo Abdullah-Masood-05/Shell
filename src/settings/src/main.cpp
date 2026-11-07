@@ -33,7 +33,7 @@
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --snapshot-width <px>     a narrower or wider window for the tour
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
-//   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
+//   --map-context <file|folder|back|desktop|drive|thispc|taskbar>, --map-view <outline|nodes>,
 //   --map-expand, --map-select <title>, --map-open-move (its Move to list open),
 //   --map-open-place (its Place in this menu list open),
 //   --map-sample <n> (the File context's sample, 0 = .txt)   how the Menu map page starts (screenshots)
