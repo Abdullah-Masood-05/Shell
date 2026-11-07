@@ -191,3 +191,28 @@ TEST_CASE("backups: shell.exe's snapshot before an update keeps the icons too")
     REQUIRE(nss::readFile(info->dir / L"imports" / L"images" / L"sub" / L"file explorer.png", copy));
     CHECK(copy == kPng + "explorer");
 }
+
+TEST_CASE("backups: a snapshot keeps to .nss files and imports\, not the rest of the folder")
+{
+    Scratch s;
+    makeConfig(s);
+    // A config root in Documents: other files there are not the config's.
+    s.write("report.docx", "word");
+    s.write("photos/holiday.jpg", kPng);
+    s.write("Backup-20260102-000000/imports/images/old.png", kPng);
+    s.write("imports/Backup-1/x.png", kPng);
+    nss::ConfigStore store(s.path / L"shell.nss");
+    const std::vector<std::string> want{ "imports/images/notes.txt", "imports/images/padlock-closed.png",
+                                         "imports/images/sub/file explorer.png", "imports/kaser.nss", "shell.nss" };
+    auto snap = store.snapshot("test");
+    REQUIRE(snap);
+    CHECK(paths(*snap) == want);
+    CHECK(snap->skipped.empty());
+
+    config_upgrade::Snapshot shellSnap;
+    std::string error;
+    REQUIRE(config_upgrade::snapshot(s.path.wstring(), L"shell.nss", config_upgrade::reason_upgrade, shellSnap, error));
+    auto info = store.findSnapshot(shellSnap.id);
+    REQUIRE(info);
+    CHECK(paths(*info) == want);
+}

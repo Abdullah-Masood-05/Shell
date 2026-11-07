@@ -309,6 +309,11 @@ void carryProps(std::string_view rel, const nss::NssDocument &user, const nss::N
                 value = "null"; // the icon taken away
             } else
                 value = vu.text;
+            if (value.find_first_of("\r\n") != std::string::npos) {
+                // The override line is one line; flattening the break would change the string.
+                fail(std::string(group) + " over several lines");
+                continue;
+            }
             auto key = overrides::keyOf(base, rel, *theirs);
             if (!key) {
                 fail("an item without a title");

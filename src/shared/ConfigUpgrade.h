@@ -590,7 +590,7 @@ namespace config_upgrade
 				continue;
 			if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				if(prefix.empty() && (::_wcsicmp(name.c_str(), L"backups") == 0 || ::_wcsnicmp(name.c_str(), L"backup-", 7) == 0))
+				if(::_wcsicmp(name.c_str(), L"backups") == 0 || ::_wcsnicmp(name.c_str(), L"backup-", 7) == 0)
 					continue;
 				list_other_files(join(dir, name), prefix + narrow(name) + "/", out);
 				continue;
@@ -641,6 +641,7 @@ namespace config_upgrade
 		std::string id;    // YYYYMMDD-HHMMSS[-n]
 		std::wstring dir;  // <config>\backups\<id>
 		size_t files = 0;
+		std::vector<std::string> skipped; // files that couldn't be read and are not in it (not .nss)
 	};
 
 	// Copies every *.nss of `config_dir` and the user's other files there
@@ -676,7 +677,8 @@ namespace config_upgrade
 		std::vector<std::string> files;
 		list_nss(config_dir, {}, files, { L"backups" }, true);
 		std::vector<std::pair<std::string, uint64_t>> other;
-		list_other_files(config_dir, {}, other);
+		// Only imports\ (the user's icons): not the rest of a folder such as Documents.
+		list_other_files(join(config_dir, L"imports"), "imports/", other);
 		std::sort(other.begin(), other.end());
 		uint64_t total = 0;
 		for(auto &[rel, size] : other)
@@ -693,7 +695,15 @@ namespace config_upgrade
 		{
 			std::string bytes;
 			if(!read_file(join(config_dir, native(rel)), bytes))
+			{
+				auto dot = rel.find_last_of('.');
+				if(dot == rel.npos || ::_stricmp(rel.c_str() + dot, ".nss") != 0)
+				{
+					out.skipped.push_back(rel);
+					std::fprintf(stderr, "snapshot: skipped unreadable file %s\n", rel.c_str());
+				}
 				continue;
+			}
 			if(!write_file(join(out.dir, native(rel)), bytes))
 			{
 				error = "cannot write the snapshot file " + rel;

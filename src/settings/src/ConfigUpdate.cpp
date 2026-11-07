@@ -119,6 +119,10 @@ Carried carryOver(const std::filesystem::path &configRoot, const std::filesystem
         auto r = carryover::carry(rel, user, shipped, carryover::shippedBases(rel), partial);
         if (r.text.empty() || (!partial && !r.complete))
             continue;
+        // Override lines only once the config can be checked: an older engine rejects the
+        // statement, and then the whole config fails to load.
+        if (!validator && !r.overrides.empty())
+            continue;
         if (nss::pathKey(path) == nss::pathKey(configRoot)) {
             rootText = r.text;
             rootFormat = r.format;

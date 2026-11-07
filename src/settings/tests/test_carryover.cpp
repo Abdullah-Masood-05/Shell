@@ -345,3 +345,38 @@ TEST_CASE("carry over: after an update, kaser4's files become the new version an
     CHECK(taken.files == std::vector<std::string>{ "imports/develop.nss" });
     CHECK(readBytes(config / L"imports" / L"develop.nss") == readBytes(binDir() / L"imports" / L"develop.nss"));
 }
+
+TEST_CASE("carry over: a value over several lines is not carried")
+{
+    std::string base = "item(title='Kept' cmd='b')\r\n";
+    std::string user = "item(title=('Two' +\r\n'lines') cmd='b')\r\n";
+    auto r = carryover::carry("imports/x.nss", user, base, { base });
+    CHECK_FALSE(r.complete);
+    CHECK(r.overrides.empty());
+    CHECK_MESSAGE(r.why.find("several lines") != std::string::npos, r.why);
+}
+
+TEST_CASE("carry over: without a way to check the config, override lines are not written")
+{
+    if (!haveShipped()) {
+        MESSAGE("src/bin has no shipped config; skipped");
+        return;
+    }
+    Scratch s;
+    const auto config = s.path / L"config";
+    fs::create_directories(config);
+    fs::copy_file(binDir() / L"shell.nss", config / L"shell.nss");
+    fs::copy(binDir() / L"imports", config / L"imports", fs::copy_options::recursive);
+    const auto edited = editedShipped("imports/terminal.nss", "title.command_prompt", hide);
+    writeBytes(config / L"imports" / L"terminal.nss", edited);
+
+    // No shell.exe found: an older engine would reject override(...), so the file stays
+    // as it is (for the banner) and no map file is made.
+    for (bool partial : { false, true }) {
+        auto carried = config_update::carryOver(config / L"shell.nss", binDir(), { "imports/terminal.nss" }, partial, {});
+        CHECK(carried.ok);
+        CHECK(carried.files.empty());
+        CHECK(readBytes(config / L"imports" / L"terminal.nss") == edited);
+        CHECK_FALSE(fs::exists(config / L"imports" / L"settings-app-map.nss"));
+    }
+}

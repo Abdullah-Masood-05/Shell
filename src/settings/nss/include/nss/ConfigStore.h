@@ -61,6 +61,7 @@ namespace nss
 		bool ok = false;
 		std::string error;
 		std::string snapshotId;
+		std::vector<std::string> snapshotSkipped; // files the snapshot couldn't read (not .nss), not in it
 		std::vector<std::filesystem::path> written;
 		bool rolledBack = false;
 		CheckResult check;     // what the validator or verifier said
@@ -85,6 +86,7 @@ namespace nss
 		// .nss ones (snapshots before 2.3.0-beta.6). Comparing with the current files
 		// and restoring with removeExtra look at the same kind of files.
 		bool allFiles = false;
+		std::vector<std::string> skipped; // set by snapshot(): unreadable files left out (not saved in the manifest)
 		std::vector<SnapshotFile> files;
 	};
 

@@ -245,7 +245,7 @@ namespace nss
 				// Also the backup-<time> folders `shell.exe -config:reset` leaves next to
 				// shell.nss: copies, not part of the config.
 				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups) ||
-				   (it.depth() == 0 && narrow(p.filename().wstring()).starts_with("backup-")))
+				   (it.depth() == 0 && toLower(narrow(p.filename().wstring())).starts_with("backup-")))
 					it.disable_recursion_pending();
 				continue;
 			}
@@ -262,13 +262,16 @@ namespace nss
 		std::vector<std::pair<fs::path, uint64_t>> other;
 		std::error_code ec;
 		auto opts = fs::directory_options::skip_permission_denied;
-		for(fs::recursive_directory_iterator it(rootDir(), opts, ec), end; !ec && it != end; it.increment(ec))
+		// Besides the .nss files (treeFiles) only what the config keeps in imports\ (its
+		// icons, in imports\images\): not the other files of a folder the root happens to
+		// be in, such as Documents.
+		for(fs::recursive_directory_iterator it(rootDir() / L"imports", opts, ec), end; !ec && it != end; it.increment(ec))
 		{
 			auto &p = it->path();
 			if(it->is_directory(ec))
 			{
 				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups) ||
-				   (it.depth() == 0 && narrow(p.filename().wstring()).starts_with("backup-")))
+				   toLower(narrow(p.filename().wstring())).starts_with("backup-"))
 					it.disable_recursion_pending();
 				continue;
 			}
@@ -322,7 +325,16 @@ namespace nss
 		{
 			std::string bytes;
 			if(!readFile(file, bytes, error))
+			{
+				// A menu file that can't be read stays out as before; any other file is
+				// reported (the caller logs it) rather than skipped without a word.
+				if(!iequals(narrow(file.extension().wstring()), ".nss"))
+				{
+					s.skipped.push_back(relative(file));
+					::OutputDebugStringA(("snapshot: skipped unreadable file " + s.skipped.back() + "\n").c_str());
+				}
 				continue;
+			}
 			SnapshotFile sf;
 			sf.path = relative(file);
 			sf.sha256 = sha256(bytes);
@@ -535,6 +547,7 @@ namespace nss
 				return result;
 			}
 			result.snapshotId = snap->id;
+			result.snapshotSkipped = snap->skipped;
 			applyRetention(_retention);
 		}
 
