@@ -35,9 +35,9 @@ constexpr int kMenusPage = 4;  // Pages.menus
 constexpr int kMapPage = 10;   // Pages.menumap
 
 // Contexts, in the order of the page's switcher.
-constexpr const char *kContexts[] = { "file", "folder", "back", "desktop", "drive", "taskbar" };
+constexpr const char *kContexts[] = { "file", "folder", "back", "desktop", "drive", "thispc", "taskbar" };
 constexpr const char *kContextLabels[] = { nsp::mark("File"),    nsp::mark("Folder"), nsp::mark("Background"),
-                                           nsp::mark("Desktop"), nsp::mark("Drive"),  nsp::mark("Taskbar") };
+                                           nsp::mark("Desktop"), nsp::mark("Drive"),   nsp::mark("This PC"), nsp::mark("Taskbar") };
 // Sample files for the File context.
 // The .exe and .lnk ones get "Troubleshoot compatibility" and "Run as administrator".
 constexpr const wchar_t *kSampleExt[] = { L".txt", L".png", L".exe", L".lnk", L".zip", L".pdf", L".mp3" };
@@ -105,7 +105,7 @@ fs::path sampleDir()
 }
 
 // The path a context's menu is read for: an empty sample file of the chosen type,
-// a sample folder, or the system drive. Empty for the desktop and the taskbar.
+// a sample folder, or the system drive. Empty for the desktop, This PC and the taskbar.
 fs::path prepareSample(int context, int sample)
 {
     std::error_code ec;

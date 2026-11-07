@@ -690,3 +690,24 @@ TEST_CASE("menu move: menu='/' keeps a Windows item in the main menu (real shell
         MESSAGE("Send to has no Compressed (zipped) folder here; that part is skipped");
     }
 }
+
+TEST_CASE("menu map: the This PC context lists the items for type=computer (real shell.exe)")
+{
+    if (!haveShell()) {
+        MESSAGE("shell.exe/shell.dll not in src/bin; skipped");
+        return;
+    }
+    Scratch s;
+    s.write("shell.nss", "item(title='Only for This PC' type='computer' cmd='a')\r\n"
+                         "item(title='Only for files' type='file' cmd='b')\r\n"
+                         "item(title='Everywhere' type='*' cmd='c')\r\n");
+    auto tree = runTree(s.path / "shell.nss", L"thispc");
+    REQUIRE(tree);
+    REQUIRE(tree->ok);
+    CHECK(findNode(tree->shell, "Only for This PC"));
+    CHECK_FALSE(findNode(tree->shell, "Only for files"));
+    CHECK(findNode(tree->shell, "Everywhere"));
+    // Windows' own items for the Computer folder (Properties, at least).
+    CHECK(tree->systemError.empty());
+    CHECK_FALSE(tree->system.empty());
+}

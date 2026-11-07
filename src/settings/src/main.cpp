@@ -190,7 +190,7 @@ AppOptions parseArgs()
         } else if (_wcsicmp(argv[i], L"--snippets-context") == 0 && i + 1 < argc) {
             g_snippetsContext = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--map-context") == 0 && i + 1 < argc) {
-            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"taskbar" };
+            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"thispc", L"taskbar" };
             ++i;
             for (int c = 0; c < int(std::size(contexts)); ++c)
                 if (_wcsicmp(argv[i], contexts[c]) == 0)

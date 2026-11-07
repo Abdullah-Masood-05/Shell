@@ -1518,6 +1518,8 @@ namespace Nilesoft
 				types[FSO_DRIVE] = 1;
 				types[FSO_DRIVE_FIXED] = 1;
 			}
+			else if(name.equals(L"thispc", true) || name.equals(L"computer", true))
+				types[FSO_NAMESPACE_COMPUTER] = 1;
 			else if(name.equals(L"back", true) || name.equals(L"background", true))
 			{
 				background = true;

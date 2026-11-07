@@ -1692,7 +1692,7 @@ namespace ConfigCommand
 	{
 		if(where.empty())
 			return true;
-		for(auto name : { L"file", L"folder", L"dir", L"back", L"background", L"desktop", L"taskbar" })
+		for(auto name : { L"file", L"folder", L"dir", L"back", L"background", L"desktop", L"taskbar", L"thispc", L"computer" })
 		{
 			if(where.equals(name, true))
 				return true;
@@ -1767,7 +1767,7 @@ namespace ConfigCommand
 	/*
 		-config:tree <root.nss> -context:<where> [-sample:<path>]
 
-		The menu a right-click in <where> (file, folder, drive, back, desktop,
+		The menu a right-click in <where> (file, folder, drive, thispc, back, desktop,
 		taskbar) shows, for Nilesoft Shell Pro's Menu map: the check result
 		as -config:check prints it, plus "context", "sample" and "tree", the
 		JSON shell.dll's ConfigTree export gives (see ConfigCheck.h): Shell's
@@ -1788,7 +1788,7 @@ namespace ConfigCommand
 
 	static bool valid_context(const string &where)
 	{
-		for(auto name : { L"file", L"folder", L"dir", L"drive", L"back", L"background", L"desktop", L"taskbar" })
+		for(auto name : { L"file", L"folder", L"dir", L"drive", L"back", L"background", L"desktop", L"taskbar", L"thispc", L"computer" })
 		{
 			if(where.equals(name, true))
 				return true;
@@ -1877,7 +1877,7 @@ namespace ConfigCommand
 		{
 			if(root.empty() || !valid_context(context))
 			{
-				out.line(L"usage: shell -config:tree <root.nss> -context:file|folder|drive|back|desktop|taskbar [-sample:<path>] [-out:<file>]");
+				out.line(L"usage: shell -config:tree <root.nss> -context:file|folder|drive|thispc|back|desktop|taskbar [-sample:<path>] [-out:<file>]");
 				return cli_usage;
 			}
 			ret = tree(out, root, context, sample);

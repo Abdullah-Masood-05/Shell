@@ -530,12 +530,22 @@ namespace Nilesoft
 					return desktop->CreateViewObject(nullptr, IID_PPV_ARGS(&cm));
 				}
 
-				if(t.sample.empty())
+				if(t.where == L"thispc")
+				{
+					// The This PC icon (desktop or navigation pane): the Computer
+					// folder's own item in the desktop folder.
+					if(FAILED(hr = ::SHGetKnownFolderIDList(FOLDERID_ComputerFolder, 0, nullptr, &t.pidl)))
+					{
+						error = L"This PC can't be opened";
+						return hr;
+					}
+				}
+				else if(t.sample.empty())
 				{
 					error = L"no sample path";
 					return E_INVALIDARG;
 				}
-				if(FAILED(hr = ::SHParseDisplayName(t.sample.c_str(), nullptr, &t.pidl, 0, nullptr)))
+				else if(FAILED(hr = ::SHParseDisplayName(t.sample.c_str(), nullptr, &t.pidl, 0, nullptr)))
 				{
 					error = L"the sample path can't be opened: " + t.sample;
 					return hr;
@@ -589,6 +599,10 @@ namespace Nilesoft
 				else if(t.where == L"drive")
 				{
 					t.keys = { L"Drive", L"Folder", L"AllFilesystemObjects" };
+				}
+				else if(t.where == L"thispc")
+				{
+					t.keys = { L"CLSID\\{20D04FE0-3AEA-1069-A2D8-08002B30309D}" };
 				}
 				else if(t.where == L"back")
 				{
@@ -938,6 +952,8 @@ namespace Nilesoft
 				where = L"back";
 			if(where == L"dir")
 				where = L"folder";
+			if(where == L"computer")
+				where = L"thispc";
 
 			auto declared = [&](NativeMenu *item, TitleInfo &title, std::wstring &o)
 			{
