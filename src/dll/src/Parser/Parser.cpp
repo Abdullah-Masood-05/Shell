@@ -516,6 +516,7 @@ namespace Nilesoft
 		bool Parser::parse_menu_item(NativeMenu *menu, uint32_t type)
 		{
 			record_item(menu, l->line, prevCol);
+			m_title_src.clear();
 			switch(type)
 			{
 				case MENU_TYPE_MENU:
@@ -537,6 +538,10 @@ namespace Nilesoft
 			// parse menu properties
 			if(!parse_properties(menu))
 				return false;
+
+			// For override(): in the order read, a menu before the items in it.
+			if(!menu->is_separator())
+				m_decls.push_back({ menu, l->path, menu->title.get() ? m_title_src : string() });
 
 			if(menu->properties == 0 && menu->is_separator())
 				return true;
@@ -577,6 +582,162 @@ namespace Nilesoft
 					parse_menu(menu, false);
 			}
 			return true;
+		}
+
+		void Parser::parse_override()
+		{
+			OverrideRef ref;
+			ref.src = l->path;
+			ref.line = l->line;
+			ref.column = prevCol;
+			ref.props.reset(new NativeMenu(nullptr));
+			ref.props->type = NativeMenuType::Item;
+			struct reset_t
+			{
+				Parser *p;
+				~reset_t() { p->m_override = nullptr; }
+			} reset{ this };
+			m_override = &ref;
+			eat().parse_properties(ref.props.get());
+			m_override = nullptr;
+			m_overrides.push_back(std::move(ref));
+		}
+
+		string Parser::source_key(const wchar_t *text, size_t length)
+		{
+			std::wstring out;
+			bool space = false;
+			auto put = [&](wchar_t c)
+			{
+				if(space && !out.empty())
+					out += L' ';
+				space = false;
+				out += c;
+			};
+			for(size_t i = 0; text && i < length; i++)
+			{
+				auto c = text[i];
+				if(c == 0)
+					break;
+				if(c == L'\'' || c == L'"' || c == L'`')
+				{
+					// A string, as it is: blanks in it count. In "..." a backslash
+					// escapes the next character.
+					put(c);
+					for(i++; i < length && text[i]; i++)
+					{
+						out += text[i];
+						if(c == L'"' && text[i] == L'\\' && i + 1 < length && text[i + 1])
+							out += text[++i];
+						else if(text[i] == c)
+							break;
+					}
+					continue;
+				}
+				if(c == L'/' && i + 1 < length && text[i + 1] == L'/')
+				{
+					while(i < length && text[i] && text[i] != L'\n')
+						i++;
+					space = true;
+					continue;
+				}
+				if(c == L'/' && i + 1 < length && text[i + 1] == L'*')
+				{
+					for(i += 2; i < length && text[i]; i++)
+						if(text[i] == L'*' && i + 1 < length && text[i + 1] == L'/')
+						{
+							i++;
+							break;
+						}
+					space = true;
+					continue;
+				}
+				if(c == L' ' || c == L'\t' || c == L'\r' || c == L'\n')
+				{
+					space = true;
+					continue;
+				}
+				put(c);
+			}
+			return string(out.c_str(), out.length());
+		}
+
+		void Parser::apply_overrides()
+		{
+			if(m_overrides.empty())
+				return;
+
+			// Full, lower-case paths, so 'imports/x.nss' and an import's path compare.
+			std::unordered_map<std::wstring, std::wstring> keys;
+			auto key = [&](const string &path) -> std::wstring
+			{
+				std::wstring raw(path.c_str(), path.length());
+				if(auto it = keys.find(raw); it != keys.end())
+					return it->second;
+				std::wstring k = Path::Full(raw).c_str();
+				for(auto &c : k)
+					c = c == L'/' ? L'\\' : static_cast<wchar_t>(std::towlower(c));
+				keys.emplace(raw, k);
+				return k;
+			};
+
+			for(auto &o : m_overrides)
+			{
+				NativeMenu *target{};
+				if(!o.file.empty() && !o.item.empty() && o.index > 0)
+				{
+					std::wstring rel(o.file.c_str(), o.file.length());
+					for(auto &c : rel)
+						if(c == L'/') c = L'\\';
+					auto want = key(Path::Combine(location, rel));
+					size_t n = 0;
+					for(auto &d : m_decls)
+					{
+						if(d.title.empty() || !d.title.equals(o.item) || key(d.file) != want)
+							continue;
+						if(++n == o.index)
+						{
+							target = d.item;
+							break;
+						}
+					}
+				}
+				if(!target)
+				{
+					string message;
+					message.format(L"override: no item with title=%s in '%s'", o.item.c_str(), o.file.c_str());
+					diagnose(false, o.src.c_str(), o.line, o.column, message);
+					continue;
+				}
+
+				auto p = o.props.get();
+				if(o.seen & OVERRIDE_VIS)
+					target->visibility = p->visibility.release();
+				if(o.seen & OVERRIDE_TITLE)
+					target->title = p->title.release();
+				if(o.seen & OVERRIDE_MENU)
+					target->moveto = p->moveto.release();
+				if(o.seen & OVERRIDE_POS)
+					target->position = p->position.release();
+				if(o.seen & OVERRIDE_SEP)
+					target->separator = p->separator.release();
+				if(o.seen & OVERRIDE_TIP)
+					target->tip = p->tip.release();
+				if(o.seen & OVERRIDE_KEYS)
+					target->keys = p->keys.release();
+				if(o.seen & OVERRIDE_IMAGE)
+				{
+					delete target->image.expr;
+					target->image.expr = p->image.expr;
+					p->image.expr = nullptr;
+					target->image.import = p->image.import;
+					target->image.inherit = p->image.inherit;
+					target->image.defined = p->image.defined;
+				}
+				if(o.seen & OVERRIDE_IMAGE_SEL)
+					target->images.select = p->images.select.release();
+			}
+			m_overrides.clear();
 		}
 
 		void Parser::parse_modify_items(uint32_t action)
@@ -1683,6 +1844,9 @@ namespace Nilesoft
 					case IDENT_REMOVE:
 						parse_modify_items(id);
 						break;
+					case CONFIG_OVERRIDE:
+						parse_override();
+						break;
 					case CONFIG_MENU:
 					case CONFIG_ITEM:
 					case CONFIG_SEP:
@@ -1771,6 +1935,9 @@ namespace Nilesoft
 
 				location = Path::Parent(l->path);
 				parse_config();
+				// override(...) once every file is read: the items it names may come later.
+				if(!m_error)
+					apply_overrides();
 				// Before the cache goes live: no title may be blank.
 				if(!m_error)
 					resolve_loc();

@@ -639,11 +639,38 @@ namespace Nilesoft
 
 				start_column = l->column;
 				auto prop_line = l->line;
+				size_t value_begin = 0, value_end = 0;
 				m_last_ident.expr = nullptr;
 				Ident id;
 				parse_property_ident(id);
 
 				id.signer = expect_assign();
+
+				// override(...): which item it changes (Parser.h, OverrideRef).
+				if(m_override && id.length() == 1 && (id[0] == IDENT_FILE || id[0] == IDENT_ITEM || id[0] == IDENT_INDEX))
+				{
+					error_if(!id.signer, TokenError::AssignExpected, start_column);
+					skip();
+					auto begin = this->l->index;
+					std::unique_ptr<Expression> value(parse_property(id, false));
+					auto text = source_key(this->l->buffer + begin, this->l->index - begin);
+					if(id[0] == IDENT_ITEM)
+						m_override->item = text.move();
+					else if(id[0] == IDENT_FILE)
+					{
+						// 'imports/x.nss' or "imports/x.nss": the path as written.
+						if(text.length() >= 2 && (text[0] == L'\'' || text[0] == L'"') && text[text.length() - 1] == text[0])
+							text = string(text.c_str() + 1, text.length() - 2);
+						m_override->file = text.move();
+					}
+					else
+					{
+						auto n = std::wcstol(text.c_str(), nullptr, 10);
+						m_override->index = n > 0 ? static_cast<size_t>(n) : 0;
+					}
+					continue;
+				}
+
 				auto verified = verify(menu, id, id.signer);
 				error_if(verified != TokenError::None, verified, start_column);
 
@@ -670,7 +697,9 @@ namespace Nilesoft
 					//	auto prarse_as_value = id.front({MENU_WINDOW});
 
 						const auto l = id.length();
+						value_begin = this->l->index;
 						expr.reset(parse_property(id, false));
+						value_end = this->l->index;
 						//	return error(TokenError::PropertyValue, col);
 						if(l == id.length() && !expr)
 							continue;
@@ -716,6 +745,7 @@ namespace Nilesoft
 						case MENU_TEXT:
 						case MENU_TITLE:
 							record_title(expr.get(), prop_line, start_column);
+							m_title_src = expr ? source_key(l->buffer + value_begin, value_end - value_begin) : string();
 							menu->title = expr.release();
 							break;
 						case MENU_TIP:
@@ -798,6 +828,32 @@ namespace Nilesoft
 					}
 				}
 				menu->properties++;
+
+				if(m_override)
+				{
+					switch(id[0])
+					{
+						case MENU_VIS:
+						case MENU_VISIBILITY: m_override->seen |= OVERRIDE_VIS; break;
+						case MENU_TEXT:
+						case MENU_TITLE: m_override->seen |= OVERRIDE_TITLE; break;
+						case MENU_ICON:
+						case MENU_IMAGE:
+							m_override->seen |= id.length() == 2 && (id[1] == IDENT_SEL || id[1] == IDENT_SELECT) ? OVERRIDE_IMAGE_SEL : OVERRIDE_IMAGE;
+							break;
+						case MENU_SUB:
+						case IDENT_MENU:
+						case IDENT_MOVE:
+						case MENU_PARENT: m_override->seen |= OVERRIDE_MENU; break;
+						case MENU_POS:
+						case MENU_POSITION: m_override->seen |= OVERRIDE_POS; break;
+						case MENU_SEP:
+						case MENU_SEPARATOR: m_override->seen |= OVERRIDE_SEP; break;
+						case MENU_TIP: m_override->seen |= OVERRIDE_TIP; break;
+						case MENU_KEYS: m_override->seen |= OVERRIDE_KEYS; break;
+						default: break;
+					}
+				}
 			}
 
 			return expect_closeParen();

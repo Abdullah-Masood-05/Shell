@@ -179,6 +179,59 @@ namespace Nilesoft
 			std::unordered_map<const NativeMenu *, ItemRef> m_items;
 			void record_item(const NativeMenu *item, size_t line, size_t column);
 
+			// override(file='imports/x.nss' item=<title as written> [index=N] prop=value ...)
+			// changes properties of one of Shell's own items declared in another file,
+			// as if they were written on its own line: the settings app's Menu map
+			// keeps its changes to the files that come with Shell this way
+			// (imports/settings-app-map.nss), so those files stay as shipped and
+			// updates replace them. The item is the index-th (1-based) menu or item of
+			// `file` whose title= is written as `item` (source_key()). The rules are
+			// applied once the whole config is read (apply_overrides()), in the order
+			// they were read; one that names no item does nothing (a warning for
+			// -config:check). The properties it can change: vis, title, image (and
+			// image.sel), menu, pos, sep, tip and keys.
+			enum : uint32_t
+			{
+				OVERRIDE_VIS = 1,
+				OVERRIDE_TITLE = 2,
+				OVERRIDE_IMAGE = 4,
+				OVERRIDE_IMAGE_SEL = 8,
+				OVERRIDE_MENU = 16,
+				OVERRIDE_POS = 32,
+				OVERRIDE_SEP = 64,
+				OVERRIDE_TIP = 128,
+				OVERRIDE_KEYS = 256,
+			};
+			struct OverrideRef
+			{
+				std::unique_ptr<NativeMenu> props;
+				string file;		// as written, relative to the root's folder
+				string item;		// source_key() of the title it names
+				size_t index = 1;
+				uint32_t seen = 0;	// OVERRIDE_*: the properties it sets
+				string src;			// where it is written
+				size_t line{}, column{};
+			};
+			std::vector<OverrideRef> m_overrides;
+			OverrideRef *m_override = nullptr;	// the one being read
+			// Every menu/item declaration in the order read: the file it is in and
+			// source_key() of its title= (empty without one).
+			struct DeclRef
+			{
+				NativeMenu *item{};
+				string file;
+				string title;
+			};
+			std::vector<DeclRef> m_decls;
+			string m_title_src;		// source_key() of the last title= read
+			void parse_override();
+			void apply_overrides();
+		public:
+			// The text of an expression as written, for matching: comments left out,
+			// each run of blanks and line breaks outside quotes made one space, trimmed.
+			static string source_key(const wchar_t *text, size_t length);
+		private:
+
 			// Every loc.<name> the configuration uses but no imported language
 			// file defines gets the English string from imports\lang\en.nss
 			// (next to the root config, else in the install folder), or failing
