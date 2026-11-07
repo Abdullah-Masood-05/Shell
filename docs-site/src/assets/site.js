@@ -21,7 +21,12 @@
 	var navBtn = document.querySelector(".nav-toggle");
 	function setNav(open) { document.body.classList.toggle("nav-open", open); navBtn.setAttribute("aria-expanded", String(open)); }
 	navBtn.addEventListener("click", function () { setNav(!document.body.classList.contains("nav-open")); });
-	document.addEventListener("keydown", function (e) { if (e.key === "Escape") setNav(false); });
+	document.addEventListener("keydown", function (e) {
+		if (e.key !== "Escape" || !document.body.classList.contains("nav-open")) return;
+		var inside = document.getElementById("sidebar").contains(document.activeElement);
+		setNav(false);
+		if (inside) navBtn.focus();
+	});
 	var active = document.querySelector('.sidebar [aria-current="page"]');
 	if (active) active.scrollIntoView({ block: "nearest" });
 

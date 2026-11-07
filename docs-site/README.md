@@ -19,7 +19,8 @@ bun run check     # build, then check every link and #anchor in dist/
   `check` read the same variable.
 - `PORT` changes the preview port. `SITE`, `REPO` and `BRANCH` set the sitemap origin and the "Edit this page" links.
 - To add a page, write a fragment in `../docs` in the same style as the others and add it to `../docs/menu.json`.
-  Pages not in the menu are not published.
+  Pages not in the menu are not published. The sidebar groups (Start here, Using the app, Writing configuration, About) are set by
+  `GROUPS` in `build.ts`; a top-level page that isn't listed there goes into the last group.
 - Links to `/docs/...` and images under `/docs/images/...` are rewritten to `BASE`. A screenshot in `images/dark/` with
   a namesake in `images/light/` is shown according to the reader's theme.
 - Code blocks marked `<code class="lang-shell">` are highlighted at build time.
