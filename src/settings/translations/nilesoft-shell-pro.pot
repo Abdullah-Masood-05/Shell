@@ -2698,7 +2698,7 @@ msgstr ""
 msgid "Projects"
 msgstr ""
 
-#: ui/preview/menu-preview.slint:491
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
 msgid "This PC"
 msgstr ""
 

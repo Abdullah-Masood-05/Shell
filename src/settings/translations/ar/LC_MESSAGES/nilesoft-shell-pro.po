@@ -2728,7 +2728,7 @@ msgstr "الصور"
 msgid "Projects"
 msgstr "المشاريع"
 
-#: ui/preview/menu-preview.slint:491
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
 msgid "This PC"
 msgstr "هذا الكمبيوتر"
 
@@ -3243,15 +3243,15 @@ msgstr[5] "منذ هذه اللقطة: تغيّر {n} ملف (+{0} −{1} سطر
 
 #: src/BackupsController.cpp:243
 msgid "Not text, so not compared line by line. Added since this snapshot ({})."
-msgstr ""
+msgstr "لا يمكن مقارنته سطرًا بسطر لأنه ليس نصًا. أُضيف منذ هذه اللقطة ({})."
 
 #: src/BackupsController.cpp:244
 msgid "Not text, so not compared line by line. Removed since this snapshot ({}); restoring brings it back."
-msgstr ""
+msgstr "لا يمكن مقارنته سطرًا بسطر لأنه ليس نصًا. حُذف منذ هذه اللقطة ({})؛ وتعيده الاستعادة."
 
 #: src/BackupsController.cpp:245
 msgid "Not text, so not compared line by line. Changed since this snapshot: {} then, {} now. Restoring puts the old one back."
-msgstr ""
+msgstr "لا يمكن مقارنته سطرًا بسطر لأنه ليس نصًا. تغيّر منذ هذه اللقطة: {} حينها، و{} الآن. تعيد الاستعادة النسخة القديمة."
 
 #: src/BackupsController.cpp:272
 msgid "Manual snapshot"
@@ -3306,12 +3306,12 @@ msgstr "تعذّر حذف اللقطة"
 #: src/BackupsModel.cpp:57
 msgid "{n} byte"
 msgid_plural "{n} bytes"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-msgstr[4] ""
-msgstr[5] ""
+msgstr[0] "{n} بايت"
+msgstr[1] "{n} بايت"
+msgstr[2] "{n} بايت"
+msgstr[3] "{n} بايت"
+msgstr[4] "{n} بايت"
+msgstr[5] "{n} بايت"
 
 #: src/BackupsModel.cpp:60 src/UpdateController.cpp:149
 msgid "{} KB"
@@ -3502,7 +3502,7 @@ msgstr "القوائم والعناصر التي أنشأتها في صفحة م
 
 #: src/ConfigRules.cpp:57
 msgid "The items you hid, renamed or moved on the Menu map page."
-msgstr ""
+msgstr "العناصر التي أخفيتها أو أعدت تسميتها أو نقلتها في صفحة خريطة القوائم."
 
 #: src/ConfigRules.cpp:58
 msgid "Editors and terminals you picked on the Open with page."
@@ -4146,7 +4146,7 @@ msgstr "قبل استخدام الإصدار الجديد من ملف قائمة
 
 #: src/ConfigUpdateController.cpp:27
 msgid "Before keeping your Menu map changes in the new version"
-msgstr ""
+msgstr "قبل الاحتفاظ بتغييرات خريطة القوائم في الإصدار الجديد"
 
 #: src/ConfigUpdateController.cpp:189
 msgid "Updated {n} configuration file to this version"
@@ -4161,12 +4161,12 @@ msgstr[5] "تم تحديث {n} ملف تكوين إلى هذا الإصدار"
 #: src/ConfigUpdateController.cpp:191
 msgid "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
 msgid_plural "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-msgstr[4] ""
-msgstr[5] ""
+msgstr[0] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
+msgstr[1] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
+msgstr[2] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
+msgstr[3] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
+msgstr[4] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
+msgstr[5] "جاءت هذه الملفات مع Nilesoft Shell. في {n} منها كنت قد أخفيت عناصر أو أعدت تسميتها أو نقلتها في خريطة القوائم: يتم الاحتفاظ بهذه التغييرات، وهي الآن في imports/settings-app-map.nss. نُسخك القديمة محفوظة في النسخ الاحتياطية."
 
 #: src/ConfigUpdateController.cpp:194
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
@@ -4184,7 +4184,7 @@ msgstr[5] "لم يتم تحديث {n} ملف تكوين لأنك غيّرتها"
 
 #: src/ConfigUpdateController.cpp:198
 msgid "Your changes are kept as they are. Compare a file with the new version, or use the new version: items you hid, renamed, moved or gave an icon on the Menu map stay that way, and your other edits in that file are replaced. Your copy is saved in Backups first."
-msgstr ""
+msgstr "يتم الاحتفاظ بتغييراتك كما هي. قارن ملفًا بالإصدار الجديد، أو استخدم الإصدار الجديد: تبقى العناصر التي أخفيتها أو أعدت تسميتها أو نقلتها أو أعطيتها أيقونة في خريطة القوائم كما هي، ويتم استبدال بقية تعديلاتك في ذلك الملف. تُحفظ نسختك في النسخ الاحتياطية أولًا."
 
 #: src/ConfigUpdateController.cpp:204
 msgid "{}: your copy and the new version"
@@ -4209,12 +4209,12 @@ msgstr "يتم الآن استخدام الإصدار الجديد من {}"
 #: src/ConfigUpdateController.cpp:296
 msgid "{n} of your Menu map changes is kept. Your copy is saved in Backups."
 msgid_plural "{n} of your Menu map changes are kept. Your copy is saved in Backups."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-msgstr[4] ""
-msgstr[5] ""
+msgstr[0] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
+msgstr[1] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
+msgstr[2] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
+msgstr[3] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
+msgstr[4] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
+msgstr[5] "تم الاحتفاظ بعدد {n} من تغييراتك في خريطة القوائم. نسختك محفوظة في النسخ الاحتياطية."
 
 #: src/ConfigUpdateController.cpp:298
 msgid "Your copy is saved in Backups."
@@ -4588,7 +4588,7 @@ msgstr "{} (Windows)"
 
 #: src/MenuMapController.cpp:534
 msgid "{} came with Shell. What you change here is kept in imports/settings-app-map.nss, so updates still replace the file and keep your changes. Edit code changes the file itself: updates then keep your copy and offer to compare it with the new one."
-msgstr ""
+msgstr "جاء {} مع Shell. ما تغيّره هنا يُحفظ في imports/settings-app-map.nss، لذا تواصل التحديثات استبدال الملف مع الاحتفاظ بتغييراتك. أما تحرير الكود فيغيّر الملف نفسه: عندها تحتفظ التحديثات بنسختك وتعرض مقارنتها بالنسخة الجديدة."
 
 #: src/MenuMapController.cpp:665 src/MenuMapController.cpp:701 src/MenuMapController.cpp:1117 src/MenuMapController.cpp:1217
 msgid "The shared config is read-only here."
@@ -4754,7 +4754,7 @@ msgstr "العنوان من {}"
 
 #: src/MenuMapController.cpp:1049
 msgid "Hidden here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "مخفي هنا. التغيير محفوظ في imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1050
 msgid "Hidden by vis= in its own line."
@@ -4762,11 +4762,11 @@ msgstr "مخفي بواسطة vis= في سطره."
 
 #: src/MenuMapController.cpp:1052
 msgid "Renamed here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "أُعيدت تسميته هنا. التغيير محفوظ في imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1054
 msgid "Moved here from {}. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "نُقل إلى هنا من {}. التغيير محفوظ في imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1057
 msgid "Moved here from {} by menu= in its own line."
@@ -4782,7 +4782,7 @@ msgstr "يعتمد menu= الخاص به على التحديد، لذا تعرض
 
 #: src/MenuMapController.cpp:1065
 msgid "Placed by pos={}, kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "موضوع بحسب pos={}، ومحفوظ في imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1067
 msgid "Placed by pos={} in its own line."
@@ -4814,7 +4814,7 @@ msgstr "يعتمد menu= الخاص به على التحديد؛ غيّره عب
 
 #: src/MenuMapController.cpp:1125
 msgid "Turning it off adds a line to imports/settings-app-map.nss, so {} stays as it came with Shell and updates keep your change. Saved right away, with a snapshot first."
-msgstr ""
+msgstr "إيقافه يضيف سطرًا إلى imports/settings-app-map.nss، فيبقى {} كما جاء مع Shell وتحتفظ التحديثات بتغييرك. يُحفظ فورًا، مع أخذ لقطة قبل ذلك."
 
 #: src/MenuMapController.cpp:1127
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
@@ -6222,23 +6222,23 @@ msgstr "تعيين كخلفية لسطح المكتب"
 msgid "Restore previous versions"
 msgstr "استعادة الإصدارات السابقة"
 
+#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+#~ msgstr "تم الاحتفاظ بتغييراتك. قارن ملفًا بالإصدار الجديد، أو استخدم الإصدار الجديد بدلاً منه. يتم حفظ نسختك في النسخ الاحتياطية أولاً."
+
 #~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
 #~ msgstr "عناصر Windows التي أخفيتها أو أعدت تسميتها أو نقلتها في صفحة خريطة القوائم."
+
+#~ msgid "Shown for a {} file."
+#~ msgstr "يظهر لملف {}."
 
 #~ msgid "No preview ({}). This is the snippet's code."
 #~ msgstr "لا توجد معاينة ({}). هذه هي التعليمات البرمجية للمقتطف."
 
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "‏{} مرفق مع Shell. بمجرد تغييره هنا، تحتفظ التحديثات بنسختك وتعرض مقارنتها بالنسخة الجديدة."
-
 #~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
 #~ msgstr "عناصر المقتطف مميزة باللون الأزرق؛ أما العناصر الرمادية فموجودة بالفعل في القائمة."
 
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "‏{} مرفق مع Shell. بمجرد تغييره هنا، تحتفظ التحديثات بنسختك وتعرض مقارنتها بالنسخة الجديدة."
+
 #~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
 #~ msgstr "لا يضيف هذا المقتطف عناصر خاصة به: فهو يغيّر عناصر أخرى أو يخفيها، أو يعمل في مكان آخر. هذه هي تعليماته البرمجية."
-
-#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
-#~ msgstr "تم الاحتفاظ بتغييراتك. قارن ملفًا بالإصدار الجديد، أو استخدم الإصدار الجديد بدلاً منه. يتم حفظ نسختك في النسخ الاحتياطية أولاً."
-
-#~ msgid "Shown for a {} file."
-#~ msgstr "يظهر لملف {}."

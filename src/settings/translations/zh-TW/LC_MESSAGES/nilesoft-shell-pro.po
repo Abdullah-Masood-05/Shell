@@ -2697,7 +2697,7 @@ msgstr "圖片"
 msgid "Projects"
 msgstr "專案"
 
-#: ui/preview/menu-preview.slint:491
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
 msgid "This PC"
 msgstr "本機"
 
@@ -3182,15 +3182,15 @@ msgstr[0] "自此快照以來：{n} 個檔案有變更（+{0} −{1} 行），{2
 
 #: src/BackupsController.cpp:243
 msgid "Not text, so not compared line by line. Added since this snapshot ({})."
-msgstr ""
+msgstr "不是文字，因此不逐行比較。自此快照以來新增（{}）。"
 
 #: src/BackupsController.cpp:244
 msgid "Not text, so not compared line by line. Removed since this snapshot ({}); restoring brings it back."
-msgstr ""
+msgstr "不是文字，因此不逐行比較。自此快照以來已刪除（{}）；還原後會恢復。"
 
 #: src/BackupsController.cpp:245
 msgid "Not text, so not compared line by line. Changed since this snapshot: {} then, {} now. Restoring puts the old one back."
-msgstr ""
+msgstr "不是文字，因此不逐行比較。自此快照以來已變更：當時為 {}，現在為 {}。還原後會換回舊的。"
 
 #: src/BackupsController.cpp:272
 msgid "Manual snapshot"
@@ -3240,7 +3240,7 @@ msgstr "無法刪除快照"
 #: src/BackupsModel.cpp:57
 msgid "{n} byte"
 msgid_plural "{n} bytes"
-msgstr[0] ""
+msgstr[0] "{n} 位元組"
 
 #: src/BackupsModel.cpp:60 src/UpdateController.cpp:149
 msgid "{} KB"
@@ -3416,7 +3416,7 @@ msgstr "你在「自訂選單」頁面中建立的選單和選單項目。"
 
 #: src/ConfigRules.cpp:57
 msgid "The items you hid, renamed or moved on the Menu map page."
-msgstr ""
+msgstr "你在選單地圖頁面中隱藏、重新命名或移動的項目。"
 
 #: src/ConfigRules.cpp:58
 msgid "Editors and terminals you picked on the Open with page."
@@ -3935,7 +3935,7 @@ msgstr "改用選單檔案的新版本前"
 
 #: src/ConfigUpdateController.cpp:27
 msgid "Before keeping your Menu map changes in the new version"
-msgstr ""
+msgstr "在新版本中保留你的選單地圖變更之前"
 
 #: src/ConfigUpdateController.cpp:189
 msgid "Updated {n} configuration file to this version"
@@ -3945,7 +3945,7 @@ msgstr[0] "已將 {n} 個設定檔更新為此版本"
 #: src/ConfigUpdateController.cpp:191
 msgid "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
 msgid_plural "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
-msgstr[0] ""
+msgstr[0] "它們隨 Nilesoft Shell 一起提供。其中 {n} 個檔案裡，你曾在選單地圖上隱藏、重新命名或移動過項目：這些變更會保留，現在位於 imports/settings-app-map.nss。你的舊副本已儲存在「備份」中。"
 
 #: src/ConfigUpdateController.cpp:194
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
@@ -3958,7 +3958,7 @@ msgstr[0] "{n} 個設定檔你修改過，因此沒有更新"
 
 #: src/ConfigUpdateController.cpp:198
 msgid "Your changes are kept as they are. Compare a file with the new version, or use the new version: items you hid, renamed, moved or gave an icon on the Menu map stay that way, and your other edits in that file are replaced. Your copy is saved in Backups first."
-msgstr ""
+msgstr "你的變更會原樣保留。你可以將檔案與新版本比較，或使用新版本：你在選單地圖上隱藏、重新命名、移動或設定過圖示的項目會維持不變，該檔案中你的其他編輯則會被取代。你的副本會先儲存到「備份」中。"
 
 #: src/ConfigUpdateController.cpp:204
 msgid "{}: your copy and the new version"
@@ -3983,7 +3983,7 @@ msgstr "已改用 {} 的新版本"
 #: src/ConfigUpdateController.cpp:296
 msgid "{n} of your Menu map changes is kept. Your copy is saved in Backups."
 msgid_plural "{n} of your Menu map changes are kept. Your copy is saved in Backups."
-msgstr[0] ""
+msgstr[0] "已保留 {n} 項你的選單地圖變更。你的副本已儲存在「備份」中。"
 
 #: src/ConfigUpdateController.cpp:298
 msgid "Your copy is saved in Backups."
@@ -4332,7 +4332,7 @@ msgstr "{}（Windows）"
 
 #: src/MenuMapController.cpp:534
 msgid "{} came with Shell. What you change here is kept in imports/settings-app-map.nss, so updates still replace the file and keep your changes. Edit code changes the file itself: updates then keep your copy and offer to compare it with the new one."
-msgstr ""
+msgstr "{} 隨 Shell 一起提供。你在此所做的變更會儲存在 imports/settings-app-map.nss 中，因此更新仍會取代該檔案，同時保留你的變更。「編輯程式碼」會直接修改檔案本身：此後更新會保留你的副本，並提供與新版本比較的選項。"
 
 #: src/MenuMapController.cpp:665 src/MenuMapController.cpp:701 src/MenuMapController.cpp:1117 src/MenuMapController.cpp:1217
 msgid "The shared config is read-only here."
@@ -4483,7 +4483,7 @@ msgstr "標題來自 {}"
 
 #: src/MenuMapController.cpp:1049
 msgid "Hidden here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已在此隱藏。變更儲存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1050
 msgid "Hidden by vis= in its own line."
@@ -4491,11 +4491,11 @@ msgstr "由它自己那一行中的 vis= 隱藏。"
 
 #: src/MenuMapController.cpp:1052
 msgid "Renamed here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已在此重新命名。變更儲存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1054
 msgid "Moved here from {}. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已從 {} 移到此處。變更儲存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1057
 msgid "Moved here from {} by menu= in its own line."
@@ -4511,7 +4511,7 @@ msgstr "它的 menu= 取決於選取內容，所以選單地圖把它顯示在�
 
 #: src/MenuMapController.cpp:1065
 msgid "Placed by pos={}, kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "由 pos={} 定位，儲存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1067
 msgid "Placed by pos={} in its own line."
@@ -4543,7 +4543,7 @@ msgstr "它的 menu= 取決於選取內容；請用「編輯程式碼」變更�
 
 #: src/MenuMapController.cpp:1125
 msgid "Turning it off adds a line to imports/settings-app-map.nss, so {} stays as it came with Shell and updates keep your change. Saved right away, with a snapshot first."
-msgstr ""
+msgstr "關閉它會在 imports/settings-app-map.nss 中新增一行，因此 {} 保持 Shell 隨附的樣子，更新也會保留你的變更。會立即儲存，並先建立快照。"
 
 #: src/MenuMapController.cpp:1127
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
@@ -5946,170 +5946,8 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "Change command"
-#~ msgstr "變更命令"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本應用程式管理"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
-
-#~ msgid "multiple selection"
-#~ msgstr "多重選取"
-
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在應用程式啟動時檢查，每天最多一次。"
-
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
-
-#~ msgid "Disable"
-#~ msgstr "停用"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前方新增分隔線"
-
-#~ msgid "Move to {}"
-#~ msgstr "移至 {}"
-
-#~ msgid "Change visibility"
-#~ msgstr "變更可見度"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移至底端"
-
-#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
-#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
 #~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
 #~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
-
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
-
-#~ msgid "Imported from {}."
-#~ msgstr "從 {} 匯入。"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的擴充功能合集"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移至 {} 中間"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "無法從此位址下載 {}。"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下載。"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "檔案開頭不是自動產生的標頭。"
-
-#~ msgid "Change state"
-#~ msgstr "變更狀態"
-
-#~ msgid "To move one of your items, use Edit code or the Menu Builder."
-#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移至中間"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
-
-#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-#~ msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
-
-#~ msgid "Add separators"
-#~ msgstr "新增分隔線"
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "無法下載 SHA256SUMS.txt：{}"
-
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重新命名為 {}"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "無法預覽：未能下載此擴充功能。{}"
-
-#~ msgid "Program (.exe)"
-#~ msgstr "程式 (.exe)"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "無法開啟「{}」"
-
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移至 {} 底端"
-
-#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下載擴充功能…"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "無法下載擴充功能：{}"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "新增分隔線（{}）"
-
-#~ msgid "no selection"
-#~ msgstr "未選取"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
-
-#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
-#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
-
-#~ msgid "on the edit"
-#~ msgstr "在編輯方塊中"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下載程式碼…"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "檔案第 {} 行有語法問題：{}"
 
 #~ msgid "Items matching an expression"
 #~ msgstr "符合運算式的項目"
@@ -6117,5 +5955,167 @@ msgstr "還原舊版"
 #~ msgid "Add a separator after"
 #~ msgstr "在後方新增分隔線"
 
+#~ msgid "Program (.exe)"
+#~ msgstr "程式 (.exe)"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "無法開啟「{}」"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "檔案第 {} 行有語法問題：{}"
+
+#~ msgid "Change state"
+#~ msgstr "變更狀態"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移至 {} 中間"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "無法下載擴充功能：{}"
+
+#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的擴充功能合集"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "無法下載 SHA256SUMS.txt：{}"
+
+#~ msgid "on the edit"
+#~ msgstr "在編輯方塊中"
+
+#~ msgid "Imported from {}."
+#~ msgstr "從 {} 匯入。"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
+
+#~ msgid "To move one of your items, use Edit code or the Menu Builder."
+#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
+
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
+
+#~ msgid "Move to {}"
+#~ msgstr "移至 {}"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移至中間"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重新命名為 {}"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前方新增分隔線"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下載程式碼…"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下載。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
+
+#~ msgid "Add separators"
+#~ msgstr "新增分隔線"
+
+#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
+#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本應用程式管理"
+
 #~ msgid "Shown for a {} file."
 #~ msgstr "顯示的是 {} 檔案的選單。"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下載擴充功能…"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "新增分隔線（{}）"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在應用程式啟動時檢查，每天最多一次。"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "無法預覽：未能下載此擴充功能。{}"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移至底端"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移至 {} 底端"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "no selection"
+#~ msgstr "未選取"
+
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "檔案開頭不是自動產生的標頭。"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
+
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "無法從此位址下載 {}。"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
+
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
+
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
+
+#~ msgid "Change visibility"
+#~ msgstr "變更可見度"
+
+#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
+#~ msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
+
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
+
+#~ msgid "Disable"
+#~ msgstr "停用"
+
+#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
+
+#~ msgid "multiple selection"
+#~ msgstr "多重選取"

@@ -2697,7 +2697,7 @@ msgstr "图片"
 msgid "Projects"
 msgstr "项目"
 
-#: ui/preview/menu-preview.slint:491
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
 msgid "This PC"
 msgstr "此电脑"
 
@@ -3182,15 +3182,15 @@ msgstr[0] "自此快照以来：{n} 个文件有更改（+{0} −{1} 行），{2
 
 #: src/BackupsController.cpp:243
 msgid "Not text, so not compared line by line. Added since this snapshot ({})."
-msgstr ""
+msgstr "不是文本，因此不按行比较。自此快照以来新增（{}）。"
 
 #: src/BackupsController.cpp:244
 msgid "Not text, so not compared line by line. Removed since this snapshot ({}); restoring brings it back."
-msgstr ""
+msgstr "不是文本，因此不按行比较。自此快照以来已删除（{}）；还原后会恢复。"
 
 #: src/BackupsController.cpp:245
 msgid "Not text, so not compared line by line. Changed since this snapshot: {} then, {} now. Restoring puts the old one back."
-msgstr ""
+msgstr "不是文本，因此不按行比较。自此快照以来已更改：当时为 {}，现在为 {}。还原后会换回旧的。"
 
 #: src/BackupsController.cpp:272
 msgid "Manual snapshot"
@@ -3240,7 +3240,7 @@ msgstr "无法删除快照"
 #: src/BackupsModel.cpp:57
 msgid "{n} byte"
 msgid_plural "{n} bytes"
-msgstr[0] ""
+msgstr[0] "{n} 字节"
 
 #: src/BackupsModel.cpp:60 src/UpdateController.cpp:149
 msgid "{} KB"
@@ -3416,7 +3416,7 @@ msgstr "你在“自定义菜单”页面中创建的菜单和菜单项。"
 
 #: src/ConfigRules.cpp:57
 msgid "The items you hid, renamed or moved on the Menu map page."
-msgstr ""
+msgstr "你在菜单地图页面中隐藏、重命名或移动的项目。"
 
 #: src/ConfigRules.cpp:58
 msgid "Editors and terminals you picked on the Open with page."
@@ -3935,7 +3935,7 @@ msgstr "改用菜单文件的新版本前"
 
 #: src/ConfigUpdateController.cpp:27
 msgid "Before keeping your Menu map changes in the new version"
-msgstr ""
+msgstr "在新版本中保留你的菜单地图更改之前"
 
 #: src/ConfigUpdateController.cpp:189
 msgid "Updated {n} configuration file to this version"
@@ -3945,7 +3945,7 @@ msgstr[0] "已将 {n} 个配置文件更新到此版本"
 #: src/ConfigUpdateController.cpp:191
 msgid "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
 msgid_plural "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
-msgstr[0] ""
+msgstr[0] "它们随 Nilesoft Shell 一起提供。其中 {n} 个文件里，你曾在菜单地图上隐藏、重命名或移动过项目：这些更改会保留，现在位于 imports/settings-app-map.nss。你的旧副本已保存在“备份”中。"
 
 #: src/ConfigUpdateController.cpp:194
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
@@ -3958,7 +3958,7 @@ msgstr[0] "{n} 个配置文件你改动过，因此没有更新"
 
 #: src/ConfigUpdateController.cpp:198
 msgid "Your changes are kept as they are. Compare a file with the new version, or use the new version: items you hid, renamed, moved or gave an icon on the Menu map stay that way, and your other edits in that file are replaced. Your copy is saved in Backups first."
-msgstr ""
+msgstr "你的更改会原样保留。你可以将文件与新版本比较，或使用新版本：你在菜单地图上隐藏、重命名、移动或设置过图标的项目会保持不变，该文件中你的其他编辑则会被替换。你的副本会先保存到“备份”中。"
 
 #: src/ConfigUpdateController.cpp:204
 msgid "{}: your copy and the new version"
@@ -3983,7 +3983,7 @@ msgstr "已改用 {} 的新版本"
 #: src/ConfigUpdateController.cpp:296
 msgid "{n} of your Menu map changes is kept. Your copy is saved in Backups."
 msgid_plural "{n} of your Menu map changes are kept. Your copy is saved in Backups."
-msgstr[0] ""
+msgstr[0] "已保留 {n} 项你的菜单地图更改。你的副本已保存在“备份”中。"
 
 #: src/ConfigUpdateController.cpp:298
 msgid "Your copy is saved in Backups."
@@ -4332,7 +4332,7 @@ msgstr "{}（Windows）"
 
 #: src/MenuMapController.cpp:534
 msgid "{} came with Shell. What you change here is kept in imports/settings-app-map.nss, so updates still replace the file and keep your changes. Edit code changes the file itself: updates then keep your copy and offer to compare it with the new one."
-msgstr ""
+msgstr "{} 随 Shell 一起提供。你在此所做的更改会保存在 imports/settings-app-map.nss 中，因此更新仍会替换该文件，同时保留你的更改。“编辑代码”会直接修改文件本身：此后更新会保留你的副本，并提供与新版本比较的选项。"
 
 #: src/MenuMapController.cpp:665 src/MenuMapController.cpp:701 src/MenuMapController.cpp:1117 src/MenuMapController.cpp:1217
 msgid "The shared config is read-only here."
@@ -4483,7 +4483,7 @@ msgstr "标题来自 {}"
 
 #: src/MenuMapController.cpp:1049
 msgid "Hidden here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已在此隐藏。更改保存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1050
 msgid "Hidden by vis= in its own line."
@@ -4491,11 +4491,11 @@ msgstr "由它自己那一行中的 vis= 隐藏。"
 
 #: src/MenuMapController.cpp:1052
 msgid "Renamed here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已在此重命名。更改保存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1054
 msgid "Moved here from {}. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "已从 {} 移到此处。更改保存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1057
 msgid "Moved here from {} by menu= in its own line."
@@ -4511,7 +4511,7 @@ msgstr "它的 menu= 取决于所选内容，所以菜单地图把它显示在�
 
 #: src/MenuMapController.cpp:1065
 msgid "Placed by pos={}, kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "由 pos={} 定位，保存在 imports/settings-app-map.nss 中。"
 
 #: src/MenuMapController.cpp:1067
 msgid "Placed by pos={} in its own line."
@@ -4543,7 +4543,7 @@ msgstr "它的 menu= 取决于所选内容；请用“编辑代码”更改。"
 
 #: src/MenuMapController.cpp:1125
 msgid "Turning it off adds a line to imports/settings-app-map.nss, so {} stays as it came with Shell and updates keep your change. Saved right away, with a snapshot first."
-msgstr ""
+msgstr "关闭它会在 imports/settings-app-map.nss 中添加一行，因此 {} 保持 Shell 自带的样子，更新也会保留你的更改。会立即保存，并先创建快照。"
 
 #: src/MenuMapController.cpp:1127
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
@@ -5946,170 +5946,8 @@ msgstr "设置为桌面背景"
 msgid "Restore previous versions"
 msgstr "还原以前的版本"
 
-#~ msgid "Change command"
-#~ msgstr "更改命令"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本应用管理"
-
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移到 {} 的第 {} 个位置"
-
-#~ msgid "multiple selection"
-#~ msgstr "多选"
-
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在应用启动时检查，每天最多一次。"
-
-#~ msgid "No visible change"
-#~ msgstr "无可见更改"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
-
-#~ msgid "on the start"
-#~ msgstr "在“开始”菜单中"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前面添加分隔线"
-
-#~ msgid "Move to {}"
-#~ msgstr "移到 {}"
-
-#~ msgid "Change visibility"
-#~ msgstr "更改可见性"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移到底部"
-
-#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
-#~ msgstr "你在“菜单地图”页面隐藏、重命名或移动的 Windows 菜单项。"
-
-#~ msgid "Add a tip"
-#~ msgstr "添加提示"
-
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "无法预览（{}）。以下是此扩展功能的代码。"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移到 {} 顶部"
-
 #~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
 #~ msgstr "每个模块对应 shell.nss 中的一行 import。关闭模块会将该行注释掉。"
-
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "{} 随 Shell 一起提供。在这里更改后，更新会保留你的副本，并提供与新版本比较的选项。"
-
-#~ msgid "Imported from {}."
-#~ msgstr "从 {} 导入。"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的扩展功能合集"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移到 {} 中间"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "无法从此地址下载 {}。"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下载。"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "文件开头不是自动生成的文件头。"
-
-#~ msgid "Change state"
-#~ msgstr "更改状态"
-
-#~ msgid "To move one of your items, use Edit code or the Menu Builder."
-#~ msgstr "要移动你自己的菜单项，请使用“编辑代码”或“自定义菜单”。"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移到中间"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "显示快捷键"
-
-#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-#~ msgstr "扩展功能添加的菜单项以蓝色标出；灰色的菜单项是菜单中原有的。"
-
-#~ msgid "Add separators"
-#~ msgstr "添加分隔线"
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "无法下载 SHA256SUMS.txt：{}"
-
-#~ msgid "Move to the top"
-#~ msgstr "移到顶部"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移到第 {} 个位置"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重命名为 {}"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "无法预览：未能下载此扩展功能。{}"
-
-#~ msgid "Program (.exe)"
-#~ msgstr "程序 (.exe)"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "无法开启“{}”"
-
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移到 {} 底部"
-
-#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-#~ msgstr "此扩展功能不会添加自己的菜单项：它会更改或隐藏其他菜单项，或在其他位置起作用。以下是它的代码。"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下载扩展功能…"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "无法下载扩展功能：{}"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "添加分隔线（{}）"
-
-#~ msgid "no selection"
-#~ msgstr "未选择"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
-
-#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
-#~ msgstr "你的改动已保留。你可以将文件与新版本比较，或改用新版本。改用前会先把你的副本保存到“备份”中。"
-
-#~ msgid "on the edit"
-#~ msgstr "在编辑框中"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下载代码…"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "文件第 {} 行存在语法问题：{}"
 
 #~ msgid "Items matching an expression"
 #~ msgstr "与表达式匹配的项"
@@ -6117,5 +5955,167 @@ msgstr "还原以前的版本"
 #~ msgid "Add a separator after"
 #~ msgstr "在后面添加分隔线"
 
+#~ msgid "Program (.exe)"
+#~ msgstr "程序 (.exe)"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "无法开启“{}”"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "开启或关闭内置菜单，以及隐藏、移动或重命名 Windows 自带菜单项的规则。"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "文件第 {} 行存在语法问题：{}"
+
+#~ msgid "Change state"
+#~ msgstr "更改状态"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移到 {} 中间"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "无法下载扩展功能：{}"
+
+#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+#~ msgstr "你的改动已保留。你可以将文件与新版本比较，或改用新版本。改用前会先把你的副本保存到“备份”中。"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "文件中有 {} 行不是由此页面写入的，保存时将被替换。第一行：{}"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的扩展功能合集"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "无法下载 SHA256SUMS.txt：{}"
+
+#~ msgid "on the edit"
+#~ msgstr "在编辑框中"
+
+#~ msgid "Imported from {}."
+#~ msgstr "从 {} 导入。"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "文件中有 {} 条语句不是菜单或菜单项，保存时将被丢弃。第一条：{}"
+
+#~ msgid "To move one of your items, use Edit code or the Menu Builder."
+#~ msgstr "要移动你自己的菜单项，请使用“编辑代码”或“自定义菜单”。"
+
+#~ msgid "on the start"
+#~ msgstr "在“开始”菜单中"
+
+#~ msgid "Change command"
+#~ msgstr "更改命令"
+
+#~ msgid "Move to {}"
+#~ msgstr "移到 {}"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移到中间"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重命名为 {}"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移到 {} 顶部"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前面添加分隔线"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下载代码…"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下载的文件不是本应用检查过的版本，因此未使用。"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下载。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "显示快捷键"
+
+#~ msgid "Add separators"
+#~ msgstr "添加分隔线"
+
+#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
+#~ msgstr "你在“菜单地图”页面隐藏、重命名或移动的 Windows 菜单项。"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本应用管理"
+
 #~ msgid "Shown for a {} file."
 #~ msgstr "显示的是 {} 文件的菜单。"
+
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下载扩展功能…"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "添加分隔线（{}）"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在应用启动时检查，每天最多一次。"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "无法预览：未能下载此扩展功能。{}"
+
+#~ msgid "Move to the bottom"
+#~ msgstr "移到底部"
+
+#~ msgid "Move to position {}"
+#~ msgstr "移到第 {} 个位置"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移到 {} 的第 {} 个位置"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "无法下载扩展功能。请检查网络连接，然后重试。"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移到 {} 底部"
+
+#~ msgid "Move to the top"
+#~ msgstr "移到顶部"
+
+#~ msgid "no selection"
+#~ msgstr "未选择"
+
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "无法预览（{}）。以下是此扩展功能的代码。"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "文件开头不是自动生成的文件头。"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "标注“作者：RubicBG”的扩展功能来自他在 GitHub 上的合集。只有在你打开开关时才会下载，并且只有与本应用检查过的版本完全一致时才会使用。"
+
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "无法从此地址下载 {}。"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 并非来自本项目的发布版本。"
+
+#~ msgid "Add a tip"
+#~ msgstr "添加提示"
+
+#~ msgid "No visible change"
+#~ msgstr "无可见更改"
+
+#~ msgid "Change visibility"
+#~ msgstr "更改可见性"
+
+#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
+#~ msgstr "扩展功能添加的菜单项以蓝色标出；灰色的菜单项是菜单中原有的。"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新会在后台下载并验证；由你决定何时重启。MSI 安装仍需确认一次管理员提示。"
+
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "{} 随 Shell 一起提供。在这里更改后，更新会保留你的副本，并提供与新版本比较的选项。"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
+
+#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+#~ msgstr "此扩展功能不会添加自己的菜单项：它会更改或隐藏其他菜单项，或在其他位置起作用。以下是它的代码。"
+
+#~ msgid "multiple selection"
+#~ msgstr "多选"

@@ -2703,7 +2703,7 @@ msgstr "Imágenes"
 msgid "Projects"
 msgstr "Proyectos"
 
-#: ui/preview/menu-preview.slint:491
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
 msgid "This PC"
 msgstr "Este equipo"
 
@@ -3194,15 +3194,15 @@ msgstr[1] "Desde esta instantánea: {n} archivos cambiaron (+{0} −{1} líneas)
 
 #: src/BackupsController.cpp:243
 msgid "Not text, so not compared line by line. Added since this snapshot ({})."
-msgstr ""
+msgstr "No es texto, así que no se compara línea por línea. Añadido desde esta instantánea ({})."
 
 #: src/BackupsController.cpp:244
 msgid "Not text, so not compared line by line. Removed since this snapshot ({}); restoring brings it back."
-msgstr ""
+msgstr "No es texto, así que no se compara línea por línea. Eliminado desde esta instantánea ({}); al restaurar vuelve."
 
 #: src/BackupsController.cpp:245
 msgid "Not text, so not compared line by line. Changed since this snapshot: {} then, {} now. Restoring puts the old one back."
-msgstr ""
+msgstr "No es texto, así que no se compara línea por línea. Cambiado desde esta instantánea: {} entonces, {} ahora. Al restaurar vuelve el anterior."
 
 #: src/BackupsController.cpp:272
 msgid "Manual snapshot"
@@ -3253,8 +3253,8 @@ msgstr "No se pudo eliminar la instantánea"
 #: src/BackupsModel.cpp:57
 msgid "{n} byte"
 msgid_plural "{n} bytes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} byte"
+msgstr[1] "{n} bytes"
 
 #: src/BackupsModel.cpp:60 src/UpdateController.cpp:149
 msgid "{} KB"
@@ -3433,7 +3433,7 @@ msgstr "Los menús y elementos que creaste en la página Creador de menús."
 
 #: src/ConfigRules.cpp:57
 msgid "The items you hid, renamed or moved on the Menu map page."
-msgstr ""
+msgstr "Los elementos que ocultaste, renombraste o moviste en la página Mapa de menús."
 
 #: src/ConfigRules.cpp:58
 msgid "Editors and terminals you picked on the Open with page."
@@ -3977,7 +3977,7 @@ msgstr "Antes de usar la nueva versión de un archivo de menú"
 
 #: src/ConfigUpdateController.cpp:27
 msgid "Before keeping your Menu map changes in the new version"
-msgstr ""
+msgstr "Antes de conservar tus cambios del Mapa de menús en la nueva versión"
 
 #: src/ConfigUpdateController.cpp:189
 msgid "Updated {n} configuration file to this version"
@@ -3988,8 +3988,8 @@ msgstr[1] "Se actualizaron {n} archivos de configuración a esta versión"
 #: src/ConfigUpdateController.cpp:191
 msgid "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
 msgid_plural "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Vinieron con Nilesoft Shell. En {n} de ellos habías ocultado, renombrado o movido elementos en el Mapa de menús: esos cambios se conservan, ahora en imports/settings-app-map.nss. Tus copias antiguas están guardadas en Copias de seguridad."
+msgstr[1] "Vinieron con Nilesoft Shell. En {n} de ellos habías ocultado, renombrado o movido elementos en el Mapa de menús: esos cambios se conservan, ahora en imports/settings-app-map.nss. Tus copias antiguas están guardadas en Copias de seguridad."
 
 #: src/ConfigUpdateController.cpp:194
 msgid "They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."
@@ -4003,7 +4003,7 @@ msgstr[1] "{n} archivos de configuración no se actualizaron porque los cambiast
 
 #: src/ConfigUpdateController.cpp:198
 msgid "Your changes are kept as they are. Compare a file with the new version, or use the new version: items you hid, renamed, moved or gave an icon on the Menu map stay that way, and your other edits in that file are replaced. Your copy is saved in Backups first."
-msgstr ""
+msgstr "Tus cambios se conservan tal como están. Compara un archivo con la nueva versión o usa la nueva versión: los elementos que ocultaste, renombraste, moviste o a los que diste un icono en el Mapa de menús se quedan así, y tus otras ediciones en ese archivo se reemplazan. Antes se guarda tu copia en Copias de seguridad."
 
 #: src/ConfigUpdateController.cpp:204
 msgid "{}: your copy and the new version"
@@ -4028,8 +4028,8 @@ msgstr "Ahora se usa la nueva versión de {}"
 #: src/ConfigUpdateController.cpp:296
 msgid "{n} of your Menu map changes is kept. Your copy is saved in Backups."
 msgid_plural "{n} of your Menu map changes are kept. Your copy is saved in Backups."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Se conserva {n} de tus cambios del Mapa de menús. Tu copia está guardada en Copias de seguridad."
+msgstr[1] "Se conservan {n} de tus cambios del Mapa de menús. Tu copia está guardada en Copias de seguridad."
 
 #: src/ConfigUpdateController.cpp:298
 msgid "Your copy is saved in Backups."
@@ -4383,7 +4383,7 @@ msgstr "{} (Windows)"
 
 #: src/MenuMapController.cpp:534
 msgid "{} came with Shell. What you change here is kept in imports/settings-app-map.nss, so updates still replace the file and keep your changes. Edit code changes the file itself: updates then keep your copy and offer to compare it with the new one."
-msgstr ""
+msgstr "{} vino con Shell. Lo que cambies aquí se conserva en imports/settings-app-map.nss, así que las actualizaciones siguen reemplazando el archivo y conservan tus cambios. Editar código cambia el propio archivo: las actualizaciones entonces conservan tu copia y te ofrecen compararla con la nueva."
 
 #: src/MenuMapController.cpp:665 src/MenuMapController.cpp:701 src/MenuMapController.cpp:1117 src/MenuMapController.cpp:1217
 msgid "The shared config is read-only here."
@@ -4537,7 +4537,7 @@ msgstr "Título de {}"
 
 #: src/MenuMapController.cpp:1049
 msgid "Hidden here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "Oculto aquí. El cambio se conserva en imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1050
 msgid "Hidden by vis= in its own line."
@@ -4545,11 +4545,11 @@ msgstr "Oculto por vis= en su propia línea."
 
 #: src/MenuMapController.cpp:1052
 msgid "Renamed here. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "Renombrado aquí. El cambio se conserva en imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1054
 msgid "Moved here from {}. The change is kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "Movido aquí desde {}. El cambio se conserva en imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1057
 msgid "Moved here from {} by menu= in its own line."
@@ -4565,7 +4565,7 @@ msgstr "Su menu= depende de la selección, así que el mapa lo muestra donde est
 
 #: src/MenuMapController.cpp:1065
 msgid "Placed by pos={}, kept in imports/settings-app-map.nss."
-msgstr ""
+msgstr "Colocado con pos={}, conservado en imports/settings-app-map.nss."
 
 #: src/MenuMapController.cpp:1067
 msgid "Placed by pos={} in its own line."
@@ -4597,7 +4597,7 @@ msgstr "Su menu= depende de la selección; cámbialo con Editar código."
 
 #: src/MenuMapController.cpp:1125
 msgid "Turning it off adds a line to imports/settings-app-map.nss, so {} stays as it came with Shell and updates keep your change. Saved right away, with a snapshot first."
-msgstr ""
+msgstr "Al desactivarlo se añade una línea a imports/settings-app-map.nss, así que {} se queda como vino con Shell y las actualizaciones conservan tu cambio. Se guarda al instante, con una instantánea antes."
 
 #: src/MenuMapController.cpp:1127
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
@@ -6001,41 +6001,41 @@ msgstr "Establecer como fondo de escritorio"
 msgid "Restore previous versions"
 msgstr "Restaurar versiones anteriores"
 
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "Al iniciar la aplicación, como máximo una vez al día."
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
-
-#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
-#~ msgstr "Los elementos de Windows que ocultaste, renombraste o moviste en la página Mapa de menús."
-
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "Sin vista previa ({}). Este es el código del snippet."
-
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "{} vino con Shell. Una vez que lo cambies aquí, las actualizaciones conservan tu copia y ofrecen compararla con la nueva."
-
-#~ msgid "To move one of your items, use Edit code or the Menu Builder."
-#~ msgstr "Para mover uno de tus elementos, usa Editar código o el Creador de menús."
-
-#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-#~ msgstr "Los elementos del snippet aparecen marcados en azul; los atenuados ya están en el menú."
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
-
 #~ msgid "Program (.exe)"
 #~ msgstr "Programa (.exe)"
-
-#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-#~ msgstr "Este snippet no agrega elementos propios: cambia u oculta otros elementos, o funciona en otro lugar. Este es su código."
 
 #~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
 #~ msgstr "Tus cambios se conservan. Compara un archivo con la nueva versión o usa la nueva versión en su lugar. Tu copia se guarda primero en Copias de seguridad."
 
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "No se pudo descargar SHA256SUMS.txt: {}"
+
+#~ msgid "To move one of your items, use Edit code or the Menu Builder."
+#~ msgstr "Para mover uno de tus elementos, usa Editar código o el Creador de menús."
+
+#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
+#~ msgstr "Los elementos de Windows que ocultaste, renombraste o moviste en la página Mapa de menús."
+
 #~ msgid "Shown for a {} file."
 #~ msgstr "Se muestra para un archivo {}."
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "Al iniciar la aplicación, como máximo una vez al día."
+
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "Sin vista previa ({}). Este es el código del snippet."
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt no se sirve desde las versiones de este proyecto."
+
+#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
+#~ msgstr "Los elementos del snippet aparecen marcados en azul; los atenuados ya están en el menú."
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "Las actualizaciones se descargan y verifican en segundo plano; tú eliges cuándo reiniciar. Las instalaciones MSI aún necesitan una solicitud de administrador."
+
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "{} vino con Shell. Una vez que lo cambies aquí, las actualizaciones conservan tu copia y ofrecen compararla con la nueva."
+
+#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+#~ msgstr "Este snippet no agrega elementos propios: cambia u oculta otros elementos, o funciona en otro lugar. Este es su código."
