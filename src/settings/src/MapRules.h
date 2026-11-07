@@ -1,8 +1,10 @@
 #pragma once
 
 // The app-owned imports/settings-app-map.nss: the modify(...)/remove(...) rules
-// the Menu map page writes (hide, rename or move a Windows item), one statement
-// per line.
+// the Menu map page writes (hide, rename or move a Windows item), and its
+// override(...) lines for Shell's own items in the files that came with Shell
+// (ShellOverrides.h), one statement per line. shell.dll applies the override lines
+// once the whole config is read, so where they are in the file doesn't matter.
 //
 // Why not imports/settings-app.nss: that file is imported last so its theme and
 // settings values win, but shell.dll applies modify/remove rules in the order it

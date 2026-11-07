@@ -329,8 +329,15 @@ TEST_CASE("carry over: after an update, kaser4's files become the new version an
     CHECK(std::any_of(snap->files.begin(), snap->files.end(), [](const nss::SnapshotFile &f) { return f.path == "imports/images/padlock.png"; }));
 
     // The next update finds them unchanged; only develop.nss is still his.
+    // The next update finds the shipped files unchanged. develop.nss is still his, and
+    // so is shell.nss (his import line): carried over again, as now.
     auto again = config_upgrade::run(binDir().wstring(), config.wstring(), { L"shell.nss", {}, true, true });
-    CHECK(again.modified_kept == std::vector<std::string>{ "imports/develop.nss" });
+    std::sort(again.modified_kept.begin(), again.modified_kept.end());
+    CHECK(again.modified_kept == std::vector<std::string>{ "imports/develop.nss", "shell.nss" });
+    auto rootAgain = config_update::carryOver(config / L"shell.nss", binDir(), { "shell.nss" }, false, validator);
+    CHECK(rootAgain.files == std::vector<std::string>{ "shell.nss" });
+    CHECK(rootAgain.kept == 1);
+    CHECK(nss::decode(readBytes(config / L"shell.nss")).text == root); // the same file again
 
     // Use the new version on develop.nss: replaced (his comment goes; the copy is in Backups).
     auto taken = config_update::carryOver(config / L"shell.nss", binDir(), { "imports/develop.nss" }, true, validator);

@@ -37,6 +37,7 @@ struct Result
     nss::TextFormat format;      // the new version's encoding and line ends
     std::vector<overrides::Override> overrides; // for settings-app-map.nss
     size_t carried = 0;          // properties and import lines kept
+    size_t failed = 0;           // changes that couldn't be kept
 };
 
 // `user` and `shipped` are file bytes; `bases` the earlier shipped texts the user's

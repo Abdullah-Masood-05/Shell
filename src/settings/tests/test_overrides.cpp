@@ -8,6 +8,7 @@
 #include "MenuMap.h"
 #include "ShellOverrides.h"
 
+#include "nss/Literal.h"
 #include "nss/NssDocument.h"
 #include "nss/Text.h"
 
@@ -121,7 +122,7 @@ TEST_CASE("overrides: a line, read and written")
 
     // Aliases read as their canonical names; another rule, a comment, or a line turned
     // off is not one.
-    auto alias = overrides::parse("override(file=\"imports\\x.nss\" item='A' visibility=vis.remove icon=icon.copy)");
+    auto alias = overrides::parse("override(file='imports\\x.nss' item='A' visibility=vis.remove icon=icon.copy)");
     REQUIRE(alias);
     CHECK(alias->key.file == "imports/x.nss");
     CHECK(alias->find("vis"));
@@ -286,7 +287,7 @@ TEST_CASE("overrides: shell.exe applies them, and the shipped files stay as ship
     const auto *cmd = findNode(tree->shell, "Command Prompt");
     REQUIRE(cmd);
     CHECK(cmd->vis == "hidden");
-    const auto *goTo = findNode(tree->shell, "&Go To");
+    const auto *goTo = findNode(tree->shell, "Go To");
     REQUIRE(goTo);
     const menumap::Node *movedWindows = nullptr;
     for (const auto &c : goTo->children)

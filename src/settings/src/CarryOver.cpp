@@ -7,6 +7,7 @@
 #include "../../shared/ConfigUpgrade.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <optional>
 #include <set>
 
@@ -286,6 +287,7 @@ void carryProps(std::string_view rel, const nss::NssDocument &user, const nss::N
 {
     auto fail = [&](std::string why) {
         r.complete = false;
+        ++r.failed;
         if (r.why.empty())
             r.why = std::move(why);
     };
@@ -356,6 +358,8 @@ Result carry(std::string_view rel, std::string_view user, std::string_view shipp
     const std::string u = config_upgrade::normalize(decU.text);
     auto docU = parse(u);
     auto docN = parse(decN.text);
+    // shell.nss as written, the app's import lines in it: where the user's own go.
+    auto docRaw = root ? parse(decU.text) : std::nullopt;
     if (!docU || !docN) {
         fail.why = docU ? "the new version doesn't parse" : "your copy doesn't parse";
         return fail;
@@ -378,7 +382,7 @@ Result carry(std::string_view rel, std::string_view user, std::string_view shipp
         if (root) {
             auto next = nss::NssDocument::fromText(
                 config_upgrade::with_app_imports(decN.text, config_upgrade::app_import_lines(decU.text)), decN.format);
-            r.carried += carryImports(*docU, base, next);
+            r.carried += carryImports(docRaw ? *docRaw : *docU, base, next);
             r.text = next.text();
         } else
             r.text = decN.text;
@@ -405,17 +409,16 @@ Result carry(std::string_view rel, std::string_view user, std::string_view shipp
             for (size_t i = 0; i < du.size(); ++i)
                 pairs.emplace_back(du[i], db[i]);
             auto r = build(*docB, pairs);
-            if (!r.complete) {
-                if (why.empty() || why == "changes other than the Menu map's")
-                    why = r.why;
-                continue;
-            }
-            // The base that explains the copy with the fewest changes is the one it came from.
-            if (!best || r.carried < best->carried)
+            // The base that explains the copy with the fewest changes is the one it came
+            // from, whether they can all be kept or not: another one that can would
+            // take the release's own changes for the user's.
+            if (!best || r.carried + r.failed < best->carried + best->failed)
                 best = std::move(r);
         }
-        if (best)
+        if (best && best->complete)
             return *best;
+        if (best)
+            why = best->why;
         fail.why = why.empty() ? std::string("no version it came from") : why;
         return fail;
     }
