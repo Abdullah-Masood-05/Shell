@@ -24,7 +24,13 @@ std::string str(const slint::SharedString &s) { return std::string(s.data(), s.s
 [[maybe_unused]] constexpr const char *snapshotReasons[] = {
     nsp::mark("Before updating the menu files"),
     nsp::mark("Before using the new version of a menu file"),
+    nsp::mark("Before keeping your Menu map changes in the new version"),
 };
+
+nss::Validator validatorFor(const ShellCli &cli)
+{
+    return cli.available() ? nss::makeShellCheckValidator(cli.exe()) : nss::Validator{};
+}
 
 std::string decodedText(const std::string &bytes)
 {
@@ -121,6 +127,22 @@ std::optional<config_update::Report> ConfigUpdateController::upgrade(const Shell
     return config_update::parseReport(r.output);
 }
 
+size_t ConfigUpdateController::carryKept(const ShellCli &cli, const std::string &root, config_update::Report &report)
+{
+    if (report.modifiedKept.empty() || report.configDir.empty() || report.installDir.empty())
+        return 0;
+    auto carried = config_update::carryOver(fs::path(nss::widen(root)), fs::path(nss::widen(report.installDir)),
+                                            report.modifiedKept, false, validatorFor(cli));
+    if (!carried.ok || carried.files.empty())
+        return 0; // left as they were: Compare / Use the new version, as before
+    for (const auto &f : carried.files) {
+        report.modifiedKept.erase(std::remove(report.modifiedKept.begin(), report.modifiedKept.end(), f),
+                                  report.modifiedKept.end());
+        report.updated.push_back(f);
+    }
+    return carried.files.size();
+}
+
 void ConfigUpdateController::run(const std::string &root)
 {
     if (running_ || (shipped_.empty() && !cli_.available()))
@@ -130,8 +152,10 @@ void ConfigUpdateController::run(const std::string &root)
     worker_.post([this, cli = cli_, shipped = shipped_, root] {
         CliResult r;
         auto report = upgrade(cli, shipped, root, {}, r);
-        slint::invoke_from_event_loop([this, r, report] {
+        size_t carried = report && r.started && !r.timedOut ? carryKept(cli, root, *report) : 0;
+        slint::invoke_from_event_loop([this, r, report, carried] {
             running_ = false;
+            carried_ = carried;
             if (!report || !r.started || r.timedOut) {
                 // Tried again at the next start.
                 return;
@@ -164,11 +188,14 @@ void ConfigUpdateController::pushText()
     const auto &st = ui_->global<ConfigUpdateState>();
     st.set_updated_title(ss(nsp::trn("Updated {n} configuration file to this version",
                                      "Updated {n} configuration files to this version", (long long)changed_)));
-    st.set_updated_text(ss(nsp::tr("They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups.")));
+    st.set_updated_text(ss(carried_ > 0 ? nsp::trn("They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups.",
+                                                   "They came with Nilesoft Shell. In {n} of them you had hidden, renamed or moved items on the Menu map: those changes are kept, now in imports/settings-app-map.nss. Your old copies are saved in Backups.",
+                                                   (long long)carried_)
+                                        : std::string(nsp::tr("They came with Nilesoft Shell and you hadn't changed them. Your old copies are saved in Backups."))));
     st.set_kept_title(ss(nsp::trn("{n} configuration file wasn't updated because you changed it",
                                   "{n} configuration files weren't updated because you changed them",
                                   (long long)kept_.size())));
-    st.set_kept_text(ss(nsp::tr("Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first.")));
+    st.set_kept_text(ss(nsp::tr("Your changes are kept as they are. Compare a file with the new version, or use the new version: items you hid, renamed, moved or gave an icon on the Menu map stay that way, and your other edits in that file are replaced. Your copy is saved in Backups first.")));
     std::vector<slint::SharedString> rows;
     for (const auto &p : kept_)
         rows.push_back(ss(p));
@@ -231,13 +258,24 @@ void ConfigUpdateController::take(const std::string &path)
         return;
     st.set_working(true);
     const std::string root = str(ui_->global<AppState>().get_status().config_path);
-    worker_.post([this, path, root, cli = cli_, shipped = shipped_] {
-        CliResult r;
-        auto report = upgrade(cli, shipped, root, { path }, r);
-        bool done = report && std::any_of(report->updated.begin(), report->updated.end(),
-                                          [&](const std::string &p) { return _stricmp(p.c_str(), path.c_str()) == 0; });
-        std::string failure = done ? std::string{} : failureText(r, report);
-        slint::invoke_from_event_loop([this, path, done, failure, report] {
+    worker_.post([this, path, root, cli = cli_, shipped = shipped_, installDir = installDir_] {
+        // The new version, keeping the Menu map's kind of changes (CarryOver.h); when
+        // the file can't be read that way, the new version as it is (shell.exe -take).
+        auto carried = config_update::carryOver(fs::path(nss::widen(root)), fs::path(nss::widen(installDir)), { path }, true,
+                                                validatorFor(cli));
+        bool done = !carried.files.empty();
+        size_t kept = carried.kept;
+        std::string failure;
+        if (!carried.ok)
+            failure = carried.error;
+        else if (!done) {
+            CliResult r;
+            auto report = upgrade(cli, shipped, root, { path }, r);
+            done = report && std::any_of(report->updated.begin(), report->updated.end(),
+                                         [&](const std::string &p) { return _stricmp(p.c_str(), path.c_str()) == 0; });
+            failure = done ? std::string{} : failureText(r, report);
+        }
+        slint::invoke_from_event_loop([this, path, done, failure, kept] {
             const auto &st = ui_->global<ConfigUpdateState>();
             st.set_working(false);
             if (!done) {
@@ -254,7 +292,10 @@ void ConfigUpdateController::take(const std::string &path)
             }
             pushText();
             st.set_kept_shown(!kept_.empty());
-            toast("ok", nsp::trf("Now using the new version of {}", path), nsp::tr("Your copy is saved in Backups."));
+            toast("ok", nsp::trf("Now using the new version of {}", path),
+                  kept > 0 ? nsp::trn("{n} of your Menu map changes is kept. Your copy is saved in Backups.",
+                                      "{n} of your Menu map changes are kept. Your copy is saved in Backups.", (long long)kept)
+                           : std::string(nsp::tr("Your copy is saved in Backups.")));
             notifyFilesChanged();
         });
     });

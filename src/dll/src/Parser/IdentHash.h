@@ -28,6 +28,7 @@ namespace Nilesoft
 		constexpr auto CONFIG_MODIFY = 0x0E32936DU;
 		constexpr auto CONFIG_UPDATE = 0x20EDD0A8U;
 		constexpr auto CONFIG_CHANGE = 0xF65EC1CBU;
+		constexpr auto CONFIG_OVERRIDE = 0x5B7ED8A5U;
 
 		//
 		// Menu types

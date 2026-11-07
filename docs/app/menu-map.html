@@ -140,7 +140,8 @@
 	<li>Or type the value yourself, for example a glyph from Windows' icon font: <code>image.mdl()</code>.</li>
 	<li><kbd>Change icon</kbd> uses what is in the box. <kbd>Remove icon</kbd> takes the icon away.</li>
 </ul>
-<p>For your own items the page writes <code>image=</code> on the item's line, saved right away with a snapshot first.
+<p>For your own items the page writes <code>image=</code> on the item's line, or for an item that came with Shell an
+	<code>override()</code> line (see <a href="#shipped">below</a>), saved right away with a snapshot first.
 	For Windows items it writes a <code>modify()</code> rule with <code>image=</code>, saved with <kbd>Save</kbd>;
 	<kbd>Use its own icon</kbd> takes the rule back.</p>
 
@@ -149,7 +150,9 @@
 <ul>
 	<li>Turn off <strong>In the menu</strong> to hide the item. The page adds <code>vis=vis.remove</code> to that item's
 		line; turning the switch back on removes exactly that. If the item already has its own <code>vis</code>, the
-		switch can't be used and the panel suggests <kbd>Edit code</kbd>.</li>
+		switch can't be used and the panel suggests <kbd>Edit code</kbd>. For an item that came with Shell the page
+		writes an <code>override()</code> line instead (<a href="#shipped">below</a>), which works whatever its own
+		<code>vis</code> is.</li>
 	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
 	<li><strong>Move to</strong> puts the item in another menu: <i>Main menu</i> or one of your Shell menus for this
 		place, for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The page adds
@@ -169,11 +172,19 @@
 		snapshot, and changes only that part of the file. The rest of the file stays the same, byte for byte.</li>
 	<li><kbd>Open in the Config Editor</kbd> opens the file at that line.</li>
 </ul>
-<p>The files that came with Shell, such as <code>imports/my-tools.nss</code>, count as edited by you once one of
-	their items is changed here. When Shell updates your configuration it then keeps your copy and offers
-	<kbd>Compare</kbd> and <kbd>Use the new version</kbd>; the panel says so. Moving the items
-	inside a Windows menu, such as <i>Send to</i>, is left to <kbd>Edit code</kbd> or the
-	<a href="/docs/app/menu-builder">Menu Builder</a>.</p>
+<p id="shipped">Items in the files that came with Shell, such as <code>imports/terminal.nss</code> or
+	<code>imports/my-tools.nss</code>, work a little differently: the page doesn't change their file. Hiding, renaming,
+	moving, placing or changing the icon of one of them writes an <code>override()</code> line in
+	<code>imports/settings-app-map.nss</code> instead, which Shell applies as if it were written on the item's own
+	line:</p>
+<pre><code class="lang-shell">override(file='imports/terminal.nss' item=title.command_prompt vis=vis.remove)</code></pre>
+<p>The item is named by its file and its title as written there (<code>index=2</code> for the second one with the
+	same title). So the file stays as it came, updates replace it with the new version, and your change still applies.
+	Turning the switch back on, <kbd>Use the original title</kbd>, <kbd>Use its own icon</kbd> and the other reset links
+	take the line out again. <kbd>Move up</kbd> and <kbd>Move down</kbd> use <code>pos=</code> for these items, and
+	<kbd>Edit code</kbd> still changes the file itself: an update then keeps your copy and offers
+	<kbd>Compare</kbd> and <kbd>Use the new version</kbd>. Moving the items inside a Windows menu, such as
+	<i>Send to</i>, is left to <kbd>Edit code</kbd> or the <a href="/docs/app/menu-builder">Menu Builder</a>.</p>
 
 <h5 id="what-it-writes">What it writes</h5>
 <p>For the curious: hiding, renaming or moving a Windows item writes a
@@ -181,7 +192,8 @@
 	rule uses it, so it works in every Windows language:</p>
 <pre><code class="lang-shell">remove(where=this.id==id.cast_to_device)</code></pre>
 <p>Otherwise the rule uses the item's exact title.</p>
-<p>These rules go into their own file, <code>imports/settings-app-map.nss</code>. It is imported near the top of
+<p>These rules, and the <code>override()</code> lines for items that came with Shell, go into their own file,
+	<code>imports/settings-app-map.nss</code>. It is imported near the top of
 	<code>shell.nss</code>, before the other configuration files, so it also works for items the bundled
 	<code>modify.nss</code> already moves. Hiding <i>Send to</i> is one example.</p>
 <p>The <a href="/docs/app/context-menus">Context Menus</a> page lists these rules under
@@ -189,9 +201,9 @@
 
 <h5 id="saved">Where your changes are saved</h5>
 <ul>
-	<li>Rules for Windows items go to <code>imports\settings-app-map.nss</code>. Changes to your own items go to the
-		file the item is written in. Only files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are
-		changed.</li>
+	<li>Rules for Windows items, and changes to items in the files that came with Shell, go to
+		<code>imports\settings-app-map.nss</code>. Changes to items in your own files go to the file the item is
+		written in. Only files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are changed.</li>
 	<li>Before writing, the configuration is checked with
 		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. A configuration Shell would reject is
 		not written.</li>

@@ -165,6 +165,10 @@ struct Block
                         // only indentation comes before it (so its indentation stays)
 };
 
+// The declaration node at `line` (and `column`, 1-based in characters, when several
+// start on that line), or null.
+const nss::Node *findDeclaration(const nss::NssDocument &doc, size_t line, size_t column = 0);
+
 // The menu/item/separator/modify/remove declared at `line` (and `column`, 1-based
 // in characters, when several start on that line).
 std::optional<Block> findBlock(const nss::NssDocument &doc, size_t line, size_t column = 0);

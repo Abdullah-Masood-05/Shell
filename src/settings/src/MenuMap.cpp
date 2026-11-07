@@ -548,6 +548,11 @@ bool isMapFile(const fs::path &file)
     return nss::OverridesWriter::samePath(value, maprules::relativePath);
 }
 
+const nss::Node *findDeclaration(const nss::NssDocument &doc, size_t line, size_t column)
+{
+    return findDecl(doc, line, column);
+}
+
 std::optional<Block> findBlock(const nss::NssDocument &doc, size_t line, size_t column)
 {
     const auto *n = findDecl(doc, line, column);

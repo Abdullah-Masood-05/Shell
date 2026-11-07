@@ -6,7 +6,11 @@
 // snapshots the config into Backups before it writes anything. Home then says how many
 // files were brought up to date and lists the ones the user changed, which were kept:
 // each can be compared with the new version or replaced by it (`-config:upgrade -take:`,
-// again after a snapshot). Nothing runs as administrator, and the MSI never does this:
+// again after a snapshot). Files the user changed only the way the Menu map did before
+// 2.3.0-beta.6 (an item hidden, renamed, moved or given an icon on its own line; import
+// lines in shell.nss) are brought to the new version right away with those changes kept
+// in imports/settings-app-map.nss (config_update::carryOver); "Use the new version"
+// keeps the ones it can of the others. Nothing runs as administrator, and the MSI never does this:
 // the app does it the next time it starts. A per-user copy of the app (AppChannel.h)
 // does the same itself, with its own newer shell.nss and imports\ as the shipped files
 // (config_update::runLocal), also for a personal config made later.
@@ -44,6 +48,9 @@ private:
     static std::optional<config_update::Report> upgrade(const ShellCli &cli, const std::wstring &shipped,
                                                         const std::string &root, const std::vector<std::string> &take,
                                                         CliResult &r);
+    // The kept files whose changes can all be carried to the new version: carried, and
+    // moved from modifiedKept to updated in `report`. Worker thread. The number carried.
+    static size_t carryKept(const ShellCli &cli, const std::string &root, config_update::Report &report);
     void show(const config_update::Report &report);
     void pushText();
     void compare(const std::string &path);
@@ -61,6 +68,7 @@ private:
     std::string upgradedRoot_; // the personal root file already brought up to date
     std::string configDir_, installDir_;
     size_t changed_ = 0;
+    size_t carried_ = 0;        // of changed_: files whose Menu map changes were kept
     std::vector<std::string> kept_;
     std::string comparePath_;
     uint64_t compareGen_ = 0;

@@ -237,7 +237,16 @@ void BackupsController::showFile(int index)
     st.set_diff_file(index);
     auto rows = std::make_shared<slint::VectorModel<DiffLineRow>>();
     size_t maxColumns = 0;
-    if (diff_ && index >= 0 && index < int(diff_->files.size())) {
+    if (diff_ && index >= 0 && index < int(diff_->files.size()) && diff_->files[size_t(index)].binary) {
+        // An image or another file that isn't text: what changed, not its lines.
+        const auto &f = diff_->files[size_t(index)];
+        std::string text = f.status == backups::FileDiff::Added   ? nsp::trf("Not text, so not compared line by line. Added since this snapshot ({}).", backups::sizeText(f.newSize))
+                           : f.status == backups::FileDiff::Removed ? nsp::trf("Not text, so not compared line by line. Removed since this snapshot ({}); restoring brings it back.", backups::sizeText(f.oldSize))
+                                                                    : nsp::trf("Not text, so not compared line by line. Changed since this snapshot: {} then, {} now. Restoring puts the old one back.",
+                                                                               backups::sizeText(f.oldSize), backups::sizeText(f.newSize));
+        maxColumns = text.size();
+        rows->push_back(DiffLineRow{ 3, 0, 0, ss(text) });
+    } else if (diff_ && index >= 0 && index < int(diff_->files.size())) {
         for (const auto &r : diff_->files[size_t(index)].diff.rows) {
             // Tabs as four spaces, as in the editor's read view.
             std::string text;

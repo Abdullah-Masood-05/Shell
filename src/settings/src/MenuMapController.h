@@ -10,15 +10,19 @@
 //  - Windows' items: hide, rename and move are rules in imports/settings-app-map.nss,
 //    staged in SaveService like every other page's changes (the footer saves them,
 //    checked by shell.exe, snapshot first), so they show on the Context Menus page.
-//  - Shell's own items: the switch (vis=vis.remove), Rename, Move to (menu=), the
-//    place in its menu (pos=, or its declaration moved up or down in the file) and
-//    Edit code change the item's own declaration in its file, saved right away the
-//    same way.
+//  - Shell's own items: the switch (vis=vis.remove), Rename, Icon (image=), Move to
+//    (menu=) and the place in its menu (pos=) are saved right away the same way.
+//    For an item in a file that came with Shell (imports/terminal.nss, goto.nss...)
+//    they are override(...) lines in imports/settings-app-map.nss (ShellOverrides.h),
+//    so that file stays as shipped and updates replace it. In the user's own files
+//    they change the item's own declaration (or move it up or down in the file).
+//    Edit code always changes the file itself.
 
 #include "app.h"
 
 #include "MenuMap.h"
 #include "SaveService.h"
+#include "ShellOverrides.h"
 #include "ShellCli.h"
 #include "Worker.h"
 
@@ -148,6 +152,25 @@ private:
     // Changes one of Shell's items in its file and saves it (checked, snapshot first).
     void saveShellEdit(const menumap::Node &n, const std::string &reason,
                        const std::function<bool(nss::NssDocument &, std::string &)> &edit);
+    // One of Shell's items in a file that came with Shell: what names it in an
+    // override(...) line (nullopt for one in the user's own files, or one that has no
+    // title= to name it by), and whether its own line has the vis=vis.remove that
+    // older versions of this page added. Read once per load.
+    struct OwnInfo
+    {
+        std::optional<overrides::Key> key;
+        bool legacyHidden = false;
+    };
+    const OwnInfo &ownInfo(const menumap::Node &n) const;
+    // The value the override lines give the item's `name` property, if any.
+    std::optional<std::string> overrideProp(const overrides::Key &key, std::string_view name) const;
+    // Changes the item's override line and saves settings-app-map.nss right away
+    // (checked, snapshot first), with the root's import of it when that is missing.
+    void saveOverride(const menumap::Node &n, const std::string &reason, const overrides::Key &key,
+                      std::string_view name, const std::optional<std::string> &value,
+                      std::string_view name2 = {}, const std::optional<std::string> &value2 = std::nullopt);
+    // Saves `writes` (checked by shell.exe, snapshot first) and reloads the pages.
+    void commitWrites(std::vector<nss::FileWrite> writes, const std::string &reason, const std::string &select);
     void stageRule(const std::string &text, bool add, const std::string &label);
 
     slint::ComponentHandle<AppWindow> ui_;
@@ -160,6 +183,9 @@ private:
     menumap::Tree tree_;
     bool haveTree_ = false;
     std::vector<std::string> mapLines_;   // settings-app-map.nss as read with the tree, by line - 1
+    std::vector<overrides::Override> overrides_; // its override(...) lines
+    mutable std::map<std::string, OwnInfo> own_; // by shellKey()
+    mutable std::map<std::string, std::optional<nss::NssDocument>> ownDocs_; // by pathKey(), for own_
     std::vector<Entry> entries_;
     std::set<std::string> expanded_;
     std::set<std::string> collapsed_;     // groups the user folded
