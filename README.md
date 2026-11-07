@@ -187,7 +187,7 @@ Run `shell.exe` from its folder. Options start with `-` or `/`; `shell -?` shows
 | `-status` | Print the installation state as JSON | No |
 | `-out:<file>` | Write `-config:*` and `-status` output to a file | No |
 
-Details and output formats: [Command line](https://abdullah-masood-05.github.io/Shell/command-line.html).
+Details and output formats: [Command line](https://abdullah-masood-05.github.io/Shell/command-line/).
 
 ## Build from source
 
