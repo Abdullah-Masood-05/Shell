@@ -299,9 +299,13 @@ TEST_CASE("carry over: after an update, kaser4's files become the new version an
     std::sort(upgrade.modified_kept.begin(), upgrade.modified_kept.end());
     CHECK(upgrade.modified_kept == std::vector<std::string>{ "imports/develop.nss", "imports/goto.nss", "imports/terminal.nss", "shell.nss" });
 
-    nss::Validator validator;
-    if (haveShell())
-        validator = nss::makeShellCheckValidator(binDir() / L"shell.exe");
+    // Without shell.exe the app won't write override lines (an older engine
+    // couldn't read them), so this part needs a built shell.exe.
+    if (!haveShell()) {
+        MESSAGE("skipped: no shell.exe in src/bin (build src/Shell.sln first)");
+        return;
+    }
+    nss::Validator validator = nss::makeShellCheckValidator(binDir() / L"shell.exe");
     auto carried = config_update::carryOver(config / L"shell.nss", binDir(), upgrade.modified_kept, false, validator);
     REQUIRE(carried.ok);
     auto files = carried.files;
