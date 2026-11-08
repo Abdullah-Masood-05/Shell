@@ -727,3 +727,80 @@ TEST_CASE("menu map: the This PC context lists the items for type=computer (real
     CHECK(tree->systemError.empty());
     CHECK_FALSE(tree->system.empty());
 }
+
+TEST_CASE("menu move: Move to and the places offered only use what the menu has")
+{
+    // Your menus A (with a menu A2 in it and an item X), B (switched off) and C (left out
+    // by its where=); Windows' Send to, which a rule sends Share into; Hidden Windows' Edit.
+    auto t = parseTree(R"({"ok":true,"context":"file","errors":[],"tree":{
+      "shell":[
+        {"kind":"menu","title":"A","state":"text","file":"C:\\c\\a.nss","line":1,"column":1,"shows":"yes","items":[
+          {"kind":"menu","title":"A2","state":"text","file":"C:\\c\\a.nss","line":2,"column":1,"shows":"yes","items":[]},
+          {"kind":"item","title":"X","state":"text","file":"C:\\c\\a.nss","line":3,"column":1,"shows":"yes","items":[]},
+          {"kind":"item","title":"Off","state":"text","file":"C:\\c\\a.nss","line":4,"column":1,"shows":"yes","vis":"hidden","items":[]},
+          {"kind":"item","title":"Away","state":"text","file":"C:\\c\\a.nss","line":5,"column":1,"shows":"yes","menu":"Nowhere","items":[]},
+          {"kind":"item","title":"Left out","state":"text","file":"C:\\c\\a.nss","line":6,"column":1,"shows":"no","shows_why":"where","items":[]},
+          {"kind":"item","title":"Y","state":"text","file":"C:\\c\\a.nss","line":7,"column":1,"shows":"yes","items":[]}]},
+        {"kind":"menu","title":"B","state":"text","file":"C:\\c\\a.nss","line":8,"column":1,"shows":"yes","vis":"hidden","items":[]},
+        {"kind":"menu","title":"C","state":"text","file":"C:\\c\\a.nss","line":9,"column":1,"shows":"no","shows_why":"where","items":[]}],
+      "system":[
+        {"kind":"item","title":"&Share","name":"Share","moved":"Send to","items":[]},
+        {"kind":"menu","title":"Se&nd to","name":"Send to","items":[]}],
+      "rules":[],"system_error":"",
+      "order":[{"from":"shell","index":0},{"from":"shell","index":1},{"from":"shell","index":2},
+               {"from":"system","index":0},{"from":"system","index":1}]}})");
+    REQUIRE(t);
+    auto list = buildMenuList(*t);
+    REQUIRE(list);
+    const auto &entries = list->entries;
+    auto at = [&](const char *title) {
+        for (size_t i = 0; i < entries.size(); ++i)
+            if (entries[i].node && entries[i].node->title == title && entries[i].group != 2 && entries[i].group != 4)
+                return int(i);
+        return -1;
+    };
+    auto any = [&](const char *title) {
+        for (size_t i = 0; i < entries.size(); ++i)
+            if (entries[i].node && entries[i].node->title == title)
+                return int(i);
+        return -1;
+    };
+
+    // With Windows' Send to selected: your menu A and its A2, not itself, not B or C.
+    const int sendTo = at("Send to");
+    REQUIRE(sendTo >= 0);
+    CHECK(canMoveInto(entries, at("A"), sendTo));
+    CHECK(canMoveInto(entries, at("A2"), sendTo));
+    CHECK_FALSE(canMoveInto(entries, sendTo, sendTo));
+    CHECK(at("B") < 0); // switched off: not a menu of this menu
+    CHECK_FALSE(canMoveInto(entries, any("B"), sendTo));
+    CHECK_FALSE(canMoveInto(entries, any("C"), sendTo));
+    // With A selected: not A, and not A2, which is inside it; Send to is fine.
+    CHECK_FALSE(canMoveInto(entries, at("A"), at("A")));
+    CHECK_FALSE(canMoveInto(entries, at("A2"), at("A")));
+    CHECK(canMoveInto(entries, sendTo, at("A")));
+    // Share was sent to Send to by a rule: it is listed in it.
+    CHECK(entries[size_t(at("Share"))].parent == sendTo);
+
+    // The places in A: next to X and Y, which the menu has. Not Off, Away or Left out.
+    std::vector<Sibling> siblings;
+    size_t index = 0;
+    const int a = at("A");
+    for (int k : entries[size_t(a)].kids) {
+        const auto &e = entries[size_t(k)];
+        if (e.node->title == "X")
+            index = siblings.size();
+        siblings.push_back(siblingOf(*e.node, nullptr, true, "", ""));
+    }
+    std::vector<std::string> titles;
+    for (const auto &k : entries[size_t(a)].kids)
+        titles.push_back(entries[size_t(k)].node->title);
+    CHECK(titles == std::vector<std::string>{ "A2", "X", "Y" });
+    std::vector<std::string> offered;
+    for (const auto &p : placesNextTo(siblings, index))
+        offered.push_back((p.after ? "after " : "before ") + p.title);
+    CHECK(offered == std::vector<std::string>{ "before A2", "after A2", "before Y", "after Y" });
+    // Moving up or down steps over what isn't there: X goes past A2, then it can't go further.
+    CHECK(planReorder(siblings, index, true).possible);
+    CHECK_FALSE(planReorder(siblings, 0, true).possible);
+}

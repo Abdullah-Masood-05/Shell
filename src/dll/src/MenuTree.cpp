@@ -1485,6 +1485,7 @@ namespace Nilesoft
 				uint32_t depth{};
 				TitleInfo title;
 				string normalized;			// the title as indexof() matches it
+				string title_sample;		// a title that depends on the selection, worked out for the sample
 				std::wstring menu;			// a constant menu=, without the outer '/'
 				bool menu_dynamic = false;
 				bool to_root = false;		// menu='/'
@@ -1673,6 +1674,23 @@ namespace Nilesoft
 					n->depth = depth;
 					auto kind = item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item;
 					n->title = DescribeTitle(item, depth, kind);
+					// A title that depends on the selection (title=sel.path): what it comes to
+					// for the sample, when that can be worked out as the conditions are.
+					if(n->title.state == TitleInfo::Dynamic && have_sel && item->title.get() && !item->is_separator())
+					{
+						Known k = known(true);
+						if(knowable(item->title.get(), k))
+						{
+							try
+							{
+								n->title_sample = context.Eval(item->title.get()).to_string().move();
+							}
+							catch(...)
+							{
+								n->title_sample.clear();
+							}
+						}
+					}
 					string t = n->title.text;
 					MenuItemInfo::normalize(t, &n->normalized);
 					if(!item->is_separator())
@@ -1907,6 +1925,11 @@ namespace Nilesoft
 						  title.state == TitleInfo::Empty ? L"empty" : L"dynamic");
 					jkey(shell, L"source");
 					jstr(shell, title.source);
+					if(!n.title_sample.empty())
+					{
+						jkey(shell, L"title_sample");
+						jstr(shell, n.title_sample);
+					}
 					declared(item, title, shell);
 					jtext(shell, L"vis", visibility(item->visibility));
 					std::wstring conds;

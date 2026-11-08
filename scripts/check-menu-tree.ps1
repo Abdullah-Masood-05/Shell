@@ -131,6 +131,8 @@ item(title='Taskbar only' type='*' where=window.is_taskbar cmd='x')
 item(title='PC with Shift' type='*' where=sel.raw=='$pc' and keys.shift() cmd='x')
 item(title='Shift' type='*' where=keys.shift() cmd='x')
 item(title='Named' type='file' where=sel.name=='other.txt' cmd='x')
+item(title=sel.file.name type='file' cmd='x')
+item(title=keys.shift() type='*' cmd='x')
 menu(title='Gone' type='*' where=sel.count>1) { item(title='Inside' cmd='x') }
 remove(type='*' where=sel.raw=='$pc' find='"Properties"')
 item(title='First' type='*' pos=top cmd='x')
@@ -155,6 +157,12 @@ modify(type='*' find='"Delete"' menu='Holder')
 			foreach ($title in $expect[$where].Keys) {
 				if ($got[$title] -ne $expect[$where][$title]) { $problems += "'$title' shows '$($got[$title])', expected '$($expect[$where][$title])'" }
 			}
+			# A title that depends on the selection comes out for the sample; one that depends on keys doesn't.
+			$dyn = @(); Walk $r.json.tree.shell { param($n) if ($n.state -eq 'dynamic') { $script:dyn += $n } }
+			if ($where -eq 'file') {
+				if (-not (@($dyn | Where-Object { $_.title_sample -eq 'sample.txt' }).Count)) { $problems += 'title=sel.file.name has no title_sample (sample.txt)' }
+			}
+			if (@($dyn | Where-Object { $_.line -eq 11 -and $_.title_sample }).Count) { $problems += 'a title that depends on keys got a title_sample' }
 			# The sample file stands for any file: its name decides "Named" only for it.
 			if ($where -eq 'file' -and -not $sample['Named']) { $problems += "'Named' should depend on the sample" }
 			if ($where -eq 'file' -and $sample['Text files']) { $problems += "'Text files' depends on the type of sample only" }

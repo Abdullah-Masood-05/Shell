@@ -80,6 +80,7 @@ Node readNode(const json &j, Origin origin)
             n.shows.clear();
         n.showsSample = getBool(j, "shows_sample");
         n.showsWhy = getString(j, "shows_why");
+        n.titleSample = stripAccelerators(getString(j, "title_sample"));
     } else {
         n.name = getString(j, "name");
         n.path = getString(j, "path");
@@ -189,6 +190,277 @@ std::optional<std::vector<MenuRef>> mergedMenu(const Tree &t)
         if (!systemUsed[i])
             out.push_back(MenuRef{ &t.system[i], i });
     return out;
+}
+
+Placing placingOf(const Node &n)
+{
+    if (n.origin == Origin::Shell) {
+        if (notInMenu(n))
+            return Placing::Out;
+        if (n.vis == "hidden")
+            return Placing::Hidden;
+        // menu= names a menu this tab doesn't have: nothing puts it in this menu.
+        if (!n.menu.empty() && !n.relocated && !isRootPath(n.menu))
+            return Placing::Out;
+        return Placing::Menu;
+    }
+    if (n.unlisted)
+        return Placing::Out;
+    if (n.hidden)
+        return Placing::Hidden;
+    if (!n.moved.empty() && !isRootPath(n.moved))
+        return Placing::Moved;
+    return Placing::Menu;
+}
+
+std::string menuPathKey(std::string_view path)
+{
+    std::string out;
+    for (char c : stripAccelerators(path))
+        out += (c >= 'A' && c <= 'Z') ? char(c - 'A' + 'a') : c;
+    // " / " around a slash and the '/' at both ends mean nothing.
+    std::string clean;
+    for (size_t i = 0; i < out.size(); ++i) {
+        if (out[i] == '/') {
+            while (!clean.empty() && clean.back() == ' ')
+                clean.pop_back();
+            clean += '/';
+            while (i + 1 < out.size() && out[i + 1] == ' ')
+                ++i;
+            continue;
+        }
+        clean += out[i];
+    }
+    size_t b = 0, e = clean.size();
+    while (b < e && (clean[b] == '/' || clean[b] == ' '))
+        ++b;
+    while (e > b && (clean[e - 1] == '/' || clean[e - 1] == ' '))
+        --e;
+    return clean.substr(b, e - b);
+}
+
+std::vector<size_t> collapseSeparators(const std::vector<bool> &separator)
+{
+    std::vector<size_t> kept;
+    bool lastSeparator = true; // nothing yet: a separator first is left out
+    for (size_t i = 0; i < separator.size(); ++i) {
+        if (separator[i] && lastSeparator)
+            continue;
+        kept.push_back(i);
+        lastSeparator = separator[i];
+    }
+    while (!kept.empty() && separator[kept.back()])
+        kept.pop_back();
+    return kept;
+}
+
+std::vector<std::string> childTitles(const Node &menu, size_t max, bool *more)
+{
+    std::vector<std::string> out;
+    if (more)
+        *more = false;
+    for (const auto &c : menu.children) {
+        if (c.kind == "separator")
+            continue;
+        const std::string &t = !c.title.empty() ? c.title : c.titleSample;
+        if (t.empty())
+            continue;
+        if (out.size() == max) {
+            if (more)
+                *more = true;
+            break;
+        }
+        out.push_back(t);
+    }
+    return out;
+}
+
+std::string shellKey(const fs::path &file, int line, int column)
+{
+    std::string path = nss::narrow(file.wstring());
+    for (auto &ch : path)
+        if (ch >= 'A' && ch <= 'Z')
+            ch = char(ch - 'A' + 'a');
+    return "s|" + path + "|" + std::to_string(line) + "|" + std::to_string(column);
+}
+
+std::optional<MenuList> buildMenuList(const Tree &tree, const std::map<std::string, int> &pinned)
+{
+    auto order = mergedMenu(tree);
+    if (!order)
+        return std::nullopt;
+    MenuList list;
+    auto &entries = list.entries;
+    auto addGroup = [&](int group, const char *key) {
+        ListEntry h;
+        h.group = group;
+        h.key = key;
+        entries.push_back(h);
+        return int(entries.size()) - 1;
+    };
+    const int mainIdx = addGroup(3, "m");
+    const int hiddenIdx = addGroup(4, "h");
+    const int outIdx = addGroup(2, "x");
+
+    auto uniqueShellKey = [&](const Node &n) {
+        const auto base = shellKey(n.file, n.line, n.column);
+        auto key = base;
+        auto taken = [&](const std::string &k) {
+            return std::any_of(entries.begin(), entries.end(), [&](const ListEntry &x) { return x.key == k; });
+        };
+        for (int k = 2; taken(key); ++k)
+            key = base + "#" + std::to_string(k);
+        return key;
+    };
+    auto systemKey = [](const std::string &prefix, size_t i, const Node &n) {
+        std::string name = n.name;
+        for (auto &ch : name)
+            if (ch >= 'A' && ch <= 'Z')
+                ch = char(ch - 'A' + 'a');
+        return prefix + "/" + std::to_string(i) + ":" + name;
+    };
+
+    // One of Windows' items that a rule sends to a menu: listed in that menu once it is built.
+    struct MovedItem
+    {
+        const Node *node = nullptr;
+        size_t index = 0;
+        std::string prefix;
+        std::string from;
+    };
+    std::vector<MovedItem> moved;
+
+    using Steps = std::vector<MenuStep>;
+    std::function<void(const Node &, size_t, int, int, const std::string &, const std::string &, const Steps &,
+                       const std::string &)>
+        addNode;
+    // Makes the entry (and, below it, its items) in `parent`; `group` is the group it is in.
+    auto make = [&](const Node &n, size_t i, int parent, int depth, const std::string &prefix, const std::string &menuPath,
+                    const Steps &steps, const std::string &from, int group, bool movedIn) {
+        ListEntry e;
+        e.node = &n;
+        e.group = group;
+        e.depth = depth;
+        e.parent = parent;
+        e.from = from;
+        e.movedIn = movedIn;
+        e.key = n.origin == Origin::System ? systemKey(prefix, i, n) : uniqueShellKey(n);
+        if (n.kind == "menu") {
+            if (n.origin == Origin::System) {
+                std::string name = n.name;
+                for (auto &ch : name)
+                    if (ch >= 'A' && ch <= 'Z')
+                        ch = char(ch - 'A' + 'a');
+                e.menuPath = n.path.empty() ? name : n.path + "/" + name;
+            } else if (n.state == "text") {
+                e.menuPath = menuPath.empty() ? n.rawTitle : menuPath + "/" + n.rawTitle;
+                e.steps = steps;
+                e.steps.push_back(MenuStep{ n.rawTitle, n.titleSource });
+            }
+        }
+        const int idx = int(entries.size());
+        entries.push_back(e);
+        entries[size_t(parent)].kids.push_back(idx);
+        const std::string myTitle = n.title.empty() ? n.titleSample : n.title;
+        const std::string myMenuPath = e.menuPath;
+        const Steps mySteps = e.steps;
+        const std::string myKey = e.key;
+        for (size_t k = 0; k < n.children.size(); ++k)
+            addNode(n.children[k], k, idx, depth + 1, myKey, myMenuPath, mySteps, myTitle);
+        return idx;
+    };
+    // Where `n` goes, by what shell.exe says about it (placingOf) and, after a switch, where
+    // it was (pinned).
+    addNode = [&](const Node &n, size_t i, int parent, int depth, const std::string &prefix, const std::string &menuPath,
+                  const Steps &steps, const std::string &parentTitle) {
+        const int parentGroup = entries[size_t(parent)].group;
+        if (parentGroup == 2 || parentGroup == 4) {
+            // Inside a menu that isn't in the menu: everything in it comes along.
+            make(n, i, parent, depth, prefix, menuPath, steps, {}, parentGroup, false);
+            return;
+        }
+        const auto placing = placingOf(n);
+        const int own = n.origin == Origin::Shell ? 0 : 1;
+        if (n.kind == "separator") {
+            if (placing == Placing::Menu)
+                make(n, i, parent, depth, prefix, menuPath, steps, {}, own, false);
+            return;
+        }
+        if (placing == Placing::Moved) {
+            moved.push_back(MovedItem{ &n, i, prefix, parentTitle });
+            return;
+        }
+        const std::string base = n.origin == Origin::System ? systemKey(prefix, i, n) : shellKey(n.file, n.line, n.column);
+        int disp = placing == Placing::Menu ? 0 : placing == Placing::Hidden ? 1 : 2;
+        if (auto it = pinned.find(base); it != pinned.end())
+            disp = it->second;
+        list.placed[base] = disp;
+        if (disp == 0)
+            make(n, i, parent, depth, prefix, menuPath, steps, {}, own, false);
+        else
+            make(n, i, disp == 1 ? hiddenIdx : outIdx, 1, prefix, menuPath, steps, parentTitle, disp == 1 ? 4 : 2, false);
+    };
+
+    for (const auto &ref : *order)
+        addNode(*ref.node, ref.index, mainIdx, 1, ref.node->origin == Origin::Shell ? "s" : "w", {}, {}, {});
+    // Your items the order leaves out (where=, find=, a menu that isn't here...): not in this menu.
+    for (size_t i = 0; i < tree.shell.size(); ++i)
+        if (notInMenu(tree.shell[i]) && tree.shell[i].kind != "separator")
+            make(tree.shell[i], i, outIdx, 1, "s", {}, {}, {}, 2, false);
+
+    // Windows' items sent to a menu go in that menu, after its own items. A menu this tab
+    // doesn't have leaves them out of the menu.
+    for (size_t m = 0; m < moved.size(); ++m) {
+        const MovedItem item = moved[m];
+        const auto want = menuPathKey(item.node->moved);
+        int target = -1;
+        for (size_t t = 0; t < entries.size() && target < 0; ++t) {
+            const auto &te = entries[t];
+            if (te.node && te.node->kind == "menu" && (te.group == 0 || te.group == 1) && !te.menuPath.empty() &&
+                menuPathKey(te.menuPath) == want)
+                target = int(t);
+        }
+        if (target >= 0)
+            make(*item.node, item.index, target, entries[size_t(target)].depth + 1, item.prefix, {}, {}, item.from, 1, true);
+        else
+            make(*item.node, item.index, outIdx, 1, item.prefix, {}, {}, item.from, 2, false);
+    }
+
+    // The separators the real menu keeps: none first or last, never two together.
+    for (size_t i = 0; i < entries.size(); ++i) {
+        const auto &e = entries[i];
+        if (!(e.group == 3 || ((e.group == 0 || e.group == 1) && e.node && e.node->kind == "menu")))
+            continue;
+        std::vector<bool> separator;
+        for (int k : e.kids)
+            separator.push_back(entries[size_t(k)].node && entries[size_t(k)].node->kind == "separator");
+        auto kept = collapseSeparators(separator);
+        std::vector<int> kids;
+        for (size_t k : kept)
+            kids.push_back(e.kids[k]);
+        for (int k : e.kids)
+            if (std::find(kids.begin(), kids.end(), k) == kids.end())
+                entries[size_t(k)].dropped = true;
+        entries[i].kids = std::move(kids);
+    }
+    return list;
+}
+
+bool canMoveInto(const std::vector<ListEntry> &entries, int target, int selected)
+{
+    if (target < 0 || size_t(target) >= entries.size())
+        return false;
+    const auto &t = entries[size_t(target)];
+    if (!t.node || t.node->kind != "menu" || (t.group != 0 && t.group != 1))
+        return false;
+    for (int p = target; p >= 0; p = entries[size_t(p)].parent) {
+        if (p == selected)
+            return false;
+        const int g = entries[size_t(p)].group;
+        if (g == 2 || g == 4)
+            return false;
+    }
+    return true;
 }
 
 bool showsSometimes(const Node &n)

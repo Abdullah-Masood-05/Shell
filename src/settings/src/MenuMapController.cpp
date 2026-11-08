@@ -31,13 +31,44 @@ slint::SharedString ss(std::string_view s) { return slint::SharedString(s); }
 std::string str(const slint::SharedString &s) { return std::string(s.data(), s.size()); }
 
 // The list's groups: 0 your items in this menu, 1 Windows' and programs' items,
-// 2 your items this menu leaves out, 3 the menu as it shows (0 and 1 together).
-std::string groupTitle(int group)
+// 2 what this menu leaves out, 3 the menu as it shows (0 and 1 together), 4 what is
+// switched off in it (`count` of them).
+std::string groupTitle(int group, size_t count = 0)
 {
     return group == 0   ? nsp::tr("Your Shell items")
            : group == 1 ? nsp::tr("Windows and other programs")
            : group == 3 ? nsp::tr("In this menu")
+           : group == 4 ? nsp::trf("Hidden ({})", count)
                         : nsp::tr("Not in this menu");
+}
+
+// What a row calls an item: its title, else what the sample's selection makes of a title
+// that depends on it, else (for a menu) its first items, else a plain note.
+std::string nodeTitle(const Node &n)
+{
+    if (n.kind == "separator")
+        return {};
+    if (!n.title.empty())
+        return n.title;
+    if (n.ownerDrawn)
+        return nsp::tr("(drawn by its program)");
+    if (!n.titleSample.empty())
+        return n.titleSample;
+    if (n.kind == "menu") {
+        bool more = false;
+        auto titles = menumap::childTitles(n, 3, &more);
+        if (!titles.empty()) {
+            std::string joined;
+            for (auto t : titles) {
+                if (t.size() > 22)
+                    t = t.substr(0, 20) + "...";
+                joined += (joined.empty() ? "" : ", ") + t;
+            }
+            return nsp::trf("Menu with: {}", joined + (more ? "..." : ""));
+        }
+        return nsp::tr("(menu with no title)");
+    }
+    return n.state == "dynamic" ? nsp::tr("(title changes with the selection)") : nsp::tr("(no title)");
 }
 
 constexpr int kEditorPage = 6; // Pages.editor in ui/types.slint
@@ -47,6 +78,8 @@ constexpr int kMapPage = 10;   // Pages.menumap
 constexpr const char *kOutGroup = "x";
 // The menu as it shows, your items and Windows' together (a shell.exe that gives the order).
 constexpr const char *kMenuGroup = "m";
+// What is switched off in it (a shell.exe that gives the order): closed until opened.
+constexpr const char *kHiddenGroup = "h";
 
 // Contexts, in the order of the page's switcher.
 constexpr const char *kContexts[] = { "file", "folder", "back", "desktop", "drive", "thispc", "taskbar" };
@@ -215,8 +248,11 @@ MenuMapController::MenuMapController(slint::ComponentHandle<AppWindow> ui, SaveS
     // A save went through or the config was replaced: read the map again.
     save_.onConfig([this] {
         stale_ = true;
-        if (ui_->global<AppState>().get_page() == kMapPage)
+        if (ui_->global<AppState>().get_page() == kMapPage) {
+            // A change saved from this page: the rows stay where they are until Refresh.
+            keepPins_ = true;
             activated();
+        }
     });
 }
 
@@ -352,8 +388,9 @@ void MenuMapController::load()
         return;
     }
     auto gen = ++gen_;
+    const bool keep = std::exchange(keepPins_, false);
     st.set_loading(true);
-    worker_.post([this, gen, root = root_, exe = shellExe_, context = context_, sample = sample_] {
+    worker_.post([this, gen, keep, root = root_, exe = shellExe_, context = context_, sample = sample_] {
         auto samplePath = prepareSample(context, sample);
         std::vector<std::wstring> args{ L"-config:tree", root.wstring(),
                                         L"-context:" + nss::widen(kContexts[context]) };
@@ -373,7 +410,7 @@ void MenuMapController::load()
                 error = nsp::trf("shell.exe gave no menu ({}). It may be older than this app.", why);
         }
         auto lines = readLines(root.parent_path() / fs::path(nss::widen(maprules::relativePath)));
-        slint::invoke_from_event_loop([this, gen, tree = std::move(tree), error, lines = std::move(lines)]() mutable {
+        slint::invoke_from_event_loop([this, gen, keep, tree = std::move(tree), error, lines = std::move(lines)]() mutable {
             if (gen != gen_)
                 return;
             const auto &st = ui_->global<MenuMapState>();
@@ -390,6 +427,8 @@ void MenuMapController::load()
             }
             tree_ = std::move(*tree);
             haveTree_ = true;
+            // Reloaded after a change made here: each item keeps its group.
+            pin_ = keep ? disp_ : std::map<std::string, int>{};
             if (tree_.systemError.empty())
                 menumap::addUnlisted(tree_, typed_[context_]);
             mapLines_ = std::move(lines);
@@ -442,8 +481,61 @@ void MenuMapController::buildEntries()
     entries_.clear();
     targets_.clear();
     selected_ = -1;
-    // Your items that aren't in this menu for the sample (menumap::notInMenu): listed
-    // in their own group, after the menu, with the items inside them.
+    disp_.clear();
+    if (auto list = menumap::buildMenuList(tree_, pin_)) {
+        entries_ = std::move(list->entries);
+        disp_ = std::move(list->placed);
+        // Where "Move to" can send an item: the menus of the menu as it shows.
+        for (size_t i = 0; i < entries_.size(); ++i) {
+            const auto &e = entries_[i];
+            if (!e.node || (e.group != 0 && e.group != 1) || e.menuPath.empty() || (e.node->origin != Origin::Shell && e.node->name.empty()))
+                continue;
+            std::string label = e.node->origin == Origin::Shell ? menumap::stripAccelerators(e.menuPath)
+                                                                : nsp::trf("{} (Windows)", e.node->title);
+            targets_.push_back(MoveTarget{ label, e.menuPath, int(i) });
+        }
+    } else
+        buildLegacy();
+    // Keep the selection across a reload when the item is still there.
+    for (size_t i = 0; i < entries_.size(); ++i)
+        if (!selectedKey_.empty() && entries_[i].key == selectedKey_)
+            selected_ = int(i);
+    // After a move: the menus it is in open, so it stays in view.
+    if (reveal_ && selected_ >= 0) {
+        for (int p = entries_[size_t(selected_)].parent; p >= 0; p = entries_[size_t(p)].parent)
+            if (entries_[size_t(p)].node || entries_[size_t(p)].key == kOutGroup || entries_[size_t(p)].key == kHiddenGroup)
+                expanded_.insert(entries_[size_t(p)].key);
+            else
+                collapsed_.erase(entries_[size_t(p)].key);
+    }
+    reveal_ = false;
+}
+
+int MenuMapController::addGroup(int group, const char *key)
+{
+    Entry h;
+    h.group = group;
+    h.key = key;
+    entries_.push_back(h);
+    return int(entries_.size()) - 1;
+}
+
+std::string MenuMapController::uniqueShellKey(const Node &n) const
+{
+    const auto base = shellKey(n.file, n.line, n.column);
+    auto key = base;
+    auto taken = [&](const std::string &k) {
+        return std::any_of(entries_.begin(), entries_.end(), [&](const Entry &x) { return x.key == k; });
+    };
+    for (int k = 2; taken(key); ++k)
+        key = base + "#" + std::to_string(k);
+    return key;
+}
+
+void MenuMapController::buildLegacy()
+{
+    // An older shell.exe: your items, then Windows', then the ones this menu leaves out
+    // (menumap::notInMenu), with the items inside them.
     std::vector<const Node *> out;
     std::function<void(const Node &, size_t, int, int, const std::string &, const std::string &)> addNode;
     std::function<void(const std::vector<Node> &, int, int, const std::string &, const std::string &)> add =
@@ -461,18 +553,13 @@ void MenuMapController::buildEntries()
         }
         Entry e;
         e.node = &n;
-        // In the one list of the menu as it shows, too: 0 yours, 1 Windows' (2 not in this menu).
         e.group = parentGroup == 2 ? 2 : n.origin == Origin::Shell ? 0 : 1;
         e.depth = depth;
         e.parent = parent;
         if (n.origin == Origin::System)
             e.key = prefix + "/" + std::to_string(i) + ":" + lower(n.name);
-        else {
-            // Its declaration: the same wherever menu= and pos= put it.
-            e.key = shellKey(n.file, n.line, n.column);
-            for (int k = 2; std::any_of(entries_.begin(), entries_.end(), [&](const Entry &x) { return x.key == e.key; }); ++k)
-                e.key = shellKey(n.file, n.line, n.column) + "#" + std::to_string(k);
-        }
+        else
+            e.key = uniqueShellKey(n); // its declaration: the same wherever menu= and pos= put it
         if (n.kind == "menu") {
             if (n.origin == Origin::System)
                 e.menuPath = n.path.empty() ? lower(n.name) : n.path + "/" + lower(n.name);
@@ -492,47 +579,16 @@ void MenuMapController::buildEntries()
         }
         add(n.children, idx, depth + 1, e.key, e.menuPath);
     };
-    auto group = [&](int g, const char *key) {
-        Entry h;
-        h.group = g;
-        h.key = key;
-        entries_.push_back(h);
-        return int(entries_.size()) - 1;
-    };
-    if (auto menu = menumap::mergedMenu(tree_)) {
-        // The menu as it shows: your items and Windows' in one list, in their order.
-        int idx = group(3, kMenuGroup);
-        for (const auto &ref : *menu)
-            addNode(*ref.node, ref.index, idx, 1, ref.node->origin == Origin::Shell ? "s" : "w", {});
-        for (const auto &n : tree_.shell)
-            if (menumap::notInMenu(n) && n.kind != "separator")
-                out.push_back(&n);
-    } else {
-        // An older shell.exe: your items, then Windows'.
-        add(tree_.shell, group(0, "s"), 1, "s", {});
-        add(tree_.system, group(1, "w"), 1, "w", {});
-    }
-    int outGroup = group(2, kOutGroup);
+    add(tree_.shell, addGroup(0, "s"), 1, "s", {});
+    add(tree_.system, addGroup(1, "w"), 1, "w", {});
+    int outGroup = addGroup(2, kOutGroup);
     for (size_t i = 0; i < out.size(); ++i)
         addNode(*out[i], i, outGroup, 1, kOutGroup, {});
-    // Keep the selection across a reload when the item is still there.
-    for (size_t i = 0; i < entries_.size(); ++i)
-        if (!selectedKey_.empty() && entries_[i].key == selectedKey_)
-            selected_ = int(i);
-    // After a move: the menus it is in open, so it stays in view.
-    if (reveal_ && selected_ >= 0) {
-        for (int p = entries_[size_t(selected_)].parent; p >= 0; p = entries_[size_t(p)].parent)
-            if (entries_[size_t(p)].node || entries_[size_t(p)].key == kOutGroup)
-                expanded_.insert(entries_[size_t(p)].key);
-            else
-                collapsed_.erase(entries_[size_t(p)].key);
-    }
-    reveal_ = false;
 }
 
 std::string MenuMapController::shellKey(const fs::path &file, int line, int column)
 {
-    return "s|" + lower(nss::narrow(file.wstring())) + "|" + std::to_string(line) + "|" + std::to_string(column);
+    return menumap::shellKey(file, line, column);
 }
 
 const MenuMapController::OwnInfo &MenuMapController::ownInfo(const Node &n) const
@@ -632,7 +688,8 @@ std::string MenuMapController::ruleValue(const Node &n, const char *prop, const 
 
 menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
 {
-    if (!e.node || !canMoveOwn(*e.node))
+    // Only where the menu has it: a place next to what isn't in this menu isn't one.
+    if (!e.node || !canMoveOwn(*e.node) || e.group == 2 || e.group == 4)
         return {};
     size_t index = 0;
     auto siblings = siblingsOf(e, &index);
@@ -692,8 +749,8 @@ bool MenuMapController::inHiddenMenu(int entry) const
 
 bool MenuMapController::groupOpen(const Entry &e) const
 {
-    // Your items this menu leaves out: closed until opened, as they aren't the menu.
-    return e.key == kOutGroup ? expanded_.count(e.key) > 0 : !collapsed_.count(e.key);
+    // What this menu leaves out or has switched off: closed until opened, as they aren't the menu.
+    return e.key == kOutGroup || e.key == kHiddenGroup ? expanded_.count(e.key) > 0 : !collapsed_.count(e.key);
 }
 
 MenuMapController::ItemState MenuMapController::stateOf(const Entry &e) const
@@ -774,7 +831,7 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
         }
         if (n.vis == "hidden") {
             *kind = "hidden";
-            return nsp::tr("Hidden");
+            return e.from.empty() ? std::string(nsp::tr("Hidden")) : nsp::trf("Hidden in {}", e.from);
         }
         if (n.relocated) {
             *kind = "moved";
@@ -783,6 +840,8 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
         }
         if (!n.menu.empty()) {
             *kind = "maybe";
+            if (e.group == 2)
+                return nsp::trf("Moved to {}, which isn't in this menu", menumap::stripAccelerators(n.menu));
             return nsp::trf("Moved to {}", n.menu == "/" ? std::string(nsp::tr("the main menu")) : menumap::stripAccelerators(n.menu));
         }
         if (n.vis == "disabled") {
@@ -795,12 +854,22 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
         }
         return {};
     }
+    if (n.unlisted && e.group == 2) {
+        *kind = "hidden";
+        return nsp::tr("Not found in this menu (added by its title)");
+    }
     if (n.hidden) {
         *kind = "hidden";
-        return nsp::tr("Hidden");
+        return e.from.empty() ? std::string(nsp::tr("Hidden")) : nsp::trf("Hidden in {}", e.from);
+    }
+    if (e.movedIn) {
+        *kind = "moved";
+        return nsp::trf("Moved from {}", e.from.empty() ? std::string(nsp::tr("the main menu")) : e.from);
     }
     if (!n.moved.empty()) {
         *kind = "moved";
+        if (e.group == 2 && !menumap::isRootPath(n.moved))
+            return nsp::trf("Moved to {}, which isn't in this menu", menumap::stripAccelerators(n.moved));
         if (menumap::isRootPath(n.moved))
             return n.path.empty() ? std::string(nsp::tr("Kept in the main menu")) : std::string(nsp::tr("Moved to the main menu"));
         return nsp::trf("Moved to {}", menumap::stripAccelerators(n.moved));
@@ -885,10 +954,26 @@ void MenuMapController::push()
     // and apart from them the ones it leaves out.
     size_t shellCount = 0, systemCount = 0, outCount = 0;
     for (const auto &e : entries_)
-        if (e.node && e.node->kind != "separator")
+        if (e.node && e.node->kind != "separator" && !e.dropped)
             (e.group == 0 ? shellCount : e.group == 1 ? systemCount : outCount)++;
     std::string summary;
-    if (haveTree_) {
+    const auto isMerged = std::any_of(entries_.begin(), entries_.end(), [](const Entry &e) { return e.group == 3; });
+    if (haveTree_ && isMerged) {
+        // The rows at the top level of each group: what the menu has, what is switched
+        // off, what it leaves out.
+        size_t inMenu = 0, hidden = 0, notIn = 0;
+        for (const auto &e : entries_) {
+            if (e.node)
+                continue;
+            size_t n = 0;
+            for (int k : e.kids)
+                n += entries_[size_t(k)].node && entries_[size_t(k)].node->kind != "separator";
+            (e.group == 3 ? inMenu : e.group == 4 ? hidden : notIn) += n;
+        }
+        summary = nsp::trf("{} · {} · {}", nsp::trn("{n} in this menu", "{n} in this menu", (long long)inMenu),
+                           nsp::trn("{n} hidden", "{n} hidden", (long long)hidden),
+                           nsp::trn("{n} not in this menu", "{n} not in this menu", (long long)notIn));
+    } else if (haveTree_) {
         summary = nsp::trf("{} · {}", nsp::trn("{n} of your items", "{n} of your items", (long long)shellCount),
                            nsp::trn("{n} from Windows and programs", "{n} from Windows and programs", (long long)systemCount));
         if (outCount)
@@ -922,7 +1007,7 @@ void MenuMapController::pushRows()
     auto rowFor = [&](int idx, int depth) {
         const auto &e = entries_[size_t(idx)];
         if (!e.node) {
-            auto r = makeRow(idx, 0, "group", groupTitle(e.group));
+            auto r = makeRow(idx, 0, "group", groupTitle(e.group, e.kids.size()));
             r.expandable = !e.kids.empty();
             r.expanded = groupOpen(e);
             r.origin_label = ss(nsp::trn("{n} item", "{n} items", (long long)e.kids.size()));
@@ -930,12 +1015,7 @@ void MenuMapController::pushRows()
             return r;
         }
         const auto &n = *e.node;
-        std::string title = n.title;
-        if (n.kind != "separator" && title.empty())
-            title = n.ownerDrawn ? nsp::tr("(drawn by its program)")
-                  : n.state == "dynamic" ? nsp::tr("(set when the menu opens)")
-                                         : nsp::tr("(no title)");
-        auto r = makeRow(idx, depth, n.kind, title);
+        auto r = makeRow(idx, depth, n.kind, nodeTitle(n));
         r.origin = ss(n.origin == Origin::Shell ? std::string("shell") : n.source);
         r.origin_label = ss(originLabel(e));
         std::string kind;
@@ -964,7 +1044,7 @@ void MenuMapController::pushRows()
                 add(k, depth + 1);
     };
     for (size_t i = 0; i < entries_.size(); ++i)
-        if (!entries_[i].node && (entries_[i].group != 2 || !entries_[i].kids.empty()))
+        if (!entries_[i].node && ((entries_[i].group != 2 && entries_[i].group != 4) || !entries_[i].kids.empty()))
             add(int(i), 0);
     ui_->global<MenuMapState>().set_rows(std::make_shared<slint::VectorModel<MapRow>>(rows));
 }
@@ -990,7 +1070,7 @@ void MenuMapController::pushPanels()
 
         MapPanel p{};
         p.key = idx;
-        p.title = ss(!e.node ? groupTitle(e.group) : e.node->title);
+        p.title = ss(!e.node ? groupTitle(e.group, e.kids.size()) : nodeTitle(*e.node));
         p.origin = ss(!e.node ? std::string() : e.node->origin == Origin::Shell ? std::string("shell") : e.node->source);
         p.x = x;
         p.y = y;
@@ -1000,10 +1080,7 @@ void MenuMapController::pushPanels()
             int k = e.kids[j];
             const auto &ke = entries_[size_t(k)];
             const auto &n = *ke.node;
-            std::string title = n.title;
-            if (n.kind != "separator" && title.empty())
-                title = n.state == "dynamic" ? nsp::tr("(set when the menu opens)") : nsp::tr("(no title)");
-            auto r = makeRow(k, 0, n.kind, title);
+            auto r = makeRow(k, 0, n.kind, nodeTitle(n));
             r.origin = ss(n.origin == Origin::Shell ? std::string("shell") : n.source);
             r.origin_label = ss(originLabel(ke));
             std::string kind;
@@ -1040,7 +1117,7 @@ void MenuMapController::pushPanels()
     };
     // The menu as it is: the items it leaves out are only in the list view.
     for (size_t i = 0; i < entries_.size(); ++i)
-        if (!entries_[i].node && entries_[i].group != 2)
+        if (!entries_[i].node && entries_[i].group != 2 && entries_[i].group != 4)
             place(int(i), 0, 0);
 
     st.set_panels(std::make_shared<slint::VectorModel<MapPanel>>(panels));
@@ -1062,7 +1139,7 @@ void MenuMapController::pushDetail()
     const auto &n = *e.node;
     auto s = stateOf(e);
     d.key = selected_;
-    d.title = ss(n.title.empty() ? std::string(nsp::tr("(no title)")) : n.title);
+    d.title = ss(nodeTitle(n));
     d.kind_label = ss(n.kind == "menu" ? nsp::tr("Submenu") : n.kind == "separator" ? nsp::tr("Separator") : nsp::tr("Item"));
     d.origin = ss(n.origin == Origin::Shell ? std::string("shell") : n.source);
     d.shown = s.shown;
@@ -1150,7 +1227,7 @@ void MenuMapController::pushDetail()
         // the menus inside it.
         ownTargets_.clear();
         positions_.clear();
-        const bool canMove = canMoveOwn(n) && !shared_;
+        const bool canMove = canMoveOwn(n) && !shared_ && e.group != 2 && e.group != 4;
         if (canMove) {
             std::string here = e.parent >= 0 ? entries_[size_t(e.parent)].key : std::string();
             auto writtenIn = lower(menumap::stripAccelerators(n.movedFrom));
@@ -1166,10 +1243,7 @@ void MenuMapController::pushDetail()
                 const auto &t = entries_[i];
                 if (!t.node || t.group != 0 || t.node->kind != "menu" || t.steps.empty() || entries_[i].key == here)
                     continue;
-                bool inside = false;
-                for (int p = int(i); p >= 0 && !inside; p = entries_[size_t(p)].parent)
-                    inside = p == selected_;
-                if (!inside && !inHiddenMenu(int(i)))
+                if (menumap::canMoveInto(entries_, int(i), selected_) && !inHiddenMenu(int(i)))
                     add(menumap::stripAccelerators(t.menuPath), t.steps, t.menuPath);
             }
             // Its place in the menu it is in.
@@ -1188,7 +1262,9 @@ void MenuMapController::pushDetail()
         d.can_reset_position = canMove && (own.key ? ovPos.has_value() : posProp.has_value());
         if (!canMove && n.kind != "separator" && n.line > 0)
             d.move_note = ss(shared_ ? std::string(nsp::tr("The shared config is read-only here."))
-                             : menumap::notInMenu(n) ? std::string(nsp::tr("It isn't in this menu, so it has no place here. Open the tab where it shows to move it."))
+                             : menumap::notInMenu(n) || e.group == 2
+                                 ? std::string(nsp::tr("It isn't in this menu, so it has no place here. Open the tab where it shows to move it."))
+                             : e.group == 4 ? std::string(nsp::tr("It is switched off, so it has no place in this menu. Turn it on and refresh to place it."))
                              : n.menuDynamic ? std::string(nsp::tr("Its menu= depends on the selection; change it with Edit code."))
                                              : std::string(nsp::tr("This file is read-only here.")));
         if (canMove)
@@ -1221,6 +1297,12 @@ void MenuMapController::pushDetail()
             facts += (facts.empty() ? "" : "  ·  ") + nsp::trf("in {}", n.path);
         d.facts = ss(facts);
 
+        if (n.unlisted && e.group == 2)
+            status = nsp::tr("Not found in this menu (added by its title).");
+        else if (e.movedIn)
+            status = nsp::trf("Moved here from {}.", e.from.empty() ? std::string(nsp::tr("the main menu")) : e.from);
+        else if (e.group == 2 && !n.moved.empty() && !menumap::isRootPath(n.moved))
+            status = nsp::trf("Moved to {}, which isn't in this menu, so it doesn't show.", menumap::stripAccelerators(n.moved));
         for (int i : n.rules) {
             if (i < 0 || i >= int(tree_.rules.size()))
                 continue;
@@ -1282,9 +1364,11 @@ void MenuMapController::pushDetail()
         sysTargets_.clear();
         sysTargets_.push_back(MoveTarget{ nsp::tr("Main menu"), "/" });
         // Not a menu that is hidden or inside one: an item moved there vanishes.
-        for (const auto &t : targets_)
-            if (!inHiddenMenu(t.entry))
+        // Not itself or a menu inside it either, and only menus this tab's menu has.
+        for (const auto &t : targets_) {
+            if (menumap::canMoveInto(entries_, t.entry, selected_) && !inHiddenMenu(t.entry))
                 sysTargets_.push_back(t);
+        }
         d.can_move = named && n.kind != "separator";
         d.can_reset_menu = !mapLinesOf(n.rules, "menu").empty() && !shared_;
         if (!named && n.kind != "separator")
@@ -1337,7 +1421,7 @@ void MenuMapController::toggleExpand(int key)
     if (key < 0 || key >= int(entries_.size()))
         return;
     const auto &e = entries_[size_t(key)];
-    if (!e.node && e.key != kOutGroup) {
+    if (!e.node && e.key != kOutGroup && e.key != kHiddenGroup) {
         if (!collapsed_.erase(e.key))
             collapsed_.insert(e.key);
     } else if (!expanded_.erase(e.key))
@@ -1665,7 +1749,8 @@ void MenuMapController::addUnlisted(const std::string &title)
     // Listed already (in the main menu, or added before): select that one.
     auto find = [&]() -> int {
         for (size_t i = 0; i < entries_.size(); ++i)
-            if (entries_[i].node && entries_[i].group == 1 && entries_[i].depth == 1 &&
+            if (entries_[i].node && entries_[i].node->origin == Origin::System &&
+                ((entries_[i].group == 1 && entries_[i].depth == 1) || entries_[i].node->unlisted) &&
                 lower(entries_[i].node->name) == lower(name))
                 return int(i);
         return -1;
@@ -1681,6 +1766,8 @@ void MenuMapController::addUnlisted(const std::string &title)
         selectedKey_ = entries_[size_t(i)].key;
         collapsed_.erase("w");
         collapsed_.erase(kMenuGroup);
+        if (entries_[size_t(i)].group == 2)
+            expanded_.insert(kOutGroup);
         const auto &st = ui_->global<MenuMapState>();
         st.set_detail_serial(st.get_detail_serial() + 1);
     }

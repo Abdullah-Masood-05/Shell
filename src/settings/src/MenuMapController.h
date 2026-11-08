@@ -57,19 +57,7 @@ public:
     void setDevOptions(DevOptions options);
 
 private:
-    struct Entry
-    {
-        const menumap::Node *node = nullptr; // null: a group (Shell's items / Windows' items)
-        int group = 0;                       // 0 your items, 1 Windows and programs,
-                                             // 2 your items not in this menu; for a group's
-                                             // own entry also 3, the menu as it shows
-        int depth = 0;
-        int parent = -1;
-        std::vector<int> kids;
-        std::string key;                     // stable across reloads, for expansion and selection
-        std::string menuPath;                // for "Move to": the path rules name this menu by
-        std::vector<menumap::MenuStep> steps; // Shell's menus: the path menu= names it by
-    };
+    using Entry = menumap::ListEntry;
 
     struct ItemState
     {
@@ -98,6 +86,11 @@ private:
     void activated();
     void load();
     void buildEntries();
+    // The list for an older shell.exe, without the order: your items, then Windows'.
+    // With one: menumap::buildMenuList.
+    void buildLegacy();
+    int addGroup(int group, const char *key);
+    std::string uniqueShellKey(const menumap::Node &n) const;
     void push();
     void pushRows();
     void pushPanels();
@@ -191,6 +184,11 @@ private:
     mutable std::map<std::string, OwnInfo> own_; // by shellKey()
     mutable std::map<std::string, std::optional<nss::NssDocument>> ownDocs_; // by pathKey(), for own_
     std::vector<Entry> entries_;
+    // Where each item went in the last list (by its key: 0 in the menu, 1 switched off,
+    // 2 not in this menu), and where the next one keeps the items that were there: a
+    // switch saved on this page reloads the list, and the row stays until Refresh.
+    std::map<std::string, int> disp_, pin_;
+    bool keepPins_ = false;
     std::set<std::string> expanded_;
     std::set<std::string> collapsed_;     // groups the user folded
     int selected_ = -1;

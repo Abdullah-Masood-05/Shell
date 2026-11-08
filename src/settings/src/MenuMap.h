@@ -12,6 +12,7 @@
 #include "nss/NssDocument.h"
 
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -51,7 +52,10 @@ struct Node
                                // a vis= that depends on the selection, and its menu's);
                                // "" from an older shell.exe that doesn't tell
     bool showsSample = false;  // that depends on which file or folder the sample is
-    std::string showsWhy;      // what decides it: where | find | vis | menu (its menu isn't here)
+    std::string showsWhy;      // what decides it: where | find | vis | menu (its menu isn't here) |
+                               // empty (nothing in the menu shows)
+    std::string titleSample;   // a title that depends on the selection, as it comes out for the
+                               // sample ("" when shell.exe can't work it out, or an older one)
 
     // Windows' items
     std::string name;          // normalized title, what find= and this.name see
@@ -149,6 +153,34 @@ std::optional<std::vector<MenuRef>> mergedMenu(const Tree &tree);
 
 // "Open wit&h" -> "Open with" ("&&" -> "&").
 std::string stripAccelerators(std::string_view title);
+
+// Where an item of the tab's menu goes in the Menu map's list (a shell.exe that gives
+// the order; without one the list stays as it was):
+//  - Menu: in this menu, where it is (shows yes or maybe);
+//  - Hidden: switched off (vis=vis.remove, or a rule that removes it);
+//  - Out: not in this menu: its where=, find= or vis= leaves it out, it names a menu that
+//    isn't here, or it is a title typed on the page that this menu doesn't have;
+//  - Moved: one of Windows' items that a rule sends to another menu, which then lists it.
+enum class Placing
+{
+    Menu,
+    Hidden,
+    Out,
+    Moved,
+};
+Placing placingOf(const Node &n);
+
+// A menu path as menu= and rules compare it: lower case, accelerators and the '/' around
+// it left out ("/Pin/Unpin/" and "pin/unpin" are the same).
+std::string menuPathKey(std::string_view path);
+
+// The separators of a menu's items that the real menu keeps: none first or last, never two
+// in a row. `separator[i]` says whether item i is one; the result is the indexes kept.
+std::vector<size_t> collapseSeparators(const std::vector<bool> &separator);
+
+// The titles of a menu's first items that have one (a title that depends on the selection
+// counts when shell.exe worked it out), at most `max`. `more` says there were others.
+std::vector<std::string> childTitles(const Node &menu, size_t max, bool *more = nullptr);
 
 // --- Rules for Windows' items (one line each) ---
 
@@ -343,5 +375,54 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
 // `newLine`: the line the declaration starts on afterwards.
 bool moveDeclaration(nss::NssDocument &doc, size_t line, size_t column, size_t anchorLine, size_t anchorColumn,
                      bool after, std::string *error = nullptr, size_t *newLine = nullptr);
+
+// --- The list the Menu map shows ---
+//
+// One entry per row: the groups ("In this menu", "Hidden", "Not in this menu") and the
+// items in them, with their parent and kids.
+struct ListEntry
+{
+    const Node *node = nullptr;          // null: a group
+    int group = 0;                       // 0 your items, 1 Windows and programs in this menu,
+                                         // 2 not in this menu, 4 switched off; for a group's
+                                         // own entry also 3, the menu as it shows
+    int depth = 0;
+    int parent = -1;
+    std::vector<int> kids;
+    std::string key;                     // stable across reloads, for expansion and selection
+    std::string menuPath;                // for "Move to": the path rules name this menu by
+    std::vector<MenuStep> steps;         // Shell's menus: the path menu= names it by
+    std::string from;                    // switched off or left out: the menu it was in ("" the main menu);
+                                         // for one moved in: the menu it came from
+    bool movedIn = false;                // one of Windows' items a rule moved into the menu it is listed in
+    bool dropped = false;                // a separator the real menu collapses: not listed
+};
+
+// The key of one of Shell's items: its declaration, the same wherever menu= and pos= put it.
+std::string shellKey(const std::filesystem::path &file, int line, int column);
+
+struct MenuList
+{
+    std::vector<ListEntry> entries;      // the three groups first (3, 4, 2), then the items
+    // Where each item went, by key: 0 in the menu, 1 switched off, 2 not in this menu.
+    std::map<std::string, int> placed;
+};
+
+// The list for a shell.exe that gives the order (nullopt without one: the map then lists
+// your items and Windows' apart, as before). Only what the real menu has is in "In this
+// menu", at the level it shows at, in the menu's order, separators as the menu collapses
+// them. Your items that are switched off, and Windows' items a rule removes, are in the
+// closed "Hidden" group. What its where=, find= or vis= leaves out, what names a menu
+// that isn't here, and titles typed on the page that this menu doesn't have are in "Not in
+// this menu". Windows' items a rule moves into a menu are listed in that menu, after its
+// own items (no such menu in this tab: in "Not in this menu").
+// `pinned`: items to keep in the group they were in (key -> 0, 1 or 2), so a row doesn't
+// jump when a switch is flipped.
+// Whether "Move to" offers the menu of entries[target] for entries[selected]: a menu of the
+// menu as it shows (not one that is switched off or isn't in this menu, nor one inside
+// those), and never the item itself or a menu inside it.
+bool canMoveInto(const std::vector<ListEntry> &entries, int target, int selected);
+
+std::optional<MenuList> buildMenuList(const Tree &tree, const std::map<std::string, int> &pinned = {});
 
 } // namespace menumap
