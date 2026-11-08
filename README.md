@@ -113,7 +113,13 @@ The screenshots of the app are made by
 > 2. **SmartScreen** ("Windows protected your PC"): click *More info*, then *Run anyway*.
 > 3. **Smart App Control** can't allow a single app, so if it blocks Shell, turn it off in *Windows Security > App &
 >    browser control > Smart App Control settings*, then run the installer again.
-> 4. **Another antivirus:** add `C:\Program Files\Nilesoft Shell` (or your portable folder) to its exclusions, then restart Explorer.
+> 4. **Microsoft Defender:** if it removed or blocked a Shell file, open *Windows Security > Virus & threat protection >
+>    Protection history*, find the Shell entry and choose *Actions > Restore* (or *Allow on device*). To stop it
+>    happening again, go to *Virus & threat protection settings > Manage settings > Exclusions > Add or remove
+>    exclusions > Add an exclusion > Folder* and pick `C:\Program Files\Nilesoft Shell` (or your portable folder). Then run the installer
+>    again or restart Explorer.
+> 5. **Another antivirus:** restore the file from its quarantine and add the same folder to its exclusions, then
+>    restart Explorer.
 >
 > Only download from the [releases page](https://github.com/Abdullah-Masood-05/Shell/releases).
 

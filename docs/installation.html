@@ -22,9 +22,20 @@
 		<li><b>Smart App Control.</b> If Windows says it blocked the app to protect you, Smart App Control is on. It has
 			no way to allow a single app, so you have to turn it off: open <i>Windows Security &rarr; App &amp; browser
 			control &rarr; Smart App Control settings</i> and choose <i>Off</i>. Then run the installer again.</li>
-		<li><b>Antivirus.</b> If you use another antivirus, add the install folder to its exclusions (allowed list):
-			<code>C:\Program Files\Nilesoft Shell</code>, or the folder you extracted the portable version to. Then restart Explorer or sign out
-			and back in.</li>
+		<li><b>Microsoft Defender.</b> If Defender removed or blocked a Shell file (for example
+			<code>shell.dll</code>, <code>shell.exe</code>, <code>NilesoftShellPro.exe</code> or the installer):
+			<ol type="a">
+				<li>Open <i>Windows Security &rarr; Virus &amp; threat protection &rarr; Protection history</i>. Find the
+					entry for the Shell file, then choose <i>Actions &rarr; Restore</i> (or <i>Allow on device</i>).</li>
+				<li>So it does not happen again, add an exclusion: in <i>Virus &amp; threat protection</i>, under
+					<i>Virus &amp; threat protection settings</i>, choose <i>Manage settings</i>. Scroll to
+					<i>Exclusions</i>, choose <i>Add or remove exclusions &rarr; Add an exclusion &rarr; Folder</i> and pick
+					<code>C:\Program Files\Nilesoft Shell</code> (or the folder you extracted the portable version to).</li>
+				<li>Run the installer again if a file was missing, or restart Explorer.</li>
+			</ol></li>
+		<li><b>Another antivirus.</b> Restore the Shell file from its quarantine and add the same folder,
+			<code>C:\Program Files\Nilesoft Shell</code> (or your portable folder), to its exclusions (allowed list). Then restart Explorer or
+			sign out and back in.</li>
 	</ol>
 	Only download Nilesoft Shell Pro from the
 	<a href="https://github.com/Abdullah-Masood-05/Shell/releases">official releases page</a>. You can check a file
