@@ -21,11 +21,18 @@
 	"rules":  every modify/remove, with what can be read from it without a
 	          real selection.
 
-	Rules are matched the way ContextMenu::build_main_system_menuitems does,
-	as far as that can be done without a selection: find= and in= are
-	evaluated, where= too when it only uses this.*, id.*, str.*, title.* and
-	constants (sel.*, window.* and the like make the match "maybe"), mode= is
-	not tested (one item is selected).
+	The selection is the one the real menu would have for <sample> (This PC,
+	the desktop and the taskbar need none): Selections::Parse of the item, as
+	in Explorer (sample_selection). Conditions are worked out against it where
+	that gives the real answer: sel.*, type.*, the window.is_* a context
+	decides, sys.* and path.* that only read (Known, knowable()). Keys, the
+	time, the clipboard, variables and the like make the answer "maybe".
+
+	Rules are matched the way ContextMenu::build_main_system_menuitems does:
+	find= and in= are evaluated, where= as above, mode= is not tested (one
+	item is selected). Shell's own items get "shows" (yes, no, maybe) from
+	their where=, find= and vis= as ContextMenu::prepare_new_items decides it,
+	and from the menu they end up in.
 */
 
 namespace Nilesoft
@@ -846,9 +853,213 @@ namespace Nilesoft
 				Maybe
 			};
 
-			// True when evaluating `e` needs nothing but the item (this.*), the
-			// names of Windows' items (id.*, title.*), strings and constants.
-			bool is_safe(Expression *e)
+			// What an expression may use and still be worked out here.
+			//
+			// Always: the item (this.*, unless `self` is false), the names of
+			// Windows' items (id.*, title.*), strings and constants.
+			//
+			// With `sel` (the sample's selection is set up, see sample_selection):
+			// also what the real menu would see for that selection and this
+			// machine: sel.* (not sel.tofile, sel.meta or sel.drop), type.* and
+			// mode.*, the window.is_* that a context decides (is_taskbar, is_edit,
+			// is_start, is_titlebar; is_desktop on the desktop, a background and
+			// the taskbar), sys.* that don't change while Windows runs (version,
+			// folders, language), user.* folders, path.* that only read, package.*,
+			// and a few plain functions (if, not, len, equals...). Keys, the time,
+			// the clipboard, variables and anything that does something stay out.
+			struct Known
+			{
+				bool self = true;		// this.*
+				bool sel = false;
+				bool desktop_known = false;	// window.is_desktop is decided by the context
+				// Set while walking: the expression reads what makes one file or
+				// folder different from another (its path, name, attributes...), not
+				// only what kind of item it is.
+				bool sample = false;
+			};
+
+			// sel.<Id[1]>...: true when the selection set up from the sample answers
+			// it as the real one would. Sets k.sample for the parts that depend on
+			// which item the sample is.
+			bool sel_known(FuncExpression *f, Known &k)
+			{
+				if(f->Id.length() == 1)
+				{
+					k.sample = true;	// sel, sel(quote, sep): the paths
+					return true;
+				}
+				switch(f->Id[1])
+				{
+					// What kind of selection: decided by the context (and, for a file,
+					// by the type of sample chosen).
+					case IDENT_COUNT:
+					case IDENT_BACK:
+					case IDENT_TYPE:
+					case IDENT_MODE:
+					case IDENT_TYPES:
+					case IDENT_EXTS:
+						return true;
+					case IDENT_FILE:
+					case IDENT_FILES:
+						if(f->Id[2] != IDENT_EXT && f->Id[2] != IDENT_COUNT)
+							k.sample = true;
+						return true;
+					case IDENT_DIRS:
+					case IDENT_DIRECTORIES:
+					case IDENT_PATHS:
+					case IDENT_SHORTS:
+					case IDENT_ROOTS:
+					case IDENT_DRIVERS:
+					case IDENT_NAMESPACES:
+						if(f->Id[2] != IDENT_COUNT)
+							k.sample = true;
+						return true;
+					// Which item it is.
+					case IDENT_READONLY:
+					case IDENT_HIDDEN:
+					case IDENT_LEN:
+					case IDENT_LENGTH:
+					case IDENT_RAW:
+					case IDENT_WORKDIR:
+					case IDENT_CURDIR:
+					case IDENT_FULL:
+					case IDENT_PATH:
+					case IDENT_SHORT:
+					case IDENT_PARENT:
+					case IDENT_LOCATION:
+					case IDENT_ROOT:
+					case IDENT_ITEM:
+					case IDENT_NAME:
+					case IDENT_TITLE:
+					case IDENT_DIR:
+					case IDENT_DIRECTORY:
+					case IDENT_TITLES:
+					case IDENT_NAMES:
+					case IDENT_INDEX:
+					case IDENT_I:
+					case IDENT_GET:
+					case IDENT_LNK:
+					case IDENT_LNKTARGET:
+						k.sample = true;
+						return true;
+					default:
+						return false;	// sel.tofile writes a file; sel.meta, sel.drop need Explorer
+				}
+			}
+
+			bool window_known(FuncExpression *f, const Known &k)
+			{
+				switch(f->Id[1])
+				{
+					case IDENT_IS_TASKBAR:
+					case IDENT_IS_EDIT:
+					case IDENT_IS_START:
+					case IDENT_IS_TITLEBAR:
+						return f->Id.length() == 2;
+					case IDENT_IS_DESKTOP:
+						return f->Id.length() == 2 && k.desktop_known;
+					default:
+						return false;
+				}
+			}
+
+			bool sys_known(FuncExpression *f)
+			{
+				if(f->Id.length() == 1)
+					return true;
+				switch(f->Id[1])
+				{
+					case IDENT_TYPE:
+					case IDENT_IS64:
+					case IDENT_IS11:
+					case IDENT_IS10:
+					case IDENT_IS81:
+					case IDENT_IS8:
+					case IDENT_IS7:
+					case IDENT_ISOREARLIER:
+					case IDENT_ISORGREATER:
+					case IDENT_IS7ORGREATER:
+					case IDENT_IS8ORGREATER:
+					case IDENT_IS81ORGREATER:
+					case IDENT_IS10ORGREATER:
+					case IDENT_S11ORGREATER:
+					case IDENT_IS7OREARLIER:
+					case IDENT_IS8OREARLIER:
+					case IDENT_IS81OREARLIER:
+					case IDENT_IS10OREARLIER:
+					case IDENT_IS11OREARLIER:
+					case IDENT_VER:
+					case IDENT_VERSION:
+					case IDENT_NAME:
+					case IDENT_ROOT:
+					case IDENT_PATH:
+					case IDENT_DIR:
+					case IDENT_DIRECTORY:
+					case IDENT_BIN:
+					case IDENT_BIN64:
+					case IDENT_BIN32:
+					case IDENT_WOW:
+					case IDENT_PROG:
+					case IDENT_PROG32:
+					case IDENT_TEMP:
+					case IDENT_APPDATA:
+					case IDENT_PROGRAMDATA:
+					case IDENT_USERS:
+					case IDENT_TEMPLATES:
+					case IDENT_EXPAND:
+					case IDENT_LANG:
+					case IDENT_LOC:
+						return true;
+					default:
+						return false;	// the time, power, memory, the theme, the monitor...
+				}
+			}
+
+			// path.* that only read a path or the file system (not path.files,
+			// which lists a folder, or the dialogs, path.refresh, path.lnk.create).
+			bool path_known(FuncExpression *f)
+			{
+				if(f->Id.length() != 2)
+					return false;
+				switch(f->Id[1])
+				{
+					case IDENT_ROOT:
+					case IDENT_NAME:
+					case IDENT_TITLE:
+					case IDENT_SHORT:
+					case IDENT_FULL:
+					case IDENT_PARENT:
+					case IDENT_LOCATION:
+					case IDENT_EMPTY:
+					case IDENT_EXISTS:
+					case IDENT_JOIN:
+					case IDENT_COMBINE:
+					case IDENT_ISABSOLUTE:
+					case IDENT_ISRELATIVE:
+					case IDENT_ISFILE:
+					case IDENT_ISDIR:
+					case IDENT_ISDIRECTORY:
+					case IDENT_ISROOT:
+					case IDENT_ISDRIVE:
+					case IDENT_ISCLSID:
+					case IDENT_ISNAMESPACE:
+					case IDENT_TYPE:
+					case IDENT_ISEXE:
+					case IDENT_REMOVEEXTENSION:
+					case IDENT_GETKNOWNFOLDER:
+					case IDENT_REMOVE_ARGS:
+					case IDENT_ARGS:
+					case IDENT_QUOTE_SPACES:
+					case IDENT_REMOVE_EXTENSION:
+					case IDENT_RENAME_EXTENSION:
+					case IDENT_ADD_EXTENSION:
+						return true;
+					default:
+						return false;
+				}
+			}
+
+			bool knowable(Expression *e, Known &k)
 			{
 				if(!e)
 					return true;
@@ -867,7 +1078,7 @@ namespace Nilesoft
 							return false;
 						for(auto x : a->items())
 						{
-							if(!is_safe(x))
+							if(!knowable(x, k))
 								return false;
 						}
 						return true;
@@ -879,7 +1090,7 @@ namespace Nilesoft
 							return false;
 						for(auto x : s->Body)
 						{
-							if(!is_safe(x))
+							if(!knowable(x, k))
 								return false;
 						}
 						return true;
@@ -887,17 +1098,17 @@ namespace Nilesoft
 					case ExpressionType::BinaryOperator:
 					{
 						auto b = static_cast<BinaryExpression *>(e);
-						return b && is_safe(b->Left) && is_safe(b->Right);
+						return b && knowable(b->Left, k) && knowable(b->Right, k);
 					}
 					case ExpressionType::UnaryOperator:
 					{
 						auto u = static_cast<UnaryExpression *>(e);
-						return u && is_safe(u->Operand);
+						return u && knowable(u->Operand, k);
 					}
 					case ExpressionType::Ternary:
 					{
 						auto t = static_cast<TernaryExpression *>(e);
-						return t && is_safe(t->Condition) && is_safe(t->True) && is_safe(t->False);
+						return t && knowable(t->Condition, k) && knowable(t->True, k) && knowable(t->False, k);
 					}
 					case ExpressionType::Identifier:
 					{
@@ -907,6 +1118,9 @@ namespace Nilesoft
 						switch(f->Id[0])
 						{
 							case IDENT_THIS:
+								if(!k.self)
+									return false;
+								break;
 							case IDENT_ID:
 							case IDENT_STR:
 							case IDENT_TITLE:
@@ -921,19 +1135,156 @@ namespace Nilesoft
 							case IDENT_FALSE:
 							case IDENT_NULL:
 								break;
+							// Plain keywords: pos=bottom, vis=disable, mode=single...
+							case IDENT_NIL:
+							case IDENT_OK:
+							case IDENT_YES:
+							case IDENT_NO:
+							case IDENT_DEFAULT:
+							case IDENT_AUTO:
+							case IDENT_ENABLE:
+							case IDENT_DISABLE:
+							case IDENT_ENABLED:
+							case IDENT_DISABLED:
+							case IDENT_INHERIT:
+							case IDENT_NONE:
+							case IDENT_BOTH:
+							case IDENT_TOP:
+							case IDENT_BOTTOM:
+							case IDENT_MIDDLE:
+							case IDENT_BEFORE:
+							case IDENT_AFTER:
+							case IDENT_REMOVE:
+							case IDENT_HIDDEN:
+							case IDENT_MODE_SINGLE:
+							case IDENT_MODE_UNIQUE:
+							case IDENT_MODE_MULTIPLE:
+							case IDENT_MODE_MULTI_SINGLE:
+							case IDENT_MODE_MULTI_UNIQUE:
+							case IDENT_MODE_MULTI:
+							case IDENT_VIS_STATIC:
+							case IDENT_VIS_LABEL:
+								if(f->Id.length() != 1)
+									return false;
+								break;
+							case IDENT_SEL:
+								if(!k.sel || !sel_known(f, k))
+									return false;
+								break;
+							case IDENT_WINDOW:
+							case IDENT_WND:
+								if(!k.sel || !window_known(f, k))
+									return false;
+								break;
+							case IDENT_SYS:
+							case IDENT_SYSTEM:
+								if(!k.sel || !sys_known(f))
+									return false;
+								break;
+							case IDENT_PATH:
+								if(!k.sel || !path_known(f))
+									return false;
+								break;
+							case IDENT_TYPE:
+							case IDENT_USER:
+							case IDENT_PACKAGE:
+							case IDENT_APPX:
+							case IDENT_UWP:
+							case IDENT_IF:
+							case IDENT_NOT:
+							case IDENT_LEN:
+							case IDENT_LENGTH:
+							case IDENT_EQUALS:
+							case IDENT_EQUAL:
+							case IDENT_GREATER:
+							case IDENT_LESS:
+							case IDENT_TOINT:
+							case IDENT_TODOUBLE:
+							case IDENT_TOUINT:
+							case IDENT_TOFLOAT:
+								if(!k.sel)
+									return false;
+								break;
 							default:
 								return false;
 						}
 						for(auto x : f->Arguments)
 						{
-							if(!is_safe(x))
+							if(!knowable(x, k))
 								return false;
 						}
-						return !f->Child || is_safe(f->Child);
+						return !f->Child || knowable(f->Child, k);
 					}
 					default:
 						return false;
 				}
+			}
+
+			// True when evaluating `e` needs nothing but the item (this.*), the
+			// names of Windows' items (id.*, title.*), strings and constants.
+			bool is_safe(Expression *e)
+			{
+				Known k;
+				return knowable(e, k);
+			}
+
+			// The selection the real menu would have for a right-click in `where`
+			// on `sample`, as Selections::QuerySelected and ContextMenu fill it in
+			// Explorer: the same Parse() of the item, its parent, Background for a
+			// folder's or the desktop's background, then Preparing(). False when it
+			// can't be made (a context without one, a sample that can't be opened).
+			bool sample_selection(Selections &s, const std::wstring &where, const std::wstring &sample)
+			{
+				if(where == L"taskbar")
+				{
+					// ContextMenu::Initialize for a taskbar: no items.
+					s.Window.id = WINDOW_TASKBAR;
+					s.Window.parent = WINDOW_TASKBAR;
+					s.Types[FSO_TASKBAR] = TRUE;
+					s.front = FSO_TASKBAR;
+					s.Directory = Path::GetKnownFolder(FOLDERID_Desktop).move();
+					s.Preparing();
+					return true;
+				}
+
+				ComPtr<IShellItem> item;
+				HRESULT hr = E_FAIL;
+				if(where == L"thispc")
+					hr = ::SHGetKnownFolderItem(FOLDERID_ComputerFolder, KF_FLAG_DEFAULT, nullptr, IID_PPV_ARGS(&item));
+				else if(where == L"desktop")
+					hr = ::SHGetKnownFolderItem(FOLDERID_Desktop, KF_FLAG_DEFAULT, nullptr, IID_PPV_ARGS(&item));
+				else if((where == L"file" || where == L"folder" || where == L"drive" || where == L"back") && !sample.empty())
+					hr = ::SHCreateItemFromParsingName(sample.c_str(), nullptr, IID_PPV_ARGS(&item));
+				else
+					return false;
+				if(FAILED(hr) || !item)
+					return false;
+
+				s.Window.id = where == L"desktop" ? WINDOW_DESKTOP : WINDOW_EXPLORER;
+				s.Window.desktop = where == L"desktop";
+				s.Background = background(where);
+				if(!s.Parse(item.Get()))
+					return false;
+
+				if(where == L"desktop")
+				{
+					s.Parent = Path::Parent(s.Items[0]->Path).move();
+					s.ParentRaw = Path::Parent(s.Items[0]->Raw).move();
+				}
+				else
+				{
+					ComPtr<IShellItem> parent;
+					FileProperties fp;
+					if(SUCCEEDED(item->GetParent(&parent)) && parent && Selections::GetFileProperties(parent.Get(), &fp))
+					{
+						s.Parent = fp.Path.move();
+						s.ParentRaw = fp.PathRaw.move();
+					}
+				}
+				s.Preparing();
+				if(s.Directory.empty())
+					s.Directory = Path::CurrentDirectory().move();
+				return true;
 			}
 		}
 
@@ -954,6 +1305,117 @@ namespace Nilesoft
 				where = L"folder";
 			if(where == L"computer")
 				where = L"thispc";
+
+			// The selection the real menu would have here: sel.* in where=, find=
+			// and vis= are evaluated against it (Known, knowable()).
+			Initializer::ensure_com();
+			Selections sample_sel;
+			const bool have_sel = sample_selection(sample_sel, where, sample_arg ? sample_arg : L"");
+			// A sample file or folder (or the system drive) stands for any of its
+			// kind: what depends on which one it is is marked "for this sample".
+			// This PC, the desktop and the taskbar are the real ones.
+			const bool placeholder = where == L"file" || where == L"folder" || where == L"back" || where == L"drive";
+			struct sel_scope
+			{
+				Context &c;
+				Selections *old;
+				~sel_scope() { c.Selections = old; }
+			} restore_sel{ context, context.Selections };
+			if(have_sel)
+				context.Selections = &sample_sel;
+
+			auto known = [&](bool self)
+			{
+				Known k;
+				k.self = self;
+				k.sel = have_sel;
+				k.desktop_known = where == L"desktop" || where == L"back" || where == L"taskbar";
+				return k;
+			};
+
+			// Whether a condition is true here: And, Or and Not are worked out part by
+			// part, so `sel.raw == X and key.shift()` is No wherever sel.raw isn't X.
+			// k.sample: the answer depends on which file or folder the sample is.
+			std::function<Tri(Expression *, Known &)> tri = [&](Expression *e, Known &k) -> Tri
+			{
+				if(!e)
+					return Tri::Yes;
+				if(e->Type() == ExpressionType::BinaryOperator)
+				{
+					auto b = static_cast<BinaryExpression *>(e);
+					if(b && (b->Operator == OperatorType::LogicalAnd || b->Operator == OperatorType::LogicalOr))
+					{
+						Known kl = k, kr = k;
+						kl.sample = kr.sample = false;
+						auto l = tri(b->Left, kl), r = tri(b->Right, kr);
+						// The side that decides is the one whose sample-dependence counts:
+						// for And a No, for Or a Yes (both when both decide).
+						const Tri decisive = b->Operator == OperatorType::LogicalAnd ? Tri::No : Tri::Yes;
+						if(l == decisive || r == decisive)
+						{
+							k.sample |= l == decisive && r == decisive ? kl.sample && kr.sample
+									  : l == decisive ? kl.sample : kr.sample;
+							return decisive;
+						}
+						k.sample |= kl.sample || kr.sample;
+						if(l == Tri::Maybe || r == Tri::Maybe)
+							return Tri::Maybe;
+						return decisive == Tri::No ? Tri::Yes : Tri::No;
+					}
+				}
+				if(e->Type() == ExpressionType::UnaryOperator)
+				{
+					auto u = static_cast<UnaryExpression *>(e);
+					if(u && (u->Operator == OperatorType::LogicalNot || u->Operator == OperatorType::UnaryNot))
+					{
+						auto v = tri(u->Operand, k);
+						return v == Tri::Maybe ? v : v == Tri::Yes ? Tri::No : Tri::Yes;
+					}
+				}
+				Known part = k;
+				part.sample = false;
+				if(!knowable(e, part))
+					return Tri::Maybe;
+				// sel.raw (or sel.path) == '::{...}': a namespace such as This PC or the
+				// Recycle Bin. A file's, folder's or drive's path never is one, so that
+				// is decided by the kind of item, whichever one the sample is.
+				if(placeholder && e->Type() == ExpressionType::BinaryOperator)
+				{
+					auto b = static_cast<BinaryExpression *>(e);
+					auto is_raw = [](Expression *x)
+					{
+						if(!x || x->Type() != ExpressionType::Identifier)
+							return false;
+						auto f = static_cast<FuncExpression *>(x);
+						return f->Id.length() == 2 && f->Id[0] == IDENT_SEL && (f->Id[1] == IDENT_RAW || f->Id[1] == IDENT_PATH) &&
+							   f->Arguments.empty() && !f->Child && !f->Array;
+					};
+					auto is_namespace = [](Expression *x)
+					{
+						// A quoted string is a statement around the string.
+						while(x && x->Type() == ExpressionType::Statement)
+						{
+							auto st = static_cast<StatementExpression *>(x);
+							x = st->Body.size() == 1 ? st->Body[0] : nullptr;
+						}
+						return x && x->Type() == ExpressionType::String &&
+							   static_cast<StringExpression *>(x)->Value.to_string().starts_with(L"::");
+					};
+					if(b && (b->Operator == OperatorType::EqualEqual || b->Operator == OperatorType::NotEqual) &&
+					   ((is_raw(b->Left) && is_namespace(b->Right)) || (is_namespace(b->Left) && is_raw(b->Right))))
+						part.sample = false;
+				}
+				try
+				{
+					auto v = context.Eval(e).to_bool() ? Tri::Yes : Tri::No;
+					k.sample |= part.sample;
+					return v;
+				}
+				catch(...)
+				{
+					return Tri::Maybe;
+				}
+			};
 
 			auto declared = [&](NativeMenu *item, TitleInfo &title, std::wstring &o)
 			{
@@ -1032,7 +1494,108 @@ namespace Nilesoft
 				std::wstring pos;			// top, bottom, middle, N, before:<title>, after:<title>, indexof
 				Placement::Spec spec;
 				string indexof;				// the pattern of pos=indexof()
+				// Whether it shows for the sample, by its own where=, find= and a vis=
+				// that depends on the selection (a constant vis= is in "vis"), and
+				// then also by the menu it ends up in (shows).
+				Tri own = Tri::Yes;
+				bool own_sample = false;
+				const wchar_t *own_why = L"";	// where | find | vis: what makes it No or Maybe
+				Tri shows = Tri::Yes;
+				bool shows_sample = false;
+				const wchar_t *why = L"";		// own_why, or "menu" when its menu isn't here
 				std::vector<std::unique_ptr<ShellNode>> children;
+			};
+
+			// As ContextMenu::prepare_new_items decides it (type= is already
+			// matched): where=, then vis= (hidden leaves it out; disabled still
+			// shows), then find= against each selected item's title, extension and
+			// path. mode= can't leave out an item for one selected item.
+			auto shows_of = [&](ShellNode &n)
+			{
+				auto item = n.item;
+				auto merge = [&](Tri t, bool sample, const wchar_t *why)
+				{
+					if(t == Tri::Yes)
+					{
+						n.own_sample |= sample;
+						return;
+					}
+					if(n.own == Tri::No)
+						return;
+					if(t == Tri::No)
+					{
+						n.own = Tri::No;
+						n.own_sample = sample;
+						n.own_why = why;
+					}
+					else if(n.own == Tri::Yes)
+					{
+						n.own = Tri::Maybe;
+						n.own_why = why;
+					}
+				};
+				if(item->where.get())
+				{
+					auto k = known(false);
+					auto t = tri(item->where, k);
+					merge(t, k.sample, L"where");
+				}
+				if(item->visibility.get() && !is_safe(item->visibility))
+				{
+					auto k = known(false);
+					Tri t = Tri::Maybe;
+					if(knowable(item->visibility, k))
+					{
+						try
+						{
+							t = context.parse_visibility(item->visibility, Visibility::Enabled) == Visibility::Hidden ? Tri::No : Tri::Yes;
+						}
+						catch(...)
+						{
+						}
+					}
+					merge(t, k.sample, L"vis");
+				}
+				if(item->find.get() && !item->is_separator())
+				{
+					Tri t = Tri::Maybe;
+					bool sample = placeholder;
+					if(have_sel)
+					{
+						auto k = known(false);
+						if(knowable(item->find, k))
+						{
+							try
+							{
+								string value;
+								context.Eval(item->find, value, true);
+								FindPattern fp;
+								if(value.empty() || !fp.split(value, L'|'))
+									t = Tri::Yes, sample = false;
+								else
+								{
+									size_t found = 0;
+									for(auto s : sample_sel.Items)
+									{
+										string ext = s->Extension.substr(1).move();
+										if(!fp(&s->Title, s->IsFile() ? &ext : nullptr, &s->Path))
+										{
+											found = 0;
+											break;
+										}
+										found++;
+									}
+									t = found ? Tri::Yes : Tri::No;
+									sample = placeholder || k.sample;
+								}
+							}
+							catch(...)
+							{
+							}
+						}
+					}
+					merge(t, sample, L"find");
+				}
 			};
 			using ShellList = std::vector<std::unique_ptr<ShellNode>>;
 
@@ -1139,6 +1702,7 @@ namespace Nilesoft
 						}
 					}
 					position_of(*n);
+					shows_of(*n);
 					read(item->items, depth + 1, n->children);
 					out.push_back(std::move(n));
 				}
@@ -1294,7 +1858,36 @@ namespace Nilesoft
 				}
 				list = std::move(sorted);
 			};
+			// The main menu's items in the order the menu takes them (config order, then
+			// those menu= brings here), for the order with Windows' items (below).
+			std::vector<ShellNode *> shell_config;
+			for(auto &n : shell_root)
+				shell_config.push_back(n.get());
 			arrange(shell_root);
+
+			// Shown in the menu it ends up in: not when that menu isn't shown. (An
+			// item that menu= takes out of a menu that isn't shown can still show:
+			// it now hangs under the menu it went to.)
+			std::function<void(ShellList &, Tri, bool)> effective = [&](ShellList &list, Tri parent, bool parent_sample)
+			{
+				for(auto &n : list)
+				{
+					if(parent == Tri::No)
+					{
+						n->shows = Tri::No;
+						n->shows_sample = parent_sample;
+						n->why = L"menu";
+					}
+					else
+					{
+						n->shows = n->own == Tri::Yes ? parent : n->own;
+						n->shows_sample = n->own_sample || (n->own == Tri::Yes && parent_sample);
+						n->why = n->own != Tri::Yes ? n->own_why : parent == Tri::Maybe ? L"menu" : L"";
+					}
+					effective(n->children, n->shows, n->shows_sample);
+				}
+			};
+			effective(shell_root, Tri::Yes, false);
 
 			std::wstring shell;
 			std::function<void(ShellList &)> walk = [&](ShellList &list)
@@ -1343,13 +1936,20 @@ namespace Nilesoft
 					jbool(shell, L"expanded", n.expanded);
 					jtext(shell, L"moved_from", n.moved_from);
 					jtext(shell, L"pos", n.pos);
+					// yes | no | maybe: whether it shows in this menu for the sample, whether
+					// that depends on which file or folder the sample is, and what decides it
+					// (where, find, vis, or menu: the menu it is in).
+					jtext(shell, L"shows", n.shows == Tri::Yes ? L"yes" : n.shows == Tri::No ? L"no" : L"maybe");
+					jbool(shell, L"shows_sample", placeholder && n.shows_sample);
+					jtext(shell, L"shows_why", n.why);
 					jkey(shell, L"items");
 					shell += L"[";
 					walk(n.children);
 					shell += L"]}";
 				}
 			};
-			walk(shell_root);
+			// Written once the Windows menu is read: a menu of yours that nothing in it
+			// shows in is dropped, unless a rule moves Windows' items into it.
 
 			// --- The rules ---
 			auto &statics = context.Cache->statics;
@@ -1467,40 +2067,11 @@ namespace Nilesoft
 
 			// Which rules reach which item, as build_main_system_menuitems decides.
 			this_item self;
-			std::function<Tri(Expression *)> eval_tri = [&](Expression *e) -> Tri
+			// this.* is the Windows item; sel.* the sample's selection (tri, above).
+			auto eval_tri = [&](Expression *e) -> Tri
 			{
-				if(!e)
-					return Tri::Yes;
-				if(e->Type() == ExpressionType::BinaryOperator)
-				{
-					auto b = static_cast<BinaryExpression *>(e);
-					if(b && (b->Operator == OperatorType::LogicalAnd || b->Operator == OperatorType::LogicalOr))
-					{
-						auto l = eval_tri(b->Left), r = eval_tri(b->Right);
-						if(b->Operator == OperatorType::LogicalAnd)
-							return l == Tri::No || r == Tri::No ? Tri::No : l == Tri::Yes && r == Tri::Yes ? Tri::Yes : Tri::Maybe;
-						return l == Tri::Yes || r == Tri::Yes ? Tri::Yes : l == Tri::No && r == Tri::No ? Tri::No : Tri::Maybe;
-					}
-				}
-				if(e->Type() == ExpressionType::UnaryOperator)
-				{
-					auto u = static_cast<UnaryExpression *>(e);
-					if(u && (u->Operator == OperatorType::LogicalNot || u->Operator == OperatorType::UnaryNot))
-					{
-						auto v = eval_tri(u->Operand);
-						return v == Tri::Maybe ? v : v == Tri::Yes ? Tri::No : Tri::Yes;
-					}
-				}
-				if(!is_safe(e))
-					return Tri::Maybe;
-				try
-				{
-					return context.Eval(e).to_bool() ? Tri::Yes : Tri::No;
-				}
-				catch(...)
-				{
-					return Tri::Maybe;
-				}
+				auto k = known(true);
+				return tri(e, k);
 			};
 
 			std::function<void(std::vector<SysItem> &, uint32_t)> match = [&](std::vector<SysItem> &items, uint32_t parent)
@@ -1645,6 +2216,339 @@ namespace Nilesoft
 			};
 			match(sys, 0);
 
+			// --- Menus of yours with nothing in them ---
+			// ContextMenu::OnInitMenuPopup drops a menu of the config that ends up
+			// empty, unless Windows' items are moved into it. Yes when a rule surely
+			// moves one there, Maybe when one may.
+			// A menu path as the menu compares it: the whole text, '/' around it left
+			// out ("Pin/Unpin" is one title).
+			auto path_hash = [](std::wstring path)
+			{
+				while(!path.empty() && (path.front() == L'/' || iswspace(path.front())))
+					path.erase(0, 1);
+				while(!path.empty() && (path.back() == L'/' || iswspace(path.back())))
+					path.pop_back();
+				return path.empty() ? 0u : MenuItemInfo::hashing(path.c_str());
+			};
+			auto moved_into = [&](uint32_t path) -> Tri
+			{
+				Tri found = Tri::No;
+				std::function<void(const std::vector<SysItem> &)> look = [&](const std::vector<SysItem> &items)
+				{
+					for(auto &item : items)
+					{
+						if(item.type != 2 && !item.hidden)
+						{
+							if(!item.moved.empty() && path_hash(item.moved) == path)
+								found = Tri::Yes;
+							else if(found == Tri::No)
+							{
+								for(auto i : item.maybe)
+								{
+									if(i >= 0 && static_cast<size_t>(i) < infos.size() &&
+									   (infos[i].menu_dynamic || (!infos[i].menu.empty() && path_hash(infos[i].menu) == path)))
+										found = Tri::Maybe;
+								}
+							}
+						}
+						look(item.items);
+					}
+				};
+				look(sys);
+				return found;
+			};
+			std::vector<std::wstring> menu_path;
+			std::function<void(ShellList &)> empties = [&](ShellList &list)
+			{
+				for(auto &n : list)
+				{
+					if(!n->item->is_menu())
+						continue;
+					const bool named = n->title.state == TitleInfo::Text;
+					if(named)
+						menu_path.push_back(n->title.text.empty() ? std::wstring() : std::wstring(n->title.text.c_str()));
+					empties(n->children);
+					if(n->shows != Tri::No && !n->item->for_each && n->title.state != TitleInfo::Dynamic)
+					{
+						Tri kids = Tri::No;
+						bool kids_sample = false;
+						for(auto &c : n->children)
+						{
+							if(c->item->is_separator())
+								continue;
+							kids_sample |= c->shows_sample;
+							if(c->shows == Tri::Yes)
+								kids = Tri::Yes;
+							else if(c->shows == Tri::Maybe && kids == Tri::No)
+								kids = Tri::Maybe;
+						}
+						if(kids != Tri::Yes)
+						{
+							std::wstring joined;
+							for(auto &part : menu_path)
+								joined += (joined.empty() ? L"" : L"/") + part;
+							auto m = named ? moved_into(path_hash(joined)) : Tri::Maybe;
+							if(m == Tri::Yes)
+								kids = Tri::Yes;
+							else if(m == Tri::Maybe)
+								kids = Tri::Maybe;
+						}
+						if(kids == Tri::No)
+						{
+							n->shows = Tri::No;
+							n->shows_sample = kids_sample;
+							n->why = L"empty";
+						}
+						else if(kids == Tri::Maybe && n->shows == Tri::Yes)
+						{
+							n->shows = Tri::Maybe;
+							n->why = L"empty";
+						}
+					}
+					if(named)
+						menu_path.pop_back();
+				}
+			};
+			empties(shell_root);
+			walk(shell_root);
+
+			// --- The main menu in the order it shows ---
+			// As ContextMenu::OnInitMenuPopup lays it out: your pos=top items, then
+			// Windows' items, your items without pos= at the separator nearest the
+			// middle (settings.position, the default), pos=bottom at the end,
+			// pos=middle in the middle, then pos=N and pos=indexof() over the whole
+			// menu. Windows' items that a rule hides or sends to another menu are left
+			// out of the placing, then listed again right after the Windows item
+			// before them, where the map shows them. modify(pos=) on Windows' items
+			// isn't applied: they keep Windows' order.
+			std::wstring order;
+			{
+				struct Slot
+				{
+					ShellNode *node = nullptr;
+					size_t sys = 0;			// index in `sys` when node is null
+					bool separator = false;
+					const string *name = nullptr;
+				};
+				std::vector<Slot> items, top, autos, middle, bottom, custom;
+				auto slot_of = [](ShellNode *n)
+				{
+					Slot s;
+					s.node = n;
+					s.separator = n->item->is_separator();
+					s.name = &n->normalized;
+					return s;
+				};
+				for(auto n : shell_config)
+				{
+					if(n->shows == Tri::No)
+						continue;
+					switch(n->spec.kind)
+					{
+						case Placement::Kind::Top: top.push_back(slot_of(n)); break;
+						case Placement::Kind::Middle: middle.push_back(slot_of(n)); break;
+						case Placement::Kind::Bottom: bottom.push_back(slot_of(n)); break;
+						case Placement::Kind::Index:
+						case Placement::Kind::IndexOf: custom.push_back(slot_of(n)); break;
+						default: autos.push_back(slot_of(n)); break;
+					}
+				}
+				auto present = [&](const SysItem &item)
+				{
+					if(item.hidden)
+						return false;
+					std::wstring m = item.moved;
+					while(!m.empty() && (m.front() == L'/' || iswspace(m.front())))
+						m.erase(0, 1);
+					return m.empty();
+				};
+				items = top;
+				for(size_t i = 0; i < sys.size(); i++)
+				{
+					if(present(sys[i]))
+					{
+						Slot s;
+						s.sys = i;
+						s.separator = sys[i].type == 2;
+						s.name = &sys[i].name;
+						items.push_back(s);
+					}
+				}
+
+				auto findpos = [&]() -> size_t
+				{
+					const int c = static_cast<int>(items.size());
+					int pos = c / 2, p = -1;
+					for(int i = pos; i >= 0 && i < c; i--)
+					{
+						if(items[i].separator)
+						{
+							p = i;
+							break;
+						}
+					}
+					if(p < 0)
+					{
+						for(int i = pos; i < c; i++)
+						{
+							if(items[i].separator)
+							{
+								p = i;
+								break;
+							}
+						}
+					}
+					return static_cast<size_t>(p >= 0 ? p : pos);
+				};
+				auto position = Position::Auto;
+				if(auto e = context.Cache->dynamic.position.get(); e && is_safe(e))
+				{
+					try
+					{
+						position = context.parse_position(e);
+					}
+					catch(...)
+					{
+					}
+				}
+				size_t dynamic_pos = 0;
+				switch(position)
+				{
+					case Position::Auto:
+					case Position::None:
+						// The taskbar's menu: at the top.
+						if(where != L"taskbar")
+							dynamic_pos = items.empty() ? 1 : findpos();
+						break;
+					case Position::Top: dynamic_pos = 0; break;
+					case Position::Middle: dynamic_pos = findpos(); break;
+					case Position::Bottom: dynamic_pos = items.size(); break;
+					default: dynamic_pos = static_cast<size_t>(position); break;
+				}
+				if(dynamic_pos > items.size())
+					dynamic_pos = items.size();
+				items.insert(items.begin() + static_cast<std::ptrdiff_t>(dynamic_pos), autos.begin(), autos.end());
+				items.insert(items.end(), bottom.begin(), bottom.end());
+				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), middle.begin(), middle.end());
+
+				struct Placed { ShellNode *spec; Slot last; };
+				std::vector<Placed> placed;
+				auto same_slot = [](const Slot &a, const Slot &b) { return a.node == b.node && (a.node || a.sys == b.sys); };
+				for(auto &it : custom)
+				{
+					auto &sp = it.node->spec;
+					if(sp.kind == Placement::Kind::Index)
+					{
+						if(sp.index < 0 || sp.index > static_cast<int>(items.size()))
+							items.push_back(it);
+						else
+							items.insert(items.begin() + sp.index, it);
+						continue;
+					}
+					Placed *group = nullptr;
+					for(auto &pl : placed)
+					{
+						if(pl.spec->spec.offset == sp.offset && pl.spec->spec.def == sp.def && pl.spec->indexof.equals(it.node->indexof, false))
+						{
+							group = &pl;
+							break;
+						}
+					}
+					std::ptrdiff_t anchor = -1;
+					std::ptrdiff_t at = static_cast<std::ptrdiff_t>(items.size());
+					if(group)
+					{
+						for(size_t i = 0; i < items.size(); i++)
+						{
+							if(same_slot(items[i], group->last))
+							{
+								at = static_cast<std::ptrdiff_t>(i) + 1;
+								break;
+							}
+						}
+					}
+					else
+					{
+						FindPattern fp;
+						if(fp.split(it.node->indexof, L'|'))
+						{
+							for(const auto &pat : fp.matches)
+							{
+								for(size_t i = 0; i < items.size() && anchor < 0; i++)
+								{
+									if(items[i].name && fp.find(pat, items[i].name))
+										anchor = static_cast<std::ptrdiff_t>(i);
+								}
+								if(anchor >= 0)
+									break;
+							}
+						}
+						const auto size = static_cast<std::ptrdiff_t>(items.size());
+						if(anchor >= 0)
+							at = std::clamp<std::ptrdiff_t>(anchor + sp.offset, 0, size);
+						else if(sp.def == IndexOf::Top)
+							at = 0;
+						else if(sp.def == IndexOf::Middle)
+							at = size / 2;
+						else if(sp.def >= 0)
+							at = std::min<std::ptrdiff_t>(sp.def, size);
+					}
+					items.insert(items.begin() + at, it);
+					if(group)
+						group->last = it;
+					else
+						placed.push_back({ it.node, it });
+				}
+
+				// Windows' items that left this menu: after the Windows item before them.
+				for(size_t i = 0; i < sys.size(); i++)
+				{
+					if(present(sys[i]))
+						continue;
+					Slot s;
+					s.sys = i;
+					size_t at = items.size();
+					bool found = false;
+					for(size_t k = items.size(); k-- > 0 && !found;)
+					{
+						if(!items[k].node && items[k].sys < i)
+						{
+							at = k + 1;
+							found = true;
+						}
+					}
+					if(!found)
+					{
+						for(size_t k = 0; k < items.size(); k++)
+						{
+							if(!items[k].node)
+							{
+								at = k;
+								break;
+							}
+						}
+					}
+					items.insert(items.begin() + static_cast<std::ptrdiff_t>(at), s);
+				}
+
+				for(auto &it : items)
+				{
+					order += order.empty() ? L"{" : L",{";
+					size_t index = it.sys;
+					if(it.node)
+					{
+						for(size_t k = 0; k < shell_root.size(); k++)
+						{
+							if(shell_root[k].get() == it.node)
+								index = k;
+						}
+					}
+					jtext(order, L"from", it.node ? L"shell" : L"system");
+					jnum(order, L"index", static_cast<long long>(index));
+					order += L"}";
+				}
+			}
+
 			std::function<void(const std::vector<SysItem> &)> write = [&](const std::vector<SysItem> &items)
 			{
 				bool first = true;
@@ -1708,6 +2612,9 @@ namespace Nilesoft
 			}
 
 			json = L"{\"shell\":[" + shell + L"],\"system\":[" + system + L"],\"rules\":[" + rules + L"],\"quiet\":[" + quiet_json + L"]";
+			// The main menu as it shows, your items and Windows' together: "from" shell or
+			// system, "index" in that list. Your items it leaves out aren't in it.
+			json += L",\"order\":[" + order + L"]";
 			jtext(json, L"system_error", system_error);
 			json += L"}";
 			return true;

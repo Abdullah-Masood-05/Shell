@@ -75,6 +75,11 @@ Node readNode(const json &j, Origin origin)
         n.relocated = getBool(j, "moved");
         n.movedFrom = getString(j, "moved_from");
         n.pos = getString(j, "pos");
+        n.shows = getString(j, "shows");
+        if (n.shows != "yes" && n.shows != "no" && n.shows != "maybe")
+            n.shows.clear();
+        n.showsSample = getBool(j, "shows_sample");
+        n.showsWhy = getString(j, "shows_why");
     } else {
         n.name = getString(j, "name");
         n.path = getString(j, "path");
@@ -157,6 +162,47 @@ std::string exactFind(std::string_view name)
 }
 
 } // namespace
+
+bool notInMenu(const Node &n) { return n.origin == Origin::Shell && n.shows == "no"; }
+
+std::optional<std::vector<MenuRef>> mergedMenu(const Tree &t)
+{
+    if (!t.hasOrder)
+        return std::nullopt;
+    std::vector<MenuRef> out;
+    std::vector<bool> shellUsed(t.shell.size()), systemUsed(t.system.size());
+    for (const auto &ref : t.order) {
+        const auto &list = ref.shell ? t.shell : t.system;
+        auto &used = ref.shell ? shellUsed : systemUsed;
+        if (ref.index < 0 || size_t(ref.index) >= list.size() || used[size_t(ref.index)])
+            continue;
+        used[size_t(ref.index)] = true;
+        if (!notInMenu(list[size_t(ref.index)]))
+            out.push_back(MenuRef{ &list[size_t(ref.index)], size_t(ref.index) });
+    }
+    // Not in the order: added here (addUnlisted, at the end of Windows' items), or
+    // one the order missed. At the end, so nothing is lost.
+    for (size_t i = 0; i < t.shell.size(); ++i)
+        if (!shellUsed[i] && !notInMenu(t.shell[i]))
+            out.push_back(MenuRef{ &t.shell[i], i });
+    for (size_t i = 0; i < t.system.size(); ++i)
+        if (!systemUsed[i])
+            out.push_back(MenuRef{ &t.system[i], i });
+    return out;
+}
+
+bool showsSometimes(const Node &n)
+{
+    if (n.origin != Origin::Shell)
+        return false;
+    if (!n.shows.empty())
+        return n.shows == "maybe";
+    // An older shell.exe: any where=, find= or vis= that isn't a constant.
+    bool sometimes = n.vis == "dynamic";
+    for (const auto &c : n.conditions)
+        sometimes |= c == "where" || c == "find";
+    return sometimes;
+}
 
 std::string stripAccelerators(std::string_view title)
 {
@@ -246,6 +292,12 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
             t.rules.push_back(std::move(rule));
         }
     t.systemError = getString(*tree, "system_error");
+    if (auto it = tree->find("order"); it != tree->end() && it->is_array()) {
+        t.hasOrder = true;
+        for (const auto &o : *it)
+            if (o.is_object())
+                t.order.push_back(OrderRef{ getString(o, "from") == "shell", getInt(o, "index") });
+    }
     if (auto it = tree->find("quiet"); it != tree->end() && it->is_array())
         for (const auto &q : *it) {
             if (!q.is_object() || getBool(q, "windows"))
@@ -879,6 +931,9 @@ Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view 
     if (n.origin == Origin::Shell) {
         // Sent to another menu by its menu= (and listed here where it is written).
         if (!n.menu.empty() && !n.relocated)
+            s.shown = false;
+        // Not in this menu for the sample (where=, find= or vis= leave it out).
+        if (notInMenu(n))
             s.shown = false;
         const bool placedInOrder = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
         if (placedInOrder && self && &n != self) {

@@ -320,6 +320,22 @@ TEST_CASE("menu move: which of a menu's items show and can be named, as Shell bu
     auto broughtHere = away;
     broughtHere.relocated = true;
     CHECK(siblingOf(broughtHere, &self, true, "", "").shown);
+    // Left out of this menu for the sample (its where=): "Place in this menu" doesn't
+    // offer a place next to it. One that shows only sometimes still counts.
+    auto elsewhere = ownNode("Cleaning", 6);
+    elsewhere.shows = "no";
+    CHECK_FALSE(siblingOf(elsewhere, &self, true, "", "").shown);
+    auto sometimes = ownNode("Develop", 7);
+    sometimes.shows = "maybe";
+    CHECK(siblingOf(sometimes, &self, true, "", "").shown);
+    {
+        std::vector<Sibling> menu = { siblingOf(plain, &self, true, "", ""), siblingOf(elsewhere, &self, true, "", ""),
+                                      siblingOf(self, &self, true, "", ""), siblingOf(sometimes, &self, true, "", "") };
+        std::vector<std::string> titles;
+        for (const auto &p : placesNextTo(menu, 2))
+            titles.push_back(p.title);
+        CHECK(titles == std::vector<std::string>{ "Plain", "Plain", "Develop", "Develop" });
+    }
 
     // Placed by its own pos=N or pos=indexof(): only one declared before `self` in
     // the same file is in the menu when `self` is placed.
