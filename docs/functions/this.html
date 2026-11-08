@@ -5,7 +5,7 @@
 <section id="syntax" class="my-5">
 	<h5>Syntax</h5>
 	<pre><code>
-this.type	// Returns the type of the current item [item = 0, menu = 1, separator = 2]
+this.type	// Returns the type of the current item [item = 0, menu = 1, separator = 2], for Explorer's items and your own
 this.checked	// Returns true if the current item is checked
 this.pos	// Returns the position of the current item in the context menu
 this.disabled	// Returns true if the current item is disabled
@@ -14,5 +14,14 @@ this.title	// Returns the title of the current item
 this.id		// Returns the ID of the current item
 this.count	// Returns the number of system items in the context menu (0 on the Windows 11 taskbar)
 this.length	// Returns the length of the current item's title
+this.tip	// Returns the tip of the current item (for Windows' items, the one a modify() rule gave it)
+this.key	// Returns the shortcut text shown at the right of the current item (keys=); this.keys is the same
+this.parent	// Returns the ID of the menu the current item is in
+this.parent.id	// The same as this.parent; this.parent.id(id1, id2) is true when it is one of them
+this.parent.title	// Returns the title of the submenu the current item is in (empty in the main menu)
+this.parent.name	// The same title, without the &amp; and the trailing dots
+this.parent.tip	// Returns the tip of that submenu
+this.parent.key	// Returns the shortcut text of that submenu
+this.parent.count	// Returns the number of items in that submenu (this.count in the main menu)
 </code></pre>
 </section>

@@ -22,15 +22,38 @@
 
 <section id="command.navigate" class="my-5">
 	<h5>command.navigate</h5>
-	<p>Opens a folder in the same explorer window.</p>
+	<p>Opens a folder in the same explorer window. In an Open or Save As box it opens the folder in that box,
+		and the file name you typed stays as it is.</p>
 	<p>Syntax</p>
-	<code>command.navigate(path)</code>
+	<code>command.navigate(path)</code><br>
+	<code>item(title='Desktop' where=wnd.is_dialog cmd=command.navigate(user.desktop))</code>
+</section>
+
+<section id="command.refresh" class="my-5">
+	<h5>command.refresh</h5>
+	<p>Refreshes the window the menu was opened on.</p>
+	<p>Syntax</p>
+	<pre><code>command.refresh                                // refresh, as F5 does
+command.refresh(1)                             // send the refresh straight to the window the menu opened on
+command.refresh(2)                             // refresh, and rebuild the Windows icon cache (ie4uinit.exe -show), for icons that show wrong</code></pre>
+</section>
+
+<section id="command.empty_recycle_bin" class="my-5">
+	<h5>command.empty_recycle_bin</h5>
+	<p>Empties the Recycle Bin on every drive. It does not ask first, so put a <code>msg()</code> question in front of it.
+		Windows shows its progress window while it works. If the Recycle Bin is already empty, nothing happens.
+		If one drive can't be emptied, the other drives still are, and the reason is written to shell.log.
+		If you press Cancel in Windows' progress window, it stops and the files that are left stay in the Recycle Bin.</p>
+	<p>Syntax</p>
+	<code>command.empty_recycle_bin</code><br>
+	<code>item(title='Empty Recycle Bin' cmd=if(msg('Empty the Recycle Bin?', app.name, msg.yesno | msg.warning) == msg.idyes, command.empty_recycle_bin))</code>
 </section>
 
 <section id="list" class="my-5">
 <pre><code>command.cascade_windows
 command.copy_to_folder
 command.customize_this_folder
+command.empty_recycle_bin
 command.find
 command.folder_options
 command.invert_selection

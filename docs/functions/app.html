@@ -76,6 +76,26 @@
 '@app.reload'  // usage inside quoted-string literals</code></pre>
 </section>
 
+<section id="app.set" class="my-5">
+	<h5>app.set, app.get, app.exists, app.remove (app.delete)</h5>
+	<p>Remember a piece of text between menus, even after a restart. Each value has a name of your choice.</p>
+	<ul>
+		<li><code>app.set(name, value)</code> stores the value as text. Returns true when it was saved.</li>
+		<li><code>app.get(name)</code> returns the stored text, or nothing when there is none.</li>
+		<li><code>app.exists(name)</code> returns true when a value with that name is stored.</li>
+		<li><code>app.remove(name)</code> or <code>app.delete(name)</code> forgets the value. Returns true when one was removed.</li>
+	</ul>
+	<p>The name can't be empty. Values are kept for the current Windows user, in the registry under
+		<code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Variables</code>. Uninstalling Shell leaves them there.</p>
+	<p>Use <code>app.set</code> and <code>app.remove</code> in <code>cmd</code>, so they run when the item is clicked.
+		In <code>where</code>, <code>title</code> or another property they would run every time the menu opens.
+		<code>app.get</code> and <code>app.exists</code> are fine anywhere.</p>
+	<p>Syntax</p>
+	<pre><code>item(title='Remember this folder' cmd=app.set('fav', sel.dir))
+item(title='Go to ' + app.get('fav') where=app.exists('fav') cmd=app.get('fav'))
+item(title='Forget the folder' where=app.exists('fav') cmd=app.remove('fav'))</code></pre>
+</section>
+
 <section id="app.unload" class="my-5">
 	<h5>app.unload</h5>
 	<p>Unload the <a href="/docs/configuration/index.html#shell.nss">configuration file</a>.

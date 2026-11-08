@@ -9,6 +9,7 @@ key.cancel
 key.capital
 key.capslock
 key.control
+key.ctrl
 key.delete
 key.down
 key.end
@@ -32,6 +33,7 @@ key.home
 key.insert
 key.lalt
 key.lcontrol
+key.lctrl
 key.left
 key.lshift
 key.lwin
@@ -46,6 +48,7 @@ key.printscreen
 key.prior
 key.ralt
 key.rcontrol
+key.rctrl
 key.return
 key.right
 key.rshift
@@ -77,6 +80,9 @@ key(key.shift, key.control)
 // check if keys (SHIFT+CTRL+X) is pressed
 key(key.shift, key.control, 87)</code>
 	</pre>
+	<p><code>key.shift()</code>, <code>key.ctrl()</code> and <code>key.alt()</code> are true when either the left or the
+		right key is held, and so are <code>key(key.ctrl)</code> and <code>key(key.alt)</code>.
+		<code>key.return</code> is the same key as <code>key.enter</code>.</p>
 </section>
 
 <section id="key.send" class="my-5">

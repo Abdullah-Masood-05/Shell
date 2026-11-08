@@ -163,6 +163,16 @@
 	<code>str.replace("Hello World!", "world", "user", true)</code>
 </section>
 
+<section id="str.fmt" class="my-5">
+	<h5>str.fmt (str.format)</h5>
+	<p>Puts values into a text. Each <code>{0}</code>, <code>{1}</code>, <code>{2}</code> and so on is replaced by the value in that place after the text, counting from 0.
+	A number with no value to match stays as written. A value that itself contains <code>{1}</code> is not replaced again.</p>
+	<p>Syntax</p>
+	<code>str.fmt('{0}-{1}', 'a', 'b')</code> return "a-b" <br>
+	<code>str.fmt('{0} of {1} selected', sel.count, 10)</code> return "2 of 10 selected" with two items selected <br>
+	<code>str.format('{1}, {0}', 'World', 'Hello')</code> return "Hello, World" <br>
+</section>
+
 <section id="str.padleft" class="my-5">
 	<h5>str.padleft</h5>
 	<p>Returns a new string of a specified length in which the beginning of the current string is padded with spaces or with a specified character.</p>

@@ -56,9 +56,18 @@ default = update_existing | recursive<br><br>
 
 <section id="io.move" class="my-5">
 	<h5>io.move</h5>
-	<p>Moves an existing file or a directory, including its children..</p>
+	<p>Moves an existing file or a directory, including its children. Returns true when it was moved.
+		A relative path starts from the folder the menu was opened in.</p>
+	<p>By default a file can move to another drive, and a file already at the new path is kept (the move fails).
+		A directory can only move within its drive.</p>
 	<p>Syntax</p>
-	<code>io.move(oldPath, newPath)</code>
+	<code>io.move(oldPath, newPath)</code><br>
+	<code>io.move(oldPath, newPath, flags)</code><br>
+	flags:<br>
+	1 = replace an existing file, 2 = allow a move to another drive, 8 = finish writing to the disk before returning<br>
+	default = 2<br><br>
+	Example:<br>
+	<code>io.move(sel.path, path.combine('D:\backup', sel.name), 1 | 2)</code>
 </section>
 
 <section id="io.rename" class="my-5">
@@ -84,6 +93,7 @@ default = update_existing | recursive<br><br>
 <section id="io.directory.create" class="my-5">
 	<h5>io.directory.create (io.dir.create)</h5>
 	<p>Create new directory.</p>
+	<p>When one new folder is made in the folder that File Explorer, the desktop, or an Open or Save box is showing, it is selected and its name is ready to edit, the same as Windows' New menu does. This happens whether you give its name or its full path. A folder made anywhere else, or several folders from one <code>io.dir.create</code>, are only created.</p>
 	<p>Syntax</p>
 	<code>io.directory.create(path)</code>
 </section>
@@ -135,7 +145,7 @@ default = update_existing | recursive<br><br>
 <section id="io.file.create" class="my-5">
 	<h5>io.file.create</h5>
 	<p>Create new file with content option. If the file already exists, it is replaced.</p>
-	<p>The optional third argument, when <code>true</code>, selects the new file in the open Explorer window and starts renaming it, the same as Windows' New menu does. This only works when the menu was opened inside an Explorer folder, and the file must be in that folder, given by its name (for example <code>'new.txt'</code>, not a full path). Otherwise the file is still created but not renamed. Pass <code>""</code> as the content to create an empty file and rename it.</p>
+	<p>The optional third argument, when <code>true</code>, selects the new file in the open Explorer window and starts renaming it, the same as Windows' New menu does. This works when the file is made in the folder that File Explorer, the desktop, or an Open or Save box is showing, given by its name (for example <code>'new.txt'</code>) or by its full path. Otherwise the file is still created but not renamed. Pass <code>""</code> as the content to create an empty file and rename it.</p>
 	<p>Syntax</p>
 	<code>io.file.create(path)</code><br>
 	<code>io.file.create(path, "Hello World!")</code><br>

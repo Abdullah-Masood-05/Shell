@@ -11,9 +11,11 @@
 		menu, the item goes at the first item whose title matches <i>pattern</i>, plus <i>offset</i> (0 = before it,
 		1 = right after it). Patterns separated with <code>|</code> are tried in order; a quoted one
 		(<code>'"WinRAR"'</code>) matches the whole title, in any case, with <code>&amp;</code> ignored. When nothing
-		matches, the item goes to the <i>default position</i> (<code>'top'</code>, <code>'middle'</code>, else the
-		end). Items with the same <code>indexof()</code> keep their order in the file.</p>
-	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code>
+		matches, the item goes to the <i>default position</i>: <code>'top'</code>, <code>'middle'</code>, a number
+		(the position in the menu, counting from 0; past the end means the end), else the end. Items with the same
+		<code>indexof()</code> keep their order in the file.</p>
+	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"|"Open in new window"', 1, 'top'))</code><br>
+	<code>item(title='Open in Zed' cmd='zed.exe' pos=indexof('"WinRAR"', 1, 3))</code>
 </section>
 
 <section id="if" class="my-5">
@@ -109,6 +111,30 @@
 	<code>shr(shift-expression, additive-expression)</code>
 </section>
 
+<section id="run" class="my-5">
+	<h5>run, exec, launch, cmd, shell</h5>
+	<p>Start a program, open a file or a folder, from <code>cmd=</code> or any other place an expression runs when the item is clicked.</p>
+	<p>Syntax</p>
+	<code>run(file, arguments, verb, directory, show, wait)</code>
+	<p>Only <i>file</i> is needed; leave out the values you don't need from the end, or write <code>null</code> to skip one.</p>
+	<ul>
+		<li><i>arguments</i>: the text passed to the program.</li>
+		<li><i>verb</i>: how to open it, such as <code>'open'</code>, <code>'runas'</code> (as administrator), <code>'edit'</code> or <code>'print'</code>.
+			With <code>run</code>, <code>exec</code>, <code>launch</code> and <code>cmd</code>, it is <code>'runas'</code> when you write anything after the file and <code>'open'</code> when you don't, as before.
+			With <code>shell</code>, Windows picks the default.</li>
+		<li><i>directory</i>: the folder the program starts in. Left out, it is the folder you right-clicked in.</li>
+		<li><i>show</i>: how the window shows, one of the <a href="#cmd-visibility">cmd visibility</a> values, such as <code>cmd.hidden</code>.</li>
+		<li><i>wait</i>: <code>1</code> waits for the program to close before the rest of the command runs, <code>0</code> doesn't wait.
+			Left out, it waits unless the window is hidden.</li>
+	</ul>
+	<p>The older forms still work: <code>run(file, arguments, show)</code> and <code>shell(file, arguments, verb, show)</code>.
+		A number where the verb or the directory goes is taken as <i>show</i>.
+		<code>shell</code> gives back the program's exit code when it waited for it.</p>
+	<pre><code>item(title='Notepad here' cmd=run('notepad.exe', null, 'open'))
+item(title='Repair (admin)' cmd=run('cmd.exe', '/c sfc /scannow', 'runas', null, cmd.normal, 0))
+item(title='Hidden script' cmd=run('cmd.exe', '/c echo hi > out.txt', 'open', sel.dir, cmd.hidden, 1))</code></pre>
+</section>
+
 <section id="cmd-visibility" class="my-5">
 	<h5>cmd visibility enumerations</h5>
 	<p>The flags that specify how an application is to be displayed when it is opened.</p>
@@ -137,7 +163,7 @@ mode.multi</code></pre>
 	<pre><code>type.desktop
 type.directory(dir)
 type.drive
-type.dvd
+type.dvd (type.cd)
 type.file
 type.fixed
 type.namespace

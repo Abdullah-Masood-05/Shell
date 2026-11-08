@@ -245,3 +245,39 @@ sel(true, "\n")</code></pre>
 	<p>Syntax</p>
 	<code>sel.lnk.icon</code>
 </section>
+<section id="sel.lnk.args" class="my-5">
+	<h5>sel.lnk.args</h5>
+	<p>Returns the arguments of the selected shortcut, or nothing when it has none.</p>
+	<p>Syntax</p>
+	<code>sel.lnk.args</code>
+</section>
+<section id="sel.lnk.raw" class="my-5">
+	<h5>sel.lnk.raw</h5>
+	<p>Returns the target of the selected shortcut followed by its arguments, as one command line. The target is put in quotes when it has spaces.</p>
+	<p>Syntax</p>
+	<code>sel.lnk.raw</code>
+	<p>Example</p>
+	<pre><code>sel.lnk.raw
+// result:
+// "C:\Program Files\App\app.exe" --profile work
+</code></pre>
+</section>
+<section id="sel.item" class="my-5">
+	<h5>sel.item</h5>
+	<p>Returns the path of the current item: the one a command for several selected items is running for, or the item at the index in <code>sel.item[index]</code>. <code>sel.item.len</code> is the length of that path.</p>
+	<p>Syntax</p>
+	<code>sel.item</code><br>
+	<code>sel.item.len</code>
+</section>
+<section id="sel.drop" class="my-5">
+	<h5>sel.drop</h5>
+	<p>In the menu that shows when you drag files with the right mouse button and let go, returns the folder they are
+		dropped into: the folder under the pointer, or else the folder the window shows. In any other menu it is empty.</p>
+	<p>It works when you drop into the file list of a File Explorer window or on the desktop. It is empty when you drop on
+		the navigation pane, into another program's window, or into a place that isn't a folder on disk.</p>
+	<p>Syntax</p>
+	<code>sel.drop</code>
+	<p>Example</p>
+	<pre><code>item(title='Open @sel.drop' where=len(sel.drop) > 0 cmd=sel.drop)
+item(title='Terminal in the drop folder' where=len(sel.drop) > 0 cmd='wt.exe' args='-d "@sel.drop"')</code></pre>
+</section>

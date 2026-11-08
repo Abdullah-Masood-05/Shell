@@ -1,7 +1,9 @@
 <h4>Backups</h4>
 <br>
 <p>Every time the app saves your configuration, it first takes a <strong>snapshot</strong>: a copy of
-	<code>shell.nss</code> and every file it imports. The Backups page lists these snapshots, shows what changed since
+	<code>shell.nss</code>, every file it imports, and your other files in the configuration folder, such as your own
+	icons in <code>imports\images</code>. Copies (<code>.bak</code>), temporary files, logs and the backups
+	themselves are left out, and so are files over 16 MB (or past 128 MB in all). The Backups page lists these snapshots, shows what changed since
 	each one, and puts one back if you want to undo a change.</p>
 <p>Snapshots are kept in <code>%APPDATA%\Nilesoft\Shell\backups</code>, one folder per snapshot.</p>
 
@@ -28,7 +30,8 @@
 	lines were added and removed, or <i>Identical to your files now</i>.</p>
 <ul>
 	<li>The changed files are listed with <i>modified</i>, <i>added</i> (new since the snapshot) or <i>removed</i> (gone
-		since the snapshot) and their line counts. Click a file to see its lines.</li>
+		since the snapshot) and their line counts. Click a file to see its lines. For an image or another file that
+		isn't text the page says how it changed and how big it is, instead of showing lines.</li>
 	<li><strong>Green lines</strong> (<code>+</code>) are in your files now. <strong>Red lines</strong> (<code>−</code>)
 		are in the snapshot; they come back if you restore it.</li>
 	<li>The two columns of numbers are the line numbers in the snapshot and in your file.</li>

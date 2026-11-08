@@ -31,6 +31,8 @@
 			linear = [0, 100, 0, 0]
 
 			// or radial = [cx, cy, r, fx, fy]
+			// cx, cy, fx, fy: percent of half the menu's width or height, from its
+			// left or top edge (100 is the centre); r: percent of half the shorter side
 			radial =[ 100, 100, 150, 100, 100]
 
 			// stop = [offset, stop-color]
@@ -221,3 +223,21 @@ bottom = 2</code></pre>
 right = 4
 top = 4
 bottom = 4</code></pre>
+<h3 id="read">Reading the theme in a menu file</h3>
+<p>These names give the theme of the menu that is showing, so an item can match it, for example
+	<code>image=[\uE1A9, theme.item.text.normal]</code>. Sizes are in pixels as drawn on your screen.
+	Outside a menu (such as in a command that runs after the menu closed) they give nothing.</p>
+<pre><code>theme.name                  // the name = you chose: auto, modern, classic, white, black, system, highcontrast, ...
+theme.isdark                // true when the menu is dark
+theme.font                  // the font's name (theme.font.name is the same)
+theme.font.size             // the text size
+theme.background            // the background color; .opacity, .effect, .gradient (true when a gradient is on)
+theme.item.radius           // the corner radius of an item's highlight
+theme.item.opacity          // its opacity
+theme.item.back.select      // and the other theme.item colors: back, text, border; normal, select; .disabled
+theme.border                // the border color (theme.border.color); .size, .radius
+theme.shadow                // the shadow color (theme.shadow.color); .size, .offset, .enabled
+theme.separator             // the separator color (theme.separator.color); .size
+theme.image                 // true when images show (theme.image.enabled); .size, .gap, .scale
+theme.layout.rtl            // true for a right-to-left menu (theme.layout is the same)
+theme.dpi                   // the screen's DPI</code></pre>

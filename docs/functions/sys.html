@@ -114,6 +114,7 @@ sys.wow</code></pre>
 	<p>Returns true if the current monitor is the primary</p>
 	<p>Syntax</p>
 	<code>sys.is_primary_monitor</code><br>
+	<code>sys.screen.primary</code><br>
 </section>
 
 <section id="sys.langid" class="my-5">
@@ -163,4 +164,55 @@ sys.wow</code></pre>
 	<p>Returns whether the Windows version is 7</p>
 	<p>Syntax</p>
 	<code>sys.is7</code><br>
+</section>
+
+<section id="sys.lang" class="my-5">
+	<h5>sys.lang</h5>
+	<p>The Windows display language, the one Windows' own menu items use.</p>
+	<p>Syntax</p>
+	<pre><code>sys.lang                                       // the language tag, e.g. en-US
+sys.lang.full                                  // its name as Windows shows it, e.g. English (United States)
+sys.lang.name                                  // the language part, e.g. en
+sys.lang.country                               // the country part, e.g. US
+sys.lang.id                                    // the language ID, e.g. 1033</code></pre>
+</section>
+
+<section id="sys.power" class="my-5">
+	<h5>sys.power</h5>
+	<p>Power and battery state.</p>
+	<p>Syntax</p>
+	<pre><code>sys.power                                      // "ac" when on mains power, "battery" when on battery
+sys.power.is_ac                                // true when on mains power
+sys.power.battery                              // the battery charge in percent, or -1 when unknown or there is no battery
+sys.power.is_charging                          // true while the battery is charging (false when Windows does not know)</code></pre>
+	<p>Example</p>
+	<pre><code>item(title='Battery: ' + sys.power.battery + '%' where=sys.power.battery >= 0)</code></pre>
+</section>
+
+<section id="sys.memory" class="my-5">
+	<h5>sys.memory</h5>
+	<p>Physical memory (RAM).</p>
+	<p>Syntax</p>
+	<pre><code>sys.memory                                     // the percent of memory in use (same as sys.memory.used)
+sys.memory.used                                // the percent of memory in use
+sys.memory.total                               // all memory in MB
+sys.memory.free                                // free memory in MB</code></pre>
+</section>
+
+<section id="sys.screen" class="my-5">
+	<h5>sys.screen</h5>
+	<p>The screens. Width and height are those of the main screen, in pixels.</p>
+	<p>Syntax</p>
+	<pre><code>sys.screen                                     // width x height of the main screen, e.g. 1920x1080
+sys.screen.width
+sys.screen.height
+sys.screen.count                               // the number of monitors
+sys.screen.primary                             // true if the menu is on the main monitor (same as sys.is_primary_monitor)</code></pre>
+</section>
+
+<section id="sys.cpu" class="my-5">
+	<h5>sys.cpu.count</h5>
+	<p>Returns the number of logical processors. <code>sys.cpu</code> is the same.</p>
+	<p>Syntax</p>
+	<code>sys.cpu.count</code>
 </section>
