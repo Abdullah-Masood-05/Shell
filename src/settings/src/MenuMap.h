@@ -96,6 +96,14 @@ struct Rule
     bool titleDynamic = false;
 };
 
+// One item of the main menu in the order it shows: Tree::shell[index] or
+// Tree::system[index].
+struct OrderRef
+{
+    bool shell = false;
+    int index = 0;
+};
+
 struct Tree
 {
     bool ok = false;
@@ -109,6 +117,11 @@ struct Tree
     // Programs' menu handlers that loaded but added nothing for this sample: some
     // add their items only inside File Explorer (Windows' own are left out).
     std::vector<std::string> quietPrograms;
+    // The main menu as it shows, your items and Windows' together (shell.exe works it
+    // out as the menu does: pos=, the separator nearest the middle...). Your items the
+    // menu leaves out aren't in it. hasOrder false: an older shell.exe without it.
+    bool hasOrder = false;
+    std::vector<OrderRef> order;
 };
 
 // The output of `shell.exe -config:tree`. nullopt (and `error`) when it isn't JSON
@@ -122,6 +135,17 @@ bool notInMenu(const Node &n);
 // on keys, the time, the window...). With an older shell.exe (no "shows"): any
 // where=, find= or vis= that isn't a constant, as before.
 bool showsSometimes(const Node &n);
+
+// The main menu as it shows: tree.order resolved to its nodes, without your items
+// that aren't in it, then whatever the order doesn't name (your items, then Windows',
+// such as those addUnlisted adds). nullopt without an order (an older shell.exe): the
+// map then lists your items and Windows' apart, as before.
+struct MenuRef
+{
+    const Node *node = nullptr;
+    size_t index = 0;   // in tree.shell or tree.system
+};
+std::optional<std::vector<MenuRef>> mergedMenu(const Tree &tree);
 
 // "Open wit&h" -> "Open with" ("&&" -> "&").
 std::string stripAccelerators(std::string_view title);

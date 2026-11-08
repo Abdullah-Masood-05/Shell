@@ -61,7 +61,8 @@ private:
     {
         const menumap::Node *node = nullptr; // null: a group (Shell's items / Windows' items)
         int group = 0;                       // 0 your items, 1 Windows and programs,
-                                             // 2 your items not in this menu
+                                             // 2 your items not in this menu; for a group's
+                                             // own entry also 3, the menu as it shows
         int depth = 0;
         int parent = -1;
         std::vector<int> kids;

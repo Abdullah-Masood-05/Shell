@@ -165,6 +165,32 @@ std::string exactFind(std::string_view name)
 
 bool notInMenu(const Node &n) { return n.origin == Origin::Shell && n.shows == "no"; }
 
+std::optional<std::vector<MenuRef>> mergedMenu(const Tree &t)
+{
+    if (!t.hasOrder)
+        return std::nullopt;
+    std::vector<MenuRef> out;
+    std::vector<bool> shellUsed(t.shell.size()), systemUsed(t.system.size());
+    for (const auto &ref : t.order) {
+        const auto &list = ref.shell ? t.shell : t.system;
+        auto &used = ref.shell ? shellUsed : systemUsed;
+        if (ref.index < 0 || size_t(ref.index) >= list.size() || used[size_t(ref.index)])
+            continue;
+        used[size_t(ref.index)] = true;
+        if (!notInMenu(list[size_t(ref.index)]))
+            out.push_back(MenuRef{ &list[size_t(ref.index)], size_t(ref.index) });
+    }
+    // Not in the order: added here (addUnlisted, at the end of Windows' items), or
+    // one the order missed. At the end, so nothing is lost.
+    for (size_t i = 0; i < t.shell.size(); ++i)
+        if (!shellUsed[i] && !notInMenu(t.shell[i]))
+            out.push_back(MenuRef{ &t.shell[i], i });
+    for (size_t i = 0; i < t.system.size(); ++i)
+        if (!systemUsed[i])
+            out.push_back(MenuRef{ &t.system[i], i });
+    return out;
+}
+
 bool showsSometimes(const Node &n)
 {
     if (n.origin != Origin::Shell)
@@ -266,6 +292,12 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
             t.rules.push_back(std::move(rule));
         }
     t.systemError = getString(*tree, "system_error");
+    if (auto it = tree->find("order"); it != tree->end() && it->is_array()) {
+        t.hasOrder = true;
+        for (const auto &o : *it)
+            if (o.is_object())
+                t.order.push_back(OrderRef{ getString(o, "from") == "shell", getInt(o, "index") });
+    }
     if (auto it = tree->find("quiet"); it != tree->end() && it->is_array())
         for (const auto &q : *it) {
             if (!q.is_object() || getBool(q, "windows"))

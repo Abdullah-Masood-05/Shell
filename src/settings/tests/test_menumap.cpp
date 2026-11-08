@@ -119,6 +119,43 @@ TEST_CASE("menu map: the -config:tree JSON")
     CHECK_FALSE(parseTree(R"({"ok":true})"));
 }
 
+TEST_CASE("menu map: the main menu in the order it shows")
+{
+    // shell.exe gives the order: Windows' Open, your Terminal, Windows' Properties,
+    // then your Power (pos=bottom). Cleaning isn't in this menu, so it isn't in it.
+    const char *json = R"({"ok":true,"errors":[],"tree":{"shell":[
+        {"kind":"item","title":"Power","state":"text","file":"C:\\cfg\\a.nss","line":1,"column":1,"shows":"yes","items":[]},
+        {"kind":"item","title":"Terminal","state":"text","file":"C:\\cfg\\a.nss","line":2,"column":1,"shows":"maybe","items":[]},
+        {"kind":"item","title":"Cleaning","state":"text","file":"C:\\cfg\\a.nss","line":3,"column":1,"shows":"no","items":[]}],
+      "system":[{"kind":"item","title":"&Open","name":"Open","items":[]},{"kind":"item","title":"P&roperties","name":"Properties","items":[]}],
+      "rules":[],"system_error":"",
+      "order":[{"from":"system","index":0},{"from":"shell","index":1},{"from":"system","index":1},{"from":"shell","index":0},
+               {"from":"shell","index":2},{"from":"shell","index":9},{"from":"system","index":0}]}})";
+    auto t = parseTree(json);
+    REQUIRE(t);
+    CHECK(t->hasOrder);
+    auto titles = [](const std::vector<MenuRef> &menu) {
+        std::vector<std::string> out;
+        for (const auto &r : menu)
+            out.push_back(r.node->title);
+        return out;
+    };
+    auto menu = mergedMenu(*t);
+    REQUIRE(menu);
+    // Past the end and twice over are skipped; one not in this menu is left out.
+    CHECK(titles(*menu) == std::vector<std::string>{ "Open", "Terminal", "Properties", "Power" });
+    CHECK((*menu)[1].index == 1);
+    CHECK((*menu)[2].index == 1);
+
+    // Items the order doesn't name (one typed by its title on the page) go at the end.
+    addUnlisted(*t, { "Scan with Microsoft Defender..." });
+    menu = mergedMenu(*t);
+    REQUIRE(menu);
+    REQUIRE(menu->size() == 5);
+    CHECK(menu->back().node->unlisted);
+    CHECK(menu->back().index == 2);
+}
+
 TEST_CASE("menu map: which of your items are in this menu")
 {
     // A newer shell.exe says, per item, whether it shows for the sample.
@@ -175,6 +212,10 @@ TEST_CASE("menu map: which of your items are in this menu")
     n.conditions.clear();
     n.vis = "dynamic";
     CHECK(showsSometimes(n));
+    // No order from an older shell.exe: your items and Windows' stay apart.
+    CHECK_FALSE(old->hasOrder);
+    CHECK_FALSE(mergedMenu(*old));
+
     // Windows' items are never "not in this menu": they come from the menu itself.
     Node w;
     w.origin = Origin::System;
