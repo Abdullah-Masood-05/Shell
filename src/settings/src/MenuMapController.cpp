@@ -702,6 +702,17 @@ menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
     return plan;
 }
 
+std::string MenuMapController::positionOf(const Node &n) const
+{
+    if (const auto &own = ownInfo(n); own.key)
+        if (auto v = overrideProp(*own.key, "pos"))
+            return *v;
+    if (auto doc = loadDecls(n.file, nullptr))
+        if (auto v = menumap::shellItemProp(*doc, size_t(n.line), size_t(n.column), "pos"))
+            return *v;
+    return {};
+}
+
 std::string MenuMapController::fileLabel(const fs::path &file) const
 {
     if (file.empty())
@@ -1250,7 +1261,22 @@ void MenuMapController::pushDetail()
             positions_.push_back(Choice{ nsp::tr("At the top"), nss::quoteString("top") });
             size_t index = 0;
             auto siblings = siblingsOf(e, &index);
-            for (const auto &p : menumap::placesNextTo(siblings, index))
+            auto places = menumap::placesNextTo(siblings, index);
+            // An item with pos=indexof() declared after this one isn't in the menu yet when this one
+            // is placed, so it can't be named. Giving this one the same pos= puts it right before that
+            // item: items with the same indexof() stay in the order they are declared.
+            for (size_t i = 0; i < siblings.size(); ++i) {
+                if (!siblings[i].laterInOrder || !siblings[i].shown || i == index)
+                    continue;
+                const auto &other = *entries_[size_t(entries_[size_t(e.parent)].kids[i])].node;
+                auto expr = positionOf(other);
+                if (expr.rfind("indexof(", 0) != 0)
+                    continue;
+                places.push_back(menumap::Place{ menumap::stripAccelerators(other.rawTitle), false, expr, i });
+            }
+            std::stable_sort(places.begin(), places.end(),
+                             [](const menumap::Place &a, const menumap::Place &b) { return a.sibling < b.sibling; });
+            for (const auto &p : places)
                 positions_.push_back(Choice{ p.after ? nsp::trf("After {}", p.title) : nsp::trf("Before {}", p.title), p.pos });
             positions_.push_back(Choice{ nsp::tr("At the bottom"), nss::quoteString("bottom") });
             d.can_up = reorderOf(e, true).possible;

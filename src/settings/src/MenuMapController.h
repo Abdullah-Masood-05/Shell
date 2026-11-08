@@ -143,6 +143,8 @@ private:
     std::string statusOf(const Entry &e, std::string *kind) const;
     std::string originLabel(const Entry &e) const;
     std::string fileLabel(const std::filesystem::path &file) const;
+    // The text of an item's pos= (the override line's for one in a shipped file), "" without one.
+    std::string positionOf(const menumap::Node &n) const;
     bool writable(const std::filesystem::path &file) const;
     // The rule lines of settings-app-map.nss among `indexes` (rules of the tree).
     std::vector<std::string> mapLinesOf(const std::vector<int> &indexes, const char *what) const;

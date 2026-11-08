@@ -804,3 +804,43 @@ TEST_CASE("menu move: Move to and the places offered only use what the menu has"
     CHECK(planReorder(siblings, index, true).possible);
     CHECK_FALSE(planReorder(siblings, 0, true).possible);
 }
+
+TEST_CASE("menu move: items of any file are offered as places")
+{
+    // Shipped Terminal (declared first, no pos=), shipped Go (pos=indexof, declared second),
+    // your Power (menu='/'), your Late (pos=indexof, declared last), and Me, the item being placed
+    // (declared third, in your file).
+    auto t = parseTree(R"({"ok":true,"context":"file","errors":[],"tree":{
+      "shell":[
+        {"kind":"item","title":"Terminal","state":"text","file":"C:\\c\\terminal.nss","line":1,"column":1,"shows":"yes","seq":1,"items":[]},
+        {"kind":"item","title":"Go","state":"text","file":"C:\\c\\goto.nss","line":1,"column":1,"shows":"yes","pos":"indexof","seq":2,"items":[]},
+        {"kind":"item","title":"Me","state":"text","file":"C:\\c\\kaser.nss","line":1,"column":1,"shows":"yes","seq":3,"items":[]},
+        {"kind":"menu","title":"Power","state":"text","file":"C:\\c\\kaser.nss","line":5,"column":1,"shows":"yes","menu":"/","seq":4,"items":[]},
+        {"kind":"item","title":"Late","state":"text","file":"C:\\c\\kaser.nss","line":9,"column":1,"shows":"yes","pos":"indexof","seq":5,"items":[]}],
+      "system":[],"rules":[],"system_error":"",
+      "order":[{"from":"shell","index":0},{"from":"shell","index":1},{"from":"shell","index":2},
+               {"from":"shell","index":3},{"from":"shell","index":4}]}})");
+    REQUIRE(t);
+    const Node &me = t->shell[2];
+    std::vector<Sibling> siblings;
+    for (const auto &n : t->shell)
+        siblings.push_back(siblingOf(n, &me, true, "", ""));
+    std::vector<std::string> offered;
+    for (const auto &p : placesNextTo(siblings, 2))
+        offered.push_back((p.after ? "after " : "before ") + p.title);
+    // Go is in another file but declared before Me; Power has menu='/' (the main menu, so it is here).
+    // Late is declared after Me, so indexof() can't name it: it is not offered as a plain place...
+    CHECK(offered == std::vector<std::string>{ "before Terminal", "after Terminal", "before Go", "after Go", "before Power", "after Power" });
+    // ...but is known as one that can share its anchor.
+    CHECK(siblings[4].laterInOrder);
+    CHECK_FALSE(siblings[4].titled);
+    CHECK_FALSE(siblings[1].laterInOrder);
+
+    // An older shell.exe (no seq) keeps the same-file rule.
+    for (auto &n : t->shell)
+        n.seq = 0;
+    CHECK_FALSE(siblingOf(t->shell[1], &me, true, "", "").titled);
+
+    // Sharing the anchor puts Me right before Late: the same indexof() keeps declaration order.
+    CHECK(arrange({ plain("a"), plain("b"), rel("Me", "a", 1), rel("Late", "a", 1) }) == Titles{ "a", "Me", "Late", "b" });
+}

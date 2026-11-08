@@ -1486,6 +1486,7 @@ namespace Nilesoft
 				TitleInfo title;
 				string normalized;			// the title as indexof() matches it
 				string title_sample;		// a title that depends on the selection, worked out for the sample
+				int seq = 0;				// its place in the config, in the order the items are declared
 				std::wstring menu;			// a constant menu=, without the outer '/'
 				bool menu_dynamic = false;
 				bool to_root = false;		// menu='/'
@@ -1660,6 +1661,7 @@ namespace Nilesoft
 				}
 			};
 
+			int declared_seq = 0;
 			std::function<void(std::vector<NativeMenu *> &, uint32_t, ShellList &)> read =
 				[&](std::vector<NativeMenu *> &items, uint32_t depth, ShellList &out)
 			{
@@ -1673,6 +1675,7 @@ namespace Nilesoft
 					n->item = item;
 					n->depth = depth;
 					auto kind = item->type == NativeMenuType::Menu ? TitleInfo::Menu : TitleInfo::Item;
+					n->seq = ++declared_seq;
 					n->title = DescribeTitle(item, depth, kind);
 					// A title that depends on the selection (title=sel.path): what it comes to
 					// for the sample, when that can be worked out as the conditions are.
@@ -1959,6 +1962,7 @@ namespace Nilesoft
 					jbool(shell, L"expanded", n.expanded);
 					jtext(shell, L"moved_from", n.moved_from);
 					jtext(shell, L"pos", n.pos);
+					jnum(shell, L"seq", n.seq);
 					// yes | no | maybe: whether it shows in this menu for the sample, whether
 					// that depends on which file or folder the sample is, and what decides it
 					// (where, find, vis, or menu: the menu it is in).

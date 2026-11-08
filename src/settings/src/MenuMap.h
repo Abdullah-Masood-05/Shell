@@ -48,6 +48,8 @@ struct Node
     std::string movedFrom;     // the menu it is written in, as a path of titles ("" the main menu)
     std::string pos;           // its pos=: top, bottom, middle, N, before:<title>, after:<title>,
                                // indexof, dynamic, auto; "" without one
+    int seq = 0;               // its place among all of the config's items, in the order they are
+                               // declared across files (0: an older shell.exe doesn't tell)
     std::string shows;         // in this menu for the sample: yes | no | maybe (by where=, find=,
                                // a vis= that depends on the selection, and its menu's);
                                // "" from an older shell.exe that doesn't tell
@@ -318,6 +320,9 @@ struct Sibling
     std::filesystem::path file;
     int line = 0;
     int column = 0;
+    bool laterInOrder = false; // has pos=N or pos=indexof() and is declared after the item being
+                               // placed: not in the menu yet when that one is placed, so pos=indexof()
+                               // can't name it (titled false); `sameAnchor` may still do
     bool fixed = false;        // has menu= or pos=, or was moved here: its text order
                                // doesn't decide where it shows
     bool shown = true;         // in the menu: not hidden, and not moved to another
@@ -337,6 +342,7 @@ struct Place
     std::string title;   // without & accelerators
     bool after = false;
     std::string pos;     // the value of pos=
+    size_t sibling = 0;  // its index in the siblings
 };
 std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t index);
 

@@ -75,6 +75,7 @@ Node readNode(const json &j, Origin origin)
         n.relocated = getBool(j, "moved");
         n.movedFrom = getString(j, "moved_from");
         n.pos = getString(j, "pos");
+        n.seq = getInt(j, "seq");
         n.shows = getString(j, "shows");
         if (n.shows != "yes" && n.shows != "no" && n.shows != "maybe")
             n.shows.clear();
@@ -1183,7 +1184,7 @@ std::vector<Place> placesNextTo(const std::vector<Sibling> &siblings, size_t ind
         auto title = stripAccelerators(sib.step.rawTitle);
         for (bool after : { false, true })
             if (auto v = posValue(sib.step, after); !v.empty())
-                out.push_back(Place{ title, after, std::move(v) });
+                out.push_back(Place{ title, after, std::move(v), i });
     }
     return out;
 }
@@ -1201,18 +1202,25 @@ Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view 
     s.fixed = !n.menu.empty() || (!n.pos.empty() && n.pos != "auto") || n.relocated;
     s.shown = shown;
     if (n.origin == Origin::Shell) {
-        // Sent to another menu by its menu= (and listed here where it is written).
-        if (!n.menu.empty() && !n.relocated)
+        // Sent to another menu by its menu= (and listed here where it is written). menu='/'
+        // is the main menu: in this one it stays.
+        if (!n.menu.empty() && !n.relocated && !isRootPath(n.menu))
             s.shown = false;
         // Not in this menu for the sample (where=, find= or vis= leave it out).
         if (notInMenu(n))
             s.shown = false;
         const bool placedInOrder = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
         if (placedInOrder && self && &n != self) {
-            const bool before = n.file == self->file && n.line > 0 &&
-                                (n.line < self->line || (n.line == self->line && n.column < self->column));
-            if (!before)
+            // Declared before it, in whichever file: the config's order decides (seq). An older
+            // shell.exe doesn't give it: the same file and an earlier line.
+            const bool before = n.seq > 0 && self->seq > 0
+                                    ? n.seq < self->seq
+                                    : n.file == self->file && n.line > 0 &&
+                                          (n.line < self->line || (n.line == self->line && n.column < self->column));
+            if (!before) {
                 s.titled = false;
+                s.laterInOrder = n.state == "text" && n.pos.find_first_not_of("0123456789") != std::string::npos;
+            }
         }
         return s;
     }
