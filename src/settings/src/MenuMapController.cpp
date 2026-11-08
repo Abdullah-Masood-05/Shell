@@ -42,6 +42,20 @@ std::string groupTitle(int group, size_t count = 0)
                         : nsp::tr("Not in this menu");
 }
 
+// A label for a drop-down that fits: too long, it loses its middle, so the start and the
+// end of the title both stay ("Before Virus ...tection settings").
+std::string elideMiddle(const std::string &s, size_t maxChars = 28)
+{
+    std::vector<size_t> starts; // byte offset of each character
+    for (size_t i = 0; i < s.size(); ++i)
+        if ((static_cast<unsigned char>(s[i]) & 0xC0) != 0x80)
+            starts.push_back(i);
+    if (starts.size() <= maxChars)
+        return s;
+    const size_t tail = maxChars * 11 / 20, head = maxChars - tail - 1;
+    return s.substr(0, starts[head]) + "â¦" + s.substr(starts[starts.size() - tail]);
+}
+
 // What a row calls an item: its title, else what the sample's selection makes of a title
 // that depends on it, else (for a menu) its first items, else a plain note.
 std::string nodeTitle(const Node &n)
@@ -1228,6 +1242,7 @@ void MenuMapController::pushDetail()
             line(nsp::trf("Placed by pos={} in its own line.", *posProp));
         d.can_rename = writable(n.file) && n.kind != "separator";
         d.rename_value = ss(n.title);
+        d.rename_hint = ss(n.title.empty() ? n.titleSample : std::string());
         d.can_icon = d.can_rename && n.line > 0;
         d.icon_value = ss(imageProp && *imageProp != "null" ? menumap::imageText(*imageProp) : std::string());
         d.can_remove_icon = imageProp.has_value() && *imageProp != "null";
@@ -1410,12 +1425,12 @@ void MenuMapController::pushDetail()
     std::vector<slint::SharedString> targets, positions;
     if (n.origin == Origin::Shell) {
         for (const auto &t : ownTargets_)
-            targets.push_back(ss(t.label));
+            targets.push_back(ss(elideMiddle(t.label)));
         for (const auto &p : positions_)
-            positions.push_back(ss(p.label));
+            positions.push_back(ss(elideMiddle(p.label)));
     } else {
         for (const auto &t : sysTargets_)
-            targets.push_back(ss(t.label));
+            targets.push_back(ss(elideMiddle(t.label)));
     }
     st.set_move_targets(std::make_shared<slint::VectorModel<slint::SharedString>>(targets));
     st.set_positions(std::make_shared<slint::VectorModel<slint::SharedString>>(positions));

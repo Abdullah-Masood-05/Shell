@@ -552,6 +552,7 @@ component DetailPanel inherits Rectangle {
                     LineEdit {
                         horizontal-stretch: 1;
                         text <=> root.rename-text;
+                        placeholder-text: root.d.rename-hint;
                         accepted => { MenuMapState.rename(self.text); }
                     }
                     AppButton {
