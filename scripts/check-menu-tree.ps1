@@ -133,9 +133,15 @@ item(title='Shift' type='*' where=keys.shift() cmd='x')
 item(title='Named' type='file' where=sel.name=='other.txt' cmd='x')
 menu(title='Gone' type='*' where=sel.count>1) { item(title='Inside' cmd='x') }
 remove(type='*' where=sel.raw=='$pc' find='"Properties"')
+item(title='First' type='*' pos=top cmd='x')
+item(title='Last' type='*' pos=bottom cmd='x')
+menu(title='Empty' type='*') { item(title='Never' where=sel.count>1 cmd='x') }
+menu(title='Holder' type='*') { }
+modify(type='*' find='"Delete"' menu='Holder')
 "@ | Set-Content $ownRoot -Encoding utf8
 	$expect = [ordered]@{
-		thispc  = @{ 'PC only' = 'yes'; 'Not on PC' = 'no'; 'Many' = 'no'; 'Taskbar only' = 'no'; 'PC with Shift' = 'maybe'; 'Shift' = 'maybe'; 'Gone' = 'no'; 'Inside' = 'no' }
+		thispc  = @{ 'PC only' = 'yes'; 'Not on PC' = 'no'; 'Many' = 'no'; 'Taskbar only' = 'no'; 'PC with Shift' = 'maybe'; 'Shift' = 'maybe'; 'Gone' = 'no'; 'Inside' = 'no'
+		             'Empty' = 'no'; 'Holder' = 'yes'; 'First' = 'yes'; 'Last' = 'yes' }
 		file    = @{ 'PC only' = 'no'; 'Not on PC' = 'yes'; 'Text files' = 'yes'; 'Find text' = 'yes'; 'Taskbar only' = 'no'; 'PC with Shift' = 'no'; 'Named' = 'no' }
 		taskbar = @{ 'PC only' = 'no'; 'Taskbar only' = 'yes'; 'Many' = 'no' }
 	}
@@ -157,6 +163,30 @@ remove(type='*' where=sel.raw=='$pc' find='"Properties"')
 			$props = @(); Walk $r.json.tree.system { param($n) if ($n.id -eq 'properties') { $script:props += $n } }
 			if ($where -eq 'thispc' -and $props.Count -and -not $props[0].hidden) { $problems += 'remove(where=sel.raw==This PC) does not hide Properties' }
 			if ($where -eq 'file' -and $props.Count -and ($props[0].hidden -or @($props[0].maybe).Count)) { $problems += "remove(where=sel.raw==This PC) reaches a file's Properties" }
+			# The main menu in the order it shows: every Windows item and every one of
+			# your items that shows, once each, pos=top first and pos=bottom last.
+			$tree = $r.json.tree
+			$order = @($tree.order)
+			$seen = @{}
+			foreach ($o in $order) {
+				$list = if ($o.from -eq 'shell') { $tree.shell } else { $tree.system }
+				if ($o.index -lt 0 -or $o.index -ge @($list).Count) { $problems += "order points past the $($o.from) list ($($o.index))"; continue }
+				$k = "$($o.from)/$($o.index)"
+				if ($seen[$k]) { $problems += "order lists $k twice" }
+				$seen[$k] = $true
+			}
+			for ($i = 0; $i -lt @($tree.system).Count; $i++) { if (-not $seen["system/$i"]) { $problems += "order leaves out Windows item $i" } }
+			for ($i = 0; $i -lt @($tree.shell).Count; $i++) {
+				$n = $tree.shell[$i]
+				if (($n.shows -ne 'no') -ne [bool]$seen["shell/$i"]) { $problems += "order and shows disagree for '$($n.title)' ($($n.shows))" }
+			}
+			$titles = @($order | ForEach-Object { if ($_.from -eq 'shell') { $tree.shell[$_.index].title } else { "W:" + $tree.system[$_.index].title } })
+			if ($where -eq 'thispc') {
+				if ($titles[0] -ne 'First') { $problems += "pos=top isn't first: $($titles[0])" }
+				if ($titles[-1] -ne 'Last') { $problems += "pos=bottom isn't last: $($titles[-1])" }
+				$empty = @($tree.shell | Where-Object title -eq 'Empty')
+				if ($empty.Count -and $empty[0].shows_why -ne 'empty') { $problems += "'Empty' should be left out as empty ($($empty[0].shows_why))" }
+			}
 		}
 		'{0,-8} own config: {1}' -f $where, $(if ($problems.Count) { 'FAIL' } else { 'ok' })
 		foreach ($pr in $problems) { "  FAIL $where (own config): $pr"; $failures += "$where (own config): $pr" }

@@ -1135,6 +1135,38 @@ namespace Nilesoft
 							case IDENT_FALSE:
 							case IDENT_NULL:
 								break;
+							// Plain keywords: pos=bottom, vis=disable, mode=single...
+							case IDENT_NIL:
+							case IDENT_OK:
+							case IDENT_YES:
+							case IDENT_NO:
+							case IDENT_DEFAULT:
+							case IDENT_AUTO:
+							case IDENT_ENABLE:
+							case IDENT_DISABLE:
+							case IDENT_ENABLED:
+							case IDENT_DISABLED:
+							case IDENT_INHERIT:
+							case IDENT_NONE:
+							case IDENT_BOTH:
+							case IDENT_TOP:
+							case IDENT_BOTTOM:
+							case IDENT_MIDDLE:
+							case IDENT_BEFORE:
+							case IDENT_AFTER:
+							case IDENT_REMOVE:
+							case IDENT_HIDDEN:
+							case IDENT_MODE_SINGLE:
+							case IDENT_MODE_UNIQUE:
+							case IDENT_MODE_MULTIPLE:
+							case IDENT_MODE_MULTI_SINGLE:
+							case IDENT_MODE_MULTI_UNIQUE:
+							case IDENT_MODE_MULTI:
+							case IDENT_VIS_STATIC:
+							case IDENT_VIS_LABEL:
+								if(f->Id.length() != 1)
+									return false;
+								break;
 							case IDENT_SEL:
 								if(!k.sel || !sel_known(f, k))
 									return false;
@@ -1826,6 +1858,11 @@ namespace Nilesoft
 				}
 				list = std::move(sorted);
 			};
+			// The main menu's items in the order the menu takes them (config order, then
+			// those menu= brings here), for the order with Windows' items (below).
+			std::vector<ShellNode *> shell_config;
+			for(auto &n : shell_root)
+				shell_config.push_back(n.get());
 			arrange(shell_root);
 
 			// Shown in the menu it ends up in: not when that menu isn't shown. (An
@@ -1911,7 +1948,8 @@ namespace Nilesoft
 					shell += L"]}";
 				}
 			};
-			walk(shell_root);
+			// Written once the Windows menu is read: a menu of yours that nothing in it
+			// shows in is dropped, unless a rule moves Windows' items into it.
 
 			// --- The rules ---
 			auto &statics = context.Cache->statics;
@@ -2178,6 +2216,339 @@ namespace Nilesoft
 			};
 			match(sys, 0);
 
+			// --- Menus of yours with nothing in them ---
+			// ContextMenu::OnInitMenuPopup drops a menu of the config that ends up
+			// empty, unless Windows' items are moved into it. Yes when a rule surely
+			// moves one there, Maybe when one may.
+			// A menu path as the menu compares it: the whole text, '/' around it left
+			// out ("Pin/Unpin" is one title).
+			auto path_hash = [](std::wstring path)
+			{
+				while(!path.empty() && (path.front() == L'/' || iswspace(path.front())))
+					path.erase(0, 1);
+				while(!path.empty() && (path.back() == L'/' || iswspace(path.back())))
+					path.pop_back();
+				return path.empty() ? 0u : MenuItemInfo::hashing(path.c_str());
+			};
+			auto moved_into = [&](uint32_t path) -> Tri
+			{
+				Tri found = Tri::No;
+				std::function<void(const std::vector<SysItem> &)> look = [&](const std::vector<SysItem> &items)
+				{
+					for(auto &item : items)
+					{
+						if(item.type != 2 && !item.hidden)
+						{
+							if(!item.moved.empty() && path_hash(item.moved) == path)
+								found = Tri::Yes;
+							else if(found == Tri::No)
+							{
+								for(auto i : item.maybe)
+								{
+									if(i >= 0 && static_cast<size_t>(i) < infos.size() &&
+									   (infos[i].menu_dynamic || (!infos[i].menu.empty() && path_hash(infos[i].menu) == path)))
+										found = Tri::Maybe;
+								}
+							}
+						}
+						look(item.items);
+					}
+				};
+				look(sys);
+				return found;
+			};
+			std::vector<std::wstring> menu_path;
+			std::function<void(ShellList &)> empties = [&](ShellList &list)
+			{
+				for(auto &n : list)
+				{
+					if(!n->item->is_menu())
+						continue;
+					const bool named = n->title.state == TitleInfo::Text;
+					if(named)
+						menu_path.push_back(n->title.text.empty() ? std::wstring() : std::wstring(n->title.text.c_str()));
+					empties(n->children);
+					if(n->shows != Tri::No && !n->item->for_each && n->title.state != TitleInfo::Dynamic)
+					{
+						Tri kids = Tri::No;
+						bool kids_sample = false;
+						for(auto &c : n->children)
+						{
+							if(c->item->is_separator())
+								continue;
+							kids_sample |= c->shows_sample;
+							if(c->shows == Tri::Yes)
+								kids = Tri::Yes;
+							else if(c->shows == Tri::Maybe && kids == Tri::No)
+								kids = Tri::Maybe;
+						}
+						if(kids != Tri::Yes)
+						{
+							std::wstring joined;
+							for(auto &part : menu_path)
+								joined += (joined.empty() ? L"" : L"/") + part;
+							auto m = named ? moved_into(path_hash(joined)) : Tri::Maybe;
+							if(m == Tri::Yes)
+								kids = Tri::Yes;
+							else if(m == Tri::Maybe)
+								kids = Tri::Maybe;
+						}
+						if(kids == Tri::No)
+						{
+							n->shows = Tri::No;
+							n->shows_sample = kids_sample;
+							n->why = L"empty";
+						}
+						else if(kids == Tri::Maybe && n->shows == Tri::Yes)
+						{
+							n->shows = Tri::Maybe;
+							n->why = L"empty";
+						}
+					}
+					if(named)
+						menu_path.pop_back();
+				}
+			};
+			empties(shell_root);
+			walk(shell_root);
+
+			// --- The main menu in the order it shows ---
+			// As ContextMenu::OnInitMenuPopup lays it out: your pos=top items, then
+			// Windows' items, your items without pos= at the separator nearest the
+			// middle (settings.position, the default), pos=bottom at the end,
+			// pos=middle in the middle, then pos=N and pos=indexof() over the whole
+			// menu. Windows' items that a rule hides or sends to another menu are left
+			// out of the placing, then listed again right after the Windows item
+			// before them, where the map shows them. modify(pos=) on Windows' items
+			// isn't applied: they keep Windows' order.
+			std::wstring order;
+			{
+				struct Slot
+				{
+					ShellNode *node = nullptr;
+					size_t sys = 0;			// index in `sys` when node is null
+					bool separator = false;
+					const string *name = nullptr;
+				};
+				std::vector<Slot> items, top, autos, middle, bottom, custom;
+				auto slot_of = [](ShellNode *n)
+				{
+					Slot s;
+					s.node = n;
+					s.separator = n->item->is_separator();
+					s.name = &n->normalized;
+					return s;
+				};
+				for(auto n : shell_config)
+				{
+					if(n->shows == Tri::No)
+						continue;
+					switch(n->spec.kind)
+					{
+						case Placement::Kind::Top: top.push_back(slot_of(n)); break;
+						case Placement::Kind::Middle: middle.push_back(slot_of(n)); break;
+						case Placement::Kind::Bottom: bottom.push_back(slot_of(n)); break;
+						case Placement::Kind::Index:
+						case Placement::Kind::IndexOf: custom.push_back(slot_of(n)); break;
+						default: autos.push_back(slot_of(n)); break;
+					}
+				}
+				auto present = [&](const SysItem &item)
+				{
+					if(item.hidden)
+						return false;
+					std::wstring m = item.moved;
+					while(!m.empty() && (m.front() == L'/' || iswspace(m.front())))
+						m.erase(0, 1);
+					return m.empty();
+				};
+				items = top;
+				for(size_t i = 0; i < sys.size(); i++)
+				{
+					if(present(sys[i]))
+					{
+						Slot s;
+						s.sys = i;
+						s.separator = sys[i].type == 2;
+						s.name = &sys[i].name;
+						items.push_back(s);
+					}
+				}
+
+				auto findpos = [&]() -> size_t
+				{
+					const int c = static_cast<int>(items.size());
+					int pos = c / 2, p = -1;
+					for(int i = pos; i >= 0 && i < c; i--)
+					{
+						if(items[i].separator)
+						{
+							p = i;
+							break;
+						}
+					}
+					if(p < 0)
+					{
+						for(int i = pos; i < c; i++)
+						{
+							if(items[i].separator)
+							{
+								p = i;
+								break;
+							}
+						}
+					}
+					return static_cast<size_t>(p >= 0 ? p : pos);
+				};
+				auto position = Position::Auto;
+				if(auto e = context.Cache->dynamic.position.get(); e && is_safe(e))
+				{
+					try
+					{
+						position = context.parse_position(e);
+					}
+					catch(...)
+					{
+					}
+				}
+				size_t dynamic_pos = 0;
+				switch(position)
+				{
+					case Position::Auto:
+					case Position::None:
+						// The taskbar's menu: at the top.
+						if(where != L"taskbar")
+							dynamic_pos = items.empty() ? 1 : findpos();
+						break;
+					case Position::Top: dynamic_pos = 0; break;
+					case Position::Middle: dynamic_pos = findpos(); break;
+					case Position::Bottom: dynamic_pos = items.size(); break;
+					default: dynamic_pos = static_cast<size_t>(position); break;
+				}
+				if(dynamic_pos > items.size())
+					dynamic_pos = items.size();
+				items.insert(items.begin() + static_cast<std::ptrdiff_t>(dynamic_pos), autos.begin(), autos.end());
+				items.insert(items.end(), bottom.begin(), bottom.end());
+				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), middle.begin(), middle.end());
+
+				struct Placed { ShellNode *spec; Slot last; };
+				std::vector<Placed> placed;
+				auto same_slot = [](const Slot &a, const Slot &b) { return a.node == b.node && (a.node || a.sys == b.sys); };
+				for(auto &it : custom)
+				{
+					auto &sp = it.node->spec;
+					if(sp.kind == Placement::Kind::Index)
+					{
+						if(sp.index < 0 || sp.index > static_cast<int>(items.size()))
+							items.push_back(it);
+						else
+							items.insert(items.begin() + sp.index, it);
+						continue;
+					}
+					Placed *group = nullptr;
+					for(auto &pl : placed)
+					{
+						if(pl.spec->spec.offset == sp.offset && pl.spec->spec.def == sp.def && pl.spec->indexof.equals(it.node->indexof, false))
+						{
+							group = &pl;
+							break;
+						}
+					}
+					std::ptrdiff_t anchor = -1;
+					std::ptrdiff_t at = static_cast<std::ptrdiff_t>(items.size());
+					if(group)
+					{
+						for(size_t i = 0; i < items.size(); i++)
+						{
+							if(same_slot(items[i], group->last))
+							{
+								at = static_cast<std::ptrdiff_t>(i) + 1;
+								break;
+							}
+						}
+					}
+					else
+					{
+						FindPattern fp;
+						if(fp.split(it.node->indexof, L'|'))
+						{
+							for(const auto &pat : fp.matches)
+							{
+								for(size_t i = 0; i < items.size() && anchor < 0; i++)
+								{
+									if(items[i].name && fp.find(pat, items[i].name))
+										anchor = static_cast<std::ptrdiff_t>(i);
+								}
+								if(anchor >= 0)
+									break;
+							}
+						}
+						const auto size = static_cast<std::ptrdiff_t>(items.size());
+						if(anchor >= 0)
+							at = std::clamp<std::ptrdiff_t>(anchor + sp.offset, 0, size);
+						else if(sp.def == IndexOf::Top)
+							at = 0;
+						else if(sp.def == IndexOf::Middle)
+							at = size / 2;
+						else if(sp.def >= 0)
+							at = std::min<std::ptrdiff_t>(sp.def, size);
+					}
+					items.insert(items.begin() + at, it);
+					if(group)
+						group->last = it;
+					else
+						placed.push_back({ it.node, it });
+				}
+
+				// Windows' items that left this menu: after the Windows item before them.
+				for(size_t i = 0; i < sys.size(); i++)
+				{
+					if(present(sys[i]))
+						continue;
+					Slot s;
+					s.sys = i;
+					size_t at = items.size();
+					bool found = false;
+					for(size_t k = items.size(); k-- > 0 && !found;)
+					{
+						if(!items[k].node && items[k].sys < i)
+						{
+							at = k + 1;
+							found = true;
+						}
+					}
+					if(!found)
+					{
+						for(size_t k = 0; k < items.size(); k++)
+						{
+							if(!items[k].node)
+							{
+								at = k;
+								break;
+							}
+						}
+					}
+					items.insert(items.begin() + static_cast<std::ptrdiff_t>(at), s);
+				}
+
+				for(auto &it : items)
+				{
+					order += order.empty() ? L"{" : L",{";
+					size_t index = it.sys;
+					if(it.node)
+					{
+						for(size_t k = 0; k < shell_root.size(); k++)
+						{
+							if(shell_root[k].get() == it.node)
+								index = k;
+						}
+					}
+					jtext(order, L"from", it.node ? L"shell" : L"system");
+					jnum(order, L"index", static_cast<long long>(index));
+					order += L"}";
+				}
+			}
+
 			std::function<void(const std::vector<SysItem> &)> write = [&](const std::vector<SysItem> &items)
 			{
 				bool first = true;
@@ -2241,6 +2612,9 @@ namespace Nilesoft
 			}
 
 			json = L"{\"shell\":[" + shell + L"],\"system\":[" + system + L"],\"rules\":[" + rules + L"],\"quiet\":[" + quiet_json + L"]";
+			// The main menu as it shows, your items and Windows' together: "from" shell or
+			// system, "index" in that list. Your items it leaves out aren't in it.
+			json += L",\"order\":[" + order + L"]";
 			jtext(json, L"system_error", system_error);
 			json += L"}";
 			return true;
