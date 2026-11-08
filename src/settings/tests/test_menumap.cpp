@@ -818,3 +818,19 @@ TEST_CASE("menu map: Windows' items moved into a Windows menu are listed in it")
     t->hasOrder = false;
     CHECK_FALSE(buildMenuList(*t));
 }
+
+TEST_CASE("menu map: only the app's own pos= line counts as its place for a Windows item")
+{
+    const std::string props = "find=\"Copy\" in=\"sendto\"";
+    const std::string head = "modify(" + props + " pos=";
+    CHECK(isOwnPosLine(props, head + "\"top\")"));
+    CHECK(isOwnPosLine(props, head + "indexof(\"\\\"Open\\\"\",1))"));
+    CHECK(isOwnPosLine(props, head + "3)"));
+    // A hand-written rule that sets more, or reaches more than this item, is not ours.
+    CHECK_FALSE(isOwnPosLine(props, head + "top menu=\"X\")"));
+    CHECK_FALSE(isOwnPosLine(props, head + "top title=\"X\")"));
+    CHECK_FALSE(isOwnPosLine(props, "modify(find=\"Copy|Cut\" pos=top)"));
+    CHECK_FALSE(isOwnPosLine(props, "modify(" + props + " title=\"X\" pos=top)"));
+    CHECK_FALSE(isOwnPosLine(props, head + "top"));
+    CHECK_FALSE(isOwnPosLine("", head + "top)"));
+}

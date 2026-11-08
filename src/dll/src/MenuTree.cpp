@@ -2369,8 +2369,9 @@ namespace Nilesoft
 			// pos=middle in the middle, then pos=N and pos=indexof() over the whole
 			// menu. Windows' items that a rule hides or sends to another menu are left
 			// out of the placing, then listed again right after the Windows item
-			// before them, where the map shows them. modify(pos=) on Windows' items
-			// isn't applied: they keep Windows' order.
+			// before them, where the map shows them. modify(pos=) on Windows' items is
+			// applied as the engine does, unless settings.modify_items turns it off
+			// (enabled = false, or position = 0): they then keep Windows' order.
 			std::wstring order;
 			{
 				struct Slot
@@ -2385,6 +2386,29 @@ namespace Nilesoft
 				std::vector<Slot> items, top, autos, middle, bottom, custom;
 				// Windows' items by the pos= a modify() rule gives them.
 				std::vector<Slot> sys_top, sys_auto, sys_middle, sys_bottom, sys_custom;
+				// settings.modify_items: pos= on Windows' items counts only while it is enabled
+				// and its position is not 0 (ContextMenu::init_cfg). A setting that can't be
+				// known without a selection keeps the default (on).
+				auto setting = [&](Expression *e, bool def)
+				{
+					if(!e || !is_safe(e))
+						return def;
+					try
+					{
+						Object obj;
+						if(context.eval_number(e, obj))
+							return obj.to_number<int>() != 0;
+					}
+					catch(...)
+					{
+					}
+					return def;
+				};
+				auto &mi = context.Cache->settings.modify_items;
+				const bool mi_enabled = setting(mi.enabled.get(), true);
+				const bool sys_pos_on = mi_enabled && (setting(mi.position.get(), true) || setting(mi.auto_image_group.get(), false));
+				const bool sys_title_on = mi_enabled && setting(mi.title.get(), true);
+				std::vector<string> sys_titles(sys.size());
 				auto slot_of = [](ShellNode *n)
 				{
 					Slot s;
@@ -2426,9 +2450,18 @@ namespace Nilesoft
 						s.sys = i;
 						s.separator = sys[i].type == 2;
 						s.name = &sys[i].name;
-						s.spec = sys[i].spec;
+						// A renamed item is found by its new title (MenuItemInfo::set_title).
+						if(sys_title_on && !sys[i].renamed.empty())
+						{
+							string t = sys[i].renamed.c_str();
+							MenuItemInfo::normalize(t, &sys_titles[i]);
+							if(!sys_titles[i].empty())
+								s.name = &sys_titles[i];
+						}
 						s.indexof = &sys[i].indexof;
-						switch(sys[i].spec.kind)
+						if(sys_pos_on)
+							s.spec = sys[i].spec;
+						switch(s.spec.kind)
 						{
 							case Placement::Kind::Top: sys_top.push_back(s); break;
 							case Placement::Kind::Middle: sys_middle.push_back(s); break;
@@ -2502,13 +2535,16 @@ namespace Nilesoft
 				items.insert(items.end(), bottom.begin(), bottom.end());
 				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), sys_middle.begin(), sys_middle.end());
 				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), middle.begin(), middle.end());
-				// pos=N and pos=indexof(): yours first, then Windows'.
-				custom.insert(custom.end(), sys_custom.begin(), sys_custom.end());
+				// pos=N and pos=indexof(): yours first, then Windows', each as its own pass with its
+				// own groups (add_custom_items is called once for each).
 
 				struct Placed { Slot spec; Slot last; };
 				std::vector<Placed> placed;
 				auto same_slot = [](const Slot &a, const Slot &b) { return a.node == b.node && (a.node || a.sys == b.sys); };
-				for(auto &it : custom)
+				auto place_custom = [&](std::vector<Slot> &list)
+				{
+				placed.clear();
+				for(auto &it : list)
 				{
 					auto &sp = it.spec;
 					if(sp.kind == Placement::Kind::Index)
@@ -2573,6 +2609,9 @@ namespace Nilesoft
 					else
 						placed.push_back({ it, it });
 				}
+				};
+				place_custom(custom);
+				place_custom(sys_custom);
 
 				// Windows' items that left this menu: after the Windows item before them.
 				for(size_t i = 0; i < sys.size(); i++)

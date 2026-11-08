@@ -198,6 +198,9 @@ std::string renameRule(const Node &n, std::string_view title);         // modify
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
 // modify(... pos=<value>): `value` as posValue() or quoteString("top") gives it.
 std::string posRule(const Node &n, std::string_view value);
+// True for a map-file line that is only modify(<props> pos=<value>): one the app wrote for the
+// item with these matchProps, not a hand-written rule that sets more.
+bool isOwnPosLine(const std::string &props, std::string_view line);
 // The value a rule made by renameRule or moveRule gives: prop "title" or "menu" of
 // `rule` when it is modify(<matchProps(n)> <prop>="..."), else nullopt.
 std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::string_view prop);

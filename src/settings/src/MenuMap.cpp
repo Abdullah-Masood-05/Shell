@@ -665,6 +665,45 @@ std::string posRule(const Node &n, std::string_view value)
     return "modify(" + m + " pos=" + std::string(v) + ")";
 }
 
+// True for a line the app wrote to place this item: modify(<props> pos=<value>) and nothing
+// else in the rule. A hand-written rule that also sets menu=, title= and so on is not ours.
+bool isOwnPosLine(const std::string &props, std::string_view line)
+{
+    const std::string prefix = "modify(" + props + " pos=";
+    if (props.empty() || line.size() <= prefix.size() + 1 || line.substr(0, prefix.size()) != prefix || line.back() != ')')
+        return false;
+    const auto tail = line.substr(prefix.size(), line.size() - prefix.size() - 1);
+    int depth = 0;
+    char quote = 0;
+    for (size_t i = 0; i < tail.size(); i++) {
+        const char c = tail[i];
+        if (quote) {
+            if (c == '\\' && quote == '"')
+                i++;
+            else if (c == quote)
+                quote = 0;
+        } else if (c == '"' || c == '\'') {
+            quote = c;
+        } else if (c == '(' || c == '[' || c == '{') {
+            depth++;
+        } else if (c == ')' || c == ']' || c == '}') {
+            if (--depth < 0)
+                return false;
+        } else if (depth == 0 && (c == ' ' || c == '\t')) {
+            // Another property after the value: name=
+            size_t j = i + 1;
+            while (j < tail.size() && (tail[j] == ' ' || tail[j] == '\t'))
+                j++;
+            const size_t start = j;
+            while (j < tail.size() && (std::isalnum(static_cast<unsigned char>(tail[j])) || tail[j] == '_' || tail[j] == '.'))
+                j++;
+            if (j > start && j < tail.size() && tail[j] == '=' && (j + 1 >= tail.size() || tail[j + 1] != '='))
+                return false;
+        }
+    }
+    return depth == 0 && !quote;
+}
+
 std::string imageRule(const Node &n, std::string_view value)
 {
     auto m = matchProps(n);

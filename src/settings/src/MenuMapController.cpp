@@ -14,6 +14,7 @@
 #include <shlobj.h>
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cstdio>
 #include <fstream>
@@ -744,8 +745,11 @@ void MenuMapController::setWindowsPos(const Node &n, const std::string &value, c
             drop.push_back(text);
     for (const auto &text : drop)
         stageRule(text, false, label);
+    // Only the rules this app wrote come out. A hand-written rule that also gives it a pos= stays,
+    // and the new rule goes at the end of the map file, so it is the last one and wins.
     for (const auto &line : mapLinesOf(n.rules, "pos"))
-        stageRule(line, false, label);
+        if (menumap::isOwnPosLine(props, line))
+            stageRule(line, false, label);
     if (!value.empty())
         if (auto rule = menumap::posRule(n, value); !rule.empty())
             stageRule(rule, true, label);
@@ -1456,7 +1460,9 @@ void MenuMapController::pushDetail()
             d.can_place = true;
             d.can_up = reorderOf(e, true).possible;
             d.can_down = reorderOf(e, false).possible;
-            d.can_reset_position = !mapLinesOf(n.rules, "pos").empty();
+            for (const auto &line : mapLinesOf(n.rules, "pos"))
+                if (menumap::isOwnPosLine(menumap::matchProps(n), line))
+                    d.can_reset_position = true;
         }
         sysTargets_.clear();
         sysTargets_.push_back(MoveTarget{ nsp::tr("Main menu"), "/" });

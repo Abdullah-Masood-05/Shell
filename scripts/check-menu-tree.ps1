@@ -212,6 +212,42 @@ modify(type='*' find='"Cut"' pos=top)
 		'{0,-8} own config: {1}' -f $where, $(if ($problems.Count) { 'FAIL' } else { 'ok' })
 		foreach ($pr in $problems) { "  FAIL $where (own config): $pr"; $failures += "$where (own config): $pr" }
 	}
+
+	# pos=indexof() on Windows' items is placed after yours, in its own pass (add_custom_items is
+	# called for each), and modify.position=0 / modify.enabled=false turn modify(pos=) off.
+	$posCases = [ordered]@{
+		'on'       = @{ settings = ''; cutRight = $true }
+		'position' = @{ settings = "settings { modify.position=0 }`n"; cutRight = $false }
+		'disabled' = @{ settings = "settings { modify.enabled=false }`n"; cutRight = $false }
+	}
+	foreach ($case in $posCases.Keys) {
+		$dir = Join-Path $temp "pos-$case"
+		New-Item -ItemType Directory $dir | Out-Null
+		$posRoot = Join-Path $dir 'shell.nss'
+		($posCases[$case].settings + @"
+item(title='Mine' type='*' pos=indexof('"Open"',1) cmd='x')
+modify(type='*' find='"Cut"' pos=indexof('"Open"',1))
+"@) | Set-Content $posRoot -Encoding utf8
+		$r = Get-Tree $posRoot 'file' $contexts['file']
+		$problems = @()
+		if ($r.exit -ne 0 -or -not $r.json.ok) { $problems += "exit $($r.exit), ok=$($r.json.ok)" }
+		else {
+			$tree = $r.json.tree
+			$names = @($tree.order | ForEach-Object { if ($_.from -eq 'shell') { 'Mine' } else { $tree.system[$_.index].name } })
+			$open = [array]::IndexOf($names, 'Open'); $cut = [array]::IndexOf($names, 'Cut'); $mine = [array]::IndexOf($names, 'Mine')
+			if ($open -lt 0 -or $cut -lt 0 -or $mine -lt 0) { $problems += "Open, Cut or Mine missing from the order" }
+			elseif ($posCases[$case].cutRight) {
+				if ($cut -ne $open + 1) { $problems += "Cut should be right after Open (Open $open, Cut $cut)" }
+				if ($mine -ne $open + 2) { $problems += "Mine should come after Cut (Open $open, Cut $cut, Mine $mine)" }
+			}
+			else {
+				if ($mine -ne $open + 1) { $problems += "Mine should be right after Open (Open $open, Mine $mine)" }
+				if ($cut -eq $open + 1 -or $cut -eq $open + 2) { $problems += "Cut was placed by pos= though modify pos is off" }
+			}
+		}
+		'{0,-8} pos= order ({1}): {2}' -f 'file', $case, $(if ($problems.Count) { 'FAIL' } else { 'ok' })
+		foreach ($pr in $problems) { "  FAIL file (pos= order, $case): $pr"; $failures += "file (pos= order, $case): $pr" }
+	}
 }
 finally {
 	Remove-Item -Recurse -Force $temp -ErrorAction SilentlyContinue
