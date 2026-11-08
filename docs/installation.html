@@ -11,7 +11,26 @@
 	folder and delete the folder. Back up your <code>shell.nss</code> and <code>imports</code> folder first if you want to
 	keep your configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
 </div>
-<p class="toc"><b>On this page:</b> <a href="#download">Download</a>, <a href="#installer">Installer</a>,
+<div class="notification is-danger mt-5" role="alert" id="blocked">
+	<i>Warning:</i> <strong>Nilesoft Shell Pro is not code-signed, so newer Windows versions may block it.</strong>
+	If the installer or the app will not open, or the right-click menu does not change after installing, do these steps:
+	<ol>
+		<li><b>Unblock the download.</b> Right-click the downloaded <code>.msi</code> or <code>.zip</code>, choose
+			<i>Properties</i>, tick <i>Unblock</i> at the bottom and press <i>OK</i>. For the portable zip, do this
+			<em>before</em> you extract it.</li>
+		<li><b>"Windows protected your PC" (SmartScreen).</b> Click <i>More info</i>, then <i>Run anyway</i>.</li>
+		<li><b>Smart App Control.</b> If Windows says it blocked the app to protect you, Smart App Control is on. It has
+			no way to allow a single app, so you have to turn it off: open <i>Windows Security &rarr; App &amp; browser
+			control &rarr; Smart App Control settings</i> and choose <i>Off</i>. Then run the installer again.</li>
+		<li><b>Antivirus.</b> If you use another antivirus, add the install folder to its exclusions (allowed list):
+			<code>C:\Program Files\Nilesoft Shell</code>, or the folder you extracted the portable version to. Then restart Explorer or sign out
+			and back in.</li>
+	</ol>
+	Only download Nilesoft Shell Pro from the
+	<a href="https://github.com/Abdullah-Masood-05/Shell/releases">official releases page</a>. You can check a file
+	against <code>SHA256SUMS.txt</code> from the same release.
+</div>
+<p class="toc"><b>On this page:</b> <a href="#blocked">If Windows blocks it</a>, <a href="#download">Download</a>, <a href="#installer">Installer</a>,
 	<a href="#portable">Portable version</a>, <a href="#updates">How updates work</a>,
 	<a href="#config-updates">Updates and your configuration</a>, <a href="#cli">Command-line help</a>,
 	<a href="#keys">Keys to turn Shell on and off</a>.</p>

@@ -105,6 +105,18 @@ The screenshots of the app are made by
 > folder and delete the folder. Back up your `shell.nss` and `imports` folder first if you want to keep your
 > configuration. Updating from an earlier Nilesoft Shell Pro version is fine.
 
+> [!CAUTION]
+> **Nilesoft Shell Pro is not code-signed, so newer Windows versions may block it.** If the installer or the app will
+> not open, or the menu does not change after installing:
+> 1. **Unblock the download.** Right-click the `.msi` or `.zip`, choose *Properties*, tick *Unblock* and press *OK*
+>    (for the zip, before extracting it).
+> 2. **SmartScreen** ("Windows protected your PC"): click *More info*, then *Run anyway*.
+> 3. **Smart App Control** can't allow a single app, so if it blocks Shell, turn it off in *Windows Security > App &
+>    browser control > Smart App Control settings*, then run the installer again.
+> 4. **Another antivirus:** add `C:\Program Files\Nilesoft Shell` (or your portable folder) to its exclusions, then restart Explorer.
+>
+> Only download from the [releases page](https://github.com/Abdullah-Masood-05/Shell/releases).
+
 Each [release](https://github.com/Abdullah-Masood-05/Shell/releases) has `setup-x64.msi`, `setup-arm64.msi`,
 `setup-x86.msi`, `NilesoftShellPro-<version>-x64-portable.zip` and `SHA256SUMS.txt`. The files are not code-signed, so
 Windows SmartScreen may warn before running them.
