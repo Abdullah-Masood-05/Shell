@@ -15,36 +15,50 @@
 <p>The switcher at the top chooses which right-click menu is shown:</p>
 <table class="table">
 	<tr><td class="w-25">File</td><td>A file of the type you pick next to it: <i>Text file (.txt)</i>, <i>Image
-		(.png)</i>, <i>Program (.exe)</i>, <i>Archive (.zip)</i>, <i>PDF (.pdf)</i> or <i>Music (.mp3)</i>. Programs often
-		add items only for some types, so the menu can differ from one type to the next.</td></tr>
+		(.png)</i>, <i>Application (.exe)</i>, <i>Shortcut (.lnk)</i>, <i>Archive (.zip)</i>, <i>PDF (.pdf)</i> or <i>Music
+		(.mp3)</i>. Programs often add items only for some types, so the menu can differ from one type to the next. For
+		example, <i>Troubleshoot compatibility</i> and <i>Run as administrator</i> show only for an application or a
+		shortcut.</td></tr>
 	<tr><td>Folder</td><td>A folder you right-click.</td></tr>
 	<tr><td>Background</td><td>An empty spot inside an open folder (the folder background).</td></tr>
 	<tr><td>Desktop</td><td>An empty spot on the desktop.</td></tr>
 	<tr><td>Drive</td><td>A drive, such as <code>C:</code>.</td></tr>
+	<tr><td>This PC</td><td>The <i>This PC</i> icon on the desktop or in File Explorer's left pane, with the items Windows adds there, such as <i>Manage</i> and <i>Map network drive</i>.</td></tr>
 	<tr><td>Taskbar</td><td>An empty spot on the taskbar.</td></tr>
 </table>
 <p><kbd>Refresh</kbd> reads the menu again, for example after you install a program or edit a file by hand.</p>
 
 <h5 id="groups">What the page lists</h5>
-<p>The menu is shown in two groups:</p>
+<p>Each tab shows the menu as it really opens there. Shell works out the conditions of every item for that tab (for
+	example "only on This PC" or "only for .txt files"), so an item that doesn't show there is not listed with the ones
+	that do. Your items and the items from Windows and your programs are one list, in the order the menu shows them. Each
+	item says where it comes from: your file and line, for example <code>imports/file-manage.nss:12</code>, <i>Windows</i>,
+	or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means Shell couldn't tell.</p>
+<p>The list has three parts:</p>
 <ul>
-	<li><strong>Your Shell items</strong>: the items and submenus from your configuration, in the order they are written.
-		Each one shows its file and line, for example <code>imports/file-manage.nss:12</code>.</li>
-	<li><strong>Windows and other programs</strong>: the items Windows and your installed programs add. Each one is
-		labelled with who added it: <i>Windows</i>, or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means
-		Shell couldn't tell.</li>
+	<li><strong>In this menu</strong>: what the menu shows. An item that was moved into a submenu is listed inside
+		that submenu. For example, <i>Pin to Quick access</i> moved into <i>Pin/Unpin</i> is under <i>Pin/Unpin</i>.
+		A submenu with nothing in it on this tab counts as not in the menu, as it does in the real one.</li>
+	<li><strong>Hidden (N)</strong>: items you turned off. They are kept here so you can turn them back on.</li>
+	<li><strong>Not in this menu</strong>: items that don't show on this tab, for example because their
+		<code>where</code> or <code>find</code> leaves out this kind of file.</li>
 </ul>
 <p>To read Windows' items, Shell builds the same menu Explorer would build, off-screen. For a file it uses a sample file
 	in <code>%TEMP%\NilesoftShellPro\menu-map</code>; for a folder, that folder; for a drive, your system drive. No window
 	or menu appears, and no item is run. For the folder background and the desktop, the list also has the items the folder
 	window adds itself, such as <i>View</i>, <i>Sort by</i>, <i>Group by</i>, <i>Refresh</i> and <i>Paste</i>.</p>
-<p>The taskbar's own menu is built by Windows itself, so for the taskbar only your Shell items are listed.</p>
+<p>The taskbar's own menu is built by Windows itself, so for the taskbar only your Shell items are listed. A menu there
+	whose title is set when it opens is named after what is in it, for example <i>Menu with: Task Manager, Taskbar
+	Settings...</i>, and the <strong>Rename</strong> box shows the title it has now.</p>
 
 <h5 id="tags">Tags</h5>
 <p>Small tags next to an item show what your rules do to it:</p>
 <table class="table">
 	<tr><td class="w-25">Hidden</td><td>A rule hides it, so it isn't in the menu.</td></tr>
-	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>.</td></tr>
+	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>. On one of
+		your items it means its <code>menu</code> names a menu that isn't there for this place, so it doesn't show.</td></tr>
+	<tr><td>Moved from …</td><td>An item that was moved into this menu from another one, for example <i>Moved from
+		System</i>.</td></tr>
 	<tr><td>Renamed to …</td><td>A rule shows it under another title.</td></tr>
 	<tr><td>May be hidden, A rule may change it</td><td>A rule applies only for some selections or windows, such as
 		<code>where=sel.count&gt;1</code> or <code>window.is_desktop</code>. Without a real selection the page can't know,
@@ -57,7 +71,9 @@
 <p>Two views show the same menu:</p>
 <ul>
 	<li><strong>Outline</strong> (the default) is a list. Click a submenu to expand or collapse it, or use
-		<kbd>Expand all</kbd> and <kbd>Collapse all</kbd>. Each item has its switch on the row.</li>
+		<kbd>Expand all</kbd> and <kbd>Collapse all</kbd>. Each item has its switch on the row. When one of your items
+		is selected, its row also has up and down arrows, and <kbd>Alt</kbd>+<kbd>Up</kbd> and
+		<kbd>Alt</kbd>+<kbd>Down</kbd> do the same.</li>
 	<li><strong>Nodes</strong> shows each open menu as a panel, from left to right, with a line from the item that opens a
 		submenu to that submenu's panel. Click a submenu item to open its panel. Drag or scroll to move around.</li>
 </ul>
@@ -73,21 +89,34 @@
 		Editor and a link to the <a href="/docs/app/context-menus">Context Menus</a> page.</td></tr>
 	<tr><td>In the menu</td><td>The switch that hides or shows the item.</td></tr>
 	<tr><td>Rename</td><td>A new title for the item.</td></tr>
-	<tr><td>Move to</td><td>Another menu to put it in (Windows and program items only).</td></tr>
+	<tr><td>Move to</td><td>Another menu to put it in. <i>Main menu</i> comes first, then the menus this tab really has,
+		including Windows submenus such as <i>Send to</i>. It never lists the item itself or a menu inside it, and it
+		leaves out menus that are hidden (or inside a hidden one), because an item moved there would vanish. Long names
+		keep their end, so two similar names can be told apart.</td></tr>
+	<tr><td>Place in this menu</td><td>Where the item goes in its menu: at the top, before or after another item, or at
+		the bottom, and <kbd>Move up</kbd> and <kbd>Move down</kbd>. It only offers items you can see in that menu.
+		Hidden items, items moved to another menu and items that aren't in this tab are left out, and a renamed item is
+		listed by its new name. An item that shows only sometimes is listed, but if it is missing when you right-click,
+		an item placed next to it goes to the bottom.</td></tr>
+	<tr><td>Icon</td><td>The picture next to the item, see <a href="#icon">Change an item's icon</a>.</td></tr>
 	<tr><td>Code</td><td>The code behind the item.</td></tr>
 </table>
 
-<h5 id="windows-items">Hide, rename or move a Windows item</h5>
+<h5 id="windows-items">Hide, rename, move or place a Windows item</h5>
 <p>This works for items from Windows and from other programs.</p>
 <ol>
 	<li>Select the item.</li>
 	<li>Turn off <strong>In the menu</strong> to hide it. Or type a new title under <strong>Rename</strong>, or pick a
-		menu under <strong>Move to</strong>. The list has your Shell menus, such as <i>File manage</i> or <i>More
-		options</i>, and Windows submenus, such as <i>Send to</i>.</li>
+		menu under <strong>Move to</strong>. The list starts with <i>Main menu</i>, then has your Shell menus, such as
+		<i>File manage</i> or <i>More options</i>, and Windows submenus, such as <i>Send to</i>.</li>
 	<li>The footer at the bottom of the window counts the change. Click <kbd>Save</kbd>, or <kbd>Discard</kbd> to drop
 		your changes.</li>
 	<li>Right-click again to see the result.</li>
 </ol>
+<p>You can also put a Windows or program item in a different place with <strong>Place in this menu</strong>, the row
+	arrows or <kbd>Alt</kbd>+<kbd>Up</kbd> and <kbd>Alt</kbd>+<kbd>Down</kbd>. This works for items in the main menu
+	only. Items inside a Windows submenu, such as <i>Open with</i> or <i>Send to</i>, can't be placed. Each press of
+	an arrow moves the item past one item you can see, and skips hidden ones.</p>
 <p>To undo a change made here, turn the switch back on, or use <kbd>Use the original title</kbd> or <kbd>Put it back
 	where Windows has it</kbd>, then save.</p>
 <p>Some items can't be changed this way:</p>
@@ -98,20 +127,82 @@
 	<li>An item whose title changes with what is selected, such as 7-Zip's <i>Add to "name.7z"</i>. A rule can't name it,
 		so the panel suggests the Config Editor.</li>
 </ul>
+<p><strong>Main menu</strong> takes an item out of a submenu, or back from a move a file such as
+	<code>imports/modify.nss</code> makes. For example, the bundled <code>modify.nss</code> moves <i>Create shortcut</i>
+	into <i>More options</i>; <i>Main menu</i> keeps it in the main menu. The page writes <code>menu="/"</code> for it,
+	and Shell then leaves the item in the main menu: the rules after that one don't move it again. The tag reads
+	<i>Kept in the main menu</i>.</p>
+
+<h6 id="not-listed">An item that isn't listed</h6>
+<p>Some programs add their items only when File Explorer itself opens the menu, so the page can't see them. Microsoft
+	Defender's <i>Scan with Microsoft Defender</i> is one on some PCs. The page names the programs that added nothing
+	under the list.</p>
+<ol>
+	<li>Click <kbd>Item not listed?</kbd> above the list.</li>
+	<li>Type the item's title exactly as the real right-click menu shows it, for example
+		<code>Scan with Microsoft Defender</code>, and press <kbd>Enter</kbd> or click <kbd>Add</kbd>.</li>
+	<li>The item shows at the end of the main menu, tagged <i>Typed by title</i>. Hide, rename or move it like any other
+		item, then <kbd>Save</kbd>.</li>
+</ol>
+<p>The link isn't there when your configuration is the shared one in the install folder, which the app doesn't
+	change.</p>
+
+<h6 id="icon">Change an item's icon</h6>
+<p>The <strong>Icon</strong> section of the panel, under <strong>Rename</strong>, changes the picture next to an item.
+	It works for Windows items and for your own Shell items.</p>
+<ul>
+	<li><kbd>Browse</kbd> picks a file: an icon (<code>.ico</code>), a picture (<code>.png</code> or <code>.svg</code>),
+		or a program, library or shortcut (<code>.exe</code>, <code>.dll</code>, <code>.lnk</code>), which gives its
+		first icon.</li>
+	<li>Or type the value yourself, for example a glyph from Windows' icon font: <code>image.mdl()</code>.</li>
+	<li><kbd>Change icon</kbd> uses what is in the box. <kbd>Remove icon</kbd> takes the icon away.</li>
+</ul>
+<p>For your own items the page writes <code>image=</code> on the item's line, or for an item that came with Shell an
+	<code>override()</code> line (see <a href="#shipped">below</a>), saved right away with a snapshot first.
+	For Windows items it writes a <code>modify()</code> rule with <code>image=</code>, saved with <kbd>Save</kbd>;
+	<kbd>Use its own icon</kbd> takes the rule back.</p>
 
 <h5 id="your-items">Change one of your Shell items</h5>
 <p>Changes to your own items are saved right away, without the footer.</p>
 <ul>
 	<li>Turn off <strong>In the menu</strong> to hide the item. The page adds <code>vis=vis.remove</code> to that item's
 		line; turning the switch back on removes exactly that. If the item already has its own <code>vis</code>, the
-		switch can't be used and the panel suggests <kbd>Edit code</kbd>.</li>
+		switch can't be used and the panel suggests <kbd>Edit code</kbd>. For an item that came with Shell the page
+		writes an <code>override()</code> line instead (<a href="#shipped">below</a>), which works whatever its own
+		<code>vis</code> is.</li>
 	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
+	<li><strong>Move to</strong> puts the item in another menu: <i>Main menu</i> or one of the menus this tab has,
+		for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The same list is offered for
+		items that came with Shell. The page adds
+		<code>menu=</code> to the item's line, such as <code>menu=loc.file_manage</code>. The item stays written where it
+		is, so <kbd>Put it back where it is written</kbd> only takes that out again. <i>Main menu</i> writes
+		<code>menu='/'</code>.</li>
+	<li><strong>Place in this menu</strong> sets where the item goes in its menu: <i>At the top</i>, <i>Before …</i> or
+		<i>After …</i> another item, or <i>At the bottom</i>. The page adds <code>pos=</code> to the item's line, such as
+		<code>pos=indexof(quote(loc.tools_lock), 1)</code> for "after Lock". <kbd>Use the order in the file</kbd> takes
+		it out.</li>
+	<li><kbd>Move up</kbd> and <kbd>Move down</kbd> (also the arrows on the selected row of the outline, and
+		<kbd>Alt</kbd>+<kbd>Up</kbd> and <kbd>Alt</kbd>+<kbd>Down</kbd>) move the item one place. When the item and
+		the one next to it are written one after the other in the same file, the item's lines move in the file, with the
+		comment lines right above it. Otherwise the page adds <code>pos=</code> as above.</li>
 	<li><kbd>Edit code</kbd> opens a small editor with just that item's code, or the whole <code>menu</code> block for a
 		submenu, with syntax colours. <kbd>Check and save</kbd> checks the whole configuration with Shell, takes a
 		snapshot, and changes only that part of the file. The rest of the file stays the same, byte for byte.</li>
 	<li><kbd>Open in the Config Editor</kbd> opens the file at that line.</li>
 </ul>
-<p>To move one of your items, use <kbd>Edit code</kbd> or the <a href="/docs/app/menu-builder">Menu Builder</a>.</p>
+<p id="shipped">Items in the files that came with Shell, such as <code>imports/terminal.nss</code> or
+	<code>imports/my-tools.nss</code>, work a little differently: the page doesn't change their file. Hiding, renaming,
+	moving, placing or changing the icon of one of them writes an <code>override()</code> line in
+	<code>imports/settings-app-map.nss</code> instead, which Shell applies as if it were written on the item's own
+	line:</p>
+<pre><code class="lang-shell">override(file='imports/terminal.nss' item=title.command_prompt vis=vis.remove)</code></pre>
+<p>The item is named by its file and its title as written there (<code>index=2</code> for the second one with the
+	same title). So the file stays as it came, updates replace it with the new version, and your change still applies.
+	Turning the switch back on, <kbd>Use the original title</kbd>, <kbd>Use its own icon</kbd> and the other reset links
+	take the line out again. <kbd>Move up</kbd> and <kbd>Move down</kbd> use <code>pos=</code> for these items, and
+	<kbd>Edit code</kbd> still changes the file itself: an update then keeps your copy and offers
+	<kbd>Compare</kbd> and <kbd>Use the new version</kbd>. Moving the items inside a Windows menu, such as
+	<i>Send to</i>, is left to <kbd>Edit code</kbd> or the <a href="/docs/app/menu-builder">Menu Builder</a>.</p>
 
 <h5 id="what-it-writes">What it writes</h5>
 <p>For the curious: hiding, renaming or moving a Windows item writes a
@@ -119,7 +210,8 @@
 	rule uses it, so it works in every Windows language:</p>
 <pre><code class="lang-shell">remove(where=this.id==id.cast_to_device)</code></pre>
 <p>Otherwise the rule uses the item's exact title.</p>
-<p>These rules go into their own file, <code>imports/settings-app-map.nss</code>. It is imported near the top of
+<p>These rules, and the <code>override()</code> lines for items that came with Shell, go into their own file,
+	<code>imports/settings-app-map.nss</code>. It is imported near the top of
 	<code>shell.nss</code>, before the other configuration files, so it also works for items the bundled
 	<code>modify.nss</code> already moves. Hiding <i>Send to</i> is one example.</p>
 <p>The <a href="/docs/app/context-menus">Context Menus</a> page lists these rules under
@@ -127,9 +219,9 @@
 
 <h5 id="saved">Where your changes are saved</h5>
 <ul>
-	<li>Rules for Windows items go to <code>imports\settings-app-map.nss</code>. Changes to your own items go to the
-		file the item is written in. Only files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are
-		changed.</li>
+	<li>Rules for Windows items, and changes to items in the files that came with Shell, go to
+		<code>imports\settings-app-map.nss</code>. Changes to items in your own files go to the file the item is
+		written in. Only files in your configuration folder (<code>%APPDATA%\Nilesoft\Shell</code>) are changed.</li>
 	<li>Before writing, the configuration is checked with
 		<a href="/docs/command-line#config"><code>shell -config:check</code></a>. A configuration Shell would reject is
 		not written.</li>
@@ -142,9 +234,15 @@
 <ul>
 	<li>Rules that depend on the selection or the window are marked <i>may</i>. The page doesn't decide them.</li>
 	<li><code>mode</code> conditions are not tested.</li>
-	<li>Your Shell items are listed in config order, apart from Windows' items. In the real menu Shell places them with
-		<code>pos</code> when the menu opens.</li>
+	<li>Items inside Windows submenus, such as <i>Open with</i>, can be hidden, renamed, moved and given an icon, but
+		not placed.</li>
+	<li>A <code>menu</code> or <code>pos</code> that depends on the selection is not applied in the map: the item is
+		listed where it is written.</li>
+	<li>Dragging items to reorder them isn't supported. Use the arrows, <kbd>Alt</kbd>+<kbd>Up</kbd> and
+		<kbd>Alt</kbd>+<kbd>Down</kbd>, or <strong>Place in this menu</strong>.</li>
 	<li>The <code>modify.remove.duplicate</code> setting is not applied in the map.</li>
+	<li>Items some programs add only inside File Explorer are not listed. Add them by title, see
+		<a href="#not-listed">An item that isn't listed</a>.</li>
 </ul>
 
 <h5 id="troubleshooting">Troubleshooting</h5>
