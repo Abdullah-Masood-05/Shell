@@ -48,6 +48,7 @@ struct Node
     std::string movedFrom;     // the menu it is written in, as a path of titles ("" the main menu)
     std::string pos;           // its pos=: top, bottom, middle, N, before:<title>, after:<title>,
                                // indexof, dynamic, auto; "" without one
+    int index = 0;             // its place in the tree's shell or system list (top level)
     int seq = 0;               // its place among all of the config's items, in the order they are
                                // declared across files (0: an older shell.exe doesn't tell)
     std::string shows;         // in this menu for the sample: yes | no | maybe (by where=, find=,
@@ -100,6 +101,7 @@ struct Rule
     bool menuDynamic = false;
     std::string title;
     bool titleDynamic = false;
+    bool hasPos = false;       // it gives a pos=
 };
 
 // One item of the main menu in the order it shows: Tree::shell[index] or
@@ -194,6 +196,8 @@ std::string matchProps(const Node &n);
 std::string hideRule(const Node &n);                                   // remove(...)
 std::string renameRule(const Node &n, std::string_view title);         // modify(... title="...")
 std::string moveRule(const Node &n, std::string_view menuPath);        // modify(... menu="...")
+// modify(... pos=<value>): `value` as posValue() or quoteString("top") gives it.
+std::string posRule(const Node &n, std::string_view value);
 // The value a rule made by renameRule or moveRule gives: prop "title" or "menu" of
 // `rule` when it is modify(<matchProps(n)> <prop>="..."), else nullopt.
 std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::string_view prop);
@@ -320,6 +324,7 @@ struct Sibling
     std::filesystem::path file;
     int line = 0;
     int column = 0;
+    bool rulable = false;      // one of Windows' items a rule can name: it can be placed with pos=
     bool laterInOrder = false; // has pos=N or pos=indexof() and is declared after the item being
                                // placed: not in the menu yet when that one is placed, so pos=indexof()
                                // can't name it (titled false); `sameAnchor` may still do

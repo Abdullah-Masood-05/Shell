@@ -124,6 +124,11 @@ private:
     std::string ruleValue(const menumap::Node &n, const char *prop, const std::string &saved) const;
     menumap::Reorder reorderOf(const Entry &e, bool up) const;
     bool canMoveOwn(const menumap::Node &n) const;
+    // One of Windows' or a program's items in the main menu that a rule (pos=) can place.
+    bool canPlaceWindows(const Entry &e) const;
+    // Gives it this pos= (a rule in settings-app-map.nss, staged like Move to's); "" takes the
+    // place a rule made here gave it away.
+    void setWindowsPos(const menumap::Node &n, const std::string &value, const std::string &label);
     // The note for a file that came with Shell: changing it makes it "edited by you"
     // for config updates.
     std::string shippedNote(const std::filesystem::path &file) const;

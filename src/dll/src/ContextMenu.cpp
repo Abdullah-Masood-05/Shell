@@ -860,6 +860,7 @@ namespace Nilesoft
 				string indexof;
 				int indexof_pos = 0, indexof_def = -1;
 
+				// A rule without a pos= leaves the place an earlier rule gave it.
 				if(si->position && _settings.modify_items.position)
 				{
 					Object obj = _context.Eval(si->position).move();
@@ -885,15 +886,15 @@ namespace Nilesoft
 					{
 						position = _context.parse_pos(obj, Position::Auto);
 					}
+
+					_context._this->pos = static_cast<int>(position);
+
+					mii->indexof.val = indexof.move();
+					mii->indexof.pos = indexof_pos;
+					mii->indexof.def = indexof_def;
+
+					mii->position = position;
 				}
-
-				_context._this->pos = static_cast<int>(position);
-
-				mii->indexof.val = indexof.move();
-				mii->indexof.pos = indexof_pos;
-				mii->indexof.def = indexof_def;
-
-				mii->position = position;
 
 				if(_settings.modify_items.title)
 				{

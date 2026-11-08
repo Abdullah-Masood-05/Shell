@@ -100,6 +100,7 @@ Node readNode(const json &j, Origin origin)
         n.maybeHidden = getBool(j, "maybe_hidden");
         n.moved = getString(j, "moved");
         n.renamed = getString(j, "renamed");
+        n.pos = getString(j, "pos");
     }
     if (auto it = j.find("items"); it != j.end() && it->is_array())
         for (const auto &c : *it)
@@ -539,8 +540,10 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
             continue;
         auto &list = std::string_view(key) == "shell" ? t.shell : t.system;
         for (const auto &n : *it)
-            if (n.is_object())
+            if (n.is_object()) {
                 list.push_back(readNode(n, std::string_view(key) == "shell" ? Origin::Shell : Origin::System));
+                list.back().index = int(list.size()) - 1;
+            }
     }
     if (auto it = tree->find("rules"); it != tree->end() && it->is_array())
         for (const auto &r : *it) {
@@ -562,6 +565,7 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
             rule.menuDynamic = getBool(r, "menu_dynamic");
             rule.title = getString(r, "title");
             rule.titleDynamic = getBool(r, "title_dynamic");
+            rule.hasPos = getBool(r, "pos");
             t.rules.push_back(std::move(rule));
         }
     t.systemError = getString(*tree, "system_error");
@@ -650,6 +654,15 @@ std::optional<std::string> ruleProp(const Node &n, std::string_view rule, std::s
     if (lit.kind != nss::LiteralKind::String)
         return std::nullopt;
     return lit.string;
+}
+
+std::string posRule(const Node &n, std::string_view value)
+{
+    auto m = matchProps(n);
+    auto v = nss::trim(value);
+    if (m.empty() || v.empty() || v.find_first_of("\r\n") != std::string_view::npos)
+        return {};
+    return "modify(" + m + " pos=" + std::string(v) + ")";
 }
 
 std::string imageRule(const Node &n, std::string_view value)
@@ -1210,7 +1223,9 @@ Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view 
         if (notInMenu(n))
             s.shown = false;
         const bool placedInOrder = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
-        if (placedInOrder && self && &n != self) {
+        // Yours go in before Windows' items with a pos= are, so a Windows item is no obstacle,
+        // and a Windows item being placed finds all of yours.
+        if (placedInOrder && self && self->origin == Origin::Shell && &n != self) {
             // Declared before it, in whichever file: the config's order decides (seq). An older
             // shell.exe doesn't give it: the same file and an earlier line.
             const bool before = n.seq > 0 && self->seq > 0
@@ -1242,6 +1257,15 @@ Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view 
     }
     if (!renamed.empty())
         s.step = { std::string(renamed), "" };
+    s.rulable = n.kind != "separator" && !matchProps(n).empty();
+    // A Windows item with a pos=N or pos=indexof() of its own is placed after yours, and after
+    // the ones of Windows' before it: not in the menu yet when the one being placed is.
+    const bool custom = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
+    if (custom && self && &n != self) {
+        const bool before = self->origin == Origin::System && n.index < self->index;
+        if (!before)
+            s.titled = false;
+    }
     return s;
 }
 
@@ -1251,7 +1275,7 @@ Reorder planReorder(const std::vector<Sibling> &siblings, size_t index, bool up)
     if (index >= siblings.size())
         return r;
     const auto &self = siblings[index];
-    if (!self.own || self.separator)
+    if ((!self.own && !self.rulable) || self.separator)
         return r;
     // The next sibling that shows, from `from` on (`from` itself first), or none.
     // Hidden ones are left out of the menu, so stepping over them is what the move

@@ -702,6 +702,17 @@ std::string MenuMapController::ruleValue(const Node &n, const char *prop, const 
 
 menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
 {
+    if (e.node && e.node->origin != Origin::Shell) {
+        // Windows' and programs' items: pos= in a rule, never a move in a file.
+        if (!canPlaceWindows(e))
+            return {};
+        size_t index = 0;
+        auto siblings = siblingsOf(e, &index);
+        auto plan = menumap::planReorder(siblings, index, up);
+        plan.text = false;
+        plan.possible = !plan.pos.empty();
+        return plan;
+    }
     // Only where the menu has it: a place next to what isn't in this menu isn't one.
     if (!e.node || !canMoveOwn(*e.node) || e.group == 2 || e.group == 4)
         return {};
@@ -714,6 +725,30 @@ menumap::Reorder MenuMapController::reorderOf(const Entry &e, bool up) const
         plan.possible = !plan.pos.empty();
     }
     return plan;
+}
+
+bool MenuMapController::canPlaceWindows(const Entry &e) const
+{
+    if (!e.node || e.node->origin == Origin::Shell || e.node->kind == "separator" || shared_ || e.group != 1 || e.movedIn ||
+        !e.node->path.empty() || e.node->unlisted || e.parent < 0 || entries_[size_t(e.parent)].group != 3)
+        return false;
+    return !menumap::matchProps(*e.node).empty();
+}
+
+void MenuMapController::setWindowsPos(const Node &n, const std::string &value, const std::string &label)
+{
+    const auto props = menumap::matchProps(n);
+    std::vector<std::string> drop;
+    for (const auto &[text, change] : save_.pending().rules())
+        if (change.add && text.rfind("modify(" + props + " pos=", 0) == 0)
+            drop.push_back(text);
+    for (const auto &text : drop)
+        stageRule(text, false, label);
+    for (const auto &line : mapLinesOf(n.rules, "pos"))
+        stageRule(line, false, label);
+    if (!value.empty())
+        if (auto rule = menumap::posRule(n, value); !rule.empty())
+            stageRule(rule, true, label);
 }
 
 std::string MenuMapController::positionOf(const Node &n) const
@@ -756,6 +791,7 @@ std::vector<std::string> MenuMapController::mapLinesOf(const std::vector<int> &i
         bool match = w == "vis"     ? r.vis == "hidden"
                      : w == "title" ? !r.title.empty()
                      : w == "menu"  ? !r.menu.empty()
+                     : w == "pos"   ? r.hasPos
                      : w == "image" ? menumap::ruleImage(line).has_value()
                                     : true;
         if (match)
@@ -902,6 +938,10 @@ std::string MenuMapController::statusOf(const Entry &e, std::string *kind) const
     if (!n.renamed.empty()) {
         *kind = "renamed";
         return nsp::trf("Renamed to {}", n.renamed);
+    }
+    if (!n.pos.empty() && n.pos != "auto" && e.group == 1) {
+        *kind = "moved";
+        return nsp::tr("Placed by a rule");
     }
     if (n.maybeHidden) {
         *kind = "maybe";
@@ -1360,6 +1400,8 @@ void MenuMapController::pushDetail()
                 what = nsp::trf("Moved to {} by {}.", menumap::stripAccelerators(r.menu), where);
             else if (!r.title.empty())
                 what = nsp::trf("Renamed to {} by {}.", r.title, where);
+            else if (r.hasPos)
+                what = nsp::trf("Placed by {}.", where);
             else
                 what = nsp::trf("Changed by {}.", where);
             status += (status.empty() ? "" : "\n") + what;
@@ -1402,6 +1444,20 @@ void MenuMapController::pushDetail()
         }
         // Move to: the main menu first ("/": out of a submenu, or back from a move
         // a rule in another file makes), then Shell's menus and Windows' submenus.
+        // Place in this menu: pos= in a rule, among the items the menu has.
+        positions_.clear();
+        if (canPlaceWindows(e)) {
+            positions_.push_back(Choice{ nsp::tr("At the top"), nss::quoteString("top") });
+            size_t index = 0;
+            auto siblings = siblingsOf(e, &index);
+            for (const auto &p : menumap::placesNextTo(siblings, index))
+                positions_.push_back(Choice{ p.after ? nsp::trf("After {}", p.title) : nsp::trf("Before {}", p.title), p.pos });
+            positions_.push_back(Choice{ nsp::tr("At the bottom"), nss::quoteString("bottom") });
+            d.can_place = true;
+            d.can_up = reorderOf(e, true).possible;
+            d.can_down = reorderOf(e, false).possible;
+            d.can_reset_position = !mapLinesOf(n.rules, "pos").empty();
+        }
         sysTargets_.clear();
         sysTargets_.push_back(MoveTarget{ nsp::tr("Main menu"), "/" });
         // Not a menu that is hidden or inside one: an item moved there vanishes.
@@ -1431,6 +1487,8 @@ void MenuMapController::pushDetail()
     } else {
         for (const auto &t : sysTargets_)
             targets.push_back(ss(elideMiddle(t.label)));
+        for (const auto &p : positions_)
+            positions.push_back(ss(elideMiddle(p.label)));
     }
     st.set_move_targets(std::make_shared<slint::VectorModel<slint::SharedString>>(targets));
     st.set_positions(std::make_shared<slint::VectorModel<slint::SharedString>>(positions));
@@ -1821,6 +1879,11 @@ void MenuMapController::place(int index)
         ui_->global<MenuMapState>().get_busy())
         return;
     const auto &n = *entries_[size_t(selected_)].node;
+    if (n.origin != Origin::Shell) {
+        if (canPlaceWindows(entries_[size_t(selected_)]))
+            setWindowsPos(n, positions_[size_t(index)].value, "place " + n.title + " " + positions_[size_t(index)].label);
+        return;
+    }
     if (!canMoveOwn(n))
         return;
     const auto choice = positions_[size_t(index)];
@@ -1840,6 +1903,11 @@ void MenuMapController::resetPosition()
     if (selected_ < 0 || !entries_[size_t(selected_)].node || save_.saving() || ui_->global<MenuMapState>().get_busy())
         return;
     const auto &n = *entries_[size_t(selected_)].node;
+    if (n.origin != Origin::Shell) {
+        if (canPlaceWindows(entries_[size_t(selected_)]))
+            setWindowsPos(n, std::string(), "put " + n.title + " in Windows' order");
+        return;
+    }
     if (!canMoveOwn(n))
         return;
     reveal_ = true;
@@ -1868,6 +1936,10 @@ void MenuMapController::reorder(int key, bool up)
     if (key != selected_) {
         selected_ = key;
         selectedKey_ = e.key;
+    }
+    if (n.origin != Origin::Shell) {
+        setWindowsPos(n, plan.pos, std::string("move ") + n.title + (up ? " up" : " down"));
+        return;
     }
     reveal_ = true;
     if (const auto &own = ownInfo(n); own.key) {

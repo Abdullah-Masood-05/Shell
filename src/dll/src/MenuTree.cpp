@@ -365,6 +365,11 @@ namespace Nilesoft
 				bool maybe_hidden = false;
 				bool pinned = false;	// menu='/' kept it in (or put it in) the main menu
 				std::wstring moved, renamed;
+				// pos= a modify() rule gives it (the last rule that has one): top, bottom, middle,
+				// N, before:<title>, after:<title>, indexof; "" without one.
+				std::wstring pos;
+				Placement::Spec spec;
+				string indexof;
 				std::vector<SysItem> items;
 			};
 
@@ -1601,14 +1606,15 @@ namespace Nilesoft
 			};
 			using ShellList = std::vector<std::unique_ptr<ShellNode>>;
 
-			auto position_of = [&](ShellNode &n)
+			// A pos= as the menu reads it: the kind of place (spec), the pattern of indexof(), and
+			// a short text for it.
+			auto parse_position = [&](Expression *e, Placement::Spec &spec, string &indexof, std::wstring &text)
 			{
-				auto e = n.item->position.get();
 				if(!e)
 					return;
 				if(!is_safe(e))
 				{
-					n.pos = L"dynamic";
+					text = L"dynamic";
 					return;
 				}
 				try
@@ -1620,22 +1626,22 @@ namespace Nilesoft
 						if((uint32_t)ptr[0] != IDENT_INDEXOF)
 							return;
 						int ac = ptr[1];
-						n.indexof = ptr[2].to_string().move();
-						n.spec.kind = Placement::Kind::IndexOf;
-						n.spec.offset = ptr[3];
-						n.spec.def = -1;
+						indexof = ptr[2].to_string().move();
+						spec.kind = Placement::Kind::IndexOf;
+						spec.offset = ptr[3];
+						spec.def = -1;
 						if(ac == 3)
 						{
 							int d = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
-							n.spec.def = d >= 0 ? d : (int)context.parse_pos(ptr[4], Position::Auto);
+							spec.def = d >= 0 ? d : (int)context.parse_pos(ptr[4], Position::Auto);
 						}
 						// '"Title"' with offset 0 or 1: right before or right after that item.
-						std::wstring pattern = n.indexof.empty() ? std::wstring() : std::wstring(n.indexof.c_str());
+						std::wstring pattern = indexof.empty() ? std::wstring() : std::wstring(indexof.c_str());
 						if(pattern.size() >= 2 && pattern.front() == L'"' && pattern.back() == L'"' &&
-						   pattern.find(L'|') == std::wstring::npos && (n.spec.offset == 0 || n.spec.offset == 1))
-							n.pos = (n.spec.offset == 0 ? L"before:" : L"after:") + pattern.substr(1, pattern.size() - 2);
+						   pattern.find(L'|') == std::wstring::npos && (spec.offset == 0 || spec.offset == 1))
+							text = (spec.offset == 0 ? L"before:" : L"after:") + pattern.substr(1, pattern.size() - 2);
 						else
-							n.pos = L"indexof";
+							text = L"indexof";
 						return;
 					}
 					if(obj.is_null())
@@ -1643,22 +1649,26 @@ namespace Nilesoft
 					auto p = context.parse_pos(obj, Position::Auto);
 					switch(p)
 					{
-						case Position::Top: n.spec.kind = Placement::Kind::Top; n.pos = L"top"; break;
-						case Position::Bottom: n.spec.kind = Placement::Kind::Bottom; n.pos = L"bottom"; break;
-						case Position::Middle: n.spec.kind = Placement::Kind::Middle; n.pos = L"middle"; break;
+						case Position::Top: spec.kind = Placement::Kind::Top; text = L"top"; break;
+						case Position::Bottom: spec.kind = Placement::Kind::Bottom; text = L"bottom"; break;
+						case Position::Middle: spec.kind = Placement::Kind::Middle; text = L"middle"; break;
 						case Position::Auto:
-						case Position::None: n.pos = L"auto"; break;
+						case Position::None: text = L"auto"; break;
 						default:
-							n.spec.kind = Placement::Kind::Index;
-							n.spec.index = static_cast<int>(p);
-							n.pos = std::to_wstring(static_cast<int>(p));
+							spec.kind = Placement::Kind::Index;
+							spec.index = static_cast<int>(p);
+							text = std::to_wstring(static_cast<int>(p));
 							break;
 					}
 				}
 				catch(...)
 				{
-					n.pos = L"dynamic";
+					text = L"dynamic";
 				}
+			};
+			auto position_of = [&](ShellNode &n)
+			{
+				parse_position(n.item->position.get(), n.spec, n.indexof, n.pos);
 			};
 
 			int declared_seq = 0;
@@ -1993,6 +2003,9 @@ namespace Nilesoft
 				bool menu_dynamic = false;
 				std::wstring title;
 				bool title_dynamic = false;
+				std::wstring pos;		// its pos=, as parse_position tells it
+				Placement::Spec spec;
+				string indexof;
 			};
 			std::vector<RuleInfo> infos(statics.size());
 			std::wstring rules;
@@ -2008,6 +2021,8 @@ namespace Nilesoft
 				ri.vis = visibility(si->visibility);
 				ri.menu = text_of(si->moveto, ri.menu_dynamic);
 				ri.title = text_of(si->title, ri.title_dynamic);
+				if(si->position.get())
+					parse_position(si->position.get(), ri.spec, ri.indexof, ri.pos);
 
 				rules += i ? L",{" : L"{";
 				jnum(rules, L"index", static_cast<long long>(i));
@@ -2028,6 +2043,7 @@ namespace Nilesoft
 				jtext(rules, L"title", ri.title);
 				jbool(rules, L"title_dynamic", ri.title_dynamic);
 				jbool(rules, L"pos", si->position.get() != nullptr);
+				jtext(rules, L"pos_text", ri.pos);
 				jbool(rules, L"sep", si->separator.get() != nullptr);
 				jbool(rules, L"image", si->image.expr != nullptr || si->images.normal.get() != nullptr);
 				rules += L"}";
@@ -2223,6 +2239,13 @@ namespace Nilesoft
 									item.moved = ri.menu;
 								if(!ri.title.empty() && item.renamed.empty())
 									item.renamed = ri.title;
+								// The last rule that has a pos= decides (ContextMenu.cpp).
+								if(si->position.get() && item.type != 2)
+								{
+									item.pos = ri.pos;
+									item.spec = ri.spec;
+									item.indexof = ri.indexof;
+								}
 								// Hidden or moved: the item leaves this menu, so the rules
 								// after this one don't see it here (as in ContextMenu.cpp).
 								if(ri.vis == L"hidden" ||
@@ -2356,14 +2379,20 @@ namespace Nilesoft
 					size_t sys = 0;			// index in `sys` when node is null
 					bool separator = false;
 					const string *name = nullptr;
+					Placement::Spec spec;
+					const string *indexof = nullptr;
 				};
 				std::vector<Slot> items, top, autos, middle, bottom, custom;
+				// Windows' items by the pos= a modify() rule gives them.
+				std::vector<Slot> sys_top, sys_auto, sys_middle, sys_bottom, sys_custom;
 				auto slot_of = [](ShellNode *n)
 				{
 					Slot s;
 					s.node = n;
 					s.separator = n->item->is_separator();
 					s.name = &n->normalized;
+					s.spec = n->spec;
+					s.indexof = &n->indexof;
 					return s;
 				};
 				for(auto n : shell_config)
@@ -2389,7 +2418,6 @@ namespace Nilesoft
 						m.erase(0, 1);
 					return m.empty();
 				};
-				items = top;
 				for(size_t i = 0; i < sys.size(); i++)
 				{
 					if(present(sys[i]))
@@ -2398,9 +2426,24 @@ namespace Nilesoft
 						s.sys = i;
 						s.separator = sys[i].type == 2;
 						s.name = &sys[i].name;
-						items.push_back(s);
+						s.spec = sys[i].spec;
+						s.indexof = &sys[i].indexof;
+						switch(sys[i].spec.kind)
+						{
+							case Placement::Kind::Top: sys_top.push_back(s); break;
+							case Placement::Kind::Middle: sys_middle.push_back(s); break;
+							case Placement::Kind::Bottom: sys_bottom.push_back(s); break;
+							case Placement::Kind::Index:
+							case Placement::Kind::IndexOf: sys_custom.push_back(s); break;
+							default: sys_auto.push_back(s); break;
+						}
 					}
 				}
+				// ContextMenu::OnInitMenuPopup: your pos=top items, Windows' pos=top, then Windows'
+				// items without one.
+				items = top;
+				items.insert(items.end(), sys_top.begin(), sys_top.end());
+				items.insert(items.end(), sys_auto.begin(), sys_auto.end());
 
 				auto findpos = [&]() -> size_t
 				{
@@ -2455,15 +2498,19 @@ namespace Nilesoft
 				if(dynamic_pos > items.size())
 					dynamic_pos = items.size();
 				items.insert(items.begin() + static_cast<std::ptrdiff_t>(dynamic_pos), autos.begin(), autos.end());
+				items.insert(items.end(), sys_bottom.begin(), sys_bottom.end());
 				items.insert(items.end(), bottom.begin(), bottom.end());
+				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), sys_middle.begin(), sys_middle.end());
 				items.insert(items.begin() + static_cast<std::ptrdiff_t>(items.size() / 2), middle.begin(), middle.end());
+				// pos=N and pos=indexof(): yours first, then Windows'.
+				custom.insert(custom.end(), sys_custom.begin(), sys_custom.end());
 
-				struct Placed { ShellNode *spec; Slot last; };
+				struct Placed { Slot spec; Slot last; };
 				std::vector<Placed> placed;
 				auto same_slot = [](const Slot &a, const Slot &b) { return a.node == b.node && (a.node || a.sys == b.sys); };
 				for(auto &it : custom)
 				{
-					auto &sp = it.node->spec;
+					auto &sp = it.spec;
 					if(sp.kind == Placement::Kind::Index)
 					{
 						if(sp.index < 0 || sp.index > static_cast<int>(items.size()))
@@ -2475,7 +2522,7 @@ namespace Nilesoft
 					Placed *group = nullptr;
 					for(auto &pl : placed)
 					{
-						if(pl.spec->spec.offset == sp.offset && pl.spec->spec.def == sp.def && pl.spec->indexof.equals(it.node->indexof, false))
+						if(pl.spec.spec.offset == sp.offset && pl.spec.spec.def == sp.def && pl.spec.indexof->equals(*it.indexof, false))
 						{
 							group = &pl;
 							break;
@@ -2497,7 +2544,7 @@ namespace Nilesoft
 					else
 					{
 						FindPattern fp;
-						if(fp.split(it.node->indexof, L'|'))
+						if(fp.split(*it.indexof, L'|'))
 						{
 							for(const auto &pat : fp.matches)
 							{
@@ -2524,7 +2571,7 @@ namespace Nilesoft
 					if(group)
 						group->last = it;
 					else
-						placed.push_back({ it.node, it });
+						placed.push_back({ it, it });
 				}
 
 				// Windows' items that left this menu: after the Windows item before them.
@@ -2617,6 +2664,7 @@ namespace Nilesoft
 					jbool(system, L"maybe_hidden", item.maybe_hidden);
 					jtext(system, L"moved", item.moved);
 					jtext(system, L"renamed", item.renamed);
+					jtext(system, L"pos", item.pos);
 					jkey(system, L"items");
 					system += L"[";
 					write(item.items);

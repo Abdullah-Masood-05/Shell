@@ -844,3 +844,65 @@ TEST_CASE("menu move: items of any file are offered as places")
     // Sharing the anchor puts Me right before Late: the same indexof() keeps declaration order.
     CHECK(arrange({ plain("a"), plain("b"), rel("Me", "a", 1), rel("Late", "a", 1) }) == Titles{ "a", "Me", "Late", "b" });
 }
+
+TEST_CASE("menu move: Windows' items are placed with a pos= rule")
+{
+    // Windows' Open, Delete (a rule gave it pos=indexof, so it is placed late), Properties;
+    // yours: Mine (no pos=), Later (pos=indexof, declared in another file).
+    auto t = parseTree(R"({"ok":true,"context":"thispc","errors":[],"tree":{
+      "shell":[
+        {"kind":"item","title":"Mine","state":"text","file":"C:\\c\\a.nss","line":1,"column":1,"shows":"yes","seq":1,"items":[]},
+        {"kind":"item","title":"Later","state":"text","file":"C:\\c\\b.nss","line":1,"column":1,"shows":"yes","pos":"indexof","seq":2,"items":[]}],
+      "system":[
+        {"kind":"item","title":"&Open","name":"Open","id":"open","items":[]},
+        {"kind":"separator","title":"","items":[]},
+        {"kind":"item","title":"&Delete","name":"Delete","id":"delete","pos":"after:Open","items":[]},
+        {"kind":"item","title":"P&roperties","name":"Properties","id":"properties","items":[]}],
+      "rules":[{"index":0,"file":"C:\\c\\imports\\settings-app-map.nss","line":3,"column":1,"applies":true,"find":"\"Delete\"","pos":true,"pos_text":"after:Open"}],
+      "system_error":"",
+      "order":[{"from":"system","index":0},{"from":"shell","index":0},{"from":"shell","index":1},{"from":"system","index":1},
+               {"from":"system","index":2},{"from":"system","index":3}]}})");
+    REQUIRE(t);
+    CHECK(t->rules[0].hasPos);
+    CHECK(t->system[2].pos == "after:Open");
+    CHECK(t->system[3].index == 3);
+
+    // Placing Properties: all of yours can be named, wherever they are declared, even with a pos=;
+    // Delete has a pos= of its own and comes later in Windows' order, so it can't.
+    const Node &self = t->system[3];
+    std::vector<Sibling> siblings;
+    for (const auto &n : t->system)
+        siblings.push_back(siblingOf(n, &self, true, "", ""));
+    siblings.push_back(siblingOf(t->shell[0], &self, true, "", ""));
+    siblings.push_back(siblingOf(t->shell[1], &self, true, "", ""));
+    CHECK(siblings[3].rulable);
+    CHECK_FALSE(siblings[1].rulable); // a separator
+    CHECK(siblings[5].titled);        // yours, with pos=indexof, in another file
+    CHECK(siblings[4].titled);
+    CHECK(siblings[0].titled);
+    CHECK(siblings[2].titled); // Delete has a pos= too, but is before Properties in Windows' order
+
+    // The rule: modify(<how Move to names it> pos=<value>).
+    CHECK(posRule(t->system[3], "\"top\"") == "modify(where=this.id==id.properties pos=\"top\")");
+    CHECK(posRule(t->system[3], posValue({ "Open", "" }, true)) ==
+          "modify(where=this.id==id.properties pos=" + posValue({ "Open", "" }, true) + ")");
+    CHECK(posRule(t->system[1], "\"top\"").empty()); // a separator can't be named
+
+    // Move up for Properties: right before Delete; Windows' items can be moved by a rule.
+    siblings.resize(4);
+    auto up = planReorder(siblings, 3, true);
+    CHECK(up.possible);
+    CHECK_FALSE(up.text);
+    CHECK(up.pos == posValue({ "Delete", "" }, false));
+    // Open can't go further up.
+    CHECK_FALSE(planReorder(siblings, 0, true).possible);
+
+    // Yours being placed: Windows' items with a pos= are not in the menu yet, the plain ones are.
+    const Node &mine = t->shell[0];
+    siblings.clear();
+    for (const auto &n : t->system)
+        siblings.push_back(siblingOf(n, &mine, true, "", ""));
+    CHECK(siblings[0].titled);
+    CHECK_FALSE(siblings[2].titled); // Delete has pos=after:Open
+    CHECK(siblings[3].titled);
+}

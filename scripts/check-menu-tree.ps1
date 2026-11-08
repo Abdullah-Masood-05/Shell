@@ -140,6 +140,8 @@ item(title='Last' type='*' pos=bottom cmd='x')
 menu(title='Empty' type='*') { item(title='Never' where=sel.count>1 cmd='x') }
 menu(title='Holder' type='*') { }
 modify(type='*' find='"Delete"' menu='Holder')
+modify(type='*' find='"Open"' pos=bottom)
+modify(type='*' find='"Cut"' pos=top)
 "@ | Set-Content $ownRoot -Encoding utf8
 	$expect = [ordered]@{
 		thispc  = @{ 'PC only' = 'yes'; 'Not on PC' = 'no'; 'Many' = 'no'; 'Taskbar only' = 'no'; 'PC with Shift' = 'maybe'; 'Shift' = 'maybe'; 'Gone' = 'no'; 'Inside' = 'no'
@@ -187,6 +189,17 @@ modify(type='*' find='"Delete"' menu='Holder')
 			for ($i = 0; $i -lt @($tree.shell).Count; $i++) {
 				$n = $tree.shell[$i]
 				if (($n.shows -ne 'no') -ne [bool]$seen["shell/$i"]) { $problems += "order and shows disagree for '$($n.title)' ($($n.shows))" }
+			}
+			# modify(pos=) on Windows' items: Cut first (after your pos=top), Open after the other Windows items.
+			$openAt = @($order | Where-Object { $_.from -eq 'system' -and $tree.system[$_.index].name -eq 'Open' })
+			if ($where -eq 'file') {
+				$cutAt = @($order | Where-Object { $_.from -eq 'system' -and $tree.system[$_.index].name -eq 'Cut' })
+				if (-not $cutAt.Count -or $tree.system[$cutAt[0].index].pos -ne 'top') { $problems += 'modify(find=Cut pos=top): the tree gives Cut no pos' }
+				$idx = { param($o) [array]::IndexOf($order, $o) }
+				$last = @($order | Where-Object { $_.from -eq 'system' -and $tree.system[$_.index].name -eq 'Properties' })
+				if ($openAt.Count -and $last.Count -and (& $idx $openAt[0]) -lt (& $idx $last[0])) { $problems += 'modify(find=Open pos=bottom): Open is before Properties' }
+				$firstShell = @($order | Where-Object { $_.from -eq 'shell' })[0]
+				if ($cutAt.Count -and (& $idx $cutAt[0]) -gt (& $idx $firstShell) -and $tree.shell[$firstShell.index].title -ne 'First') { $problems += 'Cut with pos=top is after your items' }
 			}
 			$titles = @($order | ForEach-Object { if ($_.from -eq 'shell') { $tree.shell[$_.index].title } else { "W:" + $tree.system[$_.index].title } })
 			if ($where -eq 'thispc') {
