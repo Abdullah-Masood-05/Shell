@@ -895,6 +895,11 @@ namespace Nilesoft
 
 					mii->position = position;
 				}
+				else
+				{
+					// this.pos still tells later properties of this rule where the item is.
+					_context._this->pos = static_cast<int>(mii->position);
+				}
 
 				if(_settings.modify_items.title)
 				{
