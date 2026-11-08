@@ -495,7 +495,7 @@ msgstr "有可用的更新：{}"
 msgid "Live preview"
 msgstr "即時預覽"
 
-#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:40 src/MenuModel.cpp:168 src/SnippetPreview.cpp:342
+#: ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/appearance.slint:88 ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:786 src/MenuMapController.cpp:51 src/MenuModel.cpp:168 src/SnippetPreview.cpp:342
 msgid "Desktop"
 msgstr "桌面"
 
@@ -524,7 +524,7 @@ msgstr "想要更進一步自訂？"
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr "漸層、圖示色彩及個別項目的規則位於 shell.nss 及其匯入的檔案中。"
 
-#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:341
+#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:50 src/SnippetPreview.cpp:341
 msgid "Background"
 msgstr "背景"
 
@@ -944,7 +944,7 @@ msgstr "螢幕擷取畫面"
 msgid "Print Screen saves the open menu"
 msgstr "按 Print Screen 擷取開啟的選單"
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
+#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:50 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
 msgid "Folder"
 msgstr "資料夾"
 
@@ -1416,7 +1416,7 @@ msgctxt "Tree badge"
 msgid "menu"
 msgstr "選單"
 
-#: ui/pages/menu-builder.slint:317 src/MenuMapController.cpp:1473 src/OpenWithController.cpp:194
+#: ui/pages/menu-builder.slint:317 src/MenuMapController.cpp:1544 src/OpenWithController.cpp:194
 msgid "Choose an icon"
 msgstr "選擇圖示"
 
@@ -1665,7 +1665,7 @@ msgstr "最大化"
 msgid "LOOK"
 msgstr "外觀"
 
-#: ui/pages/menu-builder.slint:788 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:1006 src/TaskbarApps.cpp:561
+#: ui/pages/menu-builder.slint:788 src/MenuBuilderController.cpp:344 src/MenuMapController.cpp:1065 src/TaskbarApps.cpp:561
 msgid "Separator"
 msgstr "分隔線"
 
@@ -1729,7 +1729,7 @@ msgstr "唯讀。儲存時會寫入 {}。"
 msgid "Nothing to preview yet."
 msgstr "尚無可預覽的內容。"
 
-#: ui/pages/menu-map.slint:301 ui/pages/menu-map.slint:530 src/AppearanceController.cpp:83 src/MenuMapController.cpp:720 src/MenuMapController.cpp:746
+#: ui/pages/menu-map.slint:301 ui/pages/menu-map.slint:530 src/AppearanceController.cpp:83 src/MenuMapController.cpp:776 src/MenuMapController.cpp:799
 msgid "Hidden"
 msgstr "隱藏"
 
@@ -2697,7 +2697,7 @@ msgstr "圖片"
 msgid "Projects"
 msgstr "專案"
 
-#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:40
+#: ui/preview/menu-preview.slint:491 src/MenuMapController.cpp:51
 msgid "This PC"
 msgstr "本機"
 
@@ -2761,7 +2761,7 @@ msgstr "自訂路徑（登錄）"
 msgid "Shared (install folder)"
 msgstr "共用（安裝資料夾）"
 
-#: src/AppController.cpp:145 src/MenuMapController.cpp:784
+#: src/AppController.cpp:145 src/MenuMapController.cpp:837
 msgid "Unknown"
 msgstr "未知"
 
@@ -2833,7 +2833,7 @@ msgstr "測試翻譯檔案"
 msgid "Translation files"
 msgstr "翻譯檔案"
 
-#: src/AppController.cpp:276 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1475 src/OpenWithController.cpp:992
+#: src/AppController.cpp:276 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1546 src/OpenWithController.cpp:992
 msgid "All files"
 msgstr "所有檔案"
 
@@ -3390,7 +3390,7 @@ msgstr "移至"
 msgid "Jump to common folders and Windows Settings pages."
 msgstr "跳至常用資料夾和 Windows 設定頁面。"
 
-#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:40 src/SnippetPreview.cpp:344
+#: src/ConfigRules.cpp:54 src/MenuMapController.cpp:51 src/SnippetPreview.cpp:344
 msgid "Taskbar"
 msgstr "工作列"
 
@@ -3872,7 +3872,7 @@ msgctxt "where"
 msgid "{0} {1}"
 msgstr "{1}{0}"
 
-#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1147
+#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1218
 msgid "in {}"
 msgstr "位於 {}"
 
@@ -3881,7 +3881,7 @@ msgctxt "where"
 msgid "{0}, {1}"
 msgstr "{1}，{0}"
 
-#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:39 src/SnippetPreview.cpp:339
+#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:50 src/SnippetPreview.cpp:339
 msgid "File"
 msgstr "檔案"
 
@@ -4034,7 +4034,7 @@ msgstr "無法檢查設定檔"
 msgid "shell.exe was not found, so nothing was saved."
 msgstr "找不到 shell.exe，因此未儲存任何內容。"
 
-#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1710 src/MenuMapController.cpp:1728 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:896
+#: src/ContextMenusController.cpp:473 src/ContextMenusController.cpp:482 src/MenuBuilderController.cpp:517 src/MenuMapController.cpp:1781 src/MenuMapController.cpp:1799 src/OpenWithController.cpp:1035 src/SnippetsController.cpp:896
 msgid "Not saved"
 msgstr "未儲存"
 
@@ -4046,23 +4046,23 @@ msgstr "{} 在此為唯讀。"
 msgid "Saved, but a file couldn't be deleted"
 msgstr "已儲存，但有一個檔案無法刪除"
 
-#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1758 src/MenuMapController.cpp:1865
+#: src/ContextMenusController.cpp:514 src/MenuMapController.cpp:1829 src/MenuMapController.cpp:1936
 msgid "Saved"
 msgstr "已儲存"
 
-#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1758 src/MenuMapController.cpp:1865 src/OpenWithController.cpp:1145
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:1829 src/MenuMapController.cpp:1936 src/OpenWithController.cpp:1145
 msgid "No changes were needed."
 msgstr "不需要變更。"
 
-#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:1759 src/MenuMapController.cpp:1866
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:1830 src/MenuMapController.cpp:1937
 msgid "Snapshot {} was taken first."
 msgstr "已先建立快照 {}。"
 
-#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1771 src/SnippetsController.cpp:985
+#: src/ContextMenusController.cpp:529 src/MenuMapController.cpp:1842 src/SnippetsController.cpp:985
 msgid "Not saved: the config would fail to load"
 msgstr "未儲存：設定檔將無法載入"
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1774 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:1845 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
 msgid "Couldn't save"
 msgstr "無法儲存"
 
@@ -4118,7 +4118,7 @@ msgstr "請為它選擇一個程式"
 msgid "Not found: {}"
 msgstr "找不到：{}"
 
-#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1877 src/MenuModel.cpp:537 src/OpenWithModel.cpp:1433
+#: src/ContextMenusController.cpp:826 src/MenuMapController.cpp:1948 src/MenuModel.cpp:537 src/OpenWithModel.cpp:1433
 msgid "Line {}: {}"
 msgstr "第 {} 行：{}"
 
@@ -4138,7 +4138,7 @@ msgstr "選擇程式或捷徑"
 msgid "Programs and shortcuts"
 msgstr "程式和捷徑"
 
-#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:781 src/Snippets.cpp:671
+#: src/ContextMenusController.cpp:1019 src/MenuMapController.cpp:834 src/Snippets.cpp:671
 msgid "Windows"
 msgstr "Windows"
 
@@ -4246,7 +4246,7 @@ msgstr "無法載入設定檔。"
 msgid "refusing to write under Program Files: {}"
 msgstr "拒絕寫入 Program Files 下的位置：{}"
 
-#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:877 src/MenuMapController.cpp:946 src/MenuMapController.cpp:1005 src/MenuMapController.cpp:1800
+#: src/MenuBuilderController.cpp:77 src/MenuMapController.cpp:936 src/MenuMapController.cpp:1004 src/MenuMapController.cpp:1064 src/MenuMapController.cpp:1871
 msgid "(no title)"
 msgstr "（無標題）"
 
@@ -4278,382 +4278,427 @@ msgstr "{}（第 {} 行）"
 msgid "Not saved: Shell would reject these menus"
 msgstr "未儲存：Shell 會拒絕這些選單"
 
-#: src/MenuMapController.cpp:40 src/SnippetPreview.cpp:343
+#: src/MenuMapController.cpp:37
+msgid "Your Shell items"
+msgstr "你的 Shell 選單項目"
+
+#: src/MenuMapController.cpp:38
+msgid "Windows and other programs"
+msgstr "Windows 和其他程式"
+
+#: src/MenuMapController.cpp:39 src/MenuMapController.cpp:772
+msgid "Not in this menu"
+msgstr "不在此選單中"
+
+#: src/MenuMapController.cpp:51 src/SnippetPreview.cpp:343
 msgid "Drive"
 msgstr "磁碟機"
 
-#: src/MenuMapController.cpp:44
+#: src/MenuMapController.cpp:55
 msgid "Text file (.txt)"
 msgstr "文字檔 (.txt)"
 
-#: src/MenuMapController.cpp:44
+#: src/MenuMapController.cpp:55
 msgid "Image (.png)"
 msgstr "圖片 (.png)"
 
-#: src/MenuMapController.cpp:45
+#: src/MenuMapController.cpp:56
 msgid "Application (.exe)"
 msgstr "應用程式 (.exe)"
 
-#: src/MenuMapController.cpp:45
+#: src/MenuMapController.cpp:56
 msgid "Shortcut (.lnk)"
 msgstr "捷徑 (.lnk)"
 
-#: src/MenuMapController.cpp:46
+#: src/MenuMapController.cpp:57
 msgid "Archive (.zip)"
 msgstr "壓縮檔 (.zip)"
 
-#: src/MenuMapController.cpp:46
+#: src/MenuMapController.cpp:57
 msgid "PDF (.pdf)"
 msgstr "PDF (.pdf)"
 
-#: src/MenuMapController.cpp:47
+#: src/MenuMapController.cpp:58
 msgid "Music (.mp3)"
 msgstr "音樂 (.mp3)"
 
-#: src/MenuMapController.cpp:331
+#: src/MenuMapController.cpp:342
 msgid "The config file doesn't exist. Create a personal config from Home first."
 msgstr "設定檔不存在。請先在「首頁」建立個人設定檔。"
 
-#: src/MenuMapController.cpp:336 src/ShellCli.cpp:124
+#: src/MenuMapController.cpp:347 src/ShellCli.cpp:124
 msgid "shell.exe was not found next to NilesoftShellPro.exe or the registered shell.dll."
 msgstr "NilesoftShellPro.exe 和已註冊的 shell.dll 所在資料夾中都找不到 shell.exe。"
 
-#: src/MenuMapController.cpp:354 src/SnippetsController.cpp:319
+#: src/MenuMapController.cpp:365 src/SnippetsController.cpp:319
 msgid "shell.exe took too long to read the menu and was stopped."
 msgstr "shell.exe 讀取選單耗時過久，已被停止。"
 
-#: src/MenuMapController.cpp:359 src/SnippetsController.cpp:324
+#: src/MenuMapController.cpp:370 src/SnippetsController.cpp:324
 msgid "shell.exe gave no menu ({}). It may be older than this app."
 msgstr "shell.exe 沒有傳回選單（{}）。它可能比本應用程式舊。"
 
-#: src/MenuMapController.cpp:462
+#: src/MenuMapController.cpp:481
 msgid "{} (Windows)"
 msgstr "{}（Windows）"
 
-#: src/MenuMapController.cpp:534
+#: src/MenuMapController.cpp:577
 msgid "{} came with Shell. What you change here is kept in imports/settings-app-map.nss, so updates still replace the file and keep your changes. Edit code changes the file itself: updates then keep your copy and offer to compare it with the new one."
 msgstr "{} 隨 Shell 一起提供。你在此所做的變更會儲存在 imports/settings-app-map.nss 中，因此更新仍會取代該檔案，同時保留你的變更。「編輯程式碼」會直接修改檔案本身：此後更新會保留你的副本，並提供與新版本比較的選項。"
 
-#: src/MenuMapController.cpp:665 src/MenuMapController.cpp:701 src/MenuMapController.cpp:1117 src/MenuMapController.cpp:1217
+#: src/MenuMapController.cpp:714 src/MenuMapController.cpp:750 src/MenuMapController.cpp:1187 src/MenuMapController.cpp:1288
 msgid "The shared config is read-only here."
 msgstr "共用設定檔在這裡是唯讀的。"
 
-#: src/MenuMapController.cpp:667 src/MenuMapController.cpp:1119
+#: src/MenuMapController.cpp:716 src/MenuMapController.cpp:1190
 msgid "This file is read-only here."
 msgstr "此檔案在這裡是唯讀的。"
 
-#: src/MenuMapController.cpp:669
+#: src/MenuMapController.cpp:718
 msgid "It has its own vis= setting; change it with Edit code."
 msgstr "它有自己的 vis= 設定，請用「編輯程式碼」修改。"
 
-#: src/MenuMapController.cpp:690
+#: src/MenuMapController.cpp:739
 msgid "A rule in your config hides it. Turn that rule off on the Context Menus page."
 msgstr "你設定檔中的一條規則隱藏了它。請在「右鍵選單」頁面關閉那條規則。"
 
-#: src/MenuMapController.cpp:698 src/MenuMapController.cpp:1218
+#: src/MenuMapController.cpp:747 src/MenuMapController.cpp:1289
 msgid "Its title changes with the selection, so a rule can't name it. Use the Config Editor."
 msgstr "它的標題隨選取內容變化，規則無法指定它。請使用設定檔編輯器。"
 
-#: src/MenuMapController.cpp:724
+#: src/MenuMapController.cpp:772
+msgid "Only for some files or folders"
+msgstr "僅適用於部分檔案或資料夾"
+
+#: src/MenuMapController.cpp:780
 msgid "Moved from the main menu"
 msgstr "已從主選單移來"
 
-#: src/MenuMapController.cpp:725
+#: src/MenuMapController.cpp:781
 msgid "Moved from {}"
 msgstr "已從 {} 移來"
 
-#: src/MenuMapController.cpp:729 src/MenuMapController.cpp:752
+#: src/MenuMapController.cpp:785 src/MenuMapController.cpp:805
 msgid "Moved to {}"
 msgstr "已移至 {}"
 
-#: src/MenuMapController.cpp:729 src/MenuMapController.cpp:1055 src/MenuMapController.cpp:1058 src/MenuMapController.cpp:1061
+#: src/MenuMapController.cpp:785 src/MenuMapController.cpp:1125 src/MenuMapController.cpp:1128 src/MenuMapController.cpp:1131
 msgid "the main menu"
 msgstr "主選單"
 
-#: src/MenuMapController.cpp:733
+#: src/MenuMapController.cpp:789
 msgid "Disabled"
 msgstr "已停用"
 
-#: src/MenuMapController.cpp:740
+#: src/MenuMapController.cpp:793
 msgid "Shows only sometimes"
 msgstr "僅在部分情況下顯示"
 
-#: src/MenuMapController.cpp:751
+#: src/MenuMapController.cpp:804
 msgid "Kept in the main menu"
 msgstr "保留在主選單中"
 
-#: src/MenuMapController.cpp:751
+#: src/MenuMapController.cpp:804
 msgid "Moved to the main menu"
 msgstr "已移至主選單"
 
-#: src/MenuMapController.cpp:756
+#: src/MenuMapController.cpp:809
 msgid "Renamed to {}"
 msgstr "已重新命名為 {}"
 
-#: src/MenuMapController.cpp:760
+#: src/MenuMapController.cpp:813
 msgid "May be hidden"
 msgstr "可能被隱藏"
 
-#: src/MenuMapController.cpp:764
+#: src/MenuMapController.cpp:817
 msgid "A rule may change it"
 msgstr "規則可能會變更它"
 
-#: src/MenuMapController.cpp:775
+#: src/MenuMapController.cpp:828
 msgid "{}:{}"
 msgstr "{}:{}"
 
-#: src/MenuMapController.cpp:777
+#: src/MenuMapController.cpp:830
 msgid "Typed by title"
 msgstr "依標題輸入"
 
-#: src/MenuMapController.cpp:783 src/MenuMapController.cpp:1134
+#: src/MenuMapController.cpp:836 src/MenuMapController.cpp:1205
 msgid "A program"
 msgstr "某個程式"
 
-#: src/MenuMapController.cpp:809
+#: src/MenuMapController.cpp:862
 msgid "Windows builds the taskbar's menu itself, so only Shell's items are listed here."
 msgstr "工作列選單由 Windows 自行建立，因此這裡只列出 Shell 的選單項目。"
 
-#: src/MenuMapController.cpp:811
+#: src/MenuMapController.cpp:864
 msgid "Windows' items couldn't be read: {}"
 msgstr "無法讀取 Windows 的選單項目：{}"
 
-#: src/MenuMapController.cpp:820
+#: src/MenuMapController.cpp:873
 msgid "Some programs add their items only inside File Explorer, so they aren't listed here. Type the item's title as the menu shows it to hide, rename or move it."
 msgstr "有些程式只在檔案總管中新增它們的選單項目，所以這裡沒有列出。輸入選單中顯示的標題，即可隱藏、重新命名或移動它。"
 
-#: src/MenuMapController.cpp:825
+#: src/MenuMapController.cpp:878
 msgid "Added nothing here: {}."
 msgstr "這些程式在這裡沒有新增任何選單項目：{}。"
 
-#: src/MenuMapController.cpp:834
+#: src/MenuMapController.cpp:891 src/MenuMapController.cpp:894
 msgid "{} · {}"
 msgstr "{} · {}"
 
-#: src/MenuMapController.cpp:834
+#: src/MenuMapController.cpp:891
 msgid "{n} of your items"
 msgid_plural "{n} of your items"
 msgstr[0] "你的 {n} 個選單項目"
 
-#: src/MenuMapController.cpp:835
+#: src/MenuMapController.cpp:892
 msgid "{n} from Windows and programs"
 msgid_plural "{n} from Windows and programs"
 msgstr[0] "Windows 和程式的 {n} 個選單項目"
 
-#: src/MenuMapController.cpp:865 src/MenuMapController.cpp:933
-msgid "Your Shell items"
-msgstr "你的 Shell 選單項目"
+#: src/MenuMapController.cpp:894
+msgid "{n} not in this menu"
+msgid_plural "{n} not in this menu"
+msgstr[0] "{n} 個不在此選單中"
 
-#: src/MenuMapController.cpp:865 src/MenuMapController.cpp:933
-msgid "Windows and other programs"
-msgstr "Windows 和其他程式"
-
-#: src/MenuMapController.cpp:868
+#: src/MenuMapController.cpp:927
 msgid "{n} item"
 msgid_plural "{n} items"
 msgstr[0] "{n} 項"
 
-#: src/MenuMapController.cpp:875
+#: src/MenuMapController.cpp:934
 msgid "(drawn by its program)"
 msgstr "（由其程式繪製）"
 
-#: src/MenuMapController.cpp:876 src/MenuMapController.cpp:946
+#: src/MenuMapController.cpp:935 src/MenuMapController.cpp:1004
 msgid "(set when the menu opens)"
 msgstr "（開啟選單時決定）"
 
-#: src/MenuMapController.cpp:1006
+#: src/MenuMapController.cpp:1065
 msgid "Submenu"
 msgstr "子選單"
 
-#: src/MenuMapController.cpp:1006
+#: src/MenuMapController.cpp:1065
 msgid "Item"
 msgstr "選單項目"
 
-#: src/MenuMapController.cpp:1017 src/MenuMapController.cpp:1023 src/MenuMapController.cpp:1155 src/MenuMapController.cpp:1801 src/SaveService.cpp:222
+#: src/MenuMapController.cpp:1076 src/MenuMapController.cpp:1082 src/MenuMapController.cpp:1226 src/MenuMapController.cpp:1872 src/SaveService.cpp:222
 msgid "{}, line {}"
 msgstr "{}，第 {} 行"
 
-#: src/MenuMapController.cpp:1022
+#: src/MenuMapController.cpp:1081
 msgid "From your config"
 msgstr "來自你的設定檔"
 
-#: src/MenuMapController.cpp:1027
+#: src/MenuMapController.cpp:1086
 msgid "Title from {}"
 msgstr "標題來自 {}"
 
-#: src/MenuMapController.cpp:1049
+#: src/MenuMapController.cpp:1109
+msgid "Not in this menu: its find= leaves it out."
+msgstr "不在此選單中：它的 find= 把它排除了。"
+
+#: src/MenuMapController.cpp:1110
+msgid "Not in this menu: its vis= hides it here."
+msgstr "不在此選單中：它的 vis= 在這裡隱藏了它。"
+
+#: src/MenuMapController.cpp:1111
+msgid "Not in this menu: the menu it is in isn't here."
+msgstr "不在此選單中：它所在的選單不在這裡。"
+
+#: src/MenuMapController.cpp:1112
+msgid "Not in this menu: its where= leaves it out."
+msgstr "不在此選單中：它的 where= 把它排除了。"
+
+#: src/MenuMapController.cpp:1114
+msgid "That depends on the name or place of the file or folder, so it may show for others."
+msgstr "這取決於檔案或資料夾的名稱或位置，所以對其他檔案或資料夾可能會顯示。"
+
+#: src/MenuMapController.cpp:1116
+msgid "It is in a menu that shows only sometimes."
+msgstr "它所在的選單僅在部分情況下顯示。"
+
+#: src/MenuMapController.cpp:1117
+msgid "Shows only sometimes: it depends on something known only when the menu opens, such as a key or the window."
+msgstr "僅在部分情況下顯示：它取決於只有在選單開啟時才知道的情況，例如按鍵或視窗。"
+
+#: src/MenuMapController.cpp:1119
 msgid "Hidden here. The change is kept in imports/settings-app-map.nss."
 msgstr "已在此隱藏。變更儲存在 imports/settings-app-map.nss 中。"
 
-#: src/MenuMapController.cpp:1050
+#: src/MenuMapController.cpp:1120
 msgid "Hidden by vis= in its own line."
 msgstr "由它自己那一行中的 vis= 隱藏。"
 
-#: src/MenuMapController.cpp:1052
+#: src/MenuMapController.cpp:1122
 msgid "Renamed here. The change is kept in imports/settings-app-map.nss."
 msgstr "已在此重新命名。變更儲存在 imports/settings-app-map.nss 中。"
 
-#: src/MenuMapController.cpp:1054
+#: src/MenuMapController.cpp:1124
 msgid "Moved here from {}. The change is kept in imports/settings-app-map.nss."
 msgstr "已從 {} 移到此處。變更儲存在 imports/settings-app-map.nss 中。"
 
-#: src/MenuMapController.cpp:1057
+#: src/MenuMapController.cpp:1127
 msgid "Moved here from {} by menu= in its own line."
 msgstr "由它自己那一行中的 menu= 從 {} 移到這裡。"
 
-#: src/MenuMapController.cpp:1060
+#: src/MenuMapController.cpp:1130
 msgid "Its menu= names {}, which isn't in this menu, so it doesn't show here."
 msgstr "它的 menu= 指向 {}，但此選單中沒有它，所以這裡不顯示。"
 
-#: src/MenuMapController.cpp:1063
+#: src/MenuMapController.cpp:1133
 msgid "Its menu= depends on the selection, so the map shows it where it is written."
 msgstr "它的 menu= 取決於選取內容，所以選單地圖把它顯示在所寫的位置。"
 
-#: src/MenuMapController.cpp:1065
+#: src/MenuMapController.cpp:1135
 msgid "Placed by pos={}, kept in imports/settings-app-map.nss."
 msgstr "由 pos={} 定位，儲存在 imports/settings-app-map.nss 中。"
 
-#: src/MenuMapController.cpp:1067
+#: src/MenuMapController.cpp:1137
 msgid "Placed by pos={} in its own line."
 msgstr "由它自己那一行中的 pos={} 放置。"
 
-#: src/MenuMapController.cpp:1091 src/MenuMapController.cpp:1209
+#: src/MenuMapController.cpp:1161 src/MenuMapController.cpp:1280
 msgid "Main menu"
 msgstr "主選單"
 
-#: src/MenuMapController.cpp:1103
+#: src/MenuMapController.cpp:1173
 msgid "At the top"
 msgstr "最上方"
 
-#: src/MenuMapController.cpp:1107
+#: src/MenuMapController.cpp:1177
 msgid "After {}"
 msgstr "{} 之後"
 
-#: src/MenuMapController.cpp:1107
+#: src/MenuMapController.cpp:1177
 msgid "Before {}"
 msgstr "{} 之前"
 
-#: src/MenuMapController.cpp:1108
+#: src/MenuMapController.cpp:1178
 msgid "At the bottom"
 msgstr "最下方"
 
-#: src/MenuMapController.cpp:1118
+#: src/MenuMapController.cpp:1188
+msgid "It isn't in this menu, so it has no place here. Open the tab where it shows to move it."
+msgstr "它不在此選單中，所以這裡沒有它的位置。開啟它顯示的那個分頁來移動它。"
+
+#: src/MenuMapController.cpp:1189
 msgid "Its menu= depends on the selection; change it with Edit code."
 msgstr "它的 menu= 取決於選取內容；請用「編輯程式碼」變更。"
 
-#: src/MenuMapController.cpp:1125
+#: src/MenuMapController.cpp:1196
 msgid "Turning it off adds a line to imports/settings-app-map.nss, so {} stays as it came with Shell and updates keep your change. Saved right away, with a snapshot first."
 msgstr "關閉它會在 imports/settings-app-map.nss 中新增一行，因此 {} 保持 Shell 隨附的樣子，更新也會保留你的變更。會立即儲存，並先建立快照。"
 
-#: src/MenuMapController.cpp:1127
+#: src/MenuMapController.cpp:1198
 msgid "Turning it off adds vis=vis.remove to its line. Saved right away, with a snapshot first."
 msgstr "關閉後會在它那一行加入 vis=vis.remove。立即儲存，並先建立快照。"
 
-#: src/MenuMapController.cpp:1130
+#: src/MenuMapController.cpp:1201
 msgid "Not in the menu read here. Rules made here name it by its title, so they work wherever the menu has it."
 msgstr "不在這裡讀取的選單中。在這裡建立的規則依標題指定它，所以只要選單中有它就會生效。"
 
-#: src/MenuMapController.cpp:1132
+#: src/MenuMapController.cpp:1203
 msgid "Added by Windows"
 msgstr "由 Windows 新增"
 
-#: src/MenuMapController.cpp:1134
+#: src/MenuMapController.cpp:1205
 msgid "Added by {}"
 msgstr "由 {} 新增"
 
-#: src/MenuMapController.cpp:1136
+#: src/MenuMapController.cpp:1207
 msgid "Added by Windows or an installed app; Shell couldn't tell which."
 msgstr "由 Windows 或已安裝的應用程式新增；Shell 無法判斷是哪一個。"
 
-#: src/MenuMapController.cpp:1145
+#: src/MenuMapController.cpp:1216
 msgid "verb {}"
 msgstr "動詞 {}"
 
-#: src/MenuMapController.cpp:1154
+#: src/MenuMapController.cpp:1225
 msgid "a rule made here"
 msgstr "在此建立的規則"
 
-#: src/MenuMapController.cpp:1158
+#: src/MenuMapController.cpp:1229
 msgid "Hidden by {}."
 msgstr "被 {} 隱藏。"
 
-#: src/MenuMapController.cpp:1160
+#: src/MenuMapController.cpp:1231
 msgid "Kept in the main menu by {}, so later rules don't move it."
 msgstr "被 {} 保留在主選單中，之後的規則不會移動它。"
 
-#: src/MenuMapController.cpp:1161
+#: src/MenuMapController.cpp:1232
 msgid "Moved to the main menu by {}."
 msgstr "被 {} 移至主選單。"
 
-#: src/MenuMapController.cpp:1163
+#: src/MenuMapController.cpp:1234
 msgid "Moved to {} by {}."
 msgstr "被 {1} 移至 {0}。"
 
-#: src/MenuMapController.cpp:1165
+#: src/MenuMapController.cpp:1236
 msgid "Renamed to {} by {}."
 msgstr "被 {1} 重新命名為 {0}。"
 
-#: src/MenuMapController.cpp:1167
+#: src/MenuMapController.cpp:1238
 msgid "Changed by {}."
 msgstr "被 {} 變更。"
 
-#: src/MenuMapController.cpp:1177
+#: src/MenuMapController.cpp:1248
 msgid "{}, line {} may change it, depending on what is selected."
 msgstr "{}，第 {} 行可能會變更它，取決於選取的內容。"
 
-#: src/MenuMapController.cpp:1220
+#: src/MenuMapController.cpp:1291
 msgid "Turning it off adds a rule that removes it from the menu. Save to apply."
 msgstr "關閉後會新增一條規則，將它從選單中移除。儲存後生效。"
 
-#: src/MenuMapController.cpp:1221
+#: src/MenuMapController.cpp:1292
 msgid "Hidden by a rule made here. Turning it on removes that rule."
 msgstr "被在此建立的規則隱藏。開啟後會刪除那條規則。"
 
-#: src/MenuMapController.cpp:1244
+#: src/MenuMapController.cpp:1315
 msgid "Shown again once you save."
 msgstr "儲存後重新顯示。"
 
-#: src/MenuMapController.cpp:1245
+#: src/MenuMapController.cpp:1316
 msgid "Hidden once you save."
 msgstr "儲存後隱藏。"
 
-#: src/MenuMapController.cpp:1246
+#: src/MenuMapController.cpp:1317
 msgid "Changes once you save."
 msgstr "儲存後生效。"
 
-#: src/MenuMapController.cpp:1318 src/MenuMapController.cpp:1326 src/MenuMapController.cpp:1735
+#: src/MenuMapController.cpp:1389 src/MenuMapController.cpp:1397 src/MenuMapController.cpp:1806
 msgid "Not changed"
 msgstr "未變更"
 
-#: src/MenuMapController.cpp:1474
+#: src/MenuMapController.cpp:1545
 msgid "Icons, images and programs"
 msgstr "圖示、圖片和程式"
 
-#: src/MenuMapController.cpp:1728
+#: src/MenuMapController.cpp:1799
 msgid "{} couldn't be read."
 msgstr "無法讀取 {}。"
 
-#: src/MenuMapController.cpp:1790
+#: src/MenuMapController.cpp:1861
 msgid "Couldn't open the code"
 msgstr "無法開啟程式碼"
 
-#: src/MenuMapController.cpp:1790
+#: src/MenuMapController.cpp:1861
 msgid "{} has no declaration on line {}."
 msgstr "{} 的第 {} 行沒有宣告。"
 
-#: src/MenuMapController.cpp:1845
+#: src/MenuMapController.cpp:1916
 msgid "The file changed since this code was opened. Cancel, then open it again."
 msgstr "開啟這段程式碼後檔案已被變更。請取消後重新開啟。"
 
-#: src/MenuMapController.cpp:1849 src/SaveService.cpp:477
+#: src/MenuMapController.cpp:1920 src/SaveService.cpp:477
 msgid "Not saved: {}"
 msgstr "未儲存：{}"
 
-#: src/MenuMapController.cpp:1880
+#: src/MenuMapController.cpp:1951
 msgid "Not saved: the config would fail to load. {}"
 msgstr "未儲存：設定檔將無法載入。{}"
 
-#: src/MenuMapController.cpp:1883
+#: src/MenuMapController.cpp:1954
 msgid "Couldn't save: {}"
 msgstr "無法儲存：{}"
 
@@ -5946,176 +5991,176 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
-
-#~ msgid "Items matching an expression"
-#~ msgstr "符合運算式的項目"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在後方新增分隔線"
-
-#~ msgid "Program (.exe)"
-#~ msgstr "程式 (.exe)"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "無法開啟「{}」"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
-
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "檔案第 {} 行有語法問題：{}"
-
-#~ msgid "Change state"
-#~ msgstr "變更狀態"
-
-#~ msgid "Move to {}, at the middle"
-#~ msgstr "移至 {} 中間"
-
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "無法下載擴充功能：{}"
-
-#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
-#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
-
-#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
-#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的擴充功能合集"
-
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "無法下載 SHA256SUMS.txt：{}"
-
-#~ msgid "on the edit"
-#~ msgstr "在編輯方塊中"
-
-#~ msgid "Imported from {}."
-#~ msgstr "從 {} 匯入。"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
-
-#~ msgid "To move one of your items, use Edit code or the Menu Builder."
-#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "Change command"
-#~ msgstr "變更命令"
-
-#~ msgid "Move to {}"
-#~ msgstr "移至 {}"
-
-#~ msgid "Move to the middle"
-#~ msgstr "移至中間"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重新命名為 {}"
-
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
-#~ msgid "Add a separator before"
-#~ msgstr "在前方新增分隔線"
-
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下載程式碼…"
-
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下載。"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
-
-#~ msgid "Add separators"
-#~ msgstr "新增分隔線"
-
-#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
-#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本應用程式管理"
-
-#~ msgid "Shown for a {} file."
-#~ msgstr "顯示的是 {} 檔案的選單。"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下載擴充功能…"
-
-#~ msgid "Add a separator {}"
-#~ msgstr "新增分隔線（{}）"
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
 
 #~ msgid "When the app starts, at most once a day."
 #~ msgstr "在應用程式啟動時檢查，每天最多一次。"
 
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "無法預覽：未能下載此擴充功能。{}"
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "無法從此位址下載 {}。"
 
 #~ msgid "Move to the bottom"
 #~ msgstr "移至底端"
 
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
 
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
+#~ msgid "Add separators"
+#~ msgstr "新增分隔線"
 
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移至 {} 底端"
-
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
-
-#~ msgid "no selection"
-#~ msgstr "未選取"
-
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
-
-#~ msgid "The file doesn't start with the generated header."
-#~ msgstr "檔案開頭不是自動產生的標頭。"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
-
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "無法從此位址下載 {}。"
-
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
-
-#~ msgid "Change visibility"
-#~ msgstr "變更可見度"
-
-#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
-#~ msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下載擴充功能…"
 
 #~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
 #~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
 
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在後方新增分隔線"
+
+#~ msgid "Change state"
+#~ msgstr "變更狀態"
+
+#~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
+#~ msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
+
+#~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
+#~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
+
+#~ msgid "Program (.exe)"
+#~ msgstr "程式 (.exe)"
+
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
+
+#~ msgid "Add a separator before"
+#~ msgstr "在前方新增分隔線"
 
 #~ msgid "Disable"
 #~ msgstr "停用"
 
-#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
+
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下載程式碼…"
+
+#~ msgid "Move to {}"
+#~ msgstr "移至 {}"
+
+#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
+#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
+
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
+
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
 
 #~ msgid "multiple selection"
 #~ msgstr "多重選取"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
+
+#~ msgid "Rename to {}"
+#~ msgstr "重新命名為 {}"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "檔案第 {} 行有語法問題：{}"
+
+#~ msgid "Items matching an expression"
+#~ msgstr "符合運算式的項目"
+
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "無法開啟「{}」"
+
+#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
+
+#~ msgid "Move to the middle"
+#~ msgstr "移至中間"
+
+#~ msgid "Move to {}, at the middle"
+#~ msgstr "移至 {} 中間"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "Shown for a {} file."
+#~ msgstr "顯示的是 {} 檔案的選單。"
+
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
+
+#~ msgid "Imported from {}."
+#~ msgstr "從 {} 匯入。"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移至 {} 底端"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "新增分隔線（{}）"
+
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "無法預覽：未能下載此擴充功能。{}"
+
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
+
+#~ msgid "on the edit"
+#~ msgstr "在編輯方塊中"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "無法下載 SHA256SUMS.txt：{}"
+
+#~ msgid "Change visibility"
+#~ msgstr "變更可見度"
+
+#~ msgid "To move one of your items, use Edit code or the Menu Builder."
+#~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
+
+#~ msgid "no selection"
+#~ msgstr "未選取"
+
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "無法下載擴充功能：{}"
+
+#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+
+#~ msgid "The file doesn't start with the generated header."
+#~ msgstr "檔案開頭不是自動產生的標頭。"
+
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下載。"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本應用程式管理"
+
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的擴充功能合集"

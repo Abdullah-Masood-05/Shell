@@ -119,6 +119,69 @@ TEST_CASE("menu map: the -config:tree JSON")
     CHECK_FALSE(parseTree(R"({"ok":true})"));
 }
 
+TEST_CASE("menu map: which of your items are in this menu")
+{
+    // A newer shell.exe says, per item, whether it shows for the sample.
+    const char *json = R"({"ok":true,"errors":[],"tree":{"shell":[
+        {"kind":"item","title":"Power","state":"text","file":"C:\\cfg\\a.nss","line":1,"column":1,"vis":"","conditions":["where"],
+         "shows":"yes","shows_sample":false,"shows_why":"","items":[]},
+        {"kind":"menu","title":"Cleaning","state":"text","file":"C:\\cfg\\a.nss","line":2,"column":1,"vis":"","conditions":["where"],
+         "shows":"no","shows_sample":true,"shows_why":"where","items":[
+            {"kind":"item","title":"Empty","state":"text","file":"C:\\cfg\\a.nss","line":3,"column":2,"vis":"","conditions":[],
+             "shows":"no","shows_sample":true,"shows_why":"menu","items":[]}]},
+        {"kind":"item","title":"Develop","state":"text","file":"C:\\cfg\\a.nss","line":5,"column":1,"vis":"dynamic","conditions":["vis"],
+         "shows":"maybe","shows_sample":false,"shows_why":"vis","items":[]},
+        {"kind":"item","title":"Odd","state":"text","file":"C:\\cfg\\a.nss","line":6,"column":1,"vis":"","conditions":[],
+         "shows":"perhaps","items":[]}],
+      "system":[],"rules":[],"system_error":""}})";
+    auto t = parseTree(json);
+    REQUIRE(t);
+    REQUIRE(t->shell.size() == 4);
+    const auto &power = t->shell[0], &cleaning = t->shell[1], &develop = t->shell[2], &odd = t->shell[3];
+    CHECK(power.shows == "yes");
+    CHECK_FALSE(notInMenu(power));
+    // where= that shell.exe could work out: no "Shows only sometimes".
+    CHECK_FALSE(showsSometimes(power));
+
+    CHECK(cleaning.shows == "no");
+    CHECK(cleaning.showsSample);
+    CHECK(cleaning.showsWhy == "where");
+    CHECK(notInMenu(cleaning));
+    CHECK_FALSE(showsSometimes(cleaning));
+    REQUIRE(cleaning.children.size() == 1);
+    CHECK(notInMenu(cleaning.children[0]));
+    CHECK(cleaning.children[0].showsWhy == "menu");
+
+    CHECK(develop.shows == "maybe");
+    CHECK_FALSE(notInMenu(develop));
+    CHECK(showsSometimes(develop));
+
+    // A value it doesn't know: as from an older shell.exe.
+    CHECK(odd.shows.empty());
+    CHECK_FALSE(notInMenu(odd));
+    CHECK_FALSE(showsSometimes(odd));
+
+    // An older shell.exe has no "shows": every item is in the menu, and a where=,
+    // find= or vis= that isn't a constant means "only sometimes", as before.
+    auto old = parseTree(kTreeJson);
+    REQUIRE(old);
+    const auto &menu = old->shell[0];
+    CHECK(menu.shows.empty());
+    CHECK_FALSE(notInMenu(menu));
+    CHECK_FALSE(showsSometimes(menu)); // conditions: type only
+    Node n = menu;
+    n.conditions = { "where" };
+    CHECK(showsSometimes(n));
+    n.conditions.clear();
+    n.vis = "dynamic";
+    CHECK(showsSometimes(n));
+    // Windows' items are never "not in this menu": they come from the menu itself.
+    Node w;
+    w.origin = Origin::System;
+    w.shows = "no";
+    CHECK_FALSE(notInMenu(w));
+}
+
 TEST_CASE("menu map: rules for hide, rename and move")
 {
     auto t = parseTree(kTreeJson);

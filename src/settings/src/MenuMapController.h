@@ -60,7 +60,8 @@ private:
     struct Entry
     {
         const menumap::Node *node = nullptr; // null: a group (Shell's items / Windows' items)
-        int group = 0;                       // 0 your items, 1 Windows and programs
+        int group = 0;                       // 0 your items, 1 Windows and programs,
+                                             // 2 your items not in this menu
         int depth = 0;
         int parent = -1;
         std::vector<int> kids;
@@ -141,6 +142,8 @@ private:
     void toast(const std::string &kind, const std::string &title, const std::string &text = {});
 
     ItemState stateOf(const Entry &e) const;
+    // A group's rows show (Not in this menu starts closed).
+    bool groupOpen(const Entry &e) const;
     // Hidden itself or inside a hidden menu, as it will be once the changes here are saved.
     bool inHiddenMenu(int entry) const;
     std::string statusOf(const Entry &e, std::string *kind) const;

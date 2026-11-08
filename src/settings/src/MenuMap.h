@@ -47,6 +47,11 @@ struct Node
     std::string movedFrom;     // the menu it is written in, as a path of titles ("" the main menu)
     std::string pos;           // its pos=: top, bottom, middle, N, before:<title>, after:<title>,
                                // indexof, dynamic, auto; "" without one
+    std::string shows;         // in this menu for the sample: yes | no | maybe (by where=, find=,
+                               // a vis= that depends on the selection, and its menu's);
+                               // "" from an older shell.exe that doesn't tell
+    bool showsSample = false;  // that depends on which file or folder the sample is
+    std::string showsWhy;      // what decides it: where | find | vis | menu (its menu isn't here)
 
     // Windows' items
     std::string name;          // normalized title, what find= and this.name see
@@ -109,6 +114,14 @@ struct Tree
 // The output of `shell.exe -config:tree`. nullopt (and `error`) when it isn't JSON
 // of that shape; a config that doesn't load parses, with ok false and its errors.
 std::optional<Tree> parseTree(std::string_view json, std::string *error = nullptr);
+
+// One of Shell's items that isn't in this menu for the sample: its where=, find= or
+// vis=, or those of the menu it is in, leave it out (Node::shows "no").
+bool notInMenu(const Node &n);
+// One of Shell's items that shows only some of the time: shows "maybe" (a condition
+// on keys, the time, the window...). With an older shell.exe (no "shows"): any
+// where=, find= or vis= that isn't a constant, as before.
+bool showsSometimes(const Node &n);
 
 // "Open wit&h" -> "Open with" ("&&" -> "&").
 std::string stripAccelerators(std::string_view title);

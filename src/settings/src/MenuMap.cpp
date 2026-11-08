@@ -75,6 +75,11 @@ Node readNode(const json &j, Origin origin)
         n.relocated = getBool(j, "moved");
         n.movedFrom = getString(j, "moved_from");
         n.pos = getString(j, "pos");
+        n.shows = getString(j, "shows");
+        if (n.shows != "yes" && n.shows != "no" && n.shows != "maybe")
+            n.shows.clear();
+        n.showsSample = getBool(j, "shows_sample");
+        n.showsWhy = getString(j, "shows_why");
     } else {
         n.name = getString(j, "name");
         n.path = getString(j, "path");
@@ -157,6 +162,21 @@ std::string exactFind(std::string_view name)
 }
 
 } // namespace
+
+bool notInMenu(const Node &n) { return n.origin == Origin::Shell && n.shows == "no"; }
+
+bool showsSometimes(const Node &n)
+{
+    if (n.origin != Origin::Shell)
+        return false;
+    if (!n.shows.empty())
+        return n.shows == "maybe";
+    // An older shell.exe: any where=, find= or vis= that isn't a constant.
+    bool sometimes = n.vis == "dynamic";
+    for (const auto &c : n.conditions)
+        sometimes |= c == "where" || c == "find";
+    return sometimes;
+}
 
 std::string stripAccelerators(std::string_view title)
 {
@@ -879,6 +899,9 @@ Sibling siblingOf(const Node &n, const Node *self, bool shown, std::string_view 
     if (n.origin == Origin::Shell) {
         // Sent to another menu by its menu= (and listed here where it is written).
         if (!n.menu.empty() && !n.relocated)
+            s.shown = false;
+        // Not in this menu for the sample (where=, find= or vis= leave it out).
+        if (notInMenu(n))
             s.shown = false;
         const bool placedInOrder = !n.pos.empty() && n.pos != "auto" && n.pos != "top" && n.pos != "middle" && n.pos != "bottom";
         if (placedInOrder && self && &n != self) {
