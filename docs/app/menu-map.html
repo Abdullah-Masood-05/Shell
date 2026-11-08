@@ -29,20 +29,27 @@
 <p><kbd>Refresh</kbd> reads the menu again, for example after you install a program or edit a file by hand.</p>
 
 <h5 id="groups">What the page lists</h5>
-<p>The menu is shown in two groups:</p>
+<p>Each tab shows the menu as it really opens there. Shell works out the conditions of every item for that tab (for
+	example "only on This PC" or "only for .txt files"), so an item that doesn't show there is not listed with the ones
+	that do. Your items and the items from Windows and your programs are one list, in the order the menu shows them. Each
+	item says where it comes from: your file and line, for example <code>imports/file-manage.nss:12</code>, <i>Windows</i>,
+	or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means Shell couldn't tell.</p>
+<p>The list has three parts:</p>
 <ul>
-	<li><strong>Your Shell items</strong>: the items and submenus from your configuration, in the order they show:
-		the order they are written in, with <code>pos</code> and <code>menu</code> applied. Each one shows its file and
-		line, for example <code>imports/file-manage.nss:12</code>.</li>
-	<li><strong>Windows and other programs</strong>: the items Windows and your installed programs add. Each one is
-		labelled with who added it: <i>Windows</i>, or the program's name, such as <i>7-Zip</i>. <i>Unknown</i> means
-		Shell couldn't tell.</li>
+	<li><strong>In this menu</strong>: what the menu shows. An item that was moved into a submenu is listed inside
+		that submenu. For example, <i>Pin to Quick access</i> moved into <i>Pin/Unpin</i> is under <i>Pin/Unpin</i>.
+		A submenu with nothing in it on this tab counts as not in the menu, as it does in the real one.</li>
+	<li><strong>Hidden (N)</strong>: items you turned off. They are kept here so you can turn them back on.</li>
+	<li><strong>Not in this menu</strong>: items that don't show on this tab, for example because their
+		<code>where</code> or <code>find</code> leaves out this kind of file.</li>
 </ul>
 <p>To read Windows' items, Shell builds the same menu Explorer would build, off-screen. For a file it uses a sample file
 	in <code>%TEMP%\NilesoftShellPro\menu-map</code>; for a folder, that folder; for a drive, your system drive. No window
 	or menu appears, and no item is run. For the folder background and the desktop, the list also has the items the folder
 	window adds itself, such as <i>View</i>, <i>Sort by</i>, <i>Group by</i>, <i>Refresh</i> and <i>Paste</i>.</p>
-<p>The taskbar's own menu is built by Windows itself, so for the taskbar only your Shell items are listed.</p>
+<p>The taskbar's own menu is built by Windows itself, so for the taskbar only your Shell items are listed. A menu there
+	whose title is set when it opens is named after what is in it, for example <i>Menu with: Task Manager, Taskbar
+	Settings...</i>, and the <strong>Rename</strong> box shows the title it has now.</p>
 
 <h5 id="tags">Tags</h5>
 <p>Small tags next to an item show what your rules do to it:</p>
@@ -50,7 +57,7 @@
 	<tr><td class="w-25">Hidden</td><td>A rule hides it, so it isn't in the menu.</td></tr>
 	<tr><td>Moved to …</td><td>A rule moves it into another menu, for example <i>Moved to File manage</i>. On one of
 		your items it means its <code>menu</code> names a menu that isn't there for this place, so it doesn't show.</td></tr>
-	<tr><td>Moved from …</td><td>One of your items that its <code>menu</code> puts here, for example <i>Moved from
+	<tr><td>Moved from …</td><td>An item that was moved into this menu from another one, for example <i>Moved from
 		System</i>.</td></tr>
 	<tr><td>Renamed to …</td><td>A rule shows it under another title.</td></tr>
 	<tr><td>May be hidden, A rule may change it</td><td>A rule applies only for some selections or windows, such as
@@ -82,14 +89,20 @@
 		Editor and a link to the <a href="/docs/app/context-menus">Context Menus</a> page.</td></tr>
 	<tr><td>In the menu</td><td>The switch that hides or shows the item.</td></tr>
 	<tr><td>Rename</td><td>A new title for the item.</td></tr>
-	<tr><td>Move to</td><td>Another menu to put it in. <i>Main menu</i> comes first, then your Shell menus, and for
-		Windows and program items also Windows submenus such as <i>Send to</i>.</td></tr>
-	<tr><td>Place in this menu</td><td>Your own items only: where the item goes in its menu (at the top, before or
-		after another item, at the bottom), and <kbd>Move up</kbd> and <kbd>Move down</kbd>.</td></tr>
+	<tr><td>Move to</td><td>Another menu to put it in. <i>Main menu</i> comes first, then the menus this tab really has,
+		including Windows submenus such as <i>Send to</i>. It never lists the item itself or a menu inside it, and it
+		leaves out menus that are hidden (or inside a hidden one), because an item moved there would vanish. Long names
+		keep their end, so two similar names can be told apart.</td></tr>
+	<tr><td>Place in this menu</td><td>Where the item goes in its menu: at the top, before or after another item, or at
+		the bottom, and <kbd>Move up</kbd> and <kbd>Move down</kbd>. It only offers items you can see in that menu.
+		Hidden items, items moved to another menu and items that aren't in this tab are left out, and a renamed item is
+		listed by its new name. An item that shows only sometimes is listed, but if it is missing when you right-click,
+		an item placed next to it goes to the bottom.</td></tr>
+	<tr><td>Icon</td><td>The picture next to the item, see <a href="#icon">Change an item's icon</a>.</td></tr>
 	<tr><td>Code</td><td>The code behind the item.</td></tr>
 </table>
 
-<h5 id="windows-items">Hide, rename or move a Windows item</h5>
+<h5 id="windows-items">Hide, rename, move or place a Windows item</h5>
 <p>This works for items from Windows and from other programs.</p>
 <ol>
 	<li>Select the item.</li>
@@ -100,6 +113,10 @@
 		your changes.</li>
 	<li>Right-click again to see the result.</li>
 </ol>
+<p>You can also put a Windows or program item in a different place with <strong>Place in this menu</strong>, the row
+	arrows or <kbd>Alt</kbd>+<kbd>Up</kbd> and <kbd>Alt</kbd>+<kbd>Down</kbd>. This works for items in the main menu
+	only. Items inside a Windows submenu, such as <i>Open with</i> or <i>Send to</i>, can't be placed. Each press of
+	an arrow moves the item past one item you can see, and skips hidden ones.</p>
 <p>To undo a change made here, turn the switch back on, or use <kbd>Use the original title</kbd> or <kbd>Put it back
 	where Windows has it</kbd>, then save.</p>
 <p>Some items can't be changed this way:</p>
@@ -154,8 +171,9 @@
 		writes an <code>override()</code> line instead (<a href="#shipped">below</a>), which works whatever its own
 		<code>vis</code> is.</li>
 	<li><strong>Rename</strong> changes the item's <code>title</code>.</li>
-	<li><strong>Move to</strong> puts the item in another menu: <i>Main menu</i> or one of your Shell menus for this
-		place, for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The page adds
+	<li><strong>Move to</strong> puts the item in another menu: <i>Main menu</i> or one of the menus this tab has,
+		for example <i>Empty Recycle Bin</i> from <i>System</i> into <i>File manage</i>. The same list is offered for
+		items that came with Shell. The page adds
 		<code>menu=</code> to the item's line, such as <code>menu=loc.file_manage</code>. The item stays written where it
 		is, so <kbd>Put it back where it is written</kbd> only takes that out again. <i>Main menu</i> writes
 		<code>menu='/'</code>.</li>
@@ -216,9 +234,8 @@
 <ul>
 	<li>Rules that depend on the selection or the window are marked <i>may</i>. The page doesn't decide them.</li>
 	<li><code>mode</code> conditions are not tested.</li>
-	<li>Your Shell items are listed apart from Windows' items. In the main menu, Windows' items sit between them, so a
-		number in <code>pos=3</code> counts Windows' items too, and the map can only show your items in their order
-		among themselves.</li>
+	<li>Items inside Windows submenus, such as <i>Open with</i>, can be hidden, renamed, moved and given an icon, but
+		not placed.</li>
 	<li>A <code>menu</code> or <code>pos</code> that depends on the selection is not applied in the map: the item is
 		listed where it is written.</li>
 	<li>Dragging items to reorder them isn't supported. Use the arrows, <kbd>Alt</kbd>+<kbd>Up</kbd> and
