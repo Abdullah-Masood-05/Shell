@@ -126,6 +126,7 @@ add_executable(settings WIN32
     src/SaveService.cpp
     src/ShellCli.cpp
     src/ShellOverrides.cpp
+    src/ShortcutKeys.cpp
     src/SnippetPreview.cpp
     src/Snippets.cpp
     src/SnippetsController.cpp
@@ -217,6 +218,8 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_snippet_preview.cpp
         tests/test_taskbar.cpp
         tests/test_background.cpp
+        tests/test_shortcut_keys.cpp
+        src/ShortcutKeys.cpp
         src/Background.cpp
         tests/test_app_channel.cpp
         src/AppChannel.cpp
