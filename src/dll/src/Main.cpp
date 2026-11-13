@@ -811,8 +811,8 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 	back. A right-click only asks what is under the cursor (ElementFromPoint),
 	as the taskbar menu check already does.
 
-	Right-click on Start: the taskbar's WM_MOUSEACTIVATE (TaskbarSubclassProc)
-	asks on_start() first; the button-up is eaten and opens the menu.
+	Right-click on Start: a message hook on the taskbar's thread (see
+	install_start_hook below).
 
 	Threads started here hold a reference to shell.dll. The hook thread never
 	gives its reference back: explorer.exe keeps shell.dll for its lifetime
@@ -835,25 +835,38 @@ namespace winx_hotkey
 	static std::atomic<HWND> primary{};		// the Shell_TrayWnd the timer runs on
 	static thread_local bool showing = false;	// taskbar thread: our menu is open
 	static thread_local bool finding = false;	// taskbar thread: waiting for find_start_proc
+	static void install_start_hook(HWND hTaskbar) noexcept; // below
 
 	constexpr UINT_PTR find_timer_id = 0x4E58;	// on Shell_TrayWnd
-	constexpr UINT find_timeout_ms = 400;
+	constexpr UINT find_timeout_ms = 1000; // the first search after Explorer starts can take most of a second
 
 	// On the taskbar's thread: settings.winx.hotkey is on.
+	static int hotkey_why = 0; // the last reason hotkey_on() said no, for the log
+
 	static bool hotkey_on() noexcept
 	{
 		try
 		{
-			if(!is_registered() || _initializer.Status.Disabled)
+			hotkey_why = 1;
+			if(!is_registered())
+				return false;
+			hotkey_why = 2;
+			if(_initializer.Status.Disabled)
 				return false;
 
 			auto initializer = Initializer::instance;
-			if(!initializer || !initializer->query() || !initializer->cache)
+			hotkey_why = 3;
+			if(!initializer || !initializer->query())
+				return false;
+			hotkey_why = 4;
+			if(!initializer->cache)
 				return false;
 
 			auto cache = initializer->cache;
+			hotkey_why = 5;
 			if(!cache->settings.winx.hotkey)
 				return false;
+			hotkey_why = 6;
 
 			Selections selected;
 			Keyboard keyboard;
@@ -919,7 +932,10 @@ namespace winx_hotkey
 		// Wanted a moment ago, but not now (the config changed): nothing to show,
 		// and the key is already gone; better nothing than an empty popup.
 		if(!would_show(hTaskbar))
+		{
+			_log.info(L"Win+X hotkey: taken, but Shell would not show the Win+X menu now.");
 			return;
+		}
 
 		showing = true;
 		{
@@ -928,7 +944,9 @@ namespace winx_hotkey
 
 			bring_to_front(hTaskbar);
 
-			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
+			// Slides up out of the taskbar, as Windows' own menu does (when
+			// menu animation is on in Windows).
+			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_VERNEGANIMATION | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
 			TrackPopupMenuExProc(_menu.handle, uFlags, pt.x, pt.y, hTaskbar, nullptr);
 			::PostMessageW(hTaskbar, WM_NULL, 0, 0);
 		}
@@ -1109,6 +1127,12 @@ namespace winx_hotkey
 			{
 				hook = ::SetWindowsHookExW(WH_KEYBOARD_LL, keyboard, _hInstance, 0);
 				installed_at = now;
+				static bool logged = false;
+				if(!hook || !logged)
+				{
+					logged = true;
+					_log.info(L"Win+X hotkey: keyboard hook %s (error %lu).", hook ? L"installed" : L"NOT installed", hook ? 0UL : ::GetLastError());
+				}
 			}
 		};
 
@@ -1150,7 +1174,26 @@ namespace winx_hotkey
 	{
 		if(showing)
 			return;
-		const bool want = would_show(hTaskbar);
+		install_start_hook(hTaskbar);
+		const bool hot = hotkey_on();
+		bool want = false;
+		if(hot)
+		{
+			Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
+			Nilesoft::Shell::ScopedWinXOrigin winx_origin(true);
+			want = !ContextMenu::TaskbarDeclined(hTaskbar, _loader.explorer);
+		}
+
+		// Logged when the answer changes.
+		static int last = -1;
+		const int now = (hot ? 1 : 0) | (want ? 2 : 0);
+		if(now != last)
+		{
+			last = now;
+			_log.info(L"Win+X hotkey: %s (settings.winx.hotkey %s%s; step %d).", want ? L"Shell takes Win+X and right-click on Start" : L"left to Windows",
+					  hot ? L"on" : L"off or not set", hot && !want ? L", but Shell would not show the Win+X menu: exclude or visibility" : L"", hot ? 0 : hotkey_why);
+		}
+
 		wanted = want;
 		if(want)
 			start_hook_thread();
@@ -1164,8 +1207,11 @@ namespace winx_hotkey
 		if(primary.load())
 			return;
 		auto hTaskbar = ::FindWindowW(Windows::WC_Shell_TrayWnd, nullptr);
-		if(hTaskbar && ::GetPropW(hTaskbar, UxSubclass))
-			::PostMessageW(hTaskbar, WM_INIT, 0, 0);
+		const bool subclassed = hTaskbar && ::GetPropW(hTaskbar, UxSubclass);
+		const bool posted = subclassed && ::PostMessageW(hTaskbar, WM_INIT, 0, 0);
+		static int calls = 0;
+		if(calls++ < 3)
+			_log.info(L"Win+X hotkey: start, taskbar %p, subclassed %d, posted %d.", hTaskbar, (int)subclassed, (int)posted);
 	}
 
 	// TaskbarProc, on the taskbar's thread.
@@ -1189,6 +1235,8 @@ namespace winx_hotkey
 			}
 
 			primary = hWnd;
+			_log.info(L"Win+X hotkey: watching the taskbar %p.", hWnd);
+			install_start_hook(hWnd);
 			::SetTimer(hWnd, timer_id, refresh_ms, [](HWND hWnd, UINT, UINT_PTR, DWORD) { refresh(hWnd); });
 			refresh(hWnd);
 			result = 0;
@@ -1228,9 +1276,9 @@ namespace winx_hotkey
 		return false;
 	}
 
-	// The Start button under pt, from UI Automation (what is under the cursor
-	// only, as taskbar_t::is_allowed_area asks).
-	static bool start_button_at(const Point &pt, RECT &rc) noexcept
+	// The Start button at pt, from UI Automation: what is under the cursor, or
+	// one of its parents (the button's own text or image may be what is hit).
+	static bool start_button_at(const Point &pt, RECT &rc, string *seen = nullptr) noexcept
 	{
 		try
 		{
@@ -1242,13 +1290,35 @@ namespace winx_hotkey
 			if(!uia || FAILED(uia->ElementFromPoint(pt, element)) || !element)
 				return false;
 
-			BSTR id = nullptr;
-			if(FAILED(element->get_CurrentAutomationId(&id)) || !id)
-				return false;
-			const bool is_start = ::CompareStringOrdinal(id, -1, L"StartButton", -1, TRUE) == CSTR_EQUAL;
-			DLL::Invoke(L"OleAut32.dll", "SysFreeString", id);
+			IComPtr<IUIAutomationTreeWalker> walker;
+			uia->get_RawViewWalker(walker);
 
-			return is_start && SUCCEEDED(element->get_CurrentBoundingRectangle(&rc)) && rc.right > rc.left;
+			for(int depth = 0; element && depth < 4; depth++)
+			{
+				BSTR id = nullptr;
+				bool is_start = false;
+				if(SUCCEEDED(element->get_CurrentAutomationId(&id)) && id)
+				{
+					is_start = ::CompareStringOrdinal(id, -1, L"StartButton", -1, TRUE) == CSTR_EQUAL;
+					if(seen)
+					{
+						if(!seen->empty())
+							*seen += L" < ";
+						*seen += id;
+					}
+					DLL::Invoke(L"OleAut32.dll", "SysFreeString", id);
+				}
+
+				if(is_start)
+					return SUCCEEDED(element->get_CurrentBoundingRectangle(&rc)) && rc.right > rc.left;
+
+				if(!walker)
+					break;
+				IComPtr<IUIAutomationElement> parent;
+				if(FAILED(walker->GetParentElement(element, parent)))
+					break;
+				element = parent;
+			}
 		}
 		catch(...)
 		{
@@ -1256,20 +1326,51 @@ namespace winx_hotkey
 		return false;
 	}
 
-	// TaskbarSubclassProc, on a right button going down: Shell's Win+X menu
-	// when the click is on the Start button and Shell would show it. The
-	// button-up is eaten and opens the menu, as for the taskbar menu; it has
-	// to land on the button, and any other button cancels.
-	static bool on_start(HWND hWnd, HWND hTaskbar, const Point &pt) noexcept
-	{
-		static HWND target{};
-		static RECT button{};
+	/*
+		Right-click on Start. A message hook on the taskbar's thread
+		(WH_GETMESSAGE), so that it sees the click however it arrives: as
+		mouse messages or, on the XAML taskbar, as pointer messages. The
+		button going down is checked and, when it is on Start and Shell would
+		show its menu, it and the button going up are turned into WM_NULL, and
+		the menu is opened (posted, so not from inside the hook).
+	*/
+	static WindowsHook _start_hook;
+	static bool start_pending = false;
+	static RECT start_rect{};
 
-		if(!wanted.load())
+	static bool is_right_down(const MSG *msg) noexcept
+	{
+		switch(msg->message)
+		{
+			case WM_RBUTTONDOWN:
+			case WM_NCRBUTTONDOWN:
+				return true;
+			case WM_POINTERDOWN:
+				return IS_POINTER_SECONDBUTTON_WPARAM(msg->wParam);
+		}
+		return false;
+	}
+
+	static bool is_right_up(const MSG *msg) noexcept
+	{
+		switch(msg->message)
+		{
+			case WM_RBUTTONUP:
+			case WM_NCRBUTTONUP:
+				return true;
+			case WM_POINTERUP: // only asked while a right-click on Start is pending
+				return true;
+		}
+		return false;
+	}
+
+	static bool start_click_wanted(HWND hTaskbar, const Point &pt) noexcept
+	{
+		if(!wanted.load() || showing)
 			return false;
 
 		// As for the taskbar menu: Ctrl+Win+right-click is Windows' own, and
-		// HKCU\...\disable taskbar=1 turns Shell's taskbar menus off.
+		// the disable\taskbar registry value turns Shell's taskbar menus off.
 		Keyboard kb;
 		if(kb.get_keys_excloude_contextmenu() > 0 && kb.key_ctrl() && kb.key_win())
 			return false;
@@ -1277,34 +1378,78 @@ namespace winx_hotkey
 		if(RegistryConfig::get(L"\\disable", L"taskbar", disabled_taskbar) && disabled_taskbar == 1)
 			return false;
 
-		if(!start_button_at(pt, button) || !would_show(hTaskbar))
-			return false;
+		string seen;
+		const bool on_start = start_button_at(pt, start_rect, &seen);
 
-		target = hTaskbar;
-		_taskbar_mouse.hook(WH_MOUSE, [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
+		static int logged = 0;
+		if(logged < 10)
 		{
-			if(nCode == HC_ACTION && lParam)
+			logged++;
+			_log.info(L"Win+X hotkey: right-click on the taskbar at %d,%d: %s [%s].", pt.x, pt.y,
+					  on_start ? L"the Start button" : L"not the Start button", seen.c_str());
+		}
+
+		return on_start && would_show(hTaskbar);
+	}
+
+	static LRESULT CALLBACK start_getmsg(int code, WPARAM wParam, LPARAM lParam)
+	{
+		if(code == HC_ACTION && wParam == PM_REMOVE && lParam)
+		{
+			auto msg = reinterpret_cast<MSG *>(lParam);
+			if(is_right_down(msg))
 			{
-				auto mh = reinterpret_cast<const MOUSEHOOKSTRUCT *>(lParam);
-				if(wParam == WM_RBUTTONUP)
+				start_pending = false;
+				auto hTaskbar = primary.load();
+				if(hTaskbar && start_click_wanted(hTaskbar, Point::CursorPos()))
 				{
-					_taskbar_mouse.unhook();
-					if(::PtInRect(&button, mh->pt))
-					{
-						show(target, { button.left, button.top });
-						return 1;
-					}
-				}
-				else if(wParam == WM_LBUTTONDOWN || wParam == WM_MBUTTONDOWN || wParam == WM_NCLBUTTONDOWN)
-				{
-					_taskbar_mouse.unhook();
+					start_pending = true;
+					msg->message = WM_NULL;
 				}
 			}
-			return _taskbar_mouse.callnext(nCode, wParam, lParam);
-		}, hWnd);
-		return true;
+			else if(start_pending && msg->message == WM_CONTEXTMENU)
+			{
+				msg->message = WM_NULL;
+			}
+			else if(start_pending && is_right_up(msg))
+			{
+				msg->message = WM_NULL;
+				start_pending = false;
+				if(auto hTaskbar = primary.load(); hTaskbar && ::PtInRect(&start_rect, Point::CursorPos()))
+					::PostMessageW(hTaskbar, WM_SHOW, show_at, MAKELPARAM(static_cast<short>(start_rect.left), static_cast<short>(start_rect.top)));
+			}
+			else if(start_pending && (msg->message == WM_LBUTTONDOWN || msg->message == WM_MBUTTONDOWN ||
+					(msg->message == WM_POINTERDOWN && !IS_POINTER_SECONDBUTTON_WPARAM(msg->wParam))))
+			{
+				start_pending = false;
+			}
+		}
+		return _start_hook.callnext(code, wParam, lParam);
+	}
+
+	// WM_INIT, on the taskbar's thread.
+	// On the taskbar's thread (WM_INIT, then each refresh until it is in place).
+	// The Windows 11 taskbar's buttons, Start among them, are XAML in a
+	// DesktopWindowContentBridge child that runs on a thread of its own, not on
+	// the Shell_TrayWnd thread: the hook goes on that thread.
+	static DWORD xaml_thread = 0;
+	static void install_start_hook(HWND hTaskbar) noexcept
+	{
+		Window bridge = Window::Find(Windows::WC_Composition_DesktopWindowContentBridge, hTaskbar);
+		const DWORD tid = bridge ? ::GetWindowThreadProcessId(bridge, nullptr) : 0;
+		if(!tid || (tid == xaml_thread && _start_hook))
+			return;
+
+		_start_hook.unhook();
+		start_pending = false;
+		xaml_thread = 0;
+		if(_start_hook.hook(WH_GETMESSAGE, start_getmsg, tid))
+			xaml_thread = tid;
+		_log.info(L"Win+X hotkey: right-click on Start: message hook %s on the taskbar's XAML thread %lu (taskbar thread %lu, error %lu).",
+				  xaml_thread ? L"installed" : L"NOT installed", tid, ::GetCurrentThreadId(), xaml_thread ? 0UL : ::GetLastError());
 	}
 }
+
 
 static void start_winx_hotkey() noexcept { winx_hotkey::start(); }
 
@@ -1453,10 +1598,6 @@ LRESULT __stdcall TaskbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 		auto hTaskbar = reinterpret_cast<HWND>(dwRefData);
 		auto pt = Point::CursorPos();
-
-		// settings.winx.hotkey: a right-click on Start opens Shell's Win+X menu.
-		if(msg == WM_RBUTTONDOWN && winx_hotkey::on_start(hWnd, hTaskbar, pt))
-			return MA_ACTIVATEANDEAT;
 
 		if(taskbar_t::is_allowed_area(hTaskbar, pt))
 		{

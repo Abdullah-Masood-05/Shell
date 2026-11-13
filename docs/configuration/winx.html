@@ -67,6 +67,22 @@ item(where=window.is_winx title='Services' cmd='services.msc')</code></pre>
 	menu, as they do for every menu opened from the taskbar; add <code>&amp;&amp; !window.is_winx</code> to their
 	<code>where</code> to leave them out.</p>
 
+<h5 id="known-issues">Known issues with <code>hotkey</code></h5>
+<p><code>winx.hotkey</code> is experimental and has these known problems. Pull requests are welcome; the code is in
+	<code>namespace winx_hotkey</code> in <code>src/dll/src/Main.cpp</code>.</p>
+<ul>
+	<li><strong>Right-click on Start still opens Windows' menu.</strong> Shell can tell when you right-click Start, but on
+		Windows 11 the taskbar almost never passes the "button down" part of the click to it, only the "button up". Shell
+		waits for the down, so it never gets to open its menu. Acting on the button up instead is the likely fix.</li>
+	<li><strong>Win+X right after using Start opens Windows' menu.</strong> While the Start menu, or something else
+		Windows' shell draws, is in front (even just after it closes), Windows doesn't pass key presses to the hook Shell
+		uses. Click anywhere else once and Win+X works again. A possible fix is to notice Windows' own Win+X menu
+		opening, close it and open Shell's.</li>
+	<li><strong>No opening animation.</strong> Shell draws its menus itself, so Windows' slide-in doesn't apply.</li>
+	<li><strong>The first Win+X after Explorer starts</strong> can open at the mouse pointer instead of at Start, when
+		finding the Start button takes more than a second.</li>
+</ul>
+
 <h5 id="troubleshooting">Troubleshooting</h5>
 <p>The first Win+X menu after Explorer starts is noted in <code>shell.log</code> (next to <code>shell.dll</code>, or
 	<code>%LOCALAPPDATA%\Nilesoft\Shell\shell.log</code> when that folder is not writable). With
