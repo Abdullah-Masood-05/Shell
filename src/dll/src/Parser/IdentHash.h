@@ -394,7 +394,7 @@ namespace Nilesoft
 		constexpr auto IDENT_SCREENSHOT = 0x9A37F083U;
 		constexpr auto IDENT_PRIORITY = 0x1CF615A7U;
 		constexpr auto IDENT_FILEMANAGERS = 0x00B3BEF3U;
-		// settings.winx { replace, debug }
+		// settings.winx { replace, debug, hotkey }
 		constexpr auto IDENT_WINX = 0x7CA01DEBU;
 		constexpr auto IDENT_DEBUG = 0x0F49A52CU;
 		constexpr auto IDENT_HOTKEY = 0x029196B9U;

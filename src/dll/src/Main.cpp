@@ -783,38 +783,60 @@ bool ShowTaskbarContextMenu(HWND hTaskbar, const Point &pt, uint32_t uMsg)
 	settings.winx.hotkey (experimental): Win+X and a right-click on Start open
 	Shell's Win+X menu (the type='winx' items) instead of Windows' own.
 
-	On current Windows 11 builds Windows' Win+X menu is a XAML popup, not a
+	On Windows 11 24H2 and later Windows' Win+X menu is a XAML popup, not a
 	Win32 menu, so TrackPopupMenu never sees it and Shell cannot fill it the
 	way it fills other menus (see WinX.h for the builds where it can). So the
 	key and the click are taken before Windows acts on them, and Shell tracks
 	an empty popup on the taskbar, as for its own Windows 11 taskbar menu,
 	marked as the Win+X menu (ScopedWinXOrigin); NtUserTrackPopupMenu fills it.
 
-	Win+X: a low-level keyboard hook on a thread of its own. It cannot read the
-	config, so it asks the taskbar's thread (WM_QUERY, with a short timeout: no
-	answer leaves the key to Windows) and on yes eats the X and posts WM_SHOW.
-	Windows opens Start when the Windows key goes up with nothing typed since
-	it went down; the eaten X is not seen, so a key that means nothing
-	(vk 0xE8, unassigned) is sent while the Windows key is still down.
+	Whether to take them is decided ahead of time, on the taskbar's thread
+	(a timer, every refresh_ms): settings.winx.hotkey is on and Shell would
+	build the Win+X menu (exclude, visibility: TaskbarDeclined, asked as the
+	Win+X menu). The answer is kept in `wanted`. A key or click Shell would not
+	answer is never taken, so Windows' menu still opens.
+
+	Win+X: a low-level keyboard hook on a thread of its own, installed only
+	while `wanted` is true. Windows removes, without a word, a low-level hook
+	that takes longer than LowLevelHooksTimeout (300 ms by default), so the
+	hook only reads `wanted` and posts; it never waits on another thread. It
+	eats the X (down, repeats and up) and posts WM_SHOW to the taskbar.
+	Windows opens Start when the Windows key goes up with no other key since it
+	went down; the eaten X does not count, so a Ctrl press is sent while the
+	Windows key is still down (AutoHotkey's default menu mask key).
+
+	The Start button is found with UI Automation. Microsoft's UIA threading
+	rules say not to search a window's own UI from its UI thread, so the
+	search (FindFirst) runs on a short-lived MTA thread that posts the result
+	back. A right-click only asks what is under the cursor (ElementFromPoint),
+	as the taskbar menu check already does.
 
 	Right-click on Start: the taskbar's WM_MOUSEACTIVATE (TaskbarSubclassProc)
-	asks on_start() before anything else, and the button-up is eaten as for
-	the taskbar menu.
+	asks on_start() first; the button-up is eaten and opens the menu.
 
-	The thread holds a reference to shell.dll, and stops (and lets it go) once
-	Shell is no longer registered, so the hook never outlives the module.
+	Threads started here hold a reference to shell.dll. The hook thread never
+	gives its reference back: explorer.exe keeps shell.dll for its lifetime
+	anyway (the taskbar is subclassed), and letting the last reference go on
+	that thread would run DLL_PROCESS_DETACH there, away from the taskbar.
 */
 namespace winx_hotkey
 {
-	static const UINT WM_QUERY = ::RegisterWindowMessageW(L"NilesoftShellPro.WinX.Query");
 	static const UINT WM_SHOW = ::RegisterWindowMessageW(L"NilesoftShellPro.WinX.Show");
+	static const UINT WM_INIT = ::RegisterWindowMessageW(L"NilesoftShellPro.WinX.Init");
 
-	static std::atomic_bool started{ false };
-	static HHOOK hook{};
-	static bool x_eaten = false; // hook thread only
+	constexpr UINT_PTR timer_id = 0x4E57; // on Shell_TrayWnd
+	constexpr UINT refresh_ms = 2000;
 
-	// On the taskbar's thread: whether settings.winx.hotkey is on.
-	static bool enabled() noexcept
+	// WM_SHOW's wParam
+	enum : WPARAM { show_find = 0, show_at = 1, show_anywhere = 2 };
+
+	static std::atomic_bool wanted{ false };
+	static std::atomic_bool thread_started{ false };
+	static std::atomic<HWND> primary{};		// the Shell_TrayWnd the timer runs on
+	static thread_local bool showing = false;	// taskbar thread: our menu is open
+
+	// On the taskbar's thread: settings.winx.hotkey is on.
+	static bool hotkey_on() noexcept
 	{
 		try
 		{
@@ -847,45 +869,39 @@ namespace winx_hotkey
 		return false;
 	}
 
-	// The Start button's rectangle on this taskbar, from UI Automation.
-	static bool start_button(HWND hTaskbar, RECT &rc) noexcept
+	// On the taskbar's thread: the hotkey is on and Shell would build the
+	// Win+X menu on this taskbar.
+	static bool would_show(HWND hTaskbar) noexcept
 	{
-		try
-		{
-			auto &uia = taskbar_t::_IUIAutomation;
-			if(!uia)
-				uia.CreateInstance(__uuidof(CUIAutomation), CLSCTX_INPROC_SERVER);
-			if(!uia)
-				return false;
-
-			IComPtr<IUIAutomationElement> root;
-			if(FAILED(uia->ElementFromHandle(hTaskbar, root)) || !root)
-				return false;
-
-			// A BSTR made by hand: its length in bytes sits just before the text.
-			static const struct { uint32_t bytes; wchar_t text[12]; } id = { 11 * sizeof(wchar_t), L"StartButton" };
-			VARIANT value{};
-			value.vt = VT_BSTR;
-			value.bstrVal = const_cast<BSTR>(id.text);
-
-			IComPtr<IUIAutomationCondition> condition;
-			if(FAILED(uia->CreatePropertyCondition(UIA_AutomationIdPropertyId, value, condition)) || !condition)
-				return false;
-
-			IComPtr<IUIAutomationElement> button;
-			if(FAILED(root->FindFirst(TreeScope_Descendants, condition, button)) || !button)
-				return false;
-
-			return SUCCEEDED(button->get_CurrentBoundingRectangle(&rc)) && rc.right > rc.left;
-		}
-		catch(...)
-		{
-		}
-		return false;
+		if(!hotkey_on())
+			return false;
+		Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
+		Nilesoft::Shell::ScopedWinXOrigin winx_origin(true);
+		return !ContextMenu::TaskbarDeclined(hTaskbar, _loader.explorer);
 	}
 
-	// On the taskbar's thread: Shell's Win+X menu, placed at the Start button.
-	static void show(HWND hTaskbar) noexcept
+	// Foreground for the menu's owner: a menu only closes on a click elsewhere
+	// while its owner is in front. The eaten key may not count as input to
+	// explorer, so if the plain call is refused, borrow the input state of the
+	// thread that is in front.
+	static void bring_to_front(HWND hWnd) noexcept
+	{
+		if(::SetForegroundWindow(hWnd))
+			return;
+
+		auto fg = ::GetForegroundWindow();
+		auto fg_thread = fg ? ::GetWindowThreadProcessId(fg, nullptr) : 0;
+		auto me = ::GetCurrentThreadId();
+		if(fg_thread && fg_thread != me && ::AttachThreadInput(me, fg_thread, TRUE))
+		{
+			::SetForegroundWindow(hWnd);
+			::AttachThreadInput(me, fg_thread, FALSE);
+		}
+	}
+
+	// On the taskbar's thread: Shell's Win+X menu, its left edge at x and,
+	// as for every Win+X menu, just above or beside the taskbar (NtUserTrackPopupMenu).
+	static void show(HWND hTaskbar, Point pt) noexcept
 	{
 		struct menu {
 			HMENU handle{};
@@ -893,38 +909,121 @@ namespace winx_hotkey
 			~menu() { if(handle) ::DestroyMenu(handle); }
 		} _menu;
 
-		if(!hTaskbar || !_menu.handle)
+		if(!hTaskbar || !_menu.handle || showing)
 			return;
 
-		Point pt = Point::CursorPos();
-		RECT rc{};
-		if(start_button(hTaskbar, rc))
-			pt = { rc.left, rc.top };
+		// Wanted a moment ago, but not now (the config changed): nothing to show,
+		// and the key is already gone; better nothing than an empty popup.
+		if(!would_show(hTaskbar))
+			return;
 
-		Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
-		Nilesoft::Shell::ScopedWinXOrigin winx_origin(true);
+		showing = true;
+		{
+			Nilesoft::Shell::ScopedTaskbarOrigin taskbar_origin(true);
+			Nilesoft::Shell::ScopedWinXOrigin winx_origin(true);
 
-		// The menu closes on a click elsewhere only while its owner is in front.
-		::SetForegroundWindow(hTaskbar);
+			bring_to_front(hTaskbar);
 
-		auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
-		TrackPopupMenuExProc(_menu.handle, uFlags, pt.x, pt.y, hTaskbar, nullptr);
-		::PostMessageW(hTaskbar, WM_NULL, 0, 0);
+			auto uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON | (::GetSystemMetrics(SM_MIDEASTENABLED) ? TPM_LAYOUTRTL : 0);
+			TrackPopupMenuExProc(_menu.handle, uFlags, pt.x, pt.y, hTaskbar, nullptr);
+			::PostMessageW(hTaskbar, WM_NULL, 0, 0);
+		}
+		showing = false;
 	}
 
-	static bool key_down(int vk) noexcept
+	// A short-lived thread: finds the Start button of a taskbar with UI
+	// Automation and posts WM_SHOW back with its position.
+	static DWORD WINAPI find_start_proc(LPVOID param)
 	{
-		return (::GetAsyncKeyState(vk) & 0x8000) != 0;
+		auto hTaskbar = static_cast<HWND>(param);
+		WPARAM how = show_anywhere;
+		LPARAM where = 0;
+
+		if(SUCCEEDED(::CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
+		{
+			try
+			{
+				IComPtr<IUIAutomation> uia;
+				uia.CreateInstance(__uuidof(CUIAutomation), CLSCTX_INPROC_SERVER);
+
+				IComPtr<IUIAutomationElement> root;
+				if(uia && SUCCEEDED(uia->ElementFromHandle(hTaskbar, root)) && root)
+				{
+					// A BSTR made by hand: its length in bytes sits just before the text.
+					static const struct { uint32_t bytes; wchar_t text[12]; } id = { 11 * sizeof(wchar_t), L"StartButton" };
+					VARIANT value{};
+					value.vt = VT_BSTR;
+					value.bstrVal = const_cast<BSTR>(id.text);
+
+					IComPtr<IUIAutomationCondition> condition;
+					IComPtr<IUIAutomationElement> button;
+					RECT rc{};
+					if(SUCCEEDED(uia->CreatePropertyCondition(UIA_AutomationIdPropertyId, value, condition)) && condition &&
+					   SUCCEEDED(root->FindFirst(TreeScope_Descendants, condition, button)) && button &&
+					   SUCCEEDED(button->get_CurrentBoundingRectangle(&rc)) && rc.right > rc.left)
+					{
+						how = show_at;
+						where = MAKELPARAM(static_cast<short>(rc.left), static_cast<short>(rc.top));
+					}
+				}
+			}
+			catch(...)
+			{
+			}
+			::CoUninitialize();
+		}
+
+		::PostMessageW(hTaskbar, WM_SHOW, how, where);
+
+		HMODULE self{};
+		::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+							 reinterpret_cast<LPCWSTR>(&find_start_proc), &self);
+		::FreeLibraryAndExitThread(self, 0);
 	}
+
+	static void find_start(HWND hTaskbar) noexcept
+	{
+		HMODULE self{};
+		if(::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCWSTR>(&find_start_proc), &self))
+		{
+			if(auto thread = ::CreateThread(nullptr, 0, find_start_proc, hTaskbar, 0, nullptr))
+			{
+				::CloseHandle(thread);
+				return;
+			}
+			::FreeLibrary(self);
+		}
+		show(hTaskbar, Point::CursorPos());
+	}
+
+	/* The keyboard hook (hook thread only) */
+
+	static HHOOK hook{};
+	static bool x_eaten = false;
+	static bool win_down[2]{};	// left, right: from the hook's own events
+	static bool ctrl_down[2]{}, shift_down[2]{};
 
 	static LRESULT CALLBACK keyboard(int code, WPARAM wParam, LPARAM lParam)
 	{
 		if(code == HC_ACTION && lParam)
 		{
 			auto key = reinterpret_cast<const KBDLLHOOKSTRUCT *>(lParam);
+			const bool down = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
+
+			switch(key->vkCode)
+			{
+				case VK_LWIN: win_down[0] = down; break;
+				case VK_RWIN: win_down[1] = down; break;
+				case VK_LCONTROL: ctrl_down[0] = down; break;
+				case VK_RCONTROL: ctrl_down[1] = down; break;
+				case VK_LSHIFT: shift_down[0] = down; break;
+				case VK_RSHIFT: shift_down[1] = down; break;
+			}
+
+			const bool win = win_down[0] || win_down[1];
+
 			if(key->vkCode == 'X' && !(key->flags & LLKHF_INJECTED))
 			{
-				const bool down = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
 				if(!down)
 				{
 					if(x_eaten)
@@ -933,108 +1032,211 @@ namespace winx_hotkey
 						return 1;
 					}
 				}
-				else if(x_eaten)
+				else if(x_eaten && win)
 				{
 					return 1; // held down: auto-repeat
 				}
-				else if((key_down(VK_LWIN) || key_down(VK_RWIN)) &&
-						!key_down(VK_CONTROL) && !key_down(VK_MENU) && !key_down(VK_SHIFT))
+				else if(win && !ctrl_down[0] && !ctrl_down[1] && !shift_down[0] && !shift_down[1] &&
+						!(key->flags & LLKHF_ALTDOWN) && wanted.load())
 				{
-					DWORD_PTR yes = 0;
-					auto hTaskbar = ::FindWindowW(Windows::WC_Shell_TrayWnd, nullptr);
-					if(hTaskbar && ::SendMessageTimeoutW(hTaskbar, WM_QUERY, 0, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, 200, &yes) && yes == 1)
+					auto hTaskbar = primary.load();
+					if(hTaskbar && ::PostMessageW(hTaskbar, WM_SHOW, show_find, 0))
 					{
 						x_eaten = true;
 
+						// Ctrl down and up while the Windows key is still down, so
+						// that letting it go does not open Start.
 						INPUT mask[2]{};
 						mask[0].type = INPUT_KEYBOARD;
-						mask[0].ki.wVk = 0xE8;
+						mask[0].ki.wVk = VK_CONTROL;
+						mask[0].ki.wScan = 0x1D;
 						mask[1] = mask[0];
 						mask[1].ki.dwFlags = KEYEVENTF_KEYUP;
 						::SendInput(2, mask, sizeof(INPUT));
-
-						::PostMessageW(hTaskbar, WM_SHOW, 0, 0);
 						return 1;
 					}
 				}
+			}
+			else if(!win)
+			{
+				x_eaten = false; // its key-up never came (Win+L, secure desktop)
 			}
 		}
 		return ::CallNextHookEx(hook, code, wParam, lParam);
 	}
 
-	static DWORD WINAPI thread_proc(LPVOID module)
+	// Installs the hook while `wanted`, removes it when not, and puts it back
+	// now and then, as Windows may have removed it (LowLevelHooksTimeout).
+	static DWORD WINAPI hook_thread_proc(LPVOID)
 	{
 		MSG msg{};
 		::PeekMessageW(&msg, nullptr, WM_USER, WM_USER, PM_NOREMOVE); // a message queue
 
-		hook = ::SetWindowsHookExW(WH_KEYBOARD_LL, keyboard, _hInstance, 0);
-		if(hook)
+		auto sync = []()
 		{
-			::SetTimer(nullptr, 0, 5000, nullptr);
-			while(::GetMessageW(&msg, nullptr, 0, 0) > 0)
+			static ULONGLONG installed_at = 0;
+			const auto now = ::GetTickCount64();
+			const bool want = wanted.load() && is_registered();
+			if(hook && (!want || now - installed_at > 60000))
 			{
-				if(msg.message == WM_TIMER && !is_registered())
-					break;
-				::DispatchMessageW(&msg);
+				::UnhookWindowsHookEx(hook);
+				hook = nullptr;
+				x_eaten = false;
 			}
-			::UnhookWindowsHookEx(hook);
-			hook = nullptr;
+			if(want && !hook)
+			{
+				hook = ::SetWindowsHookExW(WH_KEYBOARD_LL, keyboard, _hInstance, 0);
+				installed_at = now;
+			}
+		};
+
+		sync();
+		::SetTimer(nullptr, 0, refresh_ms, nullptr);
+		while(::GetMessageW(&msg, nullptr, 0, 0) > 0)
+		{
+			if(msg.message == WM_TIMER)
+				sync();
+			::DispatchMessageW(&msg);
 		}
-		::FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
+		return 0; // never: the thread lives as long as explorer
 	}
 
-	// Once per process, from the Windows 11 taskbar hook.
-	static void start() noexcept
+	static void start_hook_thread() noexcept
 	{
-		if(started.exchange(true))
+		if(thread_started.exchange(true))
 			return;
 
+		// Kept for good: see the note at the top.
 		HMODULE self{};
-		if(!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCWSTR>(&thread_proc), &self))
+		if(!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCWSTR>(&hook_thread_proc), &self))
+		{
+			thread_started = false;
 			return;
+		}
 
-		if(auto thread = ::CreateThread(nullptr, 0, thread_proc, self, 0, nullptr))
+		if(auto thread = ::CreateThread(nullptr, 0, hook_thread_proc, nullptr, 0, nullptr))
 			::CloseHandle(thread);
 		else
+		{
 			::FreeLibrary(self);
+			thread_started = false;
+		}
 	}
 
-	// TaskbarProc: the two messages above, on the taskbar's thread.
-	static bool on_message(HWND hWnd, UINT uMsg, LRESULT &result) noexcept
+	// On the taskbar's thread, every refresh_ms.
+	static void refresh(HWND hTaskbar) noexcept
 	{
-		if(uMsg == WM_QUERY)
+		if(showing)
+			return;
+		const bool want = would_show(hTaskbar);
+		wanted = want;
+		if(want)
+			start_hook_thread();
+	}
+
+	// Once per process, from the Windows 11 taskbar hook (taskbar_t::hook_all):
+	// the timer has to be set on the taskbar's own thread, so ask it to.
+	static void start() noexcept
+	{
+		static std::atomic_bool posted{ false };
+		if(posted.load())
+			return;
+		if(auto hTaskbar = ::FindWindowW(Windows::WC_Shell_TrayWnd, nullptr))
 		{
-			result = enabled() ? 1 : 0;
+			if(::PostMessageW(hTaskbar, WM_INIT, 0, 0))
+				posted = true;
+		}
+	}
+
+	// TaskbarProc, on the taskbar's thread.
+	static bool on_message(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT &result) noexcept
+	{
+		if(uMsg == WM_INIT)
+		{
+			primary = hWnd;
+			::SetTimer(hWnd, timer_id, refresh_ms, [](HWND hWnd, UINT, UINT_PTR, DWORD) { refresh(hWnd); });
+			refresh(hWnd);
+			result = 0;
 			return true;
 		}
 		if(uMsg == WM_SHOW)
 		{
-			show(hWnd);
 			result = 0;
+			if(showing)
+			{
+				::EndMenu(); // Win+X again closes it, as Windows' menu does
+				return true;
+			}
+			if(wParam == show_find)
+				find_start(hWnd);
+			else if(wParam == show_at)
+				show(hWnd, { static_cast<short>(LOWORD(lParam)), static_cast<short>(HIWORD(lParam)) });
+			else
+				show(hWnd, Point::CursorPos());
 			return true;
 		}
 		return false;
 	}
 
+	// The Start button under pt, from UI Automation (what is under the cursor
+	// only, as taskbar_t::is_allowed_area asks).
+	static bool start_button_at(const Point &pt, RECT &rc) noexcept
+	{
+		try
+		{
+			auto &uia = taskbar_t::_IUIAutomation;
+			if(!uia)
+				uia.CreateInstance(__uuidof(CUIAutomation), CLSCTX_INPROC_SERVER);
+
+			IComPtr<IUIAutomationElement> element;
+			if(!uia || FAILED(uia->ElementFromPoint(pt, element)) || !element)
+				return false;
+
+			BSTR id = nullptr;
+			if(FAILED(element->get_CurrentAutomationId(&id)) || !id)
+				return false;
+			const bool is_start = ::CompareStringOrdinal(id, -1, L"StartButton", -1, TRUE) == CSTR_EQUAL;
+			DLL::Invoke(L"OleAut32.dll", "SysFreeString", id);
+
+			return is_start && SUCCEEDED(element->get_CurrentBoundingRectangle(&rc)) && rc.right > rc.left;
+		}
+		catch(...)
+		{
+		}
+		return false;
+	}
+
 	// TaskbarSubclassProc, on a right button going down: Shell's Win+X menu
-	// when the click is on the Start button and settings.winx.hotkey is on.
-	// The button-up is eaten and opens the menu, as for the taskbar menu.
+	// when the click is on the Start button and Shell would show it. The
+	// button-up is eaten and opens the menu, as for the taskbar menu; it has
+	// to land on the button, and any other button cancels.
 	static bool on_start(HWND hWnd, HWND hTaskbar, const Point &pt) noexcept
 	{
 		static HWND target{};
+		static RECT button{};
 
-		RECT rc{};
-		if(!start_button(hTaskbar, rc) || !::PtInRect(&rc, pt) || !enabled())
+		if(!wanted.load() || !start_button_at(pt, button) || !would_show(hTaskbar))
 			return false;
 
 		target = hTaskbar;
 		_taskbar_mouse.hook(WH_MOUSE, [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
 		{
-			if(nCode == HC_ACTION && wParam == WM_RBUTTONUP)
+			if(nCode == HC_ACTION && lParam)
 			{
-				_taskbar_mouse.unhook();
-				show(target);
-				return 1;
+				auto mh = reinterpret_cast<const MOUSEHOOKSTRUCT *>(lParam);
+				if(wParam == WM_RBUTTONUP)
+				{
+					_taskbar_mouse.unhook();
+					if(::PtInRect(&button, mh->pt))
+					{
+						show(target, { button.left, button.top });
+						return 1;
+					}
+				}
+				else if(wParam == WM_LBUTTONDOWN || wParam == WM_MBUTTONDOWN || wParam == WM_NCLBUTTONDOWN)
+				{
+					_taskbar_mouse.unhook();
+				}
 			}
 			return _taskbar_mouse.callnext(nCode, wParam, lParam);
 		}, hWnd);
@@ -1077,7 +1279,7 @@ LRESULT __stdcall TaskbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	if(wndproc == nullptr)
 		return ::DefWindowProcW(hWnd, uMsg, wParam, lParam);
 
-	if(LRESULT result = 0; winx_hotkey::on_message(hWnd, uMsg, result))
+	if(LRESULT result = 0; winx_hotkey::on_message(hWnd, uMsg, wParam, lParam, result))
 		return result;
 
 	if(uMsg == WM_CONTEXTMENU)
