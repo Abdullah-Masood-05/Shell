@@ -255,7 +255,6 @@ struct taskbar_t
 
 	static void hook_all()
 	{
-		start_winx_hotkey();
 		::EnumWindows([](HWND hWnd, LPARAM)->BOOL {
 			auto atom = Window::Atom(hWnd);
 			if(atom == wShell_TrayWnd || atom == wShell_SecondaryTrayWnd)
@@ -275,6 +274,7 @@ struct taskbar_t
 			}
 			return TRUE;
 		}, 0);
+		start_winx_hotkey(); // after subclassing: it posts to TaskbarProc
 	}
 
 	static void hook_all(uint32_t delay)
@@ -834,6 +834,10 @@ namespace winx_hotkey
 	static std::atomic_bool thread_started{ false };
 	static std::atomic<HWND> primary{};		// the Shell_TrayWnd the timer runs on
 	static thread_local bool showing = false;	// taskbar thread: our menu is open
+	static thread_local bool finding = false;	// taskbar thread: waiting for find_start_proc
+
+	constexpr UINT_PTR find_timer_id = 0x4E58;	// on Shell_TrayWnd
+	constexpr UINT find_timeout_ms = 400;
 
 	// On the taskbar's thread: settings.winx.hotkey is on.
 	static bool hotkey_on() noexcept
@@ -983,6 +987,22 @@ namespace winx_hotkey
 
 	static void find_start(HWND hTaskbar) noexcept
 	{
+		if(finding)
+			return;
+
+		// The key is already eaten: if the search is slow or stuck, open the
+		// menu at the cursor rather than not at all. A late answer is dropped.
+		finding = true;
+		::SetTimer(hTaskbar, find_timer_id, find_timeout_ms, [](HWND hWnd, UINT, UINT_PTR id, DWORD)
+		{
+			::KillTimer(hWnd, id);
+			if(finding)
+			{
+				finding = false;
+				show(hWnd, Point::CursorPos());
+			}
+		});
+
 		HMODULE self{};
 		if(::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCWSTR>(&find_start_proc), &self))
 		{
@@ -993,6 +1013,8 @@ namespace winx_hotkey
 			}
 			::FreeLibrary(self);
 		}
+		::KillTimer(hTaskbar, find_timer_id);
+		finding = false;
 		show(hTaskbar, Point::CursorPos());
 	}
 
@@ -1000,30 +1022,25 @@ namespace winx_hotkey
 
 	static HHOOK hook{};
 	static bool x_eaten = false;
-	static bool win_down[2]{};	// left, right: from the hook's own events
-	static bool ctrl_down[2]{}, shift_down[2]{};
+	static DWORD x_time = 0;	// the last X-down eaten
+
+	// Modifiers held before this key (in a low-level hook the async state
+	// does not include the key being reported, which is not a modifier here).
+	// Not tracked from the hook's own events: a key-up on the secure desktop
+	// (Win+L) is never seen there.
+	static bool held(int vk) noexcept
+	{
+		return (::GetAsyncKeyState(vk) & 0x8000) != 0;
+	}
 
 	static LRESULT CALLBACK keyboard(int code, WPARAM wParam, LPARAM lParam)
 	{
 		if(code == HC_ACTION && lParam)
 		{
 			auto key = reinterpret_cast<const KBDLLHOOKSTRUCT *>(lParam);
-			const bool down = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
-
-			switch(key->vkCode)
-			{
-				case VK_LWIN: win_down[0] = down; break;
-				case VK_RWIN: win_down[1] = down; break;
-				case VK_LCONTROL: ctrl_down[0] = down; break;
-				case VK_RCONTROL: ctrl_down[1] = down; break;
-				case VK_LSHIFT: shift_down[0] = down; break;
-				case VK_RSHIFT: shift_down[1] = down; break;
-			}
-
-			const bool win = win_down[0] || win_down[1];
-
 			if(key->vkCode == 'X' && !(key->flags & LLKHF_INJECTED))
 			{
+				const bool down = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
 				if(!down)
 				{
 					if(x_eaten)
@@ -1032,34 +1049,39 @@ namespace winx_hotkey
 						return 1;
 					}
 				}
-				else if(x_eaten && win)
+				// Held down: auto-repeat, also after the Windows key went up
+				// first. A press long after the last one is a new one whose
+				// key-up was never seen.
+				else if(x_eaten && key->time - x_time < 1000)
 				{
-					return 1; // held down: auto-repeat
+					x_time = key->time;
+					return 1;
 				}
-				else if(win && !ctrl_down[0] && !ctrl_down[1] && !shift_down[0] && !shift_down[1] &&
-						!(key->flags & LLKHF_ALTDOWN) && wanted.load())
+				else
 				{
-					auto hTaskbar = primary.load();
-					if(hTaskbar && ::PostMessageW(hTaskbar, WM_SHOW, show_find, 0))
+					x_eaten = false;
+					if((held(VK_LWIN) || held(VK_RWIN)) && !held(VK_CONTROL) && !held(VK_SHIFT) &&
+					   !(key->flags & LLKHF_ALTDOWN) && wanted.load())
 					{
-						x_eaten = true;
+						auto hTaskbar = primary.load();
+						if(hTaskbar && ::PostMessageW(hTaskbar, WM_SHOW, show_find, 0))
+						{
+							x_eaten = true;
+							x_time = key->time;
 
-						// Ctrl down and up while the Windows key is still down, so
-						// that letting it go does not open Start.
-						INPUT mask[2]{};
-						mask[0].type = INPUT_KEYBOARD;
-						mask[0].ki.wVk = VK_CONTROL;
-						mask[0].ki.wScan = 0x1D;
-						mask[1] = mask[0];
-						mask[1].ki.dwFlags = KEYEVENTF_KEYUP;
-						::SendInput(2, mask, sizeof(INPUT));
-						return 1;
+							// Ctrl down and up while the Windows key is still down, so
+							// that letting it go does not open Start.
+							INPUT mask[2]{};
+							mask[0].type = INPUT_KEYBOARD;
+							mask[0].ki.wVk = VK_CONTROL;
+							mask[0].ki.wScan = 0x1D;
+							mask[1] = mask[0];
+							mask[1].ki.dwFlags = KEYEVENTF_KEYUP;
+							::SendInput(2, mask, sizeof(INPUT));
+							return 1;
+						}
 					}
 				}
-			}
-			else if(!win)
-			{
-				x_eaten = false; // its key-up never came (Win+L, secure desktop)
 			}
 		}
 		return ::CallNextHookEx(hook, code, wParam, lParam);
@@ -1134,18 +1156,16 @@ namespace winx_hotkey
 			start_hook_thread();
 	}
 
-	// Once per process, from the Windows 11 taskbar hook (taskbar_t::hook_all):
+	// From the Windows 11 taskbar hook (taskbar_t::hook_all), after it has
+	// subclassed the taskbar, and again whenever the taskbar is recreated:
 	// the timer has to be set on the taskbar's own thread, so ask it to.
 	static void start() noexcept
 	{
-		static std::atomic_bool posted{ false };
-		if(posted.load())
+		if(primary.load())
 			return;
-		if(auto hTaskbar = ::FindWindowW(Windows::WC_Shell_TrayWnd, nullptr))
-		{
-			if(::PostMessageW(hTaskbar, WM_INIT, 0, 0))
-				posted = true;
-		}
+		auto hTaskbar = ::FindWindowW(Windows::WC_Shell_TrayWnd, nullptr);
+		if(hTaskbar && ::GetPropW(hTaskbar, UxSubclass))
+			::PostMessageW(hTaskbar, WM_INIT, 0, 0);
 	}
 
 	// TaskbarProc, on the taskbar's thread.
@@ -1153,6 +1173,21 @@ namespace winx_hotkey
 	{
 		if(uMsg == WM_INIT)
 		{
+			if(primary.load() == hWnd)
+			{
+				result = 0;
+				return true;
+			}
+
+			// The timer calls into shell.dll: keep it loaded (once).
+			static bool pinned = false;
+			if(!pinned)
+			{
+				HMODULE self{};
+				pinned = ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+											  reinterpret_cast<LPCWSTR>(&refresh), &self) != FALSE;
+			}
+
 			primary = hWnd;
 			::SetTimer(hWnd, timer_id, refresh_ms, [](HWND hWnd, UINT, UINT_PTR, DWORD) { refresh(hWnd); });
 			refresh(hWnd);
@@ -1169,11 +1204,26 @@ namespace winx_hotkey
 			}
 			if(wParam == show_find)
 				find_start(hWnd);
-			else if(wParam == show_at)
-				show(hWnd, { static_cast<short>(LOWORD(lParam)), static_cast<short>(HIWORD(lParam)) });
-			else
-				show(hWnd, Point::CursorPos());
+			else if(finding) // the answer from find_start_proc, in time
+			{
+				::KillTimer(hWnd, find_timer_id);
+				finding = false;
+				if(wParam == show_at)
+					show(hWnd, { static_cast<short>(LOWORD(lParam)), static_cast<short>(HIWORD(lParam)) });
+				else
+					show(hWnd, Point::CursorPos());
+			}
 			return true;
+		}
+		if(uMsg == WM_DESTROY && primary.load() == hWnd)
+		{
+			// The taskbar is being recreated: hook_all runs again and start()
+			// sets up the new one. Until then, take nothing.
+			::KillTimer(hWnd, timer_id);
+			::KillTimer(hWnd, find_timer_id);
+			finding = false;
+			wanted = false;
+			primary = nullptr;
 		}
 		return false;
 	}
@@ -1215,7 +1265,19 @@ namespace winx_hotkey
 		static HWND target{};
 		static RECT button{};
 
-		if(!wanted.load() || !start_button_at(pt, button) || !would_show(hTaskbar))
+		if(!wanted.load())
+			return false;
+
+		// As for the taskbar menu: Ctrl+Win+right-click is Windows' own, and
+		// HKCU\...\disable taskbar=1 turns Shell's taskbar menus off.
+		Keyboard kb;
+		if(kb.get_keys_excloude_contextmenu() > 0 && kb.key_ctrl() && kb.key_win())
+			return false;
+		int disabled_taskbar = 0;
+		if(RegistryConfig::get(L"\\disable", L"taskbar", disabled_taskbar) && disabled_taskbar == 1)
+			return false;
+
+		if(!start_button_at(pt, button) || !would_show(hTaskbar))
 			return false;
 
 		target = hTaskbar;
