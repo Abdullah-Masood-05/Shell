@@ -1367,6 +1367,11 @@ MultitaskingViewFrame // Multitask Button
 			if(WinX::is_launcher_class(class_hash))
 				return Source::OwnerClass;
 
+			// Shell's own Win+X menu (settings.winx.hotkey). Checked first: it is
+			// also tracked as a taskbar menu.
+			if(in_winx())
+				return Source::Hotkey;
+
 			// Shell's own taskbar menu (Windows 11) is not the Win+X menu.
 			if(in_taskbar())
 				return Source::None;

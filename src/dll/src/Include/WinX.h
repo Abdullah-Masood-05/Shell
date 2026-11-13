@@ -37,7 +37,8 @@ namespace Nilesoft
 				OwnerClass,	// the owner window is LauncherTipWnd or Start
 				OwnerChain,	// an owner or parent of it is
 				Caller,		// TrackPopupMenu was called from twinui.pcshell.dll
-				Fallback	// the stack said nothing; the menu has the shutdown submenu
+				Fallback,	// the stack said nothing; the menu has the shutdown submenu
+				Hotkey		// Shell's own Win+X menu (settings.winx.hotkey)
 			};
 
 			inline const wchar_t *source_name(Source source) noexcept
@@ -48,6 +49,7 @@ namespace Nilesoft
 					case Source::OwnerChain: return L"owner chain";
 					case Source::Caller: return L"caller module";
 					case Source::Fallback: return L"fallback (shutdown submenu)";
+					case Source::Hotkey: return L"Win+X or Start, opened by Shell (settings.winx.hotkey)";
 					default: return L"none";
 				}
 			}

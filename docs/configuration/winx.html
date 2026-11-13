@@ -25,6 +25,9 @@ item(where=window.is_winx title='Services' cmd='services.msc')</code></pre>
 
 		// Log how every taskbar and Win+X popup was recognised to shell.log.
 		debug = true
+
+		// Win+X and right-click on Start open Shell's menu (newer Windows 11).
+		hotkey = true
 	}
 	// or, short for winx.replace = true
 	winx = true
@@ -39,6 +42,11 @@ item(where=window.is_winx title='Services' cmd='services.msc')</code></pre>
 	<dt><code>debug</code></dt>
 	<dd>Off by default. Writes one line per taskbar or Win+X popup to <code>shell.log</code>; see
 		<a href="#troubleshooting">Troubleshooting</a>.</dd>
+	<dt><code>hotkey</code></dt>
+	<dd>Off by default. On newer Windows 11 builds (24H2 and later) Windows draws its Win+X menu in a way Shell can't
+		change, so nothing above has any effect there. With <code>hotkey</code> on, Shell catches <kbd>Win</kbd>+<kbd>X</kbd>
+		and a right-click on the Start button itself and opens its own menu at the Start button instead. Only the
+		configured items show: Windows' own items are not in it. With it off, Windows' menu opens as usual.</dd>
 </dl>
 
 <h5 id="access-keys">Access keys</h5>
@@ -52,7 +60,7 @@ item(where=window.is_winx title='Services' cmd='services.msc')</code></pre>
 	<code>//</code> from this line at the end of <code>shell.nss</code> to use it (or turn on "Win+X menu" under Context
 	Menus in the Nilesoft Shell Pro app):</p>
 <pre><code class="lang-shell">// import 'imports/winx.nss'</code></pre>
-<p>It turns on <code>winx.replace</code> and shows Terminal, Terminal (Admin), Device Manager, Disk Management, Event
+<p>It turns on <code>winx.replace</code> and <code>winx.hotkey</code> and shows Terminal, Terminal (Admin), Device Manager, Disk Management, Event
 	Viewer, Services, Task Manager, Settings, Network, Power Options, Run and a <em>Shut down or sign out</em> submenu
 	(Lock, Sign out, Restart, Shut down). Sign out, Restart and Shut down ask first. Each item has an icon and an access
 	key. The shipped Terminal and Go To menus (<code>terminal.nss</code>, <code>goto.nss</code>) still show in the Win+X

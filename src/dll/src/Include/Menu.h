@@ -65,6 +65,7 @@ namespace Nilesoft
 			{
 				auto_expr replace;	// hide Windows' own items
 				auto_expr debug;	// log every Win+X decision to shell.log
+				auto_expr hotkey;	// Win+X and right-click on Start open Shell's menu (Main.cpp)
 			} winx;
 
 			struct MARGIN

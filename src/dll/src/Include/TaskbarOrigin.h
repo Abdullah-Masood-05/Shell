@@ -29,6 +29,39 @@ namespace Nilesoft
 			inline thread_local bool taskbar_origin = false;
 		}
 
+		namespace detail
+		{
+			inline thread_local bool winx_origin = false;
+		}
+
+		// True while this thread is inside Shell's own Win+X menu, opened by
+		// settings.winx.hotkey (Win+X or right-click on Start; Main.cpp).
+		inline bool in_winx() noexcept
+		{
+			return detail::winx_origin;
+		}
+
+		class ScopedWinXOrigin
+		{
+		public:
+			explicit ScopedWinXOrigin(bool value) noexcept
+				: _previous(detail::winx_origin)
+			{
+				detail::winx_origin = value;
+			}
+
+			~ScopedWinXOrigin() noexcept
+			{
+				detail::winx_origin = _previous;
+			}
+
+			ScopedWinXOrigin(const ScopedWinXOrigin &) = delete;
+			ScopedWinXOrigin &operator=(const ScopedWinXOrigin &) = delete;
+
+		private:
+			bool _previous;
+		};
+
 		// True while this thread is inside a popup that started at the taskbar.
 		inline bool in_taskbar() noexcept
 		{

@@ -1170,6 +1170,7 @@ namespace Nilesoft
 			SETTING _winx = { IDENT_WINX, &sets->winx.replace, {
 				{IDENT_REPLACE, &sets->winx.replace},
 				{IDENT_DEBUG, &sets->winx.debug},
+				{IDENT_HOTKEY, &sets->winx.hotkey},
 			} };
 
 			SETTING _settings = { CONFIG_SETTINGS, &sets->priority, {

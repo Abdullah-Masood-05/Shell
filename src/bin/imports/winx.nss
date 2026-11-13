@@ -23,6 +23,9 @@
 settings
 {
 	winx.replace = true
+	// Win+X and right-click on Start open this menu on Windows 11 builds whose own
+	// Win+X menu Shell cannot fill (see the Win+X page of the documentation)
+	winx.hotkey = true
 }
 
 item(type='winx' title='Termi&nal' image=image.mdl(\uE756)

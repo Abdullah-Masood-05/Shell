@@ -147,6 +147,7 @@ namespace nss
 				add("settings.new.image", ValueType::Bool);
 				add("settings.winx.replace", ValueType::Bool);
 				add("settings.winx.debug", ValueType::Bool);
+				add("settings.winx.hotkey", ValueType::Bool);
 
 				// A block's own value (SETTING::value) is one of its children.
 				alias("theme", "theme.name");

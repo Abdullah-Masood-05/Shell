@@ -397,6 +397,7 @@ namespace Nilesoft
 		// settings.winx { replace, debug }
 		constexpr auto IDENT_WINX = 0x7CA01DEBU;
 		constexpr auto IDENT_DEBUG = 0x0F49A52CU;
+		constexpr auto IDENT_HOTKEY = 0x029196B9U;
 
 		constexpr auto IDENT_BORDER = 0xF4916C63U;
 		constexpr auto IDENT_TIP = 0x0B88AE52U;
