@@ -680,3 +680,44 @@ $svg_window_template='<path fill="@image.color1" d="M3.453 15C3.12 15 2.805 14.9
 	<path fill="@image.color1" d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.493 3.374 6.493 3.374s-2.774 3.851-5.75 3.851c-.398 0-.787-.062-1.158-.185v-4.346c1.528.185 1.837.857 2.747 2.385l2.04-1.714s-1.492-1.952-4-1.952a6.016 6.016 0 0 0-.796.035m0-4.735v2.138l.424-.027c5.45-.185 9.01 4.47 9.01 4.47s-4.08 4.964-8.33 4.964c-.37 0-.733-.035-1.095-.097v1.325c.3.035.61.062.91.062 3.957 0 6.82-2.023 9.593-4.408.459.371 2.34 1.263 2.73 1.652-2.633 2.208-8.772 3.984-12.253 3.984-.335 0-.653-.018-.971-.053v1.864H24V4.063z"/>
 	<path fill="@image.color2" d="m0 10.326v1.131c-3.657-.654-4.673-4.46-4.673-4.46s1.758-1.944 4.673-2.262v1.237H8.94c-1.528-.186-2.73 1.245-2.73 1.245s.68 2.412 2.739 3.11M2.456 10.9s2.164-3.197 6.5-3.533V6.201C4.153 6.59 0 10.653 0 10.653s2.35 6.802 8.948 7.42v-1.237c-4.84-.6-6.492-5.936-6.492-5.936z"/>
 </svg>'
+
+// System menu (my-tools.nss): drawn as shapes, so they need no icon font.
+@sys_lock='<svg fill="none" viewBox="0 0 16 16">
+  <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="@image.color1"/>
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+  <circle cx="8" cy="10.5" r="1" fill="@image.color2"/>
+</svg>'
+
+@sys_sleep='<svg fill="none" viewBox="0 0 16 16">
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M13.5 9.5A6 6 0 116.5 2.5a4.8 4.8 0 007 7z"/>
+  <path stroke="@image.color2" stroke-linecap="round" stroke-linejoin="round" d="M11.5 1.5v3M10 3h3"/>
+</svg>'
+
+@sys_sign_out='<svg fill="none" viewBox="0 0 16 16">
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M6.5 2.5h-3a1 1 0 00-1 1v9a1 1 0 001 1h3"/>
+  <path stroke="@image.color2" stroke-linecap="round" stroke-linejoin="round" d="M6.5 8h7M11 5.5L13.5 8 11 10.5"/>
+</svg>'
+
+@sys_power='<svg fill="none" viewBox="0 0 16 16">
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M4.7 3.7a5.5 5.5 0 106.6 0"/>
+  <path stroke="@image.color2" stroke-linecap="round" stroke-linejoin="round" d="M8 1.5v6"/>
+</svg>'
+
+@sys_restart='<svg fill="none" viewBox="0 0 16 16">
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M13.5 8a5.5 5.5 0 11-1.8-4.1"/>
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M13 1.5v3h-3"/>
+  <path stroke="@image.color2" stroke-linecap="round" stroke-linejoin="round" d="M8 5.5v3"/>
+</svg>'
+
+@sys_dns='<svg fill="none" viewBox="0 0 16 16">
+  <circle cx="8" cy="8" r="6.5" stroke="@image.color1"/>
+  <ellipse cx="8" cy="8" rx="2.8" ry="6.5" stroke="@image.color2"/>
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M1.5 8h13"/>
+</svg>'
+
+@sys_god_mode='<svg fill="none" viewBox="0 0 16 16">
+  <path stroke="@image.color1" stroke-linecap="round" stroke-linejoin="round" d="M2 4.5h12M2 8h12M2 11.5h12"/>
+  <circle cx="10" cy="4.5" r="1.6" fill="@image.color2"/>
+  <circle cx="5.5" cy="8" r="1.6" fill="@image.color2"/>
+  <circle cx="10.5" cy="11.5" r="1.6" fill="@image.color2"/>
+</svg>'
