@@ -107,6 +107,7 @@ namespace Nilesoft
 					auto_expr color;
 					auto_expr opacity;
 					auto_expr radius;
+					auto_expr system;
 					MARGIN padding;
 				} border;
 
