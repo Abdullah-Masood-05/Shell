@@ -2337,36 +2337,66 @@ namespace Nilesoft
 
 			if(!mii || (mii->title.empty() && !ident.equals(mii->wID)))
 			{
-				if(auto_gdi<HBITMAP> hbitmap(dc.createbitmap(rc->width(), rc->height())); hbitmap)
+				// An item the extension draws itself (e.g. XnView's image preview).
+				// The owner draws into a row-sized bitmap, which is then blended in.
+				const int row_w = rc->width();
+				const int row_h = rc->height();
+				auto_gdi<HBITMAP> hbitmap(row_w > 0 && row_h > 0 ? dc.createbitmap(row_w, row_h) : nullptr);
+				if(hbitmap)
 				{
 					DC dcmem(dc.CreateCompatibleDC(), 1);
 					dcmem.select_bitmap(hbitmap.get());
 
-					auto old_hdc = di->hDC;
-					di->hDC = dcmem;
-
-					lret = msg.invoke();
-					
-					di->hDC = old_hdc;
-
-					std::vector<COLORREF> pixels(rc->width() * rc->height());
+					std::vector<COLORREF> pixels(static_cast<size_t>(row_w) * row_h);
 
 					BITMAPINFOHEADER bmpInfo = { 0 };
 					bmpInfo.biSize = sizeof(bmpInfo);
-					bmpInfo.biWidth = rc->width();
-					bmpInfo.biHeight = -int(rc->height());
+					bmpInfo.biWidth = row_w;
+					bmpInfo.biHeight = -row_h;
 					bmpInfo.biPlanes = 1;
 					bmpInfo.biBitCount = 32;
 					bmpInfo.biCompression = BI_RGB;
 
-					::GetDIBits(dcmem, hbitmap.get(), 0, rc->height(), &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					// Whatever the owner leaves untouched keeps this colour and turns
+					// transparent below. It used to be plain black, which also made
+					// every black pixel the owner drew (dark parts of a photo, black
+					// text) see-through. The colour is read back so a display that
+					// rounds it still matches.
+					const RECT local = { 0, 0, row_w, row_h };
+					::SetDCBrushColor(dcmem, RGB(1, 0, 1));
+					::FillRect(dcmem, &local, static_cast<HBRUSH>(::GetStockObject(DC_BRUSH)));
+					::GetDIBits(dcmem, hbitmap.get(), 0, 1, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					const COLORREF key = pixels[0] & 0x00FFFFFF;
 
-					std::for_each(pixels.begin(), pixels.end(), [](COLORREF &pixel) {
-						if(pixel != 0) // black pixels stay transparent
-							pixel |= 0xFF000000; // set alpha channel to 100%
+					// rcItem is in the menu window's coordinates, but the bitmap starts
+					// at 0,0: the owner gets the row's rectangle moved to the bitmap's
+					// origin. With the window's rcItem, every row below the top of the
+					// menu was drawn outside the bitmap and stayed blank (#14).
+					const auto old_hdc = di->hDC;
+					const auto old_rect = di->rcItem;
+					di->hDC = dcmem;
+					di->rcItem = local;
+
+					lret = msg.invoke();
+
+					di->hDC = old_hdc;
+					di->rcItem = old_rect;
+
+					::GetDIBits(dcmem, hbitmap.get(), 0, row_h, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+
+					// GDI leaves the alpha byte at 0: what the owner drew becomes opaque.
+					std::for_each(pixels.begin(), pixels.end(), [key](COLORREF &pixel) {
+						if((pixel & 0x00FFFFFF) == key)
+							pixel = 0;
+						else
+							pixel |= 0xFF000000;
 					});
 
-					::SetDIBits(dcmem, hbitmap.get(), 0, rc->height(), &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					::SetDIBits(dcmem, hbitmap.get(), 0, row_h, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+
+					// The row's background first, as for the other rows, so what the
+					// owner leaves out does not show a stale highlight.
+					dc.fill_rect(di->rcItem, composition ? dc.stock_brush(BLACK_BRUSH) : _hbackground);
 					dc.draw_image(rc->point(), rc->size(), dcmem);
 
 					return lret;
