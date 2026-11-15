@@ -710,6 +710,10 @@ msgid "Menu corners"
 msgstr ""
 
 #: ui/pages/appearance.slint:555
+msgid "Windows rounds small corners"
+msgstr ""
+
+#: ui/pages/appearance.slint:555
 msgid "Item corners"
 msgstr ""
 
