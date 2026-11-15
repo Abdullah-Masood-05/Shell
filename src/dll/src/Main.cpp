@@ -1405,9 +1405,10 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 	(Selections::QuerySelected).
 
 	- The data object is offered once, to the next menu on the same thread, and
-	  only for a few seconds after the host prepared the handler; the handler
-	  going away withdraws it. A later menu of the program's own (a toolbar, a
-	  tab) never sees an old selection.
+	  only for a few seconds after the host prepared the handler. It outlives the
+	  handler: Windows releases a handler that added no items right after
+	  QueryContextMenu, before the menu shows (issue #13). A later menu of the
+	  program's own (a toolbar, a tab) never sees an old selection.
 	- The handler adds no items and runs no commands.
 	- DllCanUnloadNow says no while any of these objects are alive.
 */
@@ -1446,7 +1447,12 @@ namespace filemanager
 		Handler() { objects++; }
 		~Handler()
 		{
-			withdraw(this);
+			// The offer stays: Windows releases a handler that added no items
+			// (this one never adds any) as soon as QueryContextMenu returns,
+			// before the host shows its menu. The offer holds its own reference
+			// and still ends with the next menu on this thread or offer_ms.
+			if(offer.handler == this)
+				offer.handler = nullptr;
 			if(_data)
 				_data->Release();
 			objects--;
@@ -1501,9 +1507,10 @@ namespace filemanager
 	private:
 		void arm()
 		{
-			withdraw();
+			// Another instance with no selection must not take back a real one.
 			if(!_data)
 				return;
+			withdraw();
 			_data->AddRef();
 			offer = { this, _data, ::GetTickCount64() };
 		}
