@@ -150,6 +150,7 @@ namespace Nilesoft
 				Color color;
 				uint8_t size{};
 				uint8_t radius{};
+				bool system = true; // let Windows round blur/acrylic corners (4px, 8px)
 				Margin padding;
 			}border;
 

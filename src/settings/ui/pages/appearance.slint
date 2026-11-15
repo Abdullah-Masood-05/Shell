@@ -149,7 +149,7 @@ component FurtherCard inherits Rectangle {
 
 export component AppearancePage inherits Rectangle {
     property <[ThemeField]> f: AppearanceState.fields;
-    property <bool> ready: AppearanceState.loaded && f.length > K.image-gap;
+    property <bool> ready: AppearanceState.loaded && f.length > K.system-corners;
     // The width inside the page's padding.
     property <length> inner-width: root.width - 2 * (Tokens.s8 + Tokens.s1);
     // Settings and preview side by side only when the settings keep a sensible width
@@ -549,6 +549,18 @@ export component AppearancePage inherits Rectangle {
                                     selected: root.f[K.menu-radius].number;
                                     enabled: root.ready;
                                     changed(i) => { AppearanceState.set-number(K.menu-radius, i); }
+                                }
+                            }
+                            SettingRow {
+                                label: @tr("Windows rounds small corners");
+                                field: root.f[K.system-corners];
+                                reset => { AppearanceState.reset(K.system-corners); }
+                                control-width: 80px;
+                                ToggleSwitch {
+                                    on: root.f[K.system-corners].number > 0.5;
+                                    label: @tr("Windows rounds small corners");
+                                    enabled: root.ready;
+                                    toggled(on) => { AppearanceState.set-number(K.system-corners, on ? 1 : 0); }
                                 }
                             }
                             SettingBlock {

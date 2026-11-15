@@ -984,6 +984,7 @@ namespace Nilesoft
 				{IDENT_COLOR, &st->border.color},
 				{IDENT_OPACITY, &st->border.opacity},
 				{IDENT_RADIUS, &st->border.radius},
+				{IDENT_SYSTEM, &st->border.system},
 				{IDENT_PADDING, &st->border.padding.value, {
 					{ IDENT_LEFT, &st->border.padding.left },
 					{ IDENT_TOP, &st->border.padding.top },

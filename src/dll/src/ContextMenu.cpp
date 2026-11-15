@@ -3599,6 +3599,9 @@ namespace Nilesoft
 			if(_context.eval_number(th->border.radius, obj))
 				_theme.border.radius = _theme.radius(obj);
 
+			if(_context.eval_number(th->border.system, obj))
+				_theme.border.system = obj.to_bool();
+
 			if(_context.Eval(th->border.padding.value, obj))
 				get_rect(&obj, &_theme.border.padding);
 
@@ -6168,7 +6171,8 @@ namespace Nilesoft
 					// anti-aliased, unlike SetWindowRgn's (moudey/Shell#141). DWM has only two
 					// sizes, 4px (small) and 8px, so larger radii keep the region, which stays
 					// inside the rounded frame drawn on the layer window.
-					if(_theme.border.radius > 0 && _theme.border.radius <= dpi(8) && ver->IsWindows11OrGreater())
+					// theme.border.system = false skips this and Shell rounds every radius itself.
+					if(_theme.border.system && _theme.border.radius > 0 && _theme.border.radius <= dpi(8) && ver->IsWindows11OrGreater())
 					{
 						DWM corner(blurry->handle);
 						auto pref = _theme.border.radius <= dpi(4) ? DWM::Corner::RoundSmall : DWM::Corner::Round;

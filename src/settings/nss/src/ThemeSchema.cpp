@@ -95,6 +95,7 @@ namespace nss
 				add("theme.border.color", ValueType::Color);
 				add("theme.border.opacity", ValueType::Number, 0, 100);
 				add("theme.border.radius", ValueType::Number, 0);
+				add("theme.border.system", ValueType::Bool);
 				addBox("theme.border.padding");
 				add("theme.separator.color", ValueType::Color);
 				add("theme.separator.opacity", ValueType::Number, 0, 100);

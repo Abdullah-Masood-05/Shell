@@ -1832,7 +1832,7 @@ namespace Nilesoft
 								return check(argc == 0, 2);
 							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
 						case IDENT_BORDER:
-							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_RADIUS }))
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_RADIUS, IDENT_SYSTEM }))
 								return check(argc == 0, 2);
 							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
 						case IDENT_SHADOW:
