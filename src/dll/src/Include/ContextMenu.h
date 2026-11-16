@@ -14,6 +14,7 @@ constexpr auto Windows_UI_FileExplorer = L"Windows.UI.FileExplorer.dll";
 #include "Include/Theme.h"
 #include <Library/PlutoVGWrap.h>
 #include "Include/Tip.h"
+#include "Include/OwnerDrawColors.h"
 #include <stack>
 
 #define MF_ALLSTATE         0x00FF
@@ -761,6 +762,8 @@ plutovg_move_to(pluto, start.x, start.y);
 			LRESULT OnMenuSelect(HMENU hMenu, uint32_t id, uint32_t flags);
 			LRESULT OnDrawItem(DRAWITEMSTRUCT *di);
 			LRESULT OnMeasureItem(MEASUREITEMSTRUCT *mi);
+			// Theme colours given to an item its extension draws itself (#14).
+			OwnerDraw::Colors owner_draw_colors(bool selected) const;
 
 			LRESULT OnDrawItem_D2D(DRAWITEMSTRUCT *di);
 

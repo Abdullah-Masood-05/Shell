@@ -2357,16 +2357,38 @@ namespace Nilesoft
 					bmpInfo.biBitCount = 32;
 					bmpInfo.biCompression = BI_RGB;
 
-					// Whatever the owner leaves untouched keeps this colour and turns
-					// transparent below. It used to be plain black, which also made
-					// every black pixel the owner drew (dark parts of a photo, black
-					// text) see-through. The colour is read back so a display that
+					// The owner paints with the Windows menu colours; while it draws,
+					// it is given the theme's instead (OwnerDrawColors.h).
+					auto colors = owner_draw_colors(state.selected);
+
+					// The bitmap starts as the theme's background, the colour the
+					// owner is also given for COLOR_MENU, so anti-aliased text it
+					// draws without a background of its own blends against the
+					// colour it ends up on. It used to be a key colour, RGB(1, 0, 1),
+					// and before that plain black, which made black pixels the owner
+					// drew see-through. The colour is read back so a display that
 					// rounds it still matches.
 					const RECT local = { 0, 0, row_w, row_h };
-					::SetDCBrushColor(dcmem, RGB(1, 0, 1));
+					::SetDCBrushColor(dcmem, colors.menu);
 					::FillRect(dcmem, &local, static_cast<HBRUSH>(::GetStockObject(DC_BRUSH)));
 					::GetDIBits(dcmem, hbitmap.get(), 0, 1, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
 					const COLORREF key = pixels[0] & 0x00FFFFFF;
+
+					// What a menu's own DC has when its owner draws: the menu font
+					// and the row's colours. A new memory DC has the System font.
+					if(font.handle)
+						::SelectObject(dcmem, font.handle);
+					::SetTextColor(dcmem, state.selected ? colors.highlight_text : (state.disabled ? colors.gray : colors.text));
+					::SetBkColor(dcmem, state.selected ? colors.highlight : colors.menu);
+
+					// Where the menu's background is see-through (blur, acrylic, a
+					// colour with alpha, a gradient), the background the owner
+					// leaves or paints turns transparent so the effect shows; on a
+					// solid background every pixel stays opaque.
+					const bool see_through = composition &&
+						(_theme.gradient.enabled ||
+						 (_theme.background.effect == 0 ? _theme.background.color.a < 0xFF
+														: _theme.background.opacity < 0xFF));
 
 					// rcItem is in the menu window's coordinates, but the bitmap starts
 					// at 0,0: the owner gets the row's rectangle moved to the bitmap's
@@ -2377,7 +2399,10 @@ namespace Nilesoft
 					di->hDC = dcmem;
 					di->rcItem = local;
 
-					lret = msg.invoke();
+					{
+						OwnerDraw::Scope scope(colors);
+						lret = msg.invoke();
+					}
 
 					di->hDC = old_hdc;
 					di->rcItem = old_rect;
@@ -2385,8 +2410,8 @@ namespace Nilesoft
 					::GetDIBits(dcmem, hbitmap.get(), 0, row_h, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
 
 					// GDI leaves the alpha byte at 0: what the owner drew becomes opaque.
-					std::for_each(pixels.begin(), pixels.end(), [key](COLORREF &pixel) {
-						if((pixel & 0x00FFFFFF) == key)
+					std::for_each(pixels.begin(), pixels.end(), [key, see_through](COLORREF &pixel) {
+						if(see_through && (pixel & 0x00FFFFFF) == key)
 							pixel = 0;
 						else
 							pixel |= 0xFF000000;
@@ -2407,7 +2432,11 @@ namespace Nilesoft
 				dc.set_text(text_color);
 				dc.fill_rect(di->rcItem, composition ? dc.stock_brush(BLACK_BRUSH) : _hbackground);
 
-				lret = msg.invoke();
+				{
+					auto colors = owner_draw_colors(state.selected);
+					OwnerDraw::Scope scope(colors);
+					lret = msg.invoke();
+				}
 
 				return lret;
 			}
@@ -2774,6 +2803,44 @@ namespace Nilesoft
 			return TRUE;
 		}
 
+		// The theme's colours as solid COLORREFs for an extension that draws its
+		// own item. GetSysColor has no alpha, so each colour is what it looks
+		// like over the menu's background colour (a selection with alpha over the
+		// background, text over that), and the background drops its alpha: under
+		// blur or acrylic the real backdrop is not known, and those pixels turn
+		// transparent after the draw anyway (OnDrawItem).
+		OwnerDraw::Colors ContextMenu::owner_draw_colors(bool selected) const
+		{
+			auto over = [](const Color &color, COLORREF under) -> COLORREF
+			{
+				const uint32_t a = color.a;
+				auto mix = [a](uint32_t top, uint32_t bottom) {
+					return static_cast<BYTE>((top * a + bottom * (255 - a) + 127) / 255);
+				};
+				return RGB(mix(color.r(), GetRValue(under)),
+						   mix(color.g(), GetGValue(under)),
+						   mix(color.b(), GetBValue(under)));
+			};
+
+			OwnerDraw::Colors colors;
+			colors.menu = _theme.background.color.to_BGR();
+			colors.text = over(_theme.text.color.nor, colors.menu);
+			colors.highlight = over(_theme.back.color.sel, colors.menu);
+			colors.highlight_text = over(_theme.text.color.sel, colors.highlight);
+			colors.gray = selected ? over(_theme.text.color.sel_dis, colors.highlight)
+				: over(_theme.text.color.nor_dis, colors.menu);
+
+			// The first owner-drawn item patches GetSysColor (once per process).
+			OwnerDraw::Install result;
+			OwnerDraw::install(&result);
+			if(result == OwnerDraw::Install::Failed)
+				_log.warning(L"Owner-drawn item: could not patch GetSysColor; such items keep the Windows menu colours.");
+			else if(result == OwnerDraw::Install::Unpinned)
+				_log.warning(L"Owner-drawn item: could not pin shell.dll; such items keep the Windows menu colours.");
+
+			return colors;
+		}
+
 		LRESULT ContextMenu::OnMeasureItem(MEASUREITEMSTRUCT *mi)
 		{
 			LRESULT lret = 0;
@@ -2800,7 +2867,13 @@ namespace Nilesoft
 					if(mii->cch == 0)
 					{
 						if(!ident.equals(mi->itemID))
-							lret = msg.invoke();
+						{
+							auto colors = owner_draw_colors(false);
+							{
+								OwnerDraw::Scope scope(colors);
+								lret = msg.invoke();
+							}
+						}
 						else 
 						{
 							auto v = (uint32_t)_theme.view2;
