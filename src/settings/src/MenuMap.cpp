@@ -502,6 +502,15 @@ std::optional<Tree> parseTree(std::string_view text, std::string *error)
 {
     auto j = json::parse(text, nullptr, false);
     if (!j.is_object()) {
+        // shell.exe loads the shell extensions to read Windows' items, and one may
+        // print to the same output (XnView's XnShell writes "dark mode 1"). The
+        // menu is the object from the first { to the last }.
+        const auto first = text.find('{');
+        const auto last = text.rfind('}');
+        if (first != std::string_view::npos && last != std::string_view::npos && last > first)
+            j = json::parse(text.substr(first, last - first + 1), nullptr, false);
+    }
+    if (!j.is_object()) {
         if (error)
             *error = "not JSON";
         return std::nullopt;

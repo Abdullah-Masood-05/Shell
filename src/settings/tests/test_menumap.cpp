@@ -115,6 +115,11 @@ TEST_CASE("menu map: the -config:tree JSON")
     REQUIRE(bad->errors.size() == 1);
     CHECK(bad->errors[0] == "shell.nss:4: syntax error");
 
+    // Text a shell extension printed around the menu (XnShell: "dark mode 1").
+    auto noisy = parseTree(std::string("dark mode 1\n") + kTreeJson + "\ndark mode 1\r\ndark mode 1\r\n", &error);
+    REQUIRE(noisy);
+    CHECK(noisy->ok);
+
     CHECK_FALSE(parseTree("not json"));
     CHECK_FALSE(parseTree(R"({"ok":true})"));
 }
