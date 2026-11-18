@@ -477,6 +477,64 @@ static TreatAsState QueryUserTreatAs()
 	return QueryTreatAs(HKEY_CURRENT_USER, UserTreatAsKey);
 }
 
+/*
+	Windows 11 update KB5132061 (November 2026, builds 26100/26200/26300.9974)
+	builds the new menu through a second class as well, {51668040-...}: with
+	only {86ca1aa0-...} redirected Explorer still shows the Windows 11 menu.
+	The same tweak brings the classic menu back: an empty
+	HKCU\Software\Classes\CLSID\{51668040-...}\InprocServer32.
+
+	-treat writes that key for the user running the command (per-user and
+	machine registration alike), with the same marker value as above so only
+	what was added is removed. Nothing is written under HKLM: that key belongs
+	to Windows (TrustedInstaller) and a TreatAs there is untested. For other
+	users of a machine registration shell.dll declines the class in Explorer
+	(CoCreateInstanceHook). It is written even before the update installs the
+	class, so the update needs no new registration.
+*/
+static constexpr wchar_t NewMenuMachineKey[] = L"SOFTWARE\\Classes\\CLSID\\" CLS_FileExplorerContextMenu2;
+static constexpr wchar_t NewMenuParent[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu2;
+static constexpr wchar_t NewMenuInproc[] = L"Software\\Classes\\CLSID\\" CLS_FileExplorerContextMenu2 L"\\InprocServer32";
+
+// An HKCU server key with no (or an empty) path, ours or the user's own.
+static bool NewMenuBlocked()
+{
+	if(!RegistryConfig::KeyExists(HKEY_CURRENT_USER, NewMenuInproc))
+		return false;
+	string server;
+	return !RegistryConfig::GetString(HKEY_CURRENT_USER, NewMenuInproc, nullptr, server) || server.empty();
+}
+
+static bool new_menu_treat(bool _register)
+{
+	const HKEY hkcu = HKEY_CURRENT_USER;
+
+	if(_register)
+	{
+		if(RegistryConfig::KeyExists(hkcu, NewMenuInproc))
+			return NewMenuBlocked();
+		if(!RegistryConfig::SetString(hkcu, NewMenuInproc, nullptr, L""))
+			return false;
+		RegistryConfig::SetString(hkcu, NewMenuParent, UserTreatAsMarker, L"1");
+		return true;
+	}
+
+	string marker;
+	if(RegistryConfig::GetString(hkcu, NewMenuParent, UserTreatAsMarker, marker))
+	{
+		// Ours, and still exactly as written: one empty default value.
+		string server;
+		if(RegistryConfig::GetString(hkcu, NewMenuInproc, nullptr, server) && server.empty())
+		{
+			RegistryConfig::DeleteValue(hkcu, NewMenuInproc, nullptr);
+			RegistryConfig::DeleteKeyIfEmpty(hkcu, NewMenuInproc);
+		}
+		RegistryConfig::DeleteValue(hkcu, NewMenuParent, UserTreatAsMarker);
+	}
+	RegistryConfig::DeleteKeyIfEmpty(hkcu, NewMenuParent);
+	return true;
+}
+
 static bool user_treat(bool _register)
 {
 	const HKEY hkcu = HKEY_CURRENT_USER;
@@ -498,7 +556,7 @@ static bool user_treat(bool _register)
 		{
 			RegistryConfig::SetString(hkcu, UserTreatAsParent, UserTreatAsMarker, L"1");
 		}
-		return true;
+		return new_menu_treat(true);
 	}
 
 	bool ok = true;
@@ -522,6 +580,10 @@ static bool user_treat(bool _register)
 
 	// Only if nothing else (e.g. a user's own tweak) is left in it.
 	RegistryConfig::DeleteKeyIfEmpty(hkcu, UserTreatAsParent);
+
+	// A machine -treat still in place wants this user's classic menu too.
+	if(QueryTreatAs() != TreatAsState::ours)
+		new_menu_treat(false);
 	return ok;
 }
 
@@ -653,8 +715,13 @@ bool Registration(REGOP reg)
 
 				// Zero-initialised: FOLDEREXTENSIONS used to be left indeterminate
 				// here, so whether {...BAF3} was (re)written depended on the stack.
+				// It has to be written: Explorer creates Drive\shellex\FolderExtensions
+				// entries while it starts, so {...BAF3} is what loads shell.dll (and
+				// hooks the taskbar) before the first right-click. Without it the first
+				// taskbar right-click after sign-in got Windows' menu (issue #12).
+				// DllGetClassObject answers it with E_NOTIMPL: only the load matters.
 				REGOP regop{};
-				regop.CONTEXTMENU = regop.ICONOVERLAY = true;
+				regop.CONTEXTMENU = regop.ICONOVERLAY = regop.FOLDEREXTENSIONS = true;
 
 				if(!RegistryConfig::Register(dll_path, regop))
 				{
@@ -676,6 +743,8 @@ bool Registration(REGOP reg)
 					//SOFTWARE\\Classes\\CLSID"
 					if(!disable_modern(true))
 						_log->warning(L"Could not set the Windows 11 TreatAs redirect.");
+					if(!new_menu_treat(true))
+						_log->warning(L"Could not hide the Windows 11 menu class " CLS_FileExplorerContextMenu2 L" for this user.");
 				}
 
 				if(RegistryConfig::IsRegistered(RegScope::User))
@@ -698,6 +767,9 @@ bool Registration(REGOP reg)
 				{
 					if(ver->IsWindows11OrGreater() && !disable_modern(false))
 						_log->warning(L"Could not remove the Windows 11 TreatAs redirect.");
+					// Unless this user's own -register -user -treat still wants it.
+					if(QueryUserTreatAs() != TreatAsState::ours)
+						new_menu_treat(false);
 				};
 
 				if(!RegistryConfig::IsRegistered(RegScope::Machine))
@@ -1692,7 +1764,7 @@ namespace ConfigCommand
 	{
 		if(where.empty())
 			return true;
-		for(auto name : { L"file", L"folder", L"dir", L"back", L"background", L"desktop", L"taskbar" })
+		for(auto name : { L"file", L"folder", L"dir", L"back", L"background", L"desktop", L"taskbar", L"thispc", L"computer" })
 		{
 			if(where.equals(name, true))
 				return true;
@@ -1767,7 +1839,7 @@ namespace ConfigCommand
 	/*
 		-config:tree <root.nss> -context:<where> [-sample:<path>]
 
-		The menu a right-click in <where> (file, folder, drive, back, desktop,
+		The menu a right-click in <where> (file, folder, drive, thispc, back, desktop,
 		taskbar) shows, for Nilesoft Shell Pro's Menu map: the check result
 		as -config:check prints it, plus "context", "sample" and "tree", the
 		JSON shell.dll's ConfigTree export gives (see ConfigCheck.h): Shell's
@@ -1788,7 +1860,7 @@ namespace ConfigCommand
 
 	static bool valid_context(const string &where)
 	{
-		for(auto name : { L"file", L"folder", L"dir", L"drive", L"back", L"background", L"desktop", L"taskbar" })
+		for(auto name : { L"file", L"folder", L"dir", L"drive", L"back", L"background", L"desktop", L"taskbar", L"thispc", L"computer" })
 		{
 			if(where.equals(name, true))
 				return true;
@@ -1877,7 +1949,7 @@ namespace ConfigCommand
 		{
 			if(root.empty() || !valid_context(context))
 			{
-				out.line(L"usage: shell -config:tree <root.nss> -context:file|folder|drive|back|desktop|taskbar [-sample:<path>] [-out:<file>]");
+				out.line(L"usage: shell -config:tree <root.nss> -context:file|folder|drive|thispc|back|desktop|taskbar [-sample:<path>] [-out:<file>]");
 				return cli_usage;
 			}
 			ret = tree(out, root, context, sample);
@@ -1923,7 +1995,9 @@ namespace ConfigCommand
 	    "machineTreatAs": state,       // HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-...}\TreatAs
 	    "userTreatAs": state,          // the same under HKCU\Software\Classes
 	    "userInprocServer32": bool,    // HKCU ...\{86ca1aa0-...}\InprocServer32 present
-	    "userInprocServer32Ours": bool // ... and written by -register -user -treat
+	    "userInprocServer32Ours": bool, // ... and written by -register -user -treat
+	    "newMenuClass": bool,          // HKLM ...\{51668040-...} present (KB5132061)
+	    "userNewMenuInprocServer32": bool // HKCU ...\{51668040-...}\InprocServer32 empty
 	  },                               // state: "absent" | "ours" | "foreign" | "inaccessible"
 	  "config": {
 	    "path": "...\\shell.nss",
@@ -2088,9 +2162,14 @@ namespace StatusCommand
 		// over) instead of the Windows 11 one. COM resolves the CLSID through
 		// the merged view, where the HKCU key shadows HKLM's: a per-user TreatAs
 		// or empty InprocServer32 decides it, else the machine TreatAs does.
+		// Since KB5132061 the second class must be hidden as well, once
+		// Windows has it.
+		auto new_menu_class = RegistryConfig::KeyExists(HKEY_LOCAL_MACHINE, NewMenuMachineKey);
+		auto new_menu_blocked = NewMenuBlocked();
 		auto classic = win11 &&
 			(user_treat_state == TreatAsState::ours || user_inproc_blank ||
-			 (user_treat_state == TreatAsState::absent && machine_treat == TreatAsState::ours));
+			 (user_treat_state == TreatAsState::absent && machine_treat == TreatAsState::ours)) &&
+			(!new_menu_class || new_menu_blocked);
 
 		string json;
 		json += L"{\r\n  \"version\": ";
@@ -2130,6 +2209,10 @@ namespace StatusCommand
 		json += json_bool(user_inproc);
 		json += L",\r\n    \"userInprocServer32Ours\": ";
 		json += json_bool(user_inproc_ours);
+		json += L",\r\n    \"newMenuClass\": ";
+		json += json_bool(new_menu_class);
+		json += L",\r\n    \"userNewMenuInprocServer32\": ";
+		json += json_bool(new_menu_blocked);
 		json += L"\r\n  }";
 
 		json += L",\r\n  \"config\": {\r\n    \"path\": ";
@@ -3055,7 +3138,7 @@ BOOL CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, [[maybe_unused]] L
                 L"\t\tinstead of stdout / the console.\r\n\r\n"
                 //L"-runas:N\t\tLaunch with elevated privileges.\r\n"
                 //L"\t\tN=[admin | system | trustedinsaller]\r\n\r\n"
-                L"-?\t\tDispay this help message.\r\n\r\n"
+                L"-?\t\tDisplay this help message.\r\n\r\n"
                 L"Examples:\r\nshell.exe -register -treat\r\n"
                 L"shell.exe -register -user -treat -restart\r\n"
               //  L"shell.exe -runas:admin -cmd:'cmd.exe' -args:\"/K echo Hello world!\"\r\n"

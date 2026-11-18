@@ -2,6 +2,7 @@
 #include "Expression\Variable.h"
 #include "Include\Theme.h"
 #include <Resource.h>
+#include "Include\AppxManifest.h"
 
 namespace Nilesoft
 {
@@ -20,6 +21,19 @@ namespace Nilesoft
 			string family;
 			string id;
 			string version;
+
+			// AppxManifest.xml values, read once on first use (appx(id, 'logo') and so on).
+			mutable Appx::Manifest manifest;
+
+			const Appx::Manifest &get_manifest() const
+			{
+				static SRWLOCK lock = SRWLOCK_INIT;
+				::AcquireSRWLockExclusive(&lock);
+				if(!manifest.loaded)
+					manifest = Appx::Load(std::wstring(path.c_str(), path.length()));
+				::ReleaseSRWLockExclusive(&lock);
+				return manifest;
+			}
 		};
 
 		class PackagesCache

@@ -109,6 +109,15 @@ namespace Nilesoft
 
 			bool key(uint8_t key) const
 			{
+				// The list holds the left and right keys only (VK_LSHIFT, VK_RCONTROL, ...),
+				// so the generic Shift, Ctrl and Alt codes match either side.
+				switch(key)
+				{
+					case VK_SHIFT: return key_shift();
+					case VK_CONTROL: return key_ctrl();
+					case VK_MENU: return key_alt();
+				}
+
 				if(count() > 0)
 				{
 					for(auto k : _keys) if(k == key) return true;

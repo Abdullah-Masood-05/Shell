@@ -12,10 +12,13 @@
 	  - empty entries (no extension, no parent) are hidden
 	  - New file no longer truncates an existing file of the same name
 	  - Restart Explorer uses the built-in command.restart_explorer
+	  - Empty Recycle Bin uses the built-in command.empty_recycle_bin
+	    (PowerShell's Clear-RecycleBin could fail without telling you)
 	  - Empty Recycle Bin, Sign out, Restart and Shut down ask first
 
-	Icons: icon.<name> come from imports/images.nss; image.mdl(\uXXXX) is a
-	"Segoe MDL2 Assets" glyph; a #rrggbb value draws a colour chip.
+	Icons: icon.<name> come from imports/images.nss and are drawn as shapes, so
+	they show on any PC (image.mdl(\uXXXX) needs the "Segoe MDL2 Assets" font,
+	which some PCs lack); a #rrggbb value draws a colour chip.
 */
 
 
@@ -40,39 +43,39 @@ menu(type='back|dir' title=loc.tools_new_file image=icon.new_file)
 menu(type='back|desktop' title=loc.tools_system image=icon.settings)
 {
 
-	item(title=loc.tools_restart_explorer image=image.mdl(\uE72C)
+	item(title=loc.tools_restart_explorer image=icon.refresh
 		cmd=command.restart_explorer)
 
-	item(title=loc.tools_empty_recycle_bin image=image.mdl(\uE74D)
+	item(title=loc.tools_empty_recycle_bin image=icon.empty_recycle_bin
 		cmd=if(msg(loc.tools_confirm_empty_recycle_bin, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
-			shell('powershell.exe', '-NoProfile -WindowStyle Hidden -Command Clear-RecycleBin -Force -ErrorAction SilentlyContinue', 'open')))
+			command.empty_recycle_bin))
 
 	// Needs elevation
-	item(title=loc.tools_flush_dns admin=true image=#20bf6b
+	item(title=loc.tools_flush_dns admin=true image=icon.sys_dns
 		cmd='cmd.exe' window=hidden args='/c ipconfig /flushdns')
 
 	// God Mode: every Control Panel task in one window
-	item(title=loc.tools_god_mode image=#9b59b6
+	item(title=loc.tools_god_mode image=icon.sys_god_mode
 		cmd='explorer.exe' args='shell:::{ED7BA470-8E54-465E-825C-99712043E01C}')
 
 	separator
 
-	item(title=loc.tools_lock image=image.mdl(\uE72E)
+	item(title=loc.tools_lock image=icon.sys_lock
 		cmd='rundll32.exe' args='user32.dll,LockWorkStation')
 
 	// Note: SetSuspendState hibernates instead when hibernation is enabled.
-	item(title=loc.tools_sleep image=#34495e
+	item(title=loc.tools_sleep image=icon.sys_sleep
 		cmd='rundll32.exe' args='powrprof.dll,SetSuspendState 0,1,0')
 
-	item(title=loc.tools_sign_out image=#e67e22
+	item(title=loc.tools_sign_out image=icon.sys_sign_out
 		cmd=if(msg(loc.tools_confirm_sign_out, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/l', 'open')))
 
-	item(title=loc.tools_restart image=#e74c3c
+	item(title=loc.tools_restart image=icon.sys_restart
 		cmd=if(msg(loc.tools_confirm_restart, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/r /t 0', 'open')))
 
-	item(title=loc.tools_shut_down image=#c0392b
+	item(title=loc.tools_shut_down image=icon.sys_power
 		cmd=if(msg(loc.tools_confirm_shut_down, app.name, msg.yesno | msg.warning | msg.defbutton2) == msg.idyes,
 			shell('shutdown.exe', '/s /t 0', 'open')))
 }

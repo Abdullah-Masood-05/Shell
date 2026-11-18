@@ -257,6 +257,7 @@ const std::vector<AppearanceController::FieldDef> &AppearanceController::fieldDe
         { "theme.item.back.select.disabled", Kind::Color, {} },
         { "theme.image.size", Kind::Number, {} },
         { "theme.image.gap", Kind::Number, {} },
+        { "theme.border.system", Kind::Bool, {} },
     };
     return defs;
 }
@@ -600,7 +601,8 @@ void AppearanceController::rebuild()
             f.number = float(std::clamp(num(key, (key == "theme.border.radius" ? r.borderRadius : r.itemRadius) / 4.0), 0.0, 4.0));
             break;
         case Kind::Bool:
-            f.number = (l && l->isBool()) ? (l->boolValue() ? 1.f : 0.f) : (r.shadow ? 1.f : 0.f);
+            f.number = (l && l->isBool()) ? (l->boolValue() ? 1.f : 0.f)
+                                                   : (key == "theme.border.system" ? 1.f : (r.shadow ? 1.f : 0.f));
             break;
         case Kind::Box: {
             const theme::Box &b = key == "theme.item.padding" ? r.itemPadding

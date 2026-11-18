@@ -91,6 +91,8 @@ namespace nss
 			j += "  \"reason\": " + json::quote(s.reason) + ",\r\n";
 			j += "  \"root\": " + json::quote(s.root) + ",\r\n";
 			j += std::string("  \"pinned\": ") + (s.pinned ? "true" : "false") + ",\r\n";
+			if(s.allFiles)
+				j += "  \"scope\": \"all\",\r\n";
 			j += "  \"files\": [";
 			for(size_t k = 0; k < s.files.size(); k++)
 			{
@@ -119,6 +121,7 @@ namespace nss
 			s.reason = v->str("reason");
 			s.root = v->str("root");
 			s.pinned = v->flag("pinned");
+			s.allFiles = v->str("scope") == "all";
 			if(auto files = v->get("files"); files && files->type == json::Value::Type::Array)
 			{
 				for(auto &f : files->array)
@@ -242,12 +245,54 @@ namespace nss
 				// Also the backup-<time> folders `shell.exe -config:reset` leaves next to
 				// shell.nss: copies, not part of the config.
 				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups) ||
-				   (it.depth() == 0 && narrow(p.filename().wstring()).starts_with("backup-")))
+				   (it.depth() == 0 && toLower(narrow(p.filename().wstring())).starts_with("backup-")))
 					it.disable_recursion_pending();
 				continue;
 			}
 			if(it->is_regular_file(ec) && iequals(narrow(p.extension().wstring()), ".nss") && !isUnder(p, _backups))
 				out.push_back(p.lexically_normal());
+		}
+		std::sort(out.begin(), out.end());
+		return out;
+	}
+
+	std::vector<fs::path> ConfigStore::snapshotFiles() const
+	{
+		auto out = treeFiles();
+		std::vector<std::pair<fs::path, uint64_t>> other;
+		std::error_code ec;
+		auto opts = fs::directory_options::skip_permission_denied;
+		// Besides the .nss files (treeFiles) only what the config keeps in imports\ (its
+		// icons, in imports\images\): not the other files of a folder the root happens to
+		// be in, such as Documents.
+		for(fs::recursive_directory_iterator it(rootDir() / L"imports", opts, ec), end; !ec && it != end; it.increment(ec))
+		{
+			auto &p = it->path();
+			if(it->is_directory(ec))
+			{
+				if(isUnder(p, _backups) || pathKey(p) == pathKey(_backups) ||
+				   toLower(narrow(p.filename().wstring())).starts_with("backup-"))
+					it.disable_recursion_pending();
+				continue;
+			}
+			if(!it->is_regular_file(ec) || isUnder(p, _backups))
+				continue;
+			auto ext = toLower(narrow(p.extension().wstring()));
+			if(ext == ".nss" || ext == ".bak" || ext == ".tmp" || ext == ".log")
+				continue;
+			auto size = it->file_size(ec);
+			if(ec || size > maxSnapshotFile)
+				continue;
+			other.emplace_back(p.lexically_normal(), size);
+		}
+		std::sort(other.begin(), other.end());
+		uint64_t total = 0;
+		for(auto &[p, size] : other)
+		{
+			if(total + size > maxSnapshotOther)
+				continue;
+			total += size;
+			out.push_back(p);
 		}
 		std::sort(out.begin(), out.end());
 		return out;
@@ -269,17 +314,27 @@ namespace nss
 		s.created = formatTime(tm, "%Y-%m-%dT%H:%M:%S");
 		s.reason = reason;
 		s.root = narrow(_root.filename().wstring());
+		s.allFiles = true;
 		if(!fs::create_directories(s.dir, ec))
 		{
 			if(error) *error = "cannot create " + narrow(s.dir.wstring());
 			return std::nullopt;
 		}
 
-		for(auto &file : treeFiles())
+		for(auto &file : snapshotFiles())
 		{
 			std::string bytes;
 			if(!readFile(file, bytes, error))
+			{
+				// A menu file that can't be read stays out as before; any other file is
+				// reported (the caller logs it) rather than skipped without a word.
+				if(!iequals(narrow(file.extension().wstring()), ".nss"))
+				{
+					s.skipped.push_back(relative(file));
+					::OutputDebugStringA(("snapshot: skipped unreadable file " + s.skipped.back() + "\n").c_str());
+				}
 				continue;
+			}
 			SnapshotFile sf;
 			sf.path = relative(file);
 			sf.sha256 = sha256(bytes);
@@ -380,7 +435,7 @@ namespace nss
 		}
 		if(removeExtra)
 		{
-			for(auto &p : treeFiles())
+			for(auto &p : s->allFiles ? snapshotFiles() : treeFiles())
 			{
 				bool known = std::any_of(files.begin(), files.end(), [&](auto &f) { return pathKey(f.first) == pathKey(p); });
 				if(!known)
@@ -492,6 +547,7 @@ namespace nss
 				return result;
 			}
 			result.snapshotId = snap->id;
+			result.snapshotSkipped = snap->skipped;
 			applyRetention(_retention);
 		}
 

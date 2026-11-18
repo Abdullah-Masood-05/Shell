@@ -95,6 +95,14 @@ const char *tr(const char *msgid);
 const char *trc(const char *context, const char *msgid);
 constexpr const char *mark(const char *msgid) { return msgid; }
 
+// A version number ("2.3.0-beta.3") for a sentence: left-to-right marks (U+200E)
+// around it keep it in order in a right-to-left language. "" stays "". The same as
+// Tokens.ltr() in the .slint files.
+inline std::string ltr(std::string_view text)
+{
+    return text.empty() ? std::string() : "\xE2\x80\x8E" + std::string(text) + "\xE2\x80\x8E";
+}
+
 // "{}" takes the next argument, "{0}" a given one, "{n}" the count of trn(); "{{" and
 // "}}" are literal braces.
 std::string format(std::string_view fmt, std::span<const std::string> args, long long n = 0);

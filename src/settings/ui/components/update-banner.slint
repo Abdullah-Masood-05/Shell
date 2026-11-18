@@ -61,7 +61,7 @@ component UpdateActions inherits HorizontalLayout {
 // Home: the update on offer, its download, and the restart that installs it.
 export component UpdateBanner inherits Rectangle {
     property <string> st: UpdateState.state;
-    property <string> version: UpdateState.latest-version;
+    property <string> version: Tokens.ltr(UpdateState.latest-version);
     property <bool> admin: UpdateState.needs-admin;
     // Too narrow for the actions next to the text: they go under it. Set by the page,
     // from its own width (this width depends on the layout inside).
@@ -111,7 +111,7 @@ export component UpdateBanner inherits Rectangle {
                     min-height: self.preferred-height;
                 }
                 if root.st == "available": Text {
-                    text: @tr("You have {}.", UpdateState.current-version)
+                    text: @tr("You have {}.", Tokens.ltr(UpdateState.current-version))
                         + (UpdateState.released != "" ? " " + @tr("Released {}.", UpdateState.released) : "")
                         + (UpdateState.asset-size != "" ? " " + UpdateState.asset-size + "." : "")
                         + (UpdateState.update-path == "app" ? " " + @tr("It installs for you only, without administrator rights.") : "");
@@ -207,7 +207,7 @@ export component UpdateNavHint inherits Rectangle {
                 : root.st == "ready" && UpdateState.update-path == "app" ? @tr("Restart to finish updating")
                 : root.st == "ready" ? @tr("Update ready: restart to update")
                 : root.st == "installing" ? @tr("Installing update…")
-                : @tr("Update available: {}", UpdateState.latest-version);
+                : @tr("Update available: {}", Tokens.ltr(UpdateState.latest-version));
             font-size: Tokens.caption + 1px;
             color: Tokens.accent;
             vertical-alignment: center;

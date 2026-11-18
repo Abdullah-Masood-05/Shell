@@ -31,6 +31,9 @@
 		itself, and items for the desktop, the Recycle Bin, the address bar and the navigation pane.</td></tr>
 	<tr><td><code>dev.develop</code>, <code>dev.helpers</code></td><td>Helpers for people who write their own menus,
 		such as lists of icons and paths.</td></tr>
+	<tr><td><code>Setup Version</code></td><td>No snippets. RubicBG keeps copies of older upstream Nilesoft Shell
+		installers and test builds here, and a Visual Studio Code extension that formats <code>.nss</code> files. Don't
+		install those builds next to Nilesoft Shell Pro: the two conflict.</td></tr>
 </table>
 <p>Many snippets have a <code>.md</code> page next to them with a description and a screenshot. Start from the
 	<a href="https://github.com/RubicBG/Nilesoft-Shell-Snippets#readme">readme</a>, which links to them by group.</p>
@@ -38,10 +41,10 @@
 	older copy of the same collection. Use RubicBG's repository for the current files.</p>
 
 <div class="notification is-warning mt-5" role="alert">
-	<i>Info:</i> The collection is written for the newest upstream test builds of Nilesoft Shell. A few snippets use
-	functions that Nilesoft Shell Pro doesn't have yet: <code>str.fmt</code>, <code>app.set</code>,
-	<code>app.exists</code>, <code>app.delete</code>, <code>path.file.save_box</code>, <code>input()</code> with more
-	than three arguments, and <code>appx(id, 'path')</code>. Those snippets won't load here; most of the others load normally.
+	<i>Info:</i> The collection is written for the newest upstream test builds of Nilesoft Shell. Since 2.3.0 every
+	snippet in it loads in Nilesoft Shell Pro: the functions they need, such as <code>str.fmt</code>, <code>app.set</code>,
+	<code>path.file.save_box</code>, <code>input()</code> with a list, <code>appx(id, 'path')</code>, <code>run()</code>
+	with up to six values and <code>path.dir.boxl</code>, are all there. Older versions can't load some of them.
 </div>
 <div class="notification is-danger mt-5" role="alert">
 	<i>Warning:</i> <strong>Read a snippet before you use it.</strong> Some of them run commands as administrator, change

@@ -2,6 +2,7 @@
 #include "Include/Theme.h"
 #include "Include/ContextMenu.h"
 #include "Include/stb_image_write.h"
+#include "Include/NssFunctions.h"
 
 using namespace Nilesoft::Diagnostics;
 #include <mutex>
@@ -262,6 +263,85 @@ namespace Nilesoft
 			}
 		}
 
+		// this.parent.* for an item in the submenu `owner` (none in the main menu);
+		// count is the number of items in that submenu.
+		static void set_parent_item(this_item &self, this_item &parent, MenuItemInfo *owner, size_t count)
+		{
+			if(!owner)
+				return;
+			parent.id = owner->id;
+			parent.title = owner->title.text;
+			parent.title_normalize = owner->title.normalize;
+			parent.tip = &owner->tip.text;
+			parent.key = &owner->keys;
+			parent.count = static_cast<uint32_t>(count);
+			self.parent_item = &parent;
+		}
+
+		// Lists `item` as moved by menu=`value` (already evaluated): once only, with the
+		// path of the menu it goes to ('A/B'), or none for the main menu ('/', as for
+		// modify()). False when the value names no menu, or the main menu for an item
+		// that is already in it: the item stays where it is.
+		bool ContextMenu::add_moved_item(NativeMenu *item, string &value, bool in_main)
+		{
+			const bool root = value.contains(L'/');
+			value.trim(L'/');
+			if(value.empty() && (!root || in_main))
+				return false;
+			for(auto x : _moved_items.dynamics)
+			{
+				if(x->owner_dynamic == item)
+					return true;
+			}
+			auto mii = _gc.push();
+			mii->dynamic = true;
+			mii->owner_dynamic = item;
+			if(value.empty() || mii->parse_parent(value))
+				_moved_items.dynamics.push_back(mii);
+			return true;
+		}
+
+		void ContextMenu::collect_moved_items(const std::vector<NativeMenu *> &list, int depth)
+		{
+			if(depth > 8)
+				return;
+			for(auto item : list)
+			{
+				if(!item || item->properties == 0 || item->is_separator())
+					continue;
+				try
+				{
+					this_item _this{};
+					_context._this = &_this;
+					_this.level = depth;
+					_this.type = item->is_menu() ? 1 : 0;
+					_context.variables.local = &item->owner->variables;
+
+					if(!Selected.verify_types(item->fso))
+						continue;
+					if(item->where && !_context.eval_bool(item->where))
+						continue;
+
+					// The main menu's own items are moved when it is prepared.
+					if(depth > 0 && item->moveto)
+					{
+						string value;
+						if(_context.Eval(item->moveto, value, true) && add_moved_item(item, value, false))
+							continue;
+					}
+
+					// Also inside a hidden menu: an item moved out of it shows where it
+					// went, only the items that stay in it are hidden with it.
+					if(item->is_menu() && !item->items.empty())
+						collect_moved_items(item->items, depth + 1);
+				}
+				catch(...)
+				{
+				}
+			}
+			_context._this = nullptr;
+		}
+
 		bool ContextMenu::prepare_new_items(PositionList &posList,
 										  const std::vector<NativeMenu *> &list,
 										  MenuItemInfo *owner,
@@ -278,7 +358,7 @@ namespace Nilesoft
 			// i.e. when Windows supplied no menu of its own, as on the Windows 11
 			// taskbar. Counting `list` here made that false whenever the
 			// configuration defines more than one item, so the menu vanished.
-			_context.menu_count = (menu && menu->std_items) ? static_cast<uint32_t>(menu->std_items->size()) : 0;
+			_context.menu_count = menu ? static_cast<uint32_t>(menu->std_shown) : 0;
 			int _this_index = 0;
 			
 			for(auto item : list)
@@ -306,10 +386,13 @@ namespace Nilesoft
 					auto not_sep = !item->is_separator();
 
 					this_item _this{};
+					this_item _parent{};
 					_context._this = &_this;
 					_this.level = (int)parent_level.size();
+					set_parent_item(_this, _parent, owner,
+									list.size() + (menu ? menu->std_shown : 0));
 
-					_this.type = not_sep ? (item->is_menu() ? 2 : 1) : 0;
+					_this.type = not_sep ? (item->is_menu() ? 1 : 0) : 2;
 					_this.pos = _this_index++;
 
 					if(!Selected.verify_types(item->fso))
@@ -336,15 +419,8 @@ namespace Nilesoft
 					{
 						if(item->owner != menu->parent)
 						{
-							if(_context.Eval(item->moveto, value, true) && !value.trim(L'/').empty())
-							{
-								auto mii = _gc.push();
-								mii->dynamic = true;
-								mii->owner_dynamic = item;
-								if(mii->parse_parent(value))
-									_moved_items.dynamics.push_back(mii);
+							if(_context.Eval(item->moveto, value, true) && add_moved_item(item, value, menu->is_main))
 								continue;
-							}
 						}
 					}
 
@@ -387,7 +463,11 @@ namespace Nilesoft
 								indexof = ptr[2].to_string().move();
 								indexof_pos = ptr[3];
 								if(ac == 3)
-									indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+								{
+									// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+									int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+									indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+								}
 								position = (Shell::Position)indexof.trim().hash();
 							}
 						}
@@ -492,6 +572,8 @@ namespace Nilesoft
 
 						_this.title_normalize = mii->title.normalize;
 						_this.id = mii->hash;
+						_this.tip = &mii->tip.text;
+						_this.key = &mii->keys;
 
 						if(item->is_menu() && item->cmd->admin)
 							mii->privileges = _context.parse_privileges(item->cmd);
@@ -650,7 +732,37 @@ namespace Nilesoft
 							is_container = _context.Eval(item->expanded).to_bool();
 
 						if(is_container)
+						{
+							// modify(menu='X') into an expanded=1 menu: X has no submenu of
+							// its own (prepare_system_items2 never sees its path), so the
+							// Windows items moved there show here, in its place. They stay
+							// in __movable_system_items: a submenu holding X is rebuilt each
+							// time it opens and needs them again.
+							string virtual_path;
+							if(owner)
+								virtual_path = (owner->path + L'/' + owner->title.normalize).trim(L'/').move();
+							if(!virtual_path.empty())
+								virtual_path += L'/';
+							virtual_path += mii->title.normalize;
+							virtual_path.trim(L'/');
+
+							if(!virtual_path.empty())
+							{
+								for(auto sys_item : __movable_system_items)
+								{
+									if(sys_item->path.equals(virtual_path) && keep_system_item(sys_item))
+									{
+										_context._this = nullptr;
+										auto sys_mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
+										prepare_system_item(sys_item, sys_mii, menu);
+										posList.push(sys_mii);
+									}
+								}
+								_context._this = &_this;
+							}
+
 							prepare_new_items(posList, item->items, mii, menu);
+						}
 						else
 						{
 							if(owner)
@@ -748,6 +860,7 @@ namespace Nilesoft
 				string indexof;
 				int indexof_pos = 0, indexof_def = -1;
 
+				// A rule without a pos= leaves the place an earlier rule gave it.
 				if(si->position && _settings.modify_items.position)
 				{
 					Object obj = _context.Eval(si->position).move();
@@ -761,7 +874,11 @@ namespace Nilesoft
 							indexof = ptr[2].to_string().move();
 							indexof_pos = ptr[3];
 							if(ac == 3)
-								indexof_def = (int)_context.parse_pos(ptr[4], Position::Auto);
+							{
+								// A number from 0 up is an index in the menu; -1 to -4 are bottom, top, middle, auto.
+								int n = ptr[4].is_number() ? ptr[4].to_number<int>() : -1;
+								indexof_def = n >= 0 ? n : (int)_context.parse_pos(ptr[4], Position::Auto);
+							}
 							position = (Position)indexof.trim().hash();
 						}
 					}
@@ -769,15 +886,20 @@ namespace Nilesoft
 					{
 						position = _context.parse_pos(obj, Position::Auto);
 					}
+
+					_context._this->pos = static_cast<int>(position);
+
+					mii->indexof.val = indexof.move();
+					mii->indexof.pos = indexof_pos;
+					mii->indexof.def = indexof_def;
+
+					mii->position = position;
 				}
-
-				_context._this->pos = static_cast<int>(position);
-
-				mii->indexof.val = indexof.move();
-				mii->indexof.pos = indexof_pos;
-				mii->indexof.def = indexof_def;
-
-				mii->position = position;
+				else
+				{
+					// this.pos still tells later properties of this rule where the item is.
+					_context._this->pos = static_cast<int>(mii->position);
+				}
 
 				if(_settings.modify_items.title)
 				{
@@ -799,7 +921,14 @@ namespace Nilesoft
 			mii->dwItemData = item->dwItemData;
 			mii->handle = menu->handle;
 
-			this_item _this; _context._this = &_this;
+			this_item _this, _parent; _context._this = &_this;
+			set_parent_item(_this, _parent, menu->owner,
+							menu->std_shown + menu->dynamics.size());
+
+			// The tip an earlier modify() rule gave it (build_main_system_menuitems).
+			mii->tip.text = item->tip;
+			_this.tip = &mii->tip.text;
+			_this.key = &mii->keys;
 
 			_this.type = item->type;
 			_this.pos = (int)item->position;
@@ -1034,12 +1163,26 @@ namespace Nilesoft
 
 		bool ContextMenu::prepare_system_items(PositionList &list, menu_t *menu)
 		{
+			if(menu)
+				menu->std_shown = 0;
+
 			if(!menu || !menu->std_items)
 				return false;
 
-			//int _index = 0;
-			_context.menu_count = (uint32_t)menu->std_items->size();
+			// Greyed-out items "Remove disabled items" leaves out go first, so
+			// this.count is the number of system items that show.
+			std::vector<menuitem_t *> shown;
+			shown.reserve(menu->std_items->size());
 			for(auto item : *menu->std_items)
+			{
+				if(keep_system_item(item))
+					shown.push_back(item);
+			}
+
+			//int _index = 0;
+			menu->std_shown = shown.size();
+			_context.menu_count = (uint32_t)shown.size();
+			for(auto item : shown)
 			{
 				_context._this = nullptr;
 				auto mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
@@ -1057,7 +1200,7 @@ namespace Nilesoft
 
 			for(auto item : __movable_system_items)
 			{		
-				if(item->path.equals(menu->path))
+				if(item->path.equals(menu->path) && keep_system_item(item))
 				{
 					auto mii = _gc.push(new MenuItemInfo(MIIM_ID | MIIM_DATA | MIIM_FTYPE, 0, 0));
 					prepare_system_item(item, mii, menu);
@@ -1137,13 +1280,16 @@ namespace Nilesoft
 			{
 				if(!(owner && owner->is_disabled()))
 				{
+					if(menu->is_main)
+						collect_moved_items(menu->dynamics, 0);
+
 					prepare_new_items(_new_items, menu->dynamics, owner, menu);
 
-					// add moved dynamic items
+					// add moved dynamic items (an empty parent: menu='/', the main menu)
 					std::vector<NativeMenu*> mdi;
 					for(auto item : _moved_items.dynamics)
 					{
-						if(item->is_parent(parent_level))
+						if(item->parent.empty() ? menu->is_main : item->is_parent(parent_level))
 							mdi.push_back(item->owner_dynamic);
 					}
 
@@ -1370,10 +1516,10 @@ namespace Nilesoft
 					int cp = 0;
 
 					for(auto x : __movable_system_items)
-						cp += x->path.equals((item->path + L"/" + item->title.normalize).trim(L'/'));
+						cp += x->path.equals((item->path + L"/" + item->title.normalize).trim(L'/')) && keep_system_item(x);
 					
 					for(auto x : _moved_items.dynamics)
-						cp += item->id == x->parent.front();
+						cp += !x->parent.empty() && item->id == x->parent.front();
 
 					if(cp == 0)
 					{
@@ -1383,7 +1529,10 @@ namespace Nilesoft
 								items.erase(i--);
 						}
 
-						if(item->sys_items && item->sys_items->empty())
+						// Also when all it holds are greyed-out items that
+						// "Remove disabled items" leaves out.
+						if(item->sys_items && std::none_of(item->sys_items->begin(), item->sys_items->end(),
+														   [this](menuitem_t *x) { return keep_system_item(x); }))
 							items.erase(i--);
 					}
 				}
@@ -2188,36 +2337,66 @@ namespace Nilesoft
 
 			if(!mii || (mii->title.empty() && !ident.equals(mii->wID)))
 			{
-				if(auto_gdi<HBITMAP> hbitmap(dc.createbitmap(rc->width(), rc->height())); hbitmap)
+				// An item the extension draws itself (e.g. XnView's image preview).
+				// The owner draws into a row-sized bitmap, which is then blended in.
+				const int row_w = rc->width();
+				const int row_h = rc->height();
+				auto_gdi<HBITMAP> hbitmap(row_w > 0 && row_h > 0 ? dc.createbitmap(row_w, row_h) : nullptr);
+				if(hbitmap)
 				{
 					DC dcmem(dc.CreateCompatibleDC(), 1);
 					dcmem.select_bitmap(hbitmap.get());
 
-					auto old_hdc = di->hDC;
-					di->hDC = dcmem;
-
-					lret = msg.invoke();
-					
-					di->hDC = old_hdc;
-
-					std::vector<COLORREF> pixels(rc->width() * rc->height());
+					std::vector<COLORREF> pixels(static_cast<size_t>(row_w) * row_h);
 
 					BITMAPINFOHEADER bmpInfo = { 0 };
 					bmpInfo.biSize = sizeof(bmpInfo);
-					bmpInfo.biWidth = rc->width();
-					bmpInfo.biHeight = -int(rc->height());
+					bmpInfo.biWidth = row_w;
+					bmpInfo.biHeight = -row_h;
 					bmpInfo.biPlanes = 1;
 					bmpInfo.biBitCount = 32;
 					bmpInfo.biCompression = BI_RGB;
 
-					::GetDIBits(dcmem, hbitmap.get(), 0, rc->height(), &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					// Whatever the owner leaves untouched keeps this colour and turns
+					// transparent below. It used to be plain black, which also made
+					// every black pixel the owner drew (dark parts of a photo, black
+					// text) see-through. The colour is read back so a display that
+					// rounds it still matches.
+					const RECT local = { 0, 0, row_w, row_h };
+					::SetDCBrushColor(dcmem, RGB(1, 0, 1));
+					::FillRect(dcmem, &local, static_cast<HBRUSH>(::GetStockObject(DC_BRUSH)));
+					::GetDIBits(dcmem, hbitmap.get(), 0, 1, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					const COLORREF key = pixels[0] & 0x00FFFFFF;
 
-					std::for_each(pixels.begin(), pixels.end(), [](COLORREF &pixel) {
-						if(pixel != 0) // black pixels stay transparent
-							pixel |= 0xFF000000; // set alpha channel to 100%
+					// rcItem is in the menu window's coordinates, but the bitmap starts
+					// at 0,0: the owner gets the row's rectangle moved to the bitmap's
+					// origin. With the window's rcItem, every row below the top of the
+					// menu was drawn outside the bitmap and stayed blank (#14).
+					const auto old_hdc = di->hDC;
+					const auto old_rect = di->rcItem;
+					di->hDC = dcmem;
+					di->rcItem = local;
+
+					lret = msg.invoke();
+
+					di->hDC = old_hdc;
+					di->rcItem = old_rect;
+
+					::GetDIBits(dcmem, hbitmap.get(), 0, row_h, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+
+					// GDI leaves the alpha byte at 0: what the owner drew becomes opaque.
+					std::for_each(pixels.begin(), pixels.end(), [key](COLORREF &pixel) {
+						if((pixel & 0x00FFFFFF) == key)
+							pixel = 0;
+						else
+							pixel |= 0xFF000000;
 					});
 
-					::SetDIBits(dcmem, hbitmap.get(), 0, rc->height(), &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+					::SetDIBits(dcmem, hbitmap.get(), 0, row_h, &pixels[0], (LPBITMAPINFO)&bmpInfo, DIB_RGB_COLORS);
+
+					// The row's background first, as for the other rows, so what the
+					// owner leaves out does not show a stale highlight.
+					dc.fill_rect(di->rcItem, composition ? dc.stock_brush(BLACK_BRUSH) : _hbackground);
 					dc.draw_image(rc->point(), rc->size(), dcmem);
 
 					return lret;
@@ -2866,6 +3045,7 @@ namespace Nilesoft
 					transparency.effect = 0;
 			}
 
+			const auto configured_theme = _theme.Type;
 			switch(_theme.Type)
 			{
 				case ThemeType::HighContrast:
@@ -3014,6 +3194,7 @@ namespace Nilesoft
 				}
 			}
 
+			_theme.configured = configured_theme;
 			_theme.system.transparency = enableTransparency;
 			_theme.system.mode = systemUsesLightTheme ? 0 : 1;
 			_theme.isHighContrast = isHighContrast;
@@ -3447,6 +3628,9 @@ namespace Nilesoft
 
 			if(_context.eval_number(th->border.radius, obj))
 				_theme.border.radius = _theme.radius(obj);
+
+			if(_context.eval_number(th->border.system, obj))
+				_theme.border.system = obj.to_bool();
 
 			if(_context.Eval(th->border.padding.value, obj))
 				get_rect(&obj, &_theme.border.padding);
@@ -4288,6 +4472,20 @@ namespace Nilesoft
 
 						_this.parent = menu->uid();
 						//_this.level = (int)parent_level.size();
+						_this.tip = &item->tip;
+						_this.key = &item->keys;
+
+						this_item _parent;
+						if(!is_root)
+						{
+							_parent.id = menu->uid();
+							_parent.title = menu->title;
+							_parent.title_normalize = menu->name;
+							_parent.tip = &menu->tip;
+							_parent.key = &menu->keys;
+							_parent.count = static_cast<uint32_t>(items->size());
+							_this.parent_item = &_parent;
+						}
 
 						if(!item->is_separator())
 						{
@@ -4360,6 +4558,14 @@ namespace Nilesoft
 							}
 						}
 
+						// Kept in the main menu by an earlier menu='/': a later rule that
+						// moves it is about another place (its pos= and sep= too), so it
+						// is left out for this item. This is how a rule imported before
+						// modify.nss (the settings app's settings-app-map.nss) takes an
+						// item back from a move modify.nss makes.
+						if(item->pinned && si->moveto && _settings.modify_items.parent)
+							goto skip;
+
 						if(si->visibility && _settings.modify_items.visibility)
 						{
 							item->visibility = _context.parse_visibility(si->visibility);
@@ -4373,6 +4579,8 @@ namespace Nilesoft
 								else if(item->visibility == Visibility::Disabled)
 									item->disabled = true;
 								_context._this->disabled = item->disabled;
+								// The rule decides now, not Windows' greyed-out state.
+								item->native_disabled = false;
 							}
 						}
 
@@ -4383,7 +4591,11 @@ namespace Nilesoft
 							string moveto;
 							if(_context.Eval(si->moveto, moveto, true))
 							{
+								// menu='/': the main menu, for good.
+								const bool to_root = moveto.contains(L'/');
 								moveto.trim(L'/');
+								if(to_root && moveto.empty())
+									item->pinned = true;
 
 								// Menu paths are built from normalized titles (no '&'
 								// accelerator, no trailing dots), so menu=loc.develop
@@ -4447,7 +4659,16 @@ namespace Nilesoft
 						}
 
 						if(!removed)
+						{
 							item->native_items.push_back(si);
+							// this.tip for the rules after this one.
+							if(si->tip)
+							{
+								uint8_t tip_type{};
+								uint16_t tip_time{};
+								_context.eval_tip(si->tip, item->tip, tip_type, tip_time);
+							}
+						}
 
 						if(si->invoke && 0 == _context.parse_invoke(si->invoke))
 						{
@@ -4511,6 +4732,8 @@ namespace Nilesoft
 					item->wid = mii.wID;
 					item->dwItemData = mii.dwItemData;
 					item->is_toplevel = is_root;
+					item->native_menu = hMenu;
+					item->native_pos = i;
 
 					if(is_root)
 						;
@@ -4536,9 +4759,11 @@ namespace Nilesoft
 						item->radio_check = mii.fType & MFT_RADIOCHECK;
 						item->image = MenuItemInfo::FindImage(&mii);
 
-						if(item->disabled && _settings.modify_items.remove.disabled)
-							continue;
-						
+						// "Remove disabled items" (modify.remove.disabled) is not applied
+						// here: Windows hands over some items greyed out and enables them
+						// a moment later, once it has worked out their state. A greyed
+						// item is kept and keep_system_item() decides when its menu is
+						// shown, from the native item's state at that time (#9).
 						if(mii.cch > 0)
 						{
 							item->title = title.release(mii.cch).move();
@@ -4546,14 +4771,17 @@ namespace Nilesoft
 
 							item->ui = Initializer::get_muid(item->hash);
 
+							// Explorer hands "Empty Recycle Bin" over greyed out and works out
+							// its real state later, so the bin itself is asked. Only a query
+							// that succeeds and finds nothing keeps it greyed out.
 							if(!item->is_menu() && is_root && item->disabled)
 							{
 								if(item->uid() == IDENT_ID_EMPTY_RECYCLE_BIN)
 								{
 									item->disabled = false;
 									SHQUERYRBINFO sqrbi = { sizeof(SHQUERYRBINFO) };
-									DLL::Invoke<HRESULT>(L"shell32.dll", "SHQueryRecycleBinW", nullptr, &sqrbi);
-									if((sqrbi.i64Size + sqrbi.i64NumItems) == 0)
+									auto hr = DLL::Invoke<HRESULT>(L"shell32.dll", "SHQueryRecycleBinW", nullptr, &sqrbi);
+									if(SUCCEEDED(hr) && (sqrbi.i64Size + sqrbi.i64NumItems) == 0)
 										item->disabled = true;
 								}
 							}
@@ -4598,6 +4826,9 @@ namespace Nilesoft
 							//_log.info(L"MFT_BITMAP");
 						}
 
+						// itemPtr: a duplicate replacement has released item already.
+						itemPtr->native_disabled = itemPtr->disabled;
+
 						if(mii.hSubMenu)
 							build_system_menuitems(mii.hSubMenu, itemPtr, false);
 					}
@@ -4624,6 +4855,75 @@ namespace Nilesoft
 						menu->items.push_back(item.release());
 				}
 			}
+		}
+
+		/*
+			An item Windows handed over greyed out (native_disabled) is checked
+			again when its menu is shown: Explorer greys some items until it has
+			worked out their state (async verb state) and enables them a moment
+			later in its own menu. If the native item is enabled by now, it is
+			shown enabled. If it is still greyed out, "Remove disabled items"
+			(modify.remove.disabled) leaves it out; otherwise it is shown greyed
+			out, as before (#9). Returns false when the item is to be left out.
+		*/
+		bool ContextMenu::keep_system_item(menuitem_t *item)
+		{
+			if(!item || !item->native_disabled || item->is_separator())
+				return true;
+
+			// -1: the native item could not be found, so its state is not known.
+			auto native_state = [item]() -> int
+			{
+				auto hMenu = item->native_menu;
+				if(!hMenu || !::IsMenu(hMenu))
+					return -1;
+
+				// Submenus are matched by their popup (their id is often 0),
+				// commands by their id.
+				const bool by_id = item->wid != 0 && item->wid != static_cast<uint32_t>(-1);
+				if(item->is_menu() ? item->source_handle == nullptr : !by_id)
+					return -1;
+
+				auto state_at = [&](int pos) -> int
+				{
+					MENUITEMINFOW mii{ sizeof(MENUITEMINFOW) };
+					mii.fMask = MIIM_ID | MIIM_STATE | MIIM_SUBMENU | MIIM_FTYPE;
+					if(!::GetMenuItemInfoW(hMenu, static_cast<UINT>(pos), TRUE, &mii) || (mii.fType & MFT_SEPARATOR))
+						return -1;
+
+					const bool match = item->is_menu() ? mii.hSubMenu == item->source_handle
+						: (mii.hSubMenu == nullptr && mii.wID == item->wid);
+					if(!match)
+						return -1;
+					return (mii.fState & MFS_DISABLED) ? 1 : 0;
+				};
+
+				// Where it was read from first; items may have been added since.
+				if(item->native_pos >= 0)
+				{
+					if(auto state = state_at(item->native_pos); state >= 0)
+						return state;
+				}
+
+				const int count = ::GetMenuItemCount(hMenu);
+				for(int pos = 0; pos < count; pos++)
+				{
+					if(pos == item->native_pos)
+						continue;
+					if(auto state = state_at(pos); state >= 0)
+						return state;
+				}
+				return -1;
+			};
+
+			if(native_state() == 0)
+			{
+				item->disabled = false;
+				item->native_disabled = false;
+				return true;
+			}
+
+			return !_settings.modify_items.remove.disabled;
 		}
 
 		// Drops __map_system_menu entries that point at node or anything below it,
@@ -4784,6 +5084,14 @@ namespace Nilesoft
 				/*if(auto h = hWnd_owner ? hWnd_owner : hWnd; h)
 					_result = Window::class_name(h);
 				*/
+				// A right-drag's menu (owned by a STATIC window): where it was dropped,
+				// for sel.drop. Only the point here; the folder is looked up when asked.
+				if(Selected.Window.hash == WC__STATIC)
+				{
+					Selected.drop.menu = true;
+					Selected.drop.point = Point::CursorPos();
+				}
+
 				if(Selected.Window.id == WINDOW_UI)
 				{
 					if(Selected.Window.hash != WC__STATIC)
@@ -5059,8 +5367,15 @@ namespace Nilesoft
 
 			auto invoke_item = cm->invoke_item;
 
-			this_item _this;
-			_this.type = (int)invoke_item->type;
+			// ctx->_this is read by the commands after this returns, so it cannot point
+			// at a local. Each command runs on its own thread (Invoke).
+			static thread_local this_item _this, _parent;
+			_this = {};
+			_parent = {};
+			set_parent_item(_this, _parent, invoke_item->owner, invoke_item->owner ? invoke_item->owner->items.size() : 0);
+			_this.tip = &invoke_item->tip.text;
+			_this.key = &invoke_item->keys;
+			_this.type = invoke_item->is_separator() ? 2 : (invoke_item->is_popup() ? 1 : 0);
 			_this.pos = static_cast<int>(invoke_item->position);
 			_this.checked = invoke_item->is_checked() ? (invoke_item->is_radiocheck() ? 2 : 1) : 0;
 			_this.disabled = invoke_item->is_disabled();
@@ -5217,6 +5532,11 @@ namespace Nilesoft
 							Selected.Directory = cmd.directory;
 						}
 					}
+
+					// A script of several lines in cmd-ps= / cmd-pwsh= is sent as
+					// -EncodedCommand; on the command line it would end at the first line.
+					if(cmd.type == COMMAND_POWERSHELL || cmd.type == COMMAND_PWSH)
+						cmd.arguments = PowerShellArgs::encode(as_wstring(cmd.arguments)).c_str();
 
 					/*auto r = */ShellExec::Run(cmd.command, cmd.arguments, cmd.directory,
 												cmd.verb, wait, cmd.window);
@@ -5758,11 +6078,16 @@ namespace Nilesoft
 				}
 				else if(_theme.gradient.radial[0] == 1.0)
 				{
-					double cx = to_size(_theme.gradient.radial[1], w / 2 + fxx);
-					double cy = to_size(_theme.gradient.radial[2], h / 2 + fyy);
+					// The layer window starts `margin` px left of and above the menu, so the
+					// menu's own area begins at back_rect (margin + border) on both axes.
+					// cx, cy, fx and fy are in percent of half the width or height, from
+					// there: 100 is the centre. (X used to start at the border only, which
+					// put the centre `margin` px left of the menu's centre.)
+					double cx = back_rect.left + to_size(_theme.gradient.radial[1], w / 2);
+					double cy = back_rect.top + to_size(_theme.gradient.radial[2], h / 2);
 					double r  = to_size(_theme.gradient.radial[3], ((h >= w ? w : h) / 2));
-					double fx = to_size(_theme.gradient.radial[4], w / 2 + fxx);
-					double fy = to_size(_theme.gradient.radial[5], h / 2 + fyy);
+					double fx = back_rect.left + to_size(_theme.gradient.radial[4], w / 2);
+					double fy = back_rect.top + to_size(_theme.gradient.radial[5], h / 2);
 
 					render = cx != 0.0 || cy != 0.0 || r != 0.0 || fx != 0.0 || fy != 0.0;
 					if(render)
@@ -5876,7 +6201,8 @@ namespace Nilesoft
 					// anti-aliased, unlike SetWindowRgn's (moudey/Shell#141). DWM has only two
 					// sizes, 4px (small) and 8px, so larger radii keep the region, which stays
 					// inside the rounded frame drawn on the layer window.
-					if(_theme.border.radius > 0 && _theme.border.radius <= dpi(8) && ver->IsWindows11OrGreater())
+					// theme.border.system = false skips this and Shell rounds every radius itself.
+					if(_theme.border.system && _theme.border.radius > 0 && _theme.border.radius <= dpi(8) && ver->IsWindows11OrGreater())
 					{
 						DWM corner(blurry->handle);
 						auto pref = _theme.border.radius <= dpi(4) ? DWM::Corner::RoundSmall : DWM::Corner::Round;

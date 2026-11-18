@@ -39,6 +39,9 @@ public:
     // Selects a snippet for the preview, and the context it shows ("file", "back", ...;
     // "" for the first): the --snippets-select and --snippets-context switches.
     void selectForPreview(const std::string &id, const std::string &context = {});
+    // --snippets-report <file>: every bundled snippet's preview, as a new install's config
+    // would show it, summed up in a Markdown table (which rows have which kind of icon).
+    static bool writeReport(const std::filesystem::path &file);
     // The theme the preview is drawn with (AppearanceController::onPreview).
     void setTheme(const theme::Resolved &resolved);
 
@@ -60,6 +63,7 @@ private:
         std::vector<Items> contexts;          // the ones where it adds items, in order
         snippetpreview::Sample sample;
         snippetpreview::ImageDefs defs;
+        snippetpreview::FrameKeys frameKeys;  // keys= its modify() rules give Windows' own items
         std::map<std::string, Pixels> files;  // file icons, by Icon::path + "," + index
     };
 

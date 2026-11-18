@@ -57,6 +57,7 @@ namespace nss
 		Separator,
 		Modify,
 		Remove,
+		Override,  // override(file=... item=... prop=...): see src/dll/src/Parser/Parser.h
 	};
 
 	enum class ImportKind

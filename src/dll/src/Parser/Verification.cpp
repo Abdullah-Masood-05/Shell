@@ -425,6 +425,7 @@ namespace Nilesoft
 						return check(argc == 1 || argc == 2);
 					case IDENT_REPLACE:
 						return check(argc == 2 || argc == 3);
+					case IDENT_FMT:
 					case IDENT_FORMAT:
 						return check(argc > 0);
 					default:
@@ -613,6 +614,8 @@ namespace Nilesoft
 								case IDENT_LNK_TARGET:
 								case IDENT_ICON:
 								case IDENT_TYPE:
+								case IDENT_ARGS:
+								case IDENT_RAW:
 									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc == 0, 1);
@@ -622,6 +625,8 @@ namespace Nilesoft
 						}
 						case IDENT_META:
 							return check(argc <= 2, 1);
+						case IDENT_DROP:
+							return check(argc == 0, 1);
 
 						case IDENT_ZERO:
 							return check(argc <= 3);
@@ -678,6 +683,7 @@ namespace Nilesoft
 								case IDENT_ID:
 								case IDENT_NAME:
 								case IDENT_COUNTRY:
+								case IDENT_FULL:
 									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc == 0, 1);
@@ -685,6 +691,61 @@ namespace Nilesoft
 									return error_at(2);
 							}
 							return check(argc == 0, 1);
+						}
+						case IDENT_POWER:
+						{
+							switch(id[2])
+							{
+								case IDENT_BATTERY:
+								case IDENT_IS_CHARGING:
+								case IDENT_IS_AC:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_SCREEN:
+						{
+							switch(id[2])
+							{
+								case IDENT_COUNT:
+								case IDENT_WIDTH:
+								case IDENT_HEIGHT:
+								case IDENT_PRIMARY:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_MEMORY:
+						{
+							switch(id[2])
+							{
+								case IDENT_USED:
+								case IDENT_TOTAL:
+								case IDENT_FREE:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
+						}
+						case IDENT_CPU:
+						{
+							switch(id[2])
+							{
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
+								case IDENT_ZERO:
+									return check(argc == 0, 1);
+								default:
+									return error_at(2);
+							}
 						}
 						case IDENT_ISOREARLIER:
 						case IDENT_ISORGREATER:
@@ -715,13 +776,18 @@ namespace Nilesoft
 							{
 								case IDENT_TIME_MS:
 								case IDENT_TIME_MILLISECONDS:
+								case IDENT_TIME_S:
 								case IDENT_TIME_SECOND:
 								case IDENT_TIME_MIN:
 								case IDENT_TIME_MINUTE:
+								case IDENT_TIME_H:
 								case IDENT_TIME_HOUR:
 								case IDENT_TIME_PM:
+								case IDENT_DATE_D:
 								case IDENT_DATE_DAY:
+								case IDENT_DATE_DW:
 								case IDENT_DATE_DAYOFWEEK:
+								case IDENT_DATE_M:
 								case IDENT_DATE_MONTH:
 								case IDENT_DATE_Y:
 								case IDENT_DATE_YEAR:
@@ -773,6 +839,13 @@ namespace Nilesoft
 								default:
 									return error_at(1);
 							}
+						case IDENT_SET:
+							return check(argc == 2, 1);
+						case IDENT_GET:
+						case IDENT_REMOVE:
+						case IDENT_DELETE:
+						case IDENT_EXISTS:
+							return check(argc == 1, 1);
 						case IDENT_ZERO:
 							return error_at(0);
 						default:
@@ -809,6 +882,8 @@ namespace Nilesoft
 							return check(argc == 0, 1);
 						case IDENT_EXPAND:
 							return check(argc == 1, 1);
+						case IDENT_GROUPS:
+							return check(argc <= 16, 1);
 						case IDENT_ZERO:
 							return check(argc == 0);
 						default:
@@ -822,8 +897,8 @@ namespace Nilesoft
 						case IDENT_DELETE:
 							return check(argc == 1 || argc == 2, 1);
 						case IDENT_COPY:
-							return check(argc == 2 || argc == 3, 1);
 						case IDENT_MOVE:
+							return check(argc == 2 || argc == 3, 1);
 						case IDENT_RENAME:
 							return check(argc == 2, 1);
 						case IDENT_FILE:
@@ -968,6 +1043,8 @@ namespace Nilesoft
 								case IDENT_LNK_TARGET:
 								case IDENT_TYPE:
 								case IDENT_ICON:
+								case IDENT_ARGS:
+								case IDENT_RAW:
 									return check(argc == 1, 2);
 								case IDENT_CREATE:
 									return check(argc >= 2 && argc <= 8, 2);
@@ -989,6 +1066,8 @@ namespace Nilesoft
 									return check(argc == 1, 2);
 								case IDENT_BOX:
 									return check(argc <= 4, 2);
+								case IDENT_SAVE_BOX:
+									return check(argc <= 3, 2);
 								case IDENT_ZERO:
 									return check(argc == 1, 1);
 								default:
@@ -1007,6 +1086,8 @@ namespace Nilesoft
 									return check(argc == 0, 2);
 								case IDENT_BOX:
 									return check(argc <= 4, 2);
+								case IDENT_BOXL:
+									return check(argc <= 2, 2);
 								case IDENT_FILES:
 									return check(argc <= 2, 2);
 								case IDENT_ZERO:
@@ -1045,10 +1126,11 @@ namespace Nilesoft
 						case IDENT_ISEXE:
 						case IDENT_REMOVEEXTENSION:
 						case IDENT_GETKNOWNFOLDER:
-						case IDENT_ABSOLUTE:
-						case IDENT_RELATIVE:
 						case IDENT_WSL:
 							return check(argc == 1, 1);
+						case IDENT_ABSOLUTE:
+						case IDENT_RELATIVE:
+							return check(argc == 1 || argc == 2, 1);
 						case IDENT_REFRESH:
 							return check(argc <= 1, 1);
 						case IDENT_ZERO:
@@ -1115,6 +1197,7 @@ namespace Nilesoft
 							return check(argc == 2 || argc == 3, 1);
 						case IDENT_REPLACE:
 							return check(argc == 3 || argc == 4, 1);
+						case IDENT_FMT:
 						case IDENT_FORMAT:
 							return check(argc > 0, 1);
 						case IDENT_GUID:
@@ -1203,7 +1286,25 @@ namespace Nilesoft
 						case IDENT_LEN:
 						case IDENT_LENGTH:
 						case IDENT_GET:
+						case IDENT_IS_FILES:
 							return check(argc == 0, 1);
+						case IDENT_FILES:
+						{
+							// clipboard.files[.name|.title|.ext|.quote][n](separator), .count
+							switch(id[2])
+							{
+								case IDENT_ZERO:
+									return check(argc <= 1, 1);
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
+								case IDENT_NAME:
+								case IDENT_TITLE:
+								case IDENT_EXT:
+								case IDENT_QUOTE:
+									return check(argc <= 1, 2);
+							}
+							return error_at(2);
+						}
 						case IDENT_SET:
 							return check(argc == 1, 1);
 							
@@ -1218,9 +1319,10 @@ namespace Nilesoft
 					switch(id[1])
 					{
 						case IDENT_INPUT_RESULT:
+						case IDENT_INPUT_SELECTED:
 							return check(argc == 0, 1);
 						case IDENT_ZERO:
-							return check(argc <= 3, 0);
+							return check(argc <= 5, 0);
 						default:
 							return error_at(1);
 					}
@@ -1243,11 +1345,16 @@ namespace Nilesoft
 						case IDENT_VERSION:
 						case IDENT_VER:
 						case IDENT_EXISTS:
+						case IDENT_LOGO:
+						case IDENT_EXECUTABLE:
+						case IDENT_ENTRYPOINT:
+						case IDENT_SQUARE150:
+						case IDENT_SQUARE44:
 							return check(argc == 1, 1);
 						case IDENT_LIST:
 							return check(argc <= 1, 1);
 						case IDENT_ZERO:
-							return check(argc == 1);
+							return check(argc == 1 || argc == 2);
 						default:
 							return error_at(1);
 					}
@@ -1387,9 +1494,10 @@ namespace Nilesoft
 				{
 					if(length == 1)
 					{
+						// (file, args, verb, directory, show, wait)
 						if(id[0] == IDENT_CMD)
-							return check(argc <= 3);
-						return check(argc >= 1 && argc <= 3);
+							return check(argc <= 6);
+						return check(argc >= 1 && argc <= 6);
 					}
 					else if(length == 2)
 					{
@@ -1435,11 +1543,20 @@ namespace Nilesoft
 								case IDENT_NAME:
 								case IDENT_TITLE:
 									return check(argc >= 0, 2);
+								case IDENT_TIP:
+								case IDENT_KEY:
+								case IDENT_KEYS:
+								case IDENT_COUNT:
+									return check(argc == 0, 2);
 								case IDENT_ZERO:
 									return check(argc >= 0, 1);
 							}
 							return error_at(2);
 						}
+						case IDENT_TIP:
+						case IDENT_KEY:
+						case IDENT_KEYS:
+							return check(argc == 0, 1);
 						case MENU_VERB:
 						case IDENT_DISABLED:
 						case IDENT_TYPE:
@@ -1469,6 +1586,7 @@ namespace Nilesoft
 							IDENT_TYPE_NAMESPACE,
 							IDENT_TYPE_FIXED,
 							IDENT_TYPE_DVD,
+							IDENT_TYPE_CD,
 							IDENT_TYPE_USB,
 							IDENT_TYPE_VHD,
 							IDENT_TYPE_REMOVABLE,
@@ -1490,6 +1608,7 @@ namespace Nilesoft
 							IDENT_TYPE_NAMESPACE,
 							IDENT_TYPE_FIXED,
 							IDENT_TYPE_DVD,
+							IDENT_TYPE_CD,
 							IDENT_TYPE_USB,
 							IDENT_TYPE_VHD,
 							IDENT_TYPE_REMOVABLE,
@@ -1686,24 +1805,52 @@ namespace Nilesoft
 						case IDENT_DPI:
 							return check(argc == 0, 1);
 						case IDENT_BACKGROUND:
-							if(id.equals(2, { IDENT_OPACITY , IDENT_EFFECT }))
+							if(id.equals(2, { IDENT_OPACITY , IDENT_EFFECT, IDENT_GRADIENT }))
 								return check(argc == 0, 2);
 							return check(argc == 0, 1);
 						case IDENT_ITEM:
 						{
-							if(id.equals(2, { IDENT_BACK, IDENT_TEXT }))
+							if(id.equals(2, { IDENT_BACK, IDENT_TEXT, IDENT_BORDER }))
 							{
 								if(id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 								{
-									if(id[4] == IDENT_DISABLE)
+									if(id.equals(4, { IDENT_DISABLED, IDENT_DISABLE }))
 										return check(argc == 0, 4);
 									return check(argc == 0, 3);
 								}
 
 								return check(argc == 0, 2);
 							}
+							if(id.equals(2, { IDENT_RADIUS, IDENT_OPACITY }))
+								return check(argc == 0, 2);
 							return error_at(1);
 						}
+						case IDENT_NAME:
+							return check(argc == 0, 1);
+						case IDENT_FONT:
+							if(id.equals(2, { IDENT_NAME, IDENT_SIZE }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_BORDER:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_RADIUS, IDENT_SYSTEM }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_SHADOW:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE, IDENT_OFFSET, IDENT_ENABLED }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_SEPARATOR:
+							if(id.equals(2, { IDENT_COLOR, IDENT_SIZE }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_LAYOUT:
+							if(id[2] == IDENT_RTL)
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
+						case IDENT_IMAGE:
+							if(id.equals(2, { IDENT_SIZE, IDENT_GAP, IDENT_SCALE, IDENT_ENABLED }))
+								return check(argc == 0, 2);
+							return id[2] == IDENT_ZERO ? check(argc == 0, 1) : error_at(2);
 						case IDENT_MODE:
 						{
 							if(id[2] == IDENT_ZERO)
@@ -1766,6 +1913,7 @@ namespace Nilesoft
 						case IDENT_IS_START:
 						case IDENT_IS_TITLEBAR:
 						case IDENT_IS_CONTEXTMENUHANDLER:
+						case IDENT_IS_DIALOG:
 						case IDENT_MODULE:
 						case IDENT_INSTANCE:
 						case IDENT_ID:
@@ -1803,10 +1951,10 @@ namespace Nilesoft
 						case IDENT_COMMAND_SWITCHER:
 						case IDENT_COMMAND_SEARCH:
 						case IDENT_COMMAND_CASCADE_WINDOWS:
-						case IDENT_COMMAND_REFRESH:
 						case IDENT_COMMAND_TOGGLEEXT:
 						case IDENT_COMMAND_TOGGLEHIDDEN:
 						case IDENT_COMMAND_RESTART_EXPLORER:
+						case IDENT_ID_EMPTY_RECYCLE_BIN:
 						case IDENT_ID_SELECT_ALL:
 						case IDENT_ID_INVERT_SELECTION:
 						case IDENT_ID_SELECT_NONE:
@@ -1820,6 +1968,8 @@ namespace Nilesoft
 						case IDENT_COMMAND_GOFORWARD:
 						case IDENT_COMMAND_GOHOME:
 							return check(argc == 0, 1);
+						case IDENT_COMMAND_REFRESH:
+							return check(argc <= 1, 1);
 						case IDENT_COMMAND_COPY:
 						case IDENT_COMMAND_COPY_TO_CLIPBOARD:
 						case IDENT_COMMAND_SLEEP:
@@ -2038,6 +2188,7 @@ namespace Nilesoft
 					return check(argc == 1 || argc == 2, 1);
 				case IDENT_REPLACE:
 					return check(argc == 2 || argc == 3, 1);
+				case IDENT_FMT:
 				case IDENT_FORMAT:
 					return check(argc > 0, 1);
 				case IDENT_ZERO:

@@ -14,8 +14,12 @@
 //                          find box with that text, in the Config Editor's edit view (screenshots)
 //   --openwith-select <n>  open row n of the Open with list, with its Test result
 //   --snippets-code <id>   the Snippets page shows that snippet's code
+//   --snippets-report <file>   write which icon each bundled snippet's rows get (a Markdown
+//                          table, as a new install's config shows them), then exit; no window
 //   --snippets-select <id> [--snippets-context <file|folder|back|desktop|drive|taskbar>]
-//                          the Snippets page previews that snippet (in that context)
+//                          the Snippets page previews that snippet (in that context);
+//                          NSP_SNIPPETS_PREVIEW=loading|error in the environment shows
+//                          that state of the preview instead (screenshots)
 //   --taskbar-select <n>, --taskbar-picker   Context Menus opens entry n of the Taskbar menu
 //                          list, or its installed apps list
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
@@ -29,10 +33,12 @@
 //   --snapshot-height <px>    a taller window for the tour, to show more of a long page
 //   --snapshot-width <px>     a narrower or wider window for the tour
 //   --snapshot-scroll-end     every page of the tour scrolled to its end
-//   --map-context <file|folder|back|desktop|drive|taskbar>, --map-view <outline|nodes>,
-//   --map-expand, --map-select <title>   how the Menu map page starts (screenshots)
+//   --map-context <file|folder|back|desktop|drive|thispc|taskbar>, --map-view <outline|nodes>,
+//   --map-expand, --map-select <title>, --map-open-move (its Move to list open),
+//   --map-open-place (its Place in this menu list open),
+//   --map-sample <n> (the File context's sample, 0 = .txt)   how the Menu map page starts (screenshots)
 //   --status-json <file>   Home shows this `shell.exe -status` output instead of running it
-//   --lang <auto|en|zh-CN|zh-TW>   the app's language for this run (not saved)
+//   --lang <auto|en|zh-CN|zh-TW|ar> the app's language for this run (not saved)
 //   --po <file>            the translator preview: shows the app in that .po file, like
 //                          Preferences > Language > Test a translation file
 //   --set <key>=<literal>, --save, --appearance-tab <n>    see AppearanceController.h
@@ -98,6 +104,7 @@ bool g_snapshotScrollEnd = false;
 UpdateOptions g_update;
 std::string g_snippetsCode;
 std::string g_snippetsSelect;
+std::wstring g_snippetsReport;
 std::string g_snippetsContext;
 MenuMapController::DevOptions g_map;
 bool g_mapSet = false;
@@ -176,12 +183,14 @@ AppOptions parseArgs()
             g_update.updateCancelled = true;
         } else if (_wcsicmp(argv[i], L"--snippets-code") == 0 && i + 1 < argc) {
             g_snippetsCode = text::narrow(argv[++i]);
+        } else if (_wcsicmp(argv[i], L"--snippets-report") == 0 && i + 1 < argc) {
+            g_snippetsReport = argv[++i];
         } else if (_wcsicmp(argv[i], L"--snippets-select") == 0 && i + 1 < argc) {
             g_snippetsSelect = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--snippets-context") == 0 && i + 1 < argc) {
             g_snippetsContext = text::narrow(argv[++i]);
         } else if (_wcsicmp(argv[i], L"--map-context") == 0 && i + 1 < argc) {
-            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"taskbar" };
+            static constexpr const wchar_t *contexts[] = { L"file", L"folder", L"back", L"desktop", L"drive", L"thispc", L"taskbar" };
             ++i;
             for (int c = 0; c < int(std::size(contexts)); ++c)
                 if (_wcsicmp(argv[i], contexts[c]) == 0)
@@ -195,6 +204,15 @@ AppOptions parseArgs()
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--map-select") == 0 && i + 1 < argc) {
             g_map.select = text::narrow(argv[++i]);
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-open-move") == 0) {
+            g_map.openMove = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-open-place") == 0) {
+            g_map.openPlace = true;
+            g_mapSet = true;
+        } else if (_wcsicmp(argv[i], L"--map-sample") == 0 && i + 1 < argc) {
+            g_map.sample = _wtoi(argv[++i]);
             g_mapSet = true;
         } else if (_wcsicmp(argv[i], L"--snapshot-dark") == 0) {
             g_snapshotDark = true;
@@ -278,6 +296,13 @@ int main()
         return rc;
 
     auto options = parseArgs();
+    if (!g_snippetsReport.empty()) {
+        const HRESULT reportCom = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+        const bool ok = SnippetsController::writeReport(g_snippetsReport);
+        if (SUCCEEDED(reportCom))
+            CoUninitialize();
+        return ok ? 0 : 1;
+    }
     const bool snapshot = !g_snapshotPath.empty();
     // Snapshots write nothing and check only when asked to.
     if (snapshot) {

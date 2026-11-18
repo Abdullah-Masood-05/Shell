@@ -148,6 +148,10 @@
 	<li><kbd>Save</kbd>.</li>
 </ol>
 <p>Shell stores corners as a step from 0 to 4, so 8 px is written as <code>2</code>.</p>
+<p>On Windows 11, a menu with a Blur or Acrylic background and 4 px or 8 px corners gets its corners from Windows, which
+	also draws its own shadow around the menu. If you do not want that shadow, turn off <strong>Windows rounds small
+	corners</strong> under Menu corners. Shell then rounds the corners itself, the same way it does for 12 and 16 px.
+	The setting is written as <code>border.system = false</code>.</p>
 
 <h5 id="font-size">Change the font size</h5>
 <ol>

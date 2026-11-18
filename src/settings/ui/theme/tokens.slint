@@ -89,6 +89,32 @@ export global Tokens {
     out property <length> title: 28px;
     out property <string> mono: "Cascadia Mono";
 
+    // The Snippets preview's stage (ui/preview/snippet-stage.slint). It follows the
+    // preview's own Light/Dark switch, not the app theme, so each colour comes in a pair.
+    // A light scrim keeps the wallpaper visible but quieter, so the menu stands out.
+    out property <color> stage-scrim-dark: #0B122047;        // ~28 %
+    out property <color> stage-scrim-light: #F3F6FB38;       // ~22 %
+    out property <color> stage-fade-dark: #0B1220E0;         // the "+N more" fade at the bottom
+    out property <color> stage-fade-light: #F3F6FBE6;
+    out property <color> stage-chip-dark: #161B24CC;         // the "Right-click a file" chip
+    out property <color> stage-chip-light: #FFFFFFD9;
+    out property <color> stage-chip-stroke-dark: #FFFFFF24;
+    out property <color> stage-chip-stroke-light: #0F172A1F;
+    out property <color> stage-ink-dark: #FFFFFFE6;
+    out property <color> stage-ink-light: #0F172AE6;
+    out property <color> stage-skeleton-dark: #2A2D33F2;     // the loading menu
+    out property <color> stage-skeleton-light: #FAFBFDF2;
+    out property <color> stage-bone-dark: #FFFFFF21;
+    out property <color> stage-bone-light: #0F172A17;
+    // The outline around the snippet's rows, by the preview's Light/Dark (not the app's):
+    // at least 3:1 on the menu under it.
+    out property <color> stage-outline-dark: #6EA0FF;
+    out property <color> stage-outline-light: #2563EB;
+    out property <length> stage-gap: 4px;                    // between a menu and its submenu
+    out property <length> stage-menu-max: 300px;             // each menu at most; labels elide
+    out property <length> stage-min: 200px;
+    out property <length> stage-max: 420px;
+
     out property <duration> fast: 120ms;
     out property <duration> normal: 200ms;
 
@@ -105,5 +131,13 @@ export global Tokens {
         if (kind == "error") { return danger-bg; }
         if (kind == "info") { return info-bg; }
         return layer-2;
+    }
+
+    // A version number ("2.3.0-beta.3") inside a sentence: left-to-right marks around
+    // it keep it in order in a right-to-left language (Arabic would show "beta.3-2.3.0").
+    // They are invisible; "" stays "".
+    public pure function ltr(text: string) -> string {
+        if (text == "") { return ""; }
+        return "\u{200E}" + text + "\u{200E}";
     }
 }

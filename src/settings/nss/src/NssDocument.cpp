@@ -16,6 +16,7 @@ namespace nss
 			if(word == "sep" || word == "separator") return MenuKind::Separator;
 			if(word == "modify" || word == "set" || word == "update" || word == "change") return MenuKind::Modify;
 			if(word == "remove") return MenuKind::Remove;
+			if(word == "override") return MenuKind::Override;
 			return MenuKind::None;
 		}
 

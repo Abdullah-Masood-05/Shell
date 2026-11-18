@@ -210,7 +210,7 @@ void TrayController::afterCheck(bool manual)
         const bool windowOpen = ui_->window().is_visible() && !manual;
         // Installed for this user already (in the background): only a restart is missing.
         if (sum.appOnly && sum.readyForRestart) {
-            const std::string body = nsp::trf("Nilesoft Shell Pro {} is installed for you. Restart the app to start using it.", version);
+            const std::string body = nsp::trf("Nilesoft Shell Pro {} is installed for you. Restart the app to start using it.", nsp::ltr(version));
             if (windowOpen || icon_->notify(widen(nsp::tr("Restart to finish updating")), widen(body)))
                 if (persist_)
                     registry::app::setString(kNotified, widen(version));
@@ -221,8 +221,8 @@ void TrayController::afterCheck(bool manual)
         const std::string body =
             sum.needsElevation
                 ? nsp::trf("Nilesoft Shell Pro {} is available. Installing it needs administrator approval. Click to see what's new.",
-                           version)
-                : nsp::trf("Nilesoft Shell Pro {} is available. Click to see what's new.", version);
+                           nsp::ltr(version))
+                : nsp::trf("Nilesoft Shell Pro {} is available. Click to see what's new.", nsp::ltr(version));
         if (windowOpen || icon_->notify(widen(nsp::tr("Update available")), widen(body)))
             if (persist_)
                 registry::app::setString(kNotified, widen(version));

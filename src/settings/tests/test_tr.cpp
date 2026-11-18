@@ -69,6 +69,34 @@ TEST_CASE("tr: bundled languages")
     CHECK(tw);
 }
 
+TEST_CASE("tr: Arabic")
+{
+    EnglishAfter english;
+    bool listed = false;
+    std::vector<std::string> available;
+    for (const auto &l : nsp::languages()) {
+        listed |= std::string(l.code) == "ar" && std::string(l.nativeName) == "العربية";
+        available.emplace_back(l.code);
+    }
+    CHECK(listed);
+    // Auto: any Arabic Windows display language.
+    CHECK(nsp::resolveLanguage(std::vector<std::string>{ "ar-SA" }, available) == "ar");
+    CHECK(nsp::resolveLanguage(std::vector<std::string>{ "ar-EG" }, available) == "ar");
+    CHECK(nsp::resolveSetting("ar") == "ar");
+
+    // Six plural forms: 0, 1, 2, 3-10, 11-99, 100-102 (by n % 100).
+    REQUIRE(nsp::setLanguage("ar"));
+    CHECK(std::string(nsp::tr("Language")) == "اللغة");
+    const std::string rlm = "‏"; // starts the line right to left, see README.md
+    CHECK(nsp::trn("{n} file", "{n} files", 0) == rlm + "0 ملف");
+    CHECK(nsp::trn("{n} file", "{n} files", 1) == "ملف واحد");
+    CHECK(nsp::trn("{n} file", "{n} files", 2) == "ملفان");
+    CHECK(nsp::trn("{n} file", "{n} files", 7) == rlm + "7 ملفات");
+    CHECK(nsp::trn("{n} file", "{n} files", 42) == rlm + "42 ملفًا");
+    CHECK(nsp::trn("{n} file", "{n} files", 100) == rlm + "100 ملف");
+    CHECK(nsp::trn("{n} file", "{n} files", 105) == rlm + "105 ملفات");
+}
+
 TEST_CASE("tr: lookup")
 {
     EnglishAfter english;

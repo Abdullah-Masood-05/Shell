@@ -15,6 +15,8 @@ import { ScrollColumn } from "../components/scroll-column.slint";
 global Glyph {
     out property <string> right: "\u{E76C}";
     out property <string> down: "\u{E70D}";
+    out property <string> arrow-up: "\u{E74A}";
+    out property <string> arrow-down: "\u{E74B}";
 }
 
 // The node view's panel width; MenuMapController.cpp lays the panels out with it.
@@ -82,14 +84,45 @@ component Chevron inherits Rectangle {
     }
 }
 
+// Move up / Move down on the selected row: a small square button with an arrow.
+component StepButton inherits Rectangle {
+    in property <string> glyph;
+    in property <string> label;
+    in property <bool> enabled: true;
+    callback clicked;
+    width: 24px;
+    height: 24px;
+    border-radius: Tokens.radius-xs;
+    background: ta.pressed && root.enabled ? Tokens.selected : ta.has-hover && root.enabled ? Tokens.hover : transparent;
+    opacity: root.enabled ? 1 : 0.35;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if (root.enabled) { root.clicked(); } }
+    Text {
+        text: root.glyph;
+        font-family: "Segoe Fluent Icons";
+        font-size: 12px;
+        color: Tokens.text-2;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        clicked => { root.clicked(); }
+    }
+}
+
 // One row of the outline: chevron, title, what the rules do, where it comes from,
-// the switch.
+// Move up / Move down when it is your selected item, the switch.
 component OutlineRow inherits Rectangle {
     in property <MapRow> entry;
     in property <bool> read-only;
+    in property <bool> busy;
     callback selected();
     callback expand();
     callback toggled(on: bool);
+    callback reorder(up: bool);
 
     height: 30px;
     border-radius: Tokens.radius-sm;
@@ -179,6 +212,27 @@ component OutlineRow inherits Rectangle {
                 horizontal-alignment: right;
                 vertical-alignment: center;
                 overflow: elide;
+            }
+            if root.entry.selected && (root.entry.can-up || root.entry.can-down) && !root.read-only: HorizontalLayout {
+                spacing: 0px;
+                VerticalLayout {
+                    alignment: center;
+                    StepButton {
+                        glyph: Glyph.arrow-up;
+                        label: @tr("Move up");
+                        enabled: root.entry.can-up && !root.busy;
+                        clicked => { root.reorder(true); }
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    StepButton {
+                        glyph: Glyph.arrow-down;
+                        label: @tr("Move down");
+                        enabled: root.entry.can-down && !root.busy;
+                        clicked => { root.reorder(false); }
+                    }
+                }
             }
             VerticalLayout {
                 alignment: center;
@@ -337,14 +391,44 @@ component DetailPanel inherits Rectangle {
     border-color: Tokens.stroke;
 
     property <string> rename-text: root.d.rename-value;
+    property <string> icon-text: root.d.icon-value;
     property <int> serial: MenuMapState.detail-serial;
-    changed serial => { root.rename-text = root.d.rename-value; }
+    changed serial => {
+        root.rename-text = root.d.rename-value;
+        root.icon-text = root.d.icon-value;
+    }
 
     if root.d.key < 0: VerticalLayout {
         padding: Tokens.s5;
+        spacing: Tokens.s5;
         alignment: start;
         Wrapped {
             text: @tr("Select an item to see where it comes from and what you can do with it.");
+        }
+
+        // An item the menu read here doesn't have: named by its title.
+        if MenuMapState.can-add-unlisted && !root.read-only: Section {
+            title: @tr("Not in the list?");
+            Wrapped { text: MenuMapState.unlisted-note; }
+            HorizontalLayout {
+                spacing: Tokens.s2;
+                unlisted := LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: @tr("Its title, as the menu shows it");
+                    accepted(t) => {
+                        MenuMapState.add-unlisted(t);
+                        self.text = "";
+                    }
+                }
+                AppButton {
+                    text: @tr("Add");
+                    enabled: unlisted.text != "";
+                    clicked => {
+                        MenuMapState.add-unlisted(unlisted.text);
+                        unlisted.text = "";
+                    }
+                }
+            }
         }
     }
 
@@ -468,6 +552,7 @@ component DetailPanel inherits Rectangle {
                     LineEdit {
                         horizontal-stretch: 1;
                         text <=> root.rename-text;
+                        placeholder-text: root.d.rename-hint;
                         accepted => { MenuMapState.rename(self.text); }
                     }
                     AppButton {
@@ -483,26 +568,129 @@ component DetailPanel inherits Rectangle {
                 }
             }
 
+            // image= on your item's line, or a rule for a Windows item, as Rename.
+            if root.d.can-icon: Section {
+                title: @tr("Icon");
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        text <=> root.icon-text;
+                        placeholder-text: @tr("A file, or a glyph like image.mdl(\\uE8C8)");
+                        accepted => {
+                            if (self.text != "" && self.text != root.d.icon-value) {
+                                MenuMapState.set-icon(self.text);
+                            }
+                        }
+                    }
+                    AppButton {
+                        text: @tr("Browse…");
+                        clicked => {
+                            let picked = MenuMapState.browse-icon();
+                            if (picked != "") {
+                                root.icon-text = picked;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    alignment: start;
+                    AppButton {
+                        text: @tr("Change icon");
+                        enabled: root.icon-text != "" && root.icon-text != root.d.icon-value && !MenuMapState.busy;
+                        clicked => { MenuMapState.set-icon(root.icon-text); }
+                    }
+                    AppButton {
+                        text: @tr("Remove icon");
+                        enabled: root.d.can-remove-icon && !MenuMapState.busy;
+                        clicked => { MenuMapState.remove-icon(); }
+                    }
+                }
+                if root.d.can-reset-icon: Link {
+                    text: @tr("Use its own icon");
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.reset-icon(); }
+                }
+                Wrapped {
+                    text: root.d.origin == "shell"
+                        ? @tr("Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Saved right away, with a snapshot first.")
+                        : @tr("Pick an .ico, .png or .svg file, or a program: the number after its comma picks one of its icons. Save to apply.");
+                    color: Tokens.text-3;
+                    font-size: Tokens.caption;
+                }
+            }
+
             if root.d.can-move || root.d.move-note != "": Section {
                 title: @tr("Move to");
                 if root.d.can-move: HorizontalLayout {
                     spacing: Tokens.s2;
+                    // Screenshots (--map-open-move): the list gets the focus, then
+                    // the app sends Enter to open it.
+                    property <int> focus-serial: MenuMapState.dev-focus-move;
+                    changed focus-serial => { target.focus(); }
                     target := ComboBox {
                         horizontal-stretch: 1;
                         model: MenuMapState.move-targets;
                     }
                     AppButton {
                         text: @tr("Move");
-                        enabled: target.current-index >= 0;
+                        enabled: target.current-index >= 0 && !MenuMapState.busy;
                         clicked => { MenuMapState.move-to(target.current-index); }
                     }
                 }
                 if root.d.can-reset-menu: Link {
-                    text: @tr("Put it back where Windows has it");
+                    text: root.d.origin == "shell" ? @tr("Put it back where it is written") : @tr("Put it back where Windows has it");
                     font-size: Tokens.caption + 1px;
                     activated => { MenuMapState.reset-menu(); }
                 }
                 if root.d.move-note != "": Wrapped { text: root.d.move-note; }
+            }
+
+            // Your items: where in its menu. pos= on its line, or its line moved
+            // up or down in the file.
+            if root.d.can-place: Section {
+                title: @tr("Place in this menu");
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    // Screenshots (--map-open-place), as for Move to.
+                    property <int> focus-serial: MenuMapState.dev-focus-place;
+                    changed focus-serial => { place.focus(); }
+                    place := ComboBox {
+                        horizontal-stretch: 1;
+                        model: MenuMapState.positions;
+                    }
+                    AppButton {
+                        text: @tr("Place");
+                        enabled: place.current-index >= 0 && !MenuMapState.busy;
+                        clicked => { MenuMapState.place(place.current-index); }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: Tokens.s2;
+                    alignment: start;
+                    AppButton {
+                        text: @tr("Move up");
+                        enabled: root.d.can-up && !MenuMapState.busy;
+                        clicked => { MenuMapState.reorder(root.d.key, true); }
+                    }
+                    AppButton {
+                        text: @tr("Move down");
+                        enabled: root.d.can-down && !MenuMapState.busy;
+                        clicked => { MenuMapState.reorder(root.d.key, false); }
+                    }
+                }
+                if root.d.can-reset-position: Link {
+                    text: @tr("Use the order in the file");
+                    font-size: Tokens.caption + 1px;
+                    activated => { MenuMapState.reset-position(); }
+                }
+                Wrapped {
+                    text: @tr("In the outline, Alt+Up and Alt+Down move the selected item too.");
+                    color: Tokens.text-3;
+                    font-size: Tokens.caption;
+                }
+                if root.d.edit-note != "": Wrapped { text: root.d.edit-note; }
             }
 
             if root.d.can-edit-code || root.d.can-open: Section {
@@ -735,6 +923,11 @@ export component MenuMapPage inherits Rectangle {
                 vertical-alignment: center;
                 overflow: elide;
             }
+            if MenuMapState.can-add-unlisted && !MenuMapState.shared-config: Link {
+                text: @tr("Item not listed?");
+                font-size: Tokens.caption + 1px;
+                activated => { MenuMapState.show-unlisted(); }
+            }
             Link {
                 text: @tr("Expand all");
                 font-size: Tokens.caption + 1px;
@@ -759,17 +952,38 @@ export component MenuMapPage inherits Rectangle {
                 border-color: Tokens.stroke;
                 clip: true;
 
-                if MenuMapState.view == 0: ListView {
-                    x: 4px;
-                    y: 4px;
-                    width: parent.width - 8px;
-                    height: parent.height - 8px;
-                    for r in MenuMapState.rows: OutlineRow {
-                        entry: r;
-                        read-only: MenuMapState.shared-config;
-                        selected => { MenuMapState.select(r.key); }
-                        expand => { MenuMapState.toggle-expand(r.key); }
-                        toggled(on) => { MenuMapState.toggle(r.key, on); }
+                // Alt+Up and Alt+Down move the selected one of your items, like the
+                // arrows on its row.
+                if MenuMapState.view == 0: outline-keys := FocusScope {
+                    key-pressed(event) => {
+                        if (event.modifiers.alt && (event.text == Key.UpArrow || event.text == Key.DownArrow)) {
+                            if (MenuMapState.detail.key >= 0 && !MenuMapState.shared-config) {
+                                MenuMapState.reorder(MenuMapState.detail.key, event.text == Key.UpArrow);
+                            }
+                            return accept;
+                        }
+                        return reject;
+                    }
+                    ListView {
+                        x: 4px;
+                        y: 4px;
+                        width: parent.width - 8px;
+                        height: parent.height - 8px;
+                        for r in MenuMapState.rows: OutlineRow {
+                            entry: r;
+                            read-only: MenuMapState.shared-config;
+                            busy: MenuMapState.busy;
+                            selected => {
+                                MenuMapState.select(r.key);
+                                outline-keys.focus();
+                            }
+                            expand => { MenuMapState.toggle-expand(r.key); }
+                            toggled(on) => { MenuMapState.toggle(r.key, on); }
+                            reorder(up) => {
+                                outline-keys.focus();
+                                MenuMapState.reorder(r.key, up);
+                            }
+                        }
                     }
                 }
 

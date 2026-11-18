@@ -39,13 +39,37 @@ std::string decodedText(const std::string &bytes)
 
 } // namespace
 
+bool isBinary(std::string_view path, std::string_view bytes)
+{
+    auto p = nss::toLower(path);
+    if (p.size() >= 4 && p.substr(p.size() - 4) == ".nss")
+        return false;
+    auto dec = nss::decode(bytes);
+    if (!dec.ok)
+        return true;
+    return dec.text.find('\0') != std::string::npos;
+}
+
+std::string sizeText(uint64_t bytes)
+{
+    char buf[32];
+    if (bytes < 1024)
+        return nsp::trn("{n} byte", "{n} bytes", (long long)bytes);
+    if (bytes < 1024 * 1024) {
+        std::snprintf(buf, sizeof buf, "%llu", (unsigned long long)((bytes + 512) / 1024));
+        return nsp::trf("{} KB", buf);
+    }
+    std::snprintf(buf, sizeof buf, "%.1f", double(bytes) / (1024.0 * 1024.0));
+    return nsp::trf("{} MB", buf);
+}
+
 SnapshotDiff diffSnapshot(const nss::ConfigStore &store, const nss::SnapshotInfo &snapshot)
 {
     SnapshotDiff out;
     const auto rootDir = store.rootDir();
 
     std::map<std::string, std::string> current; // lower-case relative path -> relative path
-    for (const auto &f : store.treeFiles())
+    for (const auto &f : snapshot.allFiles ? store.snapshotFiles() : store.treeFiles())
         current.emplace(nss::toLower(nss::narrow(f.lexically_relative(rootDir).generic_wstring())),
                         nss::narrow(f.lexically_relative(rootDir).generic_wstring()));
 
@@ -61,16 +85,22 @@ SnapshotDiff diffSnapshot(const nss::ConfigStore &store, const nss::SnapshotInfo
             continue;
         }
         auto it = current.find(key);
+        fd.oldSize = oldBytes.size();
         if (it == current.end()) {
             fd.status = FileDiff::Removed;
-            fd.diff = diff::unified(decodedText(oldBytes), {});
+            fd.binary = isBinary(sf.path, oldBytes);
+            if (!fd.binary)
+                fd.diff = diff::unified(decodedText(oldBytes), {});
         } else {
             nss::readFile(rootDir / fs::path(nss::widen(it->second)), newBytes);
+            fd.newSize = newBytes.size();
+            fd.binary = isBinary(sf.path, oldBytes) || isBinary(sf.path, newBytes);
             if (oldBytes == newBytes) {
                 fd.status = FileDiff::Same;
             } else {
                 fd.status = FileDiff::Modified;
-                fd.diff = diff::unified(decodedText(oldBytes), decodedText(newBytes));
+                if (!fd.binary)
+                    fd.diff = diff::unified(decodedText(oldBytes), decodedText(newBytes));
             }
         }
         out.files.push_back(std::move(fd));
@@ -83,7 +113,10 @@ SnapshotDiff diffSnapshot(const nss::ConfigStore &store, const nss::SnapshotInfo
         FileDiff fd;
         fd.path = rel;
         fd.status = FileDiff::Added;
-        fd.diff = diff::unified({}, decodedText(newBytes));
+        fd.newSize = newBytes.size();
+        fd.binary = isBinary(rel, newBytes);
+        if (!fd.binary)
+            fd.diff = diff::unified({}, decodedText(newBytes));
         out.files.push_back(std::move(fd));
     }
     std::stable_sort(out.files.begin(), out.files.end(), [](const FileDiff &a, const FileDiff &b) {

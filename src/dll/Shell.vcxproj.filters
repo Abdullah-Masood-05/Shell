@@ -134,6 +134,9 @@
     <ClInclude Include="src\Expression\Context.h">
       <Filter>Header Files\Expression</Filter>
     </ClInclude>
+    <ClInclude Include="src\Include\AppxManifest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Include\Cache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,6 +162,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\IndexOf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Include\MenuPlacement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Include\NssFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\Keyboard.h">

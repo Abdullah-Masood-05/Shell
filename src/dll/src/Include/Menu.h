@@ -16,6 +16,8 @@ namespace Nilesoft
 		{
 			auto_expr showdelay;
 			auto_expr priority;
+			// settings.filemanagers: third-party file managers (Main.cpp, filemanager)
+			auto_expr filemanagers;
 			struct
 			{
 				auto_expr enabled;
@@ -105,6 +107,7 @@ namespace Nilesoft
 					auto_expr color;
 					auto_expr opacity;
 					auto_expr radius;
+					auto_expr system;
 					MARGIN padding;
 				} border;
 

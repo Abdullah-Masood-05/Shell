@@ -2,10 +2,15 @@
 #include "Resource.h"
 #include "Expression\Constants.h"
 #include "Expression\Variable.h"
+#include "Include\NssFunctions.h"
+#include "Include\WindowThread.h"
+#include "Include\RecycleBin.h"
+#include "Include\NewItem.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
 #include <propkey.h>
+#include <sddl.h>
 
 #include <regex>
 
@@ -43,6 +48,53 @@ namespace Nilesoft
 			if(arg >= 0 && arg < Arguments.size())
 				return Arguments[arg];
 			return nullptr;
+		}
+
+		// True when the menu was opened in a dialog box, such as an Open or Save As box:
+		// the top-level window of the window it was opened in is a #32770 dialog.
+		static bool in_dialog(Context *context)
+		{
+			auto sel = context ? context->Selections : nullptr;
+			if(!sel || !sel->Window.handle)
+				return false;
+			auto root = ::GetAncestor(sel->Window.handle, GA_ROOT);
+			return root && Window::class_hash(root) == WC_DLGBOX;
+		}
+
+		// path.dir.boxl: the Browse For Folder box (SHBrowseForFolder), opened at
+		// `initial` when it is given. Returns the folder's path, or null when cancelled.
+		static int CALLBACK browse_for_folder_proc(HWND hwnd, UINT msg, LPARAM, LPARAM data)
+		{
+			if(msg == BFFM_INITIALIZED && data)
+				::SendMessageW(hwnd, BFFM_SETSELECTIONW, TRUE, data);
+			return 0;
+		}
+
+		static Object browse_for_folder(const string &title, HWND owner, const string &initial)
+		{
+			BROWSEINFOW bi{};
+			bi.hwndOwner = owner;
+			bi.lpszTitle = title.empty() ? nullptr : title.c_str();
+			bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+			if(!initial.empty())
+			{
+				bi.lpfn = browse_for_folder_proc;
+				bi.lParam = reinterpret_cast<LPARAM>(initial.c_str());
+			}
+
+			Object result;
+			if(auto pidl = ::SHBrowseForFolderW(&bi); pidl)
+			{
+				// Not SHGetPathFromIDList: it stops at MAX_PATH.
+				PWSTR path = nullptr;
+				if(SUCCEEDED(::SHGetNameFromIDList(pidl, SIGDN_FILESYSPATH, &path)) && path)
+				{
+					result = string(path).move();
+					::CoTaskMemFree(path);
+				}
+				::CoTaskMemFree(pidl);
+			}
+			return result.move();
 		}
 
 		LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM     lParam)
@@ -247,7 +299,6 @@ namespace Nilesoft
 							_result = package->version;
 							break;
 						case IDENT_PATH:
-						case IDENT_ZERO:
 							_result = package->path;
 							break;
 						case IDENT_RUN:
@@ -255,6 +306,62 @@ namespace Nilesoft
 						case IDENT_SHELL:
 							_result = LR"(shell:appsFolder\)" + package->family + L"!App";
 							break;
+						case IDENT_TITLE:
+						case IDENT_ZERO:
+						case IDENT_LOGO:
+						case IDENT_EXECUTABLE:
+						case IDENT_ENTRYPOINT:
+						case IDENT_SQUARE150:
+						case IDENT_SQUARE44:
+						{
+							// appx(id) is the path; appx(id, 'property') and appx.<property>(id)
+							// return one value, the manifest ones read once per package.
+							string prop;
+							switch(Id[1])
+							{
+								case IDENT_TITLE: prop = L"name"; break;
+								case IDENT_LOGO: prop = L"logo"; break;
+								case IDENT_EXECUTABLE: prop = L"executable"; break;
+								case IDENT_ENTRYPOINT: prop = L"entrypoint"; break;
+								case IDENT_SQUARE150: prop = L"square150"; break;
+								case IDENT_SQUARE44: prop = L"square44"; break;
+								default:
+									prop = Arguments.size() > 1 ? eval_arg(1).to_string().trim().move() : string(L"path");
+									break;
+							}
+
+							if(prop.equals(L"path"))
+								_result = package->path;
+							else if(prop.equals({ L"name", L"title" }))
+								_result = package->name;
+							else if(prop.equals(L"id"))
+								_result = package->id;
+							else if(prop.equals(L"family"))
+								_result = package->family;
+							else if(prop.equals({ L"version", L"ver" }))
+								_result = package->version;
+							else if(prop.equals({ L"run", L"launch", L"shell" }))
+								_result = LR"(shell:appsFolder\)" + package->family + L"!App";
+							else
+							{
+								auto &manifest = package->get_manifest();
+								const std::wstring *value = nullptr;
+								if(prop.equals({ L"executable", L"exe" }))
+									value = &manifest.executable;
+								else if(prop.equals(L"entrypoint"))
+									value = &manifest.entrypoint;
+								else if(prop.equals(L"logo"))
+									value = &manifest.logo;
+								else if(prop.equals({ L"square150", L"square150x150logo" }))
+									value = &manifest.square150;
+								else if(prop.equals({ L"square44", L"square44x44logo" }))
+									value = &manifest.square44;
+
+								if(value && !value->empty())
+									_result = value->c_str();
+							}
+							break;
+						}
 						}
 					}
 				}
@@ -514,6 +621,8 @@ namespace Nilesoft
 							case IDENT_WINDOW_HIDDEN:
 								_result = SW_HIDE;
 								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
 							case IDENT_NORMAL:
 								_result = SW_SHOWNORMAL;
 								break;
@@ -528,24 +637,7 @@ namespace Nilesoft
 					else
 					{
 						if(context->Runtime)
-						{
-							// Passed explicitly so the launched process still starts in
-							// the selected folder. This used to be inherited from the
-							// process working directory, which Selections changed on
-							// every menu.
-							auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
-							Object arg0 = eval_arg(0).move();
-							if(argc > 1)
-							{
-								Diagnostics::ShellExec::Run(arg0, eval_arg(1),
-															cwd, L"runas", eval_arg(2, SW_NORMAL));
-							}
-							else
-							{
-								Diagnostics::ShellExec::Run(arg0, nullptr,
-															cwd, L"open", SW_NORMAL);
-							}
-						}
+							eval_exec();
 						//else if(Id[0] == IDENT_CMD && argc == 0)
 						//	_result = IDENT_CMD;
 					}
@@ -553,12 +645,32 @@ namespace Nilesoft
 				}
 				case IDENT_SHELL:
 				{
-					if(context->Runtime && argc > 0)
+					if(Id.length() > 1)
 					{
-						auto cwd = context->Selections ? context->Selections->Directory.c_str() : nullptr;
-						_result = Diagnostics::ShellExec::Run(eval_arg(0), eval_arg(1), cwd,
-															  eval_arg(2), eval_arg(3, SW_NORMAL));
+						// shell.invoked and the shell.* window constants, same as cmd.*.
+						switch(Id[1])
+						{
+							case IDENT_CMD_INVOKED:
+								_result = context->invoked;
+								break;
+							case IDENT_WINDOW_HIDDEN:
+								_result = SW_HIDE;
+								break;
+							case IDENT_SHOW:
+							case IDENT_VISIBLE:
+							case IDENT_NORMAL:
+								_result = SW_SHOWNORMAL;
+								break;
+							case IDENT_MINIMIZED:
+								_result = SW_SHOWMINIMIZED;
+								break;
+							case IDENT_MAXIMIZED:
+								_result = SW_SHOWMAXIMIZED;
+								break;
+						}
 					}
+					else if(context->Runtime && argc > 0)
+						eval_exec();
 					break;
 				}
 				case IDENT_THIS:
@@ -581,6 +693,13 @@ namespace Nilesoft
 							break;
 						case IDENT_SYS:
 							_result = context->_this->system;
+							break;
+						case IDENT_TIP:
+							_result = context->_this->tip ? *context->_this->tip : string();
+							break;
+						case IDENT_KEY:
+						case IDENT_KEYS:
+							_result = context->_this->key ? *context->_this->key : string();
 							break;
 						case IDENT_NAME:
 						case IDENT_TITLE:
@@ -641,16 +760,60 @@ namespace Nilesoft
 						}
 						case IDENT_PARENT:
 						{
-							/*switch(Id[2])
+							// this.parent.id/title/name/tip/key/count: the menu item this one
+							// is in. In the main menu there is none: id is this.parent's value,
+							// count is this.count, the texts are empty.
+							auto p = context->_this->parent_item;
+							switch(Id[2])
 							{
 								case IDENT_ID:
-								case IDENT_NAME:
+									_result = p ? p->id : context->_this->parent;
+									if(argc > 0)
+									{
+										auto id = _result.to_number<uint32_t>();
+										_result = false;
+										for(size_t i = 0; i < Arguments.size(); i++)
+										{
+											if(eval_arg(i).to_number<uint32_t>() == id)
+											{
+												_result = true;
+												break;
+											}
+										}
+									}
+									return _result.move();
 								case IDENT_TITLE:
-									break;
-								case IDENT_ZERO:
-									break;
+								case IDENT_NAME:
+								{
+									string title = !p ? string() : string(Id[2] == IDENT_TITLE ? p->title : p->title_normalize);
+									if(argc == 0)
+										_result = title.move();
+									else
+									{
+										_result = false;
+										for(size_t i = 0; i < Arguments.size(); i++)
+										{
+											string r = eval_arg(i).to_string().trim().move();
+											if(title.equals(r))
+											{
+												_result = true;
+												break;
+											}
+										}
+									}
+									return _result.move();
+								}
+								case IDENT_TIP:
+									_result = p && p->tip ? *p->tip : string();
+									return _result.move();
+								case IDENT_KEY:
+								case IDENT_KEYS:
+									_result = p && p->key ? *p->key : string();
+									return _result.move();
+								case IDENT_COUNT:
+									_result = p ? p->count : context->menu_count;
+									return _result.move();
 							}
-							*/
 							if(argc == 0)
 								_result = context->_this->parent;
 							else
@@ -769,6 +932,88 @@ namespace Nilesoft
 							_result = Text::Clipboard::IsFormatAvailable(CF_BITMAP);
 							break;
 						}
+						case IDENT_IS_FILES:
+						{
+							// Files copied or cut in Explorer.
+							_result = Text::Clipboard::IsFormatAvailable(CF_HDROP);
+							break;
+						}
+						case IDENT_FILES:
+						{
+							// clipboard.files[.name|.title|.ext|.quote][n](separator) and
+							// clipboard.files.count: the files copied or cut in Explorer.
+							std::vector<string> files;
+							if(Text::Clipboard::IsFormatAvailable(CF_HDROP) && ::OpenClipboard(nullptr))
+							{
+								if(auto hdrop = static_cast<HDROP>(::GetClipboardData(CF_HDROP)); hdrop)
+								{
+									auto count = ::DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
+									for(UINT i = 0; i < count; i++)
+									{
+										auto len = ::DragQueryFileW(hdrop, i, nullptr, 0);
+										if(len == 0)
+											continue;
+										string path;
+										if(::DragQueryFileW(hdrop, i, path.buffer(len + 1), len + 1))
+											files.push_back(path.release(len).move());
+									}
+								}
+								::CloseClipboard();
+							}
+
+							if(Id[2] == IDENT_COUNT)
+							{
+								_result = static_cast<uint32_t>(files.size());
+								break;
+							}
+
+							auto part = [&](string const &path) -> string
+							{
+								switch(Id[2])
+								{
+									case IDENT_NAME:
+										return Path::Name(path.c_str()).move();
+									case IDENT_TITLE:
+										return Path::Title(path.c_str()).move();
+									case IDENT_EXT:
+									{
+										string name = Path::Name(path.c_str()).move();
+										auto dot = name.last_index_of(L'.', false);
+										if(dot == 0 || dot == name.npos)
+											return {};
+										return name.substr(dot).move();
+									}
+									case IDENT_QUOTE:
+										return string(L"\"") + path + L"\"";
+								}
+								return path;
+							};
+
+							if(Array)
+							{
+								if(Object oa = context->Eval(Array).move(); oa.is_number())
+								{
+									auto i = oa.to_number<int64_t>();
+									if(i >= 0 && i < static_cast<int64_t>(files.size()))
+										_result = part(files[static_cast<size_t>(i)]).move();
+								}
+								break;
+							}
+
+							if(files.empty())
+								break;
+
+							string sep = argc > 0 ? eval_arg(0).to_string().move() : string(L"\n");
+							string all;
+							for(size_t i = 0; i < files.size(); i++)
+							{
+								if(i > 0)
+									all += sep;
+								all += part(files[i]);
+							}
+							_result = all.move();
+							break;
+						}
 						case IDENT_ZERO:
 						case IDENT_SET:
 						case IDENT_GET:
@@ -800,15 +1045,25 @@ namespace Nilesoft
 				}
 				case IDENT_INPUT:
 				{
+					// input(title, prompt, default) asks for text; input(title, prompt, default,
+					// array, index) offers the array's items in a drop-down list, with the
+					// item at index, else the one equal to default, else the first, selected.
+					// input.result is the text, input.selected the list item's index (-1 for
+					// the text box or when cancelled).
 					static string input_result;
+					static int input_selected = -1;
 
 					if(Id.length() > 1)
 					{
-						_result = input_result;
+						if(Id[1] == IDENT_INPUT_SELECTED)
+							_result = input_selected;
+						else
+							_result = input_result;
 						return _result.move();
 					}
 
 					input_result.clear();
+					input_selected = -1;
 					_result = false;
 
 					struct INPUT_PARAM
@@ -817,13 +1072,47 @@ namespace Nilesoft
 						string prompt;
 						string result;
 						bool ret = false;
+						bool list = false;
+						std::vector<string> items;
+						int selected = -1;
 					} input_param;
 
 					input_param.title = eval_arg(0).to_string().move();
 					input_param.prompt = eval_arg(1).to_string().move();
 					input_param.result = eval_arg(2).to_string().move();
 
-					auto hWnd = ::CreateDialogParamW(Path::GetCurrentModule(), MAKEINTRESOURCEW(IDD_INPUTBOX), NULL, 
+					if(Arguments.size() >= 4)
+					{
+						if(Object arr = eval_arg(3).move(); arr.is_array(true))
+						{
+							auto ptr = arr.get_pointer();
+							auto count = (uint32_t)ptr[0];
+							for(auto i = 0u; i < count; i++)
+								input_param.items.push_back(ptr[i + 1].to_string().move());
+						}
+
+						input_param.list = !input_param.items.empty();
+						if(input_param.list)
+						{
+							auto count = static_cast<int>(input_param.items.size());
+							int index = Arguments.size() >= 5 ? eval_arg(4).to_number<int>() : -1;
+							if(index < 0 || index >= count)
+							{
+								index = 0;
+								for(int i = 0; i < count; i++)
+								{
+									if(input_param.items[i].equals(input_param.result))
+									{
+										index = i;
+										break;
+									}
+								}
+							}
+							input_param.selected = index;
+						}
+					}
+
+					auto hWnd = ::CreateDialogParamW(Path::GetCurrentModule(), MAKEINTRESOURCEW(input_param.list ? IDD_COMBOBOX : IDD_INPUTBOX), NULL, 
 													 [](HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)->INT_PTR
 					{
 						switch(Msg)
@@ -837,8 +1126,15 @@ namespace Nilesoft
 								if(!input_param->title.empty())
 									::SetWindowTextW(hDlg, input_param->title);
 								if(!input_param->prompt.empty())
-									::SetDlgItemTextW(hDlg, IDC_INPUTBOX_PROMPT, input_param->prompt);
-								if(!input_param->result.empty())
+									::SetDlgItemTextW(hDlg, input_param->list ? IDC_COMBOBOX_PROMPT : IDC_INPUTBOX_PROMPT, input_param->prompt);
+								if(input_param->list)
+								{
+									auto hCombo = ::GetDlgItem(hDlg, IDC_COMBOBOX_COMBO);
+									for(auto &item : input_param->items)
+										::SendMessageW(hCombo, CB_ADDSTRING, 0, (LPARAM)item.c_str());
+									::SendMessageW(hCombo, CB_SETCURSEL, (WPARAM)input_param->selected, 0);
+								}
+								else if(!input_param->result.empty())
 									::SetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_param->result);
 								return TRUE;
 							}
@@ -847,9 +1143,20 @@ namespace Nilesoft
 								auto input_param = (INPUT_PARAM *)::GetPropW(hDlg, L"INPUT-PARAM");
 								if(LOWORD(wParam) == IDOK)
 								{
-									wchar_t input_string[1024]{};
-									::GetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_string, 1024);
-									input_param->result = input_string;
+									if(input_param->list)
+									{
+										auto index = (int)::SendDlgItemMessageW(hDlg, IDC_COMBOBOX_COMBO, CB_GETCURSEL, 0, 0);
+										input_param->selected = index;
+										input_param->result.clear();
+										if(index >= 0 && index < (int)input_param->items.size())
+											input_param->result = input_param->items[index];
+									}
+									else
+									{
+										wchar_t input_string[1024]{};
+										::GetDlgItemTextW(hDlg, IDC_INPUTBOX_EDIT, input_string, 1024);
+										input_param->result = input_string;
+									}
 									::EndDialog(hDlg, IDOK);
 									input_param->ret = true;
 								}
@@ -884,6 +1191,8 @@ namespace Nilesoft
 						{
 							_result = true;
 							input_result = input_param.result.move();
+							if(input_param.list)
+								input_selected = input_param.selected;
 						}
 					}
 					return _result.move();
@@ -1026,38 +1335,39 @@ namespace Nilesoft
 					switch(Id[1])
 					{
 						case IDENT_TYPE_FILE:
-							_result = IO::PathType::File; 
+							_result = (int32_t)IO::PathType::File;
 							break;
 						case IDENT_TYPE_DIR:
 						case IDENT_TYPE_DIRECTORY:
-							_result = IO::PathType::Directory;
+							_result = (int32_t)IO::PathType::Directory;
 							break;
 						case IDENT_TYPE_DRIVE:
-							_result = IO::PathType::Drive;
+							_result = (int32_t)IO::PathType::Drive;
 							break;
 						case IDENT_TYPE_NAMESPACE:
-							_result = IO::PathType::Namespace;
+							_result = (int32_t)IO::PathType::Namespace;
 							break;
 						case IDENT_TYPE_DESKTOP:
-							_result = IO::PathType::Desktop;
+							_result = (int32_t)IO::PathType::Desktop;
 							break;
 						case IDENT_TYPE_FIXED:
-							_result = IO::PathType::Fixed;
+							_result = (int32_t)IO::PathType::Fixed;
 							break;
+						case IDENT_TYPE_CD:
 						case IDENT_TYPE_DVD:
-							_result = IO::PathType::DVD;
+							_result = (int32_t)IO::PathType::DVD;
 							break;
 						case IDENT_TYPE_USB:
-							_result = IO::PathType::USB;
+							_result = (int32_t)IO::PathType::USB;
 							break;
 						case IDENT_TYPE_VHD:
-							_result = IO::PathType::VHD;
+							_result = (int32_t)IO::PathType::VHD;
 							break; 
 						case IDENT_TYPE_REMOTE:
-							_result = IO::PathType::Remote;
+							_result = (int32_t)IO::PathType::Remote;
 							break;
 						case IDENT_TYPE_TASKBAR:
-							_result = IO::PathType::Taskbar;
+							_result = (int32_t)IO::PathType::Taskbar;
 							break;
 						case IDENT_TYPE_BACK:
 						{
@@ -1065,40 +1375,53 @@ namespace Nilesoft
 							{
 								case IDENT_TYPE_DIR:
 								case IDENT_TYPE_DIRECTORY:
-									_result = IO::PathType::Back_Directory;
+									_result = (int32_t)IO::PathType::Back_Directory;
 									break;
 								case IDENT_TYPE_DRIVE:
-									_result = IO::PathType::Back_Drive;
+									_result = (int32_t)IO::PathType::Back_Drive;
 									break;
 								case IDENT_TYPE_NAMESPACE:
-									_result = IO::PathType::Back_Namespace;
+									_result = (int32_t)IO::PathType::Back_Namespace;
 									break;
 								case IDENT_TYPE_FIXED:
-									_result = IO::PathType::Back_Fixed;
+									_result = (int32_t)IO::PathType::Back_Fixed;
 									break;
+								case IDENT_TYPE_CD:
 								case IDENT_TYPE_DVD:
-									_result = IO::PathType::Back_DVD;
+									_result = (int32_t)IO::PathType::Back_DVD;
 									break;
 								case IDENT_TYPE_USB:
-									_result = IO::PathType::Back_USB;
+									_result = (int32_t)IO::PathType::Back_USB;
 									break;
 								case IDENT_TYPE_VHD:
-									_result = IO::PathType::Back_VHD;
+									_result = (int32_t)IO::PathType::Back_VHD;
 									break;
 								case IDENT_TYPE_REMOTE:
-									_result = IO::PathType::Back_Remote;
+									_result = (int32_t)IO::PathType::Back_Remote;
+									break;
+								case IDENT_TYPE_REMOVABLE:
+									_result = (int32_t)IO::PathType::Back_Removable;
 									break;
 								case IDENT_ZERO:
-									_result = IO::PathType::Back;
+									_result = (int32_t)IO::PathType::Back;
 									break;
 								default:
-									_result = IO::PathType::Unknown;
+									_result = (int32_t)IO::PathType::Unknown;
 									break;
 							}
 							break;
 						}
+						case IDENT_TYPE_COMPUTER:
+							_result = (int32_t)IO::PathType::Computer;
+							break;
+						case IDENT_TYPE_RECYCLEBIN:
+							_result = (int32_t)IO::PathType::Recyclebin;
+							break;
+						case IDENT_TYPE_REMOVABLE:
+							_result = (int32_t)IO::PathType::Removable;
+							break;
 						default:
-							_result = IO::PathType::Unknown;
+							_result = (int32_t)IO::PathType::Unknown;
 							break;
 					}
 					return _result.move();
@@ -1293,48 +1616,124 @@ namespace Nilesoft
 						case IDENT_ISHIGHCONTRAST:
 							_result = (context && context->theme) ? context->theme->isHighContrast : Theme::IsHighContrast();
 							break;
+					}
+
+					// The getters below read the theme of the menu being shown; there is
+					// none outside a menu (shell.exe -config:check, a command run later).
+					auto theme = context ? context->theme : nullptr;
+					if(!theme)
+						break;
+
+					switch(Id[1])
+					{
 						case IDENT_DPI:
-							_result = context->theme->dpi->val;
+							if(theme->dpi)
+								_result = theme->dpi->val;
 							break;
 						case IDENT_BACKGROUND:
 						{
 							if(Id[2] == IDENT_OPACITY)
-								_result = context->theme->background.color.a;
+								_result = theme->background.color.a;
 							else if(Id[2] == IDENT_EFFECT)
-								_result = context->theme->background.effect;
+								_result = theme->background.effect;
+							else if(Id[2] == IDENT_GRADIENT)
+								_result = theme->gradient.enabled;
 							else
-								_result = Object(context->theme->background.color).move();
+								_result = Object(theme->background.color).move();
 							break;
 						}
 						case IDENT_ITEM:
 						{
-							//theme.item.back.normal.disable
-							if(Id.equals(4, { IDENT_NORMAL, IDENT_SELECT }))
+							// theme.item.{back,text,border}.{normal,select}[.disabled]
+							if(Id.equals(2, { IDENT_BACK, IDENT_TEXT, IDENT_BORDER }) &&
+							   Id.equals(3, { IDENT_NORMAL, IDENT_SELECT }))
 							{
+								auto &state = Id[2] == IDENT_BACK ? theme->back.color
+									: Id[2] == IDENT_BORDER ? theme->back.border
+									: theme->text.color;
+								// .disable was the old spelling; keep it working.
+								bool dis = Id.equals(4, { IDENT_DISABLED, IDENT_DISABLE });
 								Color color;
 								if(Id[3] == IDENT_NORMAL)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor_dis : context->theme->text.color.nor_dis;
-									else 
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.nor : context->theme->text.color.nor;
-								}
-								else if(Id[3] == IDENT_SELECT)
-								{
-									if(Id[4] == IDENT_DISABLE)
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel_dis : context->theme->text.color.sel_dis;
-									else
-										color = Id[2] == IDENT_BACK ? context->theme->back.color.sel : context->theme->text.color.sel;
-								}
+									color = dis ? state.nor_dis : state.nor;
+								else
+									color = dis ? state.sel_dis : state.sel;
 
 								_result = Object(color).move();
 							}
-							else if(Id[2] == IDENT_EFFECT)
-								_result = context->theme->background.effect;
-							else
-								_result = Object(context->theme->background.color).move();
+							else if(Id[2] == IDENT_RADIUS)
+								_result = static_cast<int32_t>(theme->back.radius);
+							else if(Id[2] == IDENT_OPACITY)
+								_result = static_cast<int32_t>(theme->back.opacity);
 							break;
 						}
+						case IDENT_NAME:
+						{
+							// The theme the config chose (name = ...), not the light or dark
+							// one it turned into.
+							const wchar_t *name = L"auto";
+							switch(theme->configured)
+							{
+								case ThemeType::System: name = L"system"; break;
+								case ThemeType::HighContrast: name = L"highcontrast"; break;
+								case ThemeType::White: name = L"white"; break;
+								case ThemeType::Black: name = L"black"; break;
+								case ThemeType::Classic: name = L"classic"; break;
+								case ThemeType::Edge: name = L"edge"; break;
+								case ThemeType::Dark: name = L"dark"; break;
+								case ThemeType::Light: name = L"light"; break;
+								case ThemeType::Modern: name = L"modern"; break;
+								case ThemeType::Custom: name = L"custom"; break;
+								default: break;
+							}
+							_result = name;
+							break;
+						}
+						case IDENT_FONT:
+							// theme.font and theme.font.name: the font's name; .size in pixels.
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->text.size);
+							else
+								_result = string(theme->font.lfFaceName).move();
+							break;
+						case IDENT_BORDER:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->border.size);
+							else if(Id[2] == IDENT_RADIUS)
+								_result = static_cast<int32_t>(theme->border.radius);
+							else
+								_result = Object(theme->border.color).move();
+							break;
+						case IDENT_SHADOW:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->shadow.size);
+							else if(Id[2] == IDENT_OFFSET)
+								_result = static_cast<int32_t>(theme->shadow.offset);
+							else if(Id[2] == IDENT_ENABLED)
+								_result = theme->shadow.enabled;
+							else
+								_result = Object(theme->shadow.color).move();
+							break;
+						case IDENT_SEPARATOR:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->separator.size);
+							else
+								_result = Object(theme->separator.color).move();
+							break;
+						case IDENT_LAYOUT:
+							// theme.layout and theme.layout.rtl
+							_result = theme->layout.rtl != 0;
+							break;
+						case IDENT_IMAGE:
+							if(Id[2] == IDENT_SIZE)
+								_result = static_cast<int32_t>(theme->image.size);
+							else if(Id[2] == IDENT_GAP)
+								_result = static_cast<int32_t>(theme->image.gap);
+							else if(Id[2] == IDENT_SCALE)
+								_result = theme->image.scale;
+							else
+								_result = theme->image.enabled;
+							break;
 					}
 					break;
 				}
@@ -1493,6 +1892,9 @@ namespace Nilesoft
 							case IDENT_IS_CONTEXTMENUHANDLER:
 								_result = sel->loader.contextmenuhandler; 
 								break;
+							case IDENT_IS_DIALOG:
+								_result = in_dialog(context);
+								break;
 						}
 					}
 					break;
@@ -1570,7 +1972,6 @@ namespace Nilesoft
 
 					COM_INITIALIZER com_initializer(true);
 					IComPtr<IShellDispatch6> shellDisp;
-					IComPtr<IWebBrowser> webBrowser;
 
 					auto shellBrowser = context->Selections->ShellBrowser;
 
@@ -1579,14 +1980,22 @@ namespace Nilesoft
 						return shellDisp.CreateInstance(CLSID_Shell, IID_IDispatch, CLSCTX_SERVER) && shellDisp;
 					};
 
-					auto WebBrowser = [&]()->bool
+					// The shell browser belongs to its window's thread (it is a raw pointer
+					// read there), so navigation runs there, not on this command thread.
+					auto on_browser = [&](std::function<void(IShellBrowser *)> fn)->bool
 					{
-						if(shellBrowser)
-						{
-							IComPtr<IServiceProvider> sp;
-							if(S_OK == shellBrowser->QueryInterface(IID_IServiceProvider, sp))
-								return S_OK == sp->QueryService(SID_SWebBrowserApp, IID_IWebBrowser, webBrowser);
-						}
+						HWND hwnd = context->Selections->Window.handle;
+						if(!shellBrowser || !hwnd)
+							return false;
+						return on_window_thread::run(hwnd, [shellBrowser, fn]() { fn(shellBrowser); });
+					};
+
+					// Only on the browser's own thread.
+					auto web_browser = [](IShellBrowser *sb, IComPtr<IWebBrowser> &wb)->bool
+					{
+						IComPtr<IServiceProvider> sp;
+						if(S_OK == sb->QueryInterface(IID_IServiceProvider, sp))
+							return S_OK == sp->QueryService(SID_SWebBrowserApp, IID_IWebBrowser, wb) && wb;
 						return false;
 					};
 
@@ -1648,30 +2057,51 @@ namespace Nilesoft
 							if(url.empty())
 								break;
 
-							if(WebBrowser())
+							// An Open or Save As box has no web browser: browse its folder
+							// view to the folder, which keeps the file name typed in it.
+							// Freed with the job, which can outlive a wait that timed out.
+							struct folder_t
 							{
-								auto bstrFile = ::SysAllocString(url);
-								if(bstrFile)
+								PIDLIST_ABSOLUTE pidl{};
+								~folder_t() { ::ILFree(pidl); }
+							};
+							auto folder = std::make_shared<folder_t>();
+							if(in_dialog(context))
+								::SHParseDisplayName(url, nullptr, &folder->pidl, 0, nullptr);
+
+							on_browser([web_browser, url, folder](IShellBrowser *sb)
+							{
+								IComPtr<IWebBrowser> wb;
+								if(web_browser(sb, wb))
 								{
-									VARIANT empty{};
-									empty.vt = VT_EMPTY;
-									webBrowser->Navigate(bstrFile, &empty, &empty, &empty, &empty);
-									::SysFreeString(bstrFile);
+									if(auto bstrFile = ::SysAllocString(url); bstrFile)
+									{
+										VARIANT empty{};
+										empty.vt = VT_EMPTY;
+										wb->Navigate(bstrFile, &empty, &empty, &empty, &empty);
+										::SysFreeString(bstrFile);
+									}
 								}
-							}
+								else if(folder->pidl)
+									sb->BrowseObject(folder->pidl, SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
+							});
 							break;
 						}
 						case IDENT_COMMAND_GOBACK:
-							if(WebBrowser())
-								webBrowser->GoBack();
-							break;
 						case IDENT_COMMAND_GOFORWARD:
-							if(WebBrowser())
-								webBrowser->GoForward();
-							break;
 						case IDENT_COMMAND_GOHOME:
-							if(WebBrowser())
-								webBrowser->GoHome();
+							on_browser([web_browser, id](IShellBrowser *sb)
+							{
+								IComPtr<IWebBrowser> wb;
+								if(!web_browser(sb, wb))
+									return;
+								if(id == IDENT_COMMAND_GOBACK)
+									wb->GoBack();
+								else if(id == IDENT_COMMAND_GOFORWARD)
+									wb->GoForward();
+								else
+									wb->GoHome();
+							});
 							break;
 						case IDENT_COMMAND_TOGGLE_DESKTOP:
 							if(shelldisp())
@@ -1705,7 +2135,20 @@ namespace Nilesoft
 							//	Explorer::Refresh();
 							// if(shelldisp())
 							//	shellDisp->RefreshMenu();
-							SendCommand(28931);
+						{
+							// command.refresh(1): straight to the window the menu opened on.
+							// command.refresh(2): also rebuild the icon cache (ie4uinit -show).
+							auto mode = Arguments.size() > 0 ? eval_arg(0).to_number<int>() : 0;
+							if(mode == 1 && context->wnd.owner)
+								::PostMessageW(context->wnd.owner, WM_COMMAND, 28931, 0);
+							else
+								SendCommand(28931);
+							if(mode == 2)
+							{
+								auto ie4uinit = Path::GetKnownFolder(FOLDERID_System).trim_end(L"\\/").append(L"\\ie4uinit.exe").move();
+								::ShellExecuteW(nullptr, nullptr, ie4uinit.c_str(), L"-show", nullptr, SW_HIDE);
+							}
+						}
 							// press DOWN "Alt-Tab"
 
 							//Sendkey(VK_F5);
@@ -1724,6 +2167,34 @@ namespace Nilesoft
 						case IDENT_COMMAND_RESTART_EXPLORER:
 							_result = Windows::Explorer::Restart();
 							break;
+						case IDENT_ID_EMPTY_RECYCLE_BIN:
+						{
+							// command.empty_recycle_bin: no confirmation of its own (the
+							// item asks with msg() first); Windows shows its progress.
+							auto r = RecycleBin::empty(context->wnd.owner);
+							if(r.was_empty)
+								Logger::Info(L"Empty Recycle Bin: the Recycle Bin is already empty.");
+							for(auto &step : r.steps)
+							{
+								auto where = step.root[0] ? step.root : L"all drives";
+								if(RecycleBin::succeeded(step.hr))
+									Logger::Info(L"Empty Recycle Bin (%s): done (0x%08X).", where, (uint32_t)step.hr);
+								else if(RecycleBin::cancelled(step.hr))
+									Logger::Info(L"Empty Recycle Bin (%s): cancelled by the user (0x%08X).", where, (uint32_t)step.hr);
+								else if(r.empty_now)
+									// Some PCs report an error although everything was deleted.
+									Logger::Info(L"Empty Recycle Bin (%s) returned 0x%08X, but the Recycle Bin is empty now.", where, (uint32_t)step.hr);
+								else
+									Logger::Warning(L"Empty Recycle Bin (%s) failed: 0x%08X.", where, (uint32_t)step.hr);
+							}
+							if(r.cancelled)
+								Logger::Info(L"Empty Recycle Bin: stopped, the items left in the Recycle Bin were kept.");
+							else if(!r.was_empty && r.empty_now)
+								Logger::Info(L"Empty Recycle Bin: done, the Recycle Bin is empty now.");
+							else if(!r.ok)
+								Logger::Warning(L"Empty Recycle Bin: some items could not be deleted.");
+							break;
+						}
 						case IDENT_COMMAND_TOGGLEHIDDEN:
 							Explorer::ToggleHiddenFiles();
 							break;
@@ -2130,6 +2601,16 @@ namespace Nilesoft
 			auto sel = context->Selections;
 			auto argc = Arguments.size();
 
+			// sel.drop: a right-drag's target folder (empty in any other menu).
+			if(Id.length() == 2 && Id[1] == IDENT_DROP)
+			{
+				if(sel)
+					_result = sel->DropPath();
+				else
+					_result = L"";
+				return;
+			}
+
 			auto array_index = size_t(-1);
 
 			if(Array)
@@ -2432,7 +2913,7 @@ namespace Nilesoft
 					if(Id.is_length(2))
 						_result = sel->Path(ii).length();
 					else
-						_result = L"@sel.item";
+						_result = sel->Path(ii).move();
 					break;
 				}
 				case IDENT_NAME:
@@ -2722,13 +3203,24 @@ namespace Nilesoft
 					auto t = PathType::Unknown;
 
 					if(argc == 0)
-						t = sel->Get(ii)->Type;
+					{
+						if(auto p = sel->Get(ii); p)
+							t = p->Type;
+					}
 					else if(argc > 0)
 					{
 						Object a1 = eval_arg(0);
 
+						// sel.type(n): the type of item n; type.unknown past the end of the selection.
 						if(a1.is_number())
-							t = sel->Get(a1.to_number<size_t>())->Type;
+						{
+							auto n = a1.to_number<int64_t>();
+							if(n >= 0)
+							{
+								if(auto p = sel->Get(static_cast<size_t>(n)); p)
+									t = p->Type;
+							}
+						}
 
 						switch(t)
 						{
@@ -2833,6 +3325,24 @@ namespace Nilesoft
 						if(Path::GetLinkInfo(p->get(), nullptr, nullptr, &icon) && !icon.empty())
 							_result = icon.move();
 					}
+					else if(Id[2] == IDENT_ARGS)
+					{
+						string args;
+						if(Path::GetLinkInfo(p->get(), nullptr, nullptr, nullptr, nullptr, &args))
+							_result = args.move();
+					}
+					else if(Id[2] == IDENT_RAW)
+					{
+						// The target and its arguments as one command line.
+						string target, args;
+						if(Path::GetLinkInfo(p->get(), &target, nullptr, nullptr, nullptr, &args) && !target.empty())
+						{
+							string raw = target.contains(L' ') ? L"\"" + target + L"\"" : target;
+							if(!args.empty())
+								raw.append(L" ").append(args);
+							_result = raw.move();
+						}
+					}
 					else
 					{
 						string target;
@@ -2868,78 +3378,17 @@ namespace Nilesoft
 				case IDENT_META:
 				{
 					auto sb = context->Selections->ShellBrowser;
-					if(sb)
+					HWND hwnd = context->Selections->Window.handle;
+					if(sb && hwnd)
 					{
-						IComPtr<IShellView> sv;
-
-						if(S_OK != sb->QueryActiveShellView(sv))
-							break;
-
-						IComPtr<IFolderView2> fv;
-						if(S_OK != sv->QueryInterface(IID_IFolderView2, fv))
-							break;
-
-						IComPtr<IShellItemArray> sia;
-						if(S_OK != fv->GetSelection(FALSE, sia))
-							break;
-						
-						DWORD sel_count = 0;
-						if(S_OK != sia->GetCount(&sel_count) || sel_count == 0)
-							break;
-
+						// The arguments are worked out here; the folder view is read on
+						// its own window's thread (the browser is a raw pointer from there).
 						uint32_t ai = 0;
-
 						if(Array)
 						{
 							if(Object oa = context->Eval(Array).move(); oa.is_number())
-							{
 								ai = oa;
-								if(ai < 0 || ai >= sel_count)
-									return;
-							}
 						}
-
-						IComPtr<IShellItem2> si;
-						if(S_OK != sia->GetItemAt(ai, si))
-							break;
-
-						/*string path = eval_arg(0).to_string().trim().move();
-						
-						if(path.empty())
-							break;
-
-						string name = eval_arg(1).to_string().trim().move();
-						string sys = L"System.";
-
-						if(name.empty())
-							name = sys + L"Title";
-						else if(!name.starts_with(sys))
-							name = sys + name;
-
-						PROPERTYKEY key{};
-						auto hr = ::PSGetPropertyKeyFromName(name, &key);
-						if(SUCCEEDED(hr))
-						{
-							IComPtr<IPropertyStore> ps;
-							// Call the helper to get the property store for the initialized item
-							hr = ::SHGetPropertyStoreFromParsingName(path, nullptr, GPS_DEFAULT, __uuidof(IPropertyStore), ps);
-							if(SUCCEEDED(hr))
-							{
-								PROPVARIANT propvarValue = { 0 };
-								hr = ps->GetValue(key, &propvarValue);
-								if(SUCCEEDED(hr))
-								{
-									wchar_t* pszDisplayValue = nullptr;
-									hr = ::PSFormatForDisplayAlloc(key, propvarValue, PDFF_DEFAULT, &pszDisplayValue);
-									if(SUCCEEDED(hr))
-									{
-										_result = pszDisplayValue;
-										::CoTaskMemFree(pszDisplayValue);
-									}
-									::PropVariantClear(&propvarValue);
-								}
-							}
-						}*/
 
 						string name = eval_arg(0).to_string().trim().move();
 						string sys = L"System.";
@@ -2950,17 +3399,49 @@ namespace Nilesoft
 							name = sys + name;
 
 						PROPERTYKEY property_key{};
-						auto hr = ::PSGetPropertyKeyFromName(name, &property_key);
-						if(SUCCEEDED(hr))
+						if(FAILED(::PSGetPropertyKeyFromName(name, &property_key)))
+							break;
+
+						struct meta_t
 						{
+							string value;
+							bool ok{};
+						};
+						auto meta = std::make_shared<meta_t>();
+
+						on_window_thread::run(hwnd, [sb, ai, property_key, meta]()
+						{
+							IComPtr<IShellView> sv;
+							if(S_OK != sb->QueryActiveShellView(sv))
+								return;
+
+							IComPtr<IFolderView2> fv;
+							if(S_OK != sv->QueryInterface(IID_IFolderView2, fv))
+								return;
+
+							IComPtr<IShellItemArray> sia;
+							if(S_OK != fv->GetSelection(FALSE, sia))
+								return;
+
+							DWORD sel_count = 0;
+							if(S_OK != sia->GetCount(&sel_count) || ai >= sel_count)
+								return;
+
+							IComPtr<IShellItem2> si;
+							if(S_OK != sia->GetItemAt(ai, si))
+								return;
+
 							wchar_t *value = nullptr;
-							hr = si->GetString(property_key, &value);
-							if(SUCCEEDED(hr))
+							if(SUCCEEDED(si->GetString(property_key, &value)))
 							{
-								_result = value;
+								meta->value = value;
+								meta->ok = true;
 								::CoTaskMemFree(value);
 							}
-						}
+						});
+
+						if(meta->ok)
+							_result = meta->value;
 					}
 					break;
 				}
@@ -3098,6 +3579,61 @@ namespace Nilesoft
 				case IDENT_ISNAMESPACE:
 					_result = Path::IsNameSpace(arg0);
 					break;
+				case IDENT_TYPE:
+				{
+					// Same numbers as sel.type (and the type.* constants).
+					auto t = IO::PathType::Unknown;
+					auto len = arg0.length();
+					if(len >= 2 && len <= 3 && arg0[1] == L':' && std::iswalpha(arg0[0]) &&
+					   (len == 2 || arg0[2] == L'\\' || arg0[2] == L'/'))
+					{
+						string root = arg0.substr(0, 2).append(L"\\").move();
+						switch(::GetDriveTypeW(root))
+						{
+							case DRIVE_NO_ROOT_DIR:
+							case DRIVE_UNKNOWN:
+								break;
+							case DRIVE_FIXED:
+								t = IO::PathType::Fixed;
+								break;
+							case DRIVE_CDROM:
+								t = IO::PathType::DVD;
+								break;
+							case DRIVE_REMOTE:
+								t = IO::PathType::Remote;
+								break;
+							case DRIVE_REMOVABLE:
+								switch(IO::GetTypeOfDrive(root))
+								{
+									case BusTypeVirtual:
+									case BusTypeFileBackedVirtual:
+										t = IO::PathType::VHD;
+										break;
+									case BusTypeUsb:
+										t = IO::PathType::USB;
+										break;
+									default:
+										t = IO::PathType::Removable;
+										break;
+								}
+								break;
+							default:
+								t = IO::PathType::Drive;
+								break;
+						}
+					}
+					else if(!arg0.empty())
+					{
+						if(Path::IsNameSpace(arg0))
+							t = IO::PathType::Namespace;
+						else if(Path::IsDirectoryExists(arg0))
+							t = IO::PathType::Directory;
+						else if(Path::IsFileExists(arg0))
+							t = IO::PathType::File;
+					}
+					_result = (int32_t)t;
+					break;
+				}
 				case IDENT_ISEXE:
 					_result = Path::IsExe(arg0);
 					break;
@@ -3110,11 +3646,22 @@ namespace Nilesoft
 						_result = Path::GetKnownFolder(id).move();
 					break;
 				case IDENT_ABSOLUTE:
-					//std::filesystem::path(arg0.c_str()).absolute_path();
-					break;
 				case IDENT_RELATIVE:
-				//	std::filesystem::path(arg0.c_str()).relative_path();
+				{
+					// path.absolute(path[, base]) / path.relative(path[, base]): base is
+					// the folder the menu was opened in, or the second argument (itself
+					// relative to that folder).
+					std::wstring base;
+					if(auto sel = context->Selections; sel)
+						base = as_wstring(sel->Directory);
+					if(argc > 1)
+						base = PathResolve::absolute(as_wstring(eval_arg(1).to_string().trim(L"\"'")), base);
+
+					auto path = as_wstring(arg0.trim(L"\"'"));
+					auto ret = Id[1] == IDENT_ABSOLUTE ? PathResolve::absolute(path, base) : PathResolve::relative(path, base);
+					_result = string(ret.c_str()).move();
 					break;
+				}
 				case IDENT_LNK:
 				case IDENT_LNKTARGET:
 				{
@@ -3129,6 +3676,24 @@ namespace Nilesoft
 						string icon;
 						if(Path::GetLinkInfo(arg0, nullptr, nullptr, &icon) && !icon.empty())
 							_result = icon.move();
+					}
+					else if(Id[2] == IDENT_ARGS)
+					{
+						string args;
+						if(Path::GetLinkInfo(arg0, nullptr, nullptr, nullptr, nullptr, &args))
+							_result = args.move();
+					}
+					else if(Id[2] == IDENT_RAW)
+					{
+						// The target and its arguments as one command line.
+						string target, args;
+						if(Path::GetLinkInfo(arg0, &target, nullptr, nullptr, nullptr, &args) && !target.empty())
+						{
+							string raw = target.contains(L' ') ? L"\"" + target + L"\"" : target;
+							if(!args.empty())
+								raw.append(L" ").append(args);
+							_result = raw.move();
+						}
 					}
 					else if(Id[2] == IDENT_CREATE)
 					{
@@ -3222,41 +3787,76 @@ namespace Nilesoft
 							_result = Path::Extension(arg0);
 							break;
 						case IDENT_BOX:
+						case IDENT_SAVE_BOX:
 						{
+							// path.file.box(filter, initialDir, fileName) and
+							// path.file.save_box(filter, initialDir, defaultName). The filter is
+							// 'Text|*.txt|All|*.*' or an array of such parts, joined with '|'.
+							string filter = arg0;
+							// An array reads as empty text; only then is it evaluated again.
+							if(argc > 0 && filter.empty())
+							{
+								auto obj = eval_arg(0).move();
+								if(obj.is_array(true))
+								{
+									auto ptr = obj.get_pointer();
+									auto count = (uint32_t)ptr[0];
+									for(auto i = 0u; i < count; i++)
+									{
+										auto part = ptr[i + 1].to_string().move();
+										if(part.empty())
+											continue;
+										if(!filter.empty())
+											filter.append(L'|');
+										filter.append(part);
+									}
+								}
+							}
 
-							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							if(filter.empty())
+								filter = L"All Files (*.*)|*.*";
+
+							std::vector<wchar_t> flt;
+							for(auto c : filter)
+								flt.push_back(c == L'|' ? L'\0' : c);
+							flt.push_back(0);
+							flt.push_back(0);
 
 							string initialDir;
-							std::vector<wchar_t> flt;
-							wchar_t szFile[MAX_PATH]{ };
+							if(argc > 1)
+								initialDir = eval_arg(1).to_string().trim(L"\"'").move();
 
-							if(argc == 0)
+							// Room for long paths; the suggested name is cut to fit.
+							std::vector<wchar_t> file(4096, L'\0');
+							if(argc > 2)
 							{
-								for(auto c : L"All Files (*.*)\0*.*\0")
-									flt.push_back(c);
+								auto name = as_wstring(eval_arg(2).to_string());
+								::wcsncpy_s(file.data(), file.size(), name.c_str(), _TRUNCATE);
+							}
+
+							// Save: the first filter's extension is added when the user types none.
+							std::wstring defExt = FileDialog::default_extension(filter.c_str());
+
+							OPENFILENAMEW ofn = { sizeof(OPENFILENAMEW) };
+							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
+							ofn.lpstrFilter = flt.data();
+							ofn.lpstrInitialDir = initialDir.empty() ? nullptr : initialDir.c_str();
+							ofn.lpstrFile = file.data();
+							ofn.nMaxFile = (DWORD)file.size();
+
+							// OFN_NOCHANGEDIR: the dialog would otherwise move the working
+							// directory of the whole process (Explorer) to the chosen folder.
+							if(Id[2] == IDENT_SAVE_BOX)
+							{
+								ofn.lpstrDefExt = defExt.empty() ? nullptr : defExt.c_str();
+								ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::SaveFileDialog(&ofn).move();
 							}
 							else
 							{
-								for(auto c : arg0)
-									flt.push_back(c == L'|' ? L'\0' : c);
-
-								if(argc == 2)
-									initialDir = eval_arg(1).to_string().move();
-
-								if(argc == 3)
-									string::Copy(szFile, eval_arg(2).to_string());
+								ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+								_result = Path::OpenFileDialog(&ofn).move();
 							}
-
-							flt.push_back(0);
-							flt.push_back(0);
-
-							ofn.hwndOwner = context->Runtime ? context->wnd.active : nullptr;
-							ofn.lpstrFilter = flt.data();
-							ofn.lpstrInitialDir = initialDir;
-							ofn.lpstrFile = szFile;
-							ofn.nMaxFile = MAX_PATH;
-							_result = Path::OpenFileDialog(&ofn).move();
-
 							break;
 						}
 						case IDENT_ZERO:
@@ -3277,8 +3877,25 @@ namespace Nilesoft
 							break;
 						case IDENT_BOX:
 						{
+							// path.dir.box(initialDir, title); both optional.
 							auto hwnd = context->Runtime ? context->wnd.active : nullptr;
-							_result = Path::OpenFolderDialog(string::Extract(IDS_SELECT_FOLDER), hwnd).move();
+							string initialDir = argc > 0 ? arg0.trim(L"\"'").move() : string();
+							string title = argc > 1 ? eval_arg(1).to_string().move() : string();
+							if(title.empty())
+								title = string::Extract(IDS_SELECT_FOLDER).move();
+							_result = Path::OpenFolderDialog(title, hwnd, initialDir.c_str()).move();
+							break;
+						}
+						case IDENT_BOXL:
+						{
+							// path.dir.boxl(initialDir, title): the older Browse For Folder box,
+							// a folder tree. Both optional.
+							auto hwnd = context->Runtime ? context->wnd.active : nullptr;
+							string initialDir = argc > 0 ? arg0.trim(L"\"'").move() : string();
+							string title = argc > 1 ? eval_arg(1).to_string().move() : string();
+							if(title.empty())
+								title = string::Extract(IDS_SELECT_FOLDER).move();
+							_result = browse_for_folder(title, hwnd, initialDir);
 							break;
 						}
 						case IDENT_ZERO:
@@ -3681,22 +4298,16 @@ namespace Nilesoft
 			return hr;
 		}
 
-		LPITEMIDLIST GeneratePidlFromName(PCIDLIST_ABSOLUTE pidlFolder, LPWSTR pszFile)
+		// io.dir.create and io.file.create(..., rename): see Include\NewItem.h. Explorer is
+		// always told about the item; it is selected and renamed when the open view
+		// shows the folder it was made in, on the view's own thread (issue #8).
+		static void announce_new_item(Context *context, const string &path, bool folder)
 		{
-			LPITEMIDLIST ppidl = nullptr;
-			IComPtr<IShellFolder> psf;
-			if(SUCCEEDED(SHBindToObject(nullptr, pidlFolder, 0, IID_IShellFolder, psf)))
-			{
-				LPITEMIDLIST pidlItem;
-				if(SUCCEEDED(psf->ParseDisplayName(nullptr, nullptr, pszFile, nullptr, &pidlItem, nullptr)))
-				{
-					ppidl = ::ILCombine(pidlFolder, pidlItem);
-					::ILFree(pidlItem);
-				}
-				psf->Release();
-			}
-			return ppidl;
-		};
+			auto sel = context ? context->Selections : nullptr;
+			HWND hwnd = sel ? (HWND)sel->Window.handle : nullptr;
+			auto browser = sel ? sel->ShellBrowser : nullptr;
+			new_item::announce(hwnd, browser, path.c_str(), folder);
+		}
 
 		void FuncExpression::eval_io()
 		{
@@ -3716,7 +4327,6 @@ namespace Nilesoft
 					return path.move();
 				};
 
-				string name0 = arg0;
 				arg0 = full(arg0);
 
 				switch(Id[1])
@@ -3738,8 +4348,16 @@ namespace Nilesoft
 						break;
 					}
 					case IDENT_MOVE:
-						_result = ::MoveFileW(arg0.c_str(), full(eval_arg(1).to_string()).c_str());
+					{
+						// io.move(src, dst[, flags]): MOVEFILE_COPY_ALLOWED by default, so a
+						// file can go to another drive; an existing dst is kept unless the
+						// flags include MOVEFILE_REPLACE_EXISTING (1).
+						auto flags = DWORD(MOVEFILE_COPY_ALLOWED);
+						if(argc > 2)
+							flags = eval_arg(2).to_number<DWORD>();
+						_result = ::MoveFileExW(arg0.c_str(), full(eval_arg(1).to_string()).c_str(), flags);
 						break;
+					}
 					case IDENT_RENAME:
 						_result = ::_wrename(arg0.c_str(), full(eval_arg(1).to_string()).c_str()) == 0;
 						break;
@@ -3794,36 +4412,12 @@ namespace Nilesoft
 												_result = lpNumberOfBytesWritten;
 										}
 										
-										bool rename = eval_arg(2);
-										auto sel = context->Selections;
-										if(rename && sel && sel->ShellBrowser)
-										{
-											IComPtr<IShellView2> sv;
-											if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-											{
-												IComPtr<IFolderView> fv;
-												if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-												{
-													IComPtr<IPersistFolder2> ppf2;
-													if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-													{
-														LPITEMIDLIST pidlFolder = nullptr;
-														if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-														{
-															if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-															{
-																auto dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-																sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-																::ILFree(pidlCreatedItem);
-															}
-															::ILFree(pidlFolder);
-														}
-													}
-												}
-											}
-											return;
-										}
-										::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
+										// The file is closed first, so a rename can start on it.
+										hFile.close();
+										if(bool(eval_arg(2)))
+											announce_new_item(context, arg0, false);
+										else
+											::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
 										return;
 									}
 								}
@@ -3854,43 +4448,26 @@ namespace Nilesoft
 								int32_t creates = 0;
 								try
 								{
-									creates = ::CreateDirectoryW(arg0.c_str(), nullptr);
+									// One new folder is selected and renamed, as before; with
+									// several, each is only announced.
+									std::vector<string> made;
+									if(::CreateDirectoryW(arg0.c_str(), nullptr))
+										made.push_back(arg0);
 									for(size_t i = 1; i < argc; i++)
-										creates += ::CreateDirectoryW(full(eval_arg(i).to_string()), nullptr);
-
-									auto sel = context->Selections;
-									if(creates == 1 && sel && sel->ShellBrowser)
 									{
-										IComPtr<IShellView2> sv;
-										if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-										{
-											IComPtr<IFolderView> fv;
-											if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-											{
-
-												IComPtr<IPersistFolder2> ppf2;
-												if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-												{
-													LPITEMIDLIST pidlFolder = nullptr;
-													if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-													{
-														if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-														{
-															DWORD dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-															sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-															::ILFree(pidlCreatedItem);
-														}
-														::ILFree(pidlFolder);
-													}
-												}
-											}
-										}
+										string path = full(eval_arg(i).to_string()).move();
+										if(::CreateDirectoryW(path.c_str(), nullptr))
+											made.push_back(path);
 									}
+									creates = (int32_t)made.size();
 
 									if(creates == 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
-									else if(creates > 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_FLUSHNOWAIT, Path::Parent(arg0), nullptr);
+										announce_new_item(context, made[0], true);
+									else
+									{
+										for(auto &path : made)
+											::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, path.c_str(), nullptr);
+									}
 								}
 								catch(...)
 								{
@@ -4120,6 +4697,78 @@ namespace Nilesoft
 
 #pragma comment(lib, "propsys.lib")
 
+		namespace
+		{
+			struct token_group
+			{
+				std::wstring sid;	// S-1-5-32-544
+				std::wstring name;	// Administrators (in the Windows language)
+				std::wstring full;	// BUILTIN\Administrators
+			};
+
+			// user.groups: the groups this process's token is a member of. Only the
+			// enabled ones: a group that is there for deny only (Administrators
+			// without elevation) or switched off doesn't count, nor do the logon
+			// session and integrity level entries. A process token's groups never
+			// change, so the names are looked up once, on first use, and not on
+			// every menu.
+			const std::vector<token_group> &token_groups()
+			{
+				static const std::vector<token_group> groups = []()
+				{
+					std::vector<token_group> list;
+					HANDLE token{};
+					if(!::OpenProcessToken(::GetCurrentProcess(), TOKEN_QUERY, &token))
+						return list;
+
+					DWORD size = 0;
+					::GetTokenInformation(token, TokenGroups, nullptr, 0, &size);
+					std::vector<BYTE> buffer(size);
+					if(size && ::GetTokenInformation(token, TokenGroups, buffer.data(), size, &size))
+					{
+						auto info = reinterpret_cast<const TOKEN_GROUPS *>(buffer.data());
+						for(DWORD i = 0; i < info->GroupCount; i++)
+						{
+							auto &group = info->Groups[i];
+							if(!(group.Attributes & SE_GROUP_ENABLED) ||
+							   (group.Attributes & (SE_GROUP_USE_FOR_DENY_ONLY | SE_GROUP_INTEGRITY)) ||
+							   (group.Attributes & SE_GROUP_LOGON_ID) == SE_GROUP_LOGON_ID)
+								continue;
+
+							token_group g;
+							LPWSTR sid = nullptr;
+							if(::ConvertSidToStringSidW(group.Sid, &sid) && sid)
+							{
+								g.sid = sid;
+								::LocalFree(sid);
+							}
+
+							DWORD name_len = 0, domain_len = 0;
+							SID_NAME_USE use{};
+							::LookupAccountSidW(nullptr, group.Sid, nullptr, &name_len, nullptr, &domain_len, &use);
+							if(name_len)
+							{
+								std::wstring name(name_len, L'\0'), domain(domain_len + 1, L'\0');
+								if(::LookupAccountSidW(nullptr, group.Sid, name.data(), &name_len, domain.data(), &domain_len, &use))
+								{
+									name.resize(name_len);
+									domain.resize(domain_len);
+									g.name = name;
+									g.full = domain.empty() ? name : domain + L'\\' + name;
+								}
+							}
+
+							if(!g.sid.empty() || !g.name.empty())
+								list.push_back(std::move(g));
+						}
+					}
+					::CloseHandle(token);
+					return list;
+				}();
+				return groups;
+			}
+		}
+
 		void FuncExpression::eval_user()
 		{
 			auto trim = L"\\/";
@@ -4192,6 +4841,44 @@ namespace Nilesoft
 				case IDENT_EXPAND:
 					_result = Environment::Expand(eval_arg(0).to_string(), true).move();
 					break;
+				case IDENT_GROUPS:
+				{
+					// user.groups: the names (the SID when a name can't be found).
+					// user.groups('Administrators', 'S-1-5-32-544', ...): true when the
+					// user is in any of them, named as 'Name', 'DOMAIN\Name' or a SID.
+					auto &groups = token_groups();
+					auto argc = Arguments.size();
+					if(argc == 0)
+					{
+						auto array = new Object[groups.size() + 1];
+						Object result(array, true);
+						*array++ = groups.size();
+						for(auto &g : groups)
+							*array++ = (g.name.empty() ? g.sid : g.name).c_str();
+						_result = result.move();
+						break;
+					}
+
+					bool found = false;
+					for(size_t a = 0; a < argc && !found; a++)
+					{
+						string wanted = eval_arg(a).to_string().trim().move();
+						if(wanted.empty())
+							continue;
+						for(auto &g : groups)
+						{
+							if((!g.sid.empty() && wanted.equals(g.sid.c_str())) ||
+							   (!g.name.empty() && wanted.equals(g.name.c_str())) ||
+							   (!g.full.empty() && wanted.equals(g.full.c_str())))
+							{
+								found = true;
+								break;
+							}
+						}
+					}
+					_result = found;
+					break;
+				}
 			}
 		}
 
@@ -4268,13 +4955,13 @@ namespace Nilesoft
 					break;
 				}
 				case IDENT_IS7ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 1;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 1);
 					break;
 				case IDENT_IS8ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 2;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 2);
 					break;
 				case IDENT_IS81ORGREATER:
-					_result = ver->Major >= 6 && ver->Minor >= 3;
+					_result = ver->Major > 6 || (ver->Major == 6 && ver->Minor >= 3);
 					break;
 				case IDENT_IS10ORGREATER:
 					_result = ver->Major >= 10;
@@ -4410,25 +5097,38 @@ namespace Nilesoft
 				case IDENT_LOC:
 				{
 					wchar_t szISOLang[51] = { };
-					if(Id.length() == 2)
+
+					// The Windows display language, which Windows' own menu items
+					// follow. The regional format (GetUserDefaultLocaleName) can differ,
+					// and picking the language file from it mixed two languages in one
+					// menu.
+					auto display_language = [&]() -> std::wstring
 					{
-						// The Windows display language, which Windows' own menu items
-						// follow. The regional format (GetUserDefaultLocaleName) can differ,
-						// and picking the language file from it mixed two languages in one
-						// menu.
 						ULONG count = 0, size = 0;
 						if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, nullptr, &size) && size > 0)
 						{
 							std::wstring langs(size, L'\0');
 							if(::GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &count, langs.data(), &size) && langs[0])
-								_result = langs.c_str();
+								return langs.c_str();
 						}
-						if(_result.is_null())
-						{
-							auto len = ::GetUserDefaultLocaleName(szISOLang, 50);
-							if(len > 0)
-								_result = szISOLang;
-						}
+						if(::GetUserDefaultLocaleName(szISOLang, 50) > 0)
+							return szISOLang;
+						return {};
+					};
+
+					if(Id.length() == 2)
+					{
+						auto lang = display_language();
+						if(!lang.empty())
+							_result = lang.c_str();
+					}
+					else if(Id[2] == IDENT_FULL)
+					{
+						// The display language's name as Windows shows it, e.g. "English (United States)".
+						auto lang = display_language();
+						wchar_t full[LOCALE_NAME_MAX_LENGTH * 4] = { };
+						if(!lang.empty() && ::GetLocaleInfoEx(lang.c_str(), LOCALE_SLOCALIZEDDISPLAYNAME, full, _countof(full)) > 0)
+							_result = full;
 					}
 					else if(Id.length() == 3)
 					{
@@ -4488,6 +5188,78 @@ namespace Nilesoft
 					
 					break;
 				}
+				case IDENT_POWER:
+				{
+					SYSTEM_POWER_STATUS sps = { };
+					if(!::GetSystemPowerStatus(&sps))
+						break;
+					switch(Id[2])
+					{
+						case IDENT_BATTERY:
+							// Percent, or -1 when unknown (or there is no battery).
+							_result = (sps.BatteryLifePercent > 100 || (sps.BatteryFlag & 128)) ? -1 : (int)sps.BatteryLifePercent;
+							break;
+						case IDENT_IS_CHARGING:
+							// BatteryFlag 255 is "unknown", which has the charging bit set too.
+							_result = sps.BatteryFlag != 255 && (sps.BatteryFlag & 8) != 0;
+							break;
+						case IDENT_IS_AC:
+							_result = sps.ACLineStatus == 1;
+							break;
+						case IDENT_ZERO:
+							_result = sps.ACLineStatus == 0 ? L"battery" : L"ac";
+							break;
+					}
+					break;
+				}
+				case IDENT_SCREEN:
+				{
+					switch(Id[2])
+					{
+						case IDENT_COUNT:
+							_result = ::GetSystemMetrics(SM_CMONITORS);
+							break;
+						case IDENT_WIDTH:
+							_result = ::GetSystemMetrics(SM_CXSCREEN);
+							break;
+						case IDENT_HEIGHT:
+							_result = ::GetSystemMetrics(SM_CYSCREEN);
+							break;
+						case IDENT_PRIMARY:
+							// Same as sys.is_primary_monitor.
+							_result = context->helper.is_primary_monitor;
+							break;
+						case IDENT_ZERO:
+							_result = string::ToString(L"%dx%d", ::GetSystemMetrics(SM_CXSCREEN), ::GetSystemMetrics(SM_CYSCREEN)).move();
+							break;
+					}
+					break;
+				}
+				case IDENT_MEMORY:
+				{
+					MEMORYSTATUSEX mse = { sizeof(mse) };
+					if(!::GlobalMemoryStatusEx(&mse))
+						break;
+					switch(Id[2])
+					{
+						case IDENT_USED:
+						case IDENT_ZERO:
+							// Percent in use.
+							_result = (int)mse.dwMemoryLoad;
+							break;
+						case IDENT_TOTAL:
+							_result = (int)(mse.ullTotalPhys / (1024 * 1024));
+							break;
+						case IDENT_FREE:
+							_result = (int)(mse.ullAvailPhys / (1024 * 1024));
+							break;
+					}
+					break;
+				}
+				case IDENT_CPU:
+					// Logical processors in all processor groups.
+					_result = (int)::GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+					break;
 				case IDENT_DATETIME:
 				{
 					SYSTEMTIME lt = { };
@@ -4647,6 +5419,25 @@ namespace Nilesoft
 					_result = proc.move();
 					break;
 				}
+				// app.set(name, value) and friends: text kept between menus, under
+				// HKCU\Software\Nilesoft\Shell\Variables. An empty name is refused.
+				case IDENT_SET:
+					_result = AppVariables::set(as_wstring(eval_arg(0).to_string()), as_wstring(eval_arg(1).to_string()));
+					break;
+				case IDENT_GET:
+				{
+					std::wstring value;
+					if(AppVariables::get(as_wstring(eval_arg(0).to_string()), value))
+						_result = string(value.c_str()).move();
+					break;
+				}
+				case IDENT_REMOVE:
+				case IDENT_DELETE:
+					_result = AppVariables::remove(as_wstring(eval_arg(0).to_string()));
+					break;
+				case IDENT_EXISTS:
+					_result = AppVariables::exists(as_wstring(eval_arg(0).to_string()));
+					break;
 			}
 		}
 
@@ -4930,8 +5721,26 @@ namespace Nilesoft
 				}
 				case IDENT_SPLIT:
 				{
+					// Each item is trimmed; empty items (as in 'a,,b') are skipped.
+					// string::split treats a doubled delimiter as an escaped one, so
+					// 'a,,b' used to come back as the single item 'a,b'.
 					std::vector<string> list;
-					str.split(list, eval_arg(1).to_string()[0]);
+					string delim = eval_arg(1).to_string().move();
+					string value;
+					auto push = [&]()
+					{
+						if(!value.trim().empty())
+							list.emplace_back(value.move());
+						value = nullptr;
+					};
+					for(size_t i = 0; i < str.length(); i++)
+					{
+						if(!delim.empty() && str[i] == delim[0])
+							push();
+						else
+							value += str[i];
+					}
+					push();
 					if(!list.empty())
 						_result.from(list);
 					break;
@@ -4942,8 +5751,16 @@ namespace Nilesoft
 					_result = (tag + str + ((argc == 3) ? eval_arg(2).to_string() : tag)).move();
 					break;
 				}
+				case IDENT_FMT:
 				case IDENT_FORMAT:
+				{
+					// str.fmt('{0}-{1}', a, b): {N} is argument N after the format.
+					std::vector<std::wstring> args;
+					for(size_t i = 1; i < argc + a; i++)
+						args.push_back(as_wstring(eval_arg(i).to_string()));
+					_result = string(StrFormat::format(as_wstring(str), args).c_str()).move();
 					break;
+				}
 				case IDENT_DECODE:
 				{
 					if(Id[2] == IDENT_URL)
@@ -5314,6 +6131,25 @@ namespace Nilesoft
 							if(key.get_value(name, &dwtype, &cbdata, &value))
 								_result = value;
 						}
+						else if(dwtype == REG_BINARY)
+						{
+							// The bytes as a hex string, two digits per byte ("0A1B").
+							uint32_t type = REG_NONE;
+							if(argc == 3 && !key.get_value(name, &type, &cbdata))
+								return;
+							std::vector<uint8_t> bytes(cbdata);
+							if(key.get_value(name, &type, &cbdata, bytes.empty() ? nullptr : bytes.data()))
+							{
+								constexpr wchar_t digits[] = L"0123456789ABCDEF";
+								string hex;
+								for(uint32_t i = 0; i < cbdata && i < bytes.size(); i++)
+								{
+									hex += digits[bytes[i] >> 4];
+									hex += digits[bytes[i] & 0x0F];
+								}
+								_result = hex.move();
+							}
+						}
 					}
 				}
 				else if(Id[1] == IDENT_SET)
@@ -5346,6 +6182,39 @@ namespace Nilesoft
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint32_t>());
 					else if(dwtype == REG_QWORD)
 						_result = Registry::SetKeyValue(root_key, sub_key, name, value.to_number<uint64_t>());
+					else if(dwtype == REG_BINARY)
+					{
+						// A hex string, two digits per byte; spaces, commas and dashes
+						// between bytes are ignored. Anything else writes nothing.
+						string hex = value.to_string().move();
+						std::vector<uint8_t> bytes;
+						int hi = -1;
+						bool ok = true;
+						for(size_t i = 0; ok && i < hex.length(); i++)
+						{
+							auto ch = hex[i];
+							int d = -1;
+							if(ch >= L'0' && ch <= L'9') d = ch - L'0';
+							else if(ch >= L'a' && ch <= L'f') d = ch - L'a' + 10;
+							else if(ch >= L'A' && ch <= L'F') d = ch - L'A' + 10;
+							else if(hi < 0 && (ch == L' ' || ch == L',' || ch == L'-'))
+								continue;
+							else
+								ok = false;
+							if(d < 0)
+								continue;
+							if(hi < 0)
+								hi = d;
+							else
+							{
+								bytes.push_back(static_cast<uint8_t>((hi << 4) | d));
+								hi = -1;
+							}
+						}
+						if(ok && hi < 0)
+							_result = Registry::SetKeyValue(root_key, sub_key, name, REG_BINARY,
+															  bytes.empty() ? nullptr : bytes.data(), bytes.size());
+					}
 					else if(dwtype == REG_SZ || dwtype == REG_EXPAND_SZ)
 					{
 						string v = value.to_string().move();
@@ -5370,19 +6239,37 @@ namespace Nilesoft
 					{
 						std::vector<string> list;
 
+						// Names can be longer than MAX_PATH (values up to 16383
+						// characters), so size the buffer from the key, 260 at least.
+						DWORD max_key_name = 0, max_value_name = 0;
+						::RegQueryInfoKeyW(key, nullptr, nullptr, nullptr, nullptr, &max_key_name,
+										   nullptr, nullptr, &max_value_name, nullptr, nullptr, nullptr);
+						DWORD capacity = std::max<DWORD>(260, (Id[1] == IDENT_KEYS ? max_key_name : max_value_name) + 1);
+
 						LSTATUS retCode = ERROR_SUCCESS;
 						for(auto i = 0u; retCode == ERROR_SUCCESS; i++)
 						{
-							DWORD name_length = 260;
-							string name(name_length);
+							for(;;)
+							{
+								DWORD name_length = capacity;
+								string name(name_length);
 
-							if(Id[1] == IDENT_KEYS)
-								retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							else
-								retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
-							
-							if(retCode == ERROR_SUCCESS)
-								list.push_back(name.release(name_length).move());
+								if(Id[1] == IDENT_KEYS)
+									retCode = ::RegEnumKeyExW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+								else
+									retCode = ::RegEnumValueW(key, i, name.data(), &name_length, nullptr, nullptr, nullptr, nullptr);
+
+								// A longer name was added while listing: grow and retry once more.
+								if(retCode == ERROR_MORE_DATA && capacity < 32768)
+								{
+									capacity = 32768;
+									continue;
+								}
+
+								if(retCode == ERROR_SUCCESS)
+									list.push_back(name.release(name_length).move());
+								break;
+							}
 						}
 
 						key.Close();
@@ -5404,6 +6291,87 @@ namespace Nilesoft
 
 			if(Id[1] == IDENT_EXISTS)
 				_result = false;
+		}
+
+		// exec, run, launch, cmd and shell(file, args, verb, directory, show, wait).
+		// Older forms keep working:
+		//   run(file)                 opens the file;
+		//   run(file, args[, show])   starts it as administrator (runas), as before;
+		//   shell(file, args, verb[, show]).
+		// A number in the verb place is the show value (the old third argument), and a
+		// number in the directory place is too (shell's old fourth argument). The
+		// directory defaults to the folder of the selection. Unless wait is given, the
+		// command waits for the program to end when its window is not hidden, which is
+		// what the older forms did. shell() gives the program's exit code once it ended;
+		// the others give nothing, as before, because an item's cmd= would otherwise try
+		// to run that number as a program.
+		void FuncExpression::eval_exec()
+		{
+			auto argc = Arguments.size();
+			if(argc == 0)
+				return;
+
+			const bool is_shell = Id[0] == IDENT_SHELL;
+
+			string file = eval_arg(0).to_string().move();
+			string args;
+			string verb;
+			string dir;
+			int show = SW_SHOWNORMAL;
+			int wait = -1;
+
+			if(argc > 1)
+				args = eval_arg(1).to_string().move();
+
+			if(argc > 2)
+			{
+				Object a = eval_arg(2).move();
+				if(a.is_number())
+					show = static_cast<int>(a);
+				else if(!a.is_null())
+					verb = a.to_string().move();
+			}
+
+			if(argc > 3)
+			{
+				Object a = eval_arg(3).move();
+				if(a.is_number())
+					show = static_cast<int>(a);
+				else if(!a.is_null())
+					dir = a.to_string().move();
+			}
+
+			if(argc > 4)
+			{
+				Object a = eval_arg(4).move();
+				if(!a.is_null())
+					show = static_cast<int>(a);
+			}
+
+			if(argc > 5)
+			{
+				Object a = eval_arg(5).move();
+				if(!a.is_null())
+					wait = a.to_bool();
+			}
+
+			verb.trim();
+			if(verb.empty() && !is_shell)
+				verb = argc > 1 ? L"runas" : L"open";
+
+			dir.trim();
+			if(dir.empty() && context->Selections)
+				dir = context->Selections->Directory;
+
+			if(wait < 0)
+				wait = show != SW_HIDE;
+
+			auto code = Diagnostics::ShellExec::Run(file, args.empty() ? nullptr : args.c_str(),
+													dir.empty() ? nullptr : dir.c_str(),
+													verb.empty() ? nullptr : verb.c_str(),
+													wait != 0, show);
+			if(is_shell)
+				_result = code;
 		}
 
 		void FuncExpression::eval_icon()
@@ -5679,8 +6647,9 @@ namespace Nilesoft
 					uint8_t r = eval_arg(0);
 					uint8_t g = eval_arg(1);
 					uint8_t b = eval_arg(2);
-					uint8_t a = argc == 4 ? 0xff : eval_arg(3).to_number<uint8_t>();
-					color = Color(r, g, b, a).to_ARGB();
+					uint8_t a = argc >= 4 ? eval_arg(3).to_number<uint8_t>() : 0xff;
+					// Same byte order as color.rgba (0xAABBGGRR).
+					color = Color(r, g, b, a).to_ABGR();
 				}
 				return color.inner(PrimitiveType::Color).move();
 			}
@@ -5710,14 +6679,15 @@ namespace Nilesoft
 			}
 			else if(Id[1] == IDENT_COLOR_RANDOM)
 			{
-				uint8_t min = argc == 1 ? 0 : eval_arg(0).to_number<uint8_t>();
-				uint8_t max = eval_arg(argc == 1 ? 0 : 1).to_number<uint8_t>();
+				// color.random = any color, color.random(max), color.random(min, max).
+				uint8_t min = argc >= 2 ? eval_arg(0).to_number<uint8_t>() : 0;
+				uint8_t max = argc == 0 ? 255 : eval_arg(argc >= 2 ? 1 : 0).to_number<uint8_t>();
 
-				auto r = Environment::RandomNumber(min, max);
-				auto g = Environment::RandomNumber(min, max);
-				auto b = Environment::RandomNumber(min, max);
+				auto r = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto g = static_cast<uint8_t>(Environment::RandomNumber(min, max));
+				auto b = static_cast<uint8_t>(Environment::RandomNumber(min, max));
 
-				Object color = RGB(r, g, b);
+				Object color = Color(r, g, b, 255).to_ABGR();
 				return color.inner(PrimitiveType::Color).move();
 			}
 			else if(Id[1] == IDENT_COLOR_INVERT)
@@ -5885,30 +6855,10 @@ namespace Nilesoft
 			if(var)
 			{
 				obj = context->Eval(var).move();
-				/*if(obj)
-				{
-					if(Array && !obj.is_default())
-					{
-						MB(0);
-						if(Object oa = context->Eval(Array).move(); oa.is_number())
-						{
-							int ai = oa;
-							if(ai >= 0)
-							{
-								if(obj.is_array(true))
-								{
-									Object obj_ret2;
-									obj.get(ai + 1, obj_ret2);
-									obj = obj_ret2.move();
-								}
-								else
-								{
-									obj = obj.to_string()[ai];
-								}
-							}
-						}
-					}
-				}*/
+				// $var[N] on a runtime or local variable: element N of an array,
+				// or character N of a string (null when N is past the end).
+				if(Array)
+					context->eval_object(Array, obj);
 			}
 			return var != nullptr;
 		}

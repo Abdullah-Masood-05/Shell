@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -81,6 +82,35 @@ struct Sample
 // or sel.ext with a string) name, else .txt.
 Sample sampleFor(std::string_view snippetText);
 
+// --- example values --------------------------------------------------------------------
+
+// What a title such as title=sel.path or a where= reads in the preview: made-up but real
+// looking values for a right-click in one context ("D:\Work\report.txt"),
+// never the scratch folder's own paths. The window is known where the context says
+// which it is: a folder's background is in File Explorer (window.name 'CabinetWClass'),
+// the desktop is wnd.is_desktop; for a file, folder or drive it may be either.
+struct Example
+{
+    std::map<std::string, std::string> vars; // "sel.path" -> "D:\Work\report.txt"
+    int count = 1;                           // sel.count
+    // The snippet's own $name = value, as written ("menu_db_name" -> "'Dropbox'"): what
+    // the name reads before any command changes it.
+    std::map<std::string, std::string> snippetVars;
+};
+Example exampleFor(Context c, const Sample &sample);
+
+// An NSS expression's value with the example's sel.* values and the snippet's own
+// variables: string and number literals (with @name and @(expr) in them), + -
+// comparisons and/or/not, if() (only the branch it takes needs to be known), a few
+// str./path. functions and regex.match()/regex.matches() (a list: name[0] is its first
+// match, '' past its end). nullopt when it needs anything else. Pure: nothing runs and
+// nothing is read; app.exists() is false (nothing saved yet). path.exists() is true for
+// the example's own paths, false for an entry of a list the snippet fills in later
+// (ip[0]) and unknown for any other path (a program's folder may well be there).
+std::optional<std::string> exampleValue(std::string_view expr, const Example &ex);
+// The same for a condition: nullopt when it can't be told.
+std::optional<bool> exampleTest(std::string_view expr, const Example &ex);
+
 // --- icons -----------------------------------------------------------------------------
 
 enum class IconKind
@@ -97,6 +127,17 @@ enum class GlyphFont
     Segoe, // Segoe Fluent Icons / MDL2 Assets (image.mdl(), image.fluent(), image.segoe())
 };
 
+// A colour an image= gives: one of the theme's image colours (image.color2) or a literal
+// one (#f00, color.greenyellow). Neither: the theme's own.
+struct IconColor
+{
+    int theme = 0;     // 1..3: theme.image.color1..3
+    uint32_t argb = 0; // 0xAARRGGBB, when theme is 0
+
+    bool given() const { return theme != 0 || argb != 0; }
+    bool operator==(const IconColor &) const = default;
+};
+
 struct Icon
 {
     IconKind kind = IconKind::None;
@@ -105,9 +146,25 @@ struct Icon
     std::string svg;
     std::string path;
     int index = 0;     // the icon in the file
+    // Glyph: colors[0] is its colour. SVG: in place of @image.color1..3 (icon.copy(#f00, auto)).
+    IconColor colors[3];
+    // A file icon that may not be there (if(path.exists(x), x, [\uE187, image.color2])):
+    // what shows when it isn't.
+    std::shared_ptr<const Icon> fallback;
 
     bool operator==(const Icon &) const = default;
 };
+
+// #rgb / #rrggbb / #rrggbbaa, color.<name>, image.color1..3, rgb(r, g, b); auto and
+// default are no colour. nullopt when it isn't a colour.
+std::optional<IconColor> colorOf(std::string_view value);
+
+// The colours an SVG icon is drawn with: the icon's own where it gives them, else the
+// theme's `theme` (0xAARRGGBB, theme.image.color).
+void iconColors(const Icon &icon, const uint32_t theme[3], uint32_t out[3]);
+
+// A glyph's colour (0xAARRGGBB); 0 when the theme's icon colour applies.
+uint32_t glyphColor(const Icon &icon, const uint32_t theme[3]);
 
 // Image definitions, from images.nss and the snippet: @copy,copy_to_clipboard='<svg ...>'
 // and $name=value variables (the value as written).
@@ -139,35 +196,72 @@ enum class Pos
     Bottom,
 };
 
+// A title as the menu shows it: "Copy &lnk path	Ctrl+L" -> "Copy lnk path", the
+// accelerator at byte 5 ("l"), "Ctrl+L" on the right. "&&" is a plain "&".
+struct Title
+{
+    std::string label;
+    int accel = -1;    // byte offset of the underlined character in label, or -1
+    std::string keys;  // after a tab
+};
+Title splitTitle(std::string_view raw);
+
 struct Item
 {
     std::string kind;          // item | menu | separator
     std::string title;         // "" with dynamicTitle: it depends on the selection
+    int accel = -1;            // the underlined character in title (byte offset), or -1
+    std::string keys;          // keys=, or the title's text after a tab: shown on the right
     bool dynamicTitle = false;
     Icon icon;
     bool disabled = false;
     bool expanded = false;     // a menu whose items show in place of it
+    bool fromSelection = true; // a dynamicTitle that reads the selection (sel.*), not
+                               // something else worked out when the menu opens
+    std::string host;          // menu= one of Windows' own menus ("Se&nd to", "(&V)"
+                               // in Chinese): it shows in there, not in the main menu
+                               // (top-level items only)
+    std::string hostId;        // menu=title.send_to: "send_to", whatever Windows' language
     Pos pos = Pos::Middle;
+    // pos=indexof(...): the item of Windows' own it goes in front of. posBeforeId for a
+    // title.* name ("show_desktop_icons"), posBeforeTitle for a title written as text
+    // ("Refresh"); both empty when pos= isn't one indexof() the preview can read.
+    std::string posBeforeId;
+    std::string posBeforeTitle;
     bool sepBefore = false;
     bool sepAfter = false;
     std::vector<Item> children;
 };
 
 // The items of `shell` (the tree's Shell items) declared in `snippetFile`, with what
-// their declarations in `snippet` say about icons, position and separators. Hidden
-// items and items without a title are left out.
+// their declarations in `snippet` say about icons, keys=, position and separators.
+// Hidden items, items without a title and items that only show with Shift held
+// (where=key.shift()) are left out.
+// With an `example`, a title that depends on the selection gets its example value (when
+// exampleValue() can work it out) and a row whose where= is false for it is left out.
 std::vector<Item> itemsOf(const std::vector<menumap::Node> &shell, const std::filesystem::path &snippetFile,
-                          const nss::NssDocument &snippet, const ImageDefs &defs);
+                          const nss::NssDocument &snippet, const ImageDefs &defs, const Example *example = nullptr);
+
+// Leaves out the items whose host menu (menu=title.send_to) Windows doesn't have in
+// `context`: not in the tree's `system` items, nor one Windows always has there.
+// Titles match without '&' and a bracketed accelerator ("View(&V)" is "View").
+void dropMissingHosts(std::vector<Item> &items, Context context, const std::vector<menumap::Node> &system);
 
 // --- the menu shown --------------------------------------------------------------------
 
 struct Row
 {
     std::string label;
+    int accel = -1;           // the underlined character in label (byte offset), or -1
+    std::string keys;         // shown on the right
     Icon icon;
     bool separator = false;
-    bool disabled = false;    // greyed: Windows' own items around the snippet's
+    bool disabled = false;    // vis=disabled
+    bool ghost = false;       // one of Windows' own items around the snippet's (faded); with
+                              // a sub, the Windows menu the snippet's items go in
     bool own = false;         // the snippet's
+    bool groupFirst = false;  // the first and last rows of a run of the snippet's rows
+    bool groupLast = false;   //   in the main menu (separators inside a run don't end it)
     bool placeholder = false; // a title that depends on the selection
     int sub = -1;             // index into Composed::subs
 };
@@ -175,21 +269,49 @@ struct Row
 struct Menu
 {
     std::vector<Row> rows;
+    int hidden = 0; // rows left out by fitHeight() ("+N more")
 };
 
 struct Composed
 {
     Menu main;
     std::vector<Menu> subs;
-    int open = -1;  // the row whose submenu shows at first
+    int open = -1;  // the row whose submenu shows at first: the snippet's first menu
     int own = 0;    // the snippet's rows in the main menu
 };
 
 using Translate = std::function<std::string(const char *)>;
 
-// The snippet's items between a few of Windows' own for `context` (greyed). Separators
-// never lead, trail or double up. `tr` translates the frame's labels and the
+// What the snippet's modify(where=this.title==title.copy keys='Ctrl+C') rules add to
+// Windows' own items: "copy" -> "Ctrl+C" (keys= written as text only).
+using FrameKeys = std::map<std::string, std::string>;
+FrameKeys frameKeysOf(const nss::NssDocument &snippet);
+
+// The snippet's items between a few of Windows' own for `context` (ghost rows: at most
+// two before the snippet's middle rows and one after them). Separators never lead,
+// trail or double up. `tr` translates the frame's labels and the
 // placeholder for a title that depends on the selection.
-Composed compose(Context context, const std::vector<Item> &items, const Translate &tr);
+// Items with a host menu go in a row of Windows' own (faded) named after it, whose
+// submenu has them; that row is open at first when the snippet has no menu of its own.
+// A host menu Windows always has (Send to, View, New, Sort by) shows a few of its own
+// items too (faded), the snippet's after them (pos=top: before them). Windows' rows
+// show the keys `keys` gives them.
+Composed compose(Context context, const std::vector<Item> &items, const Translate &tr, const FrameKeys &keys = {});
+
+// Row heights, as the menus draw them (theme::rowMetrics).
+struct Metrics
+{
+    float top = 0, bottom = 0; // above the first row and below the last
+    float row = 0, sep = 0;
+};
+// The height of `menu` drawn with `m`.
+float heightOf(const Menu &menu, const Metrics &m);
+// How tall the menu pair is with the open row's submenu level with it.
+float pairHeight(const Composed &c, const Metrics &m);
+// Cuts the menus to at most `room` tall: the main menu around its open row (rows after
+// it go first, then the ones before), each submenu at its bottom, below its row;
+// Windows' own rows go before any of the snippet's. Each menu's `hidden` says how many
+// of the snippet's rows (not separators, not Windows' own) it lost.
+void fitHeight(Composed &c, const Metrics &m, float room);
 
 } // namespace snippetpreview

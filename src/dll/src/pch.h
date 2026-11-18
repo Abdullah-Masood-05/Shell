@@ -117,6 +117,7 @@ using namespace Nilesoft;
 // explicit declaration
 #include "Include\FindPattern.h"
 #include "Include\IndexOf.h"
+#include "Include\MenuPlacement.h"
 
 
 //default 4

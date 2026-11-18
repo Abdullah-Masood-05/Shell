@@ -3,7 +3,7 @@
 
 menu(title='File Hash' mode='multiple' type='file' image=\uE25E) {
 	// icon.res(path.combine(sys.bin, 'certmgr.dll'),-450) -450 or -447 \uE239 \uE25E
-	item(title='Verify Checksum file' mode='single' find='.md2|.md4|.md5|.sha1|.sha256|.SHA384|.SHA512'
+	item(title='Verify Checksum file' mode='single' find='."md2"|."md4"|."md5"|."sha1"|."sha256"|."SHA384"|."SHA512"'
 		cmd-line='/k echo off & (for /f "usebackq tokens=1,2 delims=*" %a in (@sel(true)) do (echo %a & echo %b & echo "@(sel.parent)\%b" ) & certutil -hashfile "@(sel.parent)\%b" @str.replace(sel.file.ext, '.', '') | findstr /i /c:%a >nul & if errorlevel 1 (echo File: %b - MD5 hash does not match.) else (echo File: %b - MD5 hash matches.) & echo.) & pause & exit')
 	separator()
 	menu(image=inherit mode='single' title='Copy') {

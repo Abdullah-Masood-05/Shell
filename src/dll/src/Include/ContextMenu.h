@@ -85,6 +85,8 @@ namespace Nilesoft
 			string name;
 			string title;
 			string keys;
+			// The tip a modify() rule gave it (this.tip); Windows gives its items none.
+			string tip;
 			uint32_t length = 0;
 			int tab = 0;
 			bool disabled = false;
@@ -107,6 +109,16 @@ namespace Nilesoft
 			// Moved into this node's parent by a modify(menu=...) rule rather than
 			// read from the parent's native popup.
 			bool moved_in = false;
+			// A modify(menu='/') rule put it in (or kept it in) the main menu: the
+			// rules after it that move items leave it there.
+			bool pinned = false;
+			// Windows gave it greyed out and no modify() rule set its visibility.
+			// Some items are greyed only until Windows works out their state, so
+			// the native item is read again when its menu is shown
+			// (keep_system_item). native_menu/native_pos: where it was read from.
+			bool native_disabled = false;
+			HMENU native_menu = nullptr;
+			int native_pos = -1;
 			~menuitem_t()
 			{
 				for(auto item : items)
@@ -372,6 +384,9 @@ plutovg_move_to(pluto, start.x, start.y);
 				std::vector<menuitem_t *> *std_items = nullptr;
 				// The system menu node std_items belongs to.
 				menuitem_t *std_owner = nullptr;
+				// How many of std_items show (prepare_system_items): the ones
+				// "Remove disabled items" leaves out are not counted (this.count).
+				size_t std_shown = 0;
 
 				NativeMenu *parent{};
 				//bool dynamic{};
@@ -726,6 +741,10 @@ plutovg_move_to(pluto, start.x, start.y);
 
 			void init_cfg();
 			bool prepare_new_items(PositionList &posList, const std::vector<NativeMenu *> &list, MenuItemInfo *owner, menu_t *menu, bool moved = false);
+			// menu= on an item inside one of Shell's submenus: listed when the main menu opens,
+			// so the menu it names shows it even when its own submenu was never opened.
+			void collect_moved_items(const std::vector<NativeMenu *> &list, int depth);
+			bool add_moved_item(NativeMenu *item, string &value, bool in_main);
 			bool prepare_system_items(PositionList &list, menu_t *menu);
 			bool prepare_system_items2(PositionList &list, menu_t *menu);
 
@@ -758,6 +777,7 @@ plutovg_move_to(pluto, start.x, start.y);
 			bool refresh_system_submenu_item(menuitem_t *item);
 			void refresh_system_submenus(menuitem_t *menu);
 			void unmap_system_subtree(menuitem_t *node);
+			bool keep_system_item(menuitem_t *item);
 
 
 			void backup_native_items(HMENU hMenu, uint32_t id, bool check = false);

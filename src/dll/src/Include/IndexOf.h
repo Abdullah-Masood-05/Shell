@@ -5,7 +5,8 @@
 //
 //  - The first item whose title matches `pattern` is the anchor; the item goes
 //    at anchor + offset (1 = right after it), kept inside the menu.
-//  - No match: the default position (top, middle, else the end).
+//  - No match: the default position (top, middle, a number N for index N kept
+//    inside the menu, else the end).
 //  - Several items with the same indexof() keep their order in the file: each
 //    one after the first goes right after the one placed before it. (Each used
 //    to go to anchor + offset again, so a group came out reversed.)
@@ -22,7 +23,8 @@ namespace Nilesoft
 	{
 		namespace IndexOf
 		{
-			// Default positions, as Shell's Position enum: top -2, middle -3; anything else is the end.
+			// Default positions, as Shell's Position enum: top -2, middle -3; a number >= 0 is that
+			// index (kept inside the menu); anything else is the end.
 			constexpr int Top = -2;
 			constexpr int Middle = -3;
 
@@ -43,6 +45,8 @@ namespace Nilesoft
 					at = 0;
 				else if(def == Middle)
 					at = size / 2;
+				else if(def >= 0)
+					at = std::min<std::ptrdiff_t>(def, size);
 
 				items.insert(items.begin() + at, item);
 				return static_cast<size_t>(at);

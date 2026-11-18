@@ -151,6 +151,7 @@
     <ClInclude Include="src\Expression\StatementExpression.h" />
     <ClInclude Include="src\Expression\LiteralExpression.h" />
     <ClInclude Include="src\Expression\Variable.h" />
+    <ClInclude Include="src\Include\AppxManifest.h" />
     <ClInclude Include="src\Include\Cache.h" />
     <ClInclude Include="src\Include\Theme.h" />
     <ClInclude Include="src\Include\Keyboard.h" />
@@ -182,6 +183,8 @@
     <ClInclude Include="src\Include\FindPattern.h" />
     <ClInclude Include="src\Include\IdNames.h" />
     <ClInclude Include="src\Include\IndexOf.h" />
+    <ClInclude Include="src\Include\MenuPlacement.h" />
+    <ClInclude Include="src\Include\NssFunctions.h" />
     <ClCompile Include="src\Parser\Lexer.cpp" />
     <ClCompile Include="src\Parser\Properties.cpp" />
     <ClCompile Include="src\Parser\Verification.cpp" />

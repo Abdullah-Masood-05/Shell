@@ -1,8 +1,8 @@
 #pragma once
 
 #define VERSION_MAJOR			2
-#define VERSION_MINOR			2
-#define VERSION_BUILD			2
+#define VERSION_MINOR			3
+#define VERSION_BUILD			0
 #define VERSION_REV				0
 #define VERSION_YEAR			2026
 
@@ -32,8 +32,8 @@ namespace Nilesoft
 //#define APP_FULLNAME_VERSION	APP_FULLNAME L" (debug)"
 #define APP_FILENAME_TITLE		L"shell"
 
-#define	APP_PRODUCT_VERSION		L"2.2"
-#define	APP_VERSION				L"2.2.2"
+#define	APP_PRODUCT_VERSION		L"2.3"
+#define	APP_VERSION				L"2.3.0"
 //#define APP_VERSION_FULL		L"2.0 build 0"
 
 constexpr auto APP_EMAIL		= L"support@nilesoft.org";
@@ -48,6 +48,9 @@ constexpr auto APP_WEBSITELINK	= L"https://nilesoft.org";
 	#define IDD_INPUTBOX			103
 	#define IDC_INPUTBOX_PROMPT		1000
 	#define IDC_INPUTBOX_EDIT		1001
+	#define IDD_COMBOBOX			104
+	#define IDC_COMBOBOX_PROMPT		1002
+	#define IDC_COMBOBOX_COMBO		1003
 	
 #else
 	#define APP_FILENAME		APP_FILENAME_TITLE L".exe"

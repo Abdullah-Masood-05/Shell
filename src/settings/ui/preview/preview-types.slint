@@ -71,10 +71,21 @@ export struct PreviewItem {
     has-icon: bool,
     own: bool,                // the snippet's item: marked with the accent
     placeholder: bool,        // a title that depends on the selection
+    ghost: bool,              // one of Windows' own rows around the snippet's: faded, no hover
+    group-first: bool,        // the first and last rows of a group of the snippet's rows
+    group-last: bool,         //   in the main menu (the outline around them)
+    keys: string,             // keys= (or the title after a tab), on the right
+    accel: int,               // the underlined letter's index in label (characters), -1 none
+    accel-before: string,     // label split at the underlined letter: before it,
+    accel-char: string,       //   the letter ("" when there is none: test this, not accel),
+    accel-after: string,      //   and after it
+    glyph-color: color,       // the glyph's own colour; transparent: the theme's icon colour
+    opened: bool,             // its submenu shows at first (PreviewMenu.open)
 }
 
 export struct PreviewMenu {
     items: [PreviewItem],
     height: length,
     open: int,                // the item shown hovered (with its submenu) at first
+    hidden-count: int,        // the Snippets preview: rows left out to keep it short ("+N more")
 }

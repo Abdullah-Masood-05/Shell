@@ -104,6 +104,11 @@
 		opacity = value
 		radius = value
 
+		// true (default): on Windows 11, a blur or acrylic menu with 4 px or 8 px corners
+		// is rounded by Windows, which also adds its own shadow.
+		// false: Shell rounds the corners itself, with no Windows shadow.
+		system = boolean value
+
 		padding
 		{
 			left = value
@@ -235,7 +240,7 @@ theme.background            // the background color; .opacity, .effect, .gradien
 theme.item.radius           // the corner radius of an item's highlight
 theme.item.opacity          // its opacity
 theme.item.back.select      // and the other theme.item colors: back, text, border; normal, select; .disabled
-theme.border                // the border color (theme.border.color); .size, .radius
+theme.border                // the border color (theme.border.color); .size, .radius, .system
 theme.shadow                // the shadow color (theme.shadow.color); .size, .offset, .enabled
 theme.separator             // the separator color (theme.separator.color); .size
 theme.image                 // true when images show (theme.image.enabled); .size, .gap, .scale

@@ -1,6 +1,7 @@
 #include "SaveService.h"
 
 #include "LogReader.h"
+#include "ShortcutKeys.h"
 #include "Status.h"
 #include "Text.h"
 #include "Tr.h"
@@ -116,19 +117,35 @@ LRESULT CALLBACK SaveService::keyProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp,
         slint::invoke_from_event_loop([self] { self->saveFromKeyboard(); });
         return 0;
     }
+    // Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+Z... in a keyboard layout whose letter keys
+    // type other letters (Arabic, Russian, Greek): see ShortcutKeys.h. The Latin letter
+    // goes to Slint in the key's place (while Ctrl is down, as Slint keeps it).
+    if (msg == WM_KEYDOWN && wp >= 'A' && wp <= 'Z' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_MENU) >= 0) {
+        const char letter =
+            shortcutkeys::latinLetter(UINT(wp), GetKeyState(VK_SHIFT) < 0, GetKeyboardLayout(0));
+        if (letter) {
+            // The control character Windows queued for this key would follow it.
+            MSG next;
+            if (PeekMessageW(&next, hwnd, WM_CHAR, WM_CHAR, PM_NOREMOVE) && next.wParam < 32)
+                PeekMessageW(&next, hwnd, WM_CHAR, WM_CHAR, PM_REMOVE);
+            auto *self = reinterpret_cast<SaveService *>(data);
+            auto text = slint::SharedString(std::string_view(&letter, 1));
+            if (lp & (1 << 30))
+                self->ui_->window().dispatch_key_press_repeat_event(text);
+            else
+                self->ui_->window().dispatch_key_press_event(text);
+            self->ui_->window().dispatch_key_release_event(text);
+            return 0;
+        }
+    }
     return DefSubclassProc(hwnd, msg, wp, lp);
 }
 
 void SaveService::saveFromKeyboard()
 {
-    // The Config Editor has its own files and its own Save; route Ctrl+S there.
-    const int page = ui_->global<AppState>().get_page();
-    if (page == ui_->global<Pages>().get_editor())
-        ui_->global<EditorState>().invoke_save();
-    else if (page == ui_->global<Pages>().get_openwith())
-        ui_->global<OpenWithState>().invoke_save(); // its own file, like the Config Editor
-    else
-        save();
+    // AppWindow.save-page() picks the current page's save (its own Save button or the
+    // footer), so the shortcut and the buttons agree on every page.
+    ui_->invoke_save_page();
 }
 
 void SaveService::reloadConfig()

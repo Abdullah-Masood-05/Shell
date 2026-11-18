@@ -113,7 +113,7 @@ export component Sidebar inherits Rectangle {
                         color: Tokens.text;
                     }
                     Text {
-                        text: @tr("Version {}", AppState.app-version);
+                        text: @tr("Version {}", Tokens.ltr(AppState.app-version));
                         font-size: Tokens.caption;
                         color: Tokens.text-3;
                     }

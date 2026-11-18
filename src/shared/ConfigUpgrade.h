@@ -26,7 +26,8 @@
 	(imports\settings-app*.nss, and the snippet copies in imports\snippets\) and files the
 	install folder doesn't have are never touched.
 
-	Before anything is written, the whole config tree is snapshotted into
+	Before anything is written, the whole config tree (the .nss files and the user's
+	other files there, such as icons in imports\images\) is snapshotted into
 	<config folder>\backups\<YYYYMMDD-HHMMSS>\ with a manifest.json, the format of the
 	app's Backups page (src/settings/nss: ConfigStore), so the old files can be compared
 	and restored there.
@@ -48,6 +49,7 @@
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #pragma comment(lib, "bcrypt.lib")
@@ -566,6 +568,45 @@ namespace config_upgrade
 		::FindClose(find);
 	}
 
+	// What a snapshot keeps besides the .nss files (nss::ConfigStore::snapshotFiles() in
+	// src/settings/nss does the same): every other file under `dir`, such as the user's
+	// icons in imports\images\, except the backups folder, the backup-<time> folders
+	// -config:reset leaves, *.bak, *.tmp and *.log. A file over max_snapshot_file, and
+	// the files past max_snapshot_other in all (by path), are left out.
+	inline constexpr uint64_t max_snapshot_file = 16ull << 20;
+	inline constexpr uint64_t max_snapshot_other = 128ull << 20;
+
+	inline void list_other_files(const std::wstring &dir, const std::string &prefix,
+								 std::vector<std::pair<std::string, uint64_t>> &out)
+	{
+		WIN32_FIND_DATAW fd{};
+		auto find = ::FindFirstFileExW(join(dir, L"*").c_str(), FindExInfoBasic, &fd, FindExSearchNameMatch, nullptr, 0);
+		if(find == INVALID_HANDLE_VALUE)
+			return;
+		do
+		{
+			std::wstring name = fd.cFileName;
+			if(name == L"." || name == L".." || (fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+				continue;
+			if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				if(::_wcsicmp(name.c_str(), L"backups") == 0 || ::_wcsnicmp(name.c_str(), L"backup-", 7) == 0)
+					continue;
+				list_other_files(join(dir, name), prefix + narrow(name) + "/", out);
+				continue;
+			}
+			auto dot = name.find_last_of(L'.');
+			auto ext = dot == name.npos ? std::wstring() : name.substr(dot);
+			if(::_wcsicmp(ext.c_str(), L".nss") == 0 || ::_wcsicmp(ext.c_str(), L".bak") == 0 ||
+			   ::_wcsicmp(ext.c_str(), L".tmp") == 0 || ::_wcsicmp(ext.c_str(), L".log") == 0)
+				continue;
+			uint64_t size = (uint64_t(fd.nFileSizeHigh) << 32) | fd.nFileSizeLow;
+			if(size <= max_snapshot_file)
+				out.emplace_back(prefix + narrow(name), size);
+		} while(::FindNextFileW(find, &fd));
+		::FindClose(find);
+	}
+
 	// --- snapshot (the app's Backups format) -------------------------------------------
 
 	inline std::string json_quote(std::string_view s)
@@ -600,10 +641,12 @@ namespace config_upgrade
 		std::string id;    // YYYYMMDD-HHMMSS[-n]
 		std::wstring dir;  // <config>\backups\<id>
 		size_t files = 0;
+		std::vector<std::string> skipped; // files that couldn't be read and are not in it (not .nss)
 	};
 
-	// Copies every *.nss of `config_dir` (the backups folder excepted, as the app's
-	// ConfigStore does) to <config_dir>\backups\<id>\ and writes its manifest.json.
+	// Copies every *.nss of `config_dir` and the user's other files there
+	// (list_other_files(); the backups folder excepted, as the app's ConfigStore does)
+	// to <config_dir>\backups\<id>\ and writes its manifest.json ("scope": "all").
 	inline bool snapshot(const std::wstring &config_dir, const std::wstring &root_name, const std::string &reason,
 						 Snapshot &out, std::string &error)
 	{
@@ -632,7 +675,19 @@ namespace config_upgrade
 		}
 
 		std::vector<std::string> files;
-		list_nss(config_dir, {}, files, { L"backups" });
+		list_nss(config_dir, {}, files, { L"backups" }, true);
+		std::vector<std::pair<std::string, uint64_t>> other;
+		// Only imports\ (the user's icons): not the rest of a folder such as Documents.
+		list_other_files(join(config_dir, L"imports"), "imports/", other);
+		std::sort(other.begin(), other.end());
+		uint64_t total = 0;
+		for(auto &[rel, size] : other)
+		{
+			if(total + size > max_snapshot_other)
+				continue;
+			total += size;
+			files.push_back(rel);
+		}
 		std::sort(files.begin(), files.end());
 
 		std::string list;
@@ -640,7 +695,15 @@ namespace config_upgrade
 		{
 			std::string bytes;
 			if(!read_file(join(config_dir, native(rel)), bytes))
+			{
+				auto dot = rel.find_last_of('.');
+				if(dot == rel.npos || ::_stricmp(rel.c_str() + dot, ".nss") != 0)
+				{
+					out.skipped.push_back(rel);
+					std::fprintf(stderr, "snapshot: skipped unreadable file %s\n", rel.c_str());
+				}
 				continue;
+			}
 			if(!write_file(join(out.dir, native(rel)), bytes))
 			{
 				error = "cannot write the snapshot file " + rel;
@@ -659,6 +722,7 @@ namespace config_upgrade
 		manifest += "  \"reason\": " + json_quote(reason) + ",\r\n";
 		manifest += "  \"root\": " + json_quote(narrow(root_name)) + ",\r\n";
 		manifest += "  \"pinned\": false,\r\n";
+		manifest += "  \"scope\": \"all\",\r\n";
 		manifest += "  \"files\": [" + list + (list.empty() ? "]\r\n" : "\r\n  ]\r\n");
 		manifest += "}\r\n";
 		if(!write_file(join(out.dir, L"manifest.json"), manifest))

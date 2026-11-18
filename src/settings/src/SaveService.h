@@ -48,8 +48,9 @@ public:
     SaveService(slint::ComponentHandle<AppWindow> ui, std::filesystem::path shellExe);
     ~SaveService();
 
-    // Ctrl+S anywhere in the window: the Config Editor saves its own files, every
-    // other page saves the pending changes.
+    // Ctrl+S anywhere in the window, whatever has focus: AppWindow.save-page() saves
+    // the current page (its own Save button or the footer). Also makes Ctrl+C, Ctrl+V
+    // and the other Ctrl+letter shortcuts work in a non-Latin keyboard layout.
     void attachWindow(HWND hwnd);
 
     const PendingChanges &pending() const { return pending_; }

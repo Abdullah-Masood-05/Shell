@@ -28,6 +28,7 @@ namespace Nilesoft
 		constexpr auto CONFIG_MODIFY = 0x0E32936DU;
 		constexpr auto CONFIG_UPDATE = 0x20EDD0A8U;
 		constexpr auto CONFIG_CHANGE = 0xF65EC1CBU;
+		constexpr auto CONFIG_OVERRIDE = 0x5B7ED8A5U;
 
 		//
 		// Menu types
@@ -180,6 +181,7 @@ namespace Nilesoft
 		constexpr auto IDENT_IS_TITLEBAR = 0x60467157U;
 		constexpr auto IDENT_IS_ICONTEXTMENU = 0xA5329703U;
 		constexpr auto IDENT_IS_CONTEXTMENUHANDLER = 0x49FA7698U;
+		constexpr auto IDENT_IS_DIALOG = 0x5C7D0770U;
 		
 		constexpr auto IDENT_IS_PRIMARY_MONITOR = 0x9E5789CBU;
 		constexpr auto IDENT_MONITOR = 0xD53A30CDU;
@@ -390,6 +392,7 @@ namespace Nilesoft
 		constexpr auto IDENT_SHOWDELAY = 0xBE22D115U;
 		constexpr auto IDENT_SCREENSHOT = 0x9A37F083U;
 		constexpr auto IDENT_PRIORITY = 0x1CF615A7U;
+		constexpr auto IDENT_FILEMANAGERS = 0x00B3BEF3U;
 
 		constexpr auto IDENT_BORDER = 0xF4916C63U;
 		constexpr auto IDENT_TIP = 0x0B88AE52U;
@@ -511,6 +514,8 @@ namespace Nilesoft
 		constexpr auto IDENT_LNK_TARGET = 0x1D90FD6CU;
 		constexpr auto IDENT_LNKTARGET = 0xDD2F0D11U;
 		constexpr auto IDENT_BOX = 0x0B88628EU;
+		constexpr auto IDENT_BOXL = 0x7C94B4BAU;
+		constexpr auto IDENT_SAVE_BOX = 0xE2B11CFCU;
 		constexpr auto IDENT_CHANGE = 0xF65EC1CBU;
 		constexpr auto IDENT_EMPTY = 0x0F605C34U;
 		constexpr auto IDENT_EXISTS = 0xFC2F1525U;
@@ -525,6 +530,8 @@ namespace Nilesoft
 		constexpr auto IDENT_APPEND = 0xF24D48DDU;
 		//
 		constexpr auto IDENT_USERS = 0x1084FF77U;
+		constexpr auto IDENT_GROUPS = 0x007025A5U;
+		constexpr auto IDENT_DROP = 0x7C95D91AU;
 		constexpr auto IDENT_MAJOR = 0x0FEA717EU;
 		constexpr auto IDENT_MINOR = 0x0FEEE58AU;
 		constexpr auto IDENT_BUILD = 0x0F2E56D5U;
@@ -564,6 +571,11 @@ namespace Nilesoft
 		constexpr auto IDENT_UWP = 0x0B88B461U;
 		constexpr auto IDENT_APPX = 0x7C942B9EU;
 		constexpr auto IDENT_FAMILY = 0xFCE61027U;
+		constexpr auto IDENT_LOGO = 0x7C9A2E56U;
+		constexpr auto IDENT_EXECUTABLE = 0x7C422127U;
+		constexpr auto IDENT_ENTRYPOINT = 0x52FECB81U;
+		constexpr auto IDENT_SQUARE150 = 0xA7FB91CCU;
+		constexpr auto IDENT_SQUARE44 = 0xAFC1CE7EU;
 		//
 		// datetime
 		constexpr auto IDENT_DATETIME = 0x0636F3F2U;
@@ -597,6 +609,7 @@ namespace Nilesoft
 		constexpr auto IDENT_SUB = 0x0B88AB8FU;
 		constexpr auto IDENT_LEFT = 0x7C9A03B0U;
 		constexpr auto IDENT_RIGHT = 0x10494163U;
+		constexpr auto IDENT_FMT = 0x0B88734CU;
 		constexpr auto IDENT_FORMAT = 0xFDE634AEU;
 		constexpr auto IDENT_TAG = 0x0B88AD41U;
 		constexpr auto IDENT_EQ = 0x005977BBU;
@@ -680,6 +693,7 @@ namespace Nilesoft
 		constexpr auto IDENT_INI = 0x0B888025U;
 		constexpr auto IDENT_INPUT = 0x0FA94AB5U;
 		constexpr auto IDENT_INPUT_RESULT = 0x192FD704U;
+		constexpr auto IDENT_INPUT_SELECTED = 0xFF48F66EU;
 
 		/////////////////////
 		// Constants
@@ -730,6 +744,7 @@ namespace Nilesoft
 		constexpr auto IDENT_TYPE_FIXED = 0x0F706335U;
 		constexpr auto IDENT_TYPE_VHD = 0x0B88B6A7U;
 		constexpr auto IDENT_TYPE_DVD = 0x0B886BE3U;
+		constexpr auto IDENT_TYPE_CD = 0x0059776CU;
 		constexpr auto IDENT_TYPE_USB = 0x0B88B3CFU;
 		constexpr auto IDENT_TYPE_REMOVABLE = 0xD9868142U;
 		constexpr auto IDENT_TYPE_NAMESPACE = 0x3F0BBE32U;
@@ -794,6 +809,7 @@ namespace Nilesoft
 		constexpr auto IDENT_ID_SEND_FEEDBACK = 0xF4ABBE33U;
 		constexpr auto IDENT_CLIPBOARD = 0x4912A9B5U;
 		constexpr auto IDENT_IS_EMPTY = 0xDC1854CFU;
+		constexpr auto IDENT_IS_FILES = 0xDC2828D3U;
 		constexpr auto IDENT_ID_COPY_TO_CLIPBOARD = 0x49C3DC71U;
 
 		constexpr auto IDENT_COMMAND_RESTORE_ALL_WINDOWS = 0xDFA7F50BU;
@@ -1400,6 +1416,17 @@ namespace Nilesoft
 		constexpr auto IDENT_DECODE = 0xF87EBD89U;
 		constexpr auto IDENT_ENCODE = 0xFB76C2B3U;
 		constexpr auto IDENT_URL = 0x0B88B3B8U;
+
+		// sys.power / sys.screen / sys.memory / sys.cpu
+		constexpr auto IDENT_POWER = 0x10289E52U;
+		constexpr auto IDENT_BATTERY = 0x6643B780U;
+		constexpr auto IDENT_IS_CHARGING = 0x3708D8E3U;
+		constexpr auto IDENT_IS_AC = 0x0FABBDA4U;
+		constexpr auto IDENT_SCREEN = 0x1B5FFD45U;
+		constexpr auto IDENT_MEMORY = 0x0D82A8DEU;
+		constexpr auto IDENT_TOTAL = 0x1070F309U;
+		constexpr auto IDENT_FREE = 0x7C96F087U;
+		constexpr auto IDENT_CPU = 0x0B8866EDU;
 
 		// End constants
 
