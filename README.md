@@ -39,6 +39,8 @@
 
 **Betas:** test versions with the newest features come out before each stable release. They are on the [releases page](https://github.com/Abdullah-Masood-05/Shell/releases), marked Pre-release. They may have bugs; tell us what you find.
 
+**Support the project:** [Get private Discord access](https://buy.polar.sh/polar_cl_iccBChKQyqil3EgBBtV6qM3lfDpLk4sVu1OpK1j0jQ4) for early builds and a direct line to me. It also helps pay for code signing, so Windows stops warning about the installer.
+
 Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
 ## What's different in Pro
