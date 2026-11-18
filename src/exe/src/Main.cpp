@@ -653,8 +653,13 @@ bool Registration(REGOP reg)
 
 				// Zero-initialised: FOLDEREXTENSIONS used to be left indeterminate
 				// here, so whether {...BAF3} was (re)written depended on the stack.
+				// It has to be written: Explorer creates Drive\shellex\FolderExtensions
+				// entries while it starts, so {...BAF3} is what loads shell.dll (and
+				// hooks the taskbar) before the first right-click. Without it the first
+				// taskbar right-click after sign-in got Windows' menu (issue #12).
+				// DllGetClassObject answers it with E_NOTIMPL: only the load matters.
 				REGOP regop{};
-				regop.CONTEXTMENU = regop.ICONOVERLAY = true;
+				regop.CONTEXTMENU = regop.ICONOVERLAY = regop.FOLDEREXTENSIONS = true;
 
 				if(!RegistryConfig::Register(dll_path, regop))
 				{
