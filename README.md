@@ -44,6 +44,19 @@
 
 Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
+## What's new in 2.3.0
+
+- **Menu map shows the real menu.** Each tab (file, folder, desktop, taskbar, This PC and more) lists the menu as it really opens there, your items and Windows' items together. You can hide, rename, move, reorder or change the icon of any item from there.
+- **Many new functions for your menu files**, many from RubicBG's ReShell: remember values between menus, Save As and folder boxes, drop-down lists, battery, memory and screen details, the files you copied, and more. Long-standing bugs in colors, `key.ctrl()`, `str.split` and the `type.*` values are fixed.
+- **Windows 11 shows Shell's menu again after the November 2026 update (KB5132061)**, with no ViVeTool or other tweaks, and Control Panel opens again with Shell installed.
+- **The first taskbar right-click after you sign in shows Shell's menu** when Shell is installed for all users.
+- **The app is available in Arabic.**
+- **Snippets:** a preview on your own wallpaper before you add one, and new snippets such as Play in MPC-BE and Quick tools.
+- **Backups keep all your files**, such as your own icons, not only the `.nss` files.
+- **Fixes:** New folder on the desktop no longer crashes File Explorer, System > Empty Recycle Bin works, and menu items a program draws itself, such as XnView's image preview, show again.
+
+The full list is in the [2.3.0 release notes](https://github.com/Abdullah-Masood-05/Shell/releases/tag/v2.3.0).
+
 ## What's different in Pro
 
 The complete list of credits and acknowledgments can be found on the [About This Fork](<https://abdullah-masood-05.github.io/Shell/fork>) page.
