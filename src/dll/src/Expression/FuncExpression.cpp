@@ -2,6 +2,7 @@
 #include "Resource.h"
 #include "Expression\Constants.h"
 #include "Expression\Variable.h"
+#include "Include\NewItem.h"
 
 #include <propsys.h>
 #include <propvarutil.h>
@@ -3681,22 +3682,16 @@ namespace Nilesoft
 			return hr;
 		}
 
-		LPITEMIDLIST GeneratePidlFromName(PCIDLIST_ABSOLUTE pidlFolder, LPWSTR pszFile)
+		// io.dir.create and io.file.create(..., rename): see Include\NewItem.h. Explorer is
+		// always told about the item; it is selected and renamed when the open view
+		// shows the folder it was made in, on the view's own thread (issue #8).
+		static void announce_new_item(Context *context, const string &path, bool folder)
 		{
-			LPITEMIDLIST ppidl = nullptr;
-			IComPtr<IShellFolder> psf;
-			if(SUCCEEDED(SHBindToObject(nullptr, pidlFolder, 0, IID_IShellFolder, psf)))
-			{
-				LPITEMIDLIST pidlItem;
-				if(SUCCEEDED(psf->ParseDisplayName(nullptr, nullptr, pszFile, nullptr, &pidlItem, nullptr)))
-				{
-					ppidl = ::ILCombine(pidlFolder, pidlItem);
-					::ILFree(pidlItem);
-				}
-				psf->Release();
-			}
-			return ppidl;
-		};
+			auto sel = context ? context->Selections : nullptr;
+			HWND hwnd = sel ? (HWND)sel->Window.handle : nullptr;
+			auto browser = sel ? sel->ShellBrowser : nullptr;
+			new_item::announce(hwnd, browser, path.c_str(), folder);
+		}
 
 		void FuncExpression::eval_io()
 		{
@@ -3716,7 +3711,6 @@ namespace Nilesoft
 					return path.move();
 				};
 
-				string name0 = arg0;
 				arg0 = full(arg0);
 
 				switch(Id[1])
@@ -3794,36 +3788,12 @@ namespace Nilesoft
 												_result = lpNumberOfBytesWritten;
 										}
 										
-										bool rename = eval_arg(2);
-										auto sel = context->Selections;
-										if(rename && sel && sel->ShellBrowser)
-										{
-											IComPtr<IShellView2> sv;
-											if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-											{
-												IComPtr<IFolderView> fv;
-												if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-												{
-													IComPtr<IPersistFolder2> ppf2;
-													if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-													{
-														LPITEMIDLIST pidlFolder = nullptr;
-														if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-														{
-															if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-															{
-																auto dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-																sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-																::ILFree(pidlCreatedItem);
-															}
-															::ILFree(pidlFolder);
-														}
-													}
-												}
-											}
-											return;
-										}
-										::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
+										// The file is closed first, so a rename can start on it.
+										hFile.close();
+										if(bool(eval_arg(2)))
+											announce_new_item(context, arg0, false);
+										else
+											::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
 										return;
 									}
 								}
@@ -3854,43 +3824,26 @@ namespace Nilesoft
 								int32_t creates = 0;
 								try
 								{
-									creates = ::CreateDirectoryW(arg0.c_str(), nullptr);
+									// One new folder is selected and renamed, as before; with
+									// several, each is only announced.
+									std::vector<string> made;
+									if(::CreateDirectoryW(arg0.c_str(), nullptr))
+										made.push_back(arg0);
 									for(size_t i = 1; i < argc; i++)
-										creates += ::CreateDirectoryW(full(eval_arg(i).to_string()), nullptr);
-
-									auto sel = context->Selections;
-									if(creates == 1 && sel && sel->ShellBrowser)
 									{
-										IComPtr<IShellView2> sv;
-										if(S_OK == sel->ShellBrowser->QueryActiveShellView(sv))
-										{
-											IComPtr<IFolderView> fv;
-											if(S_OK == sv->QueryInterface(IID_IFolderView, fv))
-											{
-
-												IComPtr<IPersistFolder2> ppf2;
-												if(S_OK == fv->GetFolder(IID_IPersistFolder2, ppf2))
-												{
-													LPITEMIDLIST pidlFolder = nullptr;
-													if(S_OK == ppf2->GetCurFolder(&pidlFolder))
-													{
-														if(auto pidlCreatedItem = GeneratePidlFromName(pidlFolder, name0.data()); pidlCreatedItem)
-														{
-															DWORD dwFlagsSelFlags = SVSI_SELECT | SVSI_POSITIONITEM | SVSI_EDIT;
-															sv->SelectAndPositionItem(::ILFindLastID(pidlCreatedItem), dwFlagsSelFlags, nullptr);
-															::ILFree(pidlCreatedItem);
-														}
-														::ILFree(pidlFolder);
-													}
-												}
-											}
-										}
+										string path = full(eval_arg(i).to_string()).move();
+										if(::CreateDirectoryW(path.c_str(), nullptr))
+											made.push_back(path);
 									}
+									creates = (int32_t)made.size();
 
 									if(creates == 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, arg0.c_str(), nullptr);
-									else if(creates > 1)
-										::SHChangeNotify(SHCNE_MKDIR, SHCNF_FLUSHNOWAIT, Path::Parent(arg0), nullptr);
+										announce_new_item(context, made[0], true);
+									else
+									{
+										for(auto &path : made)
+											::SHChangeNotify(SHCNE_MKDIR, SHCNF_PATH | SHCNF_FLUSHNOWAIT, path.c_str(), nullptr);
+									}
 								}
 								catch(...)
 								{
