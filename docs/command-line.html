@@ -33,6 +33,11 @@
 		<td>With <code>-register</code> on Windows 11: show the classic context menu, with Shell, instead of the
 			modern one. With <code>-user</code> the redirect is written under
 			<code>HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}</code>.
+			Since the November 2026 Windows 11 update (KB5132061) Windows uses a second key for its menu, so
+			<code>-treat</code> also writes an empty
+			<code>HKCU\Software\Classes\CLSID\{51668040-5e31-4023-bbe3-149163bd80f1}\InprocServer32</code> for the
+			user who runs it. If the Windows 11 menu came back after that update, register again with
+			<code>-treat</code> and restart Explorer.
 			<code>-unregister</code> always removes the redirect it added.</td>
 	</tr>
 	<tr>
