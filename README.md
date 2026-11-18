@@ -19,6 +19,7 @@
   <a href="https://abdullah-masood-05.github.io/Shell/troubleshooting/">Troubleshooting</a> &middot;
   <a href="https://github.com/Abdullah-Masood-05/Shell/releases"><b>Download</b></a> &middot;
   <a href="https://github.com/Abdullah-Masood-05/Shell/issues">Issues</a> &middot;
+  <a href="https://buy.polar.sh/polar_cl_iccBChKQyqil3EgBBtV6qM3lfDpLk4sVu1OpK1j0jQ4"><b>Support</b></a> &middot;
   <a href="https://github.com/moudey/Shell">Original project</a> &middot;
   <a href="https://nilesoft.org">nilesoft.org</a>
 </p>
@@ -59,6 +60,13 @@ The complete list of credits and acknowledgments can be found on the [About This
   *New* are read again when opened, and menus are placed correctly on monitors with negative coordinates. Shell no
   longer changes your selection-fade setting or Explorer's working directory, and the submenu delay is one visible
   line in `shell.nss` (`showdelay = 200`) that you can remove or turn off in the app.
+- **Windows 11 updates.** Shell turns off Windows 11's new right-click menu on its own, including after the
+  November 2026 update (KB5132061), with no ViVeTool or other tweaks.
+- **More functions for your menu files.** Many come from RubicBG's ReShell, shared with his permission: `str.fmt`,
+  `app.set`/`app.get` to remember values, Save As and folder boxes, drop-down lists in `input()`, battery, memory and
+  screen details, the copied files on the clipboard, and more. Long-standing bugs in `color.rgb`, `key.ctrl()`,
+  `str.split` and the `type.*` values are fixed. The [Functions](https://abdullah-masood-05.github.io/Shell/functions/)
+  pages list them.
 - **Per-user mode.** `shell -register -user` registers for the current user under `HKEY_CURRENT_USER` without
   administrator rights, and the configuration can live in `%APPDATA%\Nilesoft\Shell`.
 - **Auto-reload.** The configuration reloads when `shell.nss` or any file it imports changes. A configuration with an
@@ -71,8 +79,9 @@ The complete list of credits and acknowledgments can be found on the [About This
 - **Default configuration.** The default `shell.nss` adds the *Develop*, *New file* and *System* menus from
   [Abdullah-Masood-05/nilesoft-shell-config](https://github.com/Abdullah-Masood-05/nilesoft-shell-config)
   (`imports/develop.nss`, `imports/my-tools.nss`). Items for programs that are not installed are hidden.
-- **The Nilesoft Shell Pro app.** A desktop app for checking the installation, editing the configuration and restoring
-  backups. See [The app](#the-app).
+- **The Nilesoft Shell Pro app.** A desktop app for checking the installation, editing the configuration, seeing
+  and rearranging the real menu on the Menu map, adding snippets and restoring backups. It is in English, Arabic,
+  Spanish and Chinese (Simplified and Traditional). See [The app](#the-app).
 
 ## Screenshots
 
@@ -167,8 +176,9 @@ Nilesoft Shell Pro (`NilesoftShellPro.exe`) runs as the current user and needs n
 | Rules & Filters | Where the menu is shown: only in File Explorer and on the desktop, excluded programs and window classes, or a raw condition. |
 | Context Menus | Turn the bundled menu modules (terminal, file manage, develop, go to, taskbar, my tools) on or off, and the rules that hide, move or rename Windows' own items. |
 | Menu Builder | Add your own menus, items and separators with a title, icon, command and where they appear; saved to `imports/settings-app-menus.nss`. |
+| Menu map | Each tab (file, folder, desktop, taskbar, This PC and more) shows the menu as it really opens there, your items and Windows' items together. Hide, rename, move, reorder or change the icon of any item; changes to bundled files go to `imports/settings-app-map.nss`. |
+| Snippets | Ready-made menu additions, such as RubicBG's collection, with a preview on your wallpaper before you add one. |
 | Open with | "Open with" items for editors and terminals (VS Code, Zed, Cursor, JetBrains IDEs, Windows Terminal and more), found on this PC, plus apps you add; each an "Open in <app>" item right under WinRAR or "Open in new window" (or grouped in a submenu), with a preview and a dry-run Test; other apps' own menu items (Git, VLC, 7-Zip...) can be hidden there too. Saved to `imports/settings-app-openwith.nss`. |
-| Config Editor | A tree of `shell.nss` and its imports, a highlighted read view and an edit view. Edits are checked with `shell -config:check` before saving; saving keeps the file's encoding and line endings and takes a snapshot first. |
 | Backups | Snapshots of the configuration, compared line by line with your files. Restore, pin, delete or create one by hand. |
 | Preferences | The app's theme, updates, registration for all users (the one action that asks for administrator rights), and version and licence information. |
 
