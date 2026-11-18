@@ -19,7 +19,10 @@ namespace Nilesoft
 
 	// Windows.UI.FileExplorer.ContextMenu {86ca1aa0-34aa-4e8b-a509-50c905bae2a2}
 	static const GUID IID_FileExplorerContextMenu	= { 0x86ca1aa0, 0x34aa, 0x4e8b, { 0xa5, 0x09, 0x50, 0xc9, 0x05, 0xba, 0xe2, 0xa2 } };
-	static const GUID IID_FileExplorerCommandBar	= { 0xd93ed569, 0x3b3e, 0x4bff, { 0x83, 0x55, 0x3c, 0x44, 0xf6, 0xa5, 0x2b, 0xb5 } };
+	// Windows 11 KB5132061 (November 2026) builds the new menu with this class too:
+	// {51668040-5e31-4023-bbe3-149163bd80f1}
+	static const GUID IID_FileExplorerContextMenu2	= { 0x51668040, 0x5e31, 0x4023, { 0xbb, 0xe3, 0x14, 0x91, 0x63, 0xbd, 0x80, 0xf1 } };
+	static const GUID IID_FileExplorerCommandBar	={ 0xd93ed569, 0x3b3e, 0x4bff, { 0x83, 0x55, 0x3c, 0x44, 0xf6, 0xa5, 0x2b, 0xb5 } };
 	//static const GUID IID_ExplorerHostCreator		= { 0xab0b37ec, 0x56f6, 0x4a0e, { 0xa8, 0xfd, 0x7a, 0x8b, 0xf7, 0xc2, 0xda, 0x96 } };
 
 #define L(x)      L ## x
@@ -30,6 +33,7 @@ namespace Nilesoft
 #define CLS_IconOverlay			L"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF2}"
 #define CLS_FolderExtensions	L"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}"
 #define CLS_FileExplorerContextMenu	"{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
+#define CLS_FileExplorerContextMenu2	"{51668040-5e31-4023-bbe3-149163bd80f1}"
 
 	constexpr auto app_namea = "Shell";
 	constexpr auto app_name = L"Shell";
