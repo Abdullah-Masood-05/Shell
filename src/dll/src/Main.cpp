@@ -402,7 +402,10 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 		auto hr = E_NOINTERFACE; //CLASS_E_CLASSNOTAVAILABLE;
 		auto process = true;
 
-		if(rclsid == IID_FileExplorerContextMenu /*&& riid == {706461D1-AC5F-4730-BFE3-CAC6CAD5EF5E}*/)
+		// Since KB5132061 (November 2026) Explorer also builds the Windows 11
+		// menu through {51668040-...}; declining only {86ca1aa0-...} no longer
+		// brings the classic menu back.
+		if(rclsid == IID_FileExplorerContextMenu || rclsid == IID_FileExplorerContextMenu2 /*&& riid == {706461D1-AC5F-4730-BFE3-CAC6CAD5EF5E}*/)
 		{
 			if(_initializer.cache->settings.priority)
 			{
