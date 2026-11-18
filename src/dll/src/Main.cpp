@@ -1216,6 +1216,15 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 				if(!hook_guard::owner)
 					return TRUE;
 
+				// The hooks installed below point into this DLL, so it must stay
+				// loaded until the process ends. A program can free it without
+				// asking DllCanUnloadNow: Control Panel's own explorer.exe did, and
+				// its next CoCreateInstance ran into the unloaded CoCreateInstanceHook
+				// ("Server execution failed", #16).
+				HMODULE pinned{};
+				::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_PIN,
+									 reinterpret_cast<LPCWSTR>(&DllMain), &pinned);
+
 				ContextMenu::RegisterLayer();
 
 				iathook_NtUserTrackPopupMenuEx
