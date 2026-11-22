@@ -3,7 +3,7 @@
 	Packages the portable (per-user, no admin) Nilesoft Shell Pro zip.
 
 .DESCRIPTION
-	Collects shell.dll, shell.exe, NilesoftShellPro.exe, shell.nss, imports\**, snippets\, the
+	Collects shell.dll, shell.x86.dll (for 32-bit programs), shell.exe, NilesoftShellPro.exe, shell.nss, imports\**, snippets\, the
 	license and the readme from the build output folder (src\bin by default), adds PORTABLE.txt
 	and writes NilesoftShellPro-<version>-<arch>-portable.zip.
 
@@ -61,6 +61,7 @@ $Version = $Version.TrimStart('v')
 # source (relative to BinDir) -> name in the zip
 $files = [ordered]@{
 	'shell.dll'            = 'shell.dll'
+	'shell.x86.dll'        = 'shell.x86.dll'
 	'shell.exe'            = 'shell.exe'
 	'NilesoftShellPro.exe' = 'NilesoftShellPro.exe'
 	'shell.nss'            = 'shell.nss'
@@ -70,7 +71,7 @@ $files = [ordered]@{
 $missing = @($files.Keys | Where-Object { -not (Test-Path -LiteralPath (Join-Path $BinDir $_) -PathType Leaf) })
 if (-not (Test-Path -LiteralPath (Join-Path $BinDir 'imports') -PathType Container)) { $missing += 'imports\' }
 if ($missing) {
-	throw ("Missing in ${BinDir}: $($missing -join ', '). Build src\Shell.sln (Release, x64) " +
+	throw ("Missing in ${BinDir}: $($missing -join ', '). Build scripts\build-x86-dll.ps1 and src\Shell.sln (Release, x64) " +
 		"and src\settings (cmake --preset x64-release; cmake --build --preset x64-release) first.")
 }
 
