@@ -98,6 +98,8 @@ bool streq(const std::wstring &s1, const wchar_t *s2)
 
 constexpr auto FILEEXE = L"shell.exe";
 constexpr auto FILEDLL = L"shell.dll";
+// The 32-bit copy of the x64 package, loaded by 32-bit programs.
+constexpr auto FILEDLL32 = L"shell.x86.dll";
 constexpr auto FILEOLD = L"shell.old";
 constexpr auto FILECONFIG = L"shell.nss";
 constexpr auto FILECONFIGBACKUP = L"shell.nss.upgrade";
@@ -552,7 +554,7 @@ static bool RotateOutOfTheWay(const std::wstring &path)
 // one that is still mapped fails harmlessly and it is tried again next time.
 static void PruneRotations(const std::wstring &install_folder)
 {
-	const wchar_t *patterns[] = { L"shell.dll.old*", L"shell.exe.old*", FILEOLD };
+	const wchar_t *patterns[] = { L"shell.dll.old*", L"shell.x86.dll.old*", L"shell.exe.old*", FILEOLD };
 
 	for(auto pattern : patterns)
 	{
@@ -642,6 +644,7 @@ UINT __stdcall Update(MSIHANDLE hInstall)
 		}
 
 		RotateOutOfTheWay(JoinPath(install_folder, FILEDLL));
+		RotateOutOfTheWay(JoinPath(install_folder, FILEDLL32));
 		PruneRotations(install_folder);
 	}
 	return ERROR_SUCCESS;
