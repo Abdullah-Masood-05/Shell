@@ -141,6 +141,17 @@
 					<File Id='readme.txt' Name='readme.txt' Source='$(var.bin)\readme.txt' />
 					<File Id='license.txt' Name='LICENSE' Source='$(var.bin)\license.txt' />
 				</Component>
+<?ifdef X86Dll ?>
+				<!--
+					The 32-bit copy of shell.dll (x64 package only). 32-bit programs on 64-bit
+					Windows resolve the CLSID in the 32-bit registry view and cannot load the
+					64-bit shell.dll. shell.exe -register points that view at this file; it sits
+					next to shell.dll so the config and imports are found the same way.
+				-->
+				<Component Id='APPLICATION_X86' Guid='{5D2F7C1E-8B34-4A6D-9E0A-3C71B5F2A8D4}'>
+					<File Id='shell.x86.dll' Checksum='yes' Name='shell.x86.dll' KeyPath='yes' Source='$(var.X86Dll)' />
+				</Component>
+<?endif ?>
 				<!--
 					NeverOverwrite is deliberately *not* set on CONFIG. It resolves the
 					component to "install nothing" during costing, while the old
@@ -236,6 +247,9 @@
 -->
 		<Feature Id='APPLICATION' Title='$(var.ProductName)' Level='1'>
 			<ComponentRef Id='APPLICATION' />
+<?ifdef X86Dll ?>
+			<ComponentRef Id='APPLICATION_X86' />
+<?endif ?>
 			<ComponentRef Id='CONFIG' />
 			<ComponentRef Id='IMPORTS' />
 			<ComponentRef Id='LANG' />

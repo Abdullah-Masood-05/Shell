@@ -1987,7 +1987,9 @@ namespace ConfigCommand
 	  "registration": {
 	    "mode": "none" | "user" | "machine" | "both",
 	    "machine": { "registered": bool, "dll": "<InprocServer32>" | null },
-	    "user":    { "registered": bool, "dll": "<InprocServer32>" | null }
+	    "user":    { "registered": bool, "dll": "<InprocServer32>" | null },
+	    "x86":     { "path": "...\\shell.x86.dll", "exists": bool,   // 32-bit programs
+	                 "machineDll": "<32-bit view InprocServer32>" | null, "userDll": ... | null }
 	  },
 	  "win11": {
 	    "applicable": bool,            // Windows 11 or later
@@ -2039,7 +2041,8 @@ namespace StatusCommand
 
 	// "conflicts": registrations of our CLSIDs that name another shell.dll.
 	// Each one makes Explorer load a second copy next to (or instead of) ours.
-	static string conflicts(const string &dll_path)
+	// shell.x86.dll, registered in the 32-bit view only, is not a conflict.
+	static string conflicts(const string &dll_path, const string &dll32_path)
 	{
 		string items;
 		for(const auto &store : classes_stores)
@@ -2048,6 +2051,9 @@ namespace StatusCommand
 			{
 				auto server = RegistryConfig::ServerPath(store.root, store.classes, role.clsid).move();
 				if(server.empty() || RegistryConfig::SameFile(server, dll_path))
+					continue;
+				if(::wcsstr(store.classes, L"WOW6432Node") && !::wcscmp(role.clsid, CLS_ContextMenu) &&
+				   RegistryConfig::SameFile(server, dll32_path))
 					continue;
 
 				items += items.empty() ? L"\r\n    { \"clsid\": " : L",\r\n    { \"clsid\": ";
@@ -2142,6 +2148,7 @@ namespace StatusCommand
 	{
 		auto install_dir = InstallDirectory().move();
 		auto dll_path = IO::Path::Combine(install_dir, dll_name).move();
+		auto dll32_path = IO::Path::Combine(install_dir, RegistryConfig::Dll32Name).move();
 		auto machine = RegistryConfig::IsRegistered(RegScope::Machine);
 		auto user = RegistryConfig::IsRegistered(RegScope::User);
 		auto location = ConfigLocation::Resolve(install_dir);
@@ -2195,6 +2202,17 @@ namespace StatusCommand
 		json += json_bool(user);
 		json += L", \"dll\": ";
 		json_quote_or_null(json, RegistryConfig::InprocServerPath(RegScope::User));
+		json += L" }";
+		// The 32-bit copy for 32-bit programs: its file, and the context-menu
+		// CLSID in the 32-bit registry view.
+		json += L",\r\n    \"x86\": { \"path\": ";
+		json_quote(json, dll32_path);
+		json += L", \"exists\": ";
+		json += json_bool(ConfigLocation::IsFile(dll32_path));
+		json += L", \"machineDll\": ";
+		json_quote_or_null(json, RegistryConfig::InprocServerPath32(RegScope::Machine));
+		json += L", \"userDll\": ";
+		json_quote_or_null(json, RegistryConfig::InprocServerPath32(RegScope::User));
 		json += L" }\r\n  }";
 
 		json += L",\r\n  \"win11\": {\r\n    \"applicable\": ";
@@ -2229,7 +2247,7 @@ namespace StatusCommand
 		json_quote_or_null(json, user_dir);
 
 		json += L",\r\n  \"conflicts\": ";
-		json += conflicts(dll_path);
+		json += conflicts(dll_path, dll32_path);
 		json += L",\r\n  \"loadedInExplorer\": ";
 		json += loaded_in_explorer(dll_path);
 

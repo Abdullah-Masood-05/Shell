@@ -176,6 +176,13 @@ jobs:
       - name: Restore NuGet packages
         run: msbuild $env:SOLUTION_FILE_PATH -t:restore -p:RestorePackagesConfig=true -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM
 
+      # The 32-bit shell.dll for 32-bit programs on 64-bit Windows, shipped as
+      # shell.x86.dll in the x64 MSI and portable zip. Built into its own folders
+      # because both builds write src\bin\shell.dll; before the solution so the MSI finds it.
+      - name: Build shell.x86.dll (32-bit programs)
+        if: matrix.platform == 'x64'
+        run: ./scripts/build-x86-dll.ps1
+
       - name: Build the core and the MSI
         run: msbuild $env:SOLUTION_FILE_PATH -m -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:RequireAppExe=$env:REQUIRE_APP
 
@@ -235,4 +242,5 @@ jobs:
             !${{ env.BIN_PATH }}\*.wixpdb
             !${{ env.BIN_PATH }}\*.msi
             !${{ env.BIN_PATH }}\ca.dll
+            !${{ env.BIN_PATH }}\x86\**
           if-no-files-found: error

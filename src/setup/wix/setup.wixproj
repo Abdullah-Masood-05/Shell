@@ -26,6 +26,25 @@
     <DefineConstants Condition="'$(IncludeApp)' == 'true'">$(DefineConstants);AppExe=$(AppExe)</DefineConstants>
   </PropertyGroup>
 
+  <!--
+    The 32-bit copy of shell.dll (shell.x86.dll) goes into the x64 package only, for 32-bit
+    programs on 64-bit Windows. CI builds it (scripts\build-x86-dll.ps1) before the solution.
+    Like the app it is included when the file exists; RequireAppExe=true makes a missing one an error.
+  -->
+  <PropertyGroup>
+    <X86Dll Condition="'$(X86Dll)' == ''">$(MSBuildThisFileDirectory)..\..\bin\shell.x86.dll</X86Dll>
+    <X86Platform Condition="'$(Platform)' == 'x64'">true</X86Platform>
+    <IncludeX86 Condition="'$(X86Platform)' == 'true' and Exists('$(X86Dll)')">true</IncludeX86>
+    <DefineConstants Condition="'$(IncludeX86)' == 'true'">$(DefineConstants);X86Dll=$(X86Dll)</DefineConstants>
+  </PropertyGroup>
+
+  <Target Name="CheckX86Dll" BeforeTargets="BeforeBuild" Condition="'$(X86Platform)' == 'true' and '$(IncludeX86)' != 'true'">
+    <Error Condition="'$(RequireAppExe)' == 'true'"
+           Text="shell.x86.dll not found at '$(X86Dll)'. Build it first: pwsh scripts\build-x86-dll.ps1." />
+    <Warning Condition="'$(RequireAppExe)' != 'true'"
+             Text="shell.x86.dll not found at '$(X86Dll)': building $(TargetName).msi WITHOUT the 32-bit copy, so 32-bit programs get Windows' menu. Run scripts\build-x86-dll.ps1 and rebuild." />
+  </Target>
+
   <Target Name="CheckAppExe" BeforeTargets="BeforeBuild" Condition="'$(AppPlatform)' == 'true' and '$(IncludeApp)' != 'true'">
     <Error Condition="'$(RequireAppExe)' == 'true'"
            Text="NilesoftShellPro.exe not found at '$(AppExe)'. Build it first (src\settings: cmake --preset x64-release, then cmake --build --preset x64-release; see src\settings\README.md) or pass -p:AppExe=&lt;path&gt;." />

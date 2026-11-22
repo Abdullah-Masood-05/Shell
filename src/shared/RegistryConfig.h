@@ -53,6 +53,8 @@ namespace Nilesoft
 		// itself resolves CLSIDs and handlers through.
 	public:
 		static constexpr REGSAM view = KEY_WOW64_64KEY;
+		// The 32-bit view, used only for the context-menu CLSID of shell.x86.dll.
+		static constexpr REGSAM view32 = KEY_WOW64_32KEY;
 
 		static HKEY Root(RegScope scope)
 		{
@@ -74,10 +76,10 @@ namespace Nilesoft
 			return ClassesKey(key.c_str()).move();
 		}
 
-		static bool KeyExists(HKEY root, const wchar_t *subkey)
+		static bool KeyExists(HKEY root, const wchar_t *subkey, REGSAM v = view)
 		{
 			HKEY key{};
-			if(ERROR_SUCCESS != ::RegOpenKeyExW(root, subkey, 0, KEY_QUERY_VALUE | view, &key))
+			if(ERROR_SUCCESS != ::RegOpenKeyExW(root, subkey, 0, KEY_QUERY_VALUE | v, &key))
 				return false;
 			::RegCloseKey(key);
 			return true;
@@ -85,11 +87,11 @@ namespace Nilesoft
 
 		// Creates the key if needed and sets one REG_SZ value. Unlike
 		// RegistryKey::SetString an empty string is allowed.
-		static bool SetString(HKEY root, const wchar_t *subkey, const wchar_t *name, const wchar_t *value)
+		static bool SetString(HKEY root, const wchar_t *subkey, const wchar_t *name, const wchar_t *value, REGSAM v = view)
 		{
 			HKEY key{};
 			if(ERROR_SUCCESS != ::RegCreateKeyExW(root, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE,
-												  KEY_SET_VALUE | view, nullptr, &key, nullptr))
+												  KEY_SET_VALUE | v, nullptr, &key, nullptr))
 				return false;
 			auto bytes = static_cast<DWORD>((::wcslen(value) + 1) * sizeof(wchar_t));
 			auto rc = ::RegSetValueExW(key, name, 0, REG_SZ, reinterpret_cast<const BYTE *>(value), bytes);
@@ -111,22 +113,22 @@ namespace Nilesoft
 
 		// Deletes a key and everything below it, in the same registry view the
 		// keys were created in. True if the key existed and is gone.
-		static bool DeleteTree(HKEY root, const wchar_t *subkey)
+		static bool DeleteTree(HKEY root, const wchar_t *subkey, REGSAM v = view)
 		{
 			HKEY key{};
 			if(ERROR_SUCCESS != ::RegOpenKeyExW(root, subkey, 0,
-												DELETE | KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_SET_VALUE | view,
+												DELETE | KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_SET_VALUE | v,
 												&key))
 				return false;
 			::RegDeleteTreeW(key, nullptr);
 			::RegCloseKey(key);
-			return ERROR_SUCCESS == ::RegDeleteKeyExW(root, subkey, view, 0);
+			return ERROR_SUCCESS == ::RegDeleteKeyExW(root, subkey, v, 0);
 		}
 
-		static bool DeleteValue(HKEY root, const wchar_t *subkey, const wchar_t *name)
+		static bool DeleteValue(HKEY root, const wchar_t *subkey, const wchar_t *name, REGSAM v = view)
 		{
 			HKEY key{};
-			if(ERROR_SUCCESS != ::RegOpenKeyExW(root, subkey, 0, KEY_SET_VALUE | view, &key))
+			if(ERROR_SUCCESS != ::RegOpenKeyExW(root, subkey, 0, KEY_SET_VALUE | v, &key))
 				return false;
 			auto rc = ::RegDeleteValueW(key, name);
 			::RegCloseKey(key);
@@ -368,19 +370,96 @@ namespace Nilesoft
 			}
 
 			// register COM-object: add Software\Classes\CLSID\{<CLSID>} in the scope's store.
-			static bool RegisterInprocServer(RegScope scope, const wchar_t *module, const wchar_t *clsid, const wchar_t *value)
+			static bool RegisterInprocServer(RegScope scope, const wchar_t *module, const wchar_t *clsid, const wchar_t *value, REGSAM v = view)
 			{
 				auto root = Root(scope);
 				auto key = ClsidKey(clsid).move();
 				auto inproc = (key + L"\\InprocServer32").move();
 
-				if(SetString(root, key, nullptr, value) &&
-				   SetString(root, inproc, nullptr, module) &&
-				   SetString(root, inproc, L"ThreadingModel", L"Apartment"))
+				if(SetString(root, key, nullptr, value, v) &&
+				   SetString(root, inproc, nullptr, module, v) &&
+				   SetString(root, inproc, L"ThreadingModel", L"Apartment", v))
 					return true;
 
-				DeleteTree(root, key);
+				DeleteTree(root, key, v);
 				return false;
+			}
+
+			/*
+				The 32-bit copy, shell.x86.dll.
+
+				32-bit programs on 64-bit Windows (an Open/Save dialog in a 32-bit
+				app) look the CLSID up in the 32-bit registry view and cannot load
+				the 64-bit shell.dll. The x64 install therefore ships shell.x86.dll
+				next to shell.dll, and only the context-menu CLSID is registered for
+				it, in the 32-bit view (...\Classes\WOW6432Node\CLSID). The
+				shellex\ContextMenuHandlers keys are shared between the views and
+				already exist. Nothing here happens unless that file exists, and
+				never in a 32-bit shell.exe.
+			*/
+			static constexpr auto Dll32Name = L"shell.x86.dll";
+
+			// <folder of dllPath>\shell.x86.dll if that file exists, else empty.
+			static string Dll32Path([[maybe_unused]] const wchar_t *dllPath)
+			{
+				string path;
+#ifdef _WIN64
+				wchar_t buffer[MAX_PATH * 2]{};
+				if(::wcslen(dllPath) < MAX_PATH)
+				{
+					::wcscpy_s(buffer, dllPath);
+					if(auto slash = ::wcsrchr(buffer, L'\\'); slash)
+					{
+						slash[1] = 0;
+						path = buffer;
+						path += Dll32Name;
+						if(::GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
+							path.clear();
+					}
+				}
+#endif
+				return path.move();
+			}
+
+			// The 32-bit view's InprocServer32 of the context menu (empty if none).
+			static string InprocServerPath32(RegScope scope)
+			{
+				return ServerPath(Root(scope), L"Software\\Classes\\WOW6432Node", CLS_ContextMenu).move();
+			}
+
+			static void Register32(RegScope scope, const wchar_t *dllPath)
+			{
+				auto dll32 = Dll32Path(dllPath).move();
+				if(dll32.empty())
+					return;
+
+				auto root = Root(scope);
+				if(!RegisterInprocServer(scope, dll32, CLS_ContextMenu, APP_COMP_NAME, view32))
+				{
+					Logger::Warning(L"Could not register the 32-bit copy '%s'; 32-bit programs keep Windows' menu.",
+									dll32.c_str());
+					return;
+				}
+				// Only consulted when the EnforceShellExtensionSecurity policy is
+				// set; harmless otherwise. Written to this view too in case the
+				// key is redirected.
+				SetString(root, HKLM_APPROVED, CLS_ContextMenu, APP_SIG, view32);
+			}
+
+			// Removes the 32-bit view's CLSID, only while it names a shell.x86.dll.
+			static void Unregister32([[maybe_unused]] RegScope scope)
+			{
+#ifdef _WIN64
+				auto root = Root(scope);
+				auto server = InprocServerPath32(scope).move();
+				if(server.empty())
+					return;
+				auto name = ::wcsrchr(server.c_str(), L'\\');
+				if(::CompareStringOrdinal(name ? name + 1 : server.c_str(), -1, Dll32Name, -1, TRUE) != CSTR_EQUAL)
+					return;
+				DeleteValue(root, HKLM_APPROVED, CLS_ContextMenu, view32);
+				DeleteTree(root, ClsidKey(CLS_ContextMenu), view32);
+#endif
 			}
 
 			// Require admininstrator's rights!
@@ -438,6 +517,7 @@ namespace Nilesoft
 						{
 							//register shortcut menu handler
 							ret += RegisterContextMenuHandler(scope, true);
+							Register32(scope, dllPath);
 						}
 					}
 				}
@@ -483,6 +563,7 @@ namespace Nilesoft
 				// set; harmless otherwise. Best effort.
 				SetString(HKEY_CURRENT_USER, HKLM_APPROVED, CLS_ContextMenu, APP_SIG);
 
+				Register32(scope, dllPath);
 				RegisterNss(scope);
 				return true;
 			}
@@ -509,6 +590,7 @@ namespace Nilesoft
 				// unregister COM-object Delete the CLSID\{<CLSID>} key.
 				ret += DeleteTree(root, ClsidKey(CLS_ContextMenu));
 				ret += RegisterContextMenuHandler(scope, false);
+				Unregister32(scope);
 
 				/*if(Windows::Version::Instance().IsWindows11OrGreater())
 				{
@@ -530,6 +612,7 @@ namespace Nilesoft
 				ret += DeleteValue(HKEY_CURRENT_USER, HKLM_APPROVED, CLS_ContextMenu);
 				ret += DeleteTree(Root(scope), ClsidKey(CLS_ContextMenu));
 				ret += RegisterContextMenuHandler(scope, false);
+				Unregister32(scope);
 				// Never written per user by this build, but an HKCU copy of
 				// either would shadow the machine one for this user.
 				RemoveRole(scope, CLS_IconOverlay);
