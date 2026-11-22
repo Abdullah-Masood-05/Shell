@@ -84,10 +84,19 @@ default = update_existing | recursive<br><br>
 	<p>With the second argument, the path must be a full path, and a drive or network share root is never deleted. Links (symbolic links, junctions) are not followed: the link itself is deleted and the folder it points to is left alone.</p>
 	<p>Syntax</p>
 	<code>io.delete(path)</code><br>
-	<code>io.delete(path, recursive)</code>
-	<br><br>
-	Example:<br>
-	<code>io.delete('C:\Temp\old-logs', true)</code>
+	<code>io.delete(path, recursive)</code><br>
+	<code>io.delete(sel)</code><br>
+	<code>io.delete(path1, path2, ...)</code><br>
+	<code>io.delete([path1, path2, ...])</code>
+	<p class="mt-3">To delete several things at once, give <code>io.delete</code> the whole selection with <code>sel</code>, or list the paths one after another, or put them in a list with square brackets. Each one is deleted, and the result is true only if all of them were deleted.</p>
+	<p><code>sel</code> means everything the user selected, so files, folders or a mix all work. There is no confirmation, so use it with care. Nothing happens when the menu is opened on the empty background of a folder, because then there is no selection to delete.</p>
+	<p>When more than one path is given, folders are deleted with everything in them. Add <code>false</code> at the end to delete only empty folders instead.</p>
+	<br>
+	Examples:<br>
+	<code>io.delete('C:\Temp\old-logs', true)</code><br>
+	<code>io.delete('C:\Temp\a.txt', 'C:\Temp\b.txt')</code><br><br>
+	A menu item that deletes whatever files and folders are selected, without asking:<br>
+	<code>item(title='Delete selection' mode='multiple' cmd=io.delete(sel))</code>
 </section>
 
 <section id="io.directory.create" class="my-5">
