@@ -2845,6 +2845,7 @@ namespace Nilesoft
 		{
 			LRESULT lret = 0;
 			auto menu = current.menu;
+			bool owner_drawn = false;
 
 			mi->itemHeight = 0;
 			mi->itemWidth = 0;
@@ -2869,10 +2870,21 @@ namespace Nilesoft
 						if(!ident.equals(mi->itemID))
 						{
 							auto colors = owner_draw_colors(false);
+							mi->itemWidth = 0;
 							{
 								OwnerDraw::Scope scope(colors);
 								lret = msg.invoke();
 							}
+
+							// The owner's answer replaces the width set above, which
+							// held Shell's padding and margins around an item. They
+							// were lost, so the menu was exactly as wide as the
+							// owner's own content and its right edge was cut off in a
+							// narrow menu (#14). The owner's width is kept whole and
+							// the padding is added back, so the row handed to it in
+							// WM_DRAWITEM is never narrower than it asked for.
+							owner_drawn = true;
+							mi->itemWidth += _theme.back.width();
 						}
 						else 
 						{
@@ -2900,7 +2912,9 @@ namespace Nilesoft
 				}
 			}
 
-			if(_theme.layout.max_width > 0)
+			// An item the extension draws itself is not shortened: its content
+			// cannot be wrapped or clipped to fit.
+			if(_theme.layout.max_width > 0 && !owner_drawn)
 			{
 				if(mi->itemWidth > _theme.layout.max_width)
 					mi->itemWidth = _theme.layout.max_width;
