@@ -4332,8 +4332,99 @@ namespace Nilesoft
 				switch(Id[1])
 				{
 					case IDENT_DELETE:
-						_result = Path::Delete(arg0, argc > 1 && bool(eval_arg(1)));
+					{
+						// io.delete(path[, recursive]) as before, and now also:
+						//   io.delete(sel)           every selected item (also sel.paths);
+						//   io.delete(a, b, c)       several paths;
+						//   io.delete([a, b])        an array of paths.
+						// A number or true/false after the first argument is the recursive
+						// flag, a string is one more path. For more than one path folders go
+						// with their contents unless the flag says otherwise.
+						std::vector<string> paths;
+						bool multi = false;
+						bool recursive = false;
+						bool recursive_given = false;
+
+						auto add_paths = [&](const Object &o)
+						{
+							if(o.is_array(true))
+							{
+								multi = true;
+								auto ptr = o.get_pointer();
+								auto count = ptr[0].to_number<uint32_t>();
+								for(uint32_t i = 1; i <= count; i++)
+								{
+									if(ptr[i].is_string())
+										paths.push_back(full(ptr[i].to_string().move()));
+								}
+							}
+							else
+								paths.push_back(full(o.to_string().move()));
+						};
+
+						// A bare sel (or sel.paths) is the whole selection. Its text form
+						// is one joined string, which cannot be split safely when names
+						// have spaces, so the selected items are taken directly. On the
+						// empty background of a folder the "selection" is that folder
+						// itself, which is never deleted this way.
+						auto is_whole_selection = [](Expression *e) -> bool
+						{
+							if(!e || e->Type() != ExpressionType::Identifier)
+								return false;
+							auto f = e->identifier();
+							if(f->Array || !f->Arguments.empty() || f->Child || f->Id[0] != IDENT_SEL)
+								return false;
+							return f->Id.length() == 1 || (f->Id.length() == 2 && f->Id[1] == IDENT_PATHS);
+						};
+
+						if(is_whole_selection(Arguments[0]))
+						{
+							multi = true;
+							auto sel = context->Selections;
+							if(sel && !sel->Background)
+							{
+								for(auto item : sel->Items)
+								{
+									if(item && !item->Path.empty() && !item->IsRoot())
+										paths.push_back(item->Path);
+								}
+							}
+						}
+						else
+						{
+							if(obj0.is_array(true))
+								add_paths(obj0);
+							else
+								paths.push_back(arg0);
+						}
+
+						for(size_t i = 1; i < argc; i++)
+						{
+							Object o = eval_arg(i).move();
+							if(o.is_string() || o.is_array(true))
+							{
+								multi = true;
+								add_paths(o);
+							}
+							else
+							{
+								recursive = bool(o);
+								recursive_given = true;
+							}
+						}
+
+						if(multi && !recursive_given)
+							recursive = true;
+
+						bool all = !paths.empty();
+						for(auto &p : paths)
+						{
+							if(!Path::Delete(p, recursive))
+								all = false;
+						}
+						_result = all;
 						break;
+					}
 					case IDENT_COPY:
 					{
 						auto co = uint32_t(std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
