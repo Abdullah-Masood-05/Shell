@@ -2876,6 +2876,57 @@ namespace Nilesoft
 								lret = msg.invoke();
 							}
 
+							// Some owners (XnView's preview) measure only their picture, 128
+							// wide, but draw a line of text under it from the left edge to
+							// the right edge of the row, without an ellipsis. Windows' own
+							// menu makes the row as wide as its widest item, so a long line
+							// fits there; here it was cut off ("1909x1074, 32 bpp, 247").
+							// The owner is drawn once into a throwaway bitmap far wider than
+							// any row, and the right edge of its text is taken as a width.
+							if(mi->itemHeight > 0 && mi->itemHeight < 4096)
+							{
+								const int probe_w = static_cast<int>(mi->itemWidth) + static_cast<int>(dpi(600u));
+								const int probe_h = static_cast<int>(mi->itemHeight);
+								HDC screen = ::GetDC(nullptr);
+								HDC probe_dc = ::CreateCompatibleDC(screen);
+								HBITMAP probe_bmp = ::CreateCompatibleBitmap(screen, probe_w, probe_h);
+								if(probe_dc && probe_bmp)
+								{
+									auto old_bmp = ::SelectObject(probe_dc, probe_bmp);
+									auto old_font = font.handle ? ::SelectObject(probe_dc, font.handle) : nullptr;
+
+									DRAWITEMSTRUCT di{};
+									di.CtlType = ODT_MENU;
+									di.itemID = mi->itemID;
+									di.itemAction = ODA_DRAWENTIRE;
+									di.hwndItem = reinterpret_cast<HWND>(menu->handle);
+									di.hDC = probe_dc;
+									di.rcItem = { 0, 0, probe_w, probe_h };
+									di.itemData = mi->itemData;
+
+									MESSAGE draw = msg;
+									draw.uMsg = WM_DRAWITEM;
+									draw.wParam = 0;
+									draw.lParam = reinterpret_cast<LPARAM>(&di);
+
+									OwnerDraw::TextExtent extent;
+									{
+										OwnerDraw::Scope scope(colors);
+										draw.invoke();
+									}
+
+									if(old_font)
+										::SelectObject(probe_dc, old_font);
+									::SelectObject(probe_dc, old_bmp);
+
+									if(extent.right > 0 && extent.right < probe_w && static_cast<uint32_t>(extent.right) > mi->itemWidth)
+										mi->itemWidth = static_cast<uint32_t>(extent.right);
+								}
+								if(probe_bmp) ::DeleteObject(probe_bmp);
+								if(probe_dc) ::DeleteDC(probe_dc);
+								::ReleaseDC(nullptr, screen);
+							}
+
 							// The owner's answer replaces the width set above, which
 							// held Shell's padding and margins around an item. They
 							// were lost, so the menu was exactly as wide as the

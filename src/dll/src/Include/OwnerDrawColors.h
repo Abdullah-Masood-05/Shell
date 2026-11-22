@@ -48,8 +48,10 @@ namespace Nilesoft
 			namespace detail
 			{
 				inline thread_local Colors *current = nullptr;
+				inline thread_local long *text_right = nullptr;
 				inline Detours<decltype(::GetSysColor)> get_sys_color;
 				inline Detours<decltype(::GetSysColorBrush)> get_sys_color_brush;
+				inline Detours<decltype(::DrawTextW)> draw_text;
 
 				inline bool map(const Colors *colors, int index, COLORREF &color) noexcept
 				{
@@ -134,6 +136,19 @@ namespace Nilesoft
 					}
 					return get_sys_color_brush.invoke(index);
 				}
+
+				// While a TextExtent is live, the right edge of every single-line
+				// string the owner draws is recorded before it is drawn.
+				inline int WINAPI DrawTextWHook(HDC hdc, LPCWSTR text, int length, LPRECT rect, UINT format)
+				{
+					if(auto right = text_right; right && rect && text && !(format & (DT_CALCRECT | DT_WORDBREAK)))
+					{
+						RECT calc = *rect;
+						if(draw_text.invoke(hdc, text, length, &calc, format | DT_CALCRECT) && calc.right > *right)
+							*right = calc.right;
+					}
+					return draw_text.invoke(hdc, text, length, rect, format);
+				}
 			}
 
 			// Patches GetSysColor and GetSysColorBrush once per process and returns
@@ -162,6 +177,7 @@ namespace Nilesoft
 
 					detail::get_sys_color.init(user32, "GetSysColor", reinterpret_cast<void *>(&detail::GetSysColorHook));
 					detail::get_sys_color_brush.init(user32, "GetSysColorBrush", reinterpret_cast<void *>(&detail::GetSysColorBrushHook));
+					detail::draw_text.init(user32, "DrawTextW", reinterpret_cast<void *>(&detail::DrawTextWHook));
 
 					using detours = decltype(detail::get_sys_color);
 					if(detours::Begin() != NO_ERROR)
@@ -169,11 +185,13 @@ namespace Nilesoft
 
 					detail::get_sys_color.hook();
 					detail::get_sys_color_brush.hook();
+					detail::draw_text.hook();
 
 					if(detours::Commit() != NO_ERROR)
 					{
 						detail::get_sys_color.forget();
 						detail::get_sys_color_brush.forget();
+						detail::draw_text.forget();
 						return set(Install::Failed);
 					}
 
@@ -183,6 +201,19 @@ namespace Nilesoft
 
 				return installed;
 			}
+
+			// The furthest right edge, in the owner's own coordinates, of the text it
+			// draws on this thread while it lives. Install first.
+			class TextExtent
+			{
+				long *_previous;
+			public:
+				long right{};
+				TextExtent() noexcept : _previous(detail::text_right) { detail::text_right = &right; }
+				~TextExtent() { detail::text_right = _previous; }
+				TextExtent(const TextExtent &) = delete;
+				TextExtent &operator=(const TextExtent &) = delete;
+			};
 
 			// The theme's colours for the owner's calls on this thread while it lives.
 			class Scope
