@@ -289,8 +289,7 @@ namespace Nilesoft
 						return string().format(L"#%0.8X", clr.to_ARGB()).move();
 					}
 					else
-						return string().format(sizeof(intptr_t) == sizeof(int32_t) ? L"%d" : L"%lld",
-											   static_cast<intptr_t>(Value.Number)).move();
+						return string().format(L"%lld", static_cast<long long>(Value.Number)).move();
 					//auto len = static_cast<size_t>(_scwprintf(L"%g", Value.Double));
 					//std::wstring str(std::swprintf(nullptr, 0, L"%g", Value.Double), '\0');
 					//string str(std::swprintf(nullptr, 0, L"%g", Value.Double));
@@ -453,7 +452,10 @@ namespace Nilesoft
 
 		bool is_float_point() const
 		{
-			return is_number() ? (Value.Number != static_cast<intptr_t>(Value.Number)) : false;
+			// int64_t, not intptr_t: in a 32-bit build intptr_t is 32 bits and an
+			// ARGB colour such as 0xFFE0DFDF no longer fits, so it was taken for a
+			// fractional number and printed as "4.29286e+09" instead of "#E0DFDF".
+			return is_number() ? (Value.Number != static_cast<int64_t>(Value.Number)) : false;
 		}
 
 		bool equals(const Object &other) const

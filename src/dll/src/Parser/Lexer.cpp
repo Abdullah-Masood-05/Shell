@@ -394,11 +394,12 @@ namespace Nilesoft
 				int count = 0;
 				while(l->is_xdigit())
 				{
-					val = double(((intptr_t)val << 4) | l->to_xint());
+					// int64_t: intptr_t is 32 bits in the 32-bit build and 0xFFE0DFDF overflows it
+					val = double(((int64_t)val << 4) | l->to_xint());
 					l->next();
 					count++;
 				}
-				
+
 				error_if(count == 0, TokenError::HexaDecimalExpected);
 
 				/*if(l->tok == 'u' || l->tok == 'U')
@@ -499,7 +500,7 @@ namespace Nilesoft
 
 				while(l->is_xdigit())
 				{
-					val = double(((intptr_t)val << 4) | l->to_xint());
+					val = double(((int64_t)val << 4) | l->to_xint());
 					l->next();
 					count++;
 				}
