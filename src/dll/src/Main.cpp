@@ -1086,7 +1086,7 @@ namespace hook_guard
 			if(module == _hInstance)
 				continue;
 			wchar_t path[MAX_PATH * 2]{};
-			if(!::GetModuleFileNameW(module, path, MAX_PATH * 2) || !same_name(path, L"shell.dll"))
+			if(!::GetModuleFileNameW(module, path, MAX_PATH * 2) || !(same_name(path, L"shell.dll") || same_name(path, L"shell.x86.dll")))
 				continue;
 			if(!::GetProcAddress(module, "DllGetClassObject") || ::GetProcAddress(module, "HookGuard"))
 				continue;
