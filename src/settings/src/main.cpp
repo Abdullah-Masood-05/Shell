@@ -147,7 +147,7 @@ AppOptions parseArgs()
         return o;
     static constexpr const wchar_t *pages[] = { L"home",  L"appearance", L"behavior", L"rules",      L"menus",
                                                 L"builder", L"editor",   L"backups",  L"preferences",
-                                                L"openwith", L"menumap", L"snippets" };
+                                                L"openwith", L"menumap", L"snippets", L"whatsnew" };
     for (int i = 1; i < argc; ++i) {
         if (_wcsicmp(argv[i], L"--no-onboarding") == 0)
             o.noOnboarding = true;

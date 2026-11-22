@@ -6,6 +6,7 @@ export component NavItem inherits Rectangle {
     in property <image> icon;
     in property <string> label;
     in property <bool> selected;
+    in property <bool> badge;      // a small dot after the label (something new here)
     in property <bool> show-focus; // keyboard focus is on this entry
     callback clicked;
 
@@ -73,6 +74,15 @@ export component NavItem inherits Rectangle {
             color: root.selected || ta.has-hover ? Tokens.text : Tokens.text.mix(Tokens.text-2, 0.6);
             overflow: elide;
             animate color { duration: Tokens.fast; }
+        }
+        if root.badge: VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: Tokens.accent;
+            }
         }
     }
 

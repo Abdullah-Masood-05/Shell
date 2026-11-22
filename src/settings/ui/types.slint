@@ -69,6 +69,7 @@ export global Pages {
     out property <int> openwith: 9;    // listed after Menu Builder in the sidebar
     out property <int> menumap: 10;    // listed after Context Menus in the sidebar
     out property <int> snippets: 11;   // listed after Open with
+    out property <int> whatsnew: 12;   // listed right after Home
 }
 
 export global AppState {
@@ -130,6 +131,9 @@ export global AppState {
     callback test-translation();       // pick a .po file and show the app in it
     callback reload-translation();     // read the same file again, after edits
     callback stop-translation();       // back to the Language setting
+    // What's New: a dot on its sidebar entry until the page is opened after an update.
+    in-out property <bool> whats-new-unseen;
+    callback mark-whats-new-seen();
     callback open-url(url: string);
     callback open-path(path: string);
     callback dismiss-onboarding();     // Skip setup / Esc: closes without saving the theme

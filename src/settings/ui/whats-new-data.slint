@@ -1,0 +1,48 @@
+import { Icons } from "theme/icons.slint";
+import { Pages } from "types.slint";
+
+// One card on the What's New page. `button` is the label of the card's button ("" for
+// none). The button opens the app page `page` (an id from Pages, -1 for none) or else
+// the web address `url`.
+export struct NewsItem {
+    icon: image,
+    title: string,
+    text: string,
+    button: string,
+    page: int,
+    url: string,
+}
+
+// THE PLACE TO EDIT FOR EACH RELEASE: replace the entries below with the highlights of
+// the new version (new features first, then fixes; two or three sentences at most each),
+// and the page, the heading and the sidebar dot follow. Keep it to the current version;
+// older ones are in the release notes. Wrap every text in @tr so translators can follow.
+export global WhatsNew {
+    out property <string> release-notes-url: "https://github.com/Abdullah-Masood-05/Shell/releases";
+    out property <[NewsItem]> items: [
+        {
+            icon: Icons.window,
+            title: @tr("Shell's menu in 32-bit programs"),
+            text: @tr("The Open and Save dialogs of 32-bit apps now show Shell's menu too."),
+            button: "",
+            page: -1,
+            url: "",
+        },
+        {
+            icon: Icons.editor,
+            title: @tr("Delete everything you selected at once"),
+            text: @tr("Add io.delete(sel) to your own items and one click deletes the whole selection."),
+            button: @tr("Read the docs"),
+            page: -1,
+            url: "https://abdullah-masood-05.github.io/Shell/functions/io.html",
+        },
+        {
+            icon: Icons.palette,
+            title: @tr("Fix: items other programs draw themselves"),
+            text: @tr("Items like XnView's preview now use the menu's colours and fit inside the menu."),
+            button: "",
+            page: -1,
+            url: "",
+        },
+    ];
+}

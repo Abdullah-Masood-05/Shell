@@ -1,0 +1,44 @@
+import { Tokens } from "../theme/tokens.slint";
+import { Icons } from "../theme/icons.slint";
+import { AppState } from "../types.slint";
+import { Card } from "../components/card.slint";
+import { PageHeader } from "../components/page-header.slint";
+import { Link } from "../components/controls.slint";
+import { PageFrame } from "page-frame.slint";
+import { WhatsNew } from "../whats-new-data.slint";
+
+// The highlights of the current version only; the entries are in whats-new-data.slint.
+// Opening the page marks them as seen (the dot on the sidebar entry goes away).
+export component WhatsNewPage inherits PageFrame {
+    init => { AppState.mark-whats-new-seen(); }
+
+    PageHeader {
+        title: @tr("What's new in {}", Tokens.ltr(AppState.app-version));
+        description: @tr("A few things worth trying in this version.");
+        busy: AppState.busy;
+        busy-label: AppState.busy-label;
+    }
+
+    for item in WhatsNew.items: Card {
+        icon: item.icon;
+        heading: item.title;
+        description: item.text;
+        action-label: item.button;
+        action-icon: Icons.arrow-right;
+        action => {
+            if (item.page >= 0) {
+                AppState.page = item.page;
+            } else if (item.url != "") {
+                AppState.open-url(item.url);
+            }
+        }
+    }
+
+    HorizontalLayout {
+        alignment: start;
+        Link {
+            text: @tr("All release notes");
+            activated => { AppState.open-url(WhatsNew.release-notes-url); }
+        }
+    }
+}

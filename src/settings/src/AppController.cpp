@@ -212,6 +212,23 @@ AppController::AppController(slint::ComponentHandle<AppWindow> ui, AppOptions op
     state.set_classic_menu_option(registry::app::get(L"ClassicMenu").value_or(1) != 0);
     state.set_shield_icon(shieldIcon());
     state.set_page(options_.startPage);
+    // What's New: a dot on its sidebar entry after an update, until the page is opened.
+    // A first run (no stored version and no saved window) has nothing to catch up on.
+    {
+        const std::wstring current = widen(SETTINGS_VERSION);
+        const auto seen = registry::app::getString(L"WhatsNewSeen");
+        if (!seen && !registry::app::loadPlacement())
+            registry::app::setString(L"WhatsNewSeen", current);
+        else
+            state.set_whats_new_unseen(!seen || *seen != current);
+        state.on_mark_whats_new_seen([this] {
+            const auto &st = ui_->global<AppState>();
+            if (st.get_whats_new_unseen()) {
+                st.set_whats_new_unseen(false);
+                registry::app::setString(L"WhatsNewSeen", widen(SETTINGS_VERSION));
+            }
+        });
+    }
     // The language first: the controllers created after this one start translated.
     languageSetting_ = !options_.language.empty() ? options_.language
                                                   : narrow(registry::app::getString(L"Language").value_or(L""));
