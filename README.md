@@ -44,6 +44,13 @@
 
 Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
+## What's new in 2.3.1
+
+- **32-bit programs show Shell's menu**, for example in the Open and Save dialogs of 32-bit apps.
+- **Delete every selected item at once** with `io.delete(sel)` in your own items.
+- **A What's New page in the app** shows what changed after each update.
+- Items that other programs draw themselves, such as XnView's preview, use the menu's colours and fit in the menu.
+
 ## What's new in 2.3.0
 
 - **Menu map shows the real menu.** Each tab (file, folder, desktop, taskbar, This PC and more) lists the menu as it really opens there, your items and Windows' items together. You can hide, rename, move, reorder or change the icon of any item from there.
