@@ -10,12 +10,29 @@
 #include <shellapi.h>
 
 #include <algorithm>
+#include <cstdio>
 #include <chrono>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
 namespace {
+
+// The file's last write time as local "YYYY-MM-DD HH:MM:SS", the format of shell.log's
+// timestamps, so the two compare as strings. Empty if the file can't be read.
+std::string localWriteTime(const fs::path &file)
+{
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    if (!::GetFileAttributesExW(file.c_str(), GetFileExInfoStandard, &data))
+        return {};
+    FILETIME local{};
+    SYSTEMTIME st{};
+    if (!::FileTimeToLocalFileTime(&data.ftLastWriteTime, &local) || !::FileTimeToSystemTime(&local, &st))
+        return {};
+    char buf[32];
+    std::snprintf(buf, sizeof buf, "%04u-%02u-%02u %02u:%02u:%02u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+    return buf;
+}
 
 slint::SharedString ss(std::string_view s) { return slint::SharedString(s); }
 std::string str(const slint::SharedString &s) { return std::string(s.data(), s.size()); }
@@ -577,6 +594,11 @@ void EditorController::pushProblems()
             fs::path f(nss::widen(str(d->file)));
             if (!f.is_absolute())
                 f = root_.parent_path() / f;
+            // An error logged before the file was last saved is about an older copy
+            // of it (or came from a program still running an older Shell), so it
+            // would point at a line that may be fine now.
+            if (auto saved = localWriteTime(f); !saved.empty() && str(d->time) < saved)
+                continue;
             problems_.push_back(Problem{ "log", true, f.lexically_normal(), d->line, d->column,
                                          str(d->message) + " (" + str(d->time) + ")" });
         }
