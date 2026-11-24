@@ -654,6 +654,9 @@ namespace Nilesoft
 			// created or deleted since. Each change is reported once. Polls at
 			// most once per CheckInterval; in between it reports no change.
 			bool config_has_changed();
+			// The last-write times of the files the last load depended on, combined:
+			// the same files give the same number in any process.
+			uint64_t config_stamp();
 			// detect_changes: if the config failed to load but has changed since,
 			// request a retry (Status.Refresh) and report no error, so the caller
 			// goes on to init() instead of falling back to the stock menu.

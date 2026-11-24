@@ -21,6 +21,12 @@
 	// managers, such as Total Commander (see "Other file managers" below)
 	filemanagers = ['totalcmd64', 'xyplorer']
 
+	// Off unless set: load Windows' own menu handlers when Explorer starts,
+	// and keep them loaded between menus, so a right-click does not wait for
+	// them (see "Faster menus" below)
+	preload = true
+	keepalive = true
+
 	tip = true
 	// or
 	tip
@@ -117,3 +123,32 @@
 }</code></pre>
 <p>This is new and has had little testing with these programs. If one of them misbehaves, take it off the list. A
 	right-click on empty space in such a program still has no files.</p>
+<h5 id="preload">Faster menus: preload and keepalive</h5>
+<p>Most of the time between a right-click and the menu is Windows building its own menu: every program that adds items
+	to it (7-Zip, WinMerge, Windows Terminal and so on) is loaded and asked for its items before Shell gets the menu.
+	Three things make that slow. The first right-click after File Explorer starts loads all of them. Some of them run
+	in a process of their own (Windows Terminal's <i>Open in Terminal</i>, for example), which Windows closes shortly
+	after the menu closes, so the next right-click waits for it to start again. And for each of those, every menu asks
+	a Windows service to find the running program again, which gets slower the longer File Explorer runs: in a File
+	Explorer that had been running for a day it took about 135 ms of every right-click. A menu that Windows builds in
+	30 to 50 ms the second time took 270 to 470 ms in the first two cases when measured.</p>
+<p><code>preload = true</code> builds Windows' menus for a file, a folder, a folder's empty space and the desktop in
+	the background a few seconds after File Explorer starts, without showing them, so the first right-click finds
+	everything loaded. <code>keepalive = true</code> keeps what a menu loaded: the programs' DLLs stay loaded, the
+	ones that run in a process of their own keep running, using a few MB of memory each, and Shell creates those
+	straight from the running program from then on instead of asking the service again. Both are off unless you set
+	them, here or with their switches on the app's <a href="/docs/app/behavior">Behavior</a> page.
+	<code>preload</code> runs when File Explorer starts; <code>keepalive</code> applies from the next menu after the
+	config is loaded, and once it is turned off, the next menu lets go of what it kept, so Windows unloads the DLLs
+	and closes the programs as it does without it. Items you hide with <code>remove(clsid=...)</code> are never loaded
+	at all.</p>
+<p>A program whose menu crashes File Explorer during the preload would crash it again at every start, because Windows
+	restarts File Explorer after a crash. So the preload leaves a mark in the registry while it runs, under
+	<code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Preload</code>, and removes it when it is done. If File Explorer
+	closed before that, later starts skip the preload, and say so in <code>shell.log</code>, until the configuration
+	changes: any change to its files, such as turning <code>preload</code> off and on again, lets it run again.</p>
+<pre><code class="lang-shell">settings
+{
+	preload = true
+	keepalive = true
+}</code></pre>

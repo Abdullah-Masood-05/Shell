@@ -71,6 +71,9 @@ const std::vector<BehaviorController::FieldDef> &BehaviorController::fieldDefs()
         { "settings.exclude.where", Kind::Where, {} },
         { "settings.exclude.process", Kind::Names, {} },
         { "settings.exclude.window", Kind::Names, {} },
+        // Appended, so the indexes above (SK in settings-state.slint) stay as they are.
+        { "settings.preload", Kind::Bool, {} },
+        { "settings.keepalive", Kind::Bool, {} },
     };
     return defs;
 }

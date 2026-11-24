@@ -18,6 +18,9 @@ namespace Nilesoft
 			auto_expr priority;
 			// settings.filemanagers: third-party file managers (Main.cpp, filemanager)
 			auto_expr filemanagers;
+			// settings.preload and settings.keepalive: Windows' own menu handlers (Warm.h)
+			auto_expr preload;
+			auto_expr keepalive;
 			struct
 			{
 				auto_expr enabled;

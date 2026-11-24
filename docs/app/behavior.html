@@ -23,6 +23,16 @@
 	<tr><td>Custom submenu delay</td><td>How long you hover over an item before its submenu opens, from 0 to 4000 ms.
 		While a Shell menu is open, this replaces your Windows setting. Off: the Windows setting applies (the line shows
 		its value, for example <i>400 ms</i>).</td><td>On, 200 ms in the shipped <code>shell.nss</code></td></tr>
+	<tr><td>Get the menu ready when File Explorer starts</td><td>Windows and other apps (7-Zip, Windows Terminal and so
+		on) load their menu items in the background a few seconds after File Explorer starts, so the first right-click
+		doesn't wait for them. Takes effect the next time File Explorer starts (Home, <strong>Restart
+		Explorer</strong>). If File Explorer closes or crashes before they are loaded, this is skipped at later starts
+		until you save a change to your configuration (turning this off and on again, saving each time, will
+		do).</td><td>Off</td></tr>
+	<tr><td>Keep other apps' menu items loaded</td><td>After a menu closes, the apps that put items in it stay loaded,
+		so a right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one that runs
+		in a process of its own keeps a few MB in memory. When you turn it off, Shell lets go of them at the next
+		right-click.</td><td>Off</td></tr>
 	<tr><td colspan="3"><strong>Tooltips</strong></td></tr>
 	<tr><td>Show tooltips</td><td>Shows an item's tip when you hover over it.</td><td>On in the shipped
 		<code>shell.nss</code></td></tr>
@@ -115,7 +125,8 @@ settings
 }</code></pre>
 <p>The other settings on this page are written with these keys:</p>
 <table class="table">
-	<tr><td class="w-25">Opening the menu</td><td><code>priority</code>, <code>showdelay</code> (in ms)</td></tr>
+	<tr><td class="w-25">Opening the menu</td><td><code>priority</code>, <code>showdelay</code> (in ms),
+		<code>preload</code>, <code>keepalive</code></td></tr>
 	<tr><td>Tooltips</td><td><code>tip.enabled</code>, <code>tip.time</code> (in seconds, for example <code>1.5</code>),
 		<code>tip.width</code>, <code>tip.default = [#202020, #FFFFFF]</code> (background, then text)</td></tr>
 	<tr><td>Screenshots</td><td><code>screenshot.enabled</code>, <code>screenshot.directory</code></td></tr>

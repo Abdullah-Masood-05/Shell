@@ -254,7 +254,7 @@ msgstr "備份"
 msgid "Version {}"
 msgstr "版本 {}"
 
-#: ui/components/sidebar.slint:201 ui/pages/home.slint:175 src/AppController.cpp:552
+#: ui/components/sidebar.slint:201 ui/pages/home.slint:175 src/AppController.cpp:550
 msgid "Checking status…"
 msgstr "正在檢查狀態…"
 
@@ -532,7 +532,7 @@ msgstr "漸層、圖示色彩及個別項目的規則位於 shell.nss 及其匯�
 msgid "Background"
 msgstr "背景"
 
-#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:138
+#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:154
 msgid "Text"
 msgstr "文字"
 
@@ -560,7 +560,7 @@ msgstr "Shell 選單的主題、色彩、字型和效果。變更時預覽會隨
 msgid "Couldn't read your config"
 msgstr "無法讀取你的設定檔"
 
-#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:566
+#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:564
 msgid "Try again"
 msgstr "再試一次"
 
@@ -608,17 +608,17 @@ msgstr "深色模式"
 msgid "Auto follows the Windows app mode · {}"
 msgstr "「自動」會跟隨 Windows 應用程式模式 · {}"
 
-#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "Auto"
 msgstr "自動"
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "On"
 msgstr "開啟"
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "Off"
 msgstr "關閉"
@@ -921,78 +921,94 @@ msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
 msgstr "在 Shell 選單開啟時覆寫 Windows 預設設定（{} ms） · {}"
 
 #: ui/pages/behavior.slint:90
+msgid "Get the menu ready when File Explorer starts"
+msgstr "在檔案總管啟動時預先準備選單"
+
+#: ui/pages/behavior.slint:91
+msgid "Windows and other apps load their menu items in the background, so the first right-click doesn't wait for them. From the next time File Explorer starts · {}"
+msgstr "Windows 和其他應用程式會在背景載入它們的選單項目，因此第一次按一下滑鼠右鍵時不必等待。從下次啟動檔案總管時開始生效 · {}"
+
+#: ui/pages/behavior.slint:97
+msgid "Keep other apps' menu items loaded"
+msgstr "讓其他應用程式的選單項目保持載入"
+
+#: ui/pages/behavior.slint:98
+msgid "A right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one keeps a few MB in memory · {}"
+msgstr "停頓後再按一下滑鼠右鍵時，不必等待 Windows Terminal 等應用程式重新啟動。每個應用程式會佔用幾 MB 記憶體 · {}"
+
+#: ui/pages/behavior.slint:106
 msgid "Tooltips"
 msgstr "工具提示"
 
-#: ui/pages/behavior.slint:92
+#: ui/pages/behavior.slint:108
 msgid "Show tooltips"
 msgstr "顯示工具提示"
 
-#: ui/pages/behavior.slint:98
+#: ui/pages/behavior.slint:114
 msgid "Delay"
 msgstr "延遲"
 
-#: ui/pages/behavior.slint:111
+#: ui/pages/behavior.slint:127
 msgid "Maximum width"
 msgstr "最大寬度"
 
-#: ui/pages/behavior.slint:127
+#: ui/pages/behavior.slint:143
 msgid "The menu's background · {}"
 msgstr "與選單背景相同 · {}"
 
-#: ui/pages/behavior.slint:139
+#: ui/pages/behavior.slint:155
 msgid "The colour of the tooltip text"
 msgstr "工具提示文字色彩"
 
-#: ui/pages/behavior.slint:152
+#: ui/pages/behavior.slint:168
 msgid "Screenshots"
 msgstr "螢幕擷取畫面"
 
-#: ui/pages/behavior.slint:154
+#: ui/pages/behavior.slint:170
 msgid "Print Screen saves the open menu"
 msgstr "按 Print Screen 擷取開啟的選單"
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
+#: ui/pages/behavior.slint:176 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
 msgid "Folder"
 msgstr "資料夾"
 
-#: ui/pages/behavior.slint:162
+#: ui/pages/behavior.slint:178
 msgid "Screenshots folder · {}"
 msgstr "螢幕擷取畫面資料夾 · {}"
 
-#: ui/pages/behavior.slint:166 ui/pages/menu-builder.slint:666
+#: ui/pages/behavior.slint:182 ui/pages/menu-builder.slint:666
 msgid "Choose…"
 msgstr "選擇…"
 
-#: ui/pages/behavior.slint:175
+#: ui/pages/behavior.slint:191
 msgid "Windows' own items"
 msgstr "Windows 內建選單項目"
 
-#: ui/pages/behavior.slint:176
+#: ui/pages/behavior.slint:192
 msgid "What Shell does to the items Windows and other apps put in the menu."
 msgstr "Shell 如何處理 Windows 與其他應用程式加入選單的項目。"
 
-#: ui/pages/behavior.slint:178
+#: ui/pages/behavior.slint:194
 msgid "Remove duplicate items"
 msgstr "移除重複項目"
 
-#: ui/pages/behavior.slint:184
+#: ui/pages/behavior.slint:200
 msgid "Remove disabled items"
 msgstr "移除已停用項目"
 
-#: ui/pages/behavior.slint:190
+#: ui/pages/behavior.slint:206
 msgid "Remove their separators"
 msgstr "移除內建分隔線"
 
-#: ui/pages/behavior.slint:196
+#: ui/pages/behavior.slint:212
 msgid "Icons on Windows' items"
 msgstr "Windows 選單項目圖示"
 
-#: ui/pages/behavior.slint:198
+#: ui/pages/behavior.slint:214
 msgid "Auto adds icons to known items that have none · {}"
 msgstr "「自動」會為沒有圖示的已知項目加上圖示 · {}"
 
-#: ui/pages/behavior.slint:210
+#: ui/pages/behavior.slint:226
 msgid "Icons on Shell's own items"
 msgstr "Shell 選單項目圖示"
 
@@ -1257,7 +1273,7 @@ msgstr "由 Nilesoft Shell Pro 管理。你可以編輯這個檔案，應用程�
 msgid "Problems"
 msgstr "問題"
 
-#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:812 src/EditorController.cpp:690
+#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:812 src/EditorController.cpp:712
 msgid "Checking…"
 msgstr "正在檢查…"
 
@@ -2498,7 +2514,7 @@ msgstr "重設設定"
 msgid "Puts the default menu files back. Your current files are saved in Backups first, so you can undo it."
 msgstr "還原預設的選單檔案。目前的檔案會先儲存到「備份」中，因此可以復原。"
 
-#: ui/pages/preferences.slint:294 src/AppController.cpp:767
+#: ui/pages/preferences.slint:294 src/AppController.cpp:765
 msgid "The default files are back"
 msgstr "已還原預設檔案"
 
@@ -2773,7 +2789,7 @@ msgstr "shell.exe 已結束，結束代碼為 {}。"
 msgid "Registered for you"
 msgstr "已為你註冊"
 
-#: src/AppController.cpp:124 src/AppController.cpp:661
+#: src/AppController.cpp:124 src/AppController.cpp:659
 msgid "Registered for all users"
 msgstr "已為所有使用者註冊"
 
@@ -2873,179 +2889,179 @@ msgstr "已為你和這台電腦上的所有使用者啟用。"
 msgid "Active for every user on this PC."
 msgstr "已為這台電腦上的所有使用者啟用。"
 
-#: src/AppController.cpp:293
+#: src/AppController.cpp:291
 msgid "Test a translation file"
 msgstr "測試翻譯檔案"
 
-#: src/AppController.cpp:294
+#: src/AppController.cpp:292
 msgid "Translation files"
 msgstr "翻譯檔案"
 
-#: src/AppController.cpp:295 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
+#: src/AppController.cpp:293 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
 msgid "All files"
 msgstr "所有檔案"
 
-#: src/AppController.cpp:329
+#: src/AppController.cpp:327
 msgid "The translation file can't be reloaded"
 msgstr "無法重新載入翻譯檔案"
 
-#: src/AppController.cpp:329
+#: src/AppController.cpp:327
 msgid "The translation file can't be used"
 msgstr "無法使用此翻譯檔案"
 
-#: src/AppController.cpp:339
+#: src/AppController.cpp:337
 msgid "{} of {} strings translated"
 msgstr "已翻譯 {} / {} 個字串"
 
-#: src/AppController.cpp:341
+#: src/AppController.cpp:339
 msgid "{n} missing"
 msgid_plural "{n} missing"
 msgstr[0] "缺少 {n} 個"
 
-#: src/AppController.cpp:343
+#: src/AppController.cpp:341
 msgid "{n} fuzzy, not shown"
 msgid_plural "{n} fuzzy, not shown"
 msgstr[0] "{n} 個模糊翻譯未顯示"
 
-#: src/AppController.cpp:345
+#: src/AppController.cpp:343
 msgid "{n} not in this version of the app"
 msgid_plural "{n} not in this version of the app"
 msgstr[0] "{n} 個不在此版本的應用程式中"
 
-#: src/AppController.cpp:353
+#: src/AppController.cpp:351
 msgid "Translation file reloaded"
 msgstr "已重新載入翻譯檔案"
 
-#: src/AppController.cpp:396
+#: src/AppController.cpp:394
 msgctxt "Language"
 msgid "Auto"
 msgstr "自動"
 
-#: src/AppController.cpp:540 src/SnippetsController.cpp:228
+#: src/AppController.cpp:538 src/SnippetsController.cpp:228
 msgid "shell.exe was not found"
 msgstr "找不到 shell.exe"
 
-#: src/AppController.cpp:541
+#: src/AppController.cpp:539
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr "請安裝 Nilesoft Shell，或將 NilesoftShellPro.exe 放到 shell.exe 所在的資料夾中。"
 
-#: src/AppController.cpp:545
+#: src/AppController.cpp:543
 msgid "Nilesoft Shell was not found"
 msgstr "找不到 Nilesoft Shell"
 
-#: src/AppController.cpp:546
+#: src/AppController.cpp:544
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr "NilesoftShellPro.exe 會在自身所在的資料夾及已註冊的 shell.dll 所在的資料夾中尋找 shell.exe。"
 
-#: src/AppController.cpp:547 src/EditorController.cpp:339
+#: src/AppController.cpp:545 src/EditorController.cpp:356
 msgid "Not found"
 msgstr "找不到"
 
-#: src/AppController.cpp:566 src/AppController.cpp:569
+#: src/AppController.cpp:564 src/AppController.cpp:567
 msgid "Couldn't read the Shell status"
 msgstr "無法讀取 Shell 狀態"
 
-#: src/AppController.cpp:647 src/AppController.cpp:689
+#: src/AppController.cpp:645 src/AppController.cpp:687
 msgid "Restarting Explorer…"
 msgstr "正在重新啟動檔案總管…"
 
-#: src/AppController.cpp:647
+#: src/AppController.cpp:645
 msgid "Explorer restarted"
 msgstr "檔案總管已重新啟動"
 
-#: src/AppController.cpp:649
+#: src/AppController.cpp:647
 msgid "Registering for you…"
 msgstr "正在為你註冊…"
 
-#: src/AppController.cpp:649
+#: src/AppController.cpp:647
 msgid "Shell is enabled for you"
 msgstr "已為你啟用 Shell"
 
-#: src/AppController.cpp:650
+#: src/AppController.cpp:648
 msgid "Restart Explorer to load it everywhere."
 msgstr "重新啟動檔案總管，讓它在所有位置生效。"
 
-#: src/AppController.cpp:654
+#: src/AppController.cpp:652
 msgid "Unregistering…"
 msgstr "正在取消註冊…"
 
-#: src/AppController.cpp:654
+#: src/AppController.cpp:652
 msgid "Shell is disabled for you"
 msgstr "已為你停用 Shell"
 
-#: src/AppController.cpp:655 src/AppController.cpp:666
+#: src/AppController.cpp:653 src/AppController.cpp:664
 msgid "Restart Explorer to unload it."
 msgstr "重新啟動檔案總管以將其卸載。"
 
-#: src/AppController.cpp:657
+#: src/AppController.cpp:655
 msgid "Creating your config…"
 msgstr "正在建立你的設定檔…"
 
-#: src/AppController.cpp:657
+#: src/AppController.cpp:655
 msgid "Personal config created"
 msgstr "已建立個人設定檔"
 
-#: src/AppController.cpp:658
+#: src/AppController.cpp:656
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr "Shell 現在會從 %APPDATA%\\Nilesoft\\Shell 讀取設定檔。"
 
-#: src/AppController.cpp:660 src/AppController.cpp:665 src/AppController.cpp:670 src/UpdateController.cpp:943
+#: src/AppController.cpp:658 src/AppController.cpp:663 src/AppController.cpp:668 src/UpdateController.cpp:943
 msgid "Waiting for administrator approval…"
 msgstr "正在等待系統管理員核准…"
 
-#: src/AppController.cpp:661
+#: src/AppController.cpp:659
 msgid "Restart Explorer to load it."
 msgstr "重新啟動檔案總管以載入它。"
 
-#: src/AppController.cpp:666
+#: src/AppController.cpp:664
 msgid "Unregistered for all users"
 msgstr "已為所有使用者取消註冊"
 
-#: src/AppController.cpp:671
+#: src/AppController.cpp:669
 msgid "Only this copy is registered now"
 msgstr "現在只註冊了這一份"
 
-#: src/AppController.cpp:671
+#: src/AppController.cpp:669
 msgid "Explorer was restarted."
 msgstr "檔案總管已重新啟動。"
 
-#: src/AppController.cpp:692
+#: src/AppController.cpp:690
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr "已註冊，但檔案總管未能重新啟動：{}"
 
-#: src/AppController.cpp:699
+#: src/AppController.cpp:697
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr "另一份仍處於註冊狀態：{}。請在「設定 > 應用程式」中將其解除安裝，然後再試一次。"
 
-#: src/AppController.cpp:706 src/UpdateController.cpp:970
+#: src/AppController.cpp:704 src/UpdateController.cpp:970
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr "已取消系統管理員提示。未進行任何變更。"
 
-#: src/AppController.cpp:707
+#: src/AppController.cpp:705
 msgid "Cancelled"
 msgstr "已取消"
 
-#: src/AppController.cpp:712
+#: src/AppController.cpp:710
 msgid "That didn't work"
 msgstr "操作未成功"
 
-#: src/AppController.cpp:731
+#: src/AppController.cpp:729
 msgid "Putting the default files back…"
 msgstr "正在還原預設檔案…"
 
-#: src/AppController.cpp:742
+#: src/AppController.cpp:740
 msgid "Before reset to defaults"
 msgstr "重設為預設值之前"
 
-#: src/AppController.cpp:743
+#: src/AppController.cpp:741
 msgid "Your current files couldn't be saved in Backups, so nothing was reset: {}"
 msgstr "無法將目前的檔案儲存到「備份」，因此未進行任何重設：{}"
 
-#: src/AppController.cpp:767
+#: src/AppController.cpp:765
 msgid "Your previous files are saved in Backups."
 msgstr "原有檔案已儲存在「備份」中。"
 
-#: src/AppController.cpp:770
+#: src/AppController.cpp:768
 msgid "The reset didn't work"
 msgstr "重設失敗"
 
@@ -3145,7 +3161,7 @@ msgstr "文字文件"
 msgid "Shortcut"
 msgstr "捷徑"
 
-#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:343
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:360
 msgid "Read-only"
 msgstr "唯讀"
 
@@ -3210,7 +3226,7 @@ msgstr "將從磁碟刪除 {} 的快照（「{}」）。此動作無法復原。
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr "目前使用的是安裝資料夾中的共用設定檔，本應用程式從不寫入它。請建立個人設定檔以取得快照。"
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:698
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:258 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:698
 msgid "The config file doesn't exist: {}"
 msgstr "設定檔不存在：{}"
 
@@ -3390,7 +3406,7 @@ msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] "{n} 天前"
 
-#: src/BehaviorController.cpp:267
+#: src/BehaviorController.cpp:270
 msgid "Folder for menu screenshots"
 msgstr "選單螢幕擷取畫面資料夾"
 
@@ -4074,7 +4090,7 @@ msgstr "無法變更此規則"
 msgid "Edit it in the Config Editor instead."
 msgstr "請改在設定檔編輯器中編輯。"
 
-#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:892
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:762 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:892
 msgid "Can't check the config"
 msgstr "無法檢查設定檔"
 
@@ -4098,11 +4114,11 @@ msgstr "已儲存，但有一個檔案無法刪除"
 msgid "Saved"
 msgstr "已儲存"
 
-#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:2039 src/MenuMapController.cpp:2146 src/OpenWithController.cpp:1145
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:808 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:2039 src/MenuMapController.cpp:2146 src/OpenWithController.cpp:1145
 msgid "No changes were needed."
 msgstr "不需要變更。"
 
-#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:2040 src/MenuMapController.cpp:2147
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:809 src/MenuMapController.cpp:2040 src/MenuMapController.cpp:2147
 msgid "Snapshot {} was taken first."
 msgstr "已先建立快照 {}。"
 
@@ -4110,7 +4126,7 @@ msgstr "已先建立快照 {}。"
 msgid "Not saved: the config would fail to load"
 msgstr "未儲存：設定檔將無法載入"
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:2055 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:831 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:2055 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
 msgid "Couldn't save"
 msgstr "無法儲存"
 
@@ -4194,91 +4210,91 @@ msgstr "Windows"
 msgid "Installed apps"
 msgstr "已安裝的應用程式"
 
-#: src/EditorController.cpp:312
+#: src/EditorController.cpp:329
 msgid "Nothing to show."
 msgstr "沒有可顯示的內容。"
 
-#: src/EditorController.cpp:337
+#: src/EditorController.cpp:354
 msgid "Shared config: read-only"
 msgstr "共用設定檔：唯讀"
 
-#: src/EditorController.cpp:341
+#: src/EditorController.cpp:358
 msgid "Outside your config folder"
 msgstr "不在你的設定資料夾中"
 
-#: src/EditorController.cpp:393
+#: src/EditorController.cpp:410
 msgid "Couldn't open {}"
 msgstr "無法開啟「{}」"
 
-#: src/EditorController.cpp:683
+#: src/EditorController.cpp:705
 msgid "shell.exe was not found, so the config can't be checked"
 msgstr "找不到 shell.exe，因此無法檢查設定檔"
 
-#: src/EditorController.cpp:690
+#: src/EditorController.cpp:712
 msgid "Checking your edits…"
 msgstr "正在檢查你的編輯內容…"
 
-#: src/EditorController.cpp:706
+#: src/EditorController.cpp:728
 msgid "The check couldn't run: {}"
 msgstr "無法執行檢查：{}"
 
-#: src/EditorController.cpp:711 src/EditorController.cpp:803
+#: src/EditorController.cpp:733 src/EditorController.cpp:825
 msgid "{n} error in your edits"
 msgid_plural "{n} errors in your edits"
 msgstr[0] "你的編輯內容中有 {n} 個錯誤"
 
-#: src/EditorController.cpp:712
+#: src/EditorController.cpp:734
 msgid "{n} error"
 msgid_plural "{n} errors"
 msgstr[0] "{n} 個錯誤"
 
-#: src/EditorController.cpp:717
+#: src/EditorController.cpp:739
 msgid "Your edits pass the check"
 msgstr "你的編輯內容已通過檢查"
 
-#: src/EditorController.cpp:717
+#: src/EditorController.cpp:739
 msgid "The config passes the check"
 msgstr "設定檔已通過檢查"
 
-#: src/EditorController.cpp:736
+#: src/EditorController.cpp:758
 msgid "Nothing to save"
 msgstr "沒有需要儲存的內容"
 
-#: src/EditorController.cpp:736
+#: src/EditorController.cpp:758
 msgid "These files are read-only here."
 msgstr "這些檔案在此處為唯讀。"
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:225
+#: src/EditorController.cpp:762 src/ShellCli.cpp:225
 msgid "shell.exe was not found."
 msgstr "找不到 shell.exe。"
 
-#: src/EditorController.cpp:754
+#: src/EditorController.cpp:776
 msgid "The check found {n} error: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
 msgid_plural "The check found {n} errors: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
 msgstr[0] "檢查發現 {n} 個錯誤：{0}。\n\n設定檔有錯誤時，Shell 會關閉整個右鍵選單，直到修正錯誤並重新儲存為止。無論如何，都會先建立快照。"
 
-#: src/EditorController.cpp:757
+#: src/EditorController.cpp:779
 msgid "see Problems"
 msgstr "請參閱「問題」"
 
-#: src/EditorController.cpp:784
+#: src/EditorController.cpp:806
 msgid "Saved {}"
 msgstr "已儲存 {}"
 
-#: src/EditorController.cpp:785
+#: src/EditorController.cpp:807
 msgid "Saved {n} file"
 msgid_plural "Saved {n} files"
 msgstr[0] "已儲存 {n} 個檔案"
 
-#: src/EditorController.cpp:789
+#: src/EditorController.cpp:811
 msgid "The config has errors; Shell's menu stays off until they're fixed."
 msgstr "設定檔有錯誤；在修正之前，Shell 的選單會保持關閉。"
 
-#: src/EditorController.cpp:869
+#: src/EditorController.cpp:891
 msgid "{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours."
 msgstr "{} 已在磁碟上變更，但你還有未儲存的編輯內容。重新載入可查看新版本（你的編輯內容將會捨棄），或關閉此提示繼續編輯你的版本。"
 
-#: src/EditorController.cpp:913
+#: src/EditorController.cpp:935
 msgid "That file isn't in the import tree"
 msgstr "該檔案不在匯入樹狀結構中"
 
@@ -6113,107 +6129,74 @@ msgstr "設定為桌面背景"
 msgid "Restore previous versions"
 msgstr "還原舊版"
 
-#~ msgid "{} can't be downloaded from this address."
-#~ msgstr "無法從此位址下載 {}。"
+#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
+#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
 
-#~ msgid "Imported from {}."
-#~ msgstr "從 {} 匯入。"
+#~ msgid "Disable"
+#~ msgstr "停用"
 
-#~ msgid "Downloading the code…"
-#~ msgstr "正在下載程式碼…"
-
-#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
-#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
-
-#~ msgid "Managed by the app"
-#~ msgstr "由本應用程式管理"
-
-#~ msgid "Rename to {}"
-#~ msgstr "重新命名為 {}"
-
-#~ msgid "No preview: the snippet couldn't be downloaded. {}"
-#~ msgstr "無法預覽：未能下載此擴充功能。{}"
-
-#~ msgid "Move to {}, at the bottom"
-#~ msgstr "移至 {} 底端"
-
-#~ msgid "{} isn't downloaded yet."
-#~ msgstr "{} 尚未下載。"
-
-#~ msgid "Change command"
-#~ msgstr "變更命令"
-
-#~ msgid "Add a separator after"
-#~ msgstr "在後方新增分隔線"
-
-#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
-#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
-
-#~ msgid "multiple selection"
-#~ msgstr "多重選取"
-
-#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
-#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
-
-#~ msgid "no selection"
-#~ msgstr "未選取"
-
-#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
-#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
-
-#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
-#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
-
-#~ msgid "Move to position {}"
-#~ msgstr "移至第 {} 個位置"
-
-#~ msgid "Couldn't turn on {}"
-#~ msgstr "無法開啟「{}」"
-
-#~ msgid "on the start"
-#~ msgstr "在「開始」功能表中"
-
-#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
-#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
-
-#~ msgid "Shown for a {} file."
-#~ msgstr "顯示的是 {} 檔案的選單。"
+#~ msgid "on the edit"
+#~ msgstr "在編輯方塊中"
 
 #~ msgid "{} line(s) of the file weren't written by this page and will be replaced on save. First: {}"
 #~ msgstr "檔案中有 {} 行不是由此頁面寫入的，儲存時將會取代。第一行：{}"
 
-#~ msgid "Couldn't download the snippet: {}"
-#~ msgstr "無法下載擴充功能：{}"
+#~ msgid "(set when the menu opens)"
+#~ msgstr "（開啟選單時決定）"
 
-#~ msgid "No visible change"
-#~ msgstr "沒有可見的變更"
-
-#~ msgid "Move to the bottom"
-#~ msgstr "移至底端"
-
-#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
-#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
-
-#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
-#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
+#~ msgid "Show a shortcut"
+#~ msgstr "顯示快速鍵"
 
 #~ msgid "Change state"
 #~ msgstr "變更狀態"
 
+#~ msgid "Rename to {}"
+#~ msgstr "重新命名為 {}"
+
+#~ msgid "The file has a syntax problem at line {}: {}"
+#~ msgstr "檔案第 {} 行有語法問題：{}"
+
+#~ msgid "The snippets by RubicBG come from his collection on GitHub. One is downloaded only when you turn it on, and only if it matches the version this app was checked with."
+#~ msgstr "標示「作者：RubicBG」的擴充功能來自他在 GitHub 上的合集。只有在你開啟開關時才會下載，而且只有與本應用程式檢查過的版本完全一致時才會使用。"
+
+#~ msgid "Imported from {}."
+#~ msgstr "從 {} 匯入。"
+
+#~ msgid "Move to {}, at the bottom"
+#~ msgstr "移至 {} 底端"
+
+#~ msgid "This snippet adds no items of its own: it changes or hides other items, or works elsewhere. This is its code."
+#~ msgstr "此擴充功能不會新增自己的選單項目：它會變更或隱藏其他項目，或在其他地方運作。以下是它的程式碼。"
+
+#~ msgid "When the app starts, at most once a day."
+#~ msgstr "在應用程式啟動時檢查，每天最多一次。"
+
 #~ msgid "Move to {}, at the middle"
 #~ msgstr "移至 {} 中間"
+
+#~ msgid "Add a tip"
+#~ msgstr "新增提示"
+
+#~ msgid "{} statement(s) in the file aren't menus or items and will be dropped on save. First: {}"
+#~ msgstr "檔案中有 {} 個陳述式不是選單或選單項目，儲存時將會捨棄。第一個：{}"
+
+#~ msgid "Add a separator {}"
+#~ msgstr "新增分隔線（{}）"
+
+#~ msgid "on the start"
+#~ msgstr "在「開始」功能表中"
+
+#~ msgid "No preview ({}). This is the snippet's code."
+#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
 
 #~ msgid "To move one of your items, use Edit code or the Menu Builder."
 #~ msgstr "要移動你自己的選單項目，請使用「編輯程式碼」或「自訂選單」。"
 
-#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
-#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+#~ msgid "Downloading the snippet…"
+#~ msgstr "正在下載擴充功能…"
 
-#~ msgid "Move to {}, at the top"
-#~ msgstr "移至 {} 頂端"
-
-#~ msgid "RubicBG's snippet collection"
-#~ msgstr "RubicBG 的擴充功能合集"
+#~ msgid "{} isn't downloaded yet."
+#~ msgstr "{} 尚未下載。"
 
 #~ msgid "Add separators"
 #~ msgstr "新增分隔線"
@@ -6221,23 +6204,38 @@ msgstr "還原舊版"
 #~ msgid "Add a separator before"
 #~ msgstr "在前方新增分隔線"
 
-#~ msgid "SHA256SUMS.txt is not served from this project's releases."
-#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
+#~ msgid "Turn the bundled menus on or off, and the rules that hide, move or rename Windows' own items."
+#~ msgstr "開啟或關閉內建選單，以及隱藏、移動或重新命名 Windows 內建選單項目的規則。"
 
-#~ msgid "Move to {}, position {}"
-#~ msgstr "移至 {} 的第 {} 個位置"
+#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
+#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
 
-#~ msgid "When the app starts, at most once a day."
-#~ msgstr "在應用程式啟動時檢查，每天最多一次。"
+#~ msgid "Move to the bottom"
+#~ msgstr "移至底端"
 
-#~ msgid "(set when the menu opens)"
-#~ msgstr "（開啟選單時決定）"
+#~ msgid "no selection"
+#~ msgstr "未選取"
 
-#~ msgid "Move to the top"
-#~ msgstr "移至頂端"
+#~ msgid "Your changes are kept. Compare a file with the new version, or use the new version instead. Your copy is saved in Backups first."
+#~ msgstr "你的修改已保留。你可以將檔案與新版本比較，或改用新版本。改用前會先把你的副本儲存到「備份」中。"
 
 #~ msgid "Move to the middle"
 #~ msgstr "移至中間"
+
+#~ msgid "Managed by the app"
+#~ msgstr "由本應用程式管理"
+
+#~ msgid "SHA256SUMS.txt is not served from this project's releases."
+#~ msgstr "SHA256SUMS.txt 並非來自此專案的發行版本。"
+
+#~ msgid "RubicBG's snippet collection"
+#~ msgstr "RubicBG 的擴充功能合集"
+
+#~ msgid "Couldn't download the snippet: {}"
+#~ msgstr "無法下載擴充功能：{}"
+
+#~ msgid "Program (.exe)"
+#~ msgstr "程式 (.exe)"
 
 #~ msgid "The file doesn't start with the generated header."
 #~ msgstr "檔案開頭不是自動產生的標頭。"
@@ -6245,47 +6243,65 @@ msgstr "還原舊版"
 #~ msgid "Move to {}"
 #~ msgstr "移至 {}"
 
-#~ msgid "Couldn't download SHA256SUMS.txt: {}"
-#~ msgstr "無法下載 SHA256SUMS.txt：{}"
+#~ msgid "No preview: the snippet couldn't be downloaded. {}"
+#~ msgstr "無法預覽：未能下載此擴充功能。{}"
 
-#~ msgid "The file has a syntax problem at line {}: {}"
-#~ msgstr "檔案第 {} 行有語法問題：{}"
+#~ msgid "Move to position {}"
+#~ msgstr "移至第 {} 個位置"
 
-#~ msgid "Disable"
-#~ msgstr "停用"
-
-#~ msgid "Downloading the snippet…"
-#~ msgstr "正在下載擴充功能…"
-
-#~ msgid "{} came with Shell. Once it is changed here, updates keep your copy and offer to compare it with the new one."
-#~ msgstr "{} 隨 Shell 一起提供。在這裡變更後，更新會保留你的副本，並提供與新版本比較的選項。"
-
-#~ msgid "Add a tip"
-#~ msgstr "新增提示"
-
-#~ msgid "Show a shortcut"
-#~ msgstr "顯示快速鍵"
+#~ msgid "multiple selection"
+#~ msgstr "多重選取"
 
 #~ msgid "Change visibility"
 #~ msgstr "變更可見度"
 
+#~ msgid "Shown for a {} file."
+#~ msgstr "顯示的是 {} 檔案的選單。"
+
+#~ msgid "Move to the top"
+#~ msgstr "移至頂端"
+
+#~ msgid "Couldn't turn on {}"
+#~ msgstr "無法開啟「{}」"
+
+#~ msgid "Couldn't download SHA256SUMS.txt: {}"
+#~ msgstr "無法下載 SHA256SUMS.txt：{}"
+
+#~ msgid "Updates download and are verified in the background; you pick when to restart. MSI installs still need one administrator prompt."
+#~ msgstr "更新會在背景下載並驗證；由你決定何時重新啟動。MSI 安裝仍需確認一次系統管理員提示。"
+
+#~ msgid "Move to {}, at the top"
+#~ msgstr "移至 {} 頂端"
+
+#~ msgid "Each module is an import line in shell.nss. Turning one off comments the line out."
+#~ msgstr "每個模組對應 shell.nss 中的一行 import。關閉模組會將該行變成註解。"
+
+#~ msgid "The downloaded file isn't the version this app checked, so it wasn't used."
+#~ msgstr "下載的檔案不是本應用程式檢查過的版本，因此未使用。"
+
+#~ msgid "Change command"
+#~ msgstr "變更命令"
+
+#~ msgid "{} can't be downloaded from this address."
+#~ msgstr "無法從此位址下載 {}。"
+
 #~ msgid "The snippet's items are marked in blue; the greyed ones are already in the menu."
 #~ msgstr "擴充功能新增的選單項目以藍色標示；灰色的項目是選單中原本就有的。"
-
-#~ msgid "Program (.exe)"
-#~ msgstr "程式 (.exe)"
 
 #~ msgid "Items matching an expression"
 #~ msgstr "符合運算式的項目"
 
-#~ msgid "on the edit"
-#~ msgstr "在編輯方塊中"
+#~ msgid "No visible change"
+#~ msgstr "沒有可見的變更"
 
-#~ msgid "Add a separator {}"
-#~ msgstr "新增分隔線（{}）"
+#~ msgid "Couldn't download the snippet. Check your internet connection and try again."
+#~ msgstr "無法下載擴充功能。請檢查網路連線，然後再試一次。"
 
-#~ msgid "No preview ({}). This is the snippet's code."
-#~ msgstr "無法預覽（{}）。以下是此擴充功能的程式碼。"
+#~ msgid "Move to {}, position {}"
+#~ msgstr "移至 {} 的第 {} 個位置"
 
-#~ msgid "The Windows items you hid, renamed or moved on the Menu map page."
-#~ msgstr "你在「選單地圖」頁面隱藏、重新命名或移動的 Windows 選單項目。"
+#~ msgid "Downloading the code…"
+#~ msgstr "正在下載程式碼…"
+
+#~ msgid "Add a separator after"
+#~ msgstr "在後方新增分隔線"

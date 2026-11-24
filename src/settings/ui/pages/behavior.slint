@@ -29,7 +29,7 @@ component SwitchRow inherits SettingRow {
 
 export component BehaviorPage inherits PageFrame {
     property <[ThemeField]> f: SettingsState.fields;
-    property <bool> ready: SettingsState.loaded && f.length > SK.window;
+    property <bool> ready: SettingsState.loaded && f.length > SK.keepalive;
     // Read the files again: the Config Editor may have changed them.
     init => { SettingsState.reload(); }
 
@@ -82,6 +82,22 @@ export component BehaviorPage inherits PageFrame {
             unit: " ms";
             enabled: root.ready;
             changed(v) => { SettingsState.set-number(SK.showdelay, v); }
+        }
+        RowDivider { }
+        // settings.preload and settings.keepalive: the wait before the menu is mostly
+        // Windows loading its own and other apps' items (src/dll/src/Include/Warm.h).
+        SwitchRow {
+            label: @tr("Get the menu ready when File Explorer starts");
+            hint: @tr("Windows and other apps load their menu items in the background, so the first right-click doesn't wait for them. From the next time File Explorer starts · {}", root.f[SK.preload].origin);
+            index: SK.preload;
+            ready: root.ready;
+        }
+        RowDivider { }
+        SwitchRow {
+            label: @tr("Keep other apps' menu items loaded");
+            hint: @tr("A right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one keeps a few MB in memory · {}", root.f[SK.keepalive].origin);
+            index: SK.keepalive;
+            ready: root.ready;
         }
     }
 
