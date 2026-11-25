@@ -72,6 +72,7 @@ private:
     void showToast(const std::string &kind, const std::string &title, const std::string &text = {});
     void applySnapshot(Snapshot snap, bool quiet);
     void openPath(const std::string &path);
+    void resetWindowPlacement();
 
     Snapshot collect() const; // worker thread
 

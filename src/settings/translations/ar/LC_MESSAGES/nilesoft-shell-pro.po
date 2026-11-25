@@ -207,7 +207,7 @@ msgstr "الصفحة الرئيسية"
 
 #: ui/components/sidebar.slint:15
 msgid "What's New"
-msgstr ""
+msgstr "ما الجديد"
 
 #: ui/components/sidebar.slint:16 ui/pages/appearance.slint:191 src/AppearanceController.cpp:24
 msgid "Appearance"
@@ -1671,7 +1671,7 @@ msgstr "برنامج أو ملف، مثل notepad.exe أو code"
 msgid "@sel.path is the selected path; quote it: \"@sel.path\""
 msgstr "‏@sel.path هو المسار المحدد؛ ضعه بين علامتي اقتباس: \"@sel.path\""
 
-#: ui/pages/menu-builder.slint:761
+#: ui/pages/menu-builder.slint:761 ui/pages/preferences.slint:140
 msgid "Window"
 msgstr "النافذة"
 
@@ -2397,6 +2397,14 @@ msgstr "يعمل فقط عندما يكون التطبيق في علبة الن�
 msgid "Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on."
 msgstr "التطبيق متوقف في قائمة تطبيقات بدء التشغيل في Windows. شغّل المفتاح هنا لإعادة تشغيله."
 
+#: ui/pages/preferences.slint:141
+msgid "The app remembers the window's size and position. Restore it to its default size and center it on this screen."
+msgstr "يتذكر التطبيق حجم النافذة وموضعها اللذين اخترتهما. اضغط هذا الزر للعودة إلى الحجم الافتراضي وتوسيط النافذة على هذه الشاشة."
+
+#: ui/pages/preferences.slint:145
+msgid "Reset window size and position"
+msgstr "استعادة الحجم والموضع الافتراضيين"
+
 #: ui/pages/preferences.slint:140
 msgid "All users on this PC"
 msgstr "جميع المستخدمين على هذا الكمبيوتر"
@@ -2711,15 +2719,15 @@ msgstr "البحث في المقتطفات"
 
 #: ui/pages/whats-new.slint:16
 msgid "What's new in {}"
-msgstr ""
+msgstr "ما الجديد في {}"
 
 #: ui/pages/whats-new.slint:17
 msgid "A few things worth trying in this version."
-msgstr ""
+msgstr "ألقِ نظرة على ما يقدمه هذا الإصدار لتجربته."
 
 #: ui/pages/whats-new.slint:40
 msgid "All release notes"
-msgstr ""
+msgstr "عرض جميع ملاحظات الإصدار"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
 #: ui/preview/menu-preview.slint:39 ui/preview/menu-preview.slint:375
@@ -2766,31 +2774,31 @@ msgstr "خصائص"
 
 #: ui/whats-new-data.slint:25
 msgid "Shell's menu in 32-bit programs"
-msgstr ""
+msgstr "قائمة Shell متاحة الآن في برامج 32 بت"
 
 #: ui/whats-new-data.slint:26
 msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
-msgstr ""
+msgstr "أصبحت مربعات الحوار «فتح» و«حفظ» في برامج 32 بت تعرض قائمة Shell أيضاً."
 
 #: ui/whats-new-data.slint:33
 msgid "Delete everything you selected at once"
-msgstr ""
+msgstr "احذف كل ما حددته بنقرة واحدة"
 
 #: ui/whats-new-data.slint:34
 msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
-msgstr ""
+msgstr "أضف io.delete(sel) إلى عناصر القائمة لديك، وستحذف بنقرة واحدة جميع الملفات والمجلدات المحددة."
 
 #: ui/whats-new-data.slint:35
 msgid "Read the docs"
-msgstr ""
+msgstr "عرض الوثائق"
 
 #: ui/whats-new-data.slint:41
 msgid "Fix: items other programs draw themselves"
-msgstr ""
+msgstr "إصلاح العناصر التي ترسمها التطبيقات الأخرى"
 
 #: ui/whats-new-data.slint:42
 msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
-msgstr ""
+msgstr "تستخدم معاينة XnView وغيرها من العناصر ألوان القائمة الآن وتظهر كاملة داخلها."
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."

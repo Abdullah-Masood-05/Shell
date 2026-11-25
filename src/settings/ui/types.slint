@@ -131,6 +131,7 @@ export global AppState {
     callback test-translation();       // pick a .po file and show the app in it
     callback reload-translation();     // read the same file again, after edits
     callback stop-translation();       // back to the Language setting
+    callback reset-window-placement(); // reset only on request; never after an update
     // What's New: a dot on its sidebar entry until the page is opened after an update.
     in-out property <bool> whats-new-unseen;
     callback mark-whats-new-seen();

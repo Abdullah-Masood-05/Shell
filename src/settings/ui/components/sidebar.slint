@@ -26,6 +26,9 @@ export component Sidebar inherits Rectangle {
     ];
     // Pages are numbered in sidebar order; the arrow keys walk 0..last (Preferences).
     property <int> last-page: Pages.preferences;
+    // The focus ring is for keyboard navigation only. Clicking a row still focuses the
+    // scope so the arrow keys work, but the selected fill is its normal pointer state.
+    property <bool> keyboard-focus: false;
 
     background: Tokens.sidebar;
     animate background { duration: Tokens.normal; }
@@ -73,18 +76,22 @@ export component Sidebar inherits Rectangle {
     fs := FocusScope {
         key-pressed(event) => {
             if (event.text == Key.UpArrow) {
+                root.keyboard-focus = true;
                 root.go(root.previous(AppState.page));
                 return accept;
             }
             if (event.text == Key.DownArrow) {
+                root.keyboard-focus = true;
                 root.go(root.next(AppState.page));
                 return accept;
             }
             if (event.text == Key.Home) {
+                root.keyboard-focus = true;
                 root.go(0);
                 return accept;
             }
             if (event.text == Key.End) {
+                root.keyboard-focus = true;
                 root.go(root.last-page);
                 return accept;
             }
@@ -155,8 +162,9 @@ export component Sidebar inherits Rectangle {
                             label: entry.label;
                             selected: AppState.page == entry.page;
                             badge: entry.page == Pages.whatsnew && AppState.whats-new-unseen;
-                            show-focus: fs.has-focus && AppState.page == entry.page;
+                            show-focus: root.keyboard-focus && fs.has-focus && AppState.page == entry.page;
                             clicked => {
+                                root.keyboard-focus = false;
                                 fs.focus();
                                 root.go(entry.page);
                             }
@@ -209,8 +217,9 @@ export component Sidebar inherits Rectangle {
                 icon: Icons.preferences;
                 label: @tr("Preferences");
                 selected: AppState.page == Pages.preferences;
-                show-focus: fs.has-focus && AppState.page == Pages.preferences;
+                show-focus: root.keyboard-focus && fs.has-focus && AppState.page == Pages.preferences;
                 clicked => {
+                    root.keyboard-focus = false;
                     fs.focus();
                     root.go(Pages.preferences);
                 }

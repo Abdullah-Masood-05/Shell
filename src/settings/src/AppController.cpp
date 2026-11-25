@@ -432,6 +432,7 @@ void AppController::bindCallbacks()
             ShellExecuteW(nullptr, L"open", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     });
     state.on_open_path([this](slint::SharedString path) { openPath(std::string(path.data(), path.size())); });
+    state.on_reset_window_placement([this] { resetWindowPlacement(); });
     // The first-run dialog's callbacks are in OnboardingController.
     state.on_dismiss_toast([this] {
         toastTimer_.stop();
@@ -804,4 +805,52 @@ void AppController::saveWindowPlacement()
     p.height = int(size.height);
     bool minimized = hwnd_ && IsIconic(hwnd_);
     registry::app::savePlacement(p, p.maximized || minimized);
+}
+
+void AppController::resetWindowPlacement()
+{
+    if (!hwnd_)
+        return;
+
+    if (IsIconic(hwnd_) || IsZoomed(hwnd_))
+        ShowWindow(hwnd_, SW_RESTORE);
+
+    MONITORINFO monitor{ sizeof monitor };
+    const HMONITOR current = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
+    if (!GetMonitorInfoW(current, &monitor))
+        return;
+
+    // Use logical defaults converted to this monitor's DPI, then keep the complete
+    // window inside the work area. This also makes the control useful on smaller or
+    // scaled displays without ever changing a saved layout by itself.
+    const UINT dpi = GetDpiForWindow(hwnd_);
+    const auto scaled = [dpi](int value) { return MulDiv(value, int(dpi), 96); };
+    const int margin = scaled(24);
+    const int workWidth = monitor.rcWork.right - monitor.rcWork.left;
+    const int workHeight = monitor.rcWork.bottom - monitor.rcWork.top;
+
+    RECT windowFrame{ 0, 0, scaled(1200), scaled(820) };
+    const auto style = GetWindowLongPtrW(hwnd_, GWL_STYLE);
+    const auto exStyle = GetWindowLongPtrW(hwnd_, GWL_EXSTYLE);
+    AdjustWindowRectExForDpi(&windowFrame, DWORD(style), FALSE, DWORD(exStyle), dpi);
+
+    int width = std::min(int(windowFrame.right - windowFrame.left), workWidth - 2 * margin);
+    int height = std::min(int(windowFrame.bottom - windowFrame.top), workHeight - 2 * margin);
+    width = std::max(width, 1);
+    height = std::max(height, 1);
+    const int x = monitor.rcWork.left + (workWidth - width) / 2;
+    const int y = monitor.rcWork.top + (workHeight - height) / 2;
+
+    if (SetWindowPos(hwnd_, nullptr, x, y, width, height, SWP_NOZORDER | SWP_NOACTIVATE)) {
+        // Persist the same client-area values Slint reads on the next start.
+        RECT client{}, windowRect{};
+        if (GetClientRect(hwnd_, &client) && GetWindowRect(hwnd_, &windowRect)) {
+            registry::app::Placement placement;
+            placement.x = windowRect.left;
+            placement.y = windowRect.top;
+            placement.width = client.right - client.left;
+            placement.height = client.bottom - client.top;
+            registry::app::savePlacement(placement, false);
+        }
+    }
 }

@@ -46,8 +46,11 @@ export { TrayState } from "tray-state.slint";
 
 export component AppWindow inherits Window {
     title: "Nilesoft Shell Pro";
-    preferred-width: 1120px;
-    preferred-height: 760px;
+    // A fresh install gets enough room for the whole sidebar and for the widest
+    // translated labels, without making the window unnecessarily large. Saved sizes
+    // and positions still win for existing users (main.cpp restores them first).
+    preferred-width: 1200px;
+    preferred-height: 820px;
     min-width: 880px;
     min-height: 600px;
     background: Tokens.bg;

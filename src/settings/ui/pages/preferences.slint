@@ -136,6 +136,19 @@ export component PreferencesPage inherits PageFrame {
     }
 
     Card {
+        icon: Icons.window;
+        heading: @tr("Window");
+        description: @tr("The app remembers the window's size and position. Restore it to its default size and center it on this screen.");
+        HorizontalLayout {
+            alignment: start;
+            AppButton {
+                text: @tr("Reset window size and position");
+                clicked => { AppState.reset-window-placement(); }
+            }
+        }
+    }
+
+    Card {
         icon: Icons.person;
         heading: @tr("All users on this PC");
         description: @tr("Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them.");

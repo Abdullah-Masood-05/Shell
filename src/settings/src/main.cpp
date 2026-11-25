@@ -25,7 +25,7 @@
 //   --snapshot <prefix>    render a short tour (as started, Home, Preferences, Appearance,
 //                          Home in light; tools/screenshots.ps1 relies on this order)
 //                          to <prefix>-N.bmp, then exit; for screenshots without screen capture.
-//                          The window is 1120x760 and placed off-screen, and a running
+//                          The window uses the app's default size and is placed off-screen, and a running
 //                          window of the app is left alone (no single-instance check)
 //   --snapshot-pages <page,page,...>    the pages of the tour instead (the first shot is
 //                          still the start page, the last the start page in light)
@@ -387,8 +387,8 @@ int main()
         ui->window().set_position(slint::PhysicalPosition(
             { GetSystemMetrics(SM_XVIRTUALSCREEN) + GetSystemMetrics(SM_CXVIRTUALSCREEN) + 64, 0 }));
         if (g_snapshotHeight > 0 || g_snapshotWidth > 0)
-            ui->window().set_size(slint::LogicalSize({ g_snapshotWidth > 0 ? float(g_snapshotWidth) : 1120.f,
-                                                       g_snapshotHeight > 0 ? float(g_snapshotHeight) : 760.f }));
+            ui->window().set_size(slint::LogicalSize({ g_snapshotWidth > 0 ? float(g_snapshotWidth) : 1200.f,
+                                                       g_snapshotHeight > 0 ? float(g_snapshotHeight) : 820.f }));
         ui->global<AppState>().set_scroll_to_end(g_snapshotScrollEnd);
     }
 

@@ -196,7 +196,7 @@ msgstr "主页"
 
 #: ui/components/sidebar.slint:15
 msgid "What's New"
-msgstr ""
+msgstr "更新亮点"
 
 #: ui/components/sidebar.slint:16 ui/pages/appearance.slint:191 src/AppearanceController.cpp:24
 msgid "Appearance"
@@ -1645,7 +1645,7 @@ msgstr "程序或文件，例如 notepad.exe 或 code"
 msgid "@sel.path is the selected path; quote it: \"@sel.path\""
 msgstr "@sel.path 是所选路径；请用引号括起来：\"@sel.path\""
 
-#: ui/pages/menu-builder.slint:761
+#: ui/pages/menu-builder.slint:761 ui/pages/preferences.slint:140
 msgid "Window"
 msgstr "窗口"
 
@@ -2366,6 +2366,14 @@ msgstr "仅在应用保留在系统托盘中时有效。"
 msgid "Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on."
 msgstr "Windows 的启动应用列表中已关闭本应用。在这里打开开关即可重新启用。"
 
+#: ui/pages/preferences.slint:141
+msgid "The app remembers the window's size and position. Restore it to its default size and center it on this screen."
+msgstr "应用会记住你调整过的窗口大小和位置。点击此按钮可恢复默认大小，并在当前屏幕上居中显示。"
+
+#: ui/pages/preferences.slint:145
+msgid "Reset window size and position"
+msgstr "恢复默认大小和位置"
+
 #: ui/pages/preferences.slint:140
 msgid "All users on this PC"
 msgstr "这台电脑上的所有用户"
@@ -2680,15 +2688,15 @@ msgstr "搜索扩展功能"
 
 #: ui/pages/whats-new.slint:16
 msgid "What's new in {}"
-msgstr ""
+msgstr "{} 更新亮点"
 
 #: ui/pages/whats-new.slint:17
 msgid "A few things worth trying in this version."
-msgstr ""
+msgstr "来看看这个版本里值得一试的更新。"
 
 #: ui/pages/whats-new.slint:40
 msgid "All release notes"
-msgstr ""
+msgstr "查看所有更新日志"
 
 #. because Slint's fallback for Chinese text in Segoe UI misses characters.
 #: ui/preview/menu-preview.slint:39 ui/preview/menu-preview.slint:375
@@ -2735,31 +2743,31 @@ msgstr "属性"
 
 #: ui/whats-new-data.slint:25
 msgid "Shell's menu in 32-bit programs"
-msgstr ""
+msgstr "32 位程序也能使用 Shell 菜单"
 
 #: ui/whats-new-data.slint:26
 msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
-msgstr ""
+msgstr "32 位程序的“打开”和“保存”对话框现在也会显示 Shell 菜单。"
 
 #: ui/whats-new-data.slint:33
 msgid "Delete everything you selected at once"
-msgstr ""
+msgstr "一键删除全部选中项"
 
 #: ui/whats-new-data.slint:34
 msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
-msgstr ""
+msgstr "在自己的菜单项中加入 io.delete(sel)，就能一次删除所有选中的文件或文件夹。"
 
 #: ui/whats-new-data.slint:35
 msgid "Read the docs"
-msgstr ""
+msgstr "查看文档"
 
 #: ui/whats-new-data.slint:41
 msgid "Fix: items other programs draw themselves"
-msgstr ""
+msgstr "修复其他程序自绘的菜单项"
 
 #: ui/whats-new-data.slint:42
 msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
-msgstr ""
+msgstr "XnView 预览等菜单项现在会采用菜单配色，并完整显示在菜单中。"
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."
