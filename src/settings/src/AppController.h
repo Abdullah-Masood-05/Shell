@@ -37,6 +37,9 @@ public:
     void attachWindow(HWND hwnd);
     void start();
     void saveWindowPlacement();
+    // First launch without a saved placement: shrink a default window that does not fit
+    // the monitor's work area (for example 820 px tall on a 1366x768 screen).
+    void fitDefaultWindowPlacement();
 
     // A `-config:init` from Home or the first-run dialog went through: the active
     // root shell.nss changed. UI thread.
@@ -73,6 +76,7 @@ private:
     void applySnapshot(Snapshot snap, bool quiet);
     void openPath(const std::string &path);
     void resetWindowPlacement();
+    bool applyDefaultWindowPlacement(bool onlyIfTooLarge);
 
     Snapshot collect() const; // worker thread
 

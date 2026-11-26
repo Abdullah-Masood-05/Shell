@@ -480,6 +480,10 @@ int main()
             controller->attachWindow(hwnd);
             saveService->attachWindow(hwnd);
             updates->attachWindow(hwnd);
+            // A first launch has no saved placement: keep the default size on screen even
+            // on a small monitor (the same clamp Reset uses). Never touches a saved one.
+            if (!placement && !snapshot)
+                controller->fitDefaultWindowPlacement();
             if (placement && placement->maximized)
                 ui->window().set_maximized(true);
             controller->start();

@@ -28,7 +28,8 @@ export component Sidebar inherits Rectangle {
     property <int> last-page: Pages.preferences;
     // The focus ring is for keyboard navigation only. Clicking a row still focuses the
     // scope so the arrow keys work, but the selected fill is its normal pointer state.
-    property <bool> keyboard-focus: false;
+    // Starting at true means Tab into the sidebar shows the ring, as it did before.
+    property <bool> keyboard-focus: true;
 
     background: Tokens.sidebar;
     animate background { duration: Tokens.normal; }
@@ -74,24 +75,29 @@ export component Sidebar inherits Rectangle {
     }
 
     fs := FocusScope {
-        key-pressed(event) => {
-            if (event.text == Key.UpArrow) {
+        // Focus left the sidebar: forget that the last focus came from a click, so
+        // Tab (or Shift+Tab) back in shows the ring again.
+        changed has-focus => {
+            if (!self.has-focus) {
                 root.keyboard-focus = true;
+            }
+        }
+        key-pressed(event) => {
+            // Any key press in the scope means the keyboard is in use now.
+            root.keyboard-focus = true;
+            if (event.text == Key.UpArrow) {
                 root.go(root.previous(AppState.page));
                 return accept;
             }
             if (event.text == Key.DownArrow) {
-                root.keyboard-focus = true;
                 root.go(root.next(AppState.page));
                 return accept;
             }
             if (event.text == Key.Home) {
-                root.keyboard-focus = true;
                 root.go(0);
                 return accept;
             }
             if (event.text == Key.End) {
-                root.keyboard-focus = true;
                 root.go(root.last-page);
                 return accept;
             }
