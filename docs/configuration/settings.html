@@ -26,6 +26,8 @@
 	// them (see "Faster menus" below)
 	preload = true
 	keepalive = true
+	// The file types whose menus preload also builds; unset, these
+	preload.types = ['jpg', 'png', 'pdf', 'docx', 'mp4', 'mkv', 'html', 'obj']
 
 	tip = true
 	// or
@@ -142,6 +144,13 @@
 	config is loaded, and once it is turned off, the next menu lets go of what it kept, so Windows unloads the DLLs
 	and closes the programs as it does without it. Items you hide with <code>remove(clsid=...)</code> are never loaded
 	at all.</p>
+<p>Some programs add items only for certain file types, such as photo viewers for pictures or Office for its
+	documents, so a file of that type is the only thing that loads them. <code>preload.types</code> lists the types
+	whose menus the preload builds too, from an empty file of each one that it keeps in a folder of your temp folder.
+	Each is an extension, with or without its dot, in a list (<code>['jpg', 'pdf']</code>) or in one string
+	(<code>'jpg|pdf'</code>). Unset, it is <code>['jpg', 'png', 'pdf', 'docx', 'mp4', 'mkv', 'html', 'obj']</code>;
+	<code>preload.types = ''</code> builds none of them. Each type adds a little to the preload's time, which
+	<code>shell.log</code> shows along with the types it built.</p>
 <p>A program whose menu crashes File Explorer during the preload would crash it again at every start, because Windows
 	restarts File Explorer after a crash. So the preload leaves a mark in the registry while it runs, under
 	<code>HKEY_CURRENT_USER\Software\Nilesoft\Shell\Preload</code>, and removes it when it is done. If File Explorer
@@ -151,4 +160,5 @@
 {
 	preload = true
 	keepalive = true
+	preload.types = ['jpg', 'png', 'pdf', 'docx', 'mp4', 'mkv', 'html', 'obj']
 }</code></pre>

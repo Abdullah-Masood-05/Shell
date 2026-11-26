@@ -25,6 +25,7 @@ export global SK {
     out property <int> window: 15;
     out property <int> preload: 16;
     out property <int> keepalive: 17;
+    out property <int> preload-types: 18;
 }
 
 export global SettingsState {
@@ -39,6 +40,9 @@ export global SettingsState {
     in property <int> where-kind;          // 0 off, 1 only in File Explorer, 2 a custom condition
     in property <[string]> processes;      // exclude.process when it is a plain list
     in property <[string]> windows;        // exclude.window when it is a plain list
+
+    // Behavior
+    in property <[string]> preload-types;  // preload.types when it is a plain list; unset, the defaults
 
     callback set-bool(index: int, on: bool);
     callback set-number(index: int, value: float);

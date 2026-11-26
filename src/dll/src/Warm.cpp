@@ -21,14 +21,16 @@ namespace Nilesoft
 
 				thread_local bool preloading = false;
 
-				// settings.<member> as a bool; false while no config is loaded.
-				bool enabled(auto_expr Settings:: *member) noexcept
+				// Calls f with a context like a menu's and the loaded config's
+				// settings; false while no config is loaded.
+				template<typename F>
+				bool with_settings(F &&f) noexcept
 				{
 					try
 					{
 						auto initializer = Initializer::instance;
 						auto cache = initializer ? initializer->cache : nullptr;
-						if(!cache || !(cache->settings.*member))
+						if(!cache)
 							return false;
 
 						Selections selected;
@@ -41,12 +43,28 @@ namespace Nilesoft
 						context.variables.global = &cache->variables.global;
 						context.variables.runtime = &cache->variables.runtime;
 						context.variables.local = nullptr;
-						return context.eval_bool(cache->settings.*member);
+						return f(context, cache->settings);
 					}
 					catch(...)
 					{
 					}
 					return false;
+				}
+
+				bool keepalive_on() noexcept
+				{
+					return with_settings([](Context &context, Settings &settings)
+					{
+						return settings.keepalive && context.eval_bool(settings.keepalive);
+					});
+				}
+
+				bool preload_on() noexcept
+				{
+					return with_settings([](Context &context, Settings &settings)
+					{
+						return settings.preload.enabled && context.eval_bool(settings.preload.enabled);
+					});
 				}
 
 				bool contains(const std::vector<GUID> &list, REFCLSID clsid)
@@ -276,6 +294,95 @@ namespace Nilesoft
 						}
 					}
 
+					// settings.preload.types unset: the file types right-clicked most
+					// whose handlers the menus above don't load (images, documents, video).
+					constexpr const wchar_t *DefaultTypes[] = { L"jpg", L"png", L"pdf", L"docx", L"mp4", L"mkv", L"html", L"obj" };
+					constexpr size_t MaxTypes = 64;
+
+					// "png", ".png" or "*.png" as "png"; empty if it isn't a plain extension.
+					std::wstring extension(const std::wstring &text)
+					{
+						auto first = text.find_first_not_of(L"*.");
+						if(first == std::wstring::npos || text.size() - first > 32)
+							return {};
+						auto ext = text.substr(first);
+						for(auto &ch : ext)
+						{
+							if(ch < L' ' || ::wcschr(L"\\/:*?\"<>|", ch))
+								return {};
+							ch = static_cast<wchar_t>(::towlower(ch));
+						}
+						return ext;
+					}
+
+					// settings.preload.types: an extension, a list of them (['jpg', 'pdf'])
+					// or several in one string ('jpg|pdf'); unset, DefaultTypes.
+					std::vector<std::wstring> types()
+					{
+						std::vector<std::wstring> list;
+						auto add = [&](const wchar_t *text)
+						{
+							std::wstring s = text ? text : L"";
+							for(size_t start = 0; start <= s.size();)
+							{
+								auto end = s.find_first_of(L"|,; \t", start);
+								if(end == std::wstring::npos)
+									end = s.size();
+								auto ext = extension(s.substr(start, end - start));
+								if(!ext.empty() && list.size() < MaxTypes && std::find(list.begin(), list.end(), ext) == list.end())
+									list.push_back(std::move(ext));
+								start = end + 1;
+							}
+						};
+
+						bool set = with_settings([&](Context &context, Settings &settings)
+						{
+							if(!settings.preload.types)
+								return false;
+							Object value = context.Eval(settings.preload.types).move();
+							if(value.is_array())
+							{
+								auto ptr = value.ptr();
+								int count = ptr[0];
+								for(int i = 0; i < count; i++)
+									add(ptr[i + 1].to_string().c_str());
+							}
+							else if(value.is_string())
+							{
+								add(value.to_string().c_str());
+							}
+							return true;
+						});
+
+						if(!set)
+							list.assign(std::begin(DefaultTypes), std::end(DefaultTypes));
+						return list;
+					}
+
+					// An empty file of type ext to build its menu on, in a folder of the
+					// temp folder: local, so nothing waits for a network drive.
+					std::wstring sample(const std::wstring &ext)
+					{
+						wchar_t temp[MAX_PATH + 1]{};
+						auto length = ::GetTempPathW(ARRAYSIZE(temp), temp);
+						if(!length || length >= ARRAYSIZE(temp))
+							return {};
+
+						std::wstring path = temp;
+						path += L"Nilesoft Shell preload";
+						if(!::CreateDirectoryW(path.c_str(), nullptr) && ::GetLastError() != ERROR_ALREADY_EXISTS)
+							return {};
+
+						path += L"\\sample.";
+						path += ext;
+						auto file = ::CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+												  nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+						if(file == INVALID_HANDLE_VALUE)
+							return {};
+						::CloseHandle(file);
+						return path;
+					}
+
 					// A handler that crashes Explorer during the preload would do so at
 					// every start. So a running preload leaves a mark, a value named after
 					// its process ID. One whose process is gone never finished, and the
@@ -380,7 +487,7 @@ namespace Nilesoft
 						for(DWORD waited = 0; !Initializer::Status.Loaded && waited < ConfigWait; waited += 250)
 							::Sleep(250);
 
-						if(!Initializer::Status.Loaded || !enabled(&Settings::preload))
+						if(!Initializer::Status.Loaded || !preload_on())
 							return 0;
 
 						try
@@ -418,8 +525,25 @@ namespace Nilesoft
 								item(folder);
 								background(folder);
 								background(nullptr);
-								Logger::Info(L"Preload: Windows' menus for a file, a folder and the backgrounds built in %u ms.",
-											 static_cast<uint32_t>(::GetTickCount64() - start));
+
+								// And an empty file of each of settings.preload.types.
+								std::wstring built;
+								for(auto &ext : types())
+								{
+									auto path = sample(ext);
+									if(path.empty())
+										continue;
+									item(path.c_str());
+									built += built.empty() ? L"" : L", ";
+									built += ext;
+								}
+
+								auto ms = static_cast<uint32_t>(::GetTickCount64() - start);
+								if(built.empty())
+									Logger::Info(L"Preload: Windows' menus for a file, a folder and the backgrounds built in %u ms.", ms);
+								else
+									Logger::Info(L"Preload: Windows' menus for a file, a folder, the backgrounds and these file types built in %u ms: %s.",
+												 ms, built.c_str());
 							}
 							catch(...)
 							{
@@ -440,7 +564,7 @@ namespace Nilesoft
 					if(!object)
 						return;
 
-					if(!enabled(&Settings::keepalive))
+					if(!keepalive_on())
 					{
 						if(keepalive::holding)
 							keepalive::post(nullptr, true);
@@ -519,7 +643,7 @@ namespace Nilesoft
 					if(preloading || !ppv)
 						return false;
 
-					if(!enabled(&Settings::keepalive))
+					if(!keepalive_on())
 					{
 						while(factories.count)
 							forget_factory(factories.count - 1);

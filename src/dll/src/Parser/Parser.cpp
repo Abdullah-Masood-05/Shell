@@ -1171,7 +1171,10 @@ namespace Nilesoft
 				{ IDENT_PRIORITY, &sets->priority },
 				{ IDENT_SHOWDELAY, &sets->showdelay },
 				{ IDENT_FILEMANAGERS, &sets->filemanagers },
-				{ IDENT_PRELOAD, &sets->preload },
+				{ IDENT_PRELOAD, &sets->preload.enabled,{
+					{ IDENT_ENABLED, &sets->preload.enabled },
+					{ IDENT_TYPES, &sets->preload.types }
+				}},
 				{ IDENT_KEEPALIVE, &sets->keepalive },
 				{ IDENT_SCREENSHOT, &sets->screenshot.enabled,{
 					{ IDENT_ENABLED, &sets->screenshot.enabled },

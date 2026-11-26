@@ -29,6 +29,12 @@
 		Explorer</strong>). If File Explorer closes or crashes before they are loaded, this is skipped at later starts
 		until you save a change to your configuration (turning this off and on again, saving each time, will
 		do).</td><td>Off</td></tr>
+	<tr><td>File types</td><td>Shown while the menu is set to get ready. Some apps add items only for certain file
+		types, such as photo viewers for pictures, so the menus of these types get ready too. Type an extension
+		(<i>psd</i> or <i>.psd</i>) and select <strong>Add</strong>, or remove one with its <strong>×</strong>. Removing
+		all of them gets none ready. <strong>Reset</strong>, at the right of the list's header, undoes the changes made
+		here: the defaults come back, or the list in your own files if they set one.</td><td>jpg, png, pdf, docx, mp4,
+		mkv, html, obj</td></tr>
 	<tr><td>Keep other apps' menu items loaded</td><td>After a menu closes, the apps that put items in it stay loaded,
 		so a right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one that runs
 		in a process of its own keeps a few MB in memory. When you turn it off, Shell lets go of them at the next
@@ -126,7 +132,8 @@ settings
 <p>The other settings on this page are written with these keys:</p>
 <table class="table">
 	<tr><td class="w-25">Opening the menu</td><td><code>priority</code>, <code>showdelay</code> (in ms),
-		<code>preload</code>, <code>keepalive</code></td></tr>
+		<code>preload</code>, <code>preload.types</code> (a list such as <code>['jpg', 'pdf']</code>),
+		<code>keepalive</code></td></tr>
 	<tr><td>Tooltips</td><td><code>tip.enabled</code>, <code>tip.time</code> (in seconds, for example <code>1.5</code>),
 		<code>tip.width</code>, <code>tip.default = [#202020, #FFFFFF]</code> (background, then text)</td></tr>
 	<tr><td>Screenshots</td><td><code>screenshot.enabled</code>, <code>screenshot.directory</code></td></tr>

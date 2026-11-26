@@ -23,10 +23,12 @@ namespace Nilesoft
 
 			settings.preload builds (without showing) the menus of a file, a
 			folder, a folder background and the desktop shortly after Explorer
-			loads Shell; with keepalive on, what it loads stays loaded. A preload
-			that never finished keeps later ones from running until the config
-			changes, so a handler that crashes Explorer there doesn't do so at
-			every start.
+			loads Shell, then of an empty file of each type in
+			settings.preload.types (unset: jpg, png, pdf, docx, mp4, mkv, html
+			and obj), whose own handlers the others don't load; with keepalive
+			on, what it loads stays loaded. A preload that never finished keeps
+			later ones from running until the config changes, so a handler that
+			crashes Explorer there doesn't do so at every start.
 		*/
 		namespace Warm
 		{

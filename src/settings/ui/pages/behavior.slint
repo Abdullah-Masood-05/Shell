@@ -12,6 +12,7 @@ import { SettingRow, SettingBlock, RowDivider, ChipGroup, ValueSlider, ColorFiel
 import { PageFrame } from "page-frame.slint";
 import { SettingsState, SK, ThemeField } from "settings-state.slint";
 import { AppButton } from "../components/controls.slint";
+import { NameList } from "rules.slint";
 
 // A labelled on/off row.
 component SwitchRow inherits SettingRow {
@@ -29,7 +30,7 @@ component SwitchRow inherits SettingRow {
 
 export component BehaviorPage inherits PageFrame {
     property <[ThemeField]> f: SettingsState.fields;
-    property <bool> ready: SettingsState.loaded && f.length > SK.keepalive;
+    property <bool> ready: SettingsState.loaded && f.length > SK.preload-types;
     // Read the files again: the Config Editor may have changed them.
     init => { SettingsState.reload(); }
 
@@ -91,6 +92,16 @@ export component BehaviorPage inherits PageFrame {
             hint: @tr("Windows and other apps load their menu items in the background, so the first right-click doesn't wait for them. From the next time File Explorer starts · {}", root.f[SK.preload].origin);
             index: SK.preload;
             ready: root.ready;
+        }
+        if root.f[SK.preload].number > 0.5: NameList {
+            index: SK.preload-types;
+            label: @tr("File types");
+            hint: @tr("Their menus get ready too, for apps that add items only to them");
+            placeholder: @tr("An extension, such as psd");
+            empty-text: @tr("No file types.");
+            names: SettingsState.preload-types;
+            ready: root.ready;
+            reset-text: @tr("Reset");
         }
         RowDivider { }
         SwitchRow {
