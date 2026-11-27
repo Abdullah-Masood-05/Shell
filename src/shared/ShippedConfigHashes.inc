@@ -115,6 +115,7 @@
 { "imports/terminal.nss", 0x7a051b1c755270e3ull },
 { "imports/terminal.nss", 0x89d33a4dcafc03e2ull },
 { "imports/terminal.nss", 0xad32914fa049fbd9ull },
+{ "imports/terminal.nss", 0xb5c3bbdc9c145d47ull },
 { "imports/terminal.nss", 0xc3c962894b313184ull },
 { "imports/theme.nss", 0xbe23f8f67cb409c3ull },
 { "imports/theme.nss", 0xea12a818224452e0ull },

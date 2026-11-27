@@ -118,7 +118,7 @@ TEST_CASE("menus, props and children are parsed")
 	auto t = NssDocument::load(test::binDir() / "imports" / "terminal.nss");
 	REQUIRE(t.has_value());
 	auto &m = t->nodes()[0];
-	REQUIRE(m.children.size() == 5);  // two $vars and three items
+	REQUIRE(m.children.size() == 11);  // seven $vars and four items
 	auto &item = m.children[2];
 	CHECK(item.menuKind == MenuKind::Item);
 	REQUIRE(item.props.size() == 5);
