@@ -255,7 +255,7 @@ msgstr ""
 msgid "Version {}"
 msgstr ""
 
-#: ui/components/sidebar.slint:201 ui/pages/home.slint:175 src/AppController.cpp:552
+#: ui/components/sidebar.slint:201 ui/pages/home.slint:175 src/AppController.cpp:550
 msgid "Checking status…"
 msgstr ""
 
@@ -533,7 +533,7 @@ msgstr ""
 msgid "Background"
 msgstr ""
 
-#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:138
+#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:154
 msgid "Text"
 msgstr ""
 
@@ -561,7 +561,7 @@ msgstr ""
 msgid "Couldn't read your config"
 msgstr ""
 
-#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:566
+#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:564
 msgid "Try again"
 msgstr ""
 
@@ -609,17 +609,17 @@ msgstr ""
 msgid "Auto follows the Windows app mode · {}"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "Auto"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "On"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:202
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
 msgctxt "Setting value"
 msgid "Off"
 msgstr ""
@@ -922,78 +922,94 @@ msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
 msgstr ""
 
 #: ui/pages/behavior.slint:90
-msgid "Tooltips"
+msgid "Get the menu ready when File Explorer starts"
 msgstr ""
 
-#: ui/pages/behavior.slint:92
-msgid "Show tooltips"
+#: ui/pages/behavior.slint:91
+msgid "Windows and other apps load their menu items in the background, so the first right-click doesn't wait for them. From the next time File Explorer starts · {}"
+msgstr ""
+
+#: ui/pages/behavior.slint:97
+msgid "Keep other apps' menu items loaded"
 msgstr ""
 
 #: ui/pages/behavior.slint:98
+msgid "A right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one keeps a few MB in memory · {}"
+msgstr ""
+
+#: ui/pages/behavior.slint:106
+msgid "Tooltips"
+msgstr ""
+
+#: ui/pages/behavior.slint:108
+msgid "Show tooltips"
+msgstr ""
+
+#: ui/pages/behavior.slint:114
 msgid "Delay"
 msgstr ""
 
-#: ui/pages/behavior.slint:111
+#: ui/pages/behavior.slint:127
 msgid "Maximum width"
 msgstr ""
 
-#: ui/pages/behavior.slint:127
+#: ui/pages/behavior.slint:143
 msgid "The menu's background · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:139
+#: ui/pages/behavior.slint:155
 msgid "The colour of the tooltip text"
 msgstr ""
 
-#: ui/pages/behavior.slint:152
+#: ui/pages/behavior.slint:168
 msgid "Screenshots"
 msgstr ""
 
-#: ui/pages/behavior.slint:154
+#: ui/pages/behavior.slint:170
 msgid "Print Screen saves the open menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:160 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
+#: ui/pages/behavior.slint:176 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
 msgid "Folder"
 msgstr ""
 
-#: ui/pages/behavior.slint:162
+#: ui/pages/behavior.slint:178
 msgid "Screenshots folder · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:166 ui/pages/menu-builder.slint:666
+#: ui/pages/behavior.slint:182 ui/pages/menu-builder.slint:666
 msgid "Choose…"
 msgstr ""
 
-#: ui/pages/behavior.slint:175
+#: ui/pages/behavior.slint:191
 msgid "Windows' own items"
 msgstr ""
 
-#: ui/pages/behavior.slint:176
+#: ui/pages/behavior.slint:192
 msgid "What Shell does to the items Windows and other apps put in the menu."
 msgstr ""
 
-#: ui/pages/behavior.slint:178
+#: ui/pages/behavior.slint:194
 msgid "Remove duplicate items"
 msgstr ""
 
-#: ui/pages/behavior.slint:184
+#: ui/pages/behavior.slint:200
 msgid "Remove disabled items"
 msgstr ""
 
-#: ui/pages/behavior.slint:190
+#: ui/pages/behavior.slint:206
 msgid "Remove their separators"
 msgstr ""
 
-#: ui/pages/behavior.slint:196
+#: ui/pages/behavior.slint:212
 msgid "Icons on Windows' items"
 msgstr ""
 
-#: ui/pages/behavior.slint:198
+#: ui/pages/behavior.slint:214
 msgid "Auto adds icons to known items that have none · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:210
+#: ui/pages/behavior.slint:226
 msgid "Icons on Shell's own items"
 msgstr ""
 
@@ -1258,7 +1274,7 @@ msgstr ""
 msgid "Problems"
 msgstr ""
 
-#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:812 src/EditorController.cpp:690
+#: ui/pages/editor.slint:459 ui/pages/menu-map.slint:812 src/EditorController.cpp:712
 msgid "Checking…"
 msgstr ""
 
@@ -2499,7 +2515,7 @@ msgstr ""
 msgid "Puts the default menu files back. Your current files are saved in Backups first, so you can undo it."
 msgstr ""
 
-#: ui/pages/preferences.slint:294 src/AppController.cpp:767
+#: ui/pages/preferences.slint:294 src/AppController.cpp:765
 msgid "The default files are back"
 msgstr ""
 
@@ -2774,7 +2790,7 @@ msgstr ""
 msgid "Registered for you"
 msgstr ""
 
-#: src/AppController.cpp:124 src/AppController.cpp:661
+#: src/AppController.cpp:124 src/AppController.cpp:659
 msgid "Registered for all users"
 msgstr ""
 
@@ -2874,179 +2890,179 @@ msgstr ""
 msgid "Active for every user on this PC."
 msgstr ""
 
-#: src/AppController.cpp:293
+#: src/AppController.cpp:291
 msgid "Test a translation file"
 msgstr ""
 
-#: src/AppController.cpp:294
+#: src/AppController.cpp:292
 msgid "Translation files"
 msgstr ""
 
-#: src/AppController.cpp:295 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
+#: src/AppController.cpp:293 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
 msgid "All files"
 msgstr ""
 
-#: src/AppController.cpp:329
+#: src/AppController.cpp:327
 msgid "The translation file can't be reloaded"
 msgstr ""
 
-#: src/AppController.cpp:329
+#: src/AppController.cpp:327
 msgid "The translation file can't be used"
 msgstr ""
 
-#: src/AppController.cpp:339
+#: src/AppController.cpp:337
 msgid "{} of {} strings translated"
 msgstr ""
 
-#: src/AppController.cpp:341
+#: src/AppController.cpp:339
 msgid "{n} missing"
 msgid_plural "{n} missing"
 msgstr[0] ""
 
-#: src/AppController.cpp:343
+#: src/AppController.cpp:341
 msgid "{n} fuzzy, not shown"
 msgid_plural "{n} fuzzy, not shown"
 msgstr[0] ""
 
-#: src/AppController.cpp:345
+#: src/AppController.cpp:343
 msgid "{n} not in this version of the app"
 msgid_plural "{n} not in this version of the app"
 msgstr[0] ""
 
-#: src/AppController.cpp:353
+#: src/AppController.cpp:351
 msgid "Translation file reloaded"
 msgstr ""
 
-#: src/AppController.cpp:396
+#: src/AppController.cpp:394
 msgctxt "Language"
 msgid "Auto"
 msgstr ""
 
-#: src/AppController.cpp:540 src/SnippetsController.cpp:228
+#: src/AppController.cpp:538 src/SnippetsController.cpp:228
 msgid "shell.exe was not found"
 msgstr ""
 
-#: src/AppController.cpp:541
+#: src/AppController.cpp:539
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr ""
 
-#: src/AppController.cpp:545
+#: src/AppController.cpp:543
 msgid "Nilesoft Shell was not found"
 msgstr ""
 
-#: src/AppController.cpp:546
+#: src/AppController.cpp:544
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr ""
 
-#: src/AppController.cpp:547 src/EditorController.cpp:339
+#: src/AppController.cpp:545 src/EditorController.cpp:356
 msgid "Not found"
 msgstr ""
 
-#: src/AppController.cpp:566 src/AppController.cpp:569
+#: src/AppController.cpp:564 src/AppController.cpp:567
 msgid "Couldn't read the Shell status"
 msgstr ""
 
-#: src/AppController.cpp:647 src/AppController.cpp:689
+#: src/AppController.cpp:645 src/AppController.cpp:687
 msgid "Restarting Explorer…"
 msgstr ""
 
-#: src/AppController.cpp:647
+#: src/AppController.cpp:645
 msgid "Explorer restarted"
 msgstr ""
 
-#: src/AppController.cpp:649
+#: src/AppController.cpp:647
 msgid "Registering for you…"
 msgstr ""
 
-#: src/AppController.cpp:649
+#: src/AppController.cpp:647
 msgid "Shell is enabled for you"
 msgstr ""
 
-#: src/AppController.cpp:650
+#: src/AppController.cpp:648
 msgid "Restart Explorer to load it everywhere."
 msgstr ""
 
-#: src/AppController.cpp:654
+#: src/AppController.cpp:652
 msgid "Unregistering…"
 msgstr ""
 
-#: src/AppController.cpp:654
+#: src/AppController.cpp:652
 msgid "Shell is disabled for you"
 msgstr ""
 
-#: src/AppController.cpp:655 src/AppController.cpp:666
+#: src/AppController.cpp:653 src/AppController.cpp:664
 msgid "Restart Explorer to unload it."
 msgstr ""
 
-#: src/AppController.cpp:657
+#: src/AppController.cpp:655
 msgid "Creating your config…"
 msgstr ""
 
-#: src/AppController.cpp:657
+#: src/AppController.cpp:655
 msgid "Personal config created"
 msgstr ""
 
-#: src/AppController.cpp:658
+#: src/AppController.cpp:656
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr ""
 
-#: src/AppController.cpp:660 src/AppController.cpp:665 src/AppController.cpp:670 src/UpdateController.cpp:943
+#: src/AppController.cpp:658 src/AppController.cpp:663 src/AppController.cpp:668 src/UpdateController.cpp:943
 msgid "Waiting for administrator approval…"
 msgstr ""
 
-#: src/AppController.cpp:661
+#: src/AppController.cpp:659
 msgid "Restart Explorer to load it."
 msgstr ""
 
-#: src/AppController.cpp:666
+#: src/AppController.cpp:664
 msgid "Unregistered for all users"
 msgstr ""
 
-#: src/AppController.cpp:671
+#: src/AppController.cpp:669
 msgid "Only this copy is registered now"
 msgstr ""
 
-#: src/AppController.cpp:671
+#: src/AppController.cpp:669
 msgid "Explorer was restarted."
 msgstr ""
 
-#: src/AppController.cpp:692
+#: src/AppController.cpp:690
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr ""
 
-#: src/AppController.cpp:699
+#: src/AppController.cpp:697
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr ""
 
-#: src/AppController.cpp:706 src/UpdateController.cpp:970
+#: src/AppController.cpp:704 src/UpdateController.cpp:970
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr ""
 
-#: src/AppController.cpp:707
+#: src/AppController.cpp:705
 msgid "Cancelled"
 msgstr ""
 
-#: src/AppController.cpp:712
+#: src/AppController.cpp:710
 msgid "That didn't work"
 msgstr ""
 
-#: src/AppController.cpp:731
+#: src/AppController.cpp:729
 msgid "Putting the default files back…"
 msgstr ""
 
-#: src/AppController.cpp:742
+#: src/AppController.cpp:740
 msgid "Before reset to defaults"
 msgstr ""
 
-#: src/AppController.cpp:743
+#: src/AppController.cpp:741
 msgid "Your current files couldn't be saved in Backups, so nothing was reset: {}"
 msgstr ""
 
-#: src/AppController.cpp:767
+#: src/AppController.cpp:765
 msgid "Your previous files are saved in Backups."
 msgstr ""
 
-#: src/AppController.cpp:770
+#: src/AppController.cpp:768
 msgid "The reset didn't work"
 msgstr ""
 
@@ -3146,7 +3162,7 @@ msgstr ""
 msgid "Shortcut"
 msgstr ""
 
-#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:343
+#: src/AppearanceController.cpp:83 src/ContextMenusController.cpp:338 src/ContextMenusController.cpp:363 src/EditorController.cpp:360
 msgid "Read-only"
 msgstr ""
 
@@ -3211,7 +3227,7 @@ msgstr ""
 msgid "The active config is the shared one in the install folder, which this app never writes to. Create a personal config to get snapshots."
 msgstr ""
 
-#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:241 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:698
+#: src/BackupsController.cpp:132 src/ContextMenusController.cpp:88 src/ContextMenusController.cpp:175 src/EditorController.cpp:258 src/MenuBuilderController.cpp:223 src/OpenWithController.cpp:340 src/SnippetsController.cpp:184 src/SnippetsController.cpp:698
 msgid "The config file doesn't exist: {}"
 msgstr ""
 
@@ -3391,7 +3407,7 @@ msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] ""
 
-#: src/BehaviorController.cpp:267
+#: src/BehaviorController.cpp:270
 msgid "Folder for menu screenshots"
 msgstr ""
 
@@ -4075,7 +4091,7 @@ msgstr ""
 msgid "Edit it in the Config Editor instead."
 msgstr ""
 
-#: src/ContextMenusController.cpp:428 src/EditorController.cpp:740 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:892
+#: src/ContextMenusController.cpp:428 src/EditorController.cpp:762 src/MenuBuilderController.cpp:512 src/OpenWithController.cpp:1030 src/SnippetsController.cpp:892
 msgid "Can't check the config"
 msgstr ""
 
@@ -4099,11 +4115,11 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
-#: src/ContextMenusController.cpp:514 src/EditorController.cpp:786 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:2039 src/MenuMapController.cpp:2146 src/OpenWithController.cpp:1145
+#: src/ContextMenusController.cpp:514 src/EditorController.cpp:808 src/MenuBuilderController.cpp:560 src/MenuMapController.cpp:2039 src/MenuMapController.cpp:2146 src/OpenWithController.cpp:1145
 msgid "No changes were needed."
 msgstr ""
 
-#: src/ContextMenusController.cpp:515 src/EditorController.cpp:787 src/MenuMapController.cpp:2040 src/MenuMapController.cpp:2147
+#: src/ContextMenusController.cpp:515 src/EditorController.cpp:809 src/MenuMapController.cpp:2040 src/MenuMapController.cpp:2147
 msgid "Snapshot {} was taken first."
 msgstr ""
 
@@ -4111,7 +4127,7 @@ msgstr ""
 msgid "Not saved: the config would fail to load"
 msgstr ""
 
-#: src/ContextMenusController.cpp:532 src/EditorController.cpp:809 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:2055 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
+#: src/ContextMenusController.cpp:532 src/EditorController.cpp:831 src/MenuBuilderController.cpp:575 src/MenuMapController.cpp:2055 src/OpenWithController.cpp:1160 src/SnippetsController.cpp:988
 msgid "Couldn't save"
 msgstr ""
 
@@ -4195,91 +4211,91 @@ msgstr ""
 msgid "Installed apps"
 msgstr ""
 
-#: src/EditorController.cpp:312
+#: src/EditorController.cpp:329
 msgid "Nothing to show."
 msgstr ""
 
-#: src/EditorController.cpp:337
+#: src/EditorController.cpp:354
 msgid "Shared config: read-only"
 msgstr ""
 
-#: src/EditorController.cpp:341
+#: src/EditorController.cpp:358
 msgid "Outside your config folder"
 msgstr ""
 
-#: src/EditorController.cpp:393
+#: src/EditorController.cpp:410
 msgid "Couldn't open {}"
 msgstr ""
 
-#: src/EditorController.cpp:683
+#: src/EditorController.cpp:705
 msgid "shell.exe was not found, so the config can't be checked"
 msgstr ""
 
-#: src/EditorController.cpp:690
+#: src/EditorController.cpp:712
 msgid "Checking your edits…"
 msgstr ""
 
-#: src/EditorController.cpp:706
+#: src/EditorController.cpp:728
 msgid "The check couldn't run: {}"
 msgstr ""
 
-#: src/EditorController.cpp:711 src/EditorController.cpp:803
+#: src/EditorController.cpp:733 src/EditorController.cpp:825
 msgid "{n} error in your edits"
 msgid_plural "{n} errors in your edits"
 msgstr[0] ""
 
-#: src/EditorController.cpp:712
+#: src/EditorController.cpp:734
 msgid "{n} error"
 msgid_plural "{n} errors"
 msgstr[0] ""
 
-#: src/EditorController.cpp:717
+#: src/EditorController.cpp:739
 msgid "Your edits pass the check"
 msgstr ""
 
-#: src/EditorController.cpp:717
+#: src/EditorController.cpp:739
 msgid "The config passes the check"
 msgstr ""
 
-#: src/EditorController.cpp:736
+#: src/EditorController.cpp:758
 msgid "Nothing to save"
 msgstr ""
 
-#: src/EditorController.cpp:736
+#: src/EditorController.cpp:758
 msgid "These files are read-only here."
 msgstr ""
 
-#: src/EditorController.cpp:740 src/ShellCli.cpp:225
+#: src/EditorController.cpp:762 src/ShellCli.cpp:225
 msgid "shell.exe was not found."
 msgstr ""
 
-#: src/EditorController.cpp:754
+#: src/EditorController.cpp:776
 msgid "The check found {n} error: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
 msgid_plural "The check found {n} errors: {0}.\n\nShell turns the whole context menu off while the config has an error, until it's fixed and saved again. A snapshot is taken first either way."
 msgstr[0] ""
 
-#: src/EditorController.cpp:757
+#: src/EditorController.cpp:779
 msgid "see Problems"
 msgstr ""
 
-#: src/EditorController.cpp:784
+#: src/EditorController.cpp:806
 msgid "Saved {}"
 msgstr ""
 
-#: src/EditorController.cpp:785
+#: src/EditorController.cpp:807
 msgid "Saved {n} file"
 msgid_plural "Saved {n} files"
 msgstr[0] ""
 
-#: src/EditorController.cpp:789
+#: src/EditorController.cpp:811
 msgid "The config has errors; Shell's menu stays off until they're fixed."
 msgstr ""
 
-#: src/EditorController.cpp:869
+#: src/EditorController.cpp:891
 msgid "{} changed on disk while you have unsaved edits. Reload to see the new version (your edits are dropped), or close this to keep editing yours."
 msgstr ""
 
-#: src/EditorController.cpp:913
+#: src/EditorController.cpp:935
 msgid "That file isn't in the import tree"
 msgstr ""
 

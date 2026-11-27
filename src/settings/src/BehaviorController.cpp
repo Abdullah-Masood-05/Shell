@@ -50,6 +50,33 @@ std::string knownFolder(const KNOWNFOLDERID &id)
 // A string literal for a path: plain double quotes, backslashes escaped.
 std::string quotePath(std::string_view path) { return nss::quoteString(path); }
 
+// settings.preload.types: the file types whose menus the preload also builds. Unset, the
+// core uses these (DefaultTypes in src/dll/src/Warm.cpp), and so the list shows them.
+constexpr std::string_view kPreloadTypes = "settings.preload.types";
+
+const std::vector<std::string> &defaultPreloadTypes()
+{
+    static const std::vector<std::string> types = { "jpg", "png", "pdf", "docx", "mp4", "mkv", "html", "obj" };
+    return types;
+}
+
+// "psd", ".psd" or "*.PSD" as "psd"; empty if it isn't a plain extension.
+std::string fileType(std::string_view input)
+{
+    auto s = std::string(nss::trim(input));
+    if (s.size() >= 2 && (s.front() == '"' || s.front() == '\'') && s.back() == s.front())
+        s = s.substr(1, s.size() - 2);
+    s.erase(0, s.find_first_not_of("*."));
+    if (s.size() > 32)
+        return {};
+    for (auto &c : s) {
+        if (static_cast<unsigned char>(c) <= ' ' || std::string_view("\\/:*?\"<>|,;").find(c) != std::string_view::npos)
+            return {};
+        c = char(std::tolower(static_cast<unsigned char>(c)));
+    }
+    return s;
+}
+
 } // namespace
 
 const std::vector<BehaviorController::FieldDef> &BehaviorController::fieldDefs()
@@ -71,6 +98,10 @@ const std::vector<BehaviorController::FieldDef> &BehaviorController::fieldDefs()
         { "settings.exclude.where", Kind::Where, {} },
         { "settings.exclude.process", Kind::Names, {} },
         { "settings.exclude.window", Kind::Names, {} },
+        // Appended, so the indexes above (SK in settings-state.slint) stay as they are.
+        { "settings.preload.enabled", Kind::Bool, {} },
+        { "settings.keepalive", Kind::Bool, {} },
+        { "settings.preload.types", Kind::Names, {} },
     };
     return defs;
 }
@@ -152,8 +183,10 @@ void BehaviorController::bindCallbacks()
     st.on_add_name([this, valid](int i, slint::SharedString value) {
         if (!valid(i) || fieldDefs()[size_t(i)].kind != Kind::Names)
             return false;
-        const bool process = std::string_view(fieldDefs()[size_t(i)].key) == "settings.exclude.process";
-        auto name = process ? rules::processName(str(value)) : rules::windowClass(str(value));
+        const std::string_view key = fieldDefs()[size_t(i)].key;
+        auto name = key == "settings.exclude.process" ? rules::processName(str(value))
+                    : key == kPreloadTypes            ? fileType(str(value))
+                                                      : rules::windowClass(str(value));
         auto list = names(i);
         if (!rules::addName(list, name))
             return false;
@@ -168,8 +201,9 @@ void BehaviorController::bindCallbacks()
             return;
         list.erase(list.begin() + position);
         const auto key = std::string(fieldDefs()[size_t(i)].key);
-        // Nothing left and nothing in the user's files: drop the key instead of writing "".
-        if (list.empty() && !save_.origins(key).file)
+        // Nothing left and nothing in the user's files: drop the key instead of writing "",
+        // except for the file types, where no key means the defaults rather than none.
+        if (list.empty() && !save_.origins(key).file && key != kPreloadTypes)
             reset(i);
         else
             apply(i, rules::formatNames(list));
@@ -202,7 +236,11 @@ void BehaviorController::configLoaded()
 
 std::vector<std::string> BehaviorController::names(int index) const
 {
-    if (auto text = save_.current(fieldDefs()[size_t(index)].key))
+    const char *key = fieldDefs()[size_t(index)].key;
+    auto text = save_.current(key);
+    if (!text && key == kPreloadTypes)
+        return defaultPreloadTypes();
+    if (text)
         if (auto list = rules::parseNames(*text))
             return *list;
     return {};
@@ -211,7 +249,7 @@ std::vector<std::string> BehaviorController::names(int index) const
 void BehaviorController::apply(int index, const std::string &literal)
 {
     const auto &def = fieldDefs()[size_t(index)];
-    const bool rules = def.kind == Kind::Where || def.kind == Kind::Names;
+    const bool rules = def.kind == Kind::Where || (def.kind == Kind::Names && def.key != kPreloadTypes);
     auto errors = save_.set(def.key, literal, rules ? kRules : kBehavior);
     if (!errors.empty()) {
         errors_[index] = errors.front();
@@ -225,7 +263,7 @@ void BehaviorController::apply(int index, const std::string &literal)
 void BehaviorController::reset(int index)
 {
     const auto &def = fieldDefs()[size_t(index)];
-    const bool rules = def.kind == Kind::Where || def.kind == Kind::Names;
+    const bool rules = def.kind == Kind::Where || (def.kind == Kind::Names && def.key != kPreloadTypes);
     errors_.erase(index);
     if (save_.origins(def.key).app)
         save_.reset(def.key, rules ? kRules : kBehavior);
@@ -319,7 +357,7 @@ void BehaviorController::rebuild()
     std::vector<ThemeField> rows;
     rows.reserve(defs.size());
     int whereKind = 0;
-    std::vector<std::string> processes, windows;
+    std::vector<std::string> processes, windows, preloadTypes;
     for (size_t i = 0; i < defs.size(); ++i) {
         const auto &def = defs[i];
         const std::string key = def.key;
@@ -401,9 +439,12 @@ void BehaviorController::rebuild()
         }
         case Kind::Names: {
             auto list = has ? rules::parseNames(*text) : std::optional<std::vector<std::string>>(std::vector<std::string>{});
+            if (!has && key == kPreloadTypes)
+                list = defaultPreloadTypes();
             f.locked = !list.has_value();
             f.display = ss(list ? std::string{} : *text);
-            (key == "settings.exclude.process" ? processes : windows) = list.value_or(std::vector<std::string>{});
+            auto &shown = key == "settings.exclude.process" ? processes : key == kPreloadTypes ? preloadTypes : windows;
+            shown = list.value_or(std::vector<std::string>{});
             break;
         }
         }
@@ -428,4 +469,5 @@ void BehaviorController::rebuild()
     st.set_where_kind(whereKind);
     st.set_processes(toModel(processes));
     st.set_windows(toModel(windows));
+    st.set_preload_types(toModel(preloadTypes));
 }

@@ -393,6 +393,8 @@ namespace Nilesoft
 		constexpr auto IDENT_SCREENSHOT = 0x9A37F083U;
 		constexpr auto IDENT_PRIORITY = 0x1CF615A7U;
 		constexpr auto IDENT_FILEMANAGERS = 0x00B3BEF3U;
+		constexpr auto IDENT_PRELOAD = 0xC287126CU;
+		constexpr auto IDENT_KEEPALIVE = 0x432CD17BU;
 
 		constexpr auto IDENT_BORDER = 0xF4916C63U;
 		constexpr auto IDENT_TIP = 0x0B88AE52U;

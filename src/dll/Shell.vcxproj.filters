@@ -66,6 +66,9 @@
     <ClCompile Include="src\Initializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Warm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Parser\Properties.cpp">
       <Filter>Source Files\Parser</Filter>
     </ClCompile>
@@ -126,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\Initializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Include\Warm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Include\Hooker.h">

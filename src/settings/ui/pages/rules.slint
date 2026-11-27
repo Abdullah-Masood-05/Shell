@@ -47,9 +47,9 @@ component NameRow inherits Rectangle {
     }
 }
 
-// A list of names (programs or window classes) with an add box. A value that
-// is an expression is shown as it is written, with a link to the editor.
-component NameList inherits VerticalLayout {
+// A list of names (programs, window classes or file types) with an add box. A
+// value that is an expression is shown as it is written, with a link to the editor.
+export component NameList inherits VerticalLayout {
     in property <int> index;
     in property <string> label;
     in property <string> hint;
@@ -57,15 +57,32 @@ component NameList inherits VerticalLayout {
     in property <string> empty-text;
     in property <[string]> names;
     in property <bool> ready;
+    in property <string> reset-text;  // set: a reset button at the right of the header, instead of the label's own
     property <ThemeField> field: SettingsState.fields[root.index];
 
     spacing: Tokens.s2;
 
-    FieldLabel {
-        label: root.label;
-        field: root.field;
-        hint: root.hint != "" ? root.hint + " · " + root.field.origin : root.field.origin;
-        reset => { SettingsState.reset(root.index); }
+    HorizontalLayout {
+        spacing: Tokens.s2;
+        FieldLabel {
+            horizontal-stretch: 1;
+            label: root.label;
+            field: root.field;
+            hint: root.hint != "" ? root.hint + " · " + root.field.origin : root.field.origin;
+            inline-reset: root.reset-text == "";
+            reset => { SettingsState.reset(root.index); }
+        }
+        if root.reset-text != "": VerticalLayout {
+            alignment: center;
+            AppButton {
+                text: root.reset-text;
+                icon: Icons.restart;
+                icon-size: 14px;
+                colorize-icon: true;
+                enabled: root.ready && !root.field.locked && (root.field.overridden || root.field.pending);
+                clicked => { SettingsState.reset(root.index); }
+            }
+        }
     }
     if root.field.locked: Rectangle {
         height: expr.preferred-height + 2 * Tokens.s2;

@@ -1,6 +1,7 @@
 ﻿#include <pch.h>
 #include "Include/ContextMenu.h"
 #include "Include/TaskbarOrigin.h"
+#include "Include/Warm.h"
 #include "Library/detours.h"
 #include "RegistryConfig.h"
 #include "ConfigCheck.h"
@@ -493,7 +494,8 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 				_this.is_uwp = is_UWP;
 				_this.clsid = Guid(rclsid).to_string(2);
 
-				bool test = Keyboard::IsKeyDown(VK_MENU);
+				// Alt + right-click times each handler (shell.log); never for the preload's menus.
+				bool test = !Warm::Preloading() && Keyboard::IsKeyDown(VK_MENU);
 				if(test)
 				{
 					Timer t;
@@ -529,6 +531,15 @@ HRESULT __stdcall CoCreateInstanceHook(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWO
 
 				if(test)
 					return hr;
+
+				// keepalive: create packaged handlers from the class factory this thread kept (Warm.h).
+				if(is_UWP && Warm::CreateFromFactory(rclsid, dwClsContext, pUnkOuter, riid, ppv, hr))
+					return hr;
+
+				hr = _CoCreateInstance.invoke(rclsid, pUnkOuter, dwClsContext, riid, ppv);
+				if(SUCCEEDED(hr) && ppv && *ppv)
+					Warm::Created(rclsid, dwClsContext, static_cast<IUnknown *>(*ppv));
+				return hr;
 			}
 		}
 	}
@@ -1305,6 +1316,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 						std::thread([=]() { ::Sleep(2000); hook(); }).detach();
 					}
 
+					// settings.preload (Warm.h): does nothing unless it is on.
+					Warm::StartPreload();
+
 					if(ver->IsWindows11OrGreater())
 					{
 
@@ -1685,6 +1699,11 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, [[maybe_unused]] _In_ REFIID riid
 	{
 		// shell -config:tree is reading menus in this process: this copy joins none.
 		if(MenuTreeReadingMenus())
+			return CLASS_E_CLASSNOTAVAILABLE;
+
+		// The preload's menus are never shown: keep them from touching the next
+		// menu's state (and a broken config's retry).
+		if(Warm::Preloading())
 			return CLASS_E_CLASSNOTAVAILABLE;
 
 		if(iid.equals(IID_FolderExtensions))
