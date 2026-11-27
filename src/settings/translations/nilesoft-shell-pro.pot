@@ -1662,7 +1662,7 @@ msgstr ""
 msgid "@sel.path is the selected path; quote it: \"@sel.path\""
 msgstr ""
 
-#: ui/pages/menu-builder.slint:761
+#: ui/pages/menu-builder.slint:761 ui/pages/preferences.slint:140
 msgid "Window"
 msgstr ""
 
@@ -2381,6 +2381,14 @@ msgstr ""
 
 #: ui/pages/preferences.slint:130
 msgid "Windows has the app turned off in its list of startup apps. Turn the switch on here to turn it back on."
+msgstr ""
+
+#: ui/pages/preferences.slint:141
+msgid "The app remembers the window's size and position. Restore it to its default size and center it on this screen."
+msgstr ""
+
+#: ui/pages/preferences.slint:145
+msgid "Reset window size and position"
 msgstr ""
 
 #: ui/pages/preferences.slint:140

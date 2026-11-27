@@ -26,6 +26,10 @@ export component Sidebar inherits Rectangle {
     ];
     // Pages are numbered in sidebar order; the arrow keys walk 0..last (Preferences).
     property <int> last-page: Pages.preferences;
+    // The focus ring is for keyboard navigation only. Clicking a row still focuses the
+    // scope so the arrow keys work, but the selected fill is its normal pointer state.
+    // Starting at true means Tab into the sidebar shows the ring, as it did before.
+    property <bool> keyboard-focus: true;
 
     background: Tokens.sidebar;
     animate background { duration: Tokens.normal; }
@@ -71,7 +75,16 @@ export component Sidebar inherits Rectangle {
     }
 
     fs := FocusScope {
+        // Focus left the sidebar: forget that the last focus came from a click, so
+        // Tab (or Shift+Tab) back in shows the ring again.
+        changed has-focus => {
+            if (!self.has-focus) {
+                root.keyboard-focus = true;
+            }
+        }
         key-pressed(event) => {
+            // Any key press in the scope means the keyboard is in use now.
+            root.keyboard-focus = true;
             if (event.text == Key.UpArrow) {
                 root.go(root.previous(AppState.page));
                 return accept;
@@ -155,8 +168,9 @@ export component Sidebar inherits Rectangle {
                             label: entry.label;
                             selected: AppState.page == entry.page;
                             badge: entry.page == Pages.whatsnew && AppState.whats-new-unseen;
-                            show-focus: fs.has-focus && AppState.page == entry.page;
+                            show-focus: root.keyboard-focus && fs.has-focus && AppState.page == entry.page;
                             clicked => {
+                                root.keyboard-focus = false;
                                 fs.focus();
                                 root.go(entry.page);
                             }
@@ -209,8 +223,9 @@ export component Sidebar inherits Rectangle {
                 icon: Icons.preferences;
                 label: @tr("Preferences");
                 selected: AppState.page == Pages.preferences;
-                show-focus: fs.has-focus && AppState.page == Pages.preferences;
+                show-focus: root.keyboard-focus && fs.has-focus && AppState.page == Pages.preferences;
                 clicked => {
+                    root.keyboard-focus = false;
                     fs.focus();
                     root.go(Pages.preferences);
                 }

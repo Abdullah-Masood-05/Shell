@@ -30,6 +30,11 @@ namespace {
 
 slint::SharedString ss(const std::string &s) { return slint::SharedString(std::string_view(s)); }
 
+// The window's preferred size in app.slint, in logical pixels. A first launch on a
+// smaller screen is clamped to the work area (fitDefaultWindowPlacement).
+constexpr int kDefaultWindowWidth = 1200;
+constexpr int kDefaultWindowHeight = 820;
+
 bool fileExists(const std::string &utf8)
 {
     std::error_code ec;
@@ -432,6 +437,7 @@ void AppController::bindCallbacks()
             ShellExecuteW(nullptr, L"open", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     });
     state.on_open_path([this](slint::SharedString path) { openPath(std::string(path.data(), path.size())); });
+    state.on_reset_window_placement([this] { resetWindowPlacement(); });
     // The first-run dialog's callbacks are in OnboardingController.
     state.on_dismiss_toast([this] {
         toastTimer_.stop();
@@ -804,4 +810,78 @@ void AppController::saveWindowPlacement()
     p.height = int(size.height);
     bool minimized = hwnd_ && IsIconic(hwnd_);
     registry::app::savePlacement(p, p.maximized || minimized);
+}
+
+void AppController::resetWindowPlacement()
+{
+    if (applyDefaultWindowPlacement(false)) {
+        // Persist the same client-area values Slint reads on the next start.
+        RECT client{}, windowRect{};
+        if (GetClientRect(hwnd_, &client) && GetWindowRect(hwnd_, &windowRect)) {
+            registry::app::Placement placement;
+            placement.x = windowRect.left;
+            placement.y = windowRect.top;
+            placement.width = client.right - client.left;
+            placement.height = client.bottom - client.top;
+            registry::app::savePlacement(placement, false);
+        }
+    }
+}
+
+void AppController::fitDefaultWindowPlacement()
+{
+    applyDefaultWindowPlacement(true);
+}
+
+// Centers the window at the default size on its monitor, smaller if the work area is.
+// With onlyIfTooLarge (a first launch that has no saved placement), a window Windows
+// already fit keeps its position; only one that spills over is moved and shrunk.
+bool AppController::applyDefaultWindowPlacement(bool onlyIfTooLarge)
+{
+    if (!hwnd_)
+        return false;
+
+    if (IsIconic(hwnd_) || IsZoomed(hwnd_)) {
+        if (onlyIfTooLarge)
+            return false;
+        ShowWindow(hwnd_, SW_RESTORE);
+    }
+
+    MONITORINFO monitor{ sizeof monitor };
+    const HMONITOR current = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
+    if (!GetMonitorInfoW(current, &monitor))
+        return false;
+
+    // Use logical defaults converted to this monitor's DPI, then keep the complete
+    // window inside the work area. This also makes the control useful on smaller or
+    // scaled displays without ever changing a saved layout by itself.
+    const UINT dpi = GetDpiForWindow(hwnd_);
+    const auto scaled = [dpi](int value) { return MulDiv(value, int(dpi), 96); };
+    const int margin = scaled(24);
+    const int workWidth = monitor.rcWork.right - monitor.rcWork.left;
+    const int workHeight = monitor.rcWork.bottom - monitor.rcWork.top;
+    const int maxWidth = workWidth - 2 * margin;
+    const int maxHeight = workHeight - 2 * margin;
+
+    if (onlyIfTooLarge) {
+        RECT now{};
+        if (!GetWindowRect(hwnd_, &now))
+            return false;
+        if (now.right - now.left <= maxWidth && now.bottom - now.top <= maxHeight)
+            return false; // the default already fits this screen
+    }
+
+    RECT windowFrame{ 0, 0, scaled(kDefaultWindowWidth), scaled(kDefaultWindowHeight) };
+    const auto style = GetWindowLongPtrW(hwnd_, GWL_STYLE);
+    const auto exStyle = GetWindowLongPtrW(hwnd_, GWL_EXSTYLE);
+    AdjustWindowRectExForDpi(&windowFrame, DWORD(style), FALSE, DWORD(exStyle), dpi);
+
+    int width = std::min(int(windowFrame.right - windowFrame.left), maxWidth);
+    int height = std::min(int(windowFrame.bottom - windowFrame.top), maxHeight);
+    width = std::max(width, 1);
+    height = std::max(height, 1);
+    const int x = monitor.rcWork.left + (workWidth - width) / 2;
+    const int y = monitor.rcWork.top + (workHeight - height) / 2;
+
+    return SetWindowPos(hwnd_, nullptr, x, y, width, height, SWP_NOZORDER | SWP_NOACTIVATE) != FALSE;
 }
