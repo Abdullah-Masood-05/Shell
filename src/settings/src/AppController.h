@@ -66,6 +66,9 @@ private:
     void applyLanguage(const std::string &setting, const std::string &shown = {});
     void setLanguage(int index);
     void pushLanguageOptions();
+    // Writes or removes imports/settings-app-lang.nss so the right-click menu follows the
+    // Language setting. Personal config only; on the Worker.
+    void syncMenuLanguage();
     // The translator preview (Preferences > Language > Test a translation file, --po):
     // shows a .po file for this session, nothing saved. Stop goes back to the setting.
     void pickTestTranslation();

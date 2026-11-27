@@ -115,6 +115,7 @@ add_executable(settings WIN32
     src/MapRules.cpp
     src/MenuBuilderController.cpp
     src/MenuMap.cpp
+    src/MenuLanguage.cpp
     src/MenuMapController.cpp
     src/MenuModel.cpp
     src/MenuWriter.cpp
@@ -211,6 +212,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         tests/test_menumap.cpp
         tests/test_menumove.cpp
         tests/test_overrides.cpp
+        tests/test_menulanguage.cpp
         tests/test_backups_files.cpp
         tests/test_carryover.cpp
         tests/test_snippets.cpp
@@ -243,6 +245,7 @@ if(SETTINGS_BUILD_TESTS AND TARGET nsscore)
         src/ThemePresets.cpp
         src/Tr.cpp
         src/MapRules.cpp
+        src/MenuLanguage.cpp
         src/MenuMap.cpp
         src/ShellOverrides.cpp
         src/MenuModel.cpp

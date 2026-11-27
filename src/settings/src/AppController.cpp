@@ -1,6 +1,8 @@
 #include "AppController.h"
 
 #include "Dwm.h"
+#include "ConfigUpdate.h"
+#include "MenuLanguage.h"
 #include "MenuWriter.h"
 #include "OpenWithModel.h"
 #include "Registry.h"
@@ -375,6 +377,24 @@ void AppController::setLanguage(int index)
     languageSetting_ = setting;
     registry::app::setString(L"Language", widen(setting));
     applyLanguage(setting);
+    syncMenuLanguage();
+}
+
+// The right-click menu follows the Language setting (imports/settings-app-lang.nss, see
+// MenuLanguage.h). Only the personal config is written, as with the other pages. The
+// translator preview never comes here: it doesn't change the setting.
+void AppController::syncMenuLanguage()
+{
+    if (!status_ || !config_update::isPersonal(status_->configSource, status_->configExists) || status_->configPath.empty())
+        return;
+    const fs::path root = fs::path(widen(status_->configPath)).lexically_normal();
+    worker_.post([this, root, setting = languageSetting_] {
+        auto result = menulang::apply(root, setting);
+        if (!result.ok)
+            slint::invoke_from_event_loop([this, error = result.error] {
+                showToast("error", nsp::tr("The menu's language wasn't changed"), error);
+            });
+    });
 }
 
 // A font that has the glyphs of a language's own name, whatever the UI language: the
@@ -587,6 +607,10 @@ void AppController::applySnapshot(Snapshot snap, bool quiet)
 
     if (firstStatus_) {
         firstStatus_ = false;
+        // The menu's language file and the saved setting can disagree (an update, a
+        // config put back). --lang is for this run only and must not change the file.
+        if (options_.language.empty())
+            syncMenuLanguage();
         // A custom config path in the registry is the user's own config too.
         bool ownConfig = status_->configSource == "appdata" || status_->configSource == "registry";
         bool needsSetup = !ownConfig || status_->regMode == "none";
@@ -757,7 +781,7 @@ void AppController::resetConfig()
             // The files this app writes: the default shell.nss doesn't import them, and a
             // later save would bring their old settings back. They are in the snapshot.
             for (std::string_view rel : { nss::OverridesWriter::relativePath, menus::MenuWriter::relativePath,
-                                          openwith::kRelativePath }) {
+                                          openwith::kRelativePath, menulang::kRelativePath }) {
                 std::error_code ec;
                 fs::remove(root.parent_path() / fs::path(widen(std::string(rel))).make_preferred(), ec);
             }
@@ -775,9 +799,13 @@ void AppController::resetConfig()
             }
             applySnapshot(std::move(snap), true);
             // Pages read the files again (as after a new personal config).
-            if (failure.empty())
+            if (failure.empty()) {
                 for (auto &fn : configChanged_)
                     fn();
+                // The default shell.nss doesn't import the menu language file; the Language
+                // setting is a preference of the app, so the menu gets it again.
+                syncMenuLanguage();
+            }
         });
     });
 }

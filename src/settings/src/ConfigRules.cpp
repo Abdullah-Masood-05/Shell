@@ -56,6 +56,7 @@ constexpr KnownModule kKnown[] = {
     { "settings-app-menus", nsp::mark("Your menus"), nsp::mark("The menus and items you built on the Menu Builder page."), nullptr },
     { "settings-app-map", nsp::mark("Menu map"), nsp::mark("The items you hid, renamed or moved on the Menu map page."), nullptr },
     { "settings-app-openwith", nsp::mark("Open with"), nsp::mark("Editors and terminals you picked on the Open with page."), nullptr },
+    { "settings-app-lang", nsp::mark("Menu language"), nsp::mark("The menu's language, set by the Language setting in Preferences."), nullptr },
     { "settings-app-snippets", nsp::mark("Snippets"), nsp::mark("The snippets you turned on on the Snippets page."), nullptr },
 };
 

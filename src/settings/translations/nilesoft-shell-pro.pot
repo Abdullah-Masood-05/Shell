@@ -11,20 +11,20 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. zh-TW: Microsoft JhengHei UI; both have Latin letters too.
-#: ui/app.slint:58
+#: ui/app.slint:61
 msgctxt "UI font family"
 msgid "Segoe UI Variable Text"
 msgstr ""
 
-#: ui/app.slint:204
+#: ui/app.slint:207
 msgid "Put the default menu files back?"
 msgstr ""
 
-#: ui/app.slint:205
+#: ui/app.slint:208
 msgid "Your shell.nss and the files in its imports folder are replaced by the ones that came with Shell, and the changes made in this app are undone. A snapshot of your current files is taken first, so you can restore them from Backups."
 msgstr ""
 
-#: ui/app.slint:206 ui/components/theme-controls.slint:81 ui/app.slint:206 ui/components/theme-controls.slint:81
+#: ui/app.slint:209 ui/components/theme-controls.slint:82 ui/app.slint:209 ui/components/theme-controls.slint:82 ui/pages/behavior.slint:104
 msgid "Reset"
 msgstr ""
 
@@ -97,7 +97,7 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/pages/preferences.slint:270
+#: ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/components/dialog.slint:12 ui/components/save-footer.slint:150 ui/pages/context-menus.slint:573 ui/pages/preferences.slint:283
 msgid "Cancel"
 msgstr ""
 
@@ -121,7 +121,7 @@ msgstr ""
 msgid "Applied"
 msgstr ""
 
-#: ui/components/preset-gallery.slint:225 ui/components/preset-gallery.slint:225 ui/pages/rules.slint:191
+#: ui/components/preset-gallery.slint:225 ui/components/preset-gallery.slint:225 ui/pages/rules.slint:208
 msgid "Apply"
 msgstr ""
 
@@ -207,11 +207,11 @@ msgstr ""
 msgid "Customize"
 msgstr ""
 
-#: ui/components/sidebar.slint:17 ui/pages/behavior.slint:37 src/BehaviorController.cpp:23
+#: ui/components/sidebar.slint:17 ui/pages/behavior.slint:38 src/BehaviorController.cpp:23
 msgid "Behavior"
 msgstr ""
 
-#: ui/components/sidebar.slint:18 ui/pages/rules.slint:135
+#: ui/components/sidebar.slint:18 ui/pages/rules.slint:152
 msgid "Rules & Filters"
 msgstr ""
 
@@ -235,7 +235,7 @@ msgstr ""
 msgid "Open with"
 msgstr ""
 
-#: ui/components/sidebar.slint:23 ui/pages/snippets.slint:383 src/ConfigRules.cpp:59
+#: ui/components/sidebar.slint:23 ui/pages/snippets.slint:383 src/ConfigRules.cpp:60
 msgid "Snippets"
 msgstr ""
 
@@ -251,63 +251,63 @@ msgstr ""
 msgid "Backups"
 msgstr ""
 
-#: ui/components/sidebar.slint:121 ui/pages/preferences.slint:343
+#: ui/components/sidebar.slint:134 ui/pages/preferences.slint:356
 msgid "Version {}"
 msgstr ""
 
-#: ui/components/sidebar.slint:201 ui/pages/home.slint:175 src/AppController.cpp:550
+#: ui/components/sidebar.slint:215 ui/pages/home.slint:175 src/AppController.cpp:576
 msgid "Checking status…"
 msgstr ""
 
-#: ui/components/sidebar.slint:210 ui/pages/preferences.slint:55
+#: ui/components/sidebar.slint:224 ui/pages/preferences.slint:55
 msgid "Preferences"
 msgstr ""
 
-#: ui/components/theme-controls.slint:59 src/SaveService.cpp:234
+#: ui/components/theme-controls.slint:60 src/SaveService.cpp:234
 msgid "Set by this app"
 msgstr ""
 
-#: ui/components/theme-controls.slint:59
+#: ui/components/theme-controls.slint:60
 msgid "Reset pending"
 msgstr ""
 
-#: ui/components/theme-controls.slint:67
+#: ui/components/theme-controls.slint:68
 msgid "Reset {} to the file's value"
 msgstr ""
 
-#: ui/components/theme-controls.slint:94 ui/pages/appearance.slint:331
+#: ui/components/theme-controls.slint:95 ui/pages/appearance.slint:331
 msgid "Set by an expression ({}). Changing it here overrides it."
 msgstr ""
 
-#: ui/components/theme-controls.slint:103
+#: ui/components/theme-controls.slint:104
 msgid "Edit in Config Editor"
 msgstr ""
 
-#: ui/components/theme-controls.slint:276
+#: ui/components/theme-controls.slint:277
 msgid "{} pixels"
 msgstr ""
 
-#: ui/components/theme-controls.slint:448
+#: ui/components/theme-controls.slint:449
 msgid "Auto (≈{}{})"
 msgstr ""
 
-#: ui/components/theme-controls.slint:677 ui/components/theme-controls.slint:677
+#: ui/components/theme-controls.slint:678 ui/components/theme-controls.slint:678
 msgid "Pick a colour"
 msgstr ""
 
-#: ui/components/theme-controls.slint:726
+#: ui/components/theme-controls.slint:727
 msgid "Segoe UI (menu default)"
 msgstr ""
 
-#: ui/components/theme-controls.slint:739
+#: ui/components/theme-controls.slint:740
 msgid "Font family"
 msgstr ""
 
-#: ui/components/theme-controls.slint:786
+#: ui/components/theme-controls.slint:787
 msgid "Search installed fonts"
 msgstr ""
 
-#: ui/components/theme-controls.slint:839
+#: ui/components/theme-controls.slint:840
 msgid "Set by an expression"
 msgstr ""
 
@@ -404,19 +404,19 @@ msgstr ""
 msgid "Later"
 msgstr ""
 
-#: ui/components/update-banner.slint:47 ui/pages/preferences.slint:261
+#: ui/components/update-banner.slint:47 ui/pages/preferences.slint:274
 msgid "Install with administrator approval"
 msgstr ""
 
-#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:275
 msgid "Restart now"
 msgstr ""
 
-#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:262
+#: ui/components/update-banner.slint:48 ui/pages/preferences.slint:275
 msgid "Restart to update"
 msgstr ""
 
-#: ui/components/update-banner.slint:49 ui/pages/preferences.slint:263
+#: ui/components/update-banner.slint:49 ui/pages/preferences.slint:276
 msgid "Download and install"
 msgstr ""
 
@@ -529,11 +529,11 @@ msgstr ""
 msgid "Gradients, image colours and per-item rules are in shell.nss and its imports."
 msgstr ""
 
-#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:752 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:341
+#: ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 ui/pages/appearance.slint:167 ui/pages/appearance.slint:496 src/ConfigRules.cpp:753 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:341
 msgid "Background"
 msgstr ""
 
-#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:154
+#: ui/pages/appearance.slint:168 ui/pages/behavior.slint:165
 msgid "Text"
 msgstr ""
 
@@ -557,11 +557,11 @@ msgstr ""
 msgid "The theme, colours, font and effects of Shell's menus. The preview updates as you change them."
 msgstr ""
 
-#: ui/pages/appearance.slint:199 ui/pages/behavior.slint:45 ui/pages/appearance.slint:199 ui/pages/behavior.slint:45
+#: ui/pages/appearance.slint:199 ui/pages/behavior.slint:46 ui/pages/appearance.slint:199 ui/pages/behavior.slint:46
 msgid "Couldn't read your config"
 msgstr ""
 
-#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/appearance.slint:201 ui/pages/behavior.slint:47 ui/pages/rules.slint:145 src/AppController.cpp:564
+#: ui/pages/appearance.slint:201 ui/pages/behavior.slint:48 ui/pages/appearance.slint:201 ui/pages/behavior.slint:48 ui/pages/rules.slint:162 src/AppController.cpp:590
 msgid "Try again"
 msgstr ""
 
@@ -609,17 +609,17 @@ msgstr ""
 msgid "Auto follows the Windows app mode · {}"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:218
+#: ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/appearance.slint:421 ui/pages/appearance.slint:484 ui/pages/behavior.slint:229
 msgctxt "Setting value"
 msgid "Auto"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:229
 msgctxt "Setting value"
 msgid "On"
 msgstr ""
 
-#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:218
+#: ui/pages/appearance.slint:421 ui/pages/behavior.slint:229
 msgctxt "Setting value"
 msgid "Off"
 msgstr ""
@@ -889,127 +889,143 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-#: ui/pages/behavior.slint:38
+#: ui/pages/behavior.slint:39
 msgid "How the menu opens, its tooltips and screenshots, and what it does to Windows' own items."
 msgstr ""
 
-#: ui/pages/behavior.slint:53
+#: ui/pages/behavior.slint:54
 msgid "Opening the menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:55
+#: ui/pages/behavior.slint:56
 msgid "Open Shell's menu instead of the Windows 11 menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:57
+#: ui/pages/behavior.slint:58
 msgid "File Explorer's compact menu is skipped · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:58
+#: ui/pages/behavior.slint:59
 msgid "Windows 11 shows its compact menu first · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:64
+#: ui/pages/behavior.slint:65
 msgid "Custom submenu delay"
 msgstr ""
 
-#: ui/pages/behavior.slint:67
+#: ui/pages/behavior.slint:68
 msgid "Off: your Windows setting applies ({} ms) · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:68
+#: ui/pages/behavior.slint:69
 msgid "Replaces your Windows setting ({} ms) while a Shell menu is open · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:90
+#: ui/pages/behavior.slint:91
 msgid "Get the menu ready when File Explorer starts"
 msgstr ""
 
-#: ui/pages/behavior.slint:91
+#: ui/pages/behavior.slint:92
 msgid "Windows and other apps load their menu items in the background, so the first right-click doesn't wait for them. From the next time File Explorer starts · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:97
-msgid "Keep other apps' menu items loaded"
-msgstr ""
-
 #: ui/pages/behavior.slint:98
-msgid "A right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one keeps a few MB in memory · {}"
+msgid "File types"
 msgstr ""
 
-#: ui/pages/behavior.slint:106
-msgid "Tooltips"
+#: ui/pages/behavior.slint:99
+msgid "Their menus get ready too, for apps that add items only to them"
+msgstr ""
+
+#: ui/pages/behavior.slint:100
+msgid "An extension, such as psd"
+msgstr ""
+
+#: ui/pages/behavior.slint:101
+msgid "No file types."
 msgstr ""
 
 #: ui/pages/behavior.slint:108
+msgid "Keep other apps' menu items loaded"
+msgstr ""
+
+#: ui/pages/behavior.slint:109
+msgid "A right-click after a pause doesn't wait for apps such as Windows Terminal to start again. Each one keeps a few MB in memory · {}"
+msgstr ""
+
+#: ui/pages/behavior.slint:117
+msgid "Tooltips"
+msgstr ""
+
+#: ui/pages/behavior.slint:119
 msgid "Show tooltips"
 msgstr ""
 
-#: ui/pages/behavior.slint:114
+#: ui/pages/behavior.slint:125
 msgid "Delay"
 msgstr ""
 
-#: ui/pages/behavior.slint:127
+#: ui/pages/behavior.slint:138
 msgid "Maximum width"
 msgstr ""
 
-#: ui/pages/behavior.slint:143
+#: ui/pages/behavior.slint:154
 msgid "The menu's background · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:155
+#: ui/pages/behavior.slint:166
 msgid "The colour of the tooltip text"
 msgstr ""
 
-#: ui/pages/behavior.slint:168
+#: ui/pages/behavior.slint:179
 msgid "Screenshots"
 msgstr ""
 
-#: ui/pages/behavior.slint:170
+#: ui/pages/behavior.slint:181
 msgid "Print Screen saves the open menu"
 msgstr ""
 
-#: ui/pages/behavior.slint:176 src/AppearanceController.cpp:82 src/ConfigRules.cpp:737 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
+#: ui/pages/behavior.slint:187 src/AppearanceController.cpp:82 src/ConfigRules.cpp:738 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:340 src/SnippetPreview.cpp:1847
 msgid "Folder"
 msgstr ""
 
-#: ui/pages/behavior.slint:178
+#: ui/pages/behavior.slint:189
 msgid "Screenshots folder · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:182 ui/pages/menu-builder.slint:666
+#: ui/pages/behavior.slint:193 ui/pages/menu-builder.slint:666
 msgid "Choose…"
 msgstr ""
 
-#: ui/pages/behavior.slint:191
+#: ui/pages/behavior.slint:202
 msgid "Windows' own items"
 msgstr ""
 
-#: ui/pages/behavior.slint:192
+#: ui/pages/behavior.slint:203
 msgid "What Shell does to the items Windows and other apps put in the menu."
 msgstr ""
 
-#: ui/pages/behavior.slint:194
+#: ui/pages/behavior.slint:205
 msgid "Remove duplicate items"
 msgstr ""
 
-#: ui/pages/behavior.slint:200
+#: ui/pages/behavior.slint:211
 msgid "Remove disabled items"
 msgstr ""
 
-#: ui/pages/behavior.slint:206
+#: ui/pages/behavior.slint:217
 msgid "Remove their separators"
 msgstr ""
 
-#: ui/pages/behavior.slint:212
+#: ui/pages/behavior.slint:223
 msgid "Icons on Windows' items"
 msgstr ""
 
-#: ui/pages/behavior.slint:214
+#: ui/pages/behavior.slint:225
 msgid "Auto adds icons to known items that have none · {}"
 msgstr ""
 
-#: ui/pages/behavior.slint:226
+#: ui/pages/behavior.slint:237
 msgid "Icons on Shell's own items"
 msgstr ""
 
@@ -1244,7 +1260,7 @@ msgstr ""
 msgid "Couldn't open the config"
 msgstr ""
 
-#: ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 src/ConfigRules.cpp:754 src/MenuModel.cpp:165 src/OtherApps.cpp:268 src/Snippets.cpp:661
+#: ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 ui/pages/editor.slint:257 ui/pages/menu-builder.slint:682 src/ConfigRules.cpp:755 src/MenuModel.cpp:165 src/OtherApps.cpp:268 src/Snippets.cpp:661
 msgid "Files"
 msgstr ""
 
@@ -1306,7 +1322,7 @@ msgstr ""
 msgid "Restart Explorer"
 msgstr ""
 
-#: ui/pages/home.slint:130 ui/pages/preferences.slint:296
+#: ui/pages/home.slint:130 ui/pages/preferences.slint:309
 msgid "Open Backups"
 msgstr ""
 
@@ -1322,7 +1338,7 @@ msgstr ""
 msgid "Shell DLL"
 msgstr ""
 
-#: ui/pages/home.slint:210 ui/pages/preferences.slint:168
+#: ui/pages/home.slint:210 ui/pages/preferences.slint:181
 msgid "Version"
 msgstr ""
 
@@ -1564,7 +1580,7 @@ msgstr ""
 msgid "Everywhere"
 msgstr ""
 
-#: ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:754 src/ConfigRules.cpp:750 src/MenuModel.cpp:166 src/OtherApps.cpp:269 src/Snippets.cpp:663
+#: ui/pages/menu-builder.slint:682 ui/pages/openwith.slint:754 src/ConfigRules.cpp:751 src/MenuModel.cpp:166 src/OtherApps.cpp:269 src/Snippets.cpp:663
 msgid "Folders"
 msgstr ""
 
@@ -1774,7 +1790,7 @@ msgstr ""
 msgid "Its title, as the menu shows it"
 msgstr ""
 
-#: ui/pages/menu-map.slint:424 ui/pages/rules.slint:113
+#: ui/pages/menu-map.slint:424 ui/pages/rules.slint:130
 msgid "Add"
 msgstr ""
 
@@ -2340,7 +2356,7 @@ msgid "Language"
 msgstr ""
 
 #: ui/pages/preferences.slint:79
-msgid "Auto follows the Windows display language, which is {} now. A change applies right away."
+msgid "Auto follows the Windows display language, which is {} now. A change applies right away, and the right-click menu changes to this language too."
 msgstr ""
 
 #: ui/pages/preferences.slint:96
@@ -2391,267 +2407,267 @@ msgstr ""
 msgid "Reset window size and position"
 msgstr ""
 
-#: ui/pages/preferences.slint:140
+#: ui/pages/preferences.slint:153
 msgid "All users on this PC"
 msgstr ""
 
-#: ui/pages/preferences.slint:141
+#: ui/pages/preferences.slint:154
 msgid "Registering Shell for everyone on this PC needs administrator rights. Everything else in this app works without them."
 msgstr ""
 
-#: ui/pages/preferences.slint:143
+#: ui/pages/preferences.slint:156
 msgid "All users"
 msgstr ""
 
-#: ui/pages/preferences.slint:144 ui/pages/preferences.slint:148
+#: ui/pages/preferences.slint:157 ui/pages/preferences.slint:161
 msgid "Registered"
 msgstr ""
 
-#: ui/pages/preferences.slint:144 ui/pages/preferences.slint:148 src/AppController.cpp:128
+#: ui/pages/preferences.slint:157 ui/pages/preferences.slint:161 src/AppController.cpp:135
 msgid "Not registered"
 msgstr ""
 
-#: ui/pages/preferences.slint:147
+#: ui/pages/preferences.slint:160
 msgid "Just you"
 msgstr ""
 
-#: ui/pages/preferences.slint:154
+#: ui/pages/preferences.slint:167
 msgid "Unregister for all users"
 msgstr ""
 
-#: ui/pages/preferences.slint:154
+#: ui/pages/preferences.slint:167
 msgid "Register for all users"
 msgstr ""
 
-#: ui/pages/preferences.slint:165
+#: ui/pages/preferences.slint:178
 msgid "Updates"
 msgstr ""
 
-#: ui/pages/preferences.slint:166
+#: ui/pages/preferences.slint:179
 msgid "New versions come from this project's GitHub releases and are checked against their SHA-256 sums before anything is installed."
 msgstr ""
 
-#: ui/pages/preferences.slint:169
+#: ui/pages/preferences.slint:182
 msgid "{}  ·  app updated for you; Shell core {} for all users"
 msgstr ""
 
-#: ui/pages/preferences.slint:170
+#: ui/pages/preferences.slint:183
 msgid "{}  ·  installed for all users (MSI)"
 msgstr ""
 
-#: ui/pages/preferences.slint:171
+#: ui/pages/preferences.slint:184
 msgid "{}  ·  portable copy"
 msgstr ""
 
-#: ui/pages/preferences.slint:177
+#: ui/pages/preferences.slint:190
 msgid "Channel"
 msgstr ""
 
-#: ui/pages/preferences.slint:186
+#: ui/pages/preferences.slint:199
 msgid "Stable"
 msgstr ""
 
-#: ui/pages/preferences.slint:186
+#: ui/pages/preferences.slint:199
 msgid "Beta"
 msgstr ""
 
-#: ui/pages/preferences.slint:192
+#: ui/pages/preferences.slint:205
 msgid "Pre-releases too"
 msgstr ""
 
-#: ui/pages/preferences.slint:192
+#: ui/pages/preferences.slint:205
 msgid "Releases only"
 msgstr ""
 
-#: ui/pages/preferences.slint:200
+#: ui/pages/preferences.slint:213
 msgid "Check for updates automatically"
 msgstr ""
 
-#: ui/pages/preferences.slint:201
+#: ui/pages/preferences.slint:214
 msgid "When the app starts, at most once a day, and every few hours while it is in the system tray."
 msgstr ""
 
-#: ui/pages/preferences.slint:206
+#: ui/pages/preferences.slint:219
 msgid "Download and install updates automatically"
 msgstr ""
 
-#: ui/pages/preferences.slint:207
+#: ui/pages/preferences.slint:220
 msgid "Updates download, are verified and install in the background without administrator rights; you pick when to restart. An update that changes the Shell core for all users is only announced, because it needs administrator approval."
 msgstr ""
 
-#: ui/pages/preferences.slint:230 src/UpdateController.cpp:616 src/UpdateController.cpp:649
+#: ui/pages/preferences.slint:243 src/UpdateController.cpp:616 src/UpdateController.cpp:649
 msgid "Checking for updates…"
 msgstr ""
 
-#: ui/pages/preferences.slint:231
+#: ui/pages/preferences.slint:244
 msgid "Version {} is available"
 msgstr ""
 
-#: ui/pages/preferences.slint:232
+#: ui/pages/preferences.slint:245
 msgid "Downloading {}…  {}"
 msgstr ""
 
-#: ui/pages/preferences.slint:233
+#: ui/pages/preferences.slint:246
 msgid "Version {} is installed: restart to finish updating"
 msgstr ""
 
-#: ui/pages/preferences.slint:234
+#: ui/pages/preferences.slint:247
 msgid "Version {} is downloaded and verified"
 msgstr ""
 
-#: ui/pages/preferences.slint:235
+#: ui/pages/preferences.slint:248
 msgid "Installing {}…"
 msgstr ""
 
-#: ui/pages/preferences.slint:237
+#: ui/pages/preferences.slint:250
 msgid "Not checked yet"
 msgstr ""
 
-#: ui/pages/preferences.slint:251
+#: ui/pages/preferences.slint:264
 msgid "Last checked: {}"
 msgstr ""
 
-#: ui/pages/preferences.slint:274
+#: ui/pages/preferences.slint:287
 msgid "Check now"
 msgstr ""
 
-#: ui/pages/preferences.slint:290
+#: ui/pages/preferences.slint:303
 msgid "Reset configuration"
 msgstr ""
 
-#: ui/pages/preferences.slint:291
+#: ui/pages/preferences.slint:304
 msgid "Puts the default menu files back. Your current files are saved in Backups first, so you can undo it."
 msgstr ""
 
-#: ui/pages/preferences.slint:294 src/AppController.cpp:765
+#: ui/pages/preferences.slint:307 src/AppController.cpp:795
 msgid "The default files are back"
 msgstr ""
 
-#: ui/pages/preferences.slint:295
+#: ui/pages/preferences.slint:308
 msgid "Your previous files are saved in Backups. Restore that snapshot there to undo the reset."
 msgstr ""
 
-#: ui/pages/preferences.slint:307
+#: ui/pages/preferences.slint:320
 msgid "Reset to defaults…"
 msgstr ""
 
-#: ui/pages/preferences.slint:314
+#: ui/pages/preferences.slint:327
 msgid "Shell uses the shared config in the install folder, which this app never changes. Create a personal config on Home first; then it can be reset here."
 msgstr ""
 
-#: ui/pages/preferences.slint:315
+#: ui/pages/preferences.slint:328
 msgid "Your config is in a folder you chose ({}). Only the personal config in %APPDATA%\\Nilesoft\\Shell can be reset here."
 msgstr ""
 
-#: ui/pages/preferences.slint:325
+#: ui/pages/preferences.slint:338
 msgid "About"
 msgstr ""
 
-#: ui/pages/preferences.slint:347
+#: ui/pages/preferences.slint:360
 msgid "© Nilesoft Ltd. and contributors. MIT License."
 msgstr ""
 
-#: ui/pages/preferences.slint:361
+#: ui/pages/preferences.slint:374
 msgid "Documentation"
 msgstr ""
 
-#: ui/pages/preferences.slint:366
+#: ui/pages/preferences.slint:379
 msgid "Source code"
 msgstr ""
 
-#: ui/pages/preferences.slint:370
+#: ui/pages/preferences.slint:383
 msgid "Report an issue"
 msgstr ""
 
-#: ui/pages/preferences.slint:379
+#: ui/pages/preferences.slint:392
 msgid "Thanks"
 msgstr ""
 
-#: ui/pages/preferences.slint:384
+#: ui/pages/preferences.slint:397
 msgid "RubicBG, for his snippets and the engine fixes from ReShell. Deliond, who translated the app into Spanish on his own. zhonglixun, for reviewing the Chinese translation and many reports and ideas. kaser4, who reviewed and corrected the Arabic translation. advanced03, TheDoctor121 and FroztySeven, for their bug reports. And everyone whose fixes and translations were ported from Nilesoft Shell's issues, pull requests and forks."
 msgstr ""
 
-#: ui/pages/preferences.slint:395
+#: ui/pages/preferences.slint:408
 msgid "Third-party software"
 msgstr ""
 
-#: ui/pages/preferences.slint:400
+#: ui/pages/preferences.slint:413
 msgid "Built with Slint (Royalty-free license 2.0). JSON for Modern C++ by Niels Lohmann (MIT). Fluent UI System Icons by Microsoft (MIT)."
 msgstr ""
 
-#: ui/pages/rules.slint:136
+#: ui/pages/rules.slint:153
 msgid "Where Shell's menu appears. Everywhere else, Windows shows its own menu."
 msgstr ""
 
-#: ui/pages/rules.slint:151
+#: ui/pages/rules.slint:168
 msgid "Where the menu appears"
 msgstr ""
 
-#: ui/pages/rules.slint:153
+#: ui/pages/rules.slint:170
 msgid "Only in File Explorer and on the desktop"
 msgstr ""
 
-#: ui/pages/rules.slint:156
+#: ui/pages/rules.slint:173
 msgid "A custom condition is set below · {}"
 msgstr ""
 
-#: ui/pages/rules.slint:157
+#: ui/pages/rules.slint:174
 msgid "Other programs' file dialogs keep Windows' menu · {}"
 msgstr ""
 
-#: ui/pages/rules.slint:170
+#: ui/pages/rules.slint:187
 msgid "Custom condition"
 msgstr ""
 
-#: ui/pages/rules.slint:174
+#: ui/pages/rules.slint:191
 msgid "An NSS expression; Shell's menu is hidden wherever it is true. shell.exe checks it when you save."
 msgstr ""
 
-#: ui/pages/rules.slint:186
+#: ui/pages/rules.slint:203
 msgid "e.g. process.name == \"notepad\""
 msgstr ""
 
-#: ui/pages/rules.slint:206
+#: ui/pages/rules.slint:223
 msgid "Show it in the Config Editor"
 msgstr ""
 
-#: ui/pages/rules.slint:216
+#: ui/pages/rules.slint:233
 msgid "Keep Windows' own menu"
 msgstr ""
 
-#: ui/pages/rules.slint:217
+#: ui/pages/rules.slint:234
 msgid "Shell's menu stays out of these programs and windows."
 msgstr ""
 
-#: ui/pages/rules.slint:220 src/OpenWithController.cpp:171
+#: ui/pages/rules.slint:237 src/OpenWithController.cpp:171
 msgid "Programs"
 msgstr ""
 
-#: ui/pages/rules.slint:221
+#: ui/pages/rules.slint:238
 msgid "By name, without .exe"
 msgstr ""
 
-#: ui/pages/rules.slint:222
+#: ui/pages/rules.slint:239
 msgid "notepad, or a path to an .exe"
 msgstr ""
 
-#: ui/pages/rules.slint:223
+#: ui/pages/rules.slint:240
 msgid "No programs."
 msgstr ""
 
-#: ui/pages/rules.slint:230
+#: ui/pages/rules.slint:247
 msgid "Window classes"
 msgstr ""
 
-#: ui/pages/rules.slint:231
+#: ui/pages/rules.slint:248
 msgid "The class of the top-level window, e.g. CabinetWClass for File Explorer"
 msgstr ""
 
-#: ui/pages/rules.slint:232
+#: ui/pages/rules.slint:249
 msgid "Window class name"
 msgstr ""
 
-#: ui/pages/rules.slint:233
+#: ui/pages/rules.slint:250
 msgid "No window classes."
 msgstr ""
 
@@ -2790,291 +2806,295 @@ msgstr ""
 msgid "Open Preferences"
 msgstr ""
 
-#: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
+#: src/AppController.cpp:91 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."
 msgstr ""
 
-#: src/AppController.cpp:98 src/ConfigUpdateController.cpp:49 src/SaveService.cpp:520
+#: src/AppController.cpp:105 src/ConfigUpdateController.cpp:49 src/SaveService.cpp:520
 msgid "shell.exe exited with code {}."
 msgstr ""
 
-#: src/AppController.cpp:122
+#: src/AppController.cpp:129
 msgid "Registered for you"
 msgstr ""
 
-#: src/AppController.cpp:124 src/AppController.cpp:659
+#: src/AppController.cpp:131 src/AppController.cpp:689
 msgid "Registered for all users"
 msgstr ""
 
-#: src/AppController.cpp:126
+#: src/AppController.cpp:133
 msgid "Registered for you and for all users"
 msgstr ""
 
-#: src/AppController.cpp:132
+#: src/AppController.cpp:139
 msgid "Not applicable on this Windows version"
 msgstr ""
 
-#: src/AppController.cpp:134
+#: src/AppController.cpp:141
 msgid "Classic menu (set by another app)"
 msgstr ""
 
-#: src/AppController.cpp:134
+#: src/AppController.cpp:141
 msgid "Classic menu (set by Shell)"
 msgstr ""
 
-#: src/AppController.cpp:136
+#: src/AppController.cpp:143
 msgid "Windows 11 menu; Shell is under \"Show more options\""
 msgstr ""
 
-#: src/AppController.cpp:139
+#: src/AppController.cpp:146
 msgid "Personal (%APPDATA%)"
 msgstr ""
 
-#: src/AppController.cpp:141
+#: src/AppController.cpp:148
 msgid "Custom path (registry)"
 msgstr ""
 
-#: src/AppController.cpp:143
+#: src/AppController.cpp:150
 msgid "Shared (install folder)"
 msgstr ""
 
-#: src/AppController.cpp:145 src/MenuMapController.cpp:976
+#: src/AppController.cpp:152 src/MenuMapController.cpp:976
 msgid "Unknown"
 msgstr ""
 
-#: src/AppController.cpp:149
+#: src/AppController.cpp:156
 msgid "Two copies of Shell are registered"
 msgstr ""
 
-#: src/AppController.cpp:150
+#: src/AppController.cpp:157
 msgid "Explorer can load the other copy, and then Shell's menu doesn't appear."
 msgstr ""
 
-#: src/AppController.cpp:151 src/AppController.cpp:161 src/AppController.cpp:166
+#: src/AppController.cpp:158 src/AppController.cpp:168 src/AppController.cpp:173
 msgid "Needs attention"
 msgstr ""
 
-#: src/AppController.cpp:154
+#: src/AppController.cpp:161
 msgid "Shell is not enabled"
 msgstr ""
 
-#: src/AppController.cpp:155
+#: src/AppController.cpp:162
 msgid "The context menu isn't registered for you or for all users."
 msgstr ""
 
-#: src/AppController.cpp:156
+#: src/AppController.cpp:163
 msgid "Not enabled"
 msgstr ""
 
-#: src/AppController.cpp:159
+#: src/AppController.cpp:166
 msgid "shell.dll is missing"
 msgstr ""
 
-#: src/AppController.cpp:160
+#: src/AppController.cpp:167
 msgid "The registered DLL file can't be found. Register again to fix it."
 msgstr ""
 
-#: src/AppController.cpp:164 src/Status.cpp:188
+#: src/AppController.cpp:171 src/Status.cpp:188
 msgid "The config file is missing"
 msgstr ""
 
-#: src/AppController.cpp:165
+#: src/AppController.cpp:172
 msgid "Shell can't build its menu without shell.nss."
 msgstr ""
 
-#: src/AppController.cpp:169 src/AppController.cpp:171 src/AppController.cpp:174 src/AppController.cpp:178
+#: src/AppController.cpp:176 src/AppController.cpp:178 src/AppController.cpp:181 src/AppController.cpp:185
 msgid "Shell is active"
 msgstr ""
 
-#: src/AppController.cpp:170
+#: src/AppController.cpp:177
 msgid "Another app set the Windows 11 classic-menu switch."
 msgstr ""
 
-#: src/AppController.cpp:175
+#: src/AppController.cpp:182
 msgid "Your context menu is powered by Nilesoft Shell."
 msgstr ""
 
-#: src/AppController.cpp:176
+#: src/AppController.cpp:183
 msgid "Active for you and for every user on this PC."
 msgstr ""
 
-#: src/AppController.cpp:177
+#: src/AppController.cpp:184
 msgid "Active for every user on this PC."
 msgstr ""
 
-#: src/AppController.cpp:291
+#: src/AppController.cpp:298
 msgid "Test a translation file"
 msgstr ""
 
-#: src/AppController.cpp:292
+#: src/AppController.cpp:299
 msgid "Translation files"
 msgstr ""
 
-#: src/AppController.cpp:293 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
+#: src/AppController.cpp:300 src/ContextMenusController.cpp:557 src/MenuMapController.cpp:1738 src/OpenWithController.cpp:992
 msgid "All files"
 msgstr ""
 
-#: src/AppController.cpp:327
+#: src/AppController.cpp:334
 msgid "The translation file can't be reloaded"
 msgstr ""
 
-#: src/AppController.cpp:327
+#: src/AppController.cpp:334
 msgid "The translation file can't be used"
 msgstr ""
 
-#: src/AppController.cpp:337
+#: src/AppController.cpp:344
 msgid "{} of {} strings translated"
 msgstr ""
 
-#: src/AppController.cpp:339
+#: src/AppController.cpp:346
 msgid "{n} missing"
 msgid_plural "{n} missing"
 msgstr[0] ""
 
-#: src/AppController.cpp:341
+#: src/AppController.cpp:348
 msgid "{n} fuzzy, not shown"
 msgid_plural "{n} fuzzy, not shown"
 msgstr[0] ""
 
-#: src/AppController.cpp:343
+#: src/AppController.cpp:350
 msgid "{n} not in this version of the app"
 msgid_plural "{n} not in this version of the app"
 msgstr[0] ""
 
-#: src/AppController.cpp:351
+#: src/AppController.cpp:358
 msgid "Translation file reloaded"
 msgstr ""
 
-#: src/AppController.cpp:394
+#: src/AppController.cpp:395
+msgid "The menu's language wasn't changed"
+msgstr ""
+
+#: src/AppController.cpp:419
 msgctxt "Language"
 msgid "Auto"
 msgstr ""
 
-#: src/AppController.cpp:538 src/SnippetsController.cpp:228
+#: src/AppController.cpp:564 src/SnippetsController.cpp:228
 msgid "shell.exe was not found"
 msgstr ""
 
-#: src/AppController.cpp:539
+#: src/AppController.cpp:565
 msgid "Install Nilesoft Shell, or put NilesoftShellPro.exe next to shell.exe."
 msgstr ""
 
-#: src/AppController.cpp:543
+#: src/AppController.cpp:569
 msgid "Nilesoft Shell was not found"
 msgstr ""
 
-#: src/AppController.cpp:544
+#: src/AppController.cpp:570
 msgid "NilesoftShellPro.exe looks for shell.exe next to itself and next to the registered shell.dll."
 msgstr ""
 
-#: src/AppController.cpp:545 src/EditorController.cpp:356
+#: src/AppController.cpp:571 src/EditorController.cpp:356
 msgid "Not found"
 msgstr ""
 
-#: src/AppController.cpp:564 src/AppController.cpp:567
+#: src/AppController.cpp:590 src/AppController.cpp:593
 msgid "Couldn't read the Shell status"
 msgstr ""
 
-#: src/AppController.cpp:645 src/AppController.cpp:687
+#: src/AppController.cpp:675 src/AppController.cpp:717
 msgid "Restarting Explorer…"
 msgstr ""
 
-#: src/AppController.cpp:645
+#: src/AppController.cpp:675
 msgid "Explorer restarted"
 msgstr ""
 
-#: src/AppController.cpp:647
+#: src/AppController.cpp:677
 msgid "Registering for you…"
 msgstr ""
 
-#: src/AppController.cpp:647
+#: src/AppController.cpp:677
 msgid "Shell is enabled for you"
 msgstr ""
 
-#: src/AppController.cpp:648
+#: src/AppController.cpp:678
 msgid "Restart Explorer to load it everywhere."
 msgstr ""
 
-#: src/AppController.cpp:652
+#: src/AppController.cpp:682
 msgid "Unregistering…"
 msgstr ""
 
-#: src/AppController.cpp:652
+#: src/AppController.cpp:682
 msgid "Shell is disabled for you"
 msgstr ""
 
-#: src/AppController.cpp:653 src/AppController.cpp:664
+#: src/AppController.cpp:683 src/AppController.cpp:694
 msgid "Restart Explorer to unload it."
 msgstr ""
 
-#: src/AppController.cpp:655
+#: src/AppController.cpp:685
 msgid "Creating your config…"
 msgstr ""
 
-#: src/AppController.cpp:655
+#: src/AppController.cpp:685
 msgid "Personal config created"
 msgstr ""
 
-#: src/AppController.cpp:656
+#: src/AppController.cpp:686
 msgid "Shell now reads it from %APPDATA%\\Nilesoft\\Shell."
 msgstr ""
 
-#: src/AppController.cpp:658 src/AppController.cpp:663 src/AppController.cpp:668 src/UpdateController.cpp:943
+#: src/AppController.cpp:688 src/AppController.cpp:693 src/AppController.cpp:698 src/UpdateController.cpp:943
 msgid "Waiting for administrator approval…"
 msgstr ""
 
-#: src/AppController.cpp:659
+#: src/AppController.cpp:689
 msgid "Restart Explorer to load it."
 msgstr ""
 
-#: src/AppController.cpp:664
+#: src/AppController.cpp:694
 msgid "Unregistered for all users"
 msgstr ""
 
-#: src/AppController.cpp:669
+#: src/AppController.cpp:699
 msgid "Only this copy is registered now"
 msgstr ""
 
-#: src/AppController.cpp:669
+#: src/AppController.cpp:699
 msgid "Explorer was restarted."
 msgstr ""
 
-#: src/AppController.cpp:690
+#: src/AppController.cpp:720
 msgid "Registered, but Explorer didn't restart: {}"
 msgstr ""
 
-#: src/AppController.cpp:697
+#: src/AppController.cpp:727
 msgid "Another copy is still registered: {}. Uninstall it from Settings > Apps, then try again."
 msgstr ""
 
-#: src/AppController.cpp:704 src/UpdateController.cpp:970
+#: src/AppController.cpp:734 src/UpdateController.cpp:970
 msgid "The administrator prompt was cancelled. Nothing was changed."
 msgstr ""
 
-#: src/AppController.cpp:705
+#: src/AppController.cpp:735
 msgid "Cancelled"
 msgstr ""
 
-#: src/AppController.cpp:710
+#: src/AppController.cpp:740
 msgid "That didn't work"
 msgstr ""
 
-#: src/AppController.cpp:729
+#: src/AppController.cpp:759
 msgid "Putting the default files back…"
 msgstr ""
 
-#: src/AppController.cpp:740
+#: src/AppController.cpp:770
 msgid "Before reset to defaults"
 msgstr ""
 
-#: src/AppController.cpp:741
+#: src/AppController.cpp:771
 msgid "Your current files couldn't be saved in Backups, so nothing was reset: {}"
 msgstr ""
 
-#: src/AppController.cpp:765
+#: src/AppController.cpp:795
 msgid "Your previous files are saved in Backups."
 msgstr ""
 
-#: src/AppController.cpp:768
+#: src/AppController.cpp:798
 msgid "The reset didn't work"
 msgstr ""
 
@@ -3419,7 +3439,7 @@ msgid "{n} day ago"
 msgid_plural "{n} days ago"
 msgstr[0] ""
 
-#: src/BehaviorController.cpp:270
+#: src/BehaviorController.cpp:305
 msgid "Folder for menu screenshots"
 msgstr ""
 
@@ -3500,505 +3520,513 @@ msgid "Editors and terminals you picked on the Open with page."
 msgstr ""
 
 #: src/ConfigRules.cpp:59
+msgid "Menu language"
+msgstr ""
+
+#: src/ConfigRules.cpp:59
+msgid "The menu's language, set by the Language setting in Preferences."
+msgstr ""
+
+#: src/ConfigRules.cpp:60
 msgid "The snippets you turned on on the Snippets page."
 msgstr ""
 
-#: src/ConfigRules.cpp:215
+#: src/ConfigRules.cpp:216
 msgctxt "quote"
 msgid "“{}”"
 msgstr ""
 
-#: src/ConfigRules.cpp:352
+#: src/ConfigRules.cpp:353
 msgid "in File Explorer"
 msgstr ""
 
-#: src/ConfigRules.cpp:353
+#: src/ConfigRules.cpp:354
 msgid "on the desktop"
 msgstr ""
 
-#: src/ConfigRules.cpp:354
+#: src/ConfigRules.cpp:355
 msgid "on the taskbar"
 msgstr ""
 
-#: src/ConfigRules.cpp:355
+#: src/ConfigRules.cpp:356
 msgid "in a text box"
 msgstr ""
 
-#: src/ConfigRules.cpp:356
+#: src/ConfigRules.cpp:357
 msgid "on the Start menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:380 src/ConfigRules.cpp:385
+#: src/ConfigRules.cpp:381 src/ConfigRules.cpp:386
 msgctxt "names"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:381
+#: src/ConfigRules.cpp:382
 msgid "{0} and {n} more"
 msgid_plural "{0} and {n} more"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:385
+#: src/ConfigRules.cpp:386
 msgctxt "names"
 msgid "{0} and {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:402
+#: src/ConfigRules.cpp:403
 msgctxt "type"
 msgid "folder backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:404
+#: src/ConfigRules.cpp:405
 msgctxt "type"
 msgid "drive backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:406
+#: src/ConfigRules.cpp:407
 msgctxt "type"
 msgid "virtual folder backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:408
+#: src/ConfigRules.cpp:409
 msgctxt "type"
 msgid "the This PC background"
 msgstr ""
 
-#: src/ConfigRules.cpp:410
+#: src/ConfigRules.cpp:411
 msgctxt "type"
 msgid "the Recycle Bin background"
 msgstr ""
 
-#: src/ConfigRules.cpp:412
+#: src/ConfigRules.cpp:413
 msgctxt "type"
 msgid "library backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:413
+#: src/ConfigRules.cpp:414
 msgid "{} backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:416
+#: src/ConfigRules.cpp:417
 msgctxt "type"
 msgid "files"
 msgstr ""
 
-#: src/ConfigRules.cpp:418
+#: src/ConfigRules.cpp:419
 msgctxt "type"
 msgid "folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:420
+#: src/ConfigRules.cpp:421
 msgctxt "type"
 msgid "drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:422
+#: src/ConfigRules.cpp:423
 msgctxt "type"
 msgid "USB drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:424
+#: src/ConfigRules.cpp:425
 msgctxt "type"
 msgid "DVD drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:426
+#: src/ConfigRules.cpp:427
 msgctxt "type"
 msgid "fixed drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:428
+#: src/ConfigRules.cpp:429
 msgctxt "type"
 msgid "virtual hard disks"
 msgstr ""
 
-#: src/ConfigRules.cpp:430
+#: src/ConfigRules.cpp:431
 msgctxt "type"
 msgid "removable drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:432
+#: src/ConfigRules.cpp:433
 msgctxt "type"
 msgid "network drives"
 msgstr ""
 
-#: src/ConfigRules.cpp:434
+#: src/ConfigRules.cpp:435
 msgctxt "type"
 msgid "backgrounds"
 msgstr ""
 
-#: src/ConfigRules.cpp:436
+#: src/ConfigRules.cpp:437
 msgctxt "type"
 msgid "the desktop"
 msgstr ""
 
-#: src/ConfigRules.cpp:438
+#: src/ConfigRules.cpp:439
 msgctxt "type"
 msgid "the Recycle Bin"
 msgstr ""
 
-#: src/ConfigRules.cpp:440
+#: src/ConfigRules.cpp:441
 msgctxt "type"
 msgid "This PC"
 msgstr ""
 
-#: src/ConfigRules.cpp:442
+#: src/ConfigRules.cpp:443
 msgctxt "type"
 msgid "virtual folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:444
+#: src/ConfigRules.cpp:445
 msgctxt "type"
 msgid "the taskbar"
 msgstr ""
 
-#: src/ConfigRules.cpp:446
+#: src/ConfigRules.cpp:447
 msgctxt "type"
 msgid "text boxes"
 msgstr ""
 
-#: src/ConfigRules.cpp:448
+#: src/ConfigRules.cpp:449
 msgctxt "type"
 msgid "the Start button"
 msgstr ""
 
-#: src/ConfigRules.cpp:450
+#: src/ConfigRules.cpp:451
 msgctxt "type"
 msgid "title bars"
 msgstr ""
 
-#: src/ConfigRules.cpp:452
+#: src/ConfigRules.cpp:453
 msgctxt "type"
 msgid "compressed folders"
 msgstr ""
 
-#: src/ConfigRules.cpp:454
+#: src/ConfigRules.cpp:455
 msgctxt "type"
 msgid "libraries"
 msgstr ""
 
-#: src/ConfigRules.cpp:530 src/ConfigRules.cpp:665 src/ConfigRules.cpp:673
+#: src/ConfigRules.cpp:531 src/ConfigRules.cpp:666 src/ConfigRules.cpp:674
 msgid "{} or {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:531
+#: src/ConfigRules.cpp:532
 msgid "items whose name matches {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:537
+#: src/ConfigRules.cpp:538
 msgid "the items an expression picks"
 msgstr ""
 
-#: src/ConfigRules.cpp:539
+#: src/ConfigRules.cpp:540
 msgid "every item"
 msgstr ""
 
-#: src/ConfigRules.cpp:546
+#: src/ConfigRules.cpp:547
 msgid "Removes {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:546
+#: src/ConfigRules.cpp:547
 msgid "removes it"
 msgid_plural "removes them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:550
+#: src/ConfigRules.cpp:551
 msgid "Hides {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:550
+#: src/ConfigRules.cpp:551
 msgid "hides it"
 msgid_plural "hides them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:552
+#: src/ConfigRules.cpp:553
 msgid "Disables {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:552
+#: src/ConfigRules.cpp:553
 msgid "disables it"
 msgid_plural "disables them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:554
+#: src/ConfigRules.cpp:555
 msgid "Changes when {0} is shown"
 msgstr ""
 
-#: src/ConfigRules.cpp:555
+#: src/ConfigRules.cpp:556
 msgid "changes when it is shown"
 msgid_plural "changes when they are shown"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:569
+#: src/ConfigRules.cpp:570
 msgid "Moves {0} to the top of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:569
+#: src/ConfigRules.cpp:570
 msgid "moves it to the top of {0}"
 msgid_plural "moves them to the top of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:571
+#: src/ConfigRules.cpp:572
 msgid "Moves {0} to the bottom of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:572
+#: src/ConfigRules.cpp:573
 msgid "moves it to the bottom of {0}"
 msgid_plural "moves them to the bottom of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:574
+#: src/ConfigRules.cpp:575
 msgid "Moves {0} to the middle of {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:575
+#: src/ConfigRules.cpp:576
 msgid "moves it to the middle of {0}"
 msgid_plural "moves them to the middle of {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:577
+#: src/ConfigRules.cpp:578
 msgid "Moves {0} into {1} at position {2}"
 msgstr ""
 
-#: src/ConfigRules.cpp:578
+#: src/ConfigRules.cpp:579
 msgid "moves it into {0} at position {1}"
 msgid_plural "moves them into {0} at position {1}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:580
+#: src/ConfigRules.cpp:581
 msgid "Moves {0} into {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:580
+#: src/ConfigRules.cpp:581
 msgid "moves it into {0}"
 msgid_plural "moves them into {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:583
+#: src/ConfigRules.cpp:584
 msgid "Moves {0} to the top of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:584
+#: src/ConfigRules.cpp:585
 msgid "moves it to the top of the menu"
 msgid_plural "moves them to the top of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:586
+#: src/ConfigRules.cpp:587
 msgid "Moves {0} to the bottom of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:587
+#: src/ConfigRules.cpp:588
 msgid "moves it to the bottom of the menu"
 msgid_plural "moves them to the bottom of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:589
+#: src/ConfigRules.cpp:590
 msgid "Moves {0} to the middle of the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:590
+#: src/ConfigRules.cpp:591
 msgid "moves it to the middle of the menu"
 msgid_plural "moves them to the middle of the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:592
+#: src/ConfigRules.cpp:593
 msgid "Moves {0} to position {1} in the menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:593
+#: src/ConfigRules.cpp:594
 msgid "moves it to position {0} in the menu"
 msgid_plural "moves them to position {0} in the menu"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:595
+#: src/ConfigRules.cpp:596
 msgid "Moves {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:595
+#: src/ConfigRules.cpp:596
 msgid "moves it"
 msgid_plural "moves them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:603
+#: src/ConfigRules.cpp:604
 msgid "Renames {0} to {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:603
+#: src/ConfigRules.cpp:604
 msgid "renames it to {0}"
 msgid_plural "renames them to {0}"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:612
+#: src/ConfigRules.cpp:613
 msgid "Adds a separator above {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:612
+#: src/ConfigRules.cpp:613
 msgid "adds a separator above it"
 msgid_plural "adds a separator above them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:614
+#: src/ConfigRules.cpp:615
 msgid "Adds a separator below {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:614
+#: src/ConfigRules.cpp:615
 msgid "adds a separator below it"
 msgid_plural "adds a separator below them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:616
+#: src/ConfigRules.cpp:617
 msgid "Adds separators above and below {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:617
+#: src/ConfigRules.cpp:618
 msgid "adds separators above and below it"
 msgid_plural "adds separators above and below them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:619
+#: src/ConfigRules.cpp:620
 msgid "Changes the separators around {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:620
+#: src/ConfigRules.cpp:621
 msgid "changes the separators around it"
 msgid_plural "changes the separators around them"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:623
+#: src/ConfigRules.cpp:624
 msgid "Changes the icon of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:623
+#: src/ConfigRules.cpp:624
 msgid "changes its icon"
 msgid_plural "changes their icons"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:625
+#: src/ConfigRules.cpp:626
 msgid "Shows a shortcut key on {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:625
+#: src/ConfigRules.cpp:626
 msgid "shows a shortcut key"
 msgid_plural "shows shortcut keys"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:627
+#: src/ConfigRules.cpp:628
 msgid "Adds a tip to {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:627
+#: src/ConfigRules.cpp:628
 msgid "adds a tip"
 msgid_plural "adds tips"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:629
+#: src/ConfigRules.cpp:630
 msgid "Changes the state of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:629
+#: src/ConfigRules.cpp:630
 msgid "changes its state"
 msgid_plural "changes their state"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:631
+#: src/ConfigRules.cpp:632
 msgid "Changes the command of {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:631
+#: src/ConfigRules.cpp:632
 msgid "changes its command"
 msgid_plural "changes their commands"
 msgstr[0] ""
 
-#: src/ConfigRules.cpp:633
+#: src/ConfigRules.cpp:634
 msgid "Matches {0} but changes nothing"
 msgstr ""
 
-#: src/ConfigRules.cpp:637
+#: src/ConfigRules.cpp:638
 msgctxt "actions"
 msgid "{0} and {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:637
+#: src/ConfigRules.cpp:638
 msgctxt "actions"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:645
+#: src/ConfigRules.cpp:646
 msgid "when one or more items are selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:647
+#: src/ConfigRules.cpp:648
 msgid "when several items are selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:649
+#: src/ConfigRules.cpp:650
 msgid "when nothing is selected"
 msgstr ""
 
-#: src/ConfigRules.cpp:654
+#: src/ConfigRules.cpp:655
 msgctxt "when"
 msgid "{0} {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:669
+#: src/ConfigRules.cpp:670
 msgid "for {0}"
 msgstr ""
 
-#: src/ConfigRules.cpp:675 src/ConfigRules.cpp:678
+#: src/ConfigRules.cpp:676 src/ConfigRules.cpp:679
 msgctxt "where"
 msgid "{0} {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:677 src/MenuMapController.cpp:1382
+#: src/ConfigRules.cpp:678 src/MenuMapController.cpp:1382
 msgid "in {}"
 msgstr ""
 
-#: src/ConfigRules.cpp:681
+#: src/ConfigRules.cpp:682
 msgctxt "where"
 msgid "{0}, {1}"
 msgstr ""
 
-#: src/ConfigRules.cpp:739 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:339
+#: src/ConfigRules.cpp:740 src/MenuMapController.cpp:101 src/SnippetPreview.cpp:339
 msgid "File"
 msgstr ""
 
-#: src/ConfigRules.cpp:746
+#: src/ConfigRules.cpp:747
 msgid "{} background"
 msgstr ""
 
-#: src/ConfigRules.cpp:756
+#: src/ConfigRules.cpp:757
 msgid "Recycle bin"
 msgstr ""
 
-#: src/ConfigRules.cpp:758
+#: src/ConfigRules.cpp:759
 msgid "Anything"
 msgstr ""
 
-#: src/ConfigRules.cpp:832
+#: src/ConfigRules.cpp:833
 msgid "Your own file, imported from {}."
 msgstr ""
 
-#: src/ConfigRules.cpp:846
+#: src/ConfigRules.cpp:847
 msgid "The import spans several lines"
 msgstr ""
 
-#: src/ConfigRules.cpp:847
+#: src/ConfigRules.cpp:848
 msgid "Locked: the import spans several lines."
 msgstr ""
 
-#: src/ConfigRules.cpp:851
+#: src/ConfigRules.cpp:852
 msgid "Something else shares its line"
 msgstr ""
 
-#: src/ConfigRules.cpp:852
+#: src/ConfigRules.cpp:853
 msgid "Locked: something else shares its line."
 msgstr ""
 
-#: src/ConfigRules.cpp:973
+#: src/ConfigRules.cpp:974
 msgid "Inside a menu"
 msgstr ""
 
-#: src/ConfigRules.cpp:976
+#: src/ConfigRules.cpp:977
 msgid "Shares a line with other code"
 msgstr ""
 
@@ -4331,7 +4359,7 @@ msgstr ""
 msgid "(title from an expression)"
 msgstr ""
 
-#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/ShellOverrides.cpp:290 src/ShellOverrides.cpp:299 src/SnippetsController.cpp:934
+#: src/MenuBuilderController.cpp:291 src/MenuBuilderController.cpp:539 src/MenuLanguage.cpp:127 src/OpenWithController.cpp:490 src/OpenWithController.cpp:1102 src/PendingChanges.cpp:193 src/PendingChanges.cpp:207 src/ShellOverrides.cpp:290 src/ShellOverrides.cpp:299 src/SnippetsController.cpp:934
 msgid "Couldn't read {}: {}"
 msgstr ""
 

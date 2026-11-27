@@ -26,8 +26,12 @@
 		card says which language <i>Auto</i> uses right now.</li>
 	<li>The Arabic translation was reviewed and corrected by kaser4. The app's layout stays left to right in Arabic
 		for now.</li>
-	<li>The setting only changes the app's own window. The text of Shell's menus comes from your configuration; the
-		default configuration has its own language files in <code>imports\lang</code>.</li>
+	<li>The setting also sets the language of the right-click menu. The change shows on the next right-click, with no
+		restart of File Explorer. The app keeps it in <code>imports\settings-app-lang.nss</code>, which imports the
+		matching file from <code>imports\lang</code>. <i>Auto</i> removes that file, and the menu follows Windows
+		again. A language that has no file in <code>imports\lang</code> leaves the menu as it is. This needs your
+		personal configuration (see <a href="home.html">Home</a>); a configuration in the install folder is never
+		written to.</li>
 	<li>Config keywords, file names and code samples stay in English in every language, because that is how you type
 		them in <code>shell.nss</code>.</li>
 	<li>A language that is still being translated (Spanish, for now) is not in the list until at least half of the app
