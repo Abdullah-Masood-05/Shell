@@ -2758,32 +2758,36 @@ msgid "Properties"
 msgstr "內容"
 
 #: ui/whats-new-data.slint:25
-msgid "Shell's menu in 32-bit programs"
-msgstr "32 位元程式也能使用 Shell 功能表"
+msgid "PowerShell 7 in the Terminal menu"
+msgstr "終端機選單中的 PowerShell 7"
 
 #: ui/whats-new-data.slint:26
-msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
-msgstr "32 位元程式的「開啟」與「儲存」對話方塊現在也會顯示 Shell 功能表。"
+msgid "It shows up when PowerShell 7 is installed. Hold Shift or right-click it to run it as administrator."
+msgstr "安裝 PowerShell 7 後會顯示在選單中。按住 Shift 或按一下滑鼠右鍵，即可以系統管理員身分執行。"
 
 #: ui/whats-new-data.slint:33
-msgid "Delete everything you selected at once"
-msgstr "一鍵刪除全部選取項目"
+msgid "Faster right-clicks"
+msgstr "更快的右鍵選單"
 
 #: ui/whats-new-data.slint:34
-msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
-msgstr "在自己的功能表項目中加入 io.delete(sel)，就能一次刪除所有選取的檔案或資料夾。"
+msgid "Two optional settings on the Behavior page get menus ready sooner. Both are off until you turn them on."
+msgstr "「行為」頁面上的兩個選用設定能讓選單更早準備好。兩項預設為關閉，需要時再開啟。"
 
 #: ui/whats-new-data.slint:35
-msgid "Read the docs"
-msgstr "檢視文件"
+msgid "Open Behavior"
+msgstr "開啟「行為」"
 
 #: ui/whats-new-data.slint:41
-msgid "Fix: items other programs draw themselves"
-msgstr "修正其他程式自繪的功能表項目"
+msgid "A roomier settings app"
+msgstr "更寬敞的設定應用程式"
 
 #: ui/whats-new-data.slint:42
-msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
-msgstr "XnView 預覽等功能表項目現在會採用功能表配色，並完整顯示在功能表中。"
+msgid "The window opens bigger, and Preferences has a button to reset the window size and position."
+msgstr "視窗預設更大，「偏好設定」中新增了還原視窗大小與位置的按鈕。"
+
+#: ui/whats-new-data.slint:43
+msgid "Open Preferences"
+msgstr "開啟「偏好設定」"
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."

@@ -2764,32 +2764,36 @@ msgid "Properties"
 msgstr "Propiedades"
 
 #: ui/whats-new-data.slint:25
-msgid "Shell's menu in 32-bit programs"
-msgstr "Shell también funciona en programas de 32 bits"
+msgid "PowerShell 7 in the Terminal menu"
+msgstr "PowerShell 7 en el menú Terminal"
 
 #: ui/whats-new-data.slint:26
-msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
-msgstr "Los cuadros de diálogo Abrir y Guardar de los programas de 32 bits muestran ahora el menú de Shell."
+msgid "It shows up when PowerShell 7 is installed. Hold Shift or right-click it to run it as administrator."
+msgstr "Aparece cuando PowerShell 7 está instalado. Mantén pulsada la tecla Mayús o haz clic derecho sobre él para ejecutarlo como administrador."
 
 #: ui/whats-new-data.slint:33
-msgid "Delete everything you selected at once"
-msgstr "Borra de una vez todo lo que hayas seleccionado"
+msgid "Faster right-clicks"
+msgstr "Clics derechos más rápidos"
 
 #: ui/whats-new-data.slint:34
-msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
-msgstr "Añade io.delete(sel) a tus propios elementos del menú y un solo clic borrará todos los archivos y carpetas seleccionados."
+msgid "Two optional settings on the Behavior page get menus ready sooner. Both are off until you turn them on."
+msgstr "Dos ajustes opcionales de la página Comportamiento preparan los menús antes. Ambos están desactivados hasta que los actives."
 
 #: ui/whats-new-data.slint:35
-msgid "Read the docs"
-msgstr "Ver la documentación"
+msgid "Open Behavior"
+msgstr "Abrir Comportamiento"
 
 #: ui/whats-new-data.slint:41
-msgid "Fix: items other programs draw themselves"
-msgstr "Corregidos los elementos dibujados por otras aplicaciones"
+msgid "A roomier settings app"
+msgstr "Una ventana de ajustes más amplia"
 
 #: ui/whats-new-data.slint:42
-msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
-msgstr "La vista previa de XnView y otros elementos usan ahora los colores del menú y caben por completo en él."
+msgid "The window opens bigger, and Preferences has a button to reset the window size and position."
+msgstr "La ventana se abre más grande y Preferencias tiene un botón para restablecer el tamaño y la posición de la ventana."
+
+#: ui/whats-new-data.slint:43
+msgid "Open Preferences"
+msgstr "Abrir Preferencias"
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."

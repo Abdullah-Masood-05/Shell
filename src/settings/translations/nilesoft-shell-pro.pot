@@ -2759,31 +2759,35 @@ msgid "Properties"
 msgstr ""
 
 #: ui/whats-new-data.slint:25
-msgid "Shell's menu in 32-bit programs"
+msgid "PowerShell 7 in the Terminal menu"
 msgstr ""
 
 #: ui/whats-new-data.slint:26
-msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
+msgid "It shows up when PowerShell 7 is installed. Hold Shift or right-click it to run it as administrator."
 msgstr ""
 
 #: ui/whats-new-data.slint:33
-msgid "Delete everything you selected at once"
+msgid "Faster right-clicks"
 msgstr ""
 
 #: ui/whats-new-data.slint:34
-msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
+msgid "Two optional settings on the Behavior page get menus ready sooner. Both are off until you turn them on."
 msgstr ""
 
 #: ui/whats-new-data.slint:35
-msgid "Read the docs"
+msgid "Open Behavior"
 msgstr ""
 
 #: ui/whats-new-data.slint:41
-msgid "Fix: items other programs draw themselves"
+msgid "A roomier settings app"
 msgstr ""
 
 #: ui/whats-new-data.slint:42
-msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
+msgid "The window opens bigger, and Preferences has a button to reset the window size and position."
+msgstr ""
+
+#: ui/whats-new-data.slint:43
+msgid "Open Preferences"
 msgstr ""
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48

@@ -2758,32 +2758,36 @@ msgid "Properties"
 msgstr "属性"
 
 #: ui/whats-new-data.slint:25
-msgid "Shell's menu in 32-bit programs"
-msgstr "32 位程序也能使用 Shell 菜单"
+msgid "PowerShell 7 in the Terminal menu"
+msgstr "终端菜单中的 PowerShell 7"
 
 #: ui/whats-new-data.slint:26
-msgid "The Open and Save dialogs of 32-bit apps now show Shell's menu too."
-msgstr "32 位程序的“打开”和“保存”对话框现在也会显示 Shell 菜单。"
+msgid "It shows up when PowerShell 7 is installed. Hold Shift or right-click it to run it as administrator."
+msgstr "安装 PowerShell 7 后会显示在菜单中。按住 Shift 或右键单击它，即可以管理员身份运行。"
 
 #: ui/whats-new-data.slint:33
-msgid "Delete everything you selected at once"
-msgstr "一键删除全部选中项"
+msgid "Faster right-clicks"
+msgstr "更快的右键菜单"
 
 #: ui/whats-new-data.slint:34
-msgid "Add io.delete(sel) to your own items and one click deletes the whole selection."
-msgstr "在自己的菜单项中加入 io.delete(sel)，就能一次删除所有选中的文件或文件夹。"
+msgid "Two optional settings on the Behavior page get menus ready sooner. Both are off until you turn them on."
+msgstr "“行为”页面上的两个可选设置能让菜单更早准备好。两项默认关闭，需要时再开启。"
 
 #: ui/whats-new-data.slint:35
-msgid "Read the docs"
-msgstr "查看文档"
+msgid "Open Behavior"
+msgstr "打开“行为”"
 
 #: ui/whats-new-data.slint:41
-msgid "Fix: items other programs draw themselves"
-msgstr "修复其他程序自绘的菜单项"
+msgid "A roomier settings app"
+msgstr "更宽敞的设置应用"
 
 #: ui/whats-new-data.slint:42
-msgid "Items like XnView's preview now use the menu's colours and fit inside the menu."
-msgstr "XnView 预览等菜单项现在会采用菜单配色，并完整显示在菜单中。"
+msgid "The window opens bigger, and Preferences has a button to reset the window size and position."
+msgstr "窗口默认更大，“偏好设置”中新增了恢复窗口大小和位置的按钮。"
+
+#: ui/whats-new-data.slint:43
+msgid "Open Preferences"
+msgstr "打开“偏好设置”"
 
 #: src/AppController.cpp:84 src/ConfigUpdateController.cpp:48
 msgid "shell.exe did not finish in time and was stopped."

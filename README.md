@@ -44,6 +44,13 @@
 
 Nilesoft Shell Pro is not on winget, Scoop, Chocolatey or any other package manager yet. The packages there install the original Nilesoft Shell.
 
+## What's new in 2.3.2
+
+- **PowerShell 7 in the Terminal menu** when it is installed. Press Shift or right-click it to run it as administrator.
+- **Faster right-clicks, if you want them.** Two optional settings on the Behavior page get Windows' menus ready when File Explorer starts and keep other apps' menu items loaded. Both are off until you turn them on.
+- **The What's New page is translated** into Simplified Chinese, Traditional Chinese, Spanish and Arabic.
+- **Settings app polish:** no black box around a sidebar item you click, a bigger window on a new install, and a Reset window size and position button in Preferences.
+
 ## What's new in 2.3.1
 
 - **32-bit programs show Shell's menu**, for example in the Open and Save dialogs of 32-bit apps.
