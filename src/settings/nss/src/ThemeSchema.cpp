@@ -119,6 +119,9 @@ namespace nss
 				// settings (Parser::parse_settings)
 				add("settings.priority", ValueType::Number);
 				add("settings.showdelay", ValueType::Number, 0, 4000);
+				add("settings.preload.enabled", ValueType::Bool);
+				add("settings.preload.types", ValueType::Any);
+				add("settings.keepalive", ValueType::Bool);
 				add("settings.screenshot.enabled", ValueType::Bool);
 				add("settings.screenshot.directory", ValueType::String);
 				add("settings.exclude.where", ValueType::Any);
@@ -160,6 +163,7 @@ namespace nss
 				alias("settings.screenshot", "settings.screenshot.enabled");
 				alias("settings.exclude", "settings.exclude.where");
 				alias("settings.tip", "settings.tip.enabled");
+				alias("settings.preload", "settings.preload.enabled");
 				alias("settings.modify", "settings.modify.enabled");
 				alias("settings.new", "settings.new.enabled");
 			}

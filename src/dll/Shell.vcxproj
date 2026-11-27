@@ -168,6 +168,7 @@
     <ClInclude Include="src\Include\MenuItem.h" />
     <ClInclude Include="src\Include\Selections.h" />
     <ClInclude Include="src\Include\ContextMenu.h" />
+    <ClInclude Include="src\Include\Warm.h" />
     <ClInclude Include="src\Parser\Ident.h" />
     <ClInclude Include="src\Expression\Expression.h" />
     <ClInclude Include="src\Parser\Parser.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="src\ContextMenu.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Initializer.cpp" />
+    <ClCompile Include="src\Warm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(SolutionDir)shared\Resource\Shell.rc" />

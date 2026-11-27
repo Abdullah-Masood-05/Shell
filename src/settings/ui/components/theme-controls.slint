@@ -31,6 +31,7 @@ export component FieldLabel inherits VerticalLayout {
     in property <ThemeField> field;
     in property <string> hint;
     in property <bool> strong;  // a card title
+    in property <bool> inline-reset: true;  // false: the owner shows its own reset button
     callback reset();
 
     spacing: 2px;
@@ -59,7 +60,7 @@ export component FieldLabel inherits VerticalLayout {
                 accessible-label: root.field.overridden ? @tr("Set by this app") : @tr("Reset pending");
             }
         }
-        if (root.field.overridden || root.field.pending) && !root.field.locked: Rectangle {
+        if root.inline-reset && (root.field.overridden || root.field.pending) && !root.field.locked: Rectangle {
             width: reset-row.preferred-width + 8px;
             border-radius: Tokens.radius-sm;
             background: reset-ta.has-hover ? Tokens.hover : transparent;

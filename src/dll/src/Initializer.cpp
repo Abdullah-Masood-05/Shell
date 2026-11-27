@@ -303,6 +303,16 @@ namespace Nilesoft
 			return changed;
 		}
 
+		uint64_t Initializer::config_stamp()
+		{
+			// FNV-1a constants.
+			uint64_t stamp = 0xCBF29CE484222325ull;
+			std::lock_guard lock(_watched_lock);
+			for(auto &file : _watched)
+				stamp = (stamp ^ file.time) * 0x100000001B3ull;
+			return stamp;
+		}
+
 		bool Initializer::has_error(bool detect_changes)
 		{
 			if(!Status.Error)
