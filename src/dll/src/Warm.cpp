@@ -21,50 +21,30 @@ namespace Nilesoft
 
 				thread_local bool preloading = false;
 
-				// Calls f with a context like a menu's and the loaded config's
-				// settings; false while no config is loaded.
-				template<typename F>
-				bool with_settings(F &&f) noexcept
+				// Copied from the config when it loads.
+				// A reload deletes the cache, so these threads never read it.
+				struct settings_t
 				{
-					try
-					{
-						auto initializer = Initializer::instance;
-						auto cache = initializer ? initializer->cache : nullptr;
-						if(!cache)
-							return false;
+					bool loaded = false;
+					bool preload = false;
+					bool types_set = false;				// settings.preload.types is set
+					std::vector<std::wstring> types;	// its values, as written
+				};
+				SRWLOCK settings_lock = SRWLOCK_INIT;
+				settings_t settings_now;
+				std::atomic_bool keepalive_set{ false };
 
-						Selections selected;
-						Keyboard keyboard;
-						Context context;
-						context.Selections = &selected;
-						context.Application = &initializer->application;
-						context.Cache = cache;
-						context.Keyboard = &keyboard;
-						context.variables.global = &cache->variables.global;
-						context.variables.runtime = &cache->variables.runtime;
-						context.variables.local = nullptr;
-						return f(context, cache->settings);
-					}
-					catch(...)
-					{
-					}
-					return false;
+				settings_t copy_settings()
+				{
+					::AcquireSRWLockShared(&settings_lock);
+					settings_t copy = settings_now;
+					::ReleaseSRWLockShared(&settings_lock);
+					return copy;
 				}
 
 				bool keepalive_on() noexcept
 				{
-					return with_settings([](Context &context, Settings &settings)
-					{
-						return settings.keepalive && context.eval_bool(settings.keepalive);
-					});
-				}
-
-				bool preload_on() noexcept
-				{
-					return with_settings([](Context &context, Settings &settings)
-					{
-						return settings.preload.enabled && context.eval_bool(settings.preload.enabled);
-					});
+					return keepalive_set;
 				}
 
 				bool contains(const std::vector<GUID> &list, REFCLSID clsid)
@@ -335,27 +315,14 @@ namespace Nilesoft
 							}
 						};
 
-						bool set = with_settings([&](Context &context, Settings &settings)
+						auto settings = copy_settings();
+						if(!settings.types_set)
 						{
-							if(!settings.preload.types)
-								return false;
-							Object value = context.Eval(settings.preload.types).move();
-							if(value.is_array())
-							{
-								auto ptr = value.ptr();
-								int count = ptr[0];
-								for(int i = 0; i < count; i++)
-									add(ptr[i + 1].to_string().c_str());
-							}
-							else if(value.is_string())
-							{
-								add(value.to_string().c_str());
-							}
-							return true;
-						});
-
-						if(!set)
 							list.assign(std::begin(DefaultTypes), std::end(DefaultTypes));
+							return list;
+						}
+						for(auto &value : settings.types)
+							add(value.c_str());
 						return list;
 					}
 
@@ -487,11 +454,14 @@ namespace Nilesoft
 						for(DWORD waited = 0; !Initializer::Status.Loaded && waited < ConfigWait; waited += 250)
 							::Sleep(250);
 
-						if(!Initializer::Status.Loaded || !preload_on())
+						if(!Initializer::Status.Loaded)
 							return 0;
 
 						try
 						{
+							if(!copy_settings().preload)
+								return 0;
+
 							auto stamp = Initializer::instance->config_stamp();
 							if(unfinished(stamp))
 							{
@@ -513,6 +483,7 @@ namespace Nilesoft
 
 						if(SUCCEEDED(::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
 						{
+							std::vector<std::wstring> samples;
 							try
 							{
 								// The loaded config file and its folder: always there, and
@@ -533,6 +504,7 @@ namespace Nilesoft
 									auto path = sample(ext);
 									if(path.empty())
 										continue;
+									samples.push_back(path);
 									item(path.c_str());
 									built += built.empty() ? L"" : L", ";
 									built += ext;
@@ -549,6 +521,11 @@ namespace Nilesoft
 							{
 							}
 							::CoUninitialize();
+
+							for(auto &path : samples)
+								::DeleteFileW(path.c_str());
+							if(!samples.empty())
+								::RemoveDirectoryW(Path::Parent(samples.front().c_str()).c_str());
 						}
 
 						clear_mark();
@@ -682,6 +659,68 @@ namespace Nilesoft
 				{
 				}
 				return false;
+			}
+
+			void ConfigLoaded() noexcept
+			{
+				settings_t copy;
+				bool keepalive = false;
+				try
+				{
+					auto initializer = Initializer::instance;
+					auto cache = initializer ? initializer->cache : nullptr;
+					if(cache)
+					{
+						Selections selected;
+						Keyboard keyboard;
+						Context context;
+						context.Selections = &selected;
+						context.Application = &initializer->application;
+						context.Cache = cache;
+						context.Keyboard = &keyboard;
+						context.variables.global = &cache->variables.global;
+						context.variables.runtime = &cache->variables.runtime;
+						context.variables.local = nullptr;
+
+						auto &settings = cache->settings;
+						copy.loaded = true;
+						copy.preload = settings.preload.enabled && context.eval_bool(settings.preload.enabled);
+						keepalive = settings.keepalive && context.eval_bool(settings.keepalive);
+						if(settings.preload.types)
+						{
+							copy.types_set = true;
+							Object value = context.Eval(settings.preload.types).move();
+							if(value.is_array())
+							{
+								auto ptr = value.ptr();
+								int count = ptr[0];
+								for(int i = 0; i < count; i++)
+									copy.types.emplace_back(ptr[i + 1].to_string().c_str());
+							}
+							else if(value.is_string())
+							{
+								copy.types.emplace_back(value.to_string().c_str());
+							}
+						}
+					}
+				}
+				catch(...)
+				{
+				}
+
+				::AcquireSRWLockExclusive(&settings_lock);
+				std::swap(settings_now, copy);
+				::ReleaseSRWLockExclusive(&settings_lock);
+				keepalive_set = keepalive;
+			}
+
+			void ConfigUnloaded() noexcept
+			{
+				settings_t none;
+				::AcquireSRWLockExclusive(&settings_lock);
+				std::swap(settings_now, none);
+				::ReleaseSRWLockExclusive(&settings_lock);
+				keepalive_set = false;
 			}
 
 			void StartPreload() noexcept
