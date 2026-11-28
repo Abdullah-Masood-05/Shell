@@ -44,7 +44,8 @@ namespace Nilesoft
 			// settings Warm needs, so its threads never read the cache, which a
 			// reload deletes.
 			void ConfigLoaded() noexcept;
-			void ConfigUnloaded() noexcept;
+			// keepaliveOff: no load follows (failed or disabled), so keepalive ends.
+			void ConfigUnloaded(bool keepaliveOff) noexcept;
 
 			// Explorer only, once per process: start the preload thread.
 			void StartPreload() noexcept;

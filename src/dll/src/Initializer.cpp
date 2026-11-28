@@ -196,7 +196,9 @@ namespace Nilesoft
 
 		bool Initializer::uninit()
 		{
-			Warm::ConfigUnloaded();
+			// Status.Error / Disabled: no load follows, so keepalive ends with it.
+			// Otherwise this is a reload and the load after it decides.
+			Warm::ConfigUnloaded(Status.Error || Status.Disabled);
 			__try
 			{
 				if(cache)

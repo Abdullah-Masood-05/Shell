@@ -27,6 +27,7 @@ namespace Nilesoft
 				{
 					bool loaded = false;
 					bool preload = false;
+					std::wstring config;				// the config file it came from
 					bool types_set = false;				// settings.preload.types is set
 					std::vector<std::wstring> types;	// its values, as written
 				};
@@ -297,7 +298,7 @@ namespace Nilesoft
 
 					// settings.preload.types: an extension, a list of them (['jpg', 'pdf'])
 					// or several in one string ('jpg|pdf'); unset, DefaultTypes.
-					std::vector<std::wstring> types()
+					std::vector<std::wstring> types(const settings_t &settings)
 					{
 						std::vector<std::wstring> list;
 						auto add = [&](const wchar_t *text)
@@ -315,7 +316,6 @@ namespace Nilesoft
 							}
 						};
 
-						auto settings = copy_settings();
 						if(!settings.types_set)
 						{
 							list.assign(std::begin(DefaultTypes), std::end(DefaultTypes));
@@ -457,9 +457,13 @@ namespace Nilesoft
 						if(!Initializer::Status.Loaded)
 							return 0;
 
+						// One copy for the whole run, so preload, the types and the config
+						// path can't come from two different loads if the config reloads.
+						settings_t settings;
 						try
 						{
-							if(!copy_settings().preload)
+							settings = copy_settings();
+							if(!settings.preload)
 								return 0;
 
 							auto stamp = Initializer::instance->config_stamp();
@@ -488,7 +492,9 @@ namespace Nilesoft
 							{
 								// The loaded config file and its folder: always there, and
 								// local, so nothing waits for a network drive.
-								string file = Initializer::instance->application.Config;
+								// From the copy: application.Config is reassigned on every
+								// parse, so reading it here could hit freed memory.
+								string file = settings.config.c_str();
 								string folder = Path::Parent(file).move();
 
 								auto start = ::GetTickCount64();
@@ -499,7 +505,7 @@ namespace Nilesoft
 
 								// And an empty file of each of settings.preload.types.
 								std::wstring built;
-								for(auto &ext : types())
+								for(auto &ext : types(settings))
 								{
 									auto path = sample(ext);
 									if(path.empty())
@@ -684,6 +690,7 @@ namespace Nilesoft
 
 						auto &settings = cache->settings;
 						copy.loaded = true;
+						copy.config = initializer->application.Config.c_str();
 						copy.preload = settings.preload.enabled && context.eval_bool(settings.preload.enabled);
 						keepalive = settings.keepalive && context.eval_bool(settings.keepalive);
 						if(settings.preload.types)
@@ -714,13 +721,20 @@ namespace Nilesoft
 				keepalive_set = keepalive;
 			}
 
-			void ConfigUnloaded() noexcept
+			void ConfigUnloaded(bool keepaliveOff) noexcept
 			{
 				settings_t none;
 				::AcquireSRWLockExclusive(&settings_lock);
 				std::swap(settings_now, none);
 				::ReleaseSRWLockExclusive(&settings_lock);
-				keepalive_set = false;
+
+				// A reload unloads first, and another thread creating a handler in
+				// that gap must not see keepalive off: it would release everything
+				// held. So a reload leaves it as it was and the load that follows
+				// sets it. Only when no load follows (the config failed or Shell is
+				// disabled) is it turned off here.
+				if(keepaliveOff)
+					keepalive_set = false;
 			}
 
 			void StartPreload() noexcept
