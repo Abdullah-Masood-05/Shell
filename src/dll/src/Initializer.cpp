@@ -2,6 +2,7 @@
 #include <pch.h>
 #include "Include\Hooker.h"
 #include "Include/ContextMenu.h"
+#include "Include/Warm.h"
 
 namespace Nilesoft
 {
@@ -172,6 +173,7 @@ namespace Nilesoft
 
 					cache->fonts.init(HInstance);
 					ContextMenu::FontNotFound = false;
+					Warm::ConfigLoaded();
 				}
 
 				LastError = {};
@@ -194,6 +196,7 @@ namespace Nilesoft
 
 		bool Initializer::uninit()
 		{
+			Warm::ConfigUnloaded();
 			__try
 			{
 				if(cache)
