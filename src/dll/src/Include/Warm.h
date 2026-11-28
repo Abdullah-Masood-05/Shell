@@ -40,6 +40,12 @@ namespace Nilesoft
 			// caller activates it as usual.
 			bool CreateFromFactory(REFCLSID clsid, DWORD context, IUnknown *outer, REFIID riid, void **ppv, HRESULT &hr) noexcept;
 
+			// The config was loaded (on this thread) or unloaded. Copies the
+			// settings Warm needs, so its threads never read the cache, which a
+			// reload deletes.
+			void ConfigLoaded() noexcept;
+			void ConfigUnloaded() noexcept;
+
 			// Explorer only, once per process: start the preload thread.
 			void StartPreload() noexcept;
 
